@@ -77,7 +77,6 @@ import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
@@ -401,12 +400,12 @@ public class ClustersTest {
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "1",
         new HashMap<String, String>() {{
           put("prop1", "val1");
-        }}, new HashMap<String, Map<String,String>>());
+        }}, new HashMap<>());
 
     Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "2",
         new HashMap<String, String>() {{
           put("prop2", "val2");
-        }}, new HashMap<String, Map<String,String>>());
+        }}, new HashMap<>());
 
     // cluster desired config
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
@@ -465,8 +464,8 @@ public class ClustersTest {
     expect(bp.getName()).andReturn("TestBluePrint").anyTimes();
 
     Configuration clusterConfig = new Configuration(
-      Maps.<String, Map<String, String>>newHashMap(),
-      Maps.<String, Map<String, Map<String, String>>>newHashMap()
+      Maps.newHashMap(),
+      Maps.newHashMap()
       );
 
     Map<String, HostGroupInfo> hostGroups = Maps.newHashMap();
@@ -563,8 +562,8 @@ public class ClustersTest {
     expect(bp.getName()).andReturn("TestBluePrint").anyTimes();
 
     Configuration clusterConfig = new Configuration(
-      Maps.<String, Map<String, String>>newHashMap(),
-      Maps.<String, Map<String, Map<String, String>>>newHashMap()
+      Maps.newHashMap(),
+      Maps.newHashMap()
     );
 
     Map<String, HostGroupInfo> hostGroups = new HashMap<>();
@@ -596,7 +595,7 @@ public class ClustersTest {
     expect(hr.getHostgroupName()).andReturn("MyHostGroup").anyTimes();
     expect(hr.getHostName()).andReturn(hostName).anyTimes();
     expect(hr.getStageId()).andReturn(1L);
-    expect(hr.getTopologyTasks()).andReturn(Collections.<TopologyTask>emptyList());
+    expect(hr.getTopologyTasks()).andReturn(Collections.emptyList());
 
     replay(hr);
     return hr;

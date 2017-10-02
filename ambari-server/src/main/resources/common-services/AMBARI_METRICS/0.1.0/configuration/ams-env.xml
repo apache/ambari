@@ -27,6 +27,12 @@
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -74,9 +80,13 @@
     <name>metrics_collector_heapsize</name>
     <value>512</value>
     <description>Metrics Collector Heap Size</description>
+    <display-name>Metrics Collector Heap Size</display-name>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
+      <minimum>512</minimum>
+      <maximum>16384</maximum>
+      <increment-step>256</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

@@ -49,6 +49,8 @@ class KerberosClient(KerberosScript):
   def remove_keytab(self, env):
     self.delete_keytab_file()
 
+  def check_keytabs(self, env):
+    self.find_missing_keytabs()
 
 if __name__ == "__main__":
   KerberosClient().execute()

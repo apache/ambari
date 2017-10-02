@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -58,6 +59,7 @@ import org.apache.ambari.server.state.scheduler.BatchSettings;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.apache.ambari.server.utils.DateUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 import org.quartz.CronExpression;
 import org.quartz.JobDetail;
@@ -114,6 +116,8 @@ public class ExecutionScheduleManager {
   protected static final String REQUESTS_ABORTED_TASKS_KEY = "aborted_task_count";
   protected static final String REQUESTS_TIMEDOUT_TASKS_KEY = "timed_out_task_count";
   protected static final String REQUESTS_TOTAL_TASKS_KEY = "task_count";
+
+  protected static final Pattern CONTAINS_API_VERSION_PATTERN = Pattern.compile("^/?" + DEFAULT_API_PATH+ ".*");
 
   @Inject
   public ExecutionScheduleManager(Configuration configuration,
@@ -662,7 +666,7 @@ public class ExecutionScheduleManager {
   }
 
   protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
-    WebResource webResource = ambariWebResource.path(relativeUri);
+    WebResource webResource = extendApiResource(ambariWebResource, relativeUri);
     if (queryAllFields) {
       webResource = webResource.queryParam("fields", "*");
     }
@@ -678,7 +682,8 @@ public class ExecutionScheduleManager {
   protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method, Integer userId) {
     ClientResponse response;
     try {
-      response = ambariWebResource.path(relativeUri).header(USER_ID_HEADER, userId).method(method, ClientResponse.class, body);
+      response = extendApiResource(ambariWebResource, relativeUri)
+          .header(USER_ID_HEADER, userId).method(method, ClientResponse.class, body);
     } catch (UniformInterfaceException e) {
       response = e.getResponse();
     }
@@ -793,6 +798,20 @@ public class ExecutionScheduleManager {
     if (markCompleted) {
       requestExecution.updateStatus(RequestExecution.Status.COMPLETED);
     }
+  }
+
+  /**
+   * Returns the absolute web resource with {@link #DEFAULT_API_PATH}
+   * @param webResource Ambari WebResource as provided by the client {@link #ambariWebResource}
+   * @param relativeUri relative request URI
+   * @return  Extended WebResource
+   */
+  protected WebResource extendApiResource(WebResource webResource, String relativeUri) {
+    WebResource result = webResource;
+    if (StringUtils.isNotEmpty(relativeUri) && !CONTAINS_API_VERSION_PATTERN.matcher(relativeUri).matches()) {
+      result = webResource.path(DEFAULT_API_PATH);
+    }
+    return result.path(relativeUri);
   }
 }
 

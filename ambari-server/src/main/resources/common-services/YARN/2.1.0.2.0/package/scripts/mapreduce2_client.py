@@ -24,7 +24,7 @@ import sys
 
 # Local imports
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
@@ -66,12 +66,9 @@ class MapReduce2Client(Script):
     config_dir = self.get_config_dir_during_stack_upgrade(env, base_dir, conf_select_name)
 
     if config_dir:
-      Logger.info("stack_upgrade_save_new_config(): Calling conf-select on %s using version %s" % (conf_select_name, str(params.version)))
-
       # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
       # must change it now so this function can find the Jinja Templates for the service.
       env.config.basedir = base_dir
-      conf_select.select(params.stack_name, conf_select_name, params.version)
       self.configure(env, config_dir=config_dir)
 
 
@@ -82,16 +79,12 @@ class MapReduce2ClientWindows(MapReduce2Client):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class MapReduce2ClientDefault(MapReduce2Client):
-  def get_component_name(self):
-    return "hadoop-client"
-
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-client", params.version)
+      stack_select.select_packages(params.version)
 
 
 if __name__ == "__main__":

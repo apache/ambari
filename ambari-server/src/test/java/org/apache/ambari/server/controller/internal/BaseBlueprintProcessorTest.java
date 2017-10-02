@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.state.DependencyInfo;
@@ -51,7 +50,7 @@ public class BaseBlueprintProcessorTest {
         Collections.<StackServiceResponse> emptySet());
 
     expect(mockMgmtController.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
         // test dependencies
     final DependencyInfo hCatDependency = new TestDependencyInfo("HIVE/HCAT");
@@ -153,7 +152,7 @@ public class BaseBlueprintProcessorTest {
         Collections.<StackServiceResponse> emptySet());
 
     expect(mockMgmtController.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
     // test dependencies
     final DependencyInfo yarnClientDependency = new TestDependencyInfo(
@@ -252,7 +251,7 @@ public class BaseBlueprintProcessorTest {
         Collections.<StackServiceResponse> emptySet());
 
     expect(mockMgmtController.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
     // test dependencies
     final DependencyInfo hCatDependency = new TestDependencyInfo("HIVE/HCAT");
@@ -348,7 +347,7 @@ public class BaseBlueprintProcessorTest {
         Collections.<StackServiceResponse> emptySet());
 
     expect(mockMgmtController.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
     // test dependencies
     final DependencyInfo hCatDependency = new TestDependencyInfo("HIVE/HCAT");
@@ -446,7 +445,7 @@ public class BaseBlueprintProcessorTest {
         Collections.<StackServiceResponse> emptySet());
 
     expect(mockMgmtController.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
     // test dependencies
     final DependencyInfo hCatDependency = new TestDependencyInfo("HIVE/HCAT");
@@ -542,7 +541,7 @@ public class BaseBlueprintProcessorTest {
         Collections.<StackServiceResponse> emptySet());
 
     expect(mockMgmtController.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
     // test dependencies
     final DependencyInfo hCatDependency = new TestDependencyInfo("HIVE/HCAT");

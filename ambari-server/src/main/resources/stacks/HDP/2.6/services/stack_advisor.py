@@ -32,6 +32,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       parentRecommendConfDict = super(HDP26StackAdvisor, self).getServiceConfigurationRecommenderDict()
       childRecommendConfDict = {
         "DRUID": self.recommendDruidConfigurations,
+        "SUPERSET": self.recommendSupersetConfigurations,
         "ATLAS": self.recommendAtlasConfigurations,
         "TEZ": self.recommendTezConfigurations,
         "RANGER": self.recommendRangerConfigurations,
@@ -41,40 +42,31 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "HBASE": self.recommendHBASEConfigurations,
         "YARN": self.recommendYARNConfigurations,
         "KAFKA": self.recommendKAFKAConfigurations,
-        "BEACON": self.recommendBEACONConfigurations
+        "SPARK2": self.recommendSPARK2Configurations,
+        "ZEPPELIN": self.recommendZEPPELINConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
 
-  def recommendBEACONConfigurations(self, configurations, clusterData, services, hosts):
-    beaconEnvProperties = self.getSiteProperties(services['configurations'], 'beacon-env')
-    putbeaconEnvProperty = self.putProperty(configurations, "beacon-env", services)
+  def recommendSPARK2Configurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    super(HDP26StackAdvisor, self).recommendSpark2Configurations(configurations, clusterData, services, hosts)
+    self.__addZeppelinToLivy2SuperUsers(configurations, services)
 
-    # database URL and driver class recommendations
-    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_driver') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
-      putbeaconEnvProperty('beacon_store_driver', self.getDBDriver(beaconEnvProperties['beacon_database']))
-    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_db_name', 'beacon_store_url') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
-      beaconServerHost = self.getHostWithComponent('BEACON', 'BEACON_SERVER', services, hosts)
-      beaconDBConnectionURL = beaconEnvProperties['beacon_store_url']
-      protocol = self.getProtocol(beaconEnvProperties['beacon_database'])
-      oldSchemaName = self.getOldValue(services, "beacon-env", "beacon_store_db_name")
-      oldDBType = self.getOldValue(services, "beacon-env", "beacon_database")
-      # under these if constructions we are checking if beacon server hostname available,
-      # if it's default db connection url with "localhost" or if schema name was changed or if db type was changed (only for db type change from default mysql to existing mysql)
-      # or if protocol according to current db type differs with protocol in db connection url(other db types changes)
-      if beaconServerHost is not None:
-        if (beaconDBConnectionURL and "//localhost" in beaconDBConnectionURL) or oldSchemaName or oldDBType or (protocol and beaconDBConnectionURL and not beaconDBConnectionURL.startswith(protocol)):
-          dbConnection = self.getDBConnectionStringBeacon(beaconEnvProperties['beacon_database']).format(beaconServerHost['Hosts']['host_name'], beaconEnvProperties['beacon_store_db_name'])
-          putbeaconEnvProperty('beacon_store_url', dbConnection)
-
-  def getDBConnectionStringBeacon(self, databaseType):
-    driverDict = {
-      'NEW DERBY DATABASE': 'jdbc:derby:${{beacon.data.dir}}/${{beacon.store.db.name}}-db;create=true',
-      'EXISTING MYSQL DATABASE': 'jdbc:mysql://{0}/{1}',
-      'EXISTING MYSQL / MARIADB DATABASE': 'jdbc:mysql://{0}/{1}',
-      'EXISTING ORACLE DATABASE': 'jdbc:oracle:thin:@//{0}:1521/{1}'
-    }
-    return driverDict.get(databaseType.upper())
+  def recommendZEPPELINConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    super(HDP26StackAdvisor, self).recommendZeppelinConfigurations(configurations, clusterData, services, hosts)
+    self.__addZeppelinToLivy2SuperUsers(configurations, services)
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendAtlasConfigurations(configurations, clusterData, services, hosts)
@@ -136,7 +128,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           # recommend HDFS as default deep storage
           extensions_load_list = self.addToList(extensions_load_list, "druid-hdfs-storage")
           putCommonProperty("druid.storage.type", "hdfs")
-          putCommonProperty("druid.storage.storageDirectory", "/user/druid/data")
+          putCommonProperty("druid.storage.storageDirectory", "/apps/druid/warehouse")
           # configure indexer logs configs
           putCommonProperty("druid.indexer.logs.type", "hdfs")
           putCommonProperty("druid.indexer.logs.directory", "/user/druid/logs")
@@ -165,11 +157,12 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
               putComponentProperty('druid.processing.numThreads', processingThreads)
               putComponentProperty('druid.server.http.numThreads', max(10, (totalAvailableCpu * 17) / 16 + 2) + 30)
 
+  def recommendSupersetConfigurations(self, configurations, clusterData, services, hosts):
       # superset is in list of services to be installed
-      if 'druid-superset' in services['configurations']:
+      if 'superset' in services['configurations']:
         # Recommendations for Superset
-        superset_database_type = services['configurations']["druid-superset"]["properties"]["SUPERSET_DATABASE_TYPE"]
-        putSupersetProperty = self.putProperty(configurations, "druid-superset", services)
+        superset_database_type = services['configurations']["superset"]["properties"]["SUPERSET_DATABASE_TYPE"]
+        putSupersetProperty = self.putProperty(configurations, "superset", services)
 
         if superset_database_type == "mysql":
             putSupersetProperty("SUPERSET_DATABASE_PORT", "3306")
@@ -587,6 +580,53 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'delete', 'true')
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'delete', 'true')
 
+    # druid is not in list of services to be installed
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'DRUID' in servicesList:
+        putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
+        if 'druid-coordinator' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_COORDINATOR', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            druid_coordinator_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-coordinator']['properties']['druid.port'])
+        else:
+            druid_coordinator_host_port = "localhost:8081"
+
+        if 'druid-router' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_ROUTER', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            print host
+            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-router']['properties']['druid.port'])
+        elif 'druid-broker' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_BROKER', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-broker']['properties']['druid.port'])
+        else:
+            druid_broker_host_port = "localhost:8083"
+
+        if 'druid-common' in services['configurations']:
+            druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
+            druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']
+            if 'druid.metadata.storage.connector.user' in services['configurations']['druid-common']['properties']:
+                druid_metadata_user = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.user']
+            else:
+                druid_metadata_user = ""
+
+        putHiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
+        putHiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
+        putHiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
+        putHiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
+        putHiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
+
+
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
     if 'hbase-env' in services['configurations'] and 'hbase_user' in services['configurations']['hbase-env']['properties']:
@@ -628,3 +668,39 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerKafkaPluginProperty("REPOSITORY_CONFIG_USERNAME",kafka_user)
     else:
       self.logger.info("Not setting Kafka Repo user for Ranger.")
+
+  def __addZeppelinToLivy2SuperUsers(self, configurations, services):
+    """
+    If Kerberos is enabled AND Zeppelin is installed AND Spark2 Livy Server is installed, then set
+    livy2-conf/livy.superusers to contain the Zeppelin principal name from
+    zeppelin-env/zeppelin.server.kerberos.principal
+
+    :param configurations:
+    :param services:
+    """
+    if self.isSecurityEnabled(services):
+      zeppelin_env = self.getServicesSiteProperties(services, "zeppelin-env")
+
+      if zeppelin_env and 'zeppelin.server.kerberos.principal' in zeppelin_env:
+        zeppelin_principal = zeppelin_env['zeppelin.server.kerberos.principal']
+        zeppelin_user = zeppelin_principal.split('@')[0] if zeppelin_principal else None
+
+        if zeppelin_user:
+          livy2_conf = self.getServicesSiteProperties(services, 'livy2-conf')
+
+          if livy2_conf:
+            superusers = livy2_conf['livy.superusers'] if livy2_conf and 'livy.superusers' in livy2_conf else None
+
+            # add the Zeppelin user to the set of users
+            if superusers:
+              _superusers = superusers.split(',')
+              _superusers = [x.strip() for x in _superusers]
+              _superusers = filter(None, _superusers)  # Removes empty string elements from array
+            else:
+              _superusers = []
+
+            if zeppelin_user not in _superusers:
+              _superusers.append(zeppelin_user)
+
+              putLivy2ConfProperty = self.putProperty(configurations, 'livy2-conf', services)
+              putLivy2ConfProperty('livy.superusers', ','.join(_superusers))

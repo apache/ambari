@@ -29,8 +29,6 @@ import java.util.Collections;
 import javax.persistence.EntityManager;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -309,7 +307,7 @@ public class AmbariAuthorizationFilterTest {
     expect(request.getQueryString()).andReturn(null).anyTimes();
     expect(request.getMethod()).andReturn("GET").anyTimes();
 
-    chain.doFilter(EasyMock.<ServletRequest>anyObject(), EasyMock.<ServletResponse>anyObject());
+    chain.doFilter(EasyMock.anyObject(), EasyMock.anyObject());
     EasyMock.expectLastCall().once();
 
     final Configuration configuration = EasyMock.createMock(Configuration.class);
@@ -384,7 +382,7 @@ public class AmbariAuthorizationFilterTest {
     expect(filter.getSecurityContext()).andReturn(securityContext).anyTimes();
     expect(filter.getViewRegistry()).andReturn(viewRegistry).anyTimes();
     expect(securityContext.getAuthentication()).andReturn(authentication).anyTimes();
-    expect(viewRegistry.checkPermission(EasyMock.eq("DeniedView"), EasyMock.<String>anyObject(), EasyMock.<String>anyObject(), EasyMock.anyBoolean())).andReturn(false).anyTimes();
+    expect(viewRegistry.checkPermission(EasyMock.eq("DeniedView"), EasyMock.anyObject(), EasyMock.anyObject(), EasyMock.anyBoolean())).andReturn(false).anyTimes();
 
     replay(filterConfig, filter, securityContext, viewRegistry, configuration, auditLogger);
 
@@ -407,7 +405,7 @@ public class AmbariAuthorizationFilterTest {
       }
 
       if (urlTest.getValue()) {
-        chain.doFilter(EasyMock.<ServletRequest>anyObject(), EasyMock.<ServletResponse>anyObject());
+        chain.doFilter(EasyMock.anyObject(), EasyMock.anyObject());
         EasyMock.expectLastCall().once();
       }
 

@@ -40,10 +40,8 @@ import java.util.Set;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.StackServiceRequest;
-import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.HostGroup;
@@ -69,9 +67,9 @@ public class ExportBlueprintRequestTest {
     f.set(null, controller);
 
     expect(controller.getStackServices((Set<StackServiceRequest>)  anyObject())).andReturn(
-        Collections.<StackServiceResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
     expect(controller.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.<StackConfigurationResponse>emptySet()).anyTimes();
+        Collections.emptySet()).anyTimes();
 
     replay(controller);
   }

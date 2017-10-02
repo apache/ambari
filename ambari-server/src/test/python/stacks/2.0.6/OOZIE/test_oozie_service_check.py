@@ -30,6 +30,7 @@ class TestOozieServiceCheck(RMFTestCase):
 
   @patch("resource_management.core.shell.call")
   @patch("glob.glob")
+  @patch("resource_management.libraries.functions.stack_select.get_hadoop_dir", new = MagicMock(return_value = "/usr/hdp/current/hadoop-client"))
   def test_service_check(self, glob_mock, call_mock):
     glob_mock.return_value = ["examples-dir", "b"]
 
@@ -39,7 +40,7 @@ class TestOozieServiceCheck(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.2'
+    json_content['hostLevelParams']['stack_version'] = '2.3'
     json_content['configurations']['oozie-env']['service_check_job_name'] = 'map-reduce'
 
     mocks_dict = {}
@@ -65,7 +66,7 @@ class TestOozieServiceCheck(RMFTestCase):
       mode = 0755)
 
     self.assertResourceCalled('Execute',
-      ('/tmp/prepareOozieHdfsDirectories.sh', '/usr/hdp/current/oozie-client/conf', 'examples-dir', '/usr/hdp/current/hadoop-client/conf', 'c6402.ambari.apache.org:8050', 'hdfs://c6401.ambari.apache.org:8020', 'default', 'map-reduce'),
+      ('/tmp/prepareOozieHdfsDirectories.sh', '/usr/hdp/current/oozie-client/conf', 'examples-dir', '/usr/hdp/2.3.0.0-1234/hadoop/conf', 'c6402.ambari.apache.org:8050', 'hdfs://c6401.ambari.apache.org:8020', 'default', 'map-reduce'),
       tries = 3,
       try_sleep = 5,
       logoutput = True)

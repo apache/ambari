@@ -183,4 +183,15 @@
     <value>8</value>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>tez.runtime.shuffle.ssl.enable</name>
+    <value>false</value>
+     <value-attributes>
+      <type>boolean</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <final>true</final>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

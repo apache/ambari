@@ -53,7 +53,7 @@ public class LogicalExpression extends AbstractExpression<Expression> {
     if (getOperator().getPrecedence() == precedence && getLeftOperand() == null) {
       setLeftOperand(left);
       setRightOperand(right);
-      return Collections.<Expression>singletonList(this);
+      return Collections.singletonList(this);
     } else {
       return defaultMerge(left, right);
     }

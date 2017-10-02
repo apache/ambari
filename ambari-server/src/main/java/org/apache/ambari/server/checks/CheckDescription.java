@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -86,9 +86,7 @@ public class CheckDescription {
     "All hosts should have target version installed",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "The following hosts must have version {{version}} installed: {{fails}}.")
-      .put(HostsRepositoryVersionCheck.KEY_NO_REPO_VERSION,
-          "Repository version {{version}} does not exist.").build());
+          "The following hosts must have version {{version}} installed: {{fails}}.").build());
 
   public static CheckDescription SECONDARY_NAMENODE_MUST_BE_DELETED = new CheckDescription("SECONDARY_NAMENODE_MUST_BE_DELETED",
     PrereqCheckType.HOST,
@@ -272,20 +270,17 @@ public class CheckDescription {
           "After upgrading, Atlas can be reinstalled").build());
 
   public static CheckDescription SERVICE_PRESENCE_CHECK = new CheckDescription("SERVICE_PRESENCE_CHECK",
-      PrereqCheckType.SERVICE,
-      "Service Is Not Supported For Upgrades",
-      new ImmutableMap.Builder<String, String>()
-        .put(AbstractCheckDescriptor.DEFAULT,
-            "The %s service is currently installed on the cluster. " +
-            "This service does not support upgrades and must be removed before the upgrade can continue. " +
-            "After upgrading, %s can be reinstalled")
-        .put(ServicePresenceCheck.KEY_SERVICE_REMOVED,
-             "The %s service is currently installed on the cluster. " +
-             "This service is removed from the new release and must be removed before the upgrade can continue.")
-        .put(ServicePresenceCheck.KEY_SERVICE_REPLACED,
-            "The %s service is currently installed on the cluster. " +
-            "This service is removed from the new release and must be removed before the upgrade can continue. " +
-            "After upgrading, %s can be installed as the replacement.").build());
+    PrereqCheckType.SERVICE,
+    "Service Is Not Supported For Upgrades",
+    new ImmutableMap.Builder<String, String>()
+      .put(AbstractCheckDescriptor.DEFAULT,
+          "The %s service is currently installed on the cluster. " +
+          "This service does not support upgrades and must be removed before the upgrade can continue. " +
+          "After upgrading, %s can be reinstalled")
+      .put(ServicePresenceCheck.KEY_SERVICE_REMOVED,
+          "The %s service is currently installed on the cluster. " +
+          "This service is removed from the new release and must be removed before the upgrade can continue. " +
+          "After upgrading, %s can be installed").build());
 
   public static CheckDescription RANGER_SERVICE_AUDIT_DB_CHECK = new CheckDescription("RANGER_SERVICE_AUDIT_DB_CHECK",
     PrereqCheckType.SERVICE,
@@ -328,9 +323,35 @@ public class CheckDescription {
     PrereqCheckType.SERVICE,
     "Change Ranger SSL configuration path for Keystore and Truststore.",
     new ImmutableMap.Builder<String, String>()
-            .put(AbstractCheckDescriptor.DEFAULT,
-              "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
-              "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
+      .put(AbstractCheckDescriptor.DEFAULT,
+        "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
+        "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
+
+  public static CheckDescription JAVA_VERSION = new CheckDescription("JAVA_VERSION",
+      PrereqCheckType.CLUSTER,
+      "Verify Java version requirement",
+      new ImmutableMap.Builder<String, String>()
+        .put(AbstractCheckDescriptor.DEFAULT, "Ambari requires JDK with minimum version %s. Reconfigure Ambari with a JDK that meets the version requirement.")
+          .build());
+
+  public static CheckDescription COMPONENTS_EXIST_IN_TARGET_REPO = new CheckDescription("COMPONENTS_EXIST_IN_TARGET_REPO",
+      PrereqCheckType.CLUSTER,
+      "Verify Cluster Components Exist In Target Repository",
+      new ImmutableMap.Builder<String, String>()
+        .put(AbstractCheckDescriptor.DEFAULT, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
+          .build());
+
+  public static CheckDescription DRUID_HA_WARNING = new CheckDescription(
+      "DRUID_HA",
+      PrereqCheckType.SERVICE,
+      "Druid Downtime During Upgrade",
+      new ImmutableMap.Builder<String, String>()
+          .put(
+              AbstractCheckDescriptor.DEFAULT,
+              "High Availability is not enabled for Druid. Druid Service may have some downtime during upgrade. Deploy multiple instances of %s in the Cluster to avoid any downtime."
+          )
+          .build()
+  );
 
   private String m_name;
   private PrereqCheckType m_type;

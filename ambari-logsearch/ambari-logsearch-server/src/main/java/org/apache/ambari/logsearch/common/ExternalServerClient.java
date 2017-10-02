@@ -25,7 +25,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
-import org.apache.ambari.logsearch.util.SSLUtil;
+import org.apache.ambari.logsearch.configurer.SslConfigurer;
 import org.apache.commons.httpclient.auth.InvalidCredentialsException;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.JerseyClient;
@@ -38,15 +38,11 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 @Named
 public class ExternalServerClient {
 
+  @Inject
+  private SslConfigurer sslConfigurer;
+
   private static Logger LOG = Logger.getLogger(ExternalServerClient.class);
-  private static final ThreadLocal<JerseyClient> localJerseyClient = new ThreadLocal<JerseyClient>() {
-    @Override
-    protected JerseyClient initialValue() {
-      return SSLUtil.isKeyStoreSpecified() ?
-          new JerseyClientBuilder().sslContext(SSLUtil.getSSLContext()).build() :
-          JerseyClientBuilder.createClient();
-    }
-  };
+  private ThreadLocal<JerseyClient> localJerseyClient;
 
   @Inject
   private AuthPropsConfig authPropsConfig;
@@ -55,6 +51,16 @@ public class ExternalServerClient {
    * Send GET request to an external server
    */
   public Object sendGETRequest(String loginUrl, Class<?> klass, String username, String password) throws Exception {
+    if (localJerseyClient == null) {
+      localJerseyClient = new ThreadLocal<JerseyClient>() {
+        @Override
+        protected JerseyClient initialValue() {
+          return sslConfigurer.isKeyStoreSpecified() ?
+            new JerseyClientBuilder().sslContext(sslConfigurer.getSSLContext()).build() :
+            JerseyClientBuilder.createClient();
+        }
+      };
+    }
     String url = authPropsConfig.getExternalAuthHostUrl() + loginUrl;
     JerseyClient client = localJerseyClient.get();
     HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder()

@@ -312,8 +312,12 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       if (prevTime != null) {
         step = currTime - prevTime;
         diff = currVal - prevVal;
-        Double rate = isDiff ? diff : (diff / TimeUnit.MILLISECONDS.toSeconds(step));
-        timeValueEntry.setValue(rate);
+        if (diff < 0) {
+          it.remove(); //Discard calculating rate when the metric counter has been reset.
+        } else {
+          Double rate = isDiff ? diff : (diff / TimeUnit.MILLISECONDS.toSeconds(step));
+          timeValueEntry.setValue(rate);
+        }
       } else {
         it.remove();
       }

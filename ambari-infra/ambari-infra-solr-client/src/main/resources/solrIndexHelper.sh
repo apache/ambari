@@ -14,14 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+: ${JAVA_HOME:?"Please set the JAVA_HOME variable!"}
+
 JVM="java"
 sdir="`dirname \"$0\"`"
-: ${JAVA_HOME:?"Please set the JAVA_HOME for lucene index migration!"}
+ldir="`dirname "$(readlink -f "$0")"`"
+
+DIR="$sdir"
+if [ "$sdir" != "$ldir" ]; then
+  DIR="$ldir"
+fi
 
 function print_help() {
   cat << EOF
 
-   Usage: solrIndexHelper.sh [<command>] [<arguments with flags>]
+   Usage: [<command>] [<arguments with flags>]
 
    commands:
      upgrade-index            Check and upgrade solr index data in core directories.
@@ -48,7 +55,7 @@ function upgrade_core() {
   for coll in $SOLR_CORE_FILTER_ARR; do
     if [[ "$1" == *"$coll"* ]]; then
       echo "Core '$1' dir name contains $coll (core filter)'";
-      version=$(PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir/libs/lucene-core-6.6.0.jar:$sdir/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.CheckIndex -fast $1|grep "   version="|sed -e 's/.*=//g'|head -1)
+      version=$(PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.CheckIndex -fast $1|grep "   version="|sed -e 's/.*=//g'|head -1)
       if [ -z $version ] ; then
         echo "Core '$1' - Empty index?"
         return
@@ -58,7 +65,7 @@ function upgrade_core() {
         echo "Core '$1' - Already on version $version, not upgrading. Use -f or --force option to run upgrade anyway."
       else
         echo "Core '$1' - Index version is $version, upgrading ..."
-        PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir/libs/lucene-core-6.6.0.jar:$sdir/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.IndexUpgrader -delete-prior-commits $1
+        PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.IndexUpgrader -delete-prior-commits $1
         echo "Upgrading core '$1' has finished"
       fi
     fi
@@ -125,11 +132,11 @@ function upgrade_index() {
 
 function upgrade_index_tool() {
   # see: https://cwiki.apache.org/confluence/display/solr/IndexUpgrader+Tool
-  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir/libs/lucene-core-6.6.0.jar:$sdir/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.IndexUpgrader ${@}
+  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.IndexUpgrader ${@}
 }
 
 function check_index_tool() {
-  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir/libs/lucene-core-6.6.0.jar:$sdir/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.CheckIndex ${@}
+  PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$DIR/libs/lucene-core-6.6.0.jar:$DIR/libs/lucene-backward-codecs-6.6.0.jar" org.apache.lucene.index.CheckIndex ${@}
 }
 
 function main() {

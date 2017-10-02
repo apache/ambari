@@ -145,6 +145,16 @@
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>hadoop-env</type>
+          <name>proxyuser_group</name>
+        </property>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -220,6 +230,18 @@ gpgcheck=0</value>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <!-- Define stack_name property in the base stack. DO NOT override this property for each stack version -->
+  <property>
+    <name>stack_name</name>
+    <value>HDP</value>
+    <description>The name of the stack.</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <!-- Define stack_tools property in the base stack. DO NOT override this property for each stack version -->
   <property>
     <name>stack_tools</name>
@@ -243,6 +265,21 @@ gpgcheck=0</value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>
       <property-file-name>stack_features.json</property-file-name>
+      <property-file-type>json</property-file-type>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- Define stack_packages property in the base stack. DO NOT override this property for each stack version -->
+  <property>
+    <name>stack_packages</name>
+    <value/>
+    <description>Associations between component and stack-select tools.</description>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>stack_packages.json</property-file-name>
       <property-file-type>json</property-file-type>
       <read-only>true</read-only>
       <overridable>false</overridable>

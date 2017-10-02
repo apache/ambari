@@ -122,24 +122,19 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
     logSearchServerHosts = self.getComponentHostNames(services, "LOGSEARCH", "LOGSEARCH_SERVER")
     # if there is no Log Search server on the cluster, i.e. there is an external server
     if logSearchServerHosts is None or len(logSearchServerHosts) == 0:
-      # hide logsearch specific attributes, except for a few which are used by the logfeeders too
+      # hide logsearch specific attributes
       for key in services['configurations']['logsearch-env']['properties']:
         putLogSearchEnvAttribute(key, 'visible', 'false')
       for key in services['configurations']['logsearch-properties']['properties']:
-        if key not in ['logsearch.collection.service.logs.numshards', 'logsearch.collection.audit.logs.numshards',
-                       'logsearch.solr.collection.service.logs', 'logsearch.solr.collection.audit.logs',
-                       'logsearch.service.logs.split.interval.mins', 'logsearch.audit.logs.split.interval.mins']:
-          putLogSearchAttribute(key, 'visible', 'false')
+        putLogSearchAttribute(key, 'visible', 'false')
       for key in services['configurations']['logsearch-audit_logs-solrconfig']['properties']:
         self.putPropertyAttribute(configurations, "logsearch-audit_logs-solrconfig")(key, 'visible', 'false')
       for key in services['configurations']['logsearch-service_logs-solrconfig']['properties']:
         self.putPropertyAttribute(configurations, "logsearch-service_logs-solrconfig")(key, 'visible', 'false')
       for key in services['configurations']['logsearch-log4j']['properties']:
         self.putPropertyAttribute(configurations, "logsearch-log4j")(key, 'visible', 'false')
-      
-      # in the abscence of a server we can't provide a good estimation for the number of shards
-      putLogSearchProperty("logsearch.collection.service.logs.numshards", 2)
-      putLogSearchProperty("logsearch.collection.audit.logs.numshards", 2)
+      for key in services['configurations']['logsearch-admin-json']['properties']:
+        self.putPropertyAttribute(configurations, "logsearch-admin-json")(key, 'visible', 'false')
     # if there is a Log Search server on the cluster
     else:
       infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
@@ -150,7 +145,7 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
         
         recommendedMinShards = len(infraSolrHosts)
         recommendedShards = 2 * len(infraSolrHosts)
-        recommendedMaxShards = 3 * len(infraSolrHosts)
+        recommendedMaxShards = max(3 * len(infraSolrHosts), 5)
       # if there is no AMBARI_INFRA (i.e. external solr is used), use default values for min/max shards and recommendations
       else:
         recommendedReplicationFactor = 2
@@ -161,17 +156,17 @@ class LogSearchServiceAdvisor(service_advisor.ServiceAdvisor):
         
         putLogSearchCommonEnvProperty('logsearch_use_external_solr', 'true')
         
-      # recommend number of shard
-      putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
-      putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogSearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
+        # recommend number of shard
+        putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
+        putLogSearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
+        putLogSearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
       
-      putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
-      putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogSearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
-      # recommend replication factor
-      putLogSearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
-      putLogSearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
+        putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
+        putLogSearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
+        putLogSearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
+        # recommend replication factor
+        putLogSearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
+        putLogSearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
       
     kerberos_authentication_enabled = self.isSecurityEnabled(services)
     # if there is no kerberos enabled hide kerberor related properties

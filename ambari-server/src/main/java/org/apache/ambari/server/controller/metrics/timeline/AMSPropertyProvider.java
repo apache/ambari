@@ -279,7 +279,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
                       && checkMetricName(patterns, metric.getMetricName())) {
                 String hostnameTmp = metric.getHostName();
                 if (!metricsMap.containsKey(hostnameTmp)) {
-                  metricsMap.put(hostnameTmp, new HashSet<TimelineMetric>());
+                  metricsMap.put(hostnameTmp, new HashSet<>());
                 }
                 metricsMap.get(hostnameTmp).add(metric);
               }

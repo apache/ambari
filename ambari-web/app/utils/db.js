@@ -229,10 +229,6 @@ App.db.unselectHosts = function (hostsToUnselect = []) {
   let selectedHosts = App.db.getSelectedHosts();
   selectedHosts = selectedHosts.filter(host => hostsToUnselect.indexOf(host) === -1);
   App.db.setSelectedHosts(selectedHosts);
-}
-
-App.db.setHosts = function (hostInfo) {
-  App.db.set('Installer', 'hostInfo', hostInfo);
 };
 
 App.db.setMasterComponentHosts = function (masterComponentHosts) {
@@ -426,10 +422,6 @@ App.db.getWizardCurrentStep = function (wizardType) {
 
 App.db.getAllHostNames = function () {
   return App.db.get('Installer', 'hostNames');
-};
-
-App.db.getHosts = function () {
-  return App.db.get('Installer', 'hostInfo');
 };
 
 App.db.getMasterToReassign = function () {

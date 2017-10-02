@@ -145,6 +145,16 @@
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>hadoop-env</type>
+          <name>proxyuser_group</name>
+        </property>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -262,6 +272,21 @@ gpgcheck=0</value>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <!-- Define stack_packages property in the base stack. DO NOT override this property for each stack version -->
+  <property>
+    <name>stack_packages</name>
+    <value/>
+    <description>Associations between component and stack-select tools.</description>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>stack_packages.json</property-file-name>
+      <property-file-type>json</property-file-type>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <property>
     <name>stack_root</name>
     <value>{"HDP":"/usr/hdp"}</value>
@@ -341,5 +366,11 @@ gpgcheck=0</value>
     <value>3600</value>
     <description>Timeout for safemode exit, during namenode rolling restart</description>
     <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>manage_hive_fsroot</name>
+    <value>true</value>
+    <description>If flag is set to true, ambari will manage fsroot for Hive, by setting it to fs.defautlFS of local HDFS</description>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

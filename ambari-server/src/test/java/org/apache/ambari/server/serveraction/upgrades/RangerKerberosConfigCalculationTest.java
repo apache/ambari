@@ -102,7 +102,7 @@ public class RangerKerberosConfigCalculationTest {
 
     Config adminSiteConfig = EasyMock.createNiceMock(Config.class);
     expect(adminSiteConfig.getType()).andReturn("ranger-admin-site").anyTimes();
-    expect(adminSiteConfig.getProperties()).andReturn(new HashMap<String,String>()).anyTimes();
+    expect(adminSiteConfig.getProperties()).andReturn(new HashMap<>()).anyTimes();
 
     expect(cluster.getDesiredConfigByType("hadoop-env")).andReturn(hadoopConfig).atLeastOnce();
     expect(cluster.getDesiredConfigByType("hive-env")).andReturn(hiveConfig).atLeastOnce();

@@ -4,7 +4,8 @@
       "name": "SNOW",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "snow_spnego",
+          "reference": "/spnego"
         },
         {
           "name": "snow",
@@ -28,7 +29,8 @@
           }
         },
         {
-          "name": "/smokeuser"
+          "name": "snow_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "configurations": [
@@ -38,7 +40,8 @@
           "name": "SNOW_WHITE",
           "identities": [
             {
-              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "snow_snow_white_hdfs",
+              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "snow_white_snow",
@@ -62,7 +65,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "snow_snow_white_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "snow-site/snow.security.authentication.spnego.kerberos.principal"
               },

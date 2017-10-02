@@ -220,8 +220,7 @@ public class AmbariPerformanceRunnableTest {
   public void testAlertFiresUnknownEvent() {
     // mock one area, leaving others to fail
     RequestDAO requestDAO = m_injector.getInstance(RequestDAO.class);
-    expect(requestDAO.findAllRequestIds(EasyMock.anyInt(), EasyMock.anyBoolean())).andReturn(
-        new ArrayList<Long>());
+    expect(requestDAO.findAllRequestIds(EasyMock.anyInt(), EasyMock.anyBoolean())).andReturn(new ArrayList<>());
 
     replay(requestDAO);
 

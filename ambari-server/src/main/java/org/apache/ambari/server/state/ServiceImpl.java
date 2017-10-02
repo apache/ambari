@@ -52,6 +52,7 @@ import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.kerberos.Component;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +94,7 @@ public class ServiceImpl implements Service {
    * The name of the service.
    */
   private final String serviceName;
+  private final String displayName;
 
   @AssistedInject
   ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
@@ -127,8 +129,8 @@ public class ServiceImpl implements Service {
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
 
+    displayName = sInfo.getDisplayName();
     isClientOnlyService = sInfo.isClientOnlyService();
-
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
 
@@ -177,6 +179,7 @@ public class ServiceImpl implements Service {
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
+    displayName = sInfo.getDisplayName();
   }
 
 
@@ -205,6 +208,11 @@ public class ServiceImpl implements Service {
   @Override
   public String getName() {
     return serviceName;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return StringUtils.isBlank(displayName) ? serviceName : displayName;
   }
 
   @Override
@@ -276,27 +284,6 @@ public class ServiceImpl implements Service {
     serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
   }
 
-  @Override
-  public SecurityState getSecurityState() {
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    return serviceDesiredStateEntity.getSecurityState();
-  }
-
-  @Override
-  public void setSecurityState(SecurityState securityState) throws AmbariException {
-    if(!securityState.isEndpoint()) {
-      throw new AmbariException("The security state must be an endpoint state");
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredSecurityState of Service, clusterName={}, clusterId={}, serviceName={}, oldDesiredSecurityState={}, newDesiredSecurityState={}",
-        cluster.getClusterName(), cluster.getClusterId(), getName(), getSecurityState(), securityState);
-    }
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setSecurityState(securityState);
-    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
-  }
-
   /**
    * {@inheritDoc}
    */
@@ -362,6 +349,8 @@ public class ServiceImpl implements Service {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
         getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
         getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
+
+    r.setDesiredRepositoryVersionId(desiredRespositoryVersion.getId());
 
     r.setMaintenanceState(getMaintenanceState().name());
     return r;
@@ -515,7 +504,7 @@ public class ServiceImpl implements Service {
       for (ClusterConfigEntity serviceConfigEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
         LOG.info("Disabling configuration {}", serviceConfigEntity);
         serviceConfigEntity.setSelected(false);
-        serviceConfigEntity.setServiceDeleted(true);
+        serviceConfigEntity.setUnmapped(true);
         clusterDAO.merge(serviceConfigEntity);
       }
     }

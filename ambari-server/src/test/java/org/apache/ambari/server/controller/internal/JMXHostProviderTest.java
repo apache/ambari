@@ -124,8 +124,7 @@ public class JMXHostProviderTest {
       dStateStr = desiredState.toString();
     }
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, STACK_ID.getStackId(),
-        REPO_VERSION, dStateStr);
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, m_repositoryVersion.getId(), dStateStr);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
@@ -220,7 +219,7 @@ public class JMXHostProviderTest {
         "hdfs-site", "version1", configs, null);
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
-      controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
+      controller.updateClusters(Collections.singleton(crequest), new HashMap<>());
 
     } else {
       Map<String, String> configs = new HashMap<>();
@@ -232,7 +231,7 @@ public class JMXHostProviderTest {
 
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
-      controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
+      controller.updateClusters(Collections.singleton(crequest), new HashMap<>());
     }
   }
 

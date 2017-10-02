@@ -22,20 +22,6 @@
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
   <property>
-    <name>logsearch_ui_protocol</name>
-    <value>http</value>
-    <description>Protocol (http or https)</description>
-    <display-name>Log Search UI Protocol</display-name>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>logsearch_ui_port</name>
-    <value>61888</value>
-    <description>Default port for Log Search UI</description>
-    <display-name>Log Search UI Port</display-name>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>logsearch_pid_dir</name>
     <value>/var/run/ambari-logsearch-portal</value>
     <description>Log Search Process ID Directory</description>
@@ -64,6 +50,12 @@
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

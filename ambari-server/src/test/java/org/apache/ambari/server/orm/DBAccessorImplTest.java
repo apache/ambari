@@ -640,6 +640,94 @@ public class DBAccessorImplTest {
    }
 
   @Test
+  public void testCopyColumnToAnotherTable() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    String sourceTableName = getFreeTableName();
+    String targetTableName = getFreeTableName();
+    int testRowAmount = 10;
+
+    createMyTable(sourceTableName, "col1", "col2", "col3", "col4", "col5");
+    createMyTable(targetTableName, "col1", "col2", "col3");
+
+    for (Integer i = 0; i < testRowAmount; i++) {
+      dbAccessor.insertRow(sourceTableName,
+          new String[]{"id", "col1", "col2", "col3", "col4", "col5"},
+          new String[]{i.toString(), String.format("'1,%s'", i), String.format("'2,%s'", i * 2), String.format("'3,%s'", i * 3), String.format("'4,%s'", i * 4), String.format("'%s'", (i * 5) % 2)}, false);
+
+      dbAccessor.insertRow(targetTableName,
+          new String[]{"id", "col1", "col2", "col3"},
+          new String[]{i.toString(), String.format("'1,%s'", i), String.format("'2,%s'", i * 2), String.format("'3,%s'", i * 3)}, false);
+    }
+
+    DBColumnInfo sourceColumn = new DBColumnInfo("col4", String.class, null, null, false);
+    DBColumnInfo targetColumn = new DBColumnInfo("col4", String.class, null, null, false);
+
+    dbAccessor.copyColumnToAnotherTable(sourceTableName, sourceColumn, "id", "col1", "col2",
+        targetTableName, targetColumn, "id", "col1", "col2", "col5", "0", "initial");
+
+    Statement statement = dbAccessor.getConnection().createStatement();
+    ResultSet resultSet = statement.executeQuery("SELECT col4 FROM " + targetTableName + " ORDER BY id");
+
+    assertNotNull(resultSet);
+
+    List<String> response = new LinkedList<>();
+
+    while (resultSet.next()) {
+      response.add(resultSet.getString(1));
+    }
+
+    assertEquals(testRowAmount, response.toArray().length);
+    for (String row : response) {
+      System.out.println(row);
+    }
+
+
+    int i = 0;
+    for (String row : response) {
+      if (i % 2 == 0) {
+        assertEquals(String.format("4,%s", i * 4), row);
+      } else {
+        assertEquals("initial", row);
+      }
+      i++;
+    }
+
+  }
+
+  @Test
+  public void testGetIntColumnValues() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    String sourceTableName = getFreeTableName();
+    int testRowAmount = 10;
+
+    createMyTable(sourceTableName, "col1", "col2", "col3", "col4", "col5");
+
+    for (Integer i = 0; i < testRowAmount; i++) {
+      dbAccessor.insertRow(sourceTableName,
+          new String[]{"id", "col1", "col2", "col3", "col4", "col5"},
+          new String[]{i.toString(), String.format("'1,%s'", i), String.format("'2,%s'", i * 2), String.format("'3,%s'", i * 3), String.format("'4,%s'", i * 4), String.format("'%s'", (i * 5) % 2)}, false);
+    }
+
+    List<Integer> idList = dbAccessor.getIntColumnValues(sourceTableName, "id",
+        new String[]{"col1", "col5"}, new String[]{"1,0", "0"}, false);
+
+    assertEquals(idList.size(), 1);
+    assertEquals(idList.get(0), Integer.valueOf(0));
+
+    idList = dbAccessor.getIntColumnValues(sourceTableName, "id",
+        new String[]{"col5"}, new String[]{"0"}, false);
+
+    assertEquals(idList.size(), 5);
+
+    int i = 0;
+    for (Integer id : idList) {
+      assertEquals(id, Integer.valueOf(i * 2));
+      i++;
+    }
+
+  }
+
+  @Test
   public void testMoveNonexistentColumnIsNoop() throws Exception {
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
     String sourceTableName = getFreeTableName();

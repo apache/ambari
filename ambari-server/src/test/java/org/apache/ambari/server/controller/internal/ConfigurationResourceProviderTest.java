@@ -73,7 +73,7 @@ public class ConfigurationResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     managementController.createConfiguration(AbstractResourceProviderTest.Matcher.getConfigurationRequest(
-        "Cluster100", "type", "tag", new HashMap<String, String>(), null));
+        "Cluster100", "type", "tag", new HashMap<>(), null));
     expectLastCall().andReturn(null);
 
     // replay

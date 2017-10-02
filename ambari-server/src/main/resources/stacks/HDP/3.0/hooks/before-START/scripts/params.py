@@ -176,7 +176,7 @@ if has_zk_host:
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
@@ -273,7 +273,6 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
@@ -313,7 +312,15 @@ if dfs_ha_enabled:
    pass
  pass
 else:
- namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
+  namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', default_fs)
+
+# if HDFS is not installed in the cluster, then don't try to access namenode_rpc
+if "core-site" in config['configurations'] and namenode_rpc:
+  port_str = namenode_rpc.split(':')[-1].strip()
+  try:
+    nn_rpc_client_port = int(port_str)
+  except ValueError:
+    nn_rpc_client_port = None
 
 if namenode_rpc:
  nn_rpc_client_port = namenode_rpc.split(':')[1].strip()

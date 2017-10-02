@@ -255,7 +255,8 @@ class BaseAlert(object):
     
     if uri_structure is None:
       return None
-    
+
+    acceptable_codes_key = None
     http_key = None
     https_key = None
     https_property_key = None
@@ -267,7 +268,10 @@ class BaseAlert(object):
     ha_alias_key = None
     ha_http_pattern = None
     ha_https_pattern = None
-    
+
+    if 'acceptable_codes' in uri_structure:
+      acceptable_codes_key = uri_structure['acceptable_codes']
+
     if 'http' in uri_structure:
       http_key = uri_structure['http']
     
@@ -306,11 +310,14 @@ class BaseAlert(object):
 
 
     AlertUriLookupKeys = namedtuple('AlertUriLookupKeys', 
-      'http https https_property https_property_value default_port '
+      'acceptable_codes http https https_property https_property_value default_port '
       'kerberos_keytab kerberos_principal '
       'ha_nameservice ha_alias_key ha_http_pattern ha_https_pattern')
     
-    alert_uri_lookup_keys = AlertUriLookupKeys(http=http_key, https=https_key, 
+    alert_uri_lookup_keys = AlertUriLookupKeys(
+      acceptable_codes=acceptable_codes_key,
+      http=http_key,
+      https=https_key,
       https_property=https_property_key,
       https_property_value=https_property_value_key, default_port=default_port,
       kerberos_keytab=kerberos_keytab, kerberos_principal=kerberos_principal,

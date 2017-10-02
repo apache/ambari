@@ -4,7 +4,8 @@
       "name": "FAKEHDFS",
       "identities": [
         {
-          "name": "/spnego",
+          "name": "fakehdfs_spnego",
+          "reference": "/spnego",
           "principal": {
             "configuration": "hdfs-site/dfs.web.authentication.kerberos.principal"
           },
@@ -13,7 +14,8 @@
           }
         },
         {
-          "name": "/smokeuser"
+          "name": "fakehdfs_smokeuser",
+          "reference": "/smokeuser"
         }
       ],
       "auth_to_local_properties" : [
@@ -43,7 +45,8 @@
           "name":  "FAKEHDFS_CLIENT",
           "identities": [
             {
-              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "fakehdfs_fakehdfs_client_hdfs",
+              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
             }
           ]
         },
@@ -93,13 +96,15 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "fakehdfs_fakehdfs_fakenamenode_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "hdfs-site/dfs.namenode.kerberos.internal.spnego.principal"
               }
             },
             {
-              "name": "/FAKEHDFS/FAKENAMENODE/namenode_nn",
+              "name": "fakehdfs_fakehdfs_fakenamenode_namenode_nn",
+              "reference": "/FAKEHDFS/FAKENAMENODE/namenode_nn",
               "principal": {
                 "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.principal"                
               },
@@ -175,7 +180,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "fakehdfs_secondary_fakenamenode_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.internal.spnego.principal"
               }
@@ -233,7 +239,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "fakehdfs_fakejournalnode_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "hdfs-site/dfs.journalnode.kerberos.internal.spnego.principal"
               }

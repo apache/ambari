@@ -67,18 +67,16 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
 
   /**
    * Prepare object to send to the server to save configs
-   * Split all configs by site names and tag and note
+   * Split all configs by site names and note
    * @param siteNames Array
    * @param data Object
    * @param note String
    */
   reconfigureSites: function(siteNames, data, note) {
-    var tagName = App.get('testMode') ? 'version1' : 'version' + (new Date).getTime();
     return siteNames.map(function(_siteName) {
       var config = data.items.findProperty('type', _siteName);
       var configToSave = {
         type: _siteName,
-        tag: tagName,
         properties: config && config.properties,
         service_config_version_note: note || ''
       };

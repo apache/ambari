@@ -163,9 +163,9 @@ public class UsersTest extends EasyMockSupport {
     UserEntity existing = new UserEntity();
     existing.setUserName(UserName.fromString(SERVICEOP_USER_NAME).toString());
     existing.setUserId(1);
-    existing.setMemberEntities(Collections.<MemberEntity>emptySet());
+    existing.setMemberEntities(Collections.emptySet());
     PrincipalEntity principal = new PrincipalEntity();
-    principal.setPrivileges(Collections.<PrivilegeEntity>emptySet());
+    principal.setPrivileges(Collections.emptySet());
     existing.setPrincipal(principal);
     initForCreateUser(existing);
 

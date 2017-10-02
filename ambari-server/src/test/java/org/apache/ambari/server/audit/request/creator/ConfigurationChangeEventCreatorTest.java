@@ -78,7 +78,7 @@ public class ConfigurationChangeEventCreatorTest extends AuditEventCreatorTestBa
     resourceNode.addChild(versionNode);
     resultTree.addChild(resourceNode);
 
-    Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.PUT, Resource.Type.Cluster, new HashMap<String, Object>(), null);
+    Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.PUT, Resource.Type.Cluster, new HashMap<>(), null);
     Result result = AuditEventCreatorTestHelper.createResult(new ResultStatus(ResultStatus.STATUS.OK), resultTree);
 
     AuditEvent event = AuditEventCreatorTestHelper.getEvent(creator, request, result);

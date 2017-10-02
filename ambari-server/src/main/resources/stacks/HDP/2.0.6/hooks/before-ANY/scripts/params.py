@@ -43,6 +43,8 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+stack_root = Script.get_stack_root()
+
 architecture = get_architecture()
 
 dfs_type = default("/commandParams/dfs_type", "")
@@ -52,6 +54,8 @@ jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
 java_version = expect("/hostLevelParams/java_version", int)
 jdk_location = config['hostLevelParams']['jdk_location']
+
+hadoop_custom_extensions_enabled = default("/configurations/core-site/hadoop.custom-extensions.enabled", False)
 
 sudo = AMBARI_SUDO_BINARY
 
@@ -99,49 +103,38 @@ def is_secure_port(port):
   else:
     return False
 
-# hadoop default params
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-
 # upgrades would cause these directories to have a version instead of "current"
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
-hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
-hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
-versioned_stack_root = '/usr/hdp/current'
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 datanode_max_locked_memory = config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory']
 is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory'])
 
-# HDP 2.2+ params
-if Script.is_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 
-  # not supported in HDP 2.2+
-  hadoop_conf_empty_dir = None
-
-  if not security_enabled:
-    hadoop_secure_dn_user = '""'
+if not security_enabled:
+  hadoop_secure_dn_user = '""'
+else:
+  dfs_dn_port = get_port(dfs_dn_addr)
+  dfs_dn_http_port = get_port(dfs_dn_http_addr)
+  dfs_dn_https_port = get_port(dfs_dn_https_addr)
+  # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
+  if dfs_http_policy == "HTTPS_ONLY":
+    secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_https_port)
+  elif dfs_http_policy == "HTTP_AND_HTTPS":
+    secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port) or is_secure_port(dfs_dn_https_port)
+  else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
+    secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port)
+  if secure_dn_ports_are_in_use:
+    hadoop_secure_dn_user = hdfs_user
   else:
-    dfs_dn_port = get_port(dfs_dn_addr)
-    dfs_dn_http_port = get_port(dfs_dn_http_addr)
-    dfs_dn_https_port = get_port(dfs_dn_https_addr)
-    # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
-    if dfs_http_policy == "HTTPS_ONLY":
-      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_https_port)
-    elif dfs_http_policy == "HTTP_AND_HTTPS":
-      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port) or is_secure_port(dfs_dn_https_port)
-    else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
-      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port)
-    if secure_dn_ports_are_in_use:
-      hadoop_secure_dn_user = hdfs_user
-    else:
-      hadoop_secure_dn_user = '""'
+    hadoop_secure_dn_user = '""'
 
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
@@ -217,7 +210,7 @@ if dfs_ha_namenode_ids:
     dfs_ha_enabled = True
 
 if has_namenode or dfs_type == 'HCFS':
-    hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
@@ -237,28 +230,16 @@ if has_hbase_masters:
 repo_info = config['hostLevelParams']['repo_info']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
 
-user_to_groups_dict = collections.defaultdict(lambda:[user_group])
-user_to_groups_dict[smoke_user] = [proxyuser_group]
-if has_ganglia_server:
-  user_to_groups_dict[gmond_user] = [gmond_user]
-  user_to_groups_dict[gmetad_user] = [gmetad_user]
-if has_tez:
-  user_to_groups_dict[tez_user] = [proxyuser_group]
-if has_oozie_server:
-  user_to_groups_dict[oozie_user] = [proxyuser_group]
-if has_falcon_server_hosts:
-  user_to_groups_dict[falcon_user] = [proxyuser_group]
-if has_ranger_admin:
-  user_to_groups_dict[ranger_user] = [ranger_group]
-if has_zeppelin_master:
-  user_to_groups_dict[zeppelin_user] = [zeppelin_group, user_group]
+user_to_groups_dict = {}
+
 #Append new user-group mapping to the dict
 try:
-  user_group_map = ast.literal_eval(config['hostLevelParams']['user_group'])
+  user_group_map = ast.literal_eval(config['hostLevelParams']['user_groups'])
   for key in user_group_map.iterkeys():
     user_to_groups_dict[key] = user_group_map[key]
 except ValueError:
   print('User Group mapping (user_group) is missing in the hostLevelParams')
+
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
 user_list = json.loads(config['hostLevelParams']['user_list'])

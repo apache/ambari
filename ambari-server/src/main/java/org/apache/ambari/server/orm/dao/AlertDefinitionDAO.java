@@ -37,6 +37,7 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -305,6 +306,18 @@ public class AlertDefinitionDAO {
         RootServiceResponseFactory.Components.AMBARI_AGENT.name());
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   * @return all definitions with the given sourceType
+   */
+  @RequiresSession
+  public List<AlertDefinitionEntity> findBySourceType(Long clusterId, SourceType sourceType) {
+    return daoUtils.selectList(
+      entityManagerProvider.get()
+        .createNamedQuery("AlertDefinitionEntity.findBySourceType", AlertDefinitionEntity.class)
+        .setParameter("clusterId", clusterId)
+        .setParameter("sourceType", sourceType));
   }
 
   /**

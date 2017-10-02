@@ -38,7 +38,6 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
-import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -91,7 +90,7 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     EasyMock.expect(stageEntity.getStatus()).andReturn(hostRoleStatus).anyTimes();;
     EasyMock.expect(stageEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();
     EasyMock.expect(stageEntity.isSkippable()).andReturn(Boolean.FALSE).anyTimes();;
-    EasyMock.expect(stageEntity.getRoleSuccessCriterias()).andReturn(Collections.<RoleSuccessCriteriaEntity>emptyList()).anyTimes();
+    EasyMock.expect(stageEntity.getRoleSuccessCriterias()).andReturn(Collections.emptyList()).anyTimes();
     EasyMock.expect(stageDAO.findByPK(anyObject(StageEntityPK.class))).andReturn(stageEntity).anyTimes();
     EasyMock.expect(requestEntity.getStatus()).andReturn(hostRoleStatus).anyTimes();;
     EasyMock.expect(requestEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();

@@ -44,6 +44,8 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.expect import expect
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
+from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions.version import get_major_version
 
 # server configurations
 config = Script.get_config()
@@ -59,6 +61,7 @@ etc_prefix_dir = "/etc/hbase"
 
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
+major_stack_version = get_major_version(stack_version_formatted)
 stack_root = status_params.stack_root
 
 # get the correct version to use for checking stack features
@@ -127,6 +130,8 @@ regionserver_xmn_percent = expect("/configurations/hbase-env/hbase_regionserver_
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
 hbase_regionserver_shutdown_timeout = expect('/configurations/hbase-env/hbase_regionserver_shutdown_timeout', int, 30)
+
+regionserver_cms_initiating_occupancy_fraction = expect('/configurations/hbase-env/hbase_regionserver_cms_initiating_occupancy_fraction', int, 50)
 
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)

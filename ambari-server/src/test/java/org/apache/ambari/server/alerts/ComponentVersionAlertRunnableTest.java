@@ -134,8 +134,8 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     m_hosts.add(host1);
     m_hosts.add(host2);
 
-    m_hostComponentMap.put(HOSTNAME_1, new ArrayList<ServiceComponentHost>());
-    m_hostComponentMap.put(HOSTNAME_2, new ArrayList<ServiceComponentHost>());
+    m_hostComponentMap.put(HOSTNAME_1, new ArrayList<>());
+    m_hostComponentMap.put(HOSTNAME_2, new ArrayList<>());
 
     // desired stack
     m_desidredStackId = createNiceMock(StackId.class);

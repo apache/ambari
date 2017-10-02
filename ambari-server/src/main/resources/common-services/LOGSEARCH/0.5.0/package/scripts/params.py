@@ -171,8 +171,6 @@ zookeeper_quorum = logsearch_solr_zk_quorum
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
 logsearch_log = logsearch_log_dir + '/logsearch.out'
-logsearch_ui_protocol = config['configurations']['logsearch-env']["logsearch_ui_protocol"]
-logsearch_ui_port = config['configurations']['logsearch-env']["logsearch_ui_port"]
 logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
 logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
@@ -233,6 +231,10 @@ else:
 
 # Logsearch propreties
 
+logsearch_protocol = config['configurations']['logsearch-properties']["logsearch.protocol"]
+logsearch_http_port = config['configurations']['logsearch-properties']["logsearch.http.port"]
+logsearch_https_port = config['configurations']['logsearch-properties']["logsearch.https.port"]
+
 logsearch_properties = {}
 
 # default values
@@ -250,8 +252,6 @@ logsearch_properties['logsearch.login.credentials.file'] = logsearch_admin_crede
 logsearch_properties['logsearch.auth.file.enabled'] = 'true'
 logsearch_properties['logsearch.auth.ldap.enabled'] = 'false'
 logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
-
-logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
 
 # load config values
 
@@ -288,7 +288,7 @@ logsearch_collection_audit_logs_numshards = logsearch_properties['logsearch.coll
 
 # check if logsearch uses ssl in any way
 
-logsearch_use_ssl = logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl
+logsearch_use_ssl = logsearch_solr_ssl_enabled or logsearch_protocol == 'https' or ambari_server_use_ssl
 
 #####################################
 # Logfeeder configs
@@ -397,6 +397,7 @@ if 'infra-solr-env' in config['configurations'] and security_enabled and not log
 
 logsearch_server_hosts = default('/clusterHostInfo/logsearch_server_hosts', None)
 logsearch_server_host = ""
+logsearch_ui_port =  logsearch_https_port if logsearch_protocol == 'https' else logsearch_http_port
 if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
   logsearch_server_host = logsearch_server_hosts[0]
-smoke_logsearch_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {logsearch_ui_protocol}://{logsearch_server_host}:{logsearch_ui_port}/login.html | grep 200')
+smoke_logsearch_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {logsearch_protocol}://{logsearch_server_host}:{logsearch_ui_port}/ | grep 200')

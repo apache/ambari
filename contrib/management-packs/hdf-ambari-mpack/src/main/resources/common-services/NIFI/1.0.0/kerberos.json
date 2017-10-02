@@ -7,7 +7,8 @@
           "name": "NIFI_MASTER",
           "identities": [
             {
-              "name": "/spnego",
+              "name": "nifi_nifi_master_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "nifi-properties/nifi.kerberos.spnego.principal"
               },
@@ -38,7 +39,8 @@
               }
             },
             {
-              "name": "/NIFI/NIFI_MASTER/nifi_principal",
+              "name": "nifi_nifi_master_nifi_principal",
+              "reference": "/NIFI/NIFI_MASTER/nifi_principal",
               "principal": {
                 "configuration": "ranger-nifi-audit/xasecure.audit.jaas.Client.option.principal"
               },

@@ -40,7 +40,16 @@ module.exports = App.WizardRoute.extend({
           return App.ModalPopup.show({
             classNames: ['upgrade-wizard-modal'],
             modalDialogClasses: ['modal-xlg'],
-            header: Em.computed.alias('App.router.mainAdminStackAndUpgradeController.wizardModalTitle'),
+            headerClass: Em.View.extend({
+              header: Em.computed.alias('controller.wizardModalTitle'),
+              controllerBinding: 'App.router.mainAdminStackAndUpgradeController',
+              template: Ember.Handlebars.compile(
+                '{{view.header}}' +
+                '<div {{bindAttr class=":upgrade-options-link controller.isDowngrade:disabled" disabled="controller.isDowngrade"}} {{action openUpgradeOptions target="controller"}}>' +
+                '<i class="icon-cogs"></i><a>{{t admin.stackVersions.version.upgrade.upgradeOptions.header}}</a>' +
+                '</div>'
+              )
+            }),
             bodyClass: App.upgradeWizardView,
             primary: Em.I18n.t('common.dismiss'),
             secondary: null,
@@ -70,7 +79,9 @@ module.exports = App.WizardRoute.extend({
               App.router.get('updateController').set('isWorking', true);
               App.router.transitionTo('main.admin.stackAndUpgrade.versions');
               this.hide();
-              location.reload();
+              if (['NOT_REQUIRED', 'COMPLETED'].contains(App.get('upgradeState'))) {
+                location.reload();
+              }
             }
           });
         });

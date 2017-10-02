@@ -171,9 +171,17 @@ App.hostsMapper = App.QuickDataMapper.create({
           ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';
         for (var j = 0; j < item.stack_versions.length; j++) {
           var stackVersion = item.stack_versions[j];
+          var versionNumber = Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version');
+          var isDifferentStack = currentVersion && (stackVersion.HostStackVersions.stack !== currentVersion.HostStackVersions.stack);
+          var isCompatible = App.RepositoryVersion.find(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.id')).get('isCompatible');
           stackVersion.host_name = item.Hosts.host_name;
-          stackVersion.is_visible = stringUtils.compareVersions(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version'), currentVersionNumber) >= 0
-            || App.get('supports.displayOlderVersions') || !currentVersionNumber;
+          if (isDifferentStack && !isCompatible) {
+            stackVersion.is_visible = false;
+          } else {
+            stackVersion.is_visible = isDifferentStack
+            || (App.get('supports.displayOlderVersions') || stringUtils.compareVersions(versionNumber, currentVersionNumber) >= 0)
+            || !currentVersionNumber;
+          }
           stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
         }
 
@@ -198,6 +206,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         parsedItem.not_started_components = notStartedComponents;
         parsedItem.components_in_passive_state = componentsInPassiveState;
         parsedItem.components_with_stale_configs = componentsWithStaleConfigs;
+        parsedItem.is_filtered = true;
 
         hostIds[item.Hosts.host_name] = parsedItem;
 
@@ -216,6 +225,7 @@ App.hostsMapper = App.QuickDataMapper.create({
 
       //"itemTotal" present only for Hosts page request
       if (!Em.isNone(json.itemTotal)) {
+        App.Host.find().setEach('isFiltered', false);
         App.Host.find().clear();
         //App.HostComponent.find contains master components which requested across the app hence it should not be cleared
       }

@@ -29,6 +29,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
+from resource_management.core.exceptions import Fail
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
@@ -75,7 +76,6 @@ stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature
 stack_supports_ranger_solr_configs = check_stack_feature(StackFeature.RANGER_SOLR_CONFIG_SUPPORT, version_for_stack_feature_checks)
 stack_supports_secure_ssl_password = check_stack_feature(StackFeature.SECURE_RANGER_SSL_PASSWORD, version_for_stack_feature_checks)
 
-downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 ranger_conf    = '/etc/ranger/admin/conf'
@@ -198,6 +198,7 @@ elif db_flavor.lower() == 'sqla':
   previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
+else: raise Fail(format("'{db_flavor}' db flavor not supported."))
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 

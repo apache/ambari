@@ -26,7 +26,7 @@ from resource_management.libraries.functions import default
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from string import lower
 
 config = Script.get_config()
@@ -41,9 +41,7 @@ sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-
-# current host stack version
-current_version = default("/hostLevelParams/current_version", None)
+major_stack_version = get_major_version(stack_version_formatted)
 
 # service name
 service_name = config['serviceName']
@@ -59,16 +57,9 @@ logsearch_config_file_path = agent_cache_dir + "/" + service_package_folder + "/
 logsearch_config_file_exists = os.path.isfile(logsearch_config_file_path)
 
 # default hadoop params
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
-# HDP 2.2+ params
-if Script.is_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-
-  # not supported in HDP 2.2+
-  hadoop_conf_empty_dir = None
+mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 
 versioned_stack_root = '/usr/hdp/current'
 
@@ -109,7 +100,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")

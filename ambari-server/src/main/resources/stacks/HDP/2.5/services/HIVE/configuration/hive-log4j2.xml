@@ -71,6 +71,7 @@ property.hive.log.level = {{hive_log_level}}
 property.hive.root.logger = DRFA
 property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}
 property.hive.log.file = hive.log
+property.hive.perflogger.log.level = INFO
 
 # list of all appenders
 appenders = console, DRFA
@@ -80,16 +81,16 @@ appender.console.type = Console
 appender.console.name = console
 appender.console.target = SYSTEM_ERR
 appender.console.layout.type = PatternLayout
-appender.console.layout.pattern = %d{yy/MM/dd HH:mm:ss} [%t]: %p %c{2}: %m%n
+appender.console.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n
 
 # daily rolling file appender
-appender.DRFA.type = RollingFile
+appender.DRFA.type = RollingRandomAccessFile
 appender.DRFA.name = DRFA
 appender.DRFA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}
 # Use %pid in the filePattern to append process-id@host-name to the filename if you want separate log files for different CLI session
-appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}_%i.gz
+appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}
 appender.DRFA.layout.type = PatternLayout
-appender.DRFA.layout.pattern = %d{ISO8601} %-5p [%t]: %c{2} (%F:%M(%L)) - %m%n
+appender.DRFA.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n
 appender.DRFA.policies.type = Policies
 appender.DRFA.policies.time.type = TimeBasedTriggeringPolicy
 appender.DRFA.policies.time.interval = 1
@@ -100,7 +101,7 @@ appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy
 appender.DRFA.policies.fsize.size = {{hive2_log_maxfilesize}}MB
 
 # list of all loggers
-loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX
+loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, PerfLogger, AmazonAws, ApacheHttp
 
 logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn
 logger.NIOServerCnxn.level = WARN
@@ -116,6 +117,15 @@ logger.Datastore.level = ERROR
 
 logger.JPOX.name = JPOX
 logger.JPOX.level = ERROR
+
+logger.AmazonAws.name=com.amazonaws
+logger.AmazonAws.level = INFO
+
+logger.ApacheHttp.name=org.apache.http
+logger.ApacheHttp.level = INFO
+
+logger.PerfLogger.name = org.apache.hadoop.hive.ql.log.PerfLogger
+logger.PerfLogger.level = ${sys:hive.perflogger.log.level}
 
 # root logger
 rootLogger.level = ${sys:hive.log.level}

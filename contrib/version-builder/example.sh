@@ -30,11 +30,12 @@ python version_builder.py --file $filename --release-display HDP-2.4.1.1-1234
 python version_builder.py --file $filename --release-compatible 2.4.[0-1].0
 
 # call any number of times for each service in the repo
-python version_builder.py --file $filename --manifest --manifest-id HDFS-271 --manifest-service HDFS --manifest-version 2.7.1.2.4
+python version_builder.py --file $filename --manifest --manifest-id HDFS-271 --manifest-service HDFS --manifest-version 2.7.1.2.4 --manifest-release-version 2.4.0.0
 python version_builder.py --file $filename --manifest --manifest-id HBASE-132 --manifest-service HBASE --manifest-version 1.3.2.4.3
 
 #call any number of times for the target services to upgrade
 python version_builder.py --file $filename --available --manifest-id HDFS-271
+python version_builder.py --file $filename --available --manifest-id HBASE-132 --release-version 2.4.0
 
 # must be before repo calls
 python version_builder.py --file $filename --os --os-family redhat6 --os-package-version 2_4_1_1_12345

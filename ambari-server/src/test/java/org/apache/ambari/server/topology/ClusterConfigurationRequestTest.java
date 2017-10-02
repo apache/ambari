@@ -32,7 +32,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,7 +42,6 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -58,6 +56,7 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -111,6 +110,12 @@ public class ClusterConfigurationRequestTest {
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
   private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
+  private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
+
+  @Before
+  public void setup() {
+    stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
+  }
 
   /**
    * testConfigType config type should be in updatedConfigTypes, as no custom property in Blueprint
@@ -209,13 +214,13 @@ public class ClusterConfigurationRequestTest {
 
     Map<String, Map<String, String>> existingConfig = new HashMap<>();
     Configuration stackDefaultConfig = new Configuration(existingConfig,
-      new HashMap<String, Map<String, Map<String, String>>>());
+      new HashMap<>());
     if (stackPropertyValue != null) {
       stackDefaultConfig.setProperty("testConfigType", "testProperty", stackPropertyValue);
     }
 
     Configuration blueprintConfig = new Configuration(stackDefaultConfig.getFullProperties(),
-      new HashMap<String, Map<String, Map<String, String>>>());
+      new HashMap<>());
     if (blueprintPropertyValue != null) {
       blueprintConfig.setProperty("testConfigType", "testProperty", blueprintPropertyValue);
     }
@@ -235,9 +240,8 @@ public class ClusterConfigurationRequestTest {
     expect(stack.getServiceForConfigType("testConfigType")).andReturn("KERBEROS").anyTimes();
     expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")
     ).anyTimes();
-    expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
-    expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.<String,
-      Stack.ConfigProperty>emptyMap()).anyTimes();
+    expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
 
     Set<String> services = new HashSet<>();
     services.add("HDFS");
@@ -263,15 +267,15 @@ public class ClusterConfigurationRequestTest {
     expect(blueprint.isValidConfigType("testConfigType")).andReturn(true).anyTimes();
 
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
-    expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
-    expect(topology.getHostGroupsForComponent(anyString())).andReturn(Collections.<String>emptyList())
+    expect(topology.getHostGroupsForComponent(anyString())).andReturn(Collections.emptyList())
       .anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
-    expect(ambariContext.createConfigurationRequests(EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections
-      .<ConfigurationRequest>emptyList()).anyTimes();
+    expect(ambariContext.createConfigurationRequests(EasyMock.anyObject())).andReturn(Collections
+      .emptyList()).anyTimes();
 
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
@@ -282,10 +286,10 @@ public class ClusterConfigurationRequestTest {
       properties.put("testProperty", "KERBEROStestValue");
       kerberosConfig.put("testConfigType", properties);
      }
-    expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject(),
-      EasyMock.<Set<String>>anyObject())).andReturn(true).once();
-    expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject(),
-      EasyMock.<Map<String, Set<String>>>anyObject(), EasyMock.<Map<String, Collection<String>>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
+    expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), EasyMock.anyObject(),
+      EasyMock.anyObject())).andReturn(true).once();
+    expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), EasyMock.anyObject(),
+      EasyMock.anyObject(), EasyMock.anyObject(), EasyMock.anyObject(), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
 
     Capture<? extends String> captureClusterName = newCapture(CaptureType.ALL);
     Capture<? extends Set<String>> captureUpdatedConfigTypes = newCapture(CaptureType.ALL);
@@ -313,7 +317,7 @@ public class ClusterConfigurationRequestTest {
 
     Map<String, Map<String, String>> existingConfig = new HashMap<>();
     Configuration stackConfig = new Configuration(existingConfig,
-      new HashMap<String, Map<String, Map<String, String>>>());
+      new HashMap<>());
 
     PowerMock.mockStatic(AmbariContext.class);
     AmbariContext.getController();
@@ -325,10 +329,9 @@ public class ClusterConfigurationRequestTest {
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")).anyTimes();
-    expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
-    expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.<String,
-      Stack.ConfigProperty>emptyMap()).anyTimes();
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")).anyTimes();
+    expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.emptySet()).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
 
     Set<String> services = new HashSet<>();
     services.add("HDFS");
@@ -351,13 +354,13 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getConfiguration()).andReturn(stackConfig).anyTimes();
-    expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
 
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
     expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
-    expect(ambariContext.createConfigurationRequests(EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections
-      .<ConfigurationRequest>emptyList()).anyTimes();
+    expect(ambariContext.createConfigurationRequests(EasyMock.anyObject())).andReturn(Collections
+      .emptyList()).anyTimes();
 
     expect(configHelper.getDefaultStackProperties(
         EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
@@ -421,8 +424,8 @@ public class ClusterConfigurationRequestTest {
   public void testProcessClusterConfigRequestWithOnlyHostGroupConfigRemoveUnusedConfigTypes() throws Exception {
     // Given
     Map<String, Map<String, String>> config = Maps.newHashMap();
-    config.put("cluster-env", new HashMap<String, String>());
-    config.put("global", new HashMap<String, String>());
+    config.put("cluster-env", new HashMap<>());
+    config.put("global", new HashMap<>());
     Map<String, Map<String, Map<String, String>>> attributes = Maps.newHashMap();
 
     Configuration configuration = new Configuration(config, attributes);
@@ -469,18 +472,18 @@ public class ClusterConfigurationRequestTest {
 
   private Configuration createConfigurations() {
     Map<String, Map<String, String>> firstLevelConfig = Maps.newHashMap();
-    firstLevelConfig.put("hdfs-site", new HashMap<String, String>());
-    firstLevelConfig.put("yarn-site", new HashMap<String, String>());
-    firstLevelConfig.put("cluster-env", new HashMap<String, String>());
-    firstLevelConfig.put("global", new HashMap<String, String>());
+    firstLevelConfig.put("hdfs-site", new HashMap<>());
+    firstLevelConfig.put("yarn-site", new HashMap<>());
+    firstLevelConfig.put("cluster-env", new HashMap<>());
+    firstLevelConfig.put("global", new HashMap<>());
 
     Map<String, Map<String, Map<String, String>>> firstLevelAttributes = Maps.newHashMap();
-    firstLevelAttributes.put("hdfs-site", new HashMap<String, Map<String, String>>());
+    firstLevelAttributes.put("hdfs-site", new HashMap<>());
 
     Map<String, Map<String, String>> secondLevelConfig = Maps.newHashMap();
-    secondLevelConfig.put("admin-properties", new HashMap<String, String>());
+    secondLevelConfig.put("admin-properties", new HashMap<>());
     Map<String, Map<String, Map<String, String>>> secondLevelAttributes = Maps.newHashMap();
-    secondLevelAttributes.put("admin-properties", new HashMap<String, Map<String, String>>());
+    secondLevelAttributes.put("admin-properties", new HashMap<>());
 
 
     Configuration secondLevelConf = new Configuration(secondLevelConfig, secondLevelAttributes);
@@ -489,18 +492,18 @@ public class ClusterConfigurationRequestTest {
 
   private Configuration createConfigurationsForHostGroup() {
     Map<String, Map<String, String>> firstLevelConfig = Maps.newHashMap();
-    firstLevelConfig.put("hdfs-site", new HashMap<String, String>());
-    firstLevelConfig.put("spark-env", new HashMap<String, String>());
-    firstLevelConfig.put("cluster-env", new HashMap<String, String>());
-    firstLevelConfig.put("global", new HashMap<String, String>());
+    firstLevelConfig.put("hdfs-site", new HashMap<>());
+    firstLevelConfig.put("spark-env", new HashMap<>());
+    firstLevelConfig.put("cluster-env", new HashMap<>());
+    firstLevelConfig.put("global", new HashMap<>());
 
     Map<String, Map<String, Map<String, String>>> firstLevelAttributes = Maps.newHashMap();
-    firstLevelAttributes.put("hdfs-site", new HashMap<String, Map<String, String>>());
+    firstLevelAttributes.put("hdfs-site", new HashMap<>());
 
     Map<String, Map<String, String>> secondLevelConfig = Maps.newHashMap();
-    secondLevelConfig.put("admin-properties", new HashMap<String, String>());
+    secondLevelConfig.put("admin-properties", new HashMap<>());
     Map<String, Map<String, Map<String, String>>> secondLevelAttributes = Maps.newHashMap();
-    secondLevelAttributes.put("admin-properties", new HashMap<String, Map<String, String>>());
+    secondLevelAttributes.put("admin-properties", new HashMap<>());
 
 
     Configuration secondLevelConf = new Configuration(secondLevelConfig, secondLevelAttributes);

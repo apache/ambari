@@ -26,7 +26,8 @@ describe('App.ReassignMasterView', function () {
   beforeEach(function() {
     view = App.ReassignMasterView.create({
       controller: Em.Object.create({
-        content: Em.Object.create()
+        content: Em.Object.create(),
+        setDBProperty: Em.K
       })
     });
   });
@@ -68,21 +69,21 @@ describe('App.ReassignMasterView', function () {
       items: [
         {
           Hosts: {
-            host_name: 'host1',
+            host_name: 'host1'
           }
         }
       ]
     };
     beforeEach(function() {
-      sinon.stub(App.db, 'setHosts');
+      sinon.stub(view.get('controller'), 'setDBProperty');
       view.loadHostsSuccessCallback(data);
     });
     afterEach(function() {
-      App.db.setHosts.restore();
+      view.get('controller').setDBProperty.restore();
     });
 
-    it('setHosts should be called', function() {
-      expect(App.db.setHosts.calledWith(
+    it('setDBProperty should be called', function() {
+      expect(view.get('controller').setDBProperty.calledWith('hosts',
         {
           "host1": {
             "bootStatus": "REGISTERED",

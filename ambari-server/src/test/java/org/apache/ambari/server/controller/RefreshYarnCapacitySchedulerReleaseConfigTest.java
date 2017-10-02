@@ -102,7 +102,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     // Start
     ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), "c1", cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","capacity-scheduler","version2",new HashMap<String, String>(), null)));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","capacity-scheduler","version2", new HashMap<>(), null)));
 
     controller.updateClusters(Collections.singleton(cr) , null);
 
@@ -123,7 +123,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     // Start
     ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), "c1", cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","core-site","version2",new HashMap<String, String>(),null)));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","core-site","version2", new HashMap<>(),null)));
 
     controller.updateClusters(Collections.singleton(cr) , null);
 
@@ -214,7 +214,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
         new StackId("HDP-2.0.7"), "2.0.7-1234");
 
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getStackId().getStackId(), repositoryVersion.getVersion(), dStateStr);
+        repositoryVersion.getId(), dStateStr);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);

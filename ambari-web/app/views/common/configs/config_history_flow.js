@@ -82,7 +82,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
 
   isSaveDisabled: Em.computed.or('controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged'),
 
-  serviceName: Em.computed.alias('controller.selectedService.serviceName'),
+  serviceName: Em.computed.alias('controller.content.serviceName'),
 
   displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
   /**
@@ -95,13 +95,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
   shortNotes: Em.computed.truncate('displayedServiceVersion.notes', 100, 100),
 
   serviceVersions: function () {
-    var groupName = this.get('controller.selectedConfigGroup.isDefault') ? App.ServiceConfigGroup.defaultGroupName
-        : this.get('controller.selectedConfigGroup.name');
+    var isDefaultGroupSelected = this.get('controller.selectedConfigGroup.isDefault');
     var groupId = this.get('controller.selectedConfigGroup.id');
     var self = this;
 
     this.get('allServiceVersions').forEach(function (version) {
-      version.set('isDisabled', !(version.get('groupName') === groupName));
+      version.set('isDisabled', !(version.get('groupId') === groupId || isDefaultGroupSelected && version.get('groupName') === App.ServiceConfigGroup.defaultGroupName));
     }, this);
 
     var serviceVersions = this.get('allServiceVersions').filter(function(s) {

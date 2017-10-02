@@ -36,6 +36,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.SecretReference;
@@ -92,6 +93,7 @@ public class ConfigHelper {
   public static final String CLUSTER_ENV_STACK_FEATURES_PROPERTY = "stack_features";
   public static final String CLUSTER_ENV_STACK_TOOLS_PROPERTY = "stack_tools";
   public static final String CLUSTER_ENV_STACK_ROOT_PROPERTY = "stack_root";
+  public static final String CLUSTER_ENV_STACK_PACKAGES_PROPERTY = "stack_packages";
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
@@ -398,7 +400,7 @@ public class ConfigHelper {
       for (Entry<String, Map<String, String>> attributesEntry : sourceAttributesMap.entrySet()) {
         String attributeName = attributesEntry.getKey();
         if (!targetAttributesMap.containsKey(attributeName)) {
-          targetAttributesMap.put(attributeName, new TreeMap<String, String>());
+          targetAttributesMap.put(attributeName, new TreeMap<>());
         }
         for (Entry<String, String> attributesValue : attributesEntry.getValue().entrySet()) {
           targetAttributesMap.get(attributeName).put(attributesValue.getKey(), attributesValue.getValue());
@@ -410,7 +412,7 @@ public class ConfigHelper {
   public void applyCustomConfig(Map<String, Map<String, String>> configurations,
                                 String type, String name, String value, Boolean deleted) {
     if (!configurations.containsKey(type)) {
-      configurations.put(type, new HashMap<String, String>());
+      configurations.put(type, new HashMap<>());
     }
     String nameToUse = deleted ? DELETED + name : name;
     Map<String, String> properties = configurations.get(type);
@@ -699,7 +701,9 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
@@ -776,11 +780,34 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
     return result;
+  }
+
+  public void checkAllStageConfigsPresentInDesiredConfigs(Cluster cluster) throws AmbariException {
+    StackId stackId = cluster.getDesiredStackVersion();
+    Set<String> stackConfigTypes = ambariMetaInfo.getStack(stackId.getStackName(),
+            stackId.getStackVersion()).getConfigTypeAttributes().keySet();
+    Map<String, Config> actualConfigs = new HashMap<>();
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
+    }
+
+    for (String stackConfigType : stackConfigTypes) {
+      if (!actualConfigs.containsKey(stackConfigType)) {
+        LOG.error(String.format("Unable to find stack configuration %s in ambari configs!", stackConfigType));
+      }
+    }
+
   }
 
   /***
@@ -1044,7 +1071,7 @@ public class ConfigHelper {
       String authenticatedUserName, String serviceVersionNote) throws AmbariException {
 
     createConfigType(cluster, stackId, controller, configType, properties,
-        new HashMap<String, Map<String, String>>(), authenticatedUserName, serviceVersionNote);
+      new HashMap<>(), authenticatedUserName, serviceVersionNote);
   }
 
   public void createConfigType(Cluster cluster, StackId stackId,
@@ -1083,16 +1110,15 @@ public class ConfigHelper {
       Map<String, String> properties = entry.getValue();
 
       Config baseConfig = createConfig(cluster, stackId, controller, type, FIRST_VERSION_TAG,
-          properties, Collections.<String, Map<String, String>> emptyMap());
+          properties, Collections.emptyMap());
 
       if (null != baseConfig) {
         try {
           String service = cluster.getServiceForConfigTypes(Collections.singleton(type));
           if (!serviceMapped.containsKey(service)) {
-            serviceMapped.put(service, new HashSet<Config>());
+            serviceMapped.put(service, new HashSet<>());
           }
           serviceMapped.get(service).add(baseConfig);
-
         } catch (Exception e) {
           // !!! ignore
         }
@@ -1183,7 +1209,7 @@ public class ConfigHelper {
       String type = ConfigHelper.fileNameToConfigType(stackDefaultProperty.getFilename());
 
       if (!defaultPropertiesByType.containsKey(type)) {
-        defaultPropertiesByType.put(type, new HashMap<String, String>());
+        defaultPropertiesByType.put(type, new HashMap<>());
       }
 
       defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
@@ -1215,12 +1241,11 @@ public class ConfigHelper {
       String type = ConfigHelper.fileNameToConfigType(stackDefaultProperty.getFilename());
 
       if (!defaultPropertiesByType.containsKey(type)) {
-        defaultPropertiesByType.put(type, new HashMap<String, String>());
+        defaultPropertiesByType.put(type, new HashMap<>());
       }
-      if (stackDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
-        defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
-            stackDefaultProperty.getValue());
-      }
+
+      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+          stackDefaultProperty.getValue());
     }
 
     // for every installed service, populate the default service properties
@@ -1232,12 +1257,11 @@ public class ConfigHelper {
       String type = ConfigHelper.fileNameToConfigType(serviceDefaultProperty.getFilename());
 
       if (!defaultPropertiesByType.containsKey(type)) {
-        defaultPropertiesByType.put(type, new HashMap<String, String>());
+        defaultPropertiesByType.put(type, new HashMap<>());
       }
-      if (serviceDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
-        defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
-            serviceDefaultProperty.getValue());
-      }
+
+      defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+          serviceDefaultProperty.getValue());
     }
 
     return defaultPropertiesByType;
@@ -1386,7 +1410,7 @@ public class ConfigHelper {
   }
 
   public static String fileNameToConfigType(String filename) {
-    int extIndex = filename.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
+    int extIndex = filename.indexOf(StackDirectory.SERVICE_CONFIG_FILE_NAME_POSTFIX);
     return filename.substring(0, extIndex);
   }
 

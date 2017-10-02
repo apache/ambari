@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
@@ -143,6 +144,8 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
   private HostRoleCommand hostRoleCommand;
   @Mock(type = MockType.NICE)
   private ConfigureClusterTaskFactory configureClusterTaskFactory;
+  @Mock(type = MockType.NICE)
+  private ConfigureClusterTask configureClusterTask;
 
 
   @Mock(type = MockType.NICE)
@@ -156,21 +159,21 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
   @Mock
   private TopologyValidatorService topologyValidatorServiceMock;
 
-  private final Configuration stackConfig = new Configuration(new HashMap<String, Map<String, String>>(),
-    new HashMap<String, Map<String, Map<String, String>>>());
-  private final Configuration bpConfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
-    new HashMap<String, Map<String, Map<String, String>>>(), stackConfig);
-  private final Configuration topoConfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
-    new HashMap<String, Map<String, Map<String, String>>>(), bpConfiguration);
-  private final Configuration bpGroup1Config = new Configuration(new HashMap<String, Map<String, String>>(),
-    new HashMap<String, Map<String, Map<String, String>>>(), bpConfiguration);
-  private final Configuration bpGroup2Config = new Configuration(new HashMap<String, Map<String, String>>(),
-    new HashMap<String, Map<String, Map<String, String>>>(), bpConfiguration);
+  private final Configuration stackConfig = new Configuration(new HashMap<>(),
+    new HashMap<>());
+  private final Configuration bpConfiguration = new Configuration(new HashMap<>(),
+    new HashMap<>(), stackConfig);
+  private final Configuration topoConfiguration = new Configuration(new HashMap<>(),
+    new HashMap<>(), bpConfiguration);
+  private final Configuration bpGroup1Config = new Configuration(new HashMap<>(),
+    new HashMap<>(), bpConfiguration);
+  private final Configuration bpGroup2Config = new Configuration(new HashMap<>(),
+    new HashMap<>(), bpConfiguration);
 
-  private final Configuration topoGroup1Config = new Configuration(new HashMap<String, Map<String, String>>(),
-    new HashMap<String, Map<String, Map<String, String>>>(), bpGroup1Config);
-  private final Configuration topoGroup2Config = new Configuration(new HashMap<String, Map<String, String>>(),
-    new HashMap<String, Map<String, Map<String, String>>>(), bpGroup2Config);
+  private final Configuration topoGroup1Config = new Configuration(new HashMap<>(),
+    new HashMap<>(), bpGroup1Config);
+  private final Configuration topoGroup2Config = new Configuration(new HashMap<>(),
+    new HashMap<>(), bpGroup2Config);
 
   private HostGroupInfo group1Info = new HostGroupInfo("group1");
   private HostGroupInfo group2Info = new HostGroupInfo("group2");
@@ -248,7 +251,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.isValidConfigType(anyString())).andReturn(true).anyTimes();
-    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<RepositorySetting>()).anyTimes();
+    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -278,8 +281,8 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getServiceForConfigType("service1-site")).andReturn("service1").anyTimes();
     expect(stack.getServiceForConfigType("service2-site")).andReturn("service2").anyTimes();
-    expect(stack.getExcludedConfigurationTypes("service1")).andReturn(Collections.<String>emptySet()).anyTimes();
-    expect(stack.getExcludedConfigurationTypes("service2")).andReturn(Collections.<String>emptySet()).anyTimes();
+    expect(stack.getExcludedConfigurationTypes("service1")).andReturn(Collections.emptySet()).anyTimes();
+    expect(stack.getExcludedConfigurationTypes("service2")).andReturn(Collections.emptySet()).anyTimes();
 
     expect(request.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(request.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
@@ -298,7 +301,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
     expect(group1.getComponentNames(ProvisionAction.INSTALL_ONLY)).andReturn(Arrays.asList("component1"))
       .anyTimes();
-    expect(group1.getComponentNames(ProvisionAction.START_ONLY)).andReturn(Collections.<String>emptyList())
+    expect(group1.getComponentNames(ProvisionAction.START_ONLY)).andReturn(Collections.emptyList())
       .anyTimes();
 
     expect(group1.getComponents("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
@@ -312,8 +315,8 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group2.containsMasterComponent()).andReturn(false).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
-    expect(group2.getComponentNames(ProvisionAction.INSTALL_ONLY)).andReturn(Collections.<String>emptyList()).anyTimes();
-    expect(group2.getComponentNames(ProvisionAction.START_ONLY)).andReturn(Collections.<String>emptyList())
+    expect(group2.getComponentNames(ProvisionAction.INSTALL_ONLY)).andReturn(Collections.emptyList()).anyTimes();
+    expect(group2.getComponentNames(ProvisionAction.START_ONLY)).andReturn(Collections.emptyList())
       .anyTimes();
     expect(group2.getComponents("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
     expect(group2.getComponents("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
@@ -340,7 +343,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) eq("1"));
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) eq("1"), anyLong());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
@@ -368,11 +371,13 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
     expectLastCall().once();
 
-    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).times(2);
+    expect(configureClusterTaskFactory.createConfigureClusterTask(anyObject(), anyObject(), anyObject())).andReturn(configureClusterTask);
+    expect(configureClusterTask.getTimeout()).andReturn(1000L);
+    expect(configureClusterTask.getRepeatDelay()).andReturn(50L);
+    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).times(1);
 
     persistedTopologyRequest = new PersistedTopologyRequest(1, request);
-    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
-      List<LogicalRequest>>emptyMap()).once();
+    expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).once();
     expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).once();
     persistedState.persistLogicalRequest((LogicalRequest) anyObject(), anyLong());
     expectLastCall().once();

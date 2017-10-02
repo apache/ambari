@@ -18,7 +18,7 @@
 
 <tr>
   <td>{{job.id}}</td>
-  <td class="break-word">{{job.title}}</td>
+  <td class="break-word workflow-name"><a {{action "openAsWorksheet" job}}>{{job.title}}</a></td>
   <td>{{job.status}}</td>
   <td>{{moment-from-now job.dateSubmitted}}</td>
   <td>{{job.duration}}</td>

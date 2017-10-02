@@ -146,7 +146,7 @@ public class BackgroundCustomCommandExecutionTest {
       };
 
       ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
-          "REBALANCEHDFS", new HashMap<String, String>(), false);
+          "REBALANCEHDFS", new HashMap<>(), false);
       actionRequest.getResourceFilters().add(new RequestResourceFilter("HDFS", "NAMENODE",Collections.singletonList("c6401")));
 
       controller.createAction(actionRequest, requestProperties);
@@ -218,7 +218,7 @@ public class BackgroundCustomCommandExecutionTest {
       dStateStr = desiredState.toString();
     }
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        m_repositoryVersion.getStackId().getStackId(), m_repositoryVersion.getVersion(), dStateStr);
+        m_repositoryVersion.getId(), dStateStr);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);

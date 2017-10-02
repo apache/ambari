@@ -34,8 +34,8 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +93,7 @@ public class ActionDefinitionManager {
     }
 
     File[] customActionDefinitionFiles
-        = customActionDefinitionRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+        = customActionDefinitionRoot.listFiles(StackDirectory.FILENAME_FILTER);
 
     if (customActionDefinitionFiles != null) {
       for (File definitionFile : customActionDefinitionFiles) {

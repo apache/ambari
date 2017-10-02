@@ -33,4 +33,12 @@
       <unique>true</unique>
     </repo>
   </os>
+  <os family="ubuntu14">
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.2.0.0</baseurl>
+      <repoid>HDP-2.2.0</repoid>
+      <reponame>HDP</reponame>
+      <unique>true</unique>
+    </repo>
+  </os>
 </reposinfo>

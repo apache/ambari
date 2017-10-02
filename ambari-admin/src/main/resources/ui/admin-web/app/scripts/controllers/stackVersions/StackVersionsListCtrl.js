@@ -28,6 +28,7 @@ angular.module('ambariAdminConsole')
     $scope.filter = {
       name: '',
       version: '',
+      type: '',
       cluster: {
         options: [],
         current: null
@@ -189,7 +190,26 @@ angular.module('ambariAdminConsole')
     $scope.$watch('filter', function (filter) {
       $scope.isNotEmptyFilter = Boolean(filter.name
         || filter.version
+        || filter.type
         || (filter.cluster.current && filter.cluster.current.value)
         || (filter.stack.current && filter.stack.current.value));
     }, true);
+
+    $scope.toggleVisibility = function (repo) {
+      repo.isProccessing = true;
+      var payload = {
+        RepositoryVersions:{
+          hidden: repo.hidden
+        }
+      }
+      Stack.updateRepo(repo.stack_name, repo.stack_version, repo.id, payload).then( null, function () {
+        repo.hidden = !repo.hidden;
+      }).finally( function () {
+        delete repo.isProccessing;
+      });
+    }
+
+    $scope.isHideCheckBoxEnabled = function ( repo ) {
+      return !repo.isProccessing && ( !repo.cluster || repo.isPatch && ( repo.status === 'installed' || repo.status === 'install_failed') );
+    }
   }]);

@@ -244,6 +244,7 @@
                           <location>${collector.dir}/target/lib</location>
                           <excludes>
                             <exclude>*tests.jar</exclude>
+                            <exclude>findbugs*.jar</exclude>
                           </excludes>
                         </source>
                         <source>
@@ -263,6 +264,7 @@
                             <exclude>bin/**</exclude>
                             <exclude>bin/*</exclude>
                             <exclude>lib/*tests.jar</exclude>
+                            <exclude>lib/findbugs*.jar</exclude>
                           </excludes>
                         </source>
                       </sources>

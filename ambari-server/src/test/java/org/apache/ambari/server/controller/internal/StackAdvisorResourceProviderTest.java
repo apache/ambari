@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +39,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class StackAdvisorResourceProviderTest {
@@ -144,5 +146,28 @@ public class StackAdvisorResourceProviderTest {
     // config properties with null values should be ignored
     assertFalse(properties.containsKey("string_prop"));
 
+  }
+
+  @Test
+  public void testStackAdvisorWithEmptyHosts() {
+    Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
+    Set<String> propertyIds = Collections.emptySet();
+    AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
+    RecommendationResourceProvider provider = new RecommendationResourceProvider(propertyIds,
+      keyPropertyIds, ambariManagementController);
+
+    Request request = mock(Request.class);
+    Set<Map<String, Object>> propertiesSet = new HashSet<>();
+    Map<String, Object> propertiesMap = new HashMap<>();
+    propertiesMap.put("hosts", new LinkedHashSet<>());
+    propertiesMap.put("recommend", "configurations");
+    propertiesSet.add(propertiesMap);
+    doReturn(propertiesSet).when(request).getProperties();
+
+    try {
+      provider.createResources(request);
+      Assert.fail();
+    } catch (Exception e) {
+    }
   }
 }

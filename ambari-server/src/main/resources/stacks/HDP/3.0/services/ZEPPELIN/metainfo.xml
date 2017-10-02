@@ -20,8 +20,8 @@
     <services>
         <service>
             <name>ZEPPELIN</name>
-            <version>0.7.2.3.0</version>
-            <extends>common-services/ZEPPELIN/0.6.0.3.0</extends>
+            <version>0.7.0</version>
+            <extends>common-services/ZEPPELIN/0.7.0</extends>
         </service>
     </services>
 </metainfo>

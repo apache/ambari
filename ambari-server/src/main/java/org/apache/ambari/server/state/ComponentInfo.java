@@ -65,6 +65,12 @@ public class ComponentInfo {
   private UnlimitedKeyJCERequirement unlimitedKeyJCERequired;
 
   /**
+   * Used to determine if rolling restart is supported
+   * */
+  @XmlElements(@XmlElement(name = "rollingRestartSupported"))
+  private boolean rollingRestartSupported;
+
+  /**
   * Added at schema ver 2
   */
   private CommandScriptDefinition commandScript;
@@ -166,6 +172,7 @@ public class ComponentInfo {
     timelineAppid = prototype.timelineAppid;
     reassignAllowed = prototype.reassignAllowed;
     customFolder = prototype.customFolder;
+    rollingRestartSupported = prototype.rollingRestartSupported;
   }
 
   public String getName() {
@@ -370,6 +377,14 @@ public class ComponentInfo {
 
   public void setDecommissionAllowed(String decommissionAllowed) {
     this.decommissionAllowed = decommissionAllowed;
+  }
+
+  public boolean getRollingRestartSupported() {
+    return rollingRestartSupported;
+  }
+
+  public void setRollingRestartSupported(boolean rollingRestartSupported) {
+    this.rollingRestartSupported = rollingRestartSupported;
   }
 
   public UnlimitedKeyJCERequirement getUnlimitedKeyJCERequired() {

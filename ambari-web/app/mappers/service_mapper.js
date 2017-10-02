@@ -23,7 +23,8 @@ App.serviceMapper = App.QuickDataMapper.create({
   config: {
     id: 'ServiceInfo.service_name',
     service_name: 'ServiceInfo.service_name',
-    work_status: 'ServiceInfo.state'
+    work_status: 'ServiceInfo.state',
+    desired_repository_version_id: 'ServiceInfo.desired_repository_version_id'
   },
   initialAppLoad: false,
   passiveStateMap: {},
@@ -41,7 +42,8 @@ App.serviceMapper = App.QuickDataMapper.create({
         var serviceData = {
           ServiceInfo: {
             service_name: service.ServiceInfo.service_name,
-            state: service.ServiceInfo.state
+            state: service.ServiceInfo.state,
+            desired_repository_version_id: service.ServiceInfo.desired_repository_version_id
           },
           host_components: [],
           components: []

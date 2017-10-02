@@ -30,6 +30,8 @@ class TestSparkThriftServer(RMFTestCase):
   STACK_VERSION = "2.3"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
+  CONFIG_OVERRIDES = {"serviceName":"SPARK", "role":"SPARK_THRIFTSERVER"}
+
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_configure_default(self, copy_to_hdfs_mock):
     copy_to_hdfs_mock = True
@@ -94,7 +96,7 @@ class TestSparkThriftServer(RMFTestCase):
     self.assertResourceCalled('HdfsResource', '/user/spark',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        hadoop_bin_dir = '/usr/hdp/2.3.2.0-2067/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = {u'a': u'b'},
@@ -102,7 +104,7 @@ class TestSparkThriftServer(RMFTestCase):
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
         owner = 'spark',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/usr/hdp/2.3.2.0-2067/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         dfs_type = '',
@@ -111,7 +113,7 @@ class TestSparkThriftServer(RMFTestCase):
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        hadoop_bin_dir = '/usr/hdp/2.3.2.0-2067/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = {u'a': u'b'},
@@ -120,7 +122,7 @@ class TestSparkThriftServer(RMFTestCase):
         user = 'hdfs',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         dfs_type = '',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/usr/hdp/2.3.2.0-2067/hadoop/conf',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
         owner = 'spark',
@@ -180,19 +182,10 @@ class TestSparkThriftServer(RMFTestCase):
                        classname = "SparkThriftServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'spark-thriftserver', version), sudo=True)
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'spark', '--stack-version', '2.3.2.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'spark', '--stack-version', '2.3.2.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])

@@ -60,7 +60,7 @@ include_file_path = default("/configurations/hdfs-site/dfs.hosts", None)
 hdfs_include_file = None
 manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
 if include_file_path and manage_include_files:
-  hdfs_include_file = list(set(slave_hosts) - set(hdfs_exclude_file))
+  hdfs_include_file = slave_hosts
 update_files_only = default("/commandParams/update_files_only",False)
 
 kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))

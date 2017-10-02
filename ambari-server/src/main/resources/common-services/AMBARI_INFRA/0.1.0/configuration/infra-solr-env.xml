@@ -64,6 +64,12 @@
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -156,7 +162,7 @@
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
-      <maximum>5120</maximum>
+      <maximum>32768</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
@@ -170,13 +176,23 @@
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
-      <maximum>5120</maximum>
+      <maximum>32768</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-
+  <property>
+    <name>infra_solr_jmx_enabled</name>
+    <value>false</value>
+    <display-name>Enable JMX</display-name>
+    <description>Set to true to activate the JMX RMI connector to allow remote JMX client applications to monitor the JVM hosting Solr
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <property>
     <name>infra_solr_kerberos_keytab</name>
     <value>/etc/security/keytabs/infra_solr.service.keytab</value>

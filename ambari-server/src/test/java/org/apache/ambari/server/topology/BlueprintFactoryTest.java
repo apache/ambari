@@ -176,7 +176,7 @@ public class BlueprintFactoryTest {
 
     BlueprintFactory factoryUnderTest =
       new BlueprintFactory(mockStackFactory);
-    factoryUnderTest.createStack(new HashMap<String, Object>());
+    factoryUnderTest.createStack(new HashMap<>());
 
     mockSupport.verifyAll();
   }

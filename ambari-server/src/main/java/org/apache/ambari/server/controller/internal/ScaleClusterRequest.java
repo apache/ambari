@@ -58,8 +58,8 @@ public class ScaleClusterRequest extends BaseClusterRequest {
         setClusterName(String.valueOf(properties.get(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID)));
       }
       // currently don't allow cluster scoped configuration in scaling operation
-      setConfiguration(new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-          Collections.<String, Map<String, Map<String, String>>>emptyMap()));
+      setConfiguration(new Configuration(Collections.emptyMap(),
+          Collections.emptyMap()));
 
       parseHostGroups(properties);
     }
@@ -143,8 +143,8 @@ public class ScaleClusterRequest extends BaseClusterRequest {
     }
 
     // specifying configuration is scaling request isn't permitted
-    hostGroupInfo.setConfiguration(new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-        Collections.<String, Map<String, Map<String, String>>>emptyMap()));
+    hostGroupInfo.setConfiguration(new Configuration(Collections.emptyMap(),
+        Collections.emptyMap()));
 
     // process host_name and host_count
     if (containsHostCount) {

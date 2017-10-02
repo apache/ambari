@@ -48,7 +48,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_OVERLORD' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-overlord')
     self.assertNoMoreResources()
@@ -60,7 +61,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        stack_version=self.STACK_VERSION,
                        config_overrides = { 'role' : 'DRUID_OVERLORD' },
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-overlord')
     self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-overlord/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
@@ -80,7 +82,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        stack_version=self.STACK_VERSION,
                        config_overrides = { 'role' : 'DRUID_OVERLORD' },
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-overlord/conf/druid-env.sh ; /usr/hdp/current/druid-overlord/bin/node.sh overlord stop'),
                               user='druid'
@@ -94,7 +97,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_COORDINATOR' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-coordinator')
     self.assertNoMoreResources()
@@ -140,7 +144,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_BROKER' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-broker')
     self.assertNoMoreResources()
@@ -152,7 +157,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        stack_version=self.STACK_VERSION,
                        config_overrides = { 'role' : 'DRUID_BROKER' },
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-broker')
     self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-broker/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
@@ -232,7 +238,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_HISTORICAL' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-historical')
     self.assertNoMoreResources()
@@ -278,7 +285,8 @@ class TestDruid(RMFTestCase):
                        config_file=self.get_src_folder() + "/test/python/stacks/2.6/configs/default.json",
                        config_overrides = { 'role' : 'DRUID_MIDDLEMANAGER' },
                        stack_version=self.STACK_VERSION,
-                       target=RMFTestCase.TARGET_COMMON_SERVICES
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""), (0, "OK.", "")]
                        )
     self.assert_configure_default('druid-middlemanager')
     self.assertNoMoreResources()
@@ -589,7 +597,7 @@ class TestDruid(RMFTestCase):
     self.assertResourceCalled('HdfsResource', '/user/druid',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
-                              hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
                               hdfs_site = {u'a': u'b'},
@@ -597,7 +605,8 @@ class TestDruid(RMFTestCase):
                               principal_name = 'missing_principal',
                               user = 'hdfs',
                               owner = 'druid',
-                              hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              group='hadoop',
+                              hadoop_conf_dir = '/usr/hdp/2.5.0.0-1235/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
@@ -608,7 +617,7 @@ class TestDruid(RMFTestCase):
     self.assertResourceCalled('HdfsResource', '/user/druid/data',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
-                              hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
                               hdfs_site = {u'a': u'b'},
@@ -616,15 +625,16 @@ class TestDruid(RMFTestCase):
                               principal_name = 'missing_principal',
                               user = 'hdfs',
                               owner = 'druid',
-                              hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              hadoop_conf_dir = '/usr/hdp/2.5.0.0-1235/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
-                              mode=0755
+                              group='hadoop',
+                              mode=0775
                               )
     self.assertResourceCalled('HdfsResource', '/tmp',
         security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         dfs_type = '',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -634,7 +644,7 @@ class TestDruid(RMFTestCase):
         principal_name = 'missing_principal',
         user = 'hdfs',
         owner = 'hdfs',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/usr/hdp/2.5.0.0-1235/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'],
         immutable_paths = [u'/apps/hive/warehouse',
@@ -647,7 +657,7 @@ class TestDruid(RMFTestCase):
     self.assertResourceCalled('HdfsResource', '/tmp/druid-indexing',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
-                              hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
                               hdfs_site = {u'a': u'b'},
@@ -655,17 +665,18 @@ class TestDruid(RMFTestCase):
                               principal_name = 'missing_principal',
                               user = 'hdfs',
                               owner = 'druid',
-                              hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              group='hadoop',
+                              hadoop_conf_dir = '/usr/hdp/2.5.0.0-1235/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',
-                              mode=0755
+                              mode=0775
                               )
 
     self.assertResourceCalled('HdfsResource', '/user/druid/logs',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
-                              hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab = UnknownConfigurationMock(),
                               default_fs = 'hdfs://c6401.ambari.apache.org:8020',
                               hdfs_site = {u'a': u'b'},
@@ -673,7 +684,8 @@ class TestDruid(RMFTestCase):
                               principal_name = 'missing_principal',
                               user = 'hdfs',
                               owner = 'druid',
-                              hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              group='hadoop',
+                              hadoop_conf_dir = '/usr/hdp/2.5.0.0-1235/hadoop/conf',
                               type = 'directory',
                               action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               dfs_type = '',

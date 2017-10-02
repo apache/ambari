@@ -184,7 +184,7 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
               failures = new ArrayList<>();
               hostComponents.put(hostName, failures);
 
-              publishedHostComponents.put(hostName, new HashSet<Role>());
+              publishedHostComponents.put(hostName, new HashSet<>());
             }
 
             Set<Role> publishedHostComponentsOnHost = publishedHostComponents.get(hostName);

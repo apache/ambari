@@ -35,11 +35,13 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryType;
@@ -93,12 +95,18 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     }
   }
 
+  @Inject
+  private RoleCommandOrderProvider roleCommandOrderProvider;
+
   /**
    * Execution path for upgrade.
    * @return the command report
    */
   private CommandReport finalizeUpgrade(UpgradeContext upgradeContext)
     throws AmbariException, InterruptedException {
+
+    Direction direction = upgradeContext.getDirection();
+    RepositoryType repositoryType = upgradeContext.getOrchestrationType();
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();
@@ -109,7 +117,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       String version = repositoryVersion.getVersion();
 
       String message;
-      if (upgradeContext.getRepositoryType() == RepositoryType.STANDARD) {
+      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
         message = MessageFormat.format("Finalizing the upgrade to {0} for all cluster services.", version);
       } else {
         Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
@@ -150,7 +158,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // transition correctly
       for (HostVersionEntity hostVersion : hostVersions) {
         RepositoryVersionState hostVersionState = hostVersion.getState();
-        switch( hostVersionState ){
+        switch (hostVersionState) {
           case CURRENT:
           case NOT_REQUIRED: {
             hostVersionsAllowed.add(hostVersion);
@@ -194,6 +202,18 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // longer used
       finalizeHostRepositoryVersions(cluster);
 
+      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
+        outSB.append(String.format("Finalizing the version for cluster %s.\n", cluster.getClusterName()));
+        cluster.setCurrentStackVersion(cluster.getDesiredStackVersion());
+      }
+
+      // mark revertable
+      if (repositoryType.isRevertable() && direction == Direction.UPGRADE) {
+        UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+        upgrade.setRevertAllowed(true);
+        upgrade = m_upgradeDAO.merge(upgrade);
+      }
+
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
 
@@ -230,7 +250,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       String message;
 
-      if (downgradeFromRepositoryVersion.getType() == RepositoryType.STANDARD) {
+      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
         message = MessageFormat.format(
             "Finalizing the downgrade from {0} for all cluster services.",
             downgradeFromVersion);
@@ -260,39 +280,44 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         throw new AmbariException(messageBuff.toString());
       }
 
-      // for every repository being downgraded to, ensure the host versions are correct
-      Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
-      Set<RepositoryVersionEntity> targetRepositoryVersions = new HashSet<>();
-      for (String service : targetVersionsByService.keySet()) {
-        targetRepositoryVersions.add(targetVersionsByService.get(service));
-      }
 
-      for (RepositoryVersionEntity targetRepositoryVersion : targetRepositoryVersions) {
-        // find host versions
-        List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
-            cluster.getClusterId(), targetRepositoryVersion);
+      if (upgradeContext.isPatchRevert()) {
+        finalizeHostRepositoryVersions(cluster);
+      } else {
+        // for every repository being downgraded to, ensure the host versions are correct
+        Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
+        Set<RepositoryVersionEntity> targetRepositoryVersions = new HashSet<>();
+        for (String service : targetVersionsByService.keySet()) {
+          targetRepositoryVersions.add(targetVersionsByService.get(service));
+        }
 
-        outSB.append(String.format("Finalizing %d host(s) back to %s", hostVersions.size(),
-            targetRepositoryVersion.getVersion())).append(System.lineSeparator());
+        for (RepositoryVersionEntity targetRepositoryVersion : targetRepositoryVersions) {
+          // find host versions
+          List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
+              cluster.getClusterId(), targetRepositoryVersion);
 
-        for (HostVersionEntity hostVersion : hostVersions) {
-          if (hostVersion.getState() != RepositoryVersionState.CURRENT) {
-            hostVersion.setState(RepositoryVersionState.CURRENT);
-            hostVersionDAO.merge(hostVersion);
-          }
+          outSB.append(String.format("Finalizing %d host(s) back to %s", hostVersions.size(),
+              targetRepositoryVersion.getVersion())).append(System.lineSeparator());
 
-          List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(
-              hostVersion.getHostName());
+          for (HostVersionEntity hostVersion : hostVersions) {
+            if (hostVersion.getState() != RepositoryVersionState.CURRENT) {
+              hostVersion.setState(RepositoryVersionState.CURRENT);
+              hostVersionDAO.merge(hostVersion);
+            }
 
-          for (HostComponentStateEntity hostComponentState : hostComponentStates) {
-            hostComponentState.setUpgradeState(UpgradeState.NONE);
-            hostComponentStateDAO.merge(hostComponentState);
+            List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(
+                hostVersion.getHostName());
+
+            for (HostComponentStateEntity hostComponentState : hostComponentStates) {
+              hostComponentState.setUpgradeState(UpgradeState.NONE);
+              hostComponentStateDAO.merge(hostComponentState);
+            }
           }
         }
       }
 
       // remove any configurations for services which crossed a stack boundary
-      for( String serviceName : servicesInUpgrade ){
+      for (String serviceName : servicesInUpgrade) {
         RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
         RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
         StackId sourceStackId = sourceRepositoryVersion.getStackId();
@@ -346,7 +371,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     StackId targetStackId = repositoryVersionEntity.getStackId();
 
     Set<String> servicesParticipating = upgradeContext.getSupportedServices();
-    for( String serviceName : servicesParticipating ){
+    for (String serviceName : servicesParticipating) {
       Service service = cluster.getService(serviceName);
       String targetVersion = upgradeContext.getTargetVersion(serviceName);
 

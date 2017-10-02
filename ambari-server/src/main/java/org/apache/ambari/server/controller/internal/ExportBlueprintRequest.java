@@ -186,8 +186,8 @@ public class ExportBlueprintRequest implements TopologyRequest {
     configuration = new Configuration(properties, attributes);
     // empty parent configuration when exporting as all properties are included in this configuration
     configuration.setParentConfiguration(new Configuration(
-        Collections.<String, Map<String, String>>emptyMap(),
-        Collections.<String, Map<String, Map<String, String>>>emptyMap()));
+        Collections.emptyMap(),
+        Collections.emptyMap()));
   }
 
   /**

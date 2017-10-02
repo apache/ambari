@@ -88,7 +88,7 @@ public class HiveZKQuorumConfigActionTest {
 
     EasyMock.expect(m_hiveSiteConfig.getProperties()).andReturn(hiveSiteProperties).atLeastOnce();
 
-    m_hiveSiteConfig.setProperties(EasyMock.<Map<String, String>>anyObject());
+    m_hiveSiteConfig.setProperties(EasyMock.anyObject());
     EasyMock.expectLastCall().once();
 
     m_hiveSiteConfig.save();

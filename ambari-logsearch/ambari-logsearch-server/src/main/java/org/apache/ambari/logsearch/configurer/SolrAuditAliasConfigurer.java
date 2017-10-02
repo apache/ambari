@@ -115,9 +115,7 @@ public class SolrAuditAliasConfigurer implements Configurer {
     String collectionsCSV = null;
     if (!collectionToAdd.isEmpty()) {
       collectionsCSV = StringUtils.join(collectionToAdd, ',');
-      CollectionAdminRequest.CreateAlias aliasCreateRequest = new CollectionAdminRequest.CreateAlias();
-      aliasCreateRequest.setAliasName(aliasNameIn);
-      aliasCreateRequest.setAliasedCollections(collectionsCSV);
+      CollectionAdminRequest.CreateAlias aliasCreateRequest = CollectionAdminRequest.createAlias(aliasNameIn, collectionsCSV);
       CollectionAdminResponse createResponse = aliasCreateRequest.process(solrClient);
       if (createResponse.getStatus() != 0) {
         LOG.error("Error creating alias. alias=" + aliasNameIn + ", collectionList=" + collectionsCSV

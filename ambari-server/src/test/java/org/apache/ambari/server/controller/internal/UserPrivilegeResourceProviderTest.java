@@ -47,7 +47,6 @@ import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -61,6 +60,7 @@ import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
@@ -408,7 +408,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
 
     expect(userDAO.findUserByName("jdoe")).andReturn(userEntity).anyTimes();
     expect(userDAO.findUserByPrincipal(anyObject(PrincipalEntity.class))).andReturn(userEntity).anyTimes();
-    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).anyTimes();
+    expect(userDAO.findAll()).andReturn(Collections.emptyList()).anyTimes();
 
     final Users users = injector.getInstance(Users.class);
 
@@ -426,7 +426,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
         andReturn(Collections.singletonList(implicitPrivilegeEntity))
         .once();
     expect(memberDAO.findAllMembersByUser(userEntity)).
-        andReturn(Collections.<MemberEntity>emptyList())
+        andReturn(Collections.emptyList())
         .atLeastOnce();
 
     replayAll();
@@ -482,12 +482,12 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
         andReturn(Collections.singletonList(privilegeEntity))
         .atLeastOnce();
     expect(memberDAO.findAllMembersByUser(userEntity)).
-        andReturn(Collections.<MemberEntity>emptyList())
+        andReturn(Collections.emptyList())
         .atLeastOnce();
+    expect(userDAO.findAll()).andReturn(Collections.emptyList()).anyTimes();
     expect(userDAO.findUserByName(requestedUsername)).andReturn(userEntity).anyTimes();
-    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).anyTimes();
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
-    expect(userEntity.getMemberEntities()).andReturn(Collections.<MemberEntity>emptySet()).anyTimes();
+    expect(userEntity.getMemberEntities()).andReturn(Collections.emptySet()).anyTimes();
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
     expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
@@ -502,7 +502,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
     expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
     expect(resourceTypeEntity.getName()).andReturn(ResourceType.AMBARI.name());
-    expect(viewInstanceDAO.findAll()).andReturn(new ArrayList<ViewInstanceEntity>()).anyTimes();
+    expect(viewInstanceDAO.findAll()).andReturn(new ArrayList<>()).anyTimes();
 
     replayAll();
 
@@ -535,6 +535,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));

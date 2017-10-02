@@ -571,6 +571,13 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public void updateUniqueConstraint(String tableName, String constraintName, String... columnNames)
+      throws SQLException {
+    dropUniqueConstraint(tableName, constraintName);
+    addUniqueConstraint(tableName, constraintName, columnNames);
+  }
+
+  @Override
   public void addPKConstraint(String tableName, String constraintName, boolean ignoreErrors, String... columnName) throws SQLException {
     if (!tableHasPrimaryKey(tableName, null) && tableHasColumn(tableName, columnName)) {
       String query = dbmsHelper.getAddPrimaryKeyConstraintStatement(tableName, constraintName, columnName);
@@ -646,12 +653,10 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void alterColumn(String tableName, DBColumnInfo columnInfo)
-          throws SQLException {
+  public void alterColumn(String tableName, DBColumnInfo columnInfo) throws SQLException {
     //varchar extension only (derby limitation, but not too much for others),
     if (dbmsHelper.supportsColumnTypeChange()) {
-      String statement = dbmsHelper.getAlterColumnStatement(tableName,
-              columnInfo);
+      String statement = dbmsHelper.getAlterColumnStatement(tableName, columnInfo);
       executeQuery(statement);
     } else {
       //use addColumn: add_tmp-update-drop-rename for Derby
@@ -1393,6 +1398,101 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void copyColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName1, String sourceIDFieldName2, String sourceIDFieldName3,
+                                       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName1, String targetIDFieldName2, String targetIDFieldName3,
+                                       String sourceConditionFieldName, String condition, Object initialValue) throws SQLException {
+
+    if (tableHasColumn(sourceTableName, sourceIDFieldName1) &&
+        tableHasColumn(sourceTableName, sourceIDFieldName2) &&
+        tableHasColumn(sourceTableName, sourceIDFieldName3) &&
+        tableHasColumn(sourceTableName, sourceColumn.getName()) &&
+        tableHasColumn(sourceTableName, sourceConditionFieldName) &&
+        tableHasColumn(targetTableName, targetIDFieldName1) &&
+        tableHasColumn(targetTableName, targetIDFieldName2) &&
+        tableHasColumn(targetTableName, targetIDFieldName3)
+        ) {
+
+      final String moveSQL = dbmsHelper.getCopyColumnToAnotherTableStatement(sourceTableName, sourceColumn.getName(),
+          sourceIDFieldName1, sourceIDFieldName2, sourceIDFieldName3, targetTableName, targetColumn.getName(),
+          targetIDFieldName1, targetIDFieldName2, targetIDFieldName3, sourceConditionFieldName, condition);
+      final boolean isTargetColumnNullable = targetColumn.isNullable();
+
+      targetColumn.setNullable(true);  // setting column nullable by default to move rows with null
+
+      addColumn(targetTableName, targetColumn);
+      executeUpdate(moveSQL, false);
+
+      if (initialValue != null) {
+        String updateSQL = dbmsHelper.getColumnUpdateStatementWhereColumnIsNull(convertObjectName(targetTableName),
+            convertObjectName(targetColumn.getName()), convertObjectName(targetColumn.getName()));
+
+        executePreparedUpdate(updateSQL, initialValue);
+      }
+
+      if (!isTargetColumnNullable) {
+        setColumnNullable(targetTableName, targetColumn.getName(), false);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<Integer> getIntColumnValues(String tableName, String columnName, String[] ConditionColumnNames,
+                                          String[] values, boolean ignoreFailure) throws SQLException {
+
+    if (!tableHasColumn(tableName, columnName)) {
+      throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, columnName));
+    }
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT ").append(columnName).append(" FROM ").append(tableName);
+    if (ConditionColumnNames != null && ConditionColumnNames.length > 0) {
+      for (String name : ConditionColumnNames) {
+        if (!tableHasColumn(tableName, name)) {
+          throw new IllegalArgumentException(String.format("%s table does not contain %s column", tableName, name));
+        }
+      }
+      if (ConditionColumnNames.length != values.length) {
+        throw new IllegalArgumentException("number of columns should be equal to number of values");
+      }
+      builder.append(" WHERE ").append(ConditionColumnNames[0]).append("='").append(values[0]).append("'");
+      for (int i = 1; i < ConditionColumnNames.length; i++) {
+        builder.append(" AND ").append(ConditionColumnNames[i]).append("='").append(values[i]).append("'");
+      }
+    }
+
+    List<Integer> result = new ArrayList<>();
+    Statement statement = getConnection().createStatement();
+    ResultSet resultSet = null;
+    String query = builder.toString();
+    try {
+      resultSet = statement.executeQuery(query);
+      if (resultSet != null) {
+        while (resultSet.next()) {
+          result.add(resultSet.getInt(1));
+        }
+      }
+    } catch (SQLException e) {
+      LOG.warn("Unable to execute query: " + query, e);
+      if (!ignoreFailure) {
+        throw e;
+      }
+    } finally {
+      if (resultSet != null) {
+        resultSet.close();
+      }
+      if (statement != null) {
+        statement.close();
+      }
+    }
+    return result;
+  }
+
+  /**
    * Move column data from {@code sourceTableName} to {@code targetTableName} using {@code sourceIDFieldName} and
    * {@code targetIDFieldName} keys to match right rows
    *
@@ -1442,5 +1542,29 @@ public class DBAccessorImpl implements DBAccessor {
       }
       dropColumn(sourceTableName, sourceColumn.getName());
     }
+  }
+
+  /**
+   * Remove all rows from the table
+   *
+   * @param tableName name of the table
+   */
+  @Override
+  public void clearTable(String tableName) throws SQLException {
+    String sqlQuery = "DELETE FROM " + convertObjectName(tableName);
+    executeQuery(sqlQuery);
+  }
+
+  /**
+   * Reset all rows with {@code value} for {@code columnName} column
+   *
+   * @param tableName  name of the table
+   * @param columnName
+   * @param value      data to use for update
+   */
+  @Override
+  public void clearTableColumn(String tableName, String columnName, Object value) throws SQLException {
+    String sqlQuery = String.format("UPDATE %s SET %s = ?", convertObjectName(tableName), convertObjectName(columnName));
+    executePreparedUpdate(sqlQuery, value);
   }
 }

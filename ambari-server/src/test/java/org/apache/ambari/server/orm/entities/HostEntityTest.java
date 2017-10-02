@@ -36,7 +36,7 @@ public class HostEntityTest {
     HostEntity hostEntity = new HostEntity();
     HostComponentDesiredStateEntity stateEntity = new HostComponentDesiredStateEntity();
 
-    hostEntity.setHostComponentDesiredStateEntities(new HashSet<HostComponentDesiredStateEntity>());
+    hostEntity.setHostComponentDesiredStateEntities(new HashSet<>());
 
     Collection<HostComponentDesiredStateEntity> stateEntities = hostEntity.getHostComponentDesiredStateEntities();
     assertTrue(stateEntities.isEmpty());
@@ -53,7 +53,7 @@ public class HostEntityTest {
     HostEntity hostEntity = new HostEntity();
     HostComponentDesiredStateEntity stateEntity = new HostComponentDesiredStateEntity();
 
-    hostEntity.setHostComponentDesiredStateEntities(new HashSet<HostComponentDesiredStateEntity>());
+    hostEntity.setHostComponentDesiredStateEntities(new HashSet<>());
 
     Collection<HostComponentDesiredStateEntity> stateEntities = hostEntity.getHostComponentDesiredStateEntities();
     assertTrue(stateEntities.isEmpty());
@@ -69,7 +69,7 @@ public class HostEntityTest {
     HostEntity hostEntity = new HostEntity();
     HostComponentDesiredStateEntity stateEntity = new HostComponentDesiredStateEntity();
 
-    hostEntity.setHostComponentDesiredStateEntities(new HashSet<HostComponentDesiredStateEntity>());
+    hostEntity.setHostComponentDesiredStateEntities(new HashSet<>());
 
     Collection<HostComponentDesiredStateEntity> stateEntities = hostEntity.getHostComponentDesiredStateEntities();
     assertTrue(stateEntities.isEmpty());
@@ -90,7 +90,7 @@ public class HostEntityTest {
     HostEntity hostEntity = new HostEntity();
     HostComponentStateEntity stateEntity = new HostComponentStateEntity();
 
-    hostEntity.setHostComponentStateEntities(new HashSet<HostComponentStateEntity>());
+    hostEntity.setHostComponentStateEntities(new HashSet<>());
 
     Collection<HostComponentStateEntity> stateEntities = hostEntity.getHostComponentStateEntities();
     assertTrue(stateEntities.isEmpty());
@@ -108,7 +108,7 @@ public class HostEntityTest {
     HostEntity hostEntity = new HostEntity();
     HostComponentStateEntity stateEntity = new HostComponentStateEntity();
 
-    hostEntity.setHostComponentStateEntities(new HashSet<HostComponentStateEntity>());
+    hostEntity.setHostComponentStateEntities(new HashSet<>());
 
     Collection<HostComponentStateEntity> stateEntities = hostEntity.getHostComponentStateEntities();
     assertTrue(stateEntities.isEmpty());
@@ -125,7 +125,7 @@ public class HostEntityTest {
     HostEntity hostEntity = new HostEntity();
     HostComponentStateEntity stateEntity = new HostComponentStateEntity();
 
-    hostEntity.setHostComponentStateEntities(new HashSet<HostComponentStateEntity>());
+    hostEntity.setHostComponentStateEntities(new HashSet<>());
 
     Collection<HostComponentStateEntity> stateEntities = hostEntity.getHostComponentStateEntities();
     assertTrue(stateEntities.isEmpty());

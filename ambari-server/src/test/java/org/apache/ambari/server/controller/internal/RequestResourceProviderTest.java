@@ -126,10 +126,10 @@ public class RequestResourceProviderTest {
 
     //todo: add assertions for topology manager interactions
     expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
-      Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
+      Collections.emptyMap()).anyTimes();
 
-    expect(topologyManager.getRequests(EasyMock.<Collection<Long>>anyObject())).andReturn(
-      Collections.<LogicalRequest>emptyList()).anyTimes();
+    expect(topologyManager.getRequests(EasyMock.anyObject())).andReturn(
+      Collections.emptyList()).anyTimes();
 
     replay(topologyManager);
 
@@ -204,7 +204,7 @@ public class RequestResourceProviderTest {
   public void testGetResourcesWithRequestInfo() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
-    expect(requestDAO.findByPks(Collections.<Long> emptyList(), true)).andReturn(Collections.<RequestEntity>emptyList()).anyTimes();
+    expect(requestDAO.findByPks(Collections.emptyList(), true)).andReturn(Collections.emptyList()).anyTimes();
 
     ActionManager actionManager = createNiceMock(ActionManager.class);
 
@@ -235,17 +235,17 @@ public class RequestResourceProviderTest {
       .equals(null)
       .toPredicate();
 
-    request = PropertyHelper.getReadRequest(new HashSet<String>(),
+    request = PropertyHelper.getReadRequest(new HashSet<>(),
       requestInfoProperties, null, null, null);
 
-    expect(requestDAO.findAllRequestIds(BaseRequest.DEFAULT_PAGE_SIZE, false, 1L)).andReturn(Collections.<Long> emptyList()).anyTimes();
+    expect(requestDAO.findAllRequestIds(BaseRequest.DEFAULT_PAGE_SIZE, false, 1L)).andReturn(Collections.emptyList()).anyTimes();
     replay(requestDAO);
 
     provider.getResources(request, predicate);
     verify(requestDAO);
 
     requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY, "20");
-    request = PropertyHelper.getReadRequest(new HashSet<String>(),
+    request = PropertyHelper.getReadRequest(new HashSet<>(),
       requestInfoProperties, null, null, null);
     provider.getResources(request, predicate);
     verify(requestDAO);
@@ -253,10 +253,10 @@ public class RequestResourceProviderTest {
     reset(requestDAO);
 
     requestInfoProperties.put(BaseRequest.ASC_ORDER_PROPERTY_KEY, "true");
-    request = PropertyHelper.getReadRequest(new HashSet<String>(),
+    request = PropertyHelper.getReadRequest(new HashSet<>(),
       requestInfoProperties, null, null, null);
-    expect(requestDAO.findByPks(Collections.<Long> emptyList(), true)).andReturn(Collections.<RequestEntity>emptyList()).anyTimes();
-    expect(requestDAO.findAllRequestIds(BaseRequest.DEFAULT_PAGE_SIZE, true, 1L)).andReturn(Collections.<Long> emptyList()).anyTimes();
+    expect(requestDAO.findByPks(Collections.emptyList(), true)).andReturn(Collections.emptyList()).anyTimes();
+    expect(requestDAO.findAllRequestIds(BaseRequest.DEFAULT_PAGE_SIZE, true, 1L)).andReturn(Collections.emptyList()).anyTimes();
     replay(requestDAO);
 
     provider.getResources(request, predicate);
@@ -1032,7 +1032,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(null, capturedResourceFilter.getComponentName());
     Assert.assertNotNull(capturedResourceFilter.getHostNames());
     Assert.assertEquals(0, capturedResourceFilter.getHostNames().size());
-    Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
+    Assert.assertEquals(1, actionRequest.getValue().getParameters().size());
   }
 
   @Test
@@ -1152,7 +1152,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(null, capturedResourceFilter.getComponentName());
     Assert.assertEquals(3, capturedResourceFilter.getHostNames().size());
     Assert.assertArrayEquals(expectedHosts, capturedResourceFilter.getHostNames().toArray());
-    Assert.assertEquals(2, capturedRequest.getParameters().size());
+    Assert.assertEquals(3, capturedRequest.getParameters().size());
     for(String key : expectedParams.keySet()) {
       Assert.assertEquals(expectedParams.get(key), capturedRequest.getParameters().get(key));
     }
@@ -1239,6 +1239,9 @@ public class RequestResourceProviderTest {
     }
     Assert.assertNotNull(propertyIdToAssert);
     Assert.assertEquals("true", propertyValueToAssert);
+    Assert.assertTrue(capturedRequest.getResourceFilters().isEmpty());
+    Assert.assertEquals(1, capturedRequest.getParameters().size());
+    Assert.assertEquals("true", capturedRequest.getParameters().get(RequestResourceProvider.HAS_RESOURCE_FILTERS));
   }
 
   @Test
@@ -1355,13 +1358,11 @@ public class RequestResourceProviderTest {
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
-  @Test(expected = AuthorizationException.class)
   public void testCreateResourcesCheckHostForNonClusterAsClusterAdministrator() throws Exception {
     testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
-  @Test(expected = AuthorizationException.class)
   public void testCreateResourcesCheckHostForNonClusterAsClusterOperator() throws Exception {
     testCreateResources(TestAuthenticationFactory.createClusterOperator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
@@ -1548,7 +1549,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(null, capturedResourceFilter.getComponentName());
     Assert.assertNotNull(capturedResourceFilter.getHostNames());
     Assert.assertEquals(2, capturedResourceFilter.getHostNames().size());
-    Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
+    Assert.assertEquals(1, actionRequest.getValue().getParameters().size());
   }
 
   @Test
@@ -1628,7 +1629,7 @@ public class RequestResourceProviderTest {
     expect(clusters.getCluster(anyObject(String.class))).andReturn(null).anyTimes();
     expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Collections.singletonList(requestMock));
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(
-      Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
+      Collections.emptyMap()).anyTimes();
 
     // replay
     replay(managementController, actionManager, clusters, requestMock, requestDAO, hrcDAO);
@@ -1707,7 +1708,7 @@ public class RequestResourceProviderTest {
     expect(clusters.getClusterById(clusterId)).andReturn(cluster).anyTimes();
     expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Lists.newArrayList(requestMock));
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(
-      Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
+      Collections.emptyMap()).anyTimes();
 
     Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
     HostGroupInfo hostGroupInfo = new HostGroupInfo("host_group_1");
@@ -1747,7 +1748,7 @@ public class RequestResourceProviderTest {
     expect(topologyManager.getRequests(eq(Collections.singletonList(100L)))).andReturn(
       Collections.singletonList(logicalRequest)).anyTimes();
     expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
-      Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
+      Collections.emptyMap()).anyTimes();
 
     replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest, hostRequest);
 

@@ -55,7 +55,7 @@ public class ViewUrlsService extends BaseService {
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getViewUrls(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(Optional.<String>absent()));
+    return handleRequest(headers, null, ui, Request.Type.GET, createViewUrlResource(Optional.absent()));
   }
 
   /**

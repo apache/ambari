@@ -324,13 +324,13 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
             String[] hostAndPort = hostPortStr.trim().split(":");
             if (hostAndPort.length == 1) {
               if (!allowed.containsKey(hostAndPort[0])) {
-                allowed.put(hostAndPort[0], new HashSet<String>());
+                allowed.put(hostAndPort[0], new HashSet<>());
               }
               allowed.get(hostAndPort[0]).add("*");
               LOG.debug("Allow proxy to host {} and all ports.", hostAndPort[0]);
             } else {
               if (!allowed.containsKey(hostAndPort[0])) {
-                allowed.put(hostAndPort[0], new HashSet<String>());
+                allowed.put(hostAndPort[0], new HashSet<>());
               }
               allowed.get(hostAndPort[0]).add(hostAndPort[1]);
               LOG.debug("Allow proxy to host {} and port {}", hostAndPort[0], hostAndPort[1]);

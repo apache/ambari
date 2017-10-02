@@ -99,7 +99,8 @@ public class HealthCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.getFailedOn().add(clusterName);
       prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
       String failReason = getFailReason(prerequisiteCheck, request);
-      prerequisiteCheck.setFailReason(String.format(failReason, StringUtils.join(errorMessages, "\n")));
+      prerequisiteCheck.setFailReason(
+          String.format(failReason, StringUtils.join(errorMessages, System.lineSeparator())));
     }
   }
 

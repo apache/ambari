@@ -21,7 +21,7 @@ import StringIO
 import sys, pprint
 from resource_management.libraries.script import Script
 from resource_management.core.environment import Environment
-from mock.mock import patch
+from mock.mock import patch, MagicMock
 from stacks.utils.RMFTestCase import *
 import logging
 
@@ -63,25 +63,28 @@ class TestScript(RMFTestCase):
 
     # Testing config without any keys
     with Environment(".", test_mode=True) as env:
-      script = Script()
-      Script.config = no_packages_config
-      script.install_packages(env)
+      with patch("resource_management.libraries.script.get_provider", return_value=MagicMock()):
+        script = Script()
+        Script.config = no_packages_config
+        script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEquals(resource_dump, "[]")
 
     # Testing empty package list
     with Environment(".", test_mode=True) as env:
-      script = Script()
-      Script.config = empty_config
-      script.install_packages(env)
+      with patch("resource_management.libraries.script.get_provider", return_value=MagicMock()):
+        script = Script()
+        Script.config = empty_config
+        script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEquals(resource_dump, "[]")
 
     # Testing installing of a list of packages
     with Environment(".", test_mode=True) as env:
-      script = Script()
-      Script.config = dummy_config
-      script.install_packages("env")
+      with patch("resource_management.libraries.script.get_provider", return_value=MagicMock()):
+        script = Script()
+        Script.config = dummy_config
+        script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEqual(resource_dump, '[Package[\'hbase\'], Package[\'yet-another-package\']]')
 

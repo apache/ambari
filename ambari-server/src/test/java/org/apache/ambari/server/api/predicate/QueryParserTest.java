@@ -36,6 +36,7 @@ import org.apache.ambari.server.controller.predicate.LessPredicate;
 import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -202,6 +203,23 @@ public class QueryParserTest {
     OrPredicate orPredicate = new OrPredicate(ep1, ep2, ep3);
 
     assertEquals(orPredicate, p);
+  }
+
+  @Test
+  public void testParse_InOp__HostName_Empty() throws Exception {
+    List<Token> listTokens = new ArrayList<>();
+    // foo.in(one,two,3)
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".in("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "Hosts/host_name"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    try {
+      Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+      Assert.fail();
+    } catch (InvalidQueryException e) {
+      Assert.assertEquals(e.getMessage(), "IN operator is missing a required right operand for property Hosts/host_name");
+    }
   }
 
   @Test

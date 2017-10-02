@@ -159,6 +159,7 @@ angular.module('ambariAdminConsole')
     'common.alerts.cannotUpdateAdminStatus': 'Cannot update User Admin status',
     'common.alerts.checkFailed': 'CHECK FAILED',
     'common.alerts.onlySimpleChars': 'Must contain only simple characters.',
+    'common.hidden' : 'Hidden',
 
     'main.title': 'Welcome to Apache Ambari',
     'main.noClusterDescription': 'Provision a cluster, manage who can access the cluster, and customize views for Ambari users.',
@@ -345,7 +346,7 @@ angular.module('ambariAdminConsole')
     'users.alerts.usersEffectivePrivilege': '{{user_name}}\'s effective privilege through its Group(s) is higher than your selected privilege.',
 
     'versions.current': 'Current',
-    'versions.addVersion': 'Add Version',
+    'versions.addVersion': 'Add Version or Hotfix',
     'versions.defaultVersion': '(Default Version Definition)',
     'versions.inUse': 'In Use',
     'versions.installed': 'Installed',
@@ -436,16 +437,9 @@ angular.module('ambariAdminConsole')
 
     'authentication.connectivity.trustStore.label': 'Trust Store',
 
-    'authentication.connectivity.trustStore.options.default': 'JDK Default',
-    'authentication.connectivity.trustStore.options.custom': 'Custom',
-
     'authentication.connectivity.trustStorePath': 'Trust Store Path',
 
     'authentication.connectivity.trustStoreType.label': 'Trust Store Type',
-
-    'authentication.connectivity.trustStoreType.options.jks': 'JKS',
-    'authentication.connectivity.trustStoreType.options.jceks': 'JCEKS',
-    'authentication.connectivity.trustStoreType.options.pkcs12': 'PKCS12',
 
     'authentication.connectivity.trustStorePassword': 'Trust Store Password',
     'authentication.connectivity.dn': 'Bind DN',

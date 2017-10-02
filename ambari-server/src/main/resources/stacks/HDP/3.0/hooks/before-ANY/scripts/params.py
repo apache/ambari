@@ -20,6 +20,7 @@ limitations under the License.
 import collections
 import re
 import os
+import ast
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -106,8 +107,8 @@ mapreduce_libs_path = format("{stack_root}/current/hadoop-mapreduce-client/*")
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
-hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 
 hadoop_conf_empty_dir = None
 hadoop_secure_dn_user = hdfs_user
@@ -209,7 +210,7 @@ if dfs_ha_namenode_ids:
 
 
 if has_namenode or dfs_type == 'HCFS':
-    hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
     hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
@@ -229,21 +230,15 @@ if has_hbase_masters:
 repo_info = config['hostLevelParams']['repo_info']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
 
-user_to_groups_dict = collections.defaultdict(lambda:[user_group])
-user_to_groups_dict[smoke_user] = [proxyuser_group]
-if has_ganglia_server:
-  user_to_groups_dict[gmond_user] = [gmond_user]
-  user_to_groups_dict[gmetad_user] = [gmetad_user]
-if has_tez:
-  user_to_groups_dict[tez_user] = [proxyuser_group]
-if has_oozie_server:
-  user_to_groups_dict[oozie_user] = [proxyuser_group]
-if has_falcon_server_hosts:
-  user_to_groups_dict[falcon_user] = [proxyuser_group]
-if has_ranger_admin:
-  user_to_groups_dict[ranger_user] = [ranger_group]
-if has_zeppelin_master:
-  user_to_groups_dict[zeppelin_user] = [zeppelin_group, user_group]
+user_to_groups_dict = {}
+
+#Append new user-group mapping to the dict
+try:
+  user_group_map = ast.literal_eval(config['hostLevelParams']['user_groups'])
+  for key in user_group_map.iterkeys():
+    user_to_groups_dict[key] = user_group_map[key]
+except ValueError:
+  print('User Group mapping (user_group) is missing in the hostLevelParams')
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 

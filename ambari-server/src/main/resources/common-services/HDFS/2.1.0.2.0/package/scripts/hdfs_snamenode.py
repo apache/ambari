@@ -39,6 +39,12 @@ def snamenode(action=None, format=False):
          content=Template("exclude_hosts_list.j2"),
          owner=params.hdfs_user,
          group=params.user_group)
+    if params.hdfs_include_file:
+      File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user,
+         group=params.user_group)
+      pass
   elif action == "start" or action == "stop":
     import params
     service(

@@ -218,6 +218,50 @@ class ActionScheduler implements Runnable {
 
   /**
    * Unit Test Constructor.
+   * @param sleepTimeMilliSec
+   * @param actionTimeoutMilliSec
+   * @param db
+   * @param actionQueue
+   * @param fsmObject
+   * @param maxAttempts
+   * @param hostsMap
+   * @param unitOfWork
+   * @param ambariEventPublisher
+   * @param configuration
+   * @param entityManagerProvider
+   * @param hostRoleCommandDAO
+   * @param hostRoleCommandFactory
+   * @param roleCommandOrderProvider
+   */
+  protected ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec, ActionDBAccessor db,
+                            ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
+                            UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
+                            Configuration configuration, Provider<EntityManager> entityManagerProvider,
+                            HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory,
+                            RoleCommandOrderProvider roleCommandOrderProvider) {
+
+    sleepTime = sleepTimeMilliSec;
+    actionTimeout = actionTimeoutMilliSec;
+    this.db = db;
+    this.actionQueue = actionQueue;
+    clusters = fsmObject;
+    this.maxAttempts = (short) maxAttempts;
+    this.hostsMap = hostsMap;
+    this.unitOfWork = unitOfWork;
+    this.ambariEventPublisher = ambariEventPublisher;
+    this.configuration = configuration;
+    this.entityManagerProvider = entityManagerProvider;
+    this.hostRoleCommandDAO = hostRoleCommandDAO;
+    this.hostRoleCommandFactory = hostRoleCommandFactory;
+    jpaPublisher = null;
+    this.roleCommandOrderProvider = roleCommandOrderProvider;
+
+    serverActionExecutor = new ServerActionExecutor(db, sleepTime);
+    initializeCaches();
+  }
+
+  /**
+   * Unit Test Constructor.
    *
    * @param sleepTimeMilliSec
    * @param actionTimeoutMilliSec
@@ -238,23 +282,9 @@ class ActionScheduler implements Runnable {
                             Configuration configuration, Provider<EntityManager> entityManagerProvider,
                             HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory) {
 
-    sleepTime = sleepTimeMilliSec;
-    actionTimeout = actionTimeoutMilliSec;
-    this.db = db;
-    this.actionQueue = actionQueue;
-    clusters = fsmObject;
-    this.maxAttempts = (short) maxAttempts;
-    this.hostsMap = hostsMap;
-    this.unitOfWork = unitOfWork;
-    this.ambariEventPublisher = ambariEventPublisher;
-    this.configuration = configuration;
-    this.entityManagerProvider = entityManagerProvider;
-    this.hostRoleCommandDAO = hostRoleCommandDAO;
-    this.hostRoleCommandFactory = hostRoleCommandFactory;
-    jpaPublisher = null;
-
-    serverActionExecutor = new ServerActionExecutor(db, sleepTime);
-    initializeCaches();
+    this(sleepTimeMilliSec, actionTimeoutMilliSec, db, actionQueue, fsmObject, maxAttempts, hostsMap, unitOfWork,
+            ambariEventPublisher, configuration, entityManagerProvider, hostRoleCommandDAO, hostRoleCommandFactory,
+            null);
   }
 
   /**
@@ -888,12 +918,17 @@ class ActionScheduler implements Runnable {
     boolean areCommandDependenciesFinished = true;
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(stage.getClusterId());
     if (rco != null) {
-      Set<RoleCommandPair> roleCommandDependencies = rco.getDependencies().get(new
-        RoleCommandPair(Role.valueOf(command.getRole()), command.getRoleCommand()));
+      RoleCommandPair roleCommand = new
+              RoleCommandPair(Role.valueOf(command.getRole()), command.getRoleCommand());
+      Set<RoleCommandPair> roleCommandDependencies = rco.getDependencies().get(roleCommand);
 
       // check if there are any dependencies IN_PROGRESS
-      if (roleCommandDependencies != null && CollectionUtils.containsAny(rolesCommandsInProgress, roleCommandDependencies)) {
-        areCommandDependenciesFinished = false;
+      if (roleCommandDependencies != null) {
+        // remove eventual references to the same RoleCommand
+        roleCommandDependencies.remove(roleCommand);
+        if (CollectionUtils.containsAny(rolesCommandsInProgress, roleCommandDependencies)) {
+          areCommandDependenciesFinished = false;
+        }
       }
     }
 

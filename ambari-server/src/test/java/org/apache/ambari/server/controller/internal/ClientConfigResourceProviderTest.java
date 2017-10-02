@@ -47,7 +47,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -286,7 +285,7 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
-    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.anyObject())).andReturn(responses).anyTimes();
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
     Map<String, Set<String>> clusterHostInfo = new HashMap<>();
@@ -330,7 +329,7 @@ public class ClientConfigResourceProviderTest {
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
-    expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<String, ServiceOsSpecific>()).anyTimes();
+    expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(
@@ -544,7 +543,7 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
-    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.anyObject())).andReturn(responses).anyTimes();
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
     Map<String, Set<String>> clusterHostInfo = new HashMap<>();
@@ -588,7 +587,7 @@ public class ClientConfigResourceProviderTest {
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
-    expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<String, ServiceOsSpecific>()).anyTimes();
+    expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);

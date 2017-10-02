@@ -296,7 +296,7 @@ public class OrmTestHelper {
     commandEntity2.setStage(stageEntity);
     commandEntity3.setStage(stageEntity);
 
-    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    stageEntity.setHostRoleCommands(new ArrayList<>());
     stageEntity.getHostRoleCommands().add(commandEntity);
     stageEntity.getHostRoleCommands().add(commandEntity2);
     stageEntity.getHostRoleCommands().add(commandEntity3);

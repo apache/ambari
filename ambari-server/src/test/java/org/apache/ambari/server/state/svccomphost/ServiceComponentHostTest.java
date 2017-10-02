@@ -41,7 +41,6 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -51,7 +50,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -196,8 +194,6 @@ public class ServiceComponentHostTest {
 
     Assert.assertEquals(State.INIT, impl.getState());
     Assert.assertEquals(State.INIT, impl.getDesiredState());
-    Assert.assertEquals(SecurityState.UNSECURED, impl.getSecurityState());
-    Assert.assertEquals(SecurityState.UNSECURED, impl.getDesiredSecurityState());
     Assert.assertEquals(c.getClusterName(), impl.getClusterName());
     Assert.assertEquals(c.getClusterId(), impl.getClusterId());
     Assert.assertEquals(s.getName(), impl.getServiceName());
@@ -218,7 +214,7 @@ public class ServiceComponentHostTest {
     Cluster c = clusters.getCluster(clusterName);
     if (c.getConfig("time", String.valueOf(timestamp)) == null) {
       Config config = configFactory.createNew (c, "time", String.valueOf(timestamp),
-          new HashMap<String, String>(), new HashMap<String, Map<String,String>>());
+        new HashMap<>(), new HashMap<>());
     }
 
     switch (eventType) {
@@ -545,7 +541,7 @@ public class ServiceComponentHostTest {
     Cluster cluster = clusters.getCluster(clusterName);
 
     final ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS",
-      "cg1", "t1", "", new HashMap<String, Config>(), new HashMap<Long, Host>());
+      "cg1", "t1", "", new HashMap<>(), new HashMap<>());
 
     cluster.addConfigGroup(configGroup);
 
@@ -734,7 +730,7 @@ public class ServiceComponentHostTest {
     makeConfig(cluster, "hdfs-site", "version0",
         new HashMap<String,String>() {{
           put("a", "b");
-        }}, new HashMap<String, Map<String,String>>());
+        }}, new HashMap<>());
 
     Map<String, Map<String, String>> actual = new HashMap<String, Map<String, String>>() {{
       put("hdfs-site", new HashMap<String,String>() {{ put("tag", "version0"); }});
@@ -745,14 +741,14 @@ public class ServiceComponentHostTest {
     sch3.updateActualConfigs(actual);
 
     makeConfig(cluster, "foo", "version1",
-        new HashMap<String,String>() {{ put("a", "c"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String,String>() {{ put("a", "c"); }}, new HashMap<>());
 
     // HDP-x/HDFS does not define type 'foo', so changes do not count to stale
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
 
     makeConfig(cluster, "hdfs-site", "version1",
-        new HashMap<String,String>() {{ put("a1", "b1"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String,String>() {{ put("a1", "b1"); }}, new HashMap<>());
 
     // HDP-x/HDFS/hdfs-site is not on the actual, but it is defined, so it is stale
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
@@ -772,7 +768,7 @@ public class ServiceComponentHostTest {
 
     makeConfig(cluster, "hdfs-site", "version2",
         new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://foo"); }},
-        new HashMap<String, Map<String,String>>());
+      new HashMap<>());
 
     // HDP-x/HDFS/hdfs-site updated to changed property
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
@@ -795,7 +791,7 @@ public class ServiceComponentHostTest {
 
     final Config c = configFactory.createNew(cluster, "hdfs-site", "version3",
         new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://goo"); }},
-        new HashMap<String, Map<String,String>>());
+      new HashMap<>());
 
     host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS", "g1",
@@ -820,7 +816,7 @@ public class ServiceComponentHostTest {
 
     makeConfig(cluster, "mapred-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }},
-      new HashMap<String, Map<String,String>>());
+      new HashMap<>());
 
     actual.put("mapred-site", new HashMap<String, String>() {{ put ("tag", "version1"); }});
 
@@ -839,7 +835,7 @@ public class ServiceComponentHostTest {
       new HashMap<String,String>() {{
         put("a", "b");
         put("fs.trash.interval", "360"); // HDFS only
-      }}, new HashMap<String, Map<String,String>>());
+      }}, new HashMap<>());
 
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
@@ -853,7 +849,7 @@ public class ServiceComponentHostTest {
 
     final Config c1 = configFactory.createNew(cluster, "core-site", "version2",
       new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }},
-      new HashMap<String, Map<String,String>>());
+      new HashMap<>());
     configGroup = configGroupFactory.createNew(cluster, "HDFS", "g2",
       "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
@@ -923,11 +919,11 @@ public class ServiceComponentHostTest {
           put("a", "b");
           put("dfs_namenode_name_dir", "/foo1"); // HDFS only
           put("mapred_log_dir_prefix", "/foo2"); // MR2 only
-        }}, new HashMap<String, Map<String,String>>());
+        }}, new HashMap<>());
     makeConfig(cluster, "hdfs-site", "version1",
         new HashMap<String,String>() {{
           put("hdfs1", "hdfs1value1");
-        }}, new HashMap<String, Map<String,String>>());
+        }}, new HashMap<>());
     Map<String, Map<String, String>> actual = new HashMap<String, Map<String, String>>() {{
       put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
       put("hdfs-site", new HashMap<String,String>() {{ put("tag", "version1"); }});
@@ -957,7 +953,7 @@ public class ServiceComponentHostTest {
 
     // Now add config-attributes
     Map<String, Map<String, String>> c1PropAttributes = new HashMap<>();
-    c1PropAttributes.put("final", new HashMap<String, String>());
+    c1PropAttributes.put("final", new HashMap<>());
     c1PropAttributes.get("final").put("hdfs1", "true");
     makeConfig(cluster, "hdfs-site", "version2",
         new HashMap<String,String>() {{
@@ -972,7 +968,7 @@ public class ServiceComponentHostTest {
 
     // Now change config-attributes
     Map<String, Map<String, String>> c2PropAttributes = new HashMap<>();
-    c2PropAttributes.put("final", new HashMap<String, String>());
+    c2PropAttributes.put("final", new HashMap<>());
     c2PropAttributes.get("final").put("hdfs1", "false");
     makeConfig(cluster, "hdfs-site", "version3",
         new HashMap<String,String>() {{
@@ -989,7 +985,7 @@ public class ServiceComponentHostTest {
     makeConfig(cluster, "hdfs-site", "version4",
         new HashMap<String,String>() {{
           put("hdfs1", "hdfs1value1");
-        }}, new HashMap<String, Map<String,String>>());
+        }}, new HashMap<>());
     sch1.setRestartRequired(false);
     sch2.setRestartRequired(false);
     sch3.setRestartRequired(false);
@@ -1053,53 +1049,5 @@ public class ServiceComponentHostTest {
       hostEntity.getHostId()
     );
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
-  }
-
-
-  @Test
-  public void testSecurityState() throws Exception {
-    String stackVersion = "HDP-2.0.6";
-    StackId stackId = new StackId(stackVersion);
-    String clusterName = "c2";
-    createCluster(stackId, clusterName);
-
-    final String hostName = "h3";
-    Set<String> hostNames = new HashSet<>();
-    hostNames.add(hostName);
-    addHostsToCluster(clusterName, hostAttributes, hostNames);
-
-    Cluster cluster = clusters.getCluster(clusterName);
-
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-
-    HostEntity hostEntity = hostDAO.findByName(hostName);
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-
-    HostComponentDesiredStateEntity entityHostComponentDesiredState;
-    HostComponentStateEntity entityHostComponentState;
-
-    for(SecurityState state: SecurityState.values()) {
-      sch1.setSecurityState(state);
-      entityHostComponentState = hostComponentStateDAO.findByIndex(cluster.getClusterId(),
-          sch1.getServiceName(), sch1.getServiceComponentName(), hostEntity.getHostId());
-
-      Assert.assertNotNull(entityHostComponentState);
-      Assert.assertEquals(state, entityHostComponentState.getSecurityState());
-
-      try {
-        sch1.setDesiredSecurityState(state);
-        Assert.assertTrue(state.isEndpoint());
-        entityHostComponentDesiredState = hostComponentDesiredStateDAO.findByIndex(
-          cluster.getClusterId(),
-          sch1.getServiceName(),
-          sch1.getServiceComponentName(),
-          hostEntity.getHostId()
-        );
-        Assert.assertNotNull(entityHostComponentDesiredState);
-        Assert.assertEquals(state, entityHostComponentDesiredState.getSecurityState());
-      } catch (AmbariException e) {
-        Assert.assertFalse(state.isEndpoint());
-      }
-    }
   }
 }

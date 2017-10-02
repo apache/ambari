@@ -74,7 +74,7 @@
     </layout>
   </appender>
 
-  <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
+  <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
     <param name="File" value="{{log_dir}}/application.log"/>
     <param name="Append" value="true"/>
     <param name="MaxFileSize" value="{{atlas_log_max_backup_size}}MB" />
@@ -116,7 +116,7 @@
 
 
   <logger name="com.thinkaurelius.titan" additivity="false">
-    <level value="info"/>
+    <level value="warn"/>
     <appender-ref ref="FILE"/>
   </logger>
 

@@ -34,11 +34,15 @@ class TestServiceCheck(RMFTestCase):
 
 
   def test_service_check_default(self, socket_mock):
+    config_file = "default.json"
+
+    base_path, configs_path = self._get_test_paths(RMFTestCase.TARGET_COMMON_SERVICES, self.STACK_VERSION)
+    json_content = self.get_config_file(configs_path, config_file)
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HiveServiceCheck",
                         command="service_check",
-                        config_file="default.json",
+                        config_dict = json_content,
                         stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -146,11 +150,15 @@ class TestServiceCheck(RMFTestCase):
 
 
   def test_service_check_secured(self, socket_mock):
+    config_file = "secured.json"
+    base_path, configs_path = self._get_test_paths(RMFTestCase.TARGET_COMMON_SERVICES, self.STACK_VERSION)
+    json_content = self.get_config_file(configs_path, config_file)
+    del json_content["commandParams"]["version"]
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HiveServiceCheck",
                         command="service_check",
-                        config_file="secured.json",
+                        config_dict = json_content,
                         stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -288,7 +296,7 @@ class TestServiceCheck(RMFTestCase):
 
     self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare true",
         logoutput = True,
-        path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/hdp/current/hadoop-client/bin:/usr/hdp/2.3.0.0-1234/hive/bin'],
+        path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/hdp/2.3.0.0-1234/hadoop/bin:/usr/hdp/2.3.0.0-1234/hive/bin'],
         tries = 3,
         user = 'ambari-qa',
         try_sleep = 5)
@@ -332,7 +340,7 @@ class TestServiceCheck(RMFTestCase):
     # LLAP call
     self.assertResourceCalled('Execute',
       "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10500/;transportMode=binary' --hiveconf \"hiveLlapServiceCheck=\" -f /usr/hdp/current/hive-server2-hive2/scripts/llap/sql/serviceCheckScript.sql -e '' 2>&1| awk '{print}'|grep -i -e 'Invalid status\|Invalid URL\|command not found\|Connection refused'",
-      path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin', '/bin:/usr/hdp/current/hadoop-client/bin:/usr/hdp/2.3.0.0-1234/hive2/bin'],
+      path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin', '/bin:/usr/hdp/2.3.0.0-1234/hadoop/bin:/usr/hdp/2.3.0.0-1234/hive2/bin'],
       tries = 1,
       stderr = -1,
       wait_for_finish = True,

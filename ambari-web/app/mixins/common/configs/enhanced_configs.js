@@ -448,12 +448,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var configForGroup = recommendations['config-groups'][0];
     this.get('stepConfigs').forEach(function(stepConfig) {
       var configGroup = this.getGroupForService(stepConfig.get('serviceName'));
-      if (configGroup) {
+      if (configGroup && this.isConfigGroupAffected(configForGroup.hosts, configGroup.get('hosts'))) {
         this.updateOverridesByRecommendations(configForGroup.configurations, stepConfig.get('configs'), changedConfigs, configGroup);
         this.updateOverridesByRecommendations(configForGroup.dependent_configurations, stepConfig.get('configs'), changedConfigs, configGroup);
         this.toggleProperty('forceUpdateBoundaries');
       }
     }, this);
+  },
+
+
+  /**
+   * determine whether hosts of group affected by config modifications
+   * @param {Array} affectedHosts
+   * @param {Array} groupHosts
+   * @returns {boolean}
+   */
+  isConfigGroupAffected: function(affectedHosts, groupHosts) {
+    return _.intersection(affectedHosts, groupHosts).length > 0;
   },
 
   /**
@@ -464,15 +475,32 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var self = this;
     var recommendations = event ? this.get('changedProperties') : this.get('recommendations'),
       recommendedChanges = recommendations.filterProperty('isEditable'),
-      requiredChanges = recommendations.filterProperty('isEditable', false);
-    if (recommendations.length > 0) {
+      requiredChanges = this.filterRequiredChanges(recommendations);
+    if (recommendedChanges.length > 0 || requiredChanges.length > 0) {
       App.showDependentConfigsPopup(recommendedChanges, requiredChanges, function() {
-        self.onSaveRecommendedPopup(recommendations);
+        self.onSaveRecommendedPopup(recommendedChanges.concat(requiredChanges));
         if (callback) callback();
       }, secondary);
     } else {
       if (callback) callback();
     }
+  },
+
+  /**
+   *
+   * @param {Array} recommendations
+   * @returns {Array}
+   */
+  filterRequiredChanges: function(recommendations) {
+    return recommendations.filter(function(recommendation) {
+      if (recommendation.isEditable === false) {
+        if (!this.get('selectedConfigGroup.isDefault')) {
+          return App.ServiceConfigGroup.defaultGroupName !== recommendation.configGroup
+        } else {
+          return true;
+        }
+      }
+    }, this);
   },
 
   /**

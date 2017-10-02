@@ -192,7 +192,9 @@ App.upgradeWizardView = Em.View.extend({
    */
   isSlaveComponentFailuresItem: function () {
     var item = this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('context', this.get("controller.slaveFailuresContext"));
-    return item && ['HOLDING', 'HOLDING_FAILED'].contains(item.get('status'));
+    var status = item && item.get('status');
+    this.set('isOutOfSync', status === 'OUT_OF_SYNC');
+    return ['HOLDING', 'HOLDING_FAILED', 'OUT_OF_SYNC'].contains(status);
   }.property('activeGroup.upgradeItems.@each.status', 'activeGroup.upgradeItems.@each.context'),
 
   /**
@@ -206,6 +208,22 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   isFinalizeItem: Em.computed.equalProperties('manualItem.context', 'controller.finalizeContext'),
+
+  /**
+   * Upgrade of PATCH version is revertible
+   */
+  isRevertibleUpgrade: function() {
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var upgradeVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    return ['PATCH'].contains(upgradeVersion.get('type'));
+  }.property('controller.upgradeData.Upgrade.associated_version'),
+
+  revertibleFinalizeMessage: function() {
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var upgradeVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    return Em.I18n.t('admin.stackUpgrade.finalize.message.revertible')
+      .format(upgradeVersion.get('type'), upgradeVersion.get('displayName'));
+  }.property('controller.upgradeData.Upgrade.associated_version'),
 
   /**
    * label of Upgrade status
@@ -231,6 +249,9 @@ App.upgradeWizardView = Em.View.extend({
       case 'HOLDING_TIMEDOUT':
       case 'HOLDING':
         labelKey = 'admin.stackUpgrade.state.paused';
+        break;
+      default:
+        labelKey = 'admin.stackUpgrade.state.init';
         break;
     }
     if (labelKey) {
@@ -373,22 +394,30 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   /**
+   * previous item request
+   */
+  prevItemRequest: null,
+
+  /**
    * poll for tasks when item is expanded
    */
   doUpgradeItemPolling: function () {
     var self = this;
     var item = this.get('runningItem') || this.get('failedItem');
-
+    var request = this.get('prevItemRequest');
+    if ( request ) request.abort();
     if (item && this.get('isDetailsOpened')) {
-      this.get('controller').getUpgradeItem(item).complete(function () {
+      request = this.get('controller').getUpgradeItem(item).complete(function () {
         self.set('upgradeItemTimer', setTimeout(function () {
           self.doUpgradeItemPolling();
         }, App.bgOperationsUpdateInterval));
       });
+
+      this.set('prevItemRequest', request);
     } else {
       clearTimeout(this.get('upgradeItemTimer'));
     }
-  }.observes('isDetailsOpened'),
+  }.observes('isDetailsOpened', 'runningItem', 'failedItem'),
 
   /**
    * set current upgrade item state to FAILED (for HOLDING_FAILED) or TIMED_OUT (for HOLDING_TIMED_OUT)

@@ -913,6 +913,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         installerController.postVersionDefinitionFileStep8(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
           if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
             var selectedStack = App.Stack.find().findProperty('isSelected', true);
+            if (selectedStack) {
+              selectedStack.set('versionInfoId', versionInfo.id);
+            }
             installerController.updateRepoOSInfo(versionInfo, selectedStack).done(function() {
               self._startDeploy();
             });
@@ -974,11 +977,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   createCluster: function () {
     if (!this.get('isInstaller')) return;
     var stackVersion = this.get('content.installOptions.localRepo') ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion, "repository_version": selectedStack.get('repositoryVersion')}})
+        data: JSON.stringify({ "Clusters": {"version": stackVersion}})
       },
       success: 'createClusterSuccess'
     });
@@ -1011,20 +1013,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createSelectedServicesData
    */
   createSelectedServicesData: function () {
-
-    var isInstaller = this.get('isInstaller')
     var selectedStack;
     if (this.get('isInstaller')) {
       selectedStack = App.Stack.find().findProperty('isSelected', true);
     }
-
-    return this.get('selectedServices').map(function (_service) {
-      if (selectedStack) {
-        return {"ServiceInfo": { "service_name": _service.get('serviceName'), "desired_repository_version": selectedStack.get('repositoryVersion') }};
-      } else {
-        return {"ServiceInfo": { "service_name": _service.get('serviceName') }};
-      }
-    });
+    return this.get('selectedServices').map(service => selectedStack ?
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
+      {"ServiceInfo": { "service_name": service.get('serviceName') }});
   },
 
   /**
@@ -1311,6 +1306,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (this.get('content.slaveComponentHosts').someProperty('componentName', 'CLIENT')) {
       clientHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'CLIENT').hosts;
     }
+    var clients = this.get('content.clients').filterProperty('isInstalled', false);
     var clientsToMasterMap = this.getClientsMap('isMaster');
     var clientsToClientMap = this.getClientsMap('isClient');
     var installedClients = [];
@@ -1338,7 +1334,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           clientsToClientMap[_clientName].forEach(function (componentName) {
             clientHosts.forEach(function (_clientHost) {
               var host = this.get('content.hosts')[_clientHost.hostName];
-              if (host.isInstalled && !host.hostComponents.someProperty('HostRoles.component_name', componentName)) {
+              var isClientSelected = clients.someProperty('component_name', componentName);
+              if (host.isInstalled && isClientSelected && !host.hostComponents.someProperty('HostRoles.component_name', componentName)) {
                 hostNames.pushObject(_clientHost.hostName);
               }
             }, this);
@@ -1462,11 +1459,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createConfigurations
    */
   createConfigurations: function () {
-    var tag = this.getServiceConfigVersion();
-
     if (this.get('isInstaller')) {
       /** add cluster-env **/
-      this.get('serviceConfigTags').pushObject(this.createDesiredConfig('cluster-env', tag, this.get('configs').filterProperty('filename', 'cluster-env.xml')));
+      this.get('serviceConfigTags').pushObject(this.createDesiredConfig('cluster-env', this.get('configs').filterProperty('filename', 'cluster-env.xml')));
     }
 
     this.get('selectedServices').forEach(function (service) {
@@ -1474,20 +1469,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
           var configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(type));
           var serviceConfigNote = this.getServiceConfigNote(type, service.get('displayName'));
-          this.get('serviceConfigTags').pushObject(this.createDesiredConfig(type, tag, configs, serviceConfigNote));
+          this.get('serviceConfigTags').pushObject(this.createDesiredConfig(type, configs, serviceConfigNote));
         }
       }, this);
     }, this);
     this.createNotification();
-  },
-
-  /**
-   * Get config version tag
-   *
-   * @returns {string}
-   */
-  getServiceConfigVersion: function() {
-    return 'version' + (this.get('isAddService') ? (new Date).getTime() : '1');
   },
 
   /**

@@ -31,6 +31,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -85,6 +86,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
 
 import junit.framework.Assert;
 
@@ -615,13 +618,13 @@ public class ExecutionScheduleManagerTest {
     expect(context.getJobDetail()).andReturn(jobDetail).anyTimes();
     expect(context.getMergedJobDataMap()).andReturn(jobDataMap).anyTimes();
     expect(jobDetail.getKey()).andReturn(new JobKey("TestJob"));
-    expect(jobDataMap.getWrappedMap()).andReturn(new HashMap<String,Object>());
+    expect(jobDataMap.getWrappedMap()).andReturn(new HashMap<>());
     expect(scheduleManagerMock.continueOnMisfire(context)).andReturn(true);
 
-    executionJob.doWork(EasyMock.<Map<String, Object>>anyObject());
+    executionJob.doWork(EasyMock.anyObject());
     expectLastCall().andThrow(new AmbariException("Test Exception")).anyTimes();
 
-    executionJob.finalizeExecution(EasyMock.<Map<String, Object>>anyObject());
+    executionJob.finalizeExecution(EasyMock.anyObject());
     expectLastCall().once();
 
     replay(scheduleManagerMock, executionJob, context, jobDataMap, jobDetail);
@@ -635,5 +638,38 @@ public class ExecutionScheduleManagerTest {
     }
 
     verify(scheduleManagerMock, executionJob, context, jobDataMap, jobDetail);
+  }
+
+  @Test
+  public void testExtendApiResource() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    WebResource webResource = Client.create().resource("http://localhost:8080/");
+
+    String clustersEndpoint = "http://localhost:8080/api/v1/clusters";
+
+    Clusters clustersMock = createMock(Clusters.class);
+
+    Configuration configurationMock = createNiceMock(Configuration.class);
+    ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
+    InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
+    Gson gson = new Gson();
+
+    replay(clustersMock, configurationMock, executionSchedulerMock, tokenStorageMock,
+      actionDBAccessorMock);
+
+    ExecutionScheduleManager scheduleManager =
+      new ExecutionScheduleManager(configurationMock, executionSchedulerMock,
+        tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
+    
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "clusters").getURI().toString());
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "/clusters").getURI().toString());
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "/api/v1/clusters").getURI().toString());
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "api/v1/clusters").getURI().toString());
+    assertEquals("http://localhost:8080/",
+      scheduleManager.extendApiResource(webResource, "").getURI().toString());
   }
 }

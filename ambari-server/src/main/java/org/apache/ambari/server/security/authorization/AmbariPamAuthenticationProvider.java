@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.pam.PamAuthenticationFactory;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
@@ -53,6 +54,8 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   private UserDAO userDAO;
   @Inject
   private GroupDAO groupDAO;
+  @Inject
+  private PamAuthenticationFactory pamAuthenticationFactory;
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
 

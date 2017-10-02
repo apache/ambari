@@ -241,4 +241,9 @@ public class SolrAuditLogPropsConfig implements SolrPropsConfig {
   public void setAliasNameIn(String aliasNameIn) {
     this.aliasNameIn = aliasNameIn;
   }
+
+  @Override
+  public String getLogType() {
+    return "audit";
+  }
 }

@@ -124,10 +124,13 @@
 }
 .version-box-popup {
   .modal{
+    overflow: visible;
     .modal-dialog{
       width: 340px;
     }
     .modal-body {
+      padding: 0px 0px;
+      overflow: visible;
       padding: 0;
     }
   }
@@ -156,7 +159,7 @@
   }
   .left-menu-table {
     padding: 10px 0;
-    margin-top: 122px;
+    margin-top: 142px;
     .border-extended-table {
       width: 100%;
       position: relative;
@@ -188,6 +191,15 @@
       position: absolute;
       left: -8px;
       color: orange;
+      z-index: 3;
+      height: 24px;
+      width: 24px;
+      border-radius: 24px;
+      background-color: #fff;
+      &:before{
+        position: relative;
+        top:-4px;
+      }
     }
     .state {
       margin: 15px 0;
@@ -210,6 +222,7 @@
       }
       .dropdown-menu {
         cursor: pointer;
+        text-align: left;
       }
     }
     .installing {
@@ -290,6 +303,12 @@
       padding: 5px;
       margin-bottom: 0;
     }
+    .version-column-display-type{
+      text-align: center;
+      height: 20px;
+      margin-bottom: 0;
+      color: #ff4500;
+    }
     .version-column-show-details {
       text-align: center;
       font-size: 13px;
@@ -304,8 +323,28 @@
       margin: 5px 0 15px 0;
       line-height: 20px;
       height: 35px;
-      .label-success {
-        line-height: 30px;
+      .label-wrapper{
+        display: inline-block;
+        position: relative;
+        .label-success {
+          line-height: 30px;
+        }
+        .dropdown-toggle{
+          background: none;
+          height: auto;
+          padding: 8px 8px;
+          background: none;
+          border:none;
+          outline:none;
+          box-shadow: none;
+          position: absolute;
+          right: 0;
+          top: 0;
+          color: #fff;
+          &:hover, &:active, &:focus{
+            color: #fff;
+          }
+        }
       }
       .btn.btn-primary:not(.dropdown-toggle) {
         padding: 4px 5px;
@@ -337,10 +376,18 @@
       }
     }
   }
-  div.current-version-box.version-column {
-    .services-section{
+  div.version-column {
+    .not-upgradable {
+      padding-left: 10px;
+      margin-right: -20px;
+      cursor: pointer;
+    }
+    .icon-info-sign {
+      color: @blue;
+    }
+    .services-section {
       .service-version-info {
-        span.label {
+        span.label.available {
           background-color: #468847;
         }
       }
@@ -348,6 +395,25 @@
   }
   .nav.nav-tabs {
     margin-bottom: 20px;
+  }
+}
+
+.install-repo-confirmation,
+.revert-patch-upgrade-confirmation {
+  table {
+    td, th {
+      padding: 5px 15px;
+    }
+  }
+  .available-services-list {
+    margin: 10px 0 30px;
+    .service-version-info {
+      text-align: left;
+      margin-bottom: 20px;
+      .col-md-1 {
+        width: 90px;
+      }
+    }
   }
 }
 
@@ -363,7 +429,6 @@
   }
   .details-box {
     padding: 5px;
-    margin-right: 95px;
     .button-row {
       text-align: right;
       padding: 5px;
@@ -384,6 +449,7 @@
     }
   }
   .task-list {
+    width: 100%;
     overflow-x: hidden;
     .progress {
       margin-bottom: 0;
@@ -393,6 +459,24 @@
       margin-right: 5px;
     }
   }
+  .active-task-label {
+    padding: 8px 15px;
+    display: inline-block;
+  }
+  .col-md-2.task-list-main-wrap {
+    padding-left: 0;
+  }
+  .upgrade-groups {
+    padding-left: 0;
+    .progress {
+      width: 85%;
+      display: inline-block;
+    }
+    .percent {
+      display: inline-block;
+      vertical-align: top;
+    }
+  }
   .task-list-main-wrap i {
     font-size: 16px;
   }
@@ -400,28 +484,43 @@
     max-height: 500px;
     margin-top: 5px;
   }
-  .upgrade-options-link {
-    position: absolute;
-    cursor: pointer;
-    right: 10%;
-    top: 22px;
-    width: 100px;
-    a {
-      font-size: 13px;
-    }
-    .glyphicon-cogs {
-      color: #0088cc;
-      margin-right: 3px;
+  .pause-button {
+    margin-top: -5px;
+    padding-right: 0;
+    i {
+      padding-right: 4px;
+      font-size: 15px;
     }
   }
-  .upgrade-options-link.disabled {
-    cursor: not-allowed;
-    a, .glyphicon-cogs {
-      color: #808080;
-    }
-    a:hover {
-      text-decoration: none;
-    }
+  .button-row {
+    text-align: right;
+    padding: 5px;
+  }
+}
+
+.upgrade-options-link {
+  padding-left: 50px;
+  display: inline-block;
+  cursor: pointer;
+  width: 150px;
+  vertical-align: bottom;
+  a {
+    font-size: 14px;
+    font-weight: normal;
+  }
+  .icon-cogs {
+    font-size: 16px;
+    color: #0088cc;
+    margin-right: 3px;
+  }
+}
+.upgrade-options-link.disabled {
+  cursor: not-allowed;
+  a, .icon-cogs {
+    color: #808080;
+  }
+  a:hover {
+    text-decoration: none;
   }
 }
 
@@ -431,9 +530,6 @@
   }
 }
 
-.upgrade-options-popup .modal .modal-body {
-  min-height: 295px;
-}
 #upgrade-options-popup-content {
   .method-options {
     margin: 10px;
@@ -493,6 +589,9 @@
   .method-options.disabled {
     .img-thumbnail {
       cursor: not-allowed;
+      &.default-cursor{
+        cursor: default;
+      }
       .method-name,.method-icon,.method-description {
         color: #a9a9a9;
       }
@@ -706,6 +805,49 @@
           }
         }
       }
+    }
+  }
+}
+
+#upgrade-summary-table {
+  .wide-column {
+    width: 14%;
+  }
+  .widest-column{
+    width: 20%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .accordion-group {
+    border-right: none;
+    padding-left:20px;
+  }
+  .accordion-heading {
+    background-color: transparent;
+  }
+  .accordion-toggle {
+    padding: 5px;
+    display: inline-block;
+    float: left;
+    line-height: 10px;
+    margin-left: -20px;
+    cursor: pointer;
+  }
+  .accordion-body {
+    min-width: 400px;
+    .accordion-inner{
+      padding-top:20px;
+      .label{
+        padding: 5px 15px;
+        &.available{
+          background-color: #468847;
+        }
+      }
+    }
+    .service-name {
+      text-align: left;
+      min-width: 95px;
     }
   }
 }

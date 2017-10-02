@@ -110,6 +110,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       configTagsCallbackName: 'loadStormConfigs',
       configsCallbackName: 'onLoadStormConfigs'
     },
+    'ATLAS_SERVER': {
+      deletePropertyName: 'deleteAtlasServer',
+      hostPropertyName: 'atlasServer',
+      configsCallbackName: 'onLoadAtlasConfigs'
+    },
     'RANGER_KMS_SERVER': {
       deletePropertyName: 'deleteRangerKMSServer',
       hostPropertyName: 'rangerKMSServerHost',
@@ -364,13 +369,17 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var dfd = $.Deferred();
     var miscController = App.MainAdminServiceAccountsController.create();
     miscController.loadUsers();
-    var interval = setInterval(function () {
+    miscController.addObserver('dataIsLoaded', this, function() {
       if (miscController.get('dataIsLoaded') && miscController.get('users')) {
-        self.set('hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
+        if (miscController.get('users').someProperty('name', 'hdfs_user')) {
+          self.set('hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
+        } else {
+          self.set('hdfsUser', '&lt;hdfs-user&gt;');
+        }
         dfd.resolve();
-        clearInterval(interval);
+        miscController.destroy();
       }
-    }, 10);
+    });
     return dfd.promise();
   },
 
@@ -1117,6 +1126,52 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
+  onLoadAtlasConfigs: function(data) {
+    var atlasServer = this.get('atlasServer'),
+      atlasServerHosts = this.getAtlasServerHosts(),
+      configs = {},
+      attributes = {},
+      propertiesToChange = this.get('allPropertiesToChange');
+
+    this.saveLoadedConfigs(data);
+    data.items.forEach(function (item) {
+      configs[item.type] = item.properties;
+      attributes[item.type] = item.properties_attributes || {};
+    }, this);
+
+    var atlasAddresses = configs['application-properties']['atlas.rest.address'];
+    var hostMask = atlasAddresses.split(',')[0].replace(/([https|http]*\:\/\/)(.*?)(:[0-9]+)/, '$1{hostname}$3');
+    var atlasAddressesRecommended = atlasServerHosts.map(function(hostName) {
+      return hostMask.replace('{hostname}', hostName);
+    }).join(',');
+    configs['application-properties']['atlas.rest.address'] = atlasAddressesRecommended;
+    if (this.get('isReconfigureRequired') && atlasAddresses !== atlasAddressesRecommended) {
+      var service = App.config.get('serviceByConfigTypeMap')['application-properties'];
+      propertiesToChange.pushObject({
+        propertyFileName: 'application-properties',
+        propertyName: 'atlas.rest.address',
+        serviceDisplayName: service && service.get('displayName'),
+        initialValue: atlasAddresses,
+        recommendedValue: atlasAddressesRecommended
+      });
+    }
+    var groups = [
+      {
+        properties: {
+          'application-properties': configs['application-properties']
+        },
+        properties_attributes: {
+          'application-properties': attributes['application-properties']
+        }
+      }
+    ];
+    if (this.get('isReconfigureRequired')) {
+      this.setConfigsChanges(groups);
+    } else {
+      this.saveConfigsBatch(groups, 'ATLAS_SERVER', atlasServer);
+    }
+  },
+
   /**
    * Success callback for load configs request
    * @param {object} data
@@ -1283,14 +1338,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (groups.length) {
       groups.forEach(function (group) {
         var desiredConfigs = [],
-          tag = 'version' + (new Date).getTime(),
           properties = group.properties;
 
         for (var site in properties) {
           if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
           desiredConfigs.push({
             "type": site,
-            "tag": tag,
             "properties": properties[site],
             "properties_attributes": group.properties_attributes[site],
             "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName, false))
@@ -1590,6 +1643,24 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       return stormNimbusHosts.without(this.get('content.hostName'));
     }
     return stormNimbusHosts.sort();
+  },
+
+  getAtlasServerHosts: function () {
+    var
+      atlasServerHosts = App.HostComponent.find().filterProperty('componentName', 'ATLAS_SERVER').mapProperty('hostName'),
+      atlasServer = this.get('atlasServer');
+
+    if (!!atlasServer) {
+      atlasServerHosts.push(atlasServer);
+      this.set('atlasServer', '');
+    }
+
+    if (this.get('fromDeleteHost') || this.get('deleteAtlasServer')) {
+      this.set('deleteAtlasServer', false);
+      this.set('fromDeleteHost', false);
+      return atlasServerHosts.without(this.get('content.hostName'));
+    }
+    return atlasServerHosts.sort();
   },
 
   /**
@@ -2008,7 +2079,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       {
         "order_id": 1,
         "type": "POST",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+        "uri": "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
@@ -2036,7 +2107,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       batches.push({
         "order_id": id,
         "type": "PUT",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
         "RequestBodyInfo": {
           "RequestInfo": {
             context: Em.I18n.t('hosts.host.regionserver.decommission.batch2'),
@@ -2060,7 +2131,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     batches.push({
       "order_id": id,
       "type": "POST",
-      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {
           "context": Em.I18n.t('hosts.host.regionserver.decommission.batch3'),
@@ -2147,7 +2218,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       {
         "order_id": 1,
         "type": "POST",
-        "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+        "uri": "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": context_1,
@@ -2172,7 +2243,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       batches.push({
         "order_id": id,
         "type": "PUT",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
         "RequestBodyInfo": {
           "RequestInfo": {
             context: startContext,
@@ -2417,6 +2488,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       zkServerInstalled: false,
       lastComponents: [],
       masterComponents: [],
+      nonAddableMasterComponents: [],
+      lastMasterComponents: [],
       runningComponents: [],
       nonDeletableComponents: [],
       unknownComponents: [],
@@ -2427,12 +2500,22 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         if (cInstance.get('componentName') === 'ZOOKEEPER_SERVER') {
           container.zkServerInstalled = true;
         }
+        var isLastComponent = false;
         if (this.getTotalComponent(cInstance) === 1) {
           container.lastComponents.push(cInstance.get('displayName'));
+          isLastComponent = true;
         }
         var workStatus = cInstance.get('workStatus');
+
         if (cInstance.get('isMaster')) {
-          container.masterComponents.push(cInstance.get('displayName'));
+          var displayName = cInstance.get('displayName')
+          container.masterComponents.push(displayName);
+          if (!App.StackServiceComponent.find(cInstance.get('componentName')).get('isMasterAddableInstallerWizard'))  {
+            container.nonAddableMasterComponents.push(displayName);
+          }
+          if(isLastComponent) {
+            container.lastMasterComponents.push(displayName);
+          }
         }
         if (stoppedStates.indexOf(workStatus) < 0) {
           container.runningComponents.push(cInstance.get('displayName'));
@@ -2577,16 +2660,20 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   validateAndDeleteHost: function () {
     var container = this.getHostComponentsInfo();
 
-    if (container.masterComponents.length > 0) {
-      this.raiseDeleteComponentsError(container, 'masterList');
-      return;
-    } else if (container.nonDeletableComponents.length > 0) {
+    if (container.nonDeletableComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'nonDeletableList');
+      return;
+    } else if (container.nonAddableMasterComponents.length > 0) {
+      this.raiseDeleteComponentsError(container, 'masterList');
       return;
     } else if (container.runningComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'runningList');
       return;
+    } else if(container.lastMasterComponents.length > 0) {
+      this.raiseDeleteComponentsError(container, 'lastMasterList');
+      return;
     }
+
     if (container.zkServerInstalled) {
       var self = this;
       return App.showConfirmationPopup(function () {
@@ -2607,17 +2694,19 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
       type: type,
-      showBodyEnd: Em.computed.existsIn('type', ['runningList', 'masterList']),
+      showBodyEnd: Em.computed.existsIn('type', ['runningList', 'masterList', 'lastMasterList']),
       container: container,
       components: function(){
         var container = this.get('container');
         switch (this.get('type')) {
           case 'masterList':
-            return container.masterComponents;
+            return container.nonAddableMasterComponents;
           case 'nonDeletableList':
             return container.nonDeletableComponents;
           case 'runningList':
             return container.runningComponents;
+          case 'lastMasterList':
+            return container.lastMasterComponents;
         }
       }.property('type'),
       componentsStr: function () {
@@ -3010,5 +3099,148 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     } else {
       this.set('isConfigsLoadingInProgress', false);
     }
+  },
+  
+  recoverHost: function() {
+    var components = this.get('content.hostComponents');
+    var hostName = this.get('content.publicHostName');
+    var self = this;
+    var batches = [
+      {
+        "order_id": 1,
+        "type": "PUT",
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            context: Em.I18n.t('hosts.host.recover.initAllComponents.context'),
+            operation_level: {
+              level: "HOST",
+              cluster_name: App.get('clusterName'),
+              host_name: hostName
+            },
+            query: "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")"
+          },
+          "Body": {
+            HostRoles: {
+              state: "INIT"
+            }
+          }
+        }
+    }];
+    batches.push(
+      {
+        "order_id": 2,
+        "type": "PUT",
+        "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            context: Em.I18n.t('hosts.host.recover.installAllComponents.context'),
+            operation_level: {
+              level: "HOST",
+              cluster_name: App.get('clusterName'),
+              host_name: hostName
+            },
+            query: "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")"
+          },
+          "Body": {
+            HostRoles: {
+              state: "INSTALLED"
+            }
+          }
+        }
+    });
+
+    if(App.get('isKerberosEnabled')) {
+      batches.push({
+        "order_id": 3,
+        "type": "PUT",
+        "uri": "/clusters/" + App.get('clusterName'),
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            context: Em.I18n.t('hosts.host.recover.regenerateKeytabs.context'),
+            query: "regenerate_keytabs=all&regenerate_hosts=" + hostName + "&ignore_config_updates=true",
+          },
+          "Body": {
+            Clusters: {
+             security_type: "KERBEROS"
+            }
+          }
+        }
+      });
+    }
+    App.get('router.mainAdminKerberosController').getSecurityType(function () {
+      App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+        self._doRecoverHost(batches);
+      });
+    });
+  },
+
+  _doRecoverHost: function (batches) {
+    App.ajax.send ({
+      name: 'common.batch.request_schedules',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        tolerateSize: 0,
+        batches: batches
+      },
+      success:'recoverHostSuccessCallback',
+      showLoadingPopup: true
+    });
+  },
+
+  recoverHostSuccessCallback: function (data) {
+    if (data && (data.Requests || data.resources[0].RequestSchedule)) {
+      this.showBackgroundOperationsPopup();
+      return true;
+    } else {
+      return false;
+    }
+  },
+
+  recoverHostDisabled: function() {
+
+    var isDisabled = false;
+    var allowedStates = [App.HostComponentStatus.stopped, App.HostComponentStatus.install_failed, App.HostComponentStatus.init];
+    this.get('content.hostComponents').forEach(function (component) {
+      isDisabled = isDisabled ? true : !allowedStates.contains(component.get('workStatus'));
+    });
+    return isDisabled;
+  }.property('content.hostComponents.@each.workStatus'),
+
+  confirmRecoverHost: function() {
+    var self = this;
+    var componentsNotStopped = [];
+    var allowedStates = [App.HostComponentStatus.stopped, App.HostComponentStatus.install_failed, App.HostComponentStatus.init];
+    this.get('content.hostComponents').forEach(function (component) {
+      if(!allowedStates.contains(component.get('workStatus'))) {
+        componentsNotStopped.push(component.get('componentName'));
+      }
+    });
+    if(componentsNotStopped.length) {
+      App.ModalPopup.show({
+        header: Em.I18n.t('hosts.recover.error.popup.title'),
+        recoverErrorPopupBody: Em.I18n.t('hosts.recover.error.popup.body').format(componentsNotStopped.toString()),
+        componentsStr: componentsNotStopped.toString(),
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/host/details/recoverHostErrorPopup')
+        }),
+        secondary: false
+      });
+    } else {
+      App.ModalPopup.show({
+        header: Em.I18n.t('hosts.recover.popup.title'),
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/host/details/recoverHostPopup')
+        }),
+        primary: Em.I18n.t('yes'),
+        secondary: Em.I18n.t('no'),
+        onPrimary: function () {
+          self.recoverHost();
+          this.hide();
+        }
+      });
+    }
   }
+
 });

@@ -33,7 +33,7 @@ public class SynchronousThreadPoolExecutor extends ThreadPoolExecutor {
    *
    */
   public SynchronousThreadPoolExecutor() {
-    super(1, 1, 0L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+    super(1, 1, 0L, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   }
 
   /**

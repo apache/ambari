@@ -797,6 +797,12 @@ App.QuickLinksView = Em.View.extend({
     }
 
     var regexValue = Em.get(portConfigs, 'regex');
+    if (protocol === 'https') {
+      var httpsRegex = Em.get(portConfigs, 'https_regex');
+      if (httpsRegex) {
+        regexValue = httpsRegex;
+      }
+    }
     regexValue = regexValue.trim();
     if (regexValue) {
       var re = new RegExp(regexValue);

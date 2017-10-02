@@ -52,136 +52,96 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Group', 'hadoop',)
     self.assertResourceCalled('Group', 'nobody',)
     self.assertResourceCalled('Group', 'users',)
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
-                              )
+
     self.assertResourceCalled('User', 'hive',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'oozie',
                               gid = 'hadoop',
-                              uid = '1000',
-                              groups = [u'users'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              uid = None,
+                              groups = [u'hadoop',u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'nobody',
                               gid = 'hadoop',
-                              uid = '1000',
-                              groups = [u'nobody'],
+                              uid = None,
+                              groups = [u'hadoop',u'nobody'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'ambari-qa',
                               gid = 'hadoop',
-                              uid = 0,
-                              groups = [u'users'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              uid = None,
+                              groups = [u'hadoop',u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'flume',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'hdfs',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'storm',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'mapred',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'hbase',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'tez',
                               gid = 'hadoop',
-                              uid = '1000',
-                              groups = [u'users'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              uid = None,
+                              groups = [u'hadoop',u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'zookeeper',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'falcon',
                               gid = 'hadoop',
-                              uid = '1000',
-                              groups = [u'users'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              uid = None,
+                              groups = [u'hadoop',u'users'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'sqoop',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'yarn',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
-                              )
-    self.assertResourceCalled('File', '/tmp/changeUid.sh',
-                              content = StaticFile('changeToSecureUid.sh'),
-                              mode = 0555,
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'hcat',
                               gid = 'hadoop',
-                              uid = '1000',
+                              uid = None,
                               groups = [u'hadoop'],
+                              fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                               content = StaticFile('changeToSecureUid.sh'),
@@ -221,15 +181,6 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/etc/hadoop',
                               mode = 0755,
-                              )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
-                              owner = 'root',
-                              create_parents = True,
-                              group = 'hadoop',
-                              )
-    self.assertResourceCalled('Link', '/etc/hadoop/conf',
-                              not_if = 'ls /etc/hadoop/conf',
-                              to = '/etc/hadoop/conf.empty',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),

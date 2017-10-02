@@ -112,7 +112,7 @@ public class ContainsPredicate extends OperationPredicate {
 
   @Override
   public Map<String, Object> toMap() {
-    return Collections.<String, Object>singletonMap(NAME,
+    return Collections.singletonMap(NAME,
       new ArrayList<>(Arrays.asList(getContextKey(), value)));
   }
 

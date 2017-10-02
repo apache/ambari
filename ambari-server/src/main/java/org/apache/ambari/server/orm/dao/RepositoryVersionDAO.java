@@ -134,6 +134,26 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   }
 
   /**
+   * Retrieves repository version by stack.
+   *
+   * @param stackId
+   *          stack id stack with major version (like HDP-2.2)
+   * @param type
+   *          the repository type
+   *
+   * @return null if there is no suitable repository version
+   */
+  @RequiresSession
+  public List<RepositoryVersionEntity> findByStackAndType(StackId stackId, RepositoryType type) {
+    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "repositoryVersionByStackAndType", RepositoryVersionEntity.class);
+    query.setParameter("stackName", stackId.getStackName());
+    query.setParameter("stackVersion", stackId.getStackVersion());
+    query.setParameter("type", type);
+    return daoUtils.selectList(query);
+  }
+  
+  /**
    * Validates and creates an object.
    * The version must be unique within this stack name (e.g., HDP, HDPWIN, BIGTOP).
    * @param stackEntity Stack entity.
@@ -212,7 +232,6 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     return daoUtils.selectList(query);
   }
 
-
   /**
    * @param repositoryVersion
    * @return
@@ -224,5 +243,19 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     query.setParameter("version", repositoryVersion);
 
     return daoUtils.selectOne(query);
+  }
+
+  /**
+   * Retrieves the repo versions matching the provided ones that are currently being used
+   * for a service.
+   *
+   * @param matching  the list of repo versions
+   */
+  @RequiresSession
+  public List<RepositoryVersionEntity> findByServiceDesiredVersion(List<RepositoryVersionEntity> matching) {
+    TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().
+          createNamedQuery("findByServiceDesiredVersion", RepositoryVersionEntity.class);
+
+    return daoUtils.selectList(query, matching);
   }
 }

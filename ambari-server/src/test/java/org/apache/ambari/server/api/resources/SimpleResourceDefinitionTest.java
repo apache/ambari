@@ -56,10 +56,10 @@ public class SimpleResourceDefinitionTest {
     resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages",
         Resource.Type.Task);
 
-    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getCreateDirectives());
-    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getReadDirectives());
-    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getUpdateDirectives());
-    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getDeleteDirectives());
+    validateDirectives(Collections.emptySet(), resourceDefinition.getCreateDirectives());
+    validateDirectives(Collections.emptySet(), resourceDefinition.getReadDirectives());
+    validateDirectives(Collections.emptySet(), resourceDefinition.getUpdateDirectives());
+    validateDirectives(Collections.emptySet(), resourceDefinition.getDeleteDirectives());
 
     HashMap<BaseResourceDefinition.DirectiveType, Collection<String>> directives = new HashMap<>();
     directives.put(BaseResourceDefinition.DirectiveType.CREATE, Arrays.asList("POST1", "POST2"));

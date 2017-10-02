@@ -287,6 +287,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   /**
    * restore upgrade status from server
    * and make call to get latest status from server
+   * Also loading all upgrades to App.StackUpgradeHistory model
+   * TODO should be called even if recent background operations doesn't have Upgrade request
    */
   restoreUpgradeState: function () {
     var self = this;
@@ -334,7 +336,10 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         App.set('upgradeState', dbUpgradeState);
       }
 
+      App.stackUpgradeHistoryMapper.map(data);
       upgradeController.loadStackVersionsToModel(true).done(function () {
+        upgradeController.loadCompatibleVersions();
+        upgradeController.updateCurrentStackVersion();
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });
     });

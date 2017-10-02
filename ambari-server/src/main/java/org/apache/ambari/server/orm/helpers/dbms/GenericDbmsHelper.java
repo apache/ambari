@@ -86,6 +86,20 @@ public class GenericDbmsHelper implements DbmsHelper {
     throw new UnsupportedOperationException("Column copy is not supported for generic DB");
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+                                                     String sourceIDColumnName1, String sourceIDColumnName2,
+                                                     String sourceIDColumnName3,
+                                                     String targetTable, String targetColumnName,
+                                                     String targetIDColumnName1, String targetIDColumnName2,
+                                                     String targetIDColumnName3,
+                                                     String sourceConditionFieldName, String condition) {
+    throw new UnsupportedOperationException("Column copy is not supported for generic DB");
+  }
+
   public StringBuilder writeAlterTableClause(StringBuilder builder, String tableName) {
     builder.append("ALTER TABLE ").append(tableName).append(" ");
     return builder;

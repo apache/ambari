@@ -1,0 +1,109 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '../variables';
+
+.logs-header {
+  // TODO get rid of magic numbers, base on actual design
+  margin: 10px 0;
+  padding: 5px 0;
+  background-color: @list-header-background-color; // TODO implement actual color
+  overflow: hidden;
+}
+
+/deep/ filter-dropdown {
+  justify-content: flex-end;
+}
+
+.hexagon {
+  // TODO remove, since it's not a part of updated design
+  left: -7.5px;
+
+  &.fatal {
+    .common-hexagon(15px, @fatal-color);
+  }
+
+  &.error {
+    .common-hexagon(15px, @error-color);
+  }
+
+  &.warn {
+    .common-hexagon(15px, @warning-color);
+  }
+
+  &.info {
+    .common-hexagon(15px, @info-color);
+  }
+
+  &.debug {
+    .common-hexagon(15px, @debug-color);
+  }
+
+  &.trace {
+    .common-hexagon(15px, @trace-color);
+  }
+
+  &.unknown {
+    .common-hexagon(15px, @unknown-color);
+  }
+}
+
+.log-status {
+  text-transform: uppercase;
+  .log-colors;
+}
+
+.log-type {
+  color: @link-color;
+}
+
+.log-time {
+  color: @grey-color;
+}
+
+.log-content-wrapper {
+  position: relative;
+
+  // TODO get rid of magic numbers, base on actual design
+  .log-content-inner-wrapper {
+    overflow: hidden;
+    max-height: @default-line-height * 2em;
+    padding-right: 65px;
+
+    .log-content {
+      white-space: pre-wrap;
+    }
+  }
+
+  .log-actions {
+    &.collapsing + .log-content-inner-wrapper, &.collapse.in + .log-content-inner-wrapper {
+      min-height: 6em;
+      max-height: none;
+      overflow-x: auto;
+    }
+
+    .action-icon {
+      .clickable-item;
+      display: block;
+      padding: 5px;
+    }
+  }
+}
+
+.context-menu {
+  position: fixed;
+}

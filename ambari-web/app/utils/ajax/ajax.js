@@ -791,7 +791,6 @@ var urls = {
           Clusters: {
             desired_config: {
               "type": data.siteName,
-              "tag": 'version' + (new Date).getTime(),
               "properties": data.properties,
               "service_config_version_note": data.service_config_version_note
 
@@ -1357,7 +1356,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
-    'real': `/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/versions,Upgrade/associated_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures`,
+    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/*',
     'mock': '/data/stack_versions/upgrades.json'
   },
   'cluster.update_upgrade_version': {
@@ -1456,7 +1455,6 @@ var urls = {
           Clusters: {
             desired_config: {
               "type": data.siteName,
-              "tag": 'version' + (new Date).getTime(),
               "properties": data.properties
             }
           }
@@ -1781,6 +1779,21 @@ var urls = {
       }
     }
   },
+  'admin.upgrade.revert': {
+    'real': '/clusters/{clusterName}/upgrades',
+    'mock': '/data/stack_versions/start_upgrade.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        timeout : 600000,
+        data: JSON.stringify({
+          "Upgrade": {
+            "revert_upgrade_id": data.upgradeId
+          }
+        })
+      }
+    }
+  },
   'admin.upgrade.upgradeItem.setState': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{itemId}',
     'mock': '',
@@ -1837,8 +1850,23 @@ var urls = {
     }
   },
 
+  'admin.stack_versions.discard': {
+    'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "RepositoryVersions":{
+            "hidden": "true"
+          }
+        })
+      }
+    }
+  },
+
   'admin.upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}&UpgradeChecks/upgrade_type={type}',
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id={id}&UpgradeChecks/upgrade_type={type}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 
@@ -2593,7 +2621,7 @@ var urls = {
     'mock': ''
   },
   'hosts.confirmed': {
-    'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/os_type,Hosts/os_arch,Hosts/ip,Hosts/maintenance_state,host_components/HostRoles/state&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?fields=host_components/HostRoles/state&minimal_response=true',
     'mock': '/data/hosts/HDP2/hosts.json'
   },
   'hosts.with_searchTerm': {

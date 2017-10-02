@@ -70,6 +70,10 @@ public class ClusterGrouping extends Grouping {
     return new ClusterBuilder(this);
   }
 
+  @Override
+  protected boolean serviceCheckAfterProcessing() {
+    return false;
+  }
 
   /**
    * Represents a single-stage execution that happens as part of a cluster-wide
@@ -240,7 +244,7 @@ public class ClusterGrouping extends Grouping {
       return new StageWrapper(
           StageWrapper.Type.SERVER_SIDE_ACTION,
           execution.title,
-          new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+          new TaskWrapper(null, null, Collections.emptySet(), task));
     }
   }
 

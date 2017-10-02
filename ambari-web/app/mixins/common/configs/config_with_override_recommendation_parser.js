@@ -46,7 +46,12 @@ App.ConfigWithOverrideRecommendationParser = Em.Mixin.create(App.ConfigRecommend
    * @protected
    */
   _updateOverride: function(config, recommendedValue, parentProperties, configGroup) {
-    var updateValue = this.allowUpdateProperty(parentProperties, Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name'));
+    var name = Em.get(config, 'name'),
+      fileName = Em.get(config, 'filename'),
+      group = Em.get(config, 'group.name'),
+      value = Em.get(config, 'value');
+
+    var updateValue = this.allowUpdateProperty(parentProperties, name, fileName, group, value);
     var override = config.getOverride(configGroup.get('name'));
     if (override) {
       this._updateConfigByRecommendation(override, recommendedValue, parentProperties);

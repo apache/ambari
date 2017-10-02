@@ -40,4 +40,23 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>hbase.custom-extensions.root</name>
+    <value>/hdp/ext/{{major_stack_version}}/hbase</value>
+    <description>
+        Root directory for hbase extensions in HDFS
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.chunkpool.maxsize</name>
+    <value>1.0</value>
+    <description>The percentage for memstore chunk pool (between 0 and 1.0).</description>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0</minimum>
+      <maximum>1.0</maximum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

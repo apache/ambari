@@ -101,6 +101,7 @@ public class DocConstants {
   }
 
   public class PublicOperationDescriptions {
+    public static final String GET_APP_DETAILS_OD = "Get application details.";
     public static final String GET_AUTH_DETAILS_OD = "Get authentication details.";
     public static final String GET_ALL_PROPERTIES_INFO_OD = "List all available properties for Log Search and Log Feeder";
     public static final String GET_LOGSEARCH_PROPERTIES_INFO_OD = "List all available properties for Log Search property file (e.g: logsearch.properties/logfeeder.properties)";

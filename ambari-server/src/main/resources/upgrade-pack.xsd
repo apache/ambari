@@ -331,6 +331,7 @@
       <xs:extension base="abstract-server-task-type">
         <xs:sequence />
         <xs:attribute name="id" use="required"/>
+        <xs:attribute name="supports-patch" type="xs:boolean" />
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

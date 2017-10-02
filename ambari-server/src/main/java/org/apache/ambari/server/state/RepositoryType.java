@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.EnumSet;
+
 /**
  * Identifies the type of repository
  */
@@ -24,21 +26,50 @@ public enum RepositoryType {
 
   /**
    * Repository should be considered to have all components for a cluster
-   * deployment
+   * deployment.
    */
   STANDARD,
 
   /**
    * Repository may have only minimum components and is used for patching
-   * purposes
+   * purposes.
    */
   PATCH,
 
   /**
-   * Repository is used to update services
+   * Repository is used as Maintenance release, which could be several patches rolled up in one.
+   * Orchestration should treat Maintenance just as it does for Patch..
    */
-  SERVICE
+  MAINT,
 
+  /**
+   * Repository is used to update services.
+   */
+  SERVICE;
 
+  /**
+   * The types of repositories which are revertable.
+   */
+  public static final EnumSet<RepositoryType> REVERTABLE = EnumSet.of(RepositoryType.MAINT,
+      RepositoryType.PATCH);
 
+  /**
+   * Gets whether applications of this repository are revertable after they have
+   * been finalized.
+   *
+   * @return {@code true} if the repository can be revert, {@code false}
+   *         otherwise.
+   */
+  public boolean isRevertable() {
+    switch (this) {
+      case MAINT:
+      case PATCH:
+        return true;
+      case SERVICE:
+      case STANDARD:
+        return false;
+      default:
+        return false;
+    }
+  }
 }

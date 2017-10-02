@@ -22,15 +22,18 @@
         <pre>{{view.parentView.controller.getSupportedUpgradeError}}</pre>
     {{else}}
       <div id="upgrade-options-popup-content">
-        <div class="text version-text">{{{view.versionText}}}</div>
-        <div class="text method-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.method}}</div>
+        <div class="text">{{{view.versionText}}}</div>
+        {{#if view.upgradeShow}}
+          <div class="text method-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.method}}</div>
+        {{/if}}
         <div {{bindAttr class=":row :method-options view.isInUpgradeWizard:disabled"}}>
             {{#each method in view.upgradeMethods}}
                 {{#unless method.cantBeStarted}}
                   <div class="method-option col-md-6">
                     <div {{bindAttr class="method.allowed::not-allowed method.allowed::not-allowed-by-version
                             method.isPrecheckFailed:not-allowed method.isPrecheckFailed:check-failed
-                            method.selected:selected method.type :img-thumbnail"}}
+                            method.selected:selected method.type :img-thumbnail
+                            view.upgradeShow::default-cursor"}}
                         {{action selectMethod method target="view"}}>
                       <div {{bindAttr class="method.icon :method-icon"}}></div>
                       <div class="method-name">{{method.displayName}}</div>
@@ -59,24 +62,24 @@
                 {{/unless}}
             {{/each}}
         </div>
-
-        <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
-          <i class="glyphicon glyphicon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
-
-          <div>
+        {{#if view.upgradeShow}}
+          <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
+            <i class="glyphicon glyphicon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
+            <div>
               {{view App.CheckboxView
-              labelClassNames="tolerance-option"
-              labelTranslate="admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2"
-              checkedBinding="view.parentView.skipSCFailures"}}
-          </div>
-          <div>
+                labelClassNames="tolerance-option"
+                labelTranslate="admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2"
+                checkedBinding="view.parentView.skipSCFailures"}}
+            </div>
+            <div>
               {{view App.CheckboxView
-              labelClassNames="tolerance-option"
-              labelTranslate="admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1"
-              checkedBinding="view.parentView.skipComponentFailures"
+                labelClassNames="tolerance-option"
+                labelTranslate="admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1"
+                checkedBinding="view.parentView.skipComponentFailures"
               }}
+            </div>
           </div>
-        </div>
+        {{/if}}
         <div class="alert alert-warning">{{t admin.stackVersions.version.upgrade.alertsWarning}}</div>
       </div>
     {{/if}}
@@ -87,4 +90,12 @@
       {{t admin.stackVersions.version.upgrade.upgradeOptions.loading}}
     </div>
   </div>
-{{/if}}
+      <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
+        <i class="icon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
+        <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipSCFailures"}}
+            {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2}}</label>
+        <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipComponentFailures"}}
+           {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1}}</label>
+    </div>
+    <div class="alert alert-warning">{{t admin.stackVersions.version.upgrade.alertsWarning}}</div>
+  {{/if}}

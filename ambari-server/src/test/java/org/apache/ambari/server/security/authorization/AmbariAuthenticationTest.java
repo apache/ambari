@@ -37,7 +37,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.context.request.RequestAttributes;
@@ -123,7 +122,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
   @Test
   public void testGetUserDetailPrincipal() throws Exception {
     // Given
-    UserDetails userDetails = new User("user", "password", Collections.<GrantedAuthority>emptyList());
+    UserDetails userDetails = new User("user", "password", Collections.emptyList());
     Authentication authentication = new TestingAuthenticationToken(userDetails, userDetails.getPassword());
 
     Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
@@ -138,7 +137,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
   @Test
   public void testGetUserDetailPrincipalWithLoginAlias() throws Exception {
     // Given
-    UserDetails userDetails = new User("loginAlias", "password", Collections.<GrantedAuthority>emptyList());
+    UserDetails userDetails = new User("loginAlias", "password", Collections.emptyList());
     Authentication authentication = new TestingAuthenticationToken(userDetails, userDetails.getPassword());
 
     expect(servletRequestAttributes.getAttribute(eq("loginAlias"), eq(RequestAttributes.SCOPE_SESSION)))
@@ -153,7 +152,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
 
     // Then
     verify();
-    UserDetails expectedUserDetails = new User("user", "password", Collections.<GrantedAuthority>emptyList()); // user detail with login alias resolved
+    UserDetails expectedUserDetails = new User("user", "password", Collections.emptyList()); // user detail with login alias resolved
 
     assertEquals(expectedUserDetails, principal);
   }
@@ -214,7 +213,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
   @Test
   public void testGetNameWithUserDetailsPrincipal() throws Exception {
     // Given
-    UserDetails userDetails = new User("user", "password", Collections.<GrantedAuthority>emptyList());
+    UserDetails userDetails = new User("user", "password", Collections.emptyList());
     Authentication authentication = new TestingAuthenticationToken(userDetails, userDetails.getPassword());
 
     Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
@@ -229,7 +228,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
   @Test
   public void testGetNameWithUserDetailsPrincipalWithLoginAlias() throws Exception {
     // Given
-    UserDetails userDetails = new User("loginAlias", "password", Collections.<GrantedAuthority>emptyList());
+    UserDetails userDetails = new User("loginAlias", "password", Collections.emptyList());
     Authentication authentication = new TestingAuthenticationToken(userDetails, userDetails.getPassword());
 
     expect(servletRequestAttributes.getAttribute(eq("loginAlias"), eq(RequestAttributes.SCOPE_SESSION)))

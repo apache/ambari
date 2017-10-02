@@ -33,7 +33,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 
@@ -105,10 +104,6 @@ public class HostComponentStateEntity {
   @Column(name = "upgrade_state", nullable = false, insertable = true, updatable = true)
   private UpgradeState upgradeState = UpgradeState.NONE;
 
-  @Enumerated(value = EnumType.STRING)
-  @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
-  private SecurityState securityState = SecurityState.UNSECURED;
-
   @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
@@ -162,14 +157,6 @@ public class HostComponentStateEntity {
 
   public void setCurrentState(State currentState) {
     this.currentState = currentState;
-  }
-
-  public SecurityState getSecurityState() {
-    return securityState;
-  }
-
-  public void setSecurityState(SecurityState securityState) {
-    this.securityState = securityState;
   }
 
   public UpgradeState getUpgradeState() {

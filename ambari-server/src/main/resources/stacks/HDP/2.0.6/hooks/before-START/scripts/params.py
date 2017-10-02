@@ -24,16 +24,25 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions, get_major_version
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
+from resource_management.libraries.functions import StackFeature
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 artifact_dir = tmp_dir + "/AMBARI-artifacts"
+
+version_for_stack_feature_checks = get_stack_feature_version(config)
+stack_supports_hadoop_custom_extensions = check_stack_feature(StackFeature.HADOOP_CUSTOM_EXTENSIONS, version_for_stack_feature_checks)
+
+sudo = AMBARI_SUDO_BINARY
 
 # Global flag enabling or disabling the sysprep feature
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
@@ -47,6 +56,7 @@ sysprep_skip_setup_jce = host_sys_prepped and default("/configurations/cluster-e
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 dfs_type = default("/commandParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
@@ -58,20 +68,13 @@ hadoop_metrics2_properties_content = None
 if 'hadoop-metrics2.properties' in config['configurations']:
   hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
 
-# hadoop default params
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
-hadoop_home = '/usr'
-create_lib_snappy_symlinks = True
 
-# HDP 2.2+ params
-if Script.is_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_home = stack_select.get_hadoop_dir("home")
-  create_lib_snappy_symlinks = False
+mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+hadoop_home = stack_select.get_hadoop_dir("home")
+create_lib_snappy_symlinks = False
   
 current_service = config['serviceName']
 
@@ -182,7 +185,7 @@ if has_zk_host:
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
@@ -289,7 +292,6 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
@@ -329,10 +331,15 @@ if dfs_ha_enabled:
    pass
  pass
 else:
- namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
+  namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', default_fs)
 
-if namenode_rpc:
- nn_rpc_client_port = namenode_rpc.split(':')[1].strip()
+# if HDFS is not installed in the cluster, then don't try to access namenode_rpc
+if "core-site" in config['configurations'] and namenode_rpc:
+  port_str = namenode_rpc.split(':')[-1].strip()
+  try:
+    nn_rpc_client_port = int(port_str)
+  except ValueError:
+    nn_rpc_client_port = None
 
 if dfs_ha_enabled:
  dfs_service_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.servicerpc-address.{dfs_ha_nameservices}.{namenode_id}'), None)

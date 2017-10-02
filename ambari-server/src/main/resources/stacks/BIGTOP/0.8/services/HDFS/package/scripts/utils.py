@@ -19,6 +19,7 @@ limitations under the License.
 import os
 
 from resource_management import *
+from resource_management.libraries.functions.check_process_status import wait_process_stopped
 import re
 
 
@@ -123,6 +124,8 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
           not_if=service_is_up
   )
   if action == "stop":
+    wait_process_stopped(pid_file)
+
     File(pid_file,
          action="delete",
     )

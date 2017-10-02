@@ -39,112 +39,11 @@ from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
 from resource_management.core import shell
 from resource_management.core.system import System
-from resource_management.libraries.functions import packages_analyzer
+
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestHostInfo(TestCase):
-
-  @patch.object(OSCheck, 'get_os_family')
-  @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
-  def test_analyze_zypper_out(self, spwt_mock, get_os_family_mock):
-    get_os_family_mock.return_value = 'suse'
-    stringToRead = """Refreshing service 'susecloud'.
-           Loading repository data...
-           Reading installed packages...
-
-           S | Name                              | Type    | Version                | Arch   | Repository
-           --+-----------------------------------+---------+------------------------+--------+----------------------
-           i | ConsoleKit                        | package | 0.2.10-64.65.1         | x86_64 | SLES11-SP1-Updates
-           i | gweb                              | package | 2.2.0-99               | noarch | Hortonworks Data Platform Utils Version - HDP-UTILS-1.1.0.15
-           i | hadoop                            | package | 1.2.0.1.3.0.0-107      | x86_64 | HDP
-           i | hadoop-libhdfs                    | package | 1.2.0.1.3.0.0-107      | x86_64 | HDP
-           i | ambari-server                     | package | 1.2.4.9-1              | noarch | Ambari 1.x
-           i | hdp_mon_ganglia_addons            | package | 1.2.4.9-1              | noarch | Ambari 1.x
-           i | Minimal                           | pattern | 11-38.13.9             | x86_64 | SLES11-SP1"""
-    result = {}
-    result['out'] = stringToRead
-    result['err'] = ""
-    result['retCode'] = 0
-
-    spwt_mock.return_value = result
-    installedPackages = []
-    packages_analyzer.allInstalledPackages(installedPackages)
-    self.assertEqual(7, len(installedPackages))
-    self.assertTrue(installedPackages[1][0], "gweb")
-    self.assertTrue(installedPackages[3][2], "HDP")
-    self.assertTrue(installedPackages[6][1], "11-38.13.9")
-
-  @patch.object(OSCheck, 'get_os_family')
-  @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
-  def test_analyze_yum_output(self, subprocessWithTimeout_mock, get_os_family_mock):
-    get_os_family_mock.return_value = 'redhat'
-    stringToRead = """Loaded plugins: amazon-id, product-id, rhui-lb, security, subscription-manager
-                      Updating certificate-based repositories.
-                      Installed Packages
-                      AMBARI.dev.noarch             1.x-1.el6             installed
-                      PyXML.x86_64                  0.8.4-19.el6          @koji-override-0
-                      Red_Hat_Enterprise_Linux-Release_Notes-6-en-US.noarch
-                              3-7.el6               @koji-override-0
-                      hcatalog.noarch               0.11.0.1.3.0.0-107.el6
-                                                    @HDP-1.3.0
-                      hesiod.x86_64                 3.1.0-19.el6          @koji-override-0/$releasever
-                      hive.noarch                   0.11.0.1.3.0.0-107.el6
-                                                    @HDP-1.3.0
-                      oracle-server-db.x86          1.3.17-2
-                                                    @Oracle-11g
-                      ambari-log4j.noarch           1.2.5.9-1             @AMBARI.dev-1.x
-                      libconfuse.x86_64             2.7-4.el6             @HDP-epel"""
-    result = {}
-    result['out'] = stringToRead
-    result['err'] = ""
-    result['retCode'] = 0
-
-    subprocessWithTimeout_mock.return_value = result
-    installedPackages = []
-    packages_analyzer.allInstalledPackages(installedPackages)
-    self.assertEqual(9, len(installedPackages))
-    for package in installedPackages:
-      self.assertTrue(package[0] in ["AMBARI.dev", "PyXML", "oracle-server-db",
-                                 "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US",
-                                 "hcatalog", "hesiod", "hive", "ambari-log4j", "libconfuse"])
-      self.assertTrue(package[1] in ["1.x-1.el6", "0.8.4-19.el6", "3-7.el6", "3.1.0-19.el6",
-                                 "0.11.0.1.3.0.0-107.el6", "1.2.5.9-1", "1.3.17-2", "1.2.5.9-1", "2.7-4.el6"])
-      self.assertTrue(package[2] in ["installed", "koji-override-0", "HDP-1.3.0",
-                                 "koji-override-0/$releasever", "AMBARI.dev-1.x", "Oracle-11g", "HDP-epel"])
-
-    packages = packages_analyzer.getInstalledPkgsByNames(["AMBARI", "Red_Hat_Enterprise", "hesiod", "hive"],
-                                                       installedPackages)
-    self.assertEqual(4, len(packages))
-    expected = ["AMBARI.dev", "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US",
-                                "hesiod", "hive"]
-    for package in expected:
-      self.assertTrue(package in packages)
-
-    detailedPackages = packages_analyzer.getPackageDetails(installedPackages, packages)
-    self.assertEqual(4, len(detailedPackages))
-    for package in detailedPackages:
-      self.assertTrue(package['version'] in ["1.x-1.el6", "3-7.el6", "3.1.0-19.el6",
-                                            "0.11.0.1.3.0.0-107.el6"])
-      self.assertTrue(package['repoName'] in ["installed", "koji-override-0", "HDP-1.3.0",
-                                              "koji-override-0/$releasever"])
-      self.assertFalse(package['repoName'] in ["AMBARI.dev-1.x"])
-
-  @patch.object(OSCheck, 'get_os_family')
-  @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
-  def test_analyze_yum_output_err(self, subprocessWithTimeout_mock, get_os_family_mock):
-    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
-
-    result = {}
-    result['out'] = ""
-    result['err'] = ""
-    result['retCode'] = 1
-
-    subprocessWithTimeout_mock.return_value = result
-    installedPackages = []
-    packages_analyzer.allInstalledPackages(installedPackages)
-    self.assertEqual(installedPackages, [])
-
 
   @patch('os.path.exists')
   def test_checkFolders(self, path_mock):
@@ -160,36 +59,20 @@ class TestHostInfo(TestCase):
 
       self.assertTrue(item in names)
 
-  @patch('os.path.exists')
-  @patch('__builtin__.open')
-  def test_checkUsers(self, builtins_open_mock, path_mock):
-    builtins_open_mock.return_value = [
-      "hdfs:x:493:502:Hadoop HDFS:/usr/lib/hadoop:/bin/bash",
-      "zookeeper:x:492:502:ZooKeeper:/var/run/zookeeper:/bin/bash"]
-    path_mock.side_effect = [False, True, False]
-
+  def test_checkUsers(self):
     hostInfo = HostInfoLinux()
     results = []
-    hostInfo.checkUsers(["zookeeper", "hdfs"], results)
-    self.assertEqual(2, len(results))
+    hostInfo.checkUsers(["root", "zxlmnap12341234"], results)
+    self.assertEqual(1, len(results))
     newlist = sorted(results, key=lambda k: k['name'])
-    self.assertTrue(newlist[0]['name'], "hdfs")
-    self.assertTrue(newlist[1]['name'], "zookeeper")
-    self.assertTrue(newlist[0]['homeDir'], "/usr/lib/hadoop")
-    self.assertTrue(newlist[1]['homeDir'], "/var/run/zookeeper")
+    self.assertTrue(newlist[0]['name'], "root")
+    self.assertTrue(newlist[0]['homeDir'], "/root")
     self.assertTrue(newlist[0]['status'], "Available")
-    self.assertTrue(newlist[1]['status'], "Invalid home directory")
-    print(path_mock.mock_calls)
 
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
-  @patch('resource_management.libraries.functions.packages_analyzer.allAvailablePackages')
-  @patch('resource_management.libraries.functions.packages_analyzer.allInstalledPackages')
-  @patch('resource_management.libraries.functions.packages_analyzer.getPackageDetails')
-  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByNames')
-  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByRepo')
-  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledRepos')
+  @patch("resource_management.core.providers.get_provider")
   @patch.object(HostInfoLinux, 'checkUsers')
   @patch.object(HostInfoLinux, 'checkLiveServices')
   @patch.object(HostInfoLinux, 'javaProcs')
@@ -200,14 +83,19 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfoLinux, 'checkFirewall')
   @patch.object(HostInfoLinux, 'checkUnlimitedJce')
   def test_hostinfo_register_suse(self, jce_mock, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
-                             cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
-                             gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
+                             cls_mock, cu_mock, get_packages_mock, whcf_mock, os_umask_mock, get_os_type_mock):
+
+    m = MagicMock()
+
+    m.get_package_details.return_value = ["pkg1", "pkg2"]
+    m.get_installed_pkgs_by_names.return_value = ["pkg2"]
+    m.get_installed_pkgs_by_repo.return_value = ["pkg1"]
+
+    get_packages_mock.return_value = m
+
     cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
-    gipbr_mock.return_value = ["pkg1"]
-    gipbn_mock.return_value = ["pkg2"]
-    gpd_mock.return_value = ["pkg1", "pkg2"]
     get_os_type_mock.return_value = "suse"
 
     hostInfo = HostInfoLinux()
@@ -223,12 +111,7 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
-  @patch('resource_management.libraries.functions.packages_analyzer.allAvailablePackages')
-  @patch('resource_management.libraries.functions.packages_analyzer.allInstalledPackages')
-  @patch('resource_management.libraries.functions.packages_analyzer.getPackageDetails')
-  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByNames')
-  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByRepo')
-  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledRepos')
+  @patch("resource_management.core.providers.get_provider")
   @patch.object(HostInfoLinux, 'checkUsers')
   @patch.object(HostInfoLinux, 'checkLiveServices')
   @patch.object(HostInfoLinux, 'javaProcs')
@@ -239,14 +122,18 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfoLinux, 'checkFirewall')
   @patch.object(HostInfoLinux, 'getTransparentHugePage')
   def test_hostinfo_register(self, get_transparentHuge_page_mock, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
-                             cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
-                             gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
+                             cls_mock, cu_mock, get_packages_mock, whcf_mock, os_umask_mock, get_os_type_mock):
+    m = MagicMock()
+
+    m.get_package_details.return_value = ["pkg1", "pkg2"]
+    m.get_installed_pkgs_by_names.return_value = ["pkg2"]
+    m.get_installed_pkgs_by_repo.return_value = ["pkg1"]
+
+    get_packages_mock.return_value = m
+
     cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
-    gipbr_mock.return_value = ["pkg1"]
-    gipbn_mock.return_value = ["pkg2"]
-    gpd_mock.return_value = ["pkg1", "pkg2"]
     get_os_type_mock.return_value = "redhat"
 
     hostInfo = HostInfoLinux()
@@ -413,7 +300,7 @@ class TestHostInfo(TestCase):
 
     self.assertEquals(result[0]['status'], 'Unhealthy')
     self.assertEquals(result[0]['name'], 'service1 or service2')
-    self.assertEquals(result[0]['desc'], 'out\nout')
+    self.assertEquals(result[0]['desc'], 'out{0}out'.format(os.linesep))
 
     msg = 'thrown by shell call'
     shell_call.side_effect = Exception(msg)
@@ -538,112 +425,6 @@ class TestHostInfo(TestCase):
     os_path_isfile_mock.return_value = False
     self.assertEqual("", hostInfo.getTransparentHugePage())
 
-  @staticmethod
-  def _add_packages_available(command, arg):
-    arg.append(["hadoop_2_2_0_1_885", "1.0", "HDP-2.2"])
-    arg.append(["hadooplzo_2_2_0_1_885", "1.0", "HDP-2.2"])
-    arg.append(["hadoop_2_2_0_1_885-libhdfs", "1.0", "HDP-2.2"])
-
-  @staticmethod
-  def _add_packages_lookUpYum(command, key, arg):
-    TestHostInfo._add_packages_available(command, arg)
-
-  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
-  @patch("ambari_commons.os_check.OSCheck.is_ubuntu_family")
-  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
-  @patch("resource_management.libraries.functions.packages_analyzer._lookUpZypperPackages")
-  def test_get_available_packages_in_repos_suse(self, lookUpZypperPackages, is_redhat_family, is_ubuntu_family,
-                                                is_suse_family_mock):
-    is_suse_family_mock.return_value = True
-    is_redhat_family.return_value = False
-    is_ubuntu_family.return_value = False
-    lookUpZypperPackages.side_effect = TestHostInfo._add_packages_available
-
-    command_json = {
-      "repositoryFile": {
-        "stackName": "HDP",
-        "repoVersionId": 1,
-        "repoVersion": "2",
-        "repositories": [
-          {
-            "repoName": "HDP",
-            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
-            "repoId": "HDP-2.2"
-          }
-        ]
-      }
-    }
-
-    available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(
-      command_json['repositoryFile']['repositories'])
-
-    self.assertEqual(available_packages_in_repos,
-                     ["hadoop_2_2_0_1_885", "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs"])
-
-  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
-  @patch("ambari_commons.os_check.OSCheck.is_ubuntu_family")
-  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
-  @patch("resource_management.libraries.functions.packages_analyzer._lookUpYumPackages")
-  def test_get_available_packages_in_repos_rhel(self, lookUpYumPackages, is_redhat_family, is_ubuntu_family,
-                                                is_suse_family_mock):
-    is_suse_family_mock.return_value = False
-    is_redhat_family.return_value = True
-    is_ubuntu_family.return_value = False
-    lookUpYumPackages.side_effect = TestHostInfo._add_packages_lookUpYum
-
-    command_json = {
-      "repositoryFile": {
-        "stackName": "HDP",
-        "repoVersionId": 1,
-        "repoVersion": "2",
-        "repositories": [
-          {
-            "repoName": "HDP",
-            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
-            "repoId": "HDP-2.2"
-          }
-        ]
-      }
-    }
-
-    available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(
-      command_json['repositoryFile']['repositories'])
-
-    self.assertEqual(available_packages_in_repos,
-                     ["hadoop_2_2_0_1_885", "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs", "hadoop_2_2_0_1_885",
-                      "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs"])
-
-  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
-  @patch("ambari_commons.os_check.OSCheck.is_ubuntu_family")
-  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
-  @patch("resource_management.libraries.functions.packages_analyzer._lookUpAptPackages")
-  def test_get_available_packages_in_repos_ubuntu(self, lookUpAptPackages, is_redhat_family, is_ubuntu_family,
-                                                  is_suse_family_mock):
-    is_suse_family_mock.return_value = False
-    is_redhat_family.return_value = False
-    is_ubuntu_family.return_value = True
-    lookUpAptPackages.side_effect = TestHostInfo._add_packages_available
-
-    command_json = {
-      "repositoryFile": {
-        "stackName": "HDP",
-        "repoVersionId": 1,
-        "repoVersion": "2",
-        "repositories": [
-          {
-            "repoName": "HDP",
-            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
-            "repoId": "HDP-2.2"
-          }
-        ]
-      }
-    }
-
-    available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(
-      command_json['repositoryFile']['repositories'])
-
-    self.assertEqual(available_packages_in_repos,
-                     ["hadoop_2_2_0_1_885", "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs"])
 
 if __name__ == "__main__":
   unittest.main()

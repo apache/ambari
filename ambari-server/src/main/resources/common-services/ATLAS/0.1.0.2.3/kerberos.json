@@ -40,7 +40,8 @@
               }
             },
             {
-              "name": "/spnego",
+              "name": "atlas_atlas_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "value": "HTTP/_HOST@${realm}",
                 "configuration": "application-properties/atlas.http.authentication.kerberos.principal"
@@ -50,7 +51,8 @@
               }
             },
             {
-              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
+              "name": "atlas_atlas_server_infra-solr",
+              "reference": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
               "when" : {
                 "contains" : ["services", "AMBARI_INFRA"]
               }

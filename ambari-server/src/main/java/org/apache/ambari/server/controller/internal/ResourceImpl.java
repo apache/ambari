@@ -119,7 +119,7 @@ public class ResourceImpl implements Resource {
     String categoryKey = getCategoryKey(id);
 
     if (!propertiesMap.containsKey(categoryKey)) {
-      propertiesMap.put(categoryKey, new HashMap<String, Object>());
+      propertiesMap.put(categoryKey, new HashMap<>());
     }
   }
 

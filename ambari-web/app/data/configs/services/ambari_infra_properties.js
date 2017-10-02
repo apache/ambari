@@ -77,90 +77,97 @@ module.exports = [
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 5,
-    "name": "infra_solr_ssl_enabled",
+    "name": "infra_solr_jmx_enabled",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 6,
-    "name": "infra_solr_truststore_location",
+    "name": "infra_solr_ssl_enabled",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 7,
-    "name": "infra_solr_truststore_type",
+    "name": "infra_solr_truststore_location",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 8,
-    "name": "infra_solr_truststore_password",
+    "name": "infra_solr_truststore_type",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 9,
-    "name": "infra_solr_keystore_location",
+    "name": "infra_solr_truststore_password",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 10,
-    "name": "infra_solr_keystore_type",
+    "name": "infra_solr_keystore_location",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 11,
-    "name": "infra_solr_keystore_password",
+    "name": "infra_solr_keystore_type",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 12,
-    "name": "infra_solr_kerberos_keytab",
+    "name": "infra_solr_keystore_password",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 13,
-    "name": "infra_solr_kerberos_principal",
+    "name": "infra_solr_kerberos_keytab",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 14,
-    "name": "infra_solr_web_kerberos_keytab",
+    "name": "infra_solr_kerberos_principal",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 15,
-    "name": "infra_solr_web_kerberos_principal",
+    "name": "infra_solr_web_kerberos_keytab",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 16,
-    "name": "infra_solr_kerberos_name_rules",
+    "name": "infra_solr_web_kerberos_principal",
     "serviceName": "AMBARI_INFRA"
   },
   {
     "category": "Advanced infra-solr-env",
     "filename": "infra-solr-env.xml",
     "index": 17,
+    "name": "infra_solr_kerberos_name_rules",
+    "serviceName": "AMBARI_INFRA"
+  },
+  {
+    "category": "Advanced infra-solr-env",
+    "filename": "infra-solr-env.xml",
+    "index": 18,
     "name": "content",
     "serviceName": "AMBARI_INFRA"
   },

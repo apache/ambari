@@ -138,7 +138,7 @@ public class ClusterControllerImpl implements ClusterController {
       // get the resources
       queryResponse = provider.queryForResources(request, predicate);
     }
-    return queryResponse == null ? new QueryResponseImpl(Collections.<Resource>emptySet()) : queryResponse;
+    return queryResponse == null ? new QueryResponseImpl(Collections.emptySet()) : queryResponse;
   }
 
   @Override
@@ -448,7 +448,7 @@ public class ClusterControllerImpl implements ClusterController {
    */
   private boolean checkProperties(Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException {
-    Set<String> requestPropertyIds = request == null ? new HashSet<String>() :
+    Set<String> requestPropertyIds = request == null ? new HashSet<>() :
         PropertyHelper.getAssociatedPropertyIds(request);
 
     if (predicate != null) {
@@ -566,7 +566,7 @@ public class ClusterControllerImpl implements ClusterController {
       if (!propertyProviders.containsKey(type)) {
         List<PropertyProvider> providers = providerModule.getPropertyProviders(type);
         propertyProviders.put(type,
-            providers == null ? Collections.<PropertyProvider>emptyList() : providers);
+            providers == null ? Collections.emptyList() : providers);
       }
     }
     return propertyProviders.get(type);

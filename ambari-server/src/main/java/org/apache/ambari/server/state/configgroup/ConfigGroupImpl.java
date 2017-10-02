@@ -124,10 +124,10 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setDescription(description);
     configGroupEntity.setServiceName(serviceName);
 
-    m_hosts = hosts == null ? new ConcurrentHashMap<Long, Host>()
+    m_hosts = hosts == null ? new ConcurrentHashMap<>()
         : new ConcurrentHashMap<>(hosts);
 
-    m_configurations = configurations == null ? new ConcurrentHashMap<String, Config>()
+    m_configurations = configurations == null ? new ConcurrentHashMap<>()
         : new ConcurrentHashMap<>(configurations);
 
     // save the entity and grab the ID
@@ -364,8 +364,7 @@ public class ConfigGroupImpl implements ConfigGroup {
 
     // Delete existing mappings and create new ones
     configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-    configGroupEntity.setConfigGroupHostMappingEntities(
-        new HashSet<ConfigGroupHostMappingEntity>());
+    configGroupEntity.setConfigGroupHostMappingEntities(new HashSet<>());
 
     if (hosts != null && !hosts.isEmpty()) {
       configGroupEntity = persistHostMapping(hosts.values(), configGroupEntity);
@@ -408,8 +407,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   void persistConfigMapping(ClusterEntity clusterEntity, ConfigGroupEntity configGroupEntity,
       Map<String, Config> configurations) throws AmbariException {
     configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-    configGroupEntity.setConfigGroupConfigMappingEntities(
-        new HashSet<ConfigGroupConfigMappingEntity>());
+    configGroupEntity.setConfigGroupConfigMappingEntities(new HashSet<>());
 
     if (configurations != null && !configurations.isEmpty()) {
       for (Entry<String, Config> entry : configurations.entrySet()) {

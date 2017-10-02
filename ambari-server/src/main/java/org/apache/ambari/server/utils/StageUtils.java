@@ -271,7 +271,7 @@ public class StageUtils {
   }
 
   public static Map<String, String> getCommandParamsStage(ActionExecutionContext actionExecContext, String requestContext) throws AmbariException {
-    Map<String, String> commandParams = actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<String, String>();
+    Map<String, String> commandParams = actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<>();
     if (StringUtils.isNotEmpty(requestContext) && requestContext.toLowerCase().contains("rolling-restart")) {
       commandParams.put("rolling_restart", "true");
     }

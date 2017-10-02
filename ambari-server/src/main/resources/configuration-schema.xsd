@@ -115,7 +115,7 @@
     <xs:element name="user-groups" minOccurs="0">
       <xs:complexType>
         <xs:sequence>
-          <xs:element name="property" type="userGroupInfo" minOccurs="1"/>
+          <xs:element name="property" type="userGroupInfo" minOccurs="1" maxOccurs="unbounded"/>
         </xs:sequence>
       </xs:complexType>
     </xs:element>

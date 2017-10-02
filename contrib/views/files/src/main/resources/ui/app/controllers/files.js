@@ -28,9 +28,9 @@ export default Ember.Controller.extend({
   isSelected: Ember.computed('selectedFilesCount', 'selectedFolderCount', function() {
     return (this.get('selectedFilesCount') + this.get('selectedFolderCount')) !== 0;
   }),
-
-  queryParams: ['path'],
+  queryParams: ['path', 'filter'],
   path: '/',
+  filter: '',
   columns: columnConfig,
 
   currentMessagesCount: Ember.computed.alias('logger.currentMessagesCount'),
@@ -71,16 +71,10 @@ export default Ember.Controller.extend({
     return parentPath;
   }),
 
-  sortedContent: Ember.computed.sort('model', 'sortProperty'),
+  arrangedContent:  Ember.computed.sort('model', 'sortProperty'),
 
-  arrangedContent: Ember.computed('model', 'sortProperty', 'validSearchText', function() {
-    var searchText = this.get('validSearchText');
-    if(!Ember.isBlank(searchText)) {
-      return this.get('sortedContent').filter(function(entry) {
-        return !!entry.get('name').match(searchText);
-      });
-    }
-    return this.get('sortedContent');
+  metaInfo: Ember.computed('model', function() {
+    return this.get('model.meta');
   }),
 
   selectedFilePathsText: function () {
@@ -144,7 +138,7 @@ export default Ember.Controller.extend({
     selectAll: function(selectStatus) {
       this.get('fileSelectionService').deselectAll();
       if(selectStatus === false) {
-        this.get('fileSelectionService').selectFiles(this.get('sortedContent'));
+        this.get('fileSelectionService').selectFiles(this.get('arrangedContent'));
       }
     },
 
@@ -155,7 +149,7 @@ export default Ember.Controller.extend({
 
     //Context Menu actions
     openFolder: function(path) {
-      this.transitionToRoute({queryParams: {path: path}});
+      this.transitionToRoute({queryParams: {path: path, filter:''}});
     }
   },
 

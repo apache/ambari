@@ -254,8 +254,14 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY =
       "timeline.metrics.aggregate.tables.durability";
 
+  public static final String TIMELINE_METRICS_WHITELIST_ENABLED =
+    "timeline.metrics.whitelisting.enabled";
+
   public static final String TIMELINE_METRICS_WHITELIST_FILE =
     "timeline.metrics.whitelist.file";
+
+  public static final String TIMELINE_METRICS_WHITELIST_FILE_LOCATION_DEFAULT =
+    "/etc/ambari-metrics-collector/conf/metrics_whitelist";
 
   public static final String TIMELINE_METRIC_METADATA_FILTERS =
     "timeline.metrics.service.metadata.filters";
@@ -517,5 +523,12 @@ public class TimelineMetricConfiguration {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  public boolean isWhitelistingEnabled() {
+    if (metricsConf != null) {
+      return Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_WHITELIST_ENABLED, "false"));
+    }
+    return false;
   }
 }

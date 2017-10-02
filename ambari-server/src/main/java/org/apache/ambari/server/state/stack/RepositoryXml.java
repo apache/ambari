@@ -146,6 +146,8 @@ public class RepositoryXml implements Validable{
     private String mirrorslist = null;
     private String repoid = null;
     private String reponame = null;
+    private String distribution = null;
+    private String components = null;
     private boolean unique = false;
 
     private Repo() {
@@ -179,6 +181,13 @@ public class RepositoryXml implements Validable{
       return reponame;
     }
 
+    public String getDistribution() {
+      return distribution;
+    }
+
+    public String getComponents() {
+      return components;
+    }
     /**
      * @return true if version of HDP that change with each release
      */
@@ -212,6 +221,8 @@ public class RepositoryXml implements Validable{
           ri.setOsType(os.trim());
           ri.setRepoId(r.getRepoId());
           ri.setRepoName(r.getRepoName());
+          ri.setDistribution(r.getDistribution());
+          ri.setComponents(r.getComponents());
           ri.setUnique(r.isUnique());
 
           repos.add(ri);

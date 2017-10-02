@@ -284,8 +284,8 @@ public class ConfigGroupResourceProviderTest {
     expect(cluster.getConfigGroups()).andReturn(configGroupMap);
 
     expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject(), EasyMock.<Map<String, Config>>anyObject(),
-        EasyMock.<Map<Long, Host>>anyObject())).andReturn(configGroup).anyTimes();
+        (String) anyObject(), (String) anyObject(), EasyMock.anyObject(),
+        EasyMock.anyObject())).andReturn(configGroup).anyTimes();
 
     expect(configGroup.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(configGroup.getName()).andReturn("test-1").anyTimes();
@@ -496,7 +496,7 @@ public class ConfigGroupResourceProviderTest {
     expect(h1.getHostId()).andReturn(1L).anyTimes();
     expect(h2.getHostId()).andReturn(2L).anyTimes();
     expect(managementController.getConfigGroupUpdateResults((ConfigGroupRequest)anyObject())).
-            andReturn(new ConfigGroupResponse(1L, "", "", "", "", new HashSet<Map<String, Object>>(), new HashSet<Map<String, Object>>())).atLeastOnce();
+            andReturn(new ConfigGroupResponse(1L, "", "", "", "", new HashSet<>(), new HashSet<>())).atLeastOnce();
 
     expect(configGroup.getName()).andReturn("test-1").anyTimes();
     expect(configGroup.getId()).andReturn(25L).anyTimes();

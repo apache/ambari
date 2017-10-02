@@ -22,9 +22,7 @@
       "is_enabled":"{{solr_service_logs_enable}}",
       "destination":"solr",
       "zk_connect_string":"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}",
-      "collection":"{{logsearch_solr_collection_service_logs}}",
-      "number_of_shards": "{{logsearch_collection_service_logs_numshards}}",
-      "splits_interval_mins": "{{logsearch_service_logs_split_interval_mins}}",
+      "type": "service",
       "conditions":{
         "fields":{
           "rowtype":[
@@ -41,9 +39,7 @@
       "is_enabled":"{{solr_audit_logs_enable}}",
       "destination":"solr",
       "zk_connect_string":"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}",
-      "collection":"{{logsearch_solr_collection_audit_logs}}",
-      "number_of_shards": "{{logsearch_collection_audit_logs_numshards}}",
-      "splits_interval_mins": "{{logsearch_audit_logs_split_interval_mins}}",
+      "type": "audit",
       "conditions":{
         "fields":{
           "rowtype":[

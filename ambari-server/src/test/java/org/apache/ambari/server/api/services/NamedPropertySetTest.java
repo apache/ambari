@@ -54,7 +54,7 @@ public class NamedPropertySetTest {
     NamedPropertySet propertySet3 = new NamedPropertySet("bar", mapProps);
     assertFalse(propertySet.equals(propertySet3));
 
-    NamedPropertySet propertySet4 = new NamedPropertySet("foo", new HashMap<String, Object>());
+    NamedPropertySet propertySet4 = new NamedPropertySet("foo", new HashMap<>());
     assertFalse(propertySet.equals(propertySet4));
   }
 

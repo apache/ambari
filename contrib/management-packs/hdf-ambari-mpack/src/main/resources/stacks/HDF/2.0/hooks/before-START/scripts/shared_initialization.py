@@ -132,20 +132,6 @@ def setup_configs():
                 group=params.user_group
       )
 
-  generate_include_file()
-
-
-def generate_include_file():
-  import params
-
-  if params.has_namenode and params.dfs_hosts and params.has_slaves:
-    include_hosts_list = params.slave_hosts
-    File(params.dfs_hosts,
-         content=Template("include_hosts_list.j2"),
-         owner=params.hdfs_user,
-         group=params.user_group
-    )
-
 def create_javahome_symlink():
   if os.path.exists("/usr/jdk/jdk1.6.0_31") and not os.path.exists("/usr/jdk64/jdk1.6.0_31"):
     Directory("/usr/jdk64/",

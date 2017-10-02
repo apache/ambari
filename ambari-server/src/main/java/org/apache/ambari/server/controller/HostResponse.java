@@ -176,10 +176,10 @@ public class HostResponse {
   public HostResponse(String hostname) {
     this(hostname, "", "",
       0, 0, "", "",
-      0, new ArrayList<DiskInfo>(),
-        0, 0, "",
-        new HashMap<String, String>(),
-        null, null, null, null);
+      0, new ArrayList<>(),
+      0, 0, "",
+      new HashMap<>(),
+      null, null, null, null);
   }
 
   @ApiModelProperty(name = HostResourceProvider.HOST_NAME_PROPERTY_ID)

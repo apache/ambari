@@ -231,7 +231,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * make server call to stop services
    */
   stopRequiredServices: function () {
-    this.stopServices(this.get('wizardController.relatedServicesMap')[this.get('content.reassign.component_name')], true);
+    var componentName = this.get('content.reassign.component_name');
+    var servicesToStop = this.get('wizardController.relatedServicesMap')[componentName];
+    if (this.get('content.componentsToStopAllServices').contains(componentName)) {
+      this.stopServices(servicesToStop, true, true);
+    } else {
+      this.stopServices(servicesToStop, true);
+    }
   },
 
   createHostComponents: function () {
@@ -309,11 +315,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   getServiceConfigData: function (configs, attributes) {
     var componentName = this.get('content.reassign.component_name');
-    var tagName = 'version' + (new Date).getTime();
     var configData = Object.keys(configs).map(function (_siteName) {
       return {
         type: _siteName,
-        tag: tagName,
         properties: configs[_siteName],
         properties_attributes: attributes[_siteName] || {},
         service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName, false))

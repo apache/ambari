@@ -26,7 +26,7 @@ import ambari_simplejson as json
 __all__ = ["create_repo_files", "CommandRepository"]
 
 # components_lits = repoName + postfix
-UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
+UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
 
 def create_repo_files(template, command_repository):
@@ -40,7 +40,10 @@ def create_repo_files(template, command_repository):
     raise Fail("The command repository was not parsed correctly")
 
   if 0 == len(command_repository.repositories):
-    raise Fail("Cannot create repository files when no repositories are defined")
+    Logger.warning(
+      "Repository for {0}/{1} has no repositories.  Ambari may not be managing this version.".format(
+        command_repository.stack_name, command_repository.version_string))
+    return
 
   # add the stack name to the file name just to make it a little easier to debug
   # version_id is the primary id of the repo_version table in the database
@@ -54,15 +57,20 @@ def create_repo_files(template, command_repository):
     if repository.repo_id is None:
       raise Fail("Repository with url {0} has no id".format(repository.base_url))
 
-    Repository(repository.repo_id,
-               action = "create",
-               base_url = repository.base_url,
-               mirror_list = repository.mirrors_list,
-               repo_file_name = file_name,
-               repo_template = template,
-               components = repository.ubuntu_components,
-               append_to_file = append_to_file)
-    append_to_file = True
+    if not repository.ambari_managed:
+      Logger.warning(
+        "Repository for {0}/{1}/{2} is not managed by Ambari".format(
+          command_repository.stack_name, command_repository.version_string, repository.repo_id))
+    else:
+      Repository(repository.repo_id,
+                 action = "create",
+                 base_url = repository.base_url,
+                 mirror_list = repository.mirrors_list,
+                 repo_file_name = file_name,
+                 repo_template = template,
+                 components = repository.ubuntu_components,
+                 append_to_file = append_to_file)
+      append_to_file = True
 
 
 def _find_value(dictionary, key):
@@ -94,6 +102,7 @@ class CommandRepository(object):
     # version_id is the primary id of the repo_version table in the database
     self.version_id = _find_value(json_dict, 'repoVersionId')
     self.stack_name = _find_value(json_dict, 'stackName')
+    self.version_string = _find_value(json_dict, 'repoVersion')
     self.repositories = []
 
     repos_def = _find_value(json_dict, 'repositories')
@@ -113,12 +122,17 @@ class _CommandRepositoryEntry(object):
   def __init__(self, json_dict):
     self.repo_id = _find_value(json_dict, 'repoId')  # this is the id within the repo file, not an Ambari artifact
     self.repo_name = _find_value(json_dict, 'repoName')
+    self.distribution = _find_value(json_dict, 'distribution')
+    self.components = _find_value(json_dict, 'components')
     self.base_url = _find_value(json_dict, 'baseUrl')
     self.mirrors_list = _find_value(json_dict, 'mirrorsList')
+    self.ambari_managed = _find_value(json_dict, 'ambariManaged')
 
-    # if repoName is changed on the java side, this will fail for ubuntu since we rely on the
-    # name being the same as how the repository was built
-    self.ubuntu_components = [self.repo_name] + UBUNTU_REPO_COMPONENTS_POSTFIX
+    if self.ambari_managed is None:
+      self.ambari_managed = True
+
+    self.ubuntu_components = [self.distribution if self.distribution else self.repo_name] + \
+                             [self.components.replace(",", " ") if self.components else UBUNTU_REPO_COMPONENTS_POSTFIX]
 
 
 

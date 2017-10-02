@@ -116,7 +116,7 @@ public class BootStrapImpl {
     if (info.getHosts() == null || info.getHosts().isEmpty()) {
       BootStrapStatus status = new BootStrapStatus();
       status.setLog("Host list is empty.");
-      status.setHostsStatus(new ArrayList<BSHostStatus>());
+      status.setHostsStatus(new ArrayList<>());
       status.setStatus(BootStrapStatus.BSStat.ERROR);
       updateStatus(requestId, status);
 

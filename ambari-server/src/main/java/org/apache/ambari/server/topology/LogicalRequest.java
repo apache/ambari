@@ -506,7 +506,7 @@ public class LogicalRequest extends Request {
       String hostGroupName = hostGroupEntity.getName();
 
       if ( !reservedHostNamesByHostGroups.containsKey(hostGroupName) )
-        reservedHostNamesByHostGroups.put(hostGroupName, new HashSet<String>());
+        reservedHostNamesByHostGroups.put(hostGroupName, new HashSet<>());
 
       for (TopologyHostInfoEntity hostInfoEntity: hostGroupEntity.getTopologyHostInfoEntities()) {
         if (StringUtils.isNotEmpty(hostInfoEntity.getFqdn())) {

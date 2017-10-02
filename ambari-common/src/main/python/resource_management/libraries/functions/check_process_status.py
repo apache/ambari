@@ -59,3 +59,23 @@ def check_process_status(pid_file):
     Logger.info("Process with pid {0} is not running. Stale pid file"
               " at {1}".format(pid, pid_file))
     raise ComponentIsNotRunning()
+
+
+def wait_process_stopped(pid_file):
+  """
+    Waits until component is actually stopped (check is performed using
+    check_process_status() method.
+    """
+  import time
+  component_is_stopped = False
+  counter = 0
+  while not component_is_stopped:
+    try:
+      if counter % 10 == 0:
+        Logger.logger.info("Waiting for actual component stop")
+      check_process_status(pid_file)
+      time.sleep(1)
+      counter += 1
+    except ComponentIsNotRunning, e:
+      Logger.logger.debug(" reports ComponentIsNotRunning")
+      component_is_stopped = True

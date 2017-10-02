@@ -21,27 +21,55 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.inject.Provider;
 
 /**
  * Tests {@link StormShutdownWarning}.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class StormShutdownWarningTest extends EasyMockSupport {
 
   private final String m_clusterName = "c1";
   private final Clusters m_clusters = niceMock(Clusters.class);
+
+  @Mock
+  private ClusterVersionSummary m_clusterVersionSummary;
+
+  @Mock
+  private VersionDefinitionXml m_vdfXml;
+
+  @Mock
+  private RepositoryVersionEntity m_repositoryVersion;
+
+  final Map<String, Service> m_services = new HashMap<>();
+
+  @Before
+  public void setup() throws Exception {
+    m_services.clear();
+    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
+    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
+    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
+  }
 
   /**
    * @throws Exception
@@ -60,18 +88,18 @@ public class StormShutdownWarningTest extends EasyMockSupport {
     final Cluster cluster = niceMock(Cluster.class);
     final Service hive = niceMock(Service.class);
 
-    final Map<String, Service> services = new HashMap<>();
-    services.put("STORM", hive);
+    m_services.put("STORM", hive);
 
     EasyMock.expect(cluster.getClusterId()).andReturn(1L).anyTimes();
 
     EasyMock.expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.3")).anyTimes();
-    EasyMock.expect(cluster.getServices()).andReturn(services).atLeastOnce();
+    EasyMock.expect(cluster.getServices()).andReturn(m_services).anyTimes();
     EasyMock.expect(m_clusters.getCluster(m_clusterName)).andReturn(cluster).atLeastOnce();
 
     PrereqCheckRequest request = niceMock(PrereqCheckRequest.class);
-    EasyMock.expect(request.getClusterName()).andReturn(m_clusterName);
-    EasyMock.expect(request.getUpgradeType()).andReturn(UpgradeType.ROLLING);
+    EasyMock.expect(request.getClusterName()).andReturn(m_clusterName).anyTimes();
+    EasyMock.expect(request.getUpgradeType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    EasyMock.expect(request.getTargetRepositoryVersion()).andReturn(m_repositoryVersion).anyTimes();
 
     replayAll();
 

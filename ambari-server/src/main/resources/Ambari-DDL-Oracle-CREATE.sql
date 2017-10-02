@@ -76,7 +76,7 @@ CREATE TABLE clusterconfig (
   config_data CLOB NOT NULL,
   config_attributes CLOB,
   create_timestamp NUMBER(19) NOT NULL,
-  service_deleted SMALLINT DEFAULT 0 NOT NULL,
+  unmapped SMALLINT DEFAULT 0 NOT NULL,
   selected_timestamp NUMBER(19) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
@@ -155,6 +155,8 @@ CREATE TABLE repo_version (
   display_name VARCHAR2(128) NOT NULL,
   repositories CLOB NOT NULL,
   repo_type VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
+  hidden NUMBER(1) DEFAULT 0 NOT NULL,
+  resolved NUMBER(1) DEFAULT 0 NOT NULL,
   version_url VARCHAR(1024),
   version_xml CLOB,
   version_xsd VARCHAR(512),
@@ -188,7 +190,6 @@ CREATE TABLE hostcomponentdesiredstate (
   service_name VARCHAR2(255) NOT NULL,
   admin_state VARCHAR2(32) NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
-  security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   restart_required NUMBER(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
@@ -204,7 +205,6 @@ CREATE TABLE hostcomponentstate (
   host_id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
-  security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
@@ -239,7 +239,6 @@ CREATE TABLE servicedesiredstate (
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
-  security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   credential_store_enabled SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
   CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
@@ -567,7 +566,7 @@ CREATE table viewurl(
   url_id NUMBER ,
   url_name VARCHAR(255) NOT NULL ,
   url_suffix VARCHAR(255) NOT NULL,
-  PRIMARY KEY(url_id)
+  CONSTRAINT PK_viewurl PRIMARY KEY(url_id)
 );
 
 
@@ -822,12 +821,14 @@ CREATE TABLE upgrade (
   cluster_id NUMBER(19) NOT NULL,
   request_id NUMBER(19) NOT NULL,
   direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
+  orchestration VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
   upgrade_package VARCHAR2(255) NOT NULL,
   upgrade_type VARCHAR2(32) NOT NULL,
   repo_version_id NUMBER(19) NOT NULL,
   skip_failures NUMBER(1) DEFAULT 0 NOT NULL,
   skip_sc_failures NUMBER(1) DEFAULT 0 NOT NULL,
   downgrade_allowed NUMBER(1) DEFAULT 1 NOT NULL,
+  revert_allowed NUMBER(1) DEFAULT 0 NOT NULL,
   suspended NUMBER(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
@@ -851,7 +852,7 @@ CREATE TABLE upgrade_item (
   state VARCHAR2(255) DEFAULT 'NONE' NOT NULL,
   hosts CLOB,
   tasks CLOB,
-  item_text VARCHAR2(1024),
+  item_text CLOB,
   CONSTRAINT PK_upgrade_item PRIMARY KEY (upgrade_item_id),
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );

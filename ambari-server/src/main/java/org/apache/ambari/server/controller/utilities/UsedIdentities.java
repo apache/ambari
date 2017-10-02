@@ -50,7 +50,7 @@ public class UsedIdentities {
    */
   public static UsedIdentities populate(Cluster cluster, ServiceExclude serviceExclude, ComponentExclude componentExclude, KerberosHelper kerberosHelper) throws AmbariException {
     List<KerberosIdentityDescriptor> result = new ArrayList<>();
-    KerberosDescriptor root = kerberosHelper.getKerberosDescriptor(cluster);
+    KerberosDescriptor root = kerberosHelper.getKerberosDescriptor(cluster, false);
     result.addAll(nullToEmpty(root.getIdentities()));
     for (Service service : cluster.getServices().values()) {
       if (serviceExclude.shouldExclude(service.getName())) {

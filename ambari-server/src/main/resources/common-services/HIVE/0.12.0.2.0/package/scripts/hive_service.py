@@ -64,7 +64,7 @@ def hive_service(name, action='start', upgrade_type=None):
     cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
 
-    if params.security_enabled and params.current_version and check_stack_feature(StackFeature.HIVE_SERVER2_KERBERIZED_ENV, params.current_version):
+    if params.security_enabled and check_stack_feature(StackFeature.HIVE_SERVER2_KERBERIZED_ENV, params.version_for_stack_feature_checks):
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user=params.hive_user)
 
@@ -167,6 +167,10 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
 
 def check_fs_root(conf_dir, execution_path):
   import params
+
+  if not params.manage_hive_fsroot:
+    Logger.info("Skipping fs root check as cluster-env/manage_hive_fsroot is disabled")
+    return
 
   if not params.fs_root.startswith("hdfs://"):
     Logger.info("Skipping fs root check as fs_root does not start with hdfs://")

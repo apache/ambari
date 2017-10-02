@@ -58,6 +58,17 @@ class BooleanArgument(ResourceArgument):
         "Expected a boolean for %s received %r" % (self.name, value))
     return value
 
+class IntegerArgument(ResourceArgument):
+  def validate(self, value):
+    if value is None:
+      return value
+
+    value = super(IntegerArgument, self).validate(value)
+    if not isinstance( value, int ):
+      raise InvalidArgument(
+        "Expected an integer for %s received %r" % (self.name, value))
+    return value
+
 
 class PasswordArgument(ResourceArgument):
   def log_str(self, key, value):

@@ -28,7 +28,6 @@ from ambari_commons.os_utils import copy_file, extract_path_component
 
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.core.source import InlineTemplate
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -58,9 +57,6 @@ class TezClient(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class TezClientLinux(TezClient):
 
-  def get_component_name(self):
-    return "hadoop-client"
-
   def stack_upgrade_save_new_config(self, env):
     """
     Because this gets called during a Rolling Upgrade, the new tez configs have already been saved, so we must be
@@ -80,7 +76,6 @@ class TezClientLinux(TezClient):
       # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
       # must change it now so this function can find the Jinja Templates for the service.
       env.config.basedir = base_dir
-      conf_select.select(params.stack_name, conf_select_name, params.version)
       self.configure(env, config_dir=config_dir)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
@@ -88,9 +83,7 @@ class TezClientLinux(TezClient):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "tez", params.version)
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-client", params.version)
+      stack_select.select_packages(params.version)
 
   def install(self, env):
     import params

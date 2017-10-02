@@ -31,7 +31,7 @@ App.ControlsView = Ember.View.extend({
 
 	showSwitchToGroup: Em.computed.and('!serviceConfigProperty.isEditable', 'serviceConfigProperty.group'),
 
-	showIsFinal: Em.computed.alias('serviceConfigProperty.supportsFinal'),
+	showIsFinal: Em.computed.and('serviceConfigProperty.supportsFinal', '!serviceConfigProperty.isUndefinedLabel'),
 
 	showRemove: Em.computed.and('showActions', 'serviceConfigProperty.isEditable', 'serviceConfigProperty.isRemovable'),
 

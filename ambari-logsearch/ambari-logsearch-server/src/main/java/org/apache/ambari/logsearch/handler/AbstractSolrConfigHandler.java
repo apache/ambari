@@ -88,10 +88,12 @@ public abstract class AbstractSolrConfigHandler implements SolrZkRequestHandler<
    */
   public abstract String getConfigFileName();
 
+  @SuppressWarnings("unused")
   public void doIfConfigNotExist(SolrPropsConfig solrPropsConfig, ZkConfigManager zkConfigManager) throws IOException {
     // Do nothing
   };
 
+  @SuppressWarnings("unused")
   public void uploadMissingConfigFiles(SolrZkClient zkClient, ZkConfigManager zkConfigManager, String configName) throws IOException {
     // do Nothing
   }

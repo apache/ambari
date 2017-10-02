@@ -44,4 +44,10 @@
     <description>Replication factor for the atlas solr collections.</description>
     <on-ambari-upgrade add="false" />
   </property>
+  <property>
+    <name>atlas.hbase.conf.dir</name>
+    <value>/etc/hbase/conf</value>
+    <description>Configurable HBase conf directory.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

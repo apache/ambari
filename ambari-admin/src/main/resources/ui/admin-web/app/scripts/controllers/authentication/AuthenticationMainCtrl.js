@@ -25,9 +25,9 @@ angular.module('ambariAdminConsole')
     $scope.isLDAPEnabled = false;
     $scope.connectivity = {
       trustStore: 'default',
-      trustStoreOptions: ['authentication.connectivity.trustStore.options.default', 'authentication.connectivity.trustStore.options.custom'],
+      trustStoreOptions: ['default', 'custom'],
       trustStoreType: 'jks',
-      trustStoreTypeOptions: ['authentication.connectivity.trustStoreType.options.jks', 'authentication.connectivity.trustStoreType.options.jceks', 'authentication.connectivity.trustStoreType.options.pkcs12']
+      trustStoreTypeOptions: ['jks', 'jceks', 'pkcs12']
     };
     $scope.attributes = {
       detection: 'auto'

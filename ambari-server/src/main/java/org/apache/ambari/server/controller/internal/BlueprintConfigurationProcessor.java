@@ -538,7 +538,7 @@ public class BlueprintConfigurationProcessor {
       String clusterName = clusterTopology.getAmbariContext().getClusterName(clusterTopology.getClusterId());
       Cluster cluster = clusterTopology.getAmbariContext().getController().getClusters().getCluster(clusterName);
       authToLocalPerClusterMap = new HashMap<>();
-      authToLocalPerClusterMap.put(Long.valueOf(clusterTopology.getClusterId()), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster).getAllAuthToLocalProperties());
+      authToLocalPerClusterMap.put(Long.valueOf(clusterTopology.getClusterId()), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster, false).getAllAuthToLocalProperties());
       } catch (AmbariException e) {
         LOG.error("Error while getting authToLocal properties. ", e);
     }
@@ -917,14 +917,14 @@ public class BlueprintConfigurationProcessor {
     Map<String, String> yarnSiteConfig = clusterTopology.getConfiguration().getFullProperties().get("yarn-site");
     // generate the property names based on the current HA config for the ResourceManager deployments
     for (String resourceManager : parseResourceManagers(yarnSiteConfig)) {
-      final String rmHostPropertyName = "yarn.resourcemanager.hostname." + resourceManager;
-      yarnSiteUpdatersForAvailability.put(rmHostPropertyName, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-
-      final String rmHTTPAddress = "yarn.resourcemanager.webapp.address." + resourceManager;
-      yarnSiteUpdatersForAvailability.put(rmHTTPAddress, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
-
-      final String rmHTTPSAddress = "yarn.resourcemanager.webapp.https.address." + resourceManager;
-      yarnSiteUpdatersForAvailability.put(rmHTTPSAddress, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
+      SingleHostTopologyUpdater updater = new SingleHostTopologyUpdater("RESOURCEMANAGER");
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.hostname." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.admin.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.resource-tracker.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.scheduler.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.webapp.address." + resourceManager, updater);
+      yarnSiteUpdatersForAvailability.put("yarn.resourcemanager.webapp.https.address." + resourceManager, updater);
     }
 
     return highAvailabilityUpdaters;
@@ -1298,12 +1298,16 @@ public class BlueprintConfigurationProcessor {
    *         elements in this property
    */
   private static String[] splitAndTrimStrings(String propertyName) {
-    List<String> namesWithoutWhitespace = new LinkedList<>();
-    for (String service : propertyName.split(",")) {
-      namesWithoutWhitespace.add(service.trim());
-    }
+    if(propertyName != null) {
+      List<String> namesWithoutWhitespace = new LinkedList<>();
+      for (String service : propertyName.split(",")) {
+        namesWithoutWhitespace.add(service.trim());
+      }
 
-    return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
+      return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
+    } else {
+      return new String[0];
+    }
   }
 
   /**
@@ -1371,7 +1375,7 @@ public class BlueprintConfigurationProcessor {
     /**
      * Component name
      */
-    private String component;
+    private final String component;
 
     /**
      * Constructor.
@@ -2726,7 +2730,7 @@ public class BlueprintConfigurationProcessor {
     atlasPropsMap.put("atlas.kafka.bootstrap.servers", new MultipleHostTopologyUpdater("KAFKA_BROKER"));
     atlasPropsMap.put("atlas.kafka.zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.graph.index.search.solr.zookeeper-url", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER", ',', false, true, true));
-    atlasPropsMap.put("atlas.graph.storage.hostname", new MultipleHostTopologyUpdater("HBASE_MASTER"));
+    atlasPropsMap.put("atlas.graph.storage.hostname", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.audit.hbase.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // RANGER_ADMIN
@@ -2947,14 +2951,15 @@ public class BlueprintConfigurationProcessor {
 
     Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
         ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY);
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
 
     try {
       Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
       Map<String,String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
 
       for( String property : properties ){
-        if (defaultStackProperties.containsKey(property)) {
+        if (clusterEnvDefaultProperties.containsKey(property)) {
           configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
               clusterEnvDefaultProperties.get(property));
 

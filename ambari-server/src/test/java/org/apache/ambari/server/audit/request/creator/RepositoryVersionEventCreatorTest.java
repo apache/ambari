@@ -135,6 +135,8 @@ public class RepositoryVersionEventCreatorTest extends AuditEventCreatorTestBase
     Map<String, String> repository = new HashMap<>();
     repository.put(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, "1");
     repository.put(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, "MyRepo");
+    repository.put(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID, "testDist");
+    repository.put(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, "testComponentName");
     repository.put(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, "http://example.com");
     repositories.add(repository);
 
@@ -148,6 +150,8 @@ public class RepositoryVersionEventCreatorTest extends AuditEventCreatorTestBase
     Map<String, String> repository2 = new HashMap<>();
     repository2.put(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, "2");
     repository2.put(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, "MyRepo6");
+    repository2.put(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID, "testDist6");
+    repository2.put(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, "testComponentName6");
     repository2.put(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, "http://example6.com");
     repositories2.add(repository2);
 

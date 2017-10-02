@@ -319,7 +319,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
 
     return {
       "type": 'POST',
-      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts",
+      "uri": "/clusters/" + App.get('clusterName') + "/hosts",
       "RequestBodyInfo": {
         "RequestInfo": {
           "query": query
@@ -372,7 +372,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
 
     return {
       "type": 'PUT',
-      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
+      "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
       "RequestBodyInfo": {
         "RequestInfo": {
           "context": context,
@@ -403,7 +403,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
   getDeleteHostComponentRequest: function (hostName, component) {
     return {
       "type": 'DELETE',
-      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + component
+      "uri": "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + component
     }
   },
 
@@ -424,7 +424,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       if (!serviceComponents.contains(_componentName)) {
         batches.push({
           "type": 'POST',
-          "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/services/" + serviceName + "/components/" + _componentName
+          "uri": "/clusters/" + App.get('clusterName') + "/services/" + serviceName + "/components/" + _componentName
         });
       }
     });
@@ -453,7 +453,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       this.isYarnQueueRefreshed = true;
       batches.push({
         "type": 'POST',
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+        "uri": "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),

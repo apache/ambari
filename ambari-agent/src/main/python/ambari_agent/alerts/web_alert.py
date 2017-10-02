@@ -107,6 +107,10 @@ class WebAlert(BaseAlert):
     if status_code == 0:
       return (self.RESULT_CRITICAL, [status_code, url, time_seconds, error_message])
 
+    # check explicit listed codes
+    if self.uri_property_keys.acceptable_codes and status_code in self.uri_property_keys.acceptable_codes:
+      return (self.RESULT_OK, [status_code, url, time_seconds])
+
     # anything that's less than 400 is OK
     if status_code < 400:
       return (self.RESULT_OK, [status_code, url, time_seconds])

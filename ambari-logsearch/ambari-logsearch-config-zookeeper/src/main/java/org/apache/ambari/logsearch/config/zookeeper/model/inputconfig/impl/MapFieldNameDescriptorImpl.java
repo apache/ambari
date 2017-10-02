@@ -43,7 +43,7 @@ public class MapFieldNameDescriptorImpl extends MapFieldDescriptorImpl implement
     examples = {"new_name"}
   )
   @Expose
-  @SerializedName("new_field_name")
+  @SerializedName("new_fieldname")
   private String newFieldName;
 
   @Override

@@ -179,7 +179,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
     }
 
     if (!missing.containsKey(hostGroup)) {
-      missing.put(hostGroup, new TreeSet<String>());
+      missing.put(hostGroup, new TreeSet<>());
     }
 
     missing.get(hostGroup).addAll(values);

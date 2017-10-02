@@ -115,12 +115,17 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
   }
 
   @Override
-  public SavedQuery update(SavedQuery newObject, String id) throws ItemNotFound {
-    SavedQuery savedQuery = super.update(newObject, id);
-    // Emptying short query so that in next read, this gets updated with proper value
-    // from the queryFile
-    emptyShortQueryField(savedQuery);
-    return savedQuery;
+  public SavedQuery update(SavedQuery object, String id) throws ItemNotFound {
+    String query = object.getShortQuery();
+    object.setShortQuery(makeShortQuery(query));
+    object = super.update(object, id);
+    try {
+      createDefaultQueryFile(object, query);
+
+    } catch (ServiceFormattedException e) {
+      cleanupAfterErrorAndThrowAgain(object, e);
+    }
+    return object;
   }
 
   @Override

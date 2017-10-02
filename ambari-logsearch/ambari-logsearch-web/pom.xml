@@ -6,18 +6,15 @@
    The ASF licenses this file to You under the Apache License, Version 2.0
    (the "License"); you may not use this file except in compliance with
    the License.  You may obtain a copy of the License at
-
        http://www.apache.org/licenses/LICENSE-2.0
-
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>ambari-logsearch</artifactId>
     <groupId>org.apache.ambari</groupId>
@@ -25,80 +22,79 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-logsearch-web</artifactId>
-  <url>http://maven.apache.org</url>
   <name>Ambari Logsearch Web</name>
+  <version>2.0.0.0-SNAPSHOT</version>
+  <groupId>org.apache.ambari</groupId>
+  <description>Ambari Logsearch Web</description>
+
   <properties>
-    <nodeVersion>v4.5.0</nodeVersion>
-    <npmVersion>2.15.0</npmVersion>
+    <logsearch.npm.config.tmp>/tmp/logsearch_npm_config_tmp</logsearch.npm.config.tmp>
+    <node.version>v8.6.0</node.version>
+    <yarn.version>v1.1.0</yarn.version>
   </properties>
+
   <build>
     <plugins>
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>0.0.22</version>
+        <version>1.6</version>
+        <configuration>
+          <nodeVersion>${node.version}</nodeVersion>
+          <yarnVersion>${yarn.version}</yarnVersion>
+          <workingDirectory>${project.build.directory}/webapp-build</workingDirectory>
+          <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
+          <!-- setting npm_config_tmp environment variable is a workaround for
+               https://github.com/Medium/phantomjs/issues/673 -->
+          <environmentVariables>
+            <npm_config_tmp>${logsearch.npm.config.tmp}</npm_config_tmp>
+          </environmentVariables>
+        </configuration>
         <executions>
           <execution>
-            <id>install node and npm</id>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <configuration>
-              <nodeVersion>${nodeVersion}</nodeVersion>
-              <npmVersion>${npmVersion}</npmVersion>
-            </configuration>
-          </execution>
-          <execution>
-            <id>npm install</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
+            <id>install node and yarn</id>
             <phase>generate-resources</phase>
+            <goals>
+              <goal>install-node-and-yarn</goal>
+            </goals>
           </execution>
           <execution>
-            <id>bower install</id>
-            <goals>
-              <goal>bower</goal>
-            </goals>
-            <configuration>
-              <arguments>install</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>grunt build</id>
-            <goals>
-              <goal>grunt</goal>
-            </goals>
+            <id>yarn install</id>
             <phase>generate-resources</phase>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
             <configuration>
-              <arguments>build</arguments>
+              <arguments>install --ignore-engines --pure-lockfile</arguments>
             </configuration>
+          </execution>
+          <execution>
+            <id>generate dist</id>
+            <phase>generate-resources</phase>
+            <goals>
+             <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <arguments>build-prod</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>run tests</id>
+            <phase>test</phase>
+            <goals>
+            <goal>yarn</goal>
+           </goals>
+           <configuration>
+            <arguments>test</arguments>
+            <skip>${skipTests}</skip>
+           </configuration>
           </execution>
         </executions>
-        <configuration>
-          <workingDirectory>target/webapp-build</workingDirectory>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.6</version>
         <executions>
-          <execution>
-            <id>copy-resources</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/target/classes/webapps/app</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>src/main/webapp</directory>
-                  <filtering>false</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
           <execution>
             <id>process-webapp-sources</id>
             <phase>process-sources</phase>
@@ -111,26 +107,32 @@
                 <resource>
                   <directory>${basedir}</directory>
                   <includes>
-                    <include>bower.json</include>
-                    <include>.bowerrc</include>
+                    <include>e2e/**</include>
+                    <include>src/**</include>
+                    <include>.*</include>
                     <include>package.json</include>
-                    <include>Gruntfile.js</include>
+                    <include>protactor.conf.js</include>
+                    <include>yarn.lock</include>
+                    <include>karma.conf.js</include>
+                    <include>tsconfig.json</include>
+                    <include>tslint.json</include>
+                    <include>webpack.config.js</include>
                   </includes>
                 </resource>
               </resources>
             </configuration>
           </execution>
           <execution>
-            <id>copy-webapp-libs</id>
-            <phase>prepare-package</phase>
+            <id>copy-resources</id>
+            <phase>process-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/classes/webapps/app/libs/bower</outputDirectory>
+              <outputDirectory>${basedir}/target/classes/dist</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${basedir}/target/libs</directory>
+                  <directory>${basedir}/target/webapp-build/dist</directory>
                   <filtering>false</filtering>
                 </resource>
               </resources>
@@ -139,37 +141,19 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <configuration>
-              <target>
-                <ant antfile="build.xml">
-                  <target name="package"/>
-                </ant>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>src/main/webapp/libs/**/*</exclude>
-            <exclude>src/main/webapp/robots.txt</exclude>
-            <exclude>src/main/webapp/styles/animate.css</exclude>
-            <exclude>src/main/webapp/styles/visualsearch.css</exclude>
+            <exclude>README.md</exclude>
+            <exclude>*.editorconfig</exclude>
+            <exclude>src/vendor/**</exclude>
+            <exclude>yarn.lock</exclude>
+            <exclude>node_modules/**</exclude>
+            <exclude>dist/**</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.log</exclude>
-            <exclude>.bowerrc</exclude>
+            <exclude>**/*.txt</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -183,4 +167,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>

@@ -17,10 +17,30 @@
 sdir="`dirname \"$0\"`"
 : ${1:?"argument is missing: (start|stop|build-and-run|build|build-docker-and-run|build-mvn-and-run|build-docker-only|build-mvn-only)"}
 command="$1"
+shift
+
+while getopts "bf" opt; do
+  case $opt in
+    b) # build backend only
+      maven_build_options="-pl !ambari-logsearch-web"
+      ;;
+    f) # build frontend only
+      maven_build_options="-pl ambari-logsearch-web"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
 
 function build_logsearch_project() {
   pushd $sdir/../
-  mvn clean package -DskipTests
+  mvn clean package -DskipTests $maven_build_options
   popd
 }
 
@@ -48,9 +68,7 @@ function start_logsearch_container() {
   docker run -d --name logsearch --hostname logsearch.apache.org -e DISPLAY=$docker_ip:0 \
     -v $AMBARI_LOCATION:/root/ambari -v $MAVEN_REPOSITORY_LOCATION:/root/.m2 $LOGSEARCH_EXPOSED_PORTS $LOGSEARCH_ENV_OPTS $LOGSEARCH_EXTRA_OPTS $LOGSEARCH_VOLUME_OPTS -p 9983:9983 -p 4444:4444 -p 5910:5910 \
     -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-logfeeder/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-web/src/main/webapp:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/webapps/app \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-web/target/libs:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/webapps/app/libs/bower \
+    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes/org:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/org \
     ambari-logsearch:v1.0
   ip_address=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' logsearch)
   echo "Log Search container started on $ip_address (for Mac OSX route to boot2docker/docker-machine VM address, e.g.: 'sudo route add -net 172.17.0.0/16 192.168.59.103')"

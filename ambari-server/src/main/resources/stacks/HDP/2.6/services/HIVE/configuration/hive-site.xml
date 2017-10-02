@@ -32,4 +32,5 @@ limitations under the License.
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+
 </configuration>

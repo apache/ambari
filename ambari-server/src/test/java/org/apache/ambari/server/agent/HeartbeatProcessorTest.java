@@ -73,7 +73,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -469,9 +468,7 @@ public class HeartbeatProcessorTest {
     ServiceComponentHost serviceComponentHost3 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(SECONDARY_NAMENODE).getServiceComponentHost(DummyHostname1);
     serviceComponentHost1.setState(State.INSTALLED);
-    serviceComponentHost1.setSecurityState(SecurityState.UNSECURED);
     serviceComponentHost2.setState(State.INSTALLED);
-    serviceComponentHost2.setSecurityState(SecurityState.SECURING);
     serviceComponentHost3.setState(State.STARTING);
 
     HeartBeat hb = new HeartBeat();
@@ -479,7 +476,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
@@ -516,10 +513,8 @@ public class HeartbeatProcessorTest {
     State componentState3 = serviceComponentHost3.getState();
     assertEquals(State.STARTED, componentState1);
     assertEquals(State.INSTALLED, componentState2);
-    assertEquals(SecurityState.SECURING, serviceComponentHost2.getSecurityState());
     //starting state will not be overridden by status command
     assertEquals(State.STARTING, componentState3);
-    assertEquals(SecurityState.UNSECURED, serviceComponentHost3.getSecurityState());
   }
 
 
@@ -607,7 +602,7 @@ public class HeartbeatProcessorTest {
     cr.setRoleCommand("START");
     reports.add(cr);
     hb.setReports(reports);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
@@ -725,7 +720,7 @@ public class HeartbeatProcessorTest {
     cr.setExitCode(777);
     reports.add(cr);
     hb.setReports(reports);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
@@ -800,7 +795,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
 
     List<Map<String, String>> procs = new ArrayList<>();
     Map<String, String> proc1info = new HashMap<>();
@@ -850,7 +845,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(1);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
 
     componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
@@ -1060,8 +1055,7 @@ public class HeartbeatProcessorTest {
   public void testHeartBeatWithAlertAndInvalidCluster() throws Exception {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
 
-    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
-        new ArrayList<HostRoleCommand>());
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<>());
 
     replay(am);
 
@@ -1138,6 +1132,68 @@ public class HeartbeatProcessorTest {
     json.addProperty("installed_repository_version", "0.1-1234");
     json.addProperty("stack_id", cluster.getDesiredStackVersion().getStackId());
 
+    CommandReport cmdReport = new CommandReport();
+    cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
+    cmdReport.setTaskId(1);
+    cmdReport.setCustomCommand("install_packages");
+    cmdReport.setStructuredOut(json.toString());
+    cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
+    cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
+    cmdReport.setRole("install_packages");
+    cmdReport.setClusterName(DummyCluster);
+
+    List<CommandReport> reports = new ArrayList<>();
+    reports.add(cmdReport);
+    hb.setReports(reports);
+    hb.setTimestamp(0L);
+    hb.setResponseId(0);
+    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
+    hb.setHostname(DummyHostname1);
+    hb.setComponentStatus(new ArrayList<>());
+
+    StackId stackId = new StackId("HDP", "0.1");
+
+    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
+    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
+    Assert.assertNotNull(entity);
+
+    heartbeatProcessor.processHeartbeat(hb);
+
+    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
+    Assert.assertNull(entity);
+
+    entity = dao.findByStackAndVersion(stackId, "0.1.1");
+    Assert.assertNotNull(entity);
+  }
+
+  @Test
+  public void testInstallPackagesWithId() throws Exception {
+    // required since this test method checks the DAO result of handling a
+    // heartbeat which performs some async tasks
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
+    final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
+        Role.DATANODE, null, null);
+
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
+        Collections.singletonList(command)).anyTimes();
+    replay(am);
+
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+
+    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
+    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
+    Assert.assertNotNull(entity);
+
+    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, new ActionQueue());
+    HeartbeatProcessor heartbeatProcessor = handler.getHeartbeatProcessor();
+    HeartBeat hb = new HeartBeat();
+
+    JsonObject json = new JsonObject();
+    json.addProperty("actual_version", "2.2.1.0-2222");
+    json.addProperty("package_installation_result", "SUCCESS");
+    json.addProperty("repository_version_id", entity.getId());
 
     CommandReport cmdReport = new CommandReport();
     cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
@@ -1156,17 +1212,16 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
-    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    hb.setComponentStatus(new ArrayList<>());
 
     StackId stackId = new StackId("HDP", "0.1");
 
-    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
-    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
-    Assert.assertNotNull(entity);
-
     heartbeatProcessor.processHeartbeat(hb);
 
-    entity = dao.findByStackAndVersion(stackId, "0.1-1234");
+    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
+    Assert.assertNotNull(entity);
+
+    entity = dao.findByStackAndVersion(stackId, "0.1.1");
     Assert.assertNull(entity);
   }
 
@@ -1199,7 +1254,7 @@ public class HeartbeatProcessorTest {
     hb.setResponseId(0);
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
-    hb.setReports(new ArrayList<CommandReport>());
+    hb.setReports(new ArrayList<>());
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();

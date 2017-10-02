@@ -134,8 +134,8 @@
             <type>atlas-log4j</type>
             <set key="atlas_log_max_backup_size" value="256"/>
             <set key="atlas_log_number_of_backup_files" value="20"/>
-            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;\n&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_max_backup_size}}MB&quot; /&gt;"/>
-            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;\n&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_number_of_backup_files}}&quot; /&gt;"/>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_max_backup_size}}MB&quot; /&gt;"/>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;param name=&quot;MaxBackupIndex&quot; value=&quot;{{atlas_log_number_of_backup_files}}&quot; /&gt;"/>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol" summary="Excluding TLS v1.2 Protocol">
@@ -156,6 +156,12 @@
           <definition xsi:type="configure" id="hdp_2_6_atlas_kafka_auto_commit_enable_property_delete" summary="Updating Atlas Kafka configurations.">
             <type>application-properties</type>
             <transfer operation="delete" delete-key="atlas.kafka.auto.commit.enable"/>
+          </definition>
+
+          <definition xsi:type="configure" id="atlas_log4j_update_logger_settings" summary="Updating logger configurations for Atlas.">
+            <type>atlas-log4j</type>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.RollingFileAppender&quot;&gt;"/>
+            <replace key="content" find="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;info&quot;/&gt;" replace-with="&lt;logger name=&quot;com.thinkaurelius.titan&quot; additivity=&quot;false&quot;&gt;&#xA;&#x20;&#x20;&#x20;&#x20;&lt;level value=&quot;warn&quot;/&gt;"/>
           </definition>
         </changes>
       </component>
@@ -303,7 +309,6 @@
             <set key="ranger_xa_log_maxfilesize" value="256"/>
             <set key="ranger_xa_log_maxbackupindex" value="20"/>
             <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxFileSize={{ranger_xa_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxBackupIndex={{ranger_xa_log_maxbackupindex}}"/>
           </definition>
         </changes>
       </component>
@@ -313,8 +318,7 @@
             <type>usersync-log4j</type>
             <set key="ranger_usersync_log_maxfilesize" value="256"/>
             <set key="ranger_usersync_log_maxbackupindex" value="20"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_usersync_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_usersync_log_maxbackupindex}}"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize={{ranger_usersync_log_maxfilesize}}MB"/>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade">
@@ -330,8 +334,7 @@
             <type>tagsync-log4j</type>
             <set key="ranger_tagsync_log_maxfilesize" value="256"/>
             <set key="ranger_tagsync_log_number_of_backup_files" value="20"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_tagsync_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_tagsync_log_number_of_backup_files}}"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize={{ranger_tagsync_log_maxfilesize}}MB"/>
           </definition>
         </changes>
       </component>
@@ -345,10 +348,8 @@
         <set key="ranger_kms_log_maxbackupindex" value="20"/>
         <set key="ranger_kms_audit_log_maxfilesize" value="256"/>
         <set key="ranger_kms_audit_log_maxbackupindex" value="20"/>
-        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize = {{ranger_kms_log_maxfilesize}}MB"/>
-        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxBackupIndex = {{ranger_kms_log_maxbackupindex}}"/>
-        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize = {{ranger_kms_audit_log_maxfilesize}}MB"/>
-        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxBackupIndex = {{ranger_kms_audit_log_maxbackupindex}}"/>
+        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize={{ranger_kms_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize={{ranger_kms_audit_log_maxfilesize}}MB"/>
       </definition>
       <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl">
         <type>ranger-kms-site</type>
@@ -511,6 +512,11 @@
             <set key="tez.runtime.shuffle.read.timeout" value="30000"/>
           </definition>
 
+          <definition xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable" summary="Update additional LLAP-Tez settings">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.ssl.enable" value="false"/>
+          </definition>
+
           <definition xsi:type="configure" id="hdp_2_6_0_0_copy_hive_tez_container_size_to_hiveInteractive">
             <type>hive-interactive-site</type>
             <transfer operation="copy" from-type="hive-site" from-key="hive.tez.container.size" to-key="hive.tez.container.size" default-value="682"  if-type="hive-interactive-site" if-key="hive.tez.container.size" if-key-state="absent"/>
@@ -523,12 +529,18 @@
 
           <definition xsi:type="configure" id="llap_append_stack_size_java_opts" summary="Update JVM stack size for LLAP">
             <type>hive-interactive-env</type>
-            <insert key="llap_java_opts" value="-Xss512k" insert-type="append" newline-before="false" newline-after="false" />
+            <insert key="llap_java_opts" value=" -Xss512k " insert-type="append" newline-before="false" newline-after="false" />
           </definition>
 
           <definition xsi:type="configure" id="llap_update_shuffle_parallel_copies" summary="Update tez shuffle parallel copies for LLAP">
             <type>hive-interactive-site</type>
             <set key="tez.runtime.shuffle.parallel.copies" value="8"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_maint_llap_config" summary="Updating LLAP configuration">
+            <type>hive-interactive-site</type>
+            <set key="dfs.short.circuit.shared.memory.watcher.interrupt.check.ms" value="0" />
+            <set key="dfs.client.mmap.enabled" value="false" />
           </definition>
 
         </changes>
@@ -546,6 +558,19 @@
           <definition xsi:type="configure" id="hdp_2_6_0_0_templeton_hadoop_queue_name">
             <type>webhcat-site</type>
             <set key="templeton.hadoop.queue.name" value="default" if-type="webhcat-site" if-key="templeton.hadoop.queue.name" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="ZEPPELIN">
+      <component name="ZEPPELIN_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs" summary="Apply external depedency config 1">
+            <type>zeppelin-env</type>
+            <insert key="zeppelin_env_content"
+              value='export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"'
+              insert-type="append" newline-before="true" newline-after="true"/>
           </definition>
         </changes>
       </component>

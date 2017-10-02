@@ -37,6 +37,8 @@ class TestResourceManager(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
+  CONFIG_OVERRIDES = {"serviceName":"YARN", "role":"RESOURCEMANAGER"}
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
@@ -46,6 +48,28 @@ class TestResourceManager(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
+    self.assertNoMoreResources()
+
+  def test_configure_default_with_include_file_dont_manage(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname="Resourcemanager",
+                       command="configure",
+                       config_file="default_yarn_include_file_dont_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assert_configure_default(is_include_file_configured=True, manage_include_files=False)
+    self.assertNoMoreResources()
+
+  def test_configure_default_with_include_file_manage(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname="Resourcemanager",
+                       command="configure",
+                       config_file="default_yarn_include_file_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assert_configure_default(is_include_file_configured=True, manage_include_files=True)
     self.assertNoMoreResources()
 
   def test_start_default(self):
@@ -97,6 +121,28 @@ class TestResourceManager(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
+
+  def test_configure_secured_with_include_file_dont_manage(self):
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname="Resourcemanager",
+                       command="configure",
+                       config_file="secured_yarn_include_file_dont_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assert_configure_secured(is_include_file_configured=True, manage_include_files=False)
+
+  def test_configure_secured_with_include_file_manage(self):
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname="Resourcemanager",
+                       command="configure",
+                       config_file="secured_yarn_include_file_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assert_configure_secured(is_include_file_configured=True, manage_include_files=True)
 
   def test_start_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
@@ -177,7 +223,95 @@ class TestResourceManager(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def assert_configure_default(self):
+  def test_decommission_default_with_include_file_dont_manage(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname = "Resourcemanager",
+                       command = "decommission",
+                       config_file="default_yarn_include_file_dont_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', ' yarn --config /etc/hadoop/conf rmadmin -refreshNodes',
+        environment = {'PATH': "/bin:/usr/bin:/usr/lib/hadoop-yarn/bin"},
+        user = 'yarn',
+    )
+    self.assertNoMoreResources()
+
+  def test_decommission_default_with_include_file_manage(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname = "Resourcemanager",
+                       command = "decommission",
+                       config_file="default_yarn_include_file_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+                              owner = 'yarn',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf_for_include/yarn.include',
+                              owner = 'yarn',
+                              content = Template('include_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('Execute', ' yarn --config /etc/hadoop/conf rmadmin -refreshNodes',
+                              environment = {'PATH': "/bin:/usr/bin:/usr/lib/hadoop-yarn/bin"},
+                              user = 'yarn',
+                              )
+    self.assertNoMoreResources()
+
+  def test_decommission_secured_with_include_file_dont_manage(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname = "Resourcemanager",
+                       command = "decommission",
+                       config_file="secured_yarn_include_file_dont_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/rm.service.keytab rm/c6401.ambari.apache.org@EXAMPLE.COM; yarn --config /etc/hadoop/conf rmadmin -refreshNodes',
+        environment = {'PATH': "/bin:/usr/bin:/usr/lib/hadoop-yarn/bin"},
+        user = 'yarn',
+    )
+
+    self.assertNoMoreResources()
+
+  def test_decommission_secured_with_include_file_manage(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname = "Resourcemanager",
+                       command = "decommission",
+                       config_file="secured_yarn_include_file_manage.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf_for_include/yarn.include',
+        owner = 'yarn',
+        content = Template('include_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/rm.service.keytab rm/c6401.ambari.apache.org@EXAMPLE.COM; yarn --config /etc/hadoop/conf rmadmin -refreshNodes',
+        environment = {'PATH': "/bin:/usr/bin:/usr/lib/hadoop-yarn/bin"},
+        user = 'yarn',
+    )
+
+    self.assertNoMoreResources()
+
+  def assert_configure_default(self, is_include_file_configured = False, manage_include_files=False):
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -233,9 +367,21 @@ class TestResourceManager(RMFTestCase):
         cd_access = 'a',
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        content = Template('exclude_hosts_list.j2'),
         owner = 'yarn',
         group = 'hadoop',
     )
+    if is_include_file_configured and manage_include_files:
+      self.assertResourceCalled('Directory', '/etc/hadoop/conf_for_include',
+        mode = 0755,
+        create_parents = True,
+        cd_access = 'a',
+      )
+      self.assertResourceCalled('File', '/etc/hadoop/conf_for_include/yarn.include',
+        content = Template('include_hosts_list.j2'),
+        owner = 'yarn',
+        group = 'hadoop',
+      )
     self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
       owner = 'yarn',
       group = 'hadoop',
@@ -345,7 +491,7 @@ class TestResourceManager(RMFTestCase):
                               group = 'hadoop',
                               )
 
-  def assert_configure_secured(self):
+  def assert_configure_secured(self, is_include_file_configured = False, manage_include_files=False):
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -401,9 +547,21 @@ class TestResourceManager(RMFTestCase):
         cd_access = 'a',
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        content = Template('exclude_hosts_list.j2'),
         owner = 'yarn',
         group = 'hadoop',
     )
+    if is_include_file_configured and manage_include_files:
+      self.assertResourceCalled('Directory', '/etc/hadoop/conf_for_include',
+        mode = 0755,
+        create_parents = True,
+        cd_access = 'a',
+      )
+      self.assertResourceCalled('File', '/etc/hadoop/conf_for_include/yarn.include',
+        content = Template('include_hosts_list.j2'),
+        owner = 'yarn',
+        group = 'hadoop',
+      )
     self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
       owner = 'yarn',
       group = 'hadoop',
@@ -547,19 +705,10 @@ class TestResourceManager(RMFTestCase):
                        classname = "Resourcemanager",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
+                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-yarn-resourcemanager', version), sudo=True)
     self.assertNoMoreResources()
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[0][0][0])
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['call'].call_args_list[0][0][0])

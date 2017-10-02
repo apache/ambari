@@ -1,0 +1,31 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<ng-template [ngTemplateOutlet]="template"></ng-template>
+<div *ngIf="isInitialLoading" class="text-center">
+  <span class="fa fa-spinner fa-spin"></span>
+</div>
+<login-form *ngIf="!isInitialLoading && !isAuthorized"></login-form>
+
+<!-- TODO implement tabs: Service Logs/Audit Logs/active file -->
+<div *ngIf="isServiceLogsFileView" class="col-md-12 logs-header">
+  {{activeLogHostName}} &gt;&gt; {{activeLogComponentName}}
+  <span class="fa fa-times close-icon" (click)="closeLog()"></span>
+</div>
+
+<filters-panel *ngIf="isAuthorized" class="row"></filters-panel>
+<logs-container *ngIf="isAuthorized" logsType="serviceLogs"></logs-container>

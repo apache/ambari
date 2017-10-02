@@ -27,16 +27,15 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.ConfigHandler;
 import org.apache.ambari.logfeeder.common.LogEntryParseTester;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
-import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
-import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZK;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
+import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigLogFeederZK;
 import org.apache.commons.io.FileUtils;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.metrics.MetricsManager;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.SSLUtil;
 import com.google.common.collect.Maps;
 import com.google.gson.GsonBuilder;
@@ -53,8 +52,8 @@ public class LogFeeder {
 
   private final LogFeederCommandLine cli;
   
-  private ConfigHandler configHandler = new ConfigHandler();
-  private LogSearchConfig config;
+  private ConfigHandler configHandler;
+  private LogSearchConfigLogFeeder config;
   
   private MetricsManager metricsManager = new MetricsManager();
 
@@ -78,14 +77,15 @@ public class LogFeeder {
   private void init() throws Throwable {
     long startTime = System.currentTimeMillis();
 
-    configHandler.init();
     SSLUtil.ensureStorePasswords();
     
-    config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER, Maps.fromProperties(LogFeederUtil.getProperties()),
-        LogFeederUtil.getClusterName(), LogSearchConfigZK.class);
+    config = LogSearchConfigFactory.createLogSearchConfigLogFeeder(Maps.fromProperties(LogFeederPropertiesUtil.getProperties()),
+        LogFeederPropertiesUtil.getClusterName(), LogSearchConfigLogFeederZK.class);
+    configHandler = new ConfigHandler(config);
+    configHandler.init();
     LogLevelFilterHandler.init(config);
     InputConfigUploader.load(config);
-    config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler(), LogFeederUtil.getClusterName());
+    config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler(), LogFeederPropertiesUtil.getClusterName());
     
     metricsManager.init();
     
@@ -181,7 +181,7 @@ public class LogFeeder {
     
     if (cli.isMonitor()) {
       try {
-        LogFeederUtil.loadProperties();
+        LogFeederPropertiesUtil.loadProperties();
       } catch (Throwable t) {
         LOG.warn("Could not load logfeeder properites");
         System.exit(1);

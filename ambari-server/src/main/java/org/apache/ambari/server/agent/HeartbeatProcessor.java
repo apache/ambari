@@ -18,6 +18,10 @@
 package org.apache.ambari.server.agent;
 
 
+import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -420,8 +424,8 @@ public class HeartbeatProcessor extends AbstractService{
 
         String customCommand = report.getCustomCommand();
 
-        boolean adding = "SET_KEYTAB".equalsIgnoreCase(customCommand);
-        if (adding || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
+        boolean adding = SET_KEYTAB.equalsIgnoreCase(customCommand);
+        if (adding || REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
           WriteKeytabsStructuredOut writeKeytabsStructuredOut;
           try {
             writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
@@ -444,6 +448,12 @@ public class HeartbeatProcessor extends AbstractService{
                 }
               }
             }
+          }
+        } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
+          ListKeytabsStructuredOut structuredOut = gson.fromJson(report.getStructuredOut(), ListKeytabsStructuredOut.class);
+          for (MissingKeytab each : structuredOut.missingKeytabs){
+            LOG.info("Missing keytab: {} on host: {} principal: {}", each.keytabFilePath, hostname, each.principal);
+            kerberosPrincipalHostDAO.remove(each.principal, host.getHostId());
           }
         }
       }
@@ -702,6 +712,26 @@ public class HeartbeatProcessor extends AbstractService{
     }
   }
 
+  private static class ListKeytabsStructuredOut {
+    @SerializedName("missing_keytabs")
+    private final List<MissingKeytab> missingKeytabs;
+
+    public ListKeytabsStructuredOut(List<MissingKeytab> missingKeytabs) {
+      this.missingKeytabs = missingKeytabs;
+    }
+  }
+
+  private static class MissingKeytab {
+    @SerializedName("principal")
+    private final String principal;
+    @SerializedName("keytab_file_path")
+    private final String keytabFilePath;
+
+    public MissingKeytab(String principal, String keytabFilePath) {
+      this.principal = principal;
+      this.keytabFilePath = keytabFilePath;
+    }
+  }
 
   /**
    * This class is used for mapping json of structured output for component START action.

@@ -84,6 +84,7 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -92,6 +93,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -226,6 +228,7 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  @Ignore
   public void testGetRepositoryDefault() throws Exception {
     // Scenario: user has internet and does nothing to repos via api
     // use the latest
@@ -1517,6 +1520,35 @@ public class AmbariMetaInfoTest {
     }
   }
 
+
+  @Test
+  public void testLatestVdf() throws Exception {
+    // ensure that all of the latest repo retrieval tasks have completed
+    StackManager sm = metaInfo.getStackManager();
+    int maxWait = 45000;
+    int waitTime = 0;
+    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
+      Thread.sleep(5);
+      waitTime += 5;
+    }
+
+    if (waitTime >= maxWait) {
+      fail("Latest Repo tasks did not complete");
+    }
+
+    // !!! default stack version is from latest-vdf.  2.2.0 only has one entry
+    VersionDefinitionXml vdf = metaInfo.getVersionDefinition("HDP-2.2.0");
+    assertNotNull(vdf);
+    assertEquals(1, vdf.repositoryInfo.getOses().size());
+
+    // !!! this stack has no "manifests" and no "latest-vdf".  So the default VDF should contain
+    // information from repoinfo.xml and the "latest" structure
+    vdf = metaInfo.getVersionDefinition("HDP-2.2.1");
+    assertNotNull(vdf);
+
+    assertEquals(2, vdf.repositoryInfo.getOses().size());
+  }
+
   @Test
   public void testGetComponentDependency() throws AmbariException {
     DependencyInfo dependency = metaInfo.getComponentDependency("HDP", "1.3.4", "HIVE", "HIVE_SERVER", "ZOOKEEPER_SERVER");
@@ -1806,8 +1838,30 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void testReadKerberosDescriptorFromFile() throws AmbariException {
+    StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.8");
+    String path = stackInfo.getKerberosDescriptorFileLocation();
+    KerberosDescriptor descriptor = metaInfo.readKerberosDescriptorFromFile(path);
+
+    Assert.assertNotNull(descriptor);
+    Assert.assertNotNull(descriptor.getProperties());
+    Assert.assertEquals(3, descriptor.getProperties().size());
+
+    Assert.assertNotNull(descriptor.getIdentities());
+    Assert.assertEquals(1, descriptor.getIdentities().size());
+    Assert.assertEquals("spnego", descriptor.getIdentities().get(0).getName());
+
+    Assert.assertNotNull(descriptor.getConfigurations());
+    Assert.assertEquals(1, descriptor.getConfigurations().size());
+    Assert.assertNotNull(descriptor.getConfigurations().get("core-site"));
+    Assert.assertNotNull(descriptor.getConfiguration("core-site"));
+
+    Assert.assertNull(descriptor.getServices());
+  }
+
+  @Test
   public void testGetKerberosDescriptor() throws AmbariException {
-    KerberosDescriptor descriptor = metaInfo.getKerberosDescriptor(STACK_NAME_HDP, "2.0.8");
+    KerberosDescriptor descriptor = metaInfo.getKerberosDescriptor(STACK_NAME_HDP, "2.0.8", false);
 
     Assert.assertNotNull(descriptor);
     Assert.assertNotNull(descriptor.getProperties());
@@ -1826,6 +1880,37 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals(1, descriptor.getServices().size());
     Assert.assertNotNull(descriptor.getServices().get("HDFS"));
     Assert.assertNotNull(descriptor.getService("HDFS"));
+    Assert.assertFalse(descriptor.getService("HDFS").shouldPreconfigure());
+  }
+
+  @Test
+  public void testGetKerberosDescriptorWithPreconfigure() throws AmbariException {
+    KerberosDescriptor descriptor = metaInfo.getKerberosDescriptor(STACK_NAME_HDP, "2.0.8", true);
+
+    Assert.assertNotNull(descriptor);
+    Assert.assertNotNull(descriptor.getProperties());
+    Assert.assertEquals(3, descriptor.getProperties().size());
+
+    Assert.assertNotNull(descriptor.getIdentities());
+    Assert.assertEquals(1, descriptor.getIdentities().size());
+    Assert.assertEquals("spnego", descriptor.getIdentities().get(0).getName());
+
+    Assert.assertNotNull(descriptor.getConfigurations());
+    Assert.assertEquals(1, descriptor.getConfigurations().size());
+    Assert.assertNotNull(descriptor.getConfigurations().get("core-site"));
+    Assert.assertNotNull(descriptor.getConfiguration("core-site"));
+
+    Assert.assertNotNull(descriptor.getServices());
+    Assert.assertEquals(2, descriptor.getServices().size());
+    Assert.assertNotNull(descriptor.getServices().get("HDFS"));
+    Assert.assertNotNull(descriptor.getService("HDFS"));
+    Assert.assertTrue(descriptor.getService("HDFS").shouldPreconfigure());
+    Assert.assertNotNull(descriptor.getServices().get("HDFS"));
+    Assert.assertNotNull(descriptor.getService("HDFS"));
+    Assert.assertTrue(descriptor.getService("HDFS").shouldPreconfigure());
+    Assert.assertNotNull(descriptor.getServices().get("NEW_SERVICE"));
+    Assert.assertNotNull(descriptor.getService("NEW_SERVICE"));
+    Assert.assertTrue(descriptor.getService("NEW_SERVICE").shouldPreconfigure());
   }
 
   private File getStackRootTmp(String buildDir) {

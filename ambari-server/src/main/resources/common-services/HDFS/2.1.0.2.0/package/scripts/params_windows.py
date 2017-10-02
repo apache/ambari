@@ -48,7 +48,7 @@ hdfs_include_file = None
 manage_include_files = default("/configurations/hdfs-site/manage.include.files", False)
 if include_file_path and manage_include_files:
   slave_hosts = default("/clusterHostInfo/slave_hosts", [])
-  hdfs_include_file = list(set(slave_hosts) - set(hdfs_exclude_file))
+  hdfs_include_file = slave_hosts
 update_files_only = default("/commandParams/update_files_only",False)
 # HDFS High Availability properties
 dfs_ha_enabled = False

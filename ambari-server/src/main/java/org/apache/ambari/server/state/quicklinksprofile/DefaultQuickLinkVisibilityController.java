@@ -91,17 +91,17 @@ public class DefaultQuickLinkVisibilityController implements QuickLinkVisibility
     }
     else {
       FilterEvaluator componentEvaluator = componentRules.get(ServiceComponent.of(service, quickLink.getComponentName()));
-      return componentEvaluator != null ? componentEvaluator.isVisible(quickLink) : Optional.<Boolean>absent();
+      return componentEvaluator != null ? componentEvaluator.isVisible(quickLink) : Optional.absent();
     }
   }
 
   private Optional<Boolean> evaluateServiceRules(@Nonnull String service, @Nonnull Link quickLink) {
     return serviceRules.containsKey(service) ?
-        serviceRules.get(service).isVisible(quickLink) : Optional.<Boolean>absent();
+        serviceRules.get(service).isVisible(quickLink) : Optional.absent();
   }
 
   static <T> List<T> nullToEmptyList(@Nullable List<T> items) {
-    return items != null ? items : Collections.<T>emptyList();
+    return items != null ? items : Collections.emptyList();
   }
 }
 

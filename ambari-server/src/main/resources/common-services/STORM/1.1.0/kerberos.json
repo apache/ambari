@@ -4,10 +4,12 @@
       "name": "STORM",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "storm_spnego",
+          "reference": "/spnego"
         },
         {
-          "name": "/smokeuser"
+          "name": "storm_smokeuser",
+          "reference": "/smokeuser"
         },
         {
           "name": "storm_components",
@@ -30,7 +32,8 @@
           }
         },
         {
-          "name": "/STORM/storm_components",
+          "name": "storm_storm_components",
+          "reference": "/STORM/storm_components",
           "principal": {
             "configuration": "storm-atlas-application.properties/atlas.jaas.KafkaClient.option.principal"
           },
@@ -72,7 +75,8 @@
           "name": "STORM_UI_SERVER",
           "identities": [
             {
-              "name": "/spnego",
+              "name": "storm_storm_ui_server_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "storm-env/storm_ui_principal_name"
               },
@@ -106,7 +110,8 @@
               }
             },
             {
-              "name": "/STORM/storm_components",
+              "name": "storm_numbus_storm_components",
+              "reference": "/STORM/storm_components",
               "principal": {
                 "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal"
               },

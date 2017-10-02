@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -125,6 +124,12 @@ public class RepositoryVersionHelper {
         repositoryEntity.setBaseUrl(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
         repositoryEntity.setName(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
         repositoryEntity.setRepositoryId(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
+        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID) != null) {
+          repositoryEntity.setDistribution(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID).getAsString());
+        }
+        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID) != null) {
+          repositoryEntity.setComponents(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID).getAsString());
+        }
         if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID) != null) {
           repositoryEntity.setMirrorsList(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID).getAsString());
         }
@@ -178,6 +183,8 @@ public class RepositoryVersionHelper {
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, repository.getBaseUrl());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, repository.getRepoName());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, repository.getRepoId());
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID, repository.getDistribution());
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, repository.getComponents());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
         repositoriesJson.add(repositoryJson);
@@ -197,6 +204,8 @@ public class RepositoryVersionHelper {
         RepositoryInfo repositoryInfo = new RepositoryInfo();
         repositoryInfo.setRepoId(repositoryEntity.getRepositoryId());
         repositoryInfo.setRepoName(repositoryEntity.getName());
+        repositoryInfo.setDistribution(repositoryEntity.getDistribution());
+        repositoryInfo.setComponents(repositoryEntity.getComponents());
         repositoryInfo.setBaseUrl(repositoryEntity.getBaseUrl());
         repositoryInfo.setOsType(os.getOsType());
         repositoryInfo.setAmbariManagedRepositories(os.isAmbariManagedRepos());
@@ -269,7 +278,7 @@ public class RepositoryVersionHelper {
       }
 
       List<ServiceOsSpecific.Package> packagesForService = amc.getPackagesForServiceHost(info,
-        new HashMap<String, String>(), osFamily);
+        new HashMap<>(), osFamily);
 
       List<String> blacklistedPackagePrefixes = configuration.get().getRollingUpgradeSkipPackagesPrefixes();
 
@@ -291,22 +300,8 @@ public class RepositoryVersionHelper {
 
     Map<String, String> roleParams = new HashMap<>();
     roleParams.put("stack_id", stackId.getStackId());
-    roleParams.put("repository_version", repoVersion.getVersion());
     // !!! TODO make roleParams <String, Object> so we don't have to do this awfulness.
     roleParams.put(KeyNames.PACKAGE_LIST, gson.toJson(packages));
-    roleParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
-
-    VersionDefinitionXml xml = null;
-    try {
-      xml = repoVersion.getRepositoryXml();
-    } catch (Exception e) {
-      throw new SystemException(String.format("Could not load xml from repo version %s",
-          repoVersion.getVersion()));
-    }
-
-    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
-      roleParams.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
-    }
 
     return roleParams;
   }
@@ -318,16 +313,21 @@ public class RepositoryVersionHelper {
    * @param repoVersion   the repository version entity
    * @param repos         the repository entities
    */
-  public void addCommandRepository(ActionExecutionContext context, String osFamily,
-      RepositoryVersionEntity repoVersion, List<RepositoryEntity> repos) {
-    StackId stackId = repoVersion.getStackId();
+  public void addCommandRepository(ActionExecutionContext context,
+      RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) {
 
     final CommandRepository commandRepo = new CommandRepository();
-    commandRepo.setRepositories(osFamily, repos);
+    commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
-    commandRepo.setStackName(stackId.getStackName());
-    commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+    commandRepo.setResolved(repoVersion.isResolved());
+    commandRepo.setStackName(repoVersion.getStackId().getStackName());
+
+    if (!osEntity.isAmbariManagedRepos()) {
+      commandRepo.setNonManaged();
+    } else {
+      commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+    }
 
     context.addVisitor(new ExecutionCommandVisitor() {
       @Override

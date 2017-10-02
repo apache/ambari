@@ -4073,7 +4073,11 @@ public class Configuration {
       if (result != null) {
         password = new String(result);
       } else {
-        LOG.error("Cannot read password for alias = " + aliasStr);
+        if (CredentialProvider.isAliasString(aliasStr)) {
+          LOG.error("Cannot read password for alias = " + aliasStr);
+        } else {
+          LOG.warn("Raw password provided, not an alias. It cannot be read from credential store.");
+        }
       }
     }
     return password;

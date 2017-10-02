@@ -46,6 +46,13 @@ public class CommandRepository {
   private String m_stackName;
 
   /**
+   * {@code true} if Ambari believes that this repository has reported back it's
+   * version after distribution.
+   */
+  @SerializedName("resolved")
+  private boolean m_resolved;
+
+  /**
    * @param version the repo version
    */
   public void setRepositoryVersion(String version) {
@@ -108,6 +115,38 @@ public class CommandRepository {
   }
 
   /**
+   * Sets fields for non-managed
+   */
+  public void setNonManaged() {
+    for (Repository repo : m_repositories) {
+      repo.m_baseUrl = null;
+      repo.m_mirrorsList = null;
+      repo.m_ambariManaged = false;
+    }
+  }
+
+  /**
+   * Gets whether this repository has been marked as having its version
+   * resolved.
+   *
+   * @return {@code true} if this repository has been confirmed to have the
+   *         right version.
+   */
+  public boolean isResolved() {
+    return m_resolved;
+  }
+
+  /**
+   * Gets whether this repository has had its version resolved.
+   *
+   * @param resolved
+   *          {@code true} to mark this repository as being resolved.
+   */
+  public void setResolved(boolean resolved) {
+    m_resolved = resolved;
+  }
+
+  /**
    * Minimal information required to generate repo files on the agent.  These are copies
    * of the repository objects from repo versions that can be changed for URL overrides, etc.
    */
@@ -119,11 +158,18 @@ public class CommandRepository {
     @SerializedName("repoId")
     private String m_repoId;
 
-    /**
-     * The name should not change.  Ubuntu requires that it match exactly as the repo was built.
-     */
+    @SerializedName("ambariManaged")
+    private boolean m_ambariManaged = true;
+
+
     @SerializedName("repoName")
     private final String m_repoName;
+
+    @SerializedName("distribution")
+    private final String m_distribution;
+
+    @SerializedName("components")
+    private final String m_components;
 
     @SerializedName("mirrorsList")
     private String m_mirrorsList;
@@ -135,6 +181,8 @@ public class CommandRepository {
       m_osType = info.getOsType();
       m_repoId = info.getRepoId();
       m_repoName = info.getRepoName();
+      m_distribution = info.getDistribution();
+      m_components = info.getComponents();
       m_mirrorsList = info.getMirrorsList();
     }
 
@@ -142,6 +190,8 @@ public class CommandRepository {
       m_baseUrl = entity.getBaseUrl();
       m_repoId = entity.getRepositoryId();
       m_repoName = entity.getName();
+      m_distribution = entity.getDistribution();
+      m_components = entity.getComponents();
       m_mirrorsList = entity.getMirrorsList();
       m_osType = osType;
     }
@@ -162,9 +212,20 @@ public class CommandRepository {
       return m_repoName;
     }
 
+    public String getDistribution() {
+      return m_distribution;
+    }
+
+    public String getComponents() {
+      return m_components;
+    }
 
     public String getBaseUrl() {
       return m_baseUrl;
+    }
+
+    public boolean isAmbariManaged() {
+      return m_ambariManaged;
     }
 
     /**
@@ -175,10 +236,12 @@ public class CommandRepository {
       return new ToStringBuilder(null)
           .append("os", m_osType)
           .append("name", m_repoName)
+          .append("distribution", m_distribution)
+          .append("components", m_components)
           .append("id", m_repoId)
           .append("baseUrl", m_baseUrl)
           .toString();
     }
-  }
 
+  }
 }

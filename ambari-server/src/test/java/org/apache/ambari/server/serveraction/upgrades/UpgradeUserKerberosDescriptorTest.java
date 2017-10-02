@@ -139,8 +139,8 @@ public class UpgradeUserKerberosDescriptorTest {
     PowerMockito.mockStatic(KerberosDescriptorUpdateHelper.class);
     PowerMockito.when(KerberosDescriptorUpdateHelper.updateUserKerberosDescriptor(previousDescriptor, newDescriptor, userDescriptor)).thenReturn(updatedKerberosDescriptor);
     expect(kerberosDescriptorFactory.createInstance((Map)null)).andReturn(userDescriptor).atLeastOnce();
-    expect(ambariMetaInfo.getKerberosDescriptor("HDP","2.5")).andReturn(newDescriptor).atLeastOnce();
-    expect(ambariMetaInfo.getKerberosDescriptor("HDP","2.4")).andReturn(previousDescriptor).atLeastOnce();
+    expect(ambariMetaInfo.getKerberosDescriptor("HDP","2.5", false)).andReturn(newDescriptor).atLeastOnce();
+    expect(ambariMetaInfo.getKerberosDescriptor("HDP","2.4",false)).andReturn(previousDescriptor).atLeastOnce();
 
 
     expect(updatedKerberosDescriptor.toMap()).andReturn(null).once();
@@ -224,7 +224,7 @@ public class UpgradeUserKerberosDescriptorTest {
       } catch( NoSuchFieldException noSuchFieldException ){
         Field clustersField = UpgradeUserKerberosDescriptor.class.getSuperclass().getDeclaredField(fieldName);
         clustersField.setAccessible(true);
-        fields.put(fieldName, clustersField);        
+        fields.put(fieldName, clustersField);
       }
     }
   }

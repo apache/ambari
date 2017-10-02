@@ -29,6 +29,8 @@ class TestMahoutClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "MAHOUT/1.0.0.2.3/package"
   STACK_VERSION = "2.3"
 
+  CONFIG_OVERRIDES = {"serviceName":"MAHOUT", "role":"MAHOUT"}
+
   def test_configure_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
@@ -48,7 +50,7 @@ class TestMahoutClient(RMFTestCase):
       owner = "yarn",
       group = 'hadoop',
       mode = 0644,
-      conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      conf_dir = '/usr/hdp/2.2.1.0-2067/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
     )
@@ -73,6 +75,7 @@ class TestMahoutClient(RMFTestCase):
       classname = "MahoutClient",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
@@ -98,9 +101,9 @@ class TestMahoutClient(RMFTestCase):
       classname = "MahoutClient",
       command = "pre_upgrade_restart",
       config_dict = json_content,
+      config_overrides = self.CONFIG_OVERRIDES,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
-      call_mocks = itertools.cycle([(0, None, '')]),
       mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'),sudo = True)
@@ -110,14 +113,3 @@ class TestMahoutClient(RMFTestCase):
 
     self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf",
       sys.modules["params"].hadoop_conf_dir)
-
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'mahout', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-      mocks_dict['checked_call'].call_args_list[0][0][0])
-
-    self.assertEquals(
-      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'mahout', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-      mocks_dict['call'].call_args_list[0][0][0])

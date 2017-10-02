@@ -64,7 +64,6 @@ import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -912,61 +911,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
-  @Override
-  public SecurityState getSecurityState() {
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      return stateEntity.getSecurityState();
-    } else {
-      LOG.warn("Trying to fetch a member from an entity object that may "
-          + "have been previously deleted, serviceName = " + getServiceName() + ", "
-          + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-
-    return null;
-  }
-
-  @Override
-  @Transactional
-  public void setSecurityState(SecurityState securityState) {
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      stateEntity.setSecurityState(securityState);
-      stateEntity = hostComponentStateDAO.merge(stateEntity);
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-          + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
-          + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-  }
-
-  @Override
-  public SecurityState getDesiredSecurityState() {
-    HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
-    if (desiredStateEntity != null) {
-      return desiredStateEntity.getSecurityState();
-    } else {
-      LOG.warn("Trying to fetch a member from an entity object that may "
-          + "have been previously deleted, serviceName = " + getServiceName() + ", "
-          + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-    return null;
-  }
-
-  @Override
-  public void setDesiredSecurityState(SecurityState securityState) throws AmbariException {
-    if(!securityState.isEndpoint()) {
-      throw new AmbariException("The security state must be an endpoint state");
-    }
-
-    LOG.debug("Set DesiredSecurityState on serviceName = {} componentName = {} hostName = {} to {}",
-        getServiceName(), getServiceComponentName(), getHostName(), securityState);
-
-    HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
-    desiredStateEntity.setSecurityState(securityState);
-    hostComponentDesiredStateDAO.merge(desiredStateEntity);
-  }
-
   /**
    * To be called during the upgrade of a specific Component in a host.
    * The potential upgrade states are NONE (default), PENDING, IN_PROGRESS, FAILED.
@@ -1262,10 +1206,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     .append(getVersion())
     .append(", state=")
     .append(getState())
-    .append(", securityState=")
-    .append(getSecurityState())
-    .append(", desiredSecurityState=")
-    .append(getDesiredSecurityState())
     .append(" }");
   }
 

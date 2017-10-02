@@ -57,6 +57,7 @@ import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
@@ -342,6 +343,7 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport{
     final Injector injector = Guice.createInjector(new AbstractModule() {
                                                      @Override
                                                      protected void configure() {
+                                                       bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
                                                        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
                                                        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
                                                        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));

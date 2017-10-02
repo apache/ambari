@@ -17,98 +17,143 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
-import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.audit.AuditLoggerModule;
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.MemberDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.easymock.EasyMock;
-import org.junit.After;
+import org.apache.ambari.server.security.authentication.pam.PamAuthenticationFactory;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.libpam.PAM;
+import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import junit.framework.Assert;
 
-public class AmbariPamAuthenticationProviderTest {
-
-  private static Injector injector;
-
-  @Inject
-  private AmbariPamAuthenticationProvider authenticationProvider;
-  @Inject
-  private Configuration configuration;
+public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
 
   private static final String TEST_USER_NAME = "userName";
+  private static final String TEST_USER_PASS = "userPass";
+  private static final String TEST_USER_INCORRECT_PASS = "userIncorrectPass";
+
+  private Injector injector;
 
   @Before
-  public void setUp() {
-    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule());
-    injector.injectMembers(this);
-    injector.getInstance(GuiceJpaInitializer.class);
+  public void setup() {
+    injector = Guice.createInjector(new AbstractModule() {
+
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(HookContextFactory.class).toInstance(createNiceMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createNiceMock(HookService.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(UserDAO.class).toInstance(createNiceMock(UserDAO.class));
+        bind(MemberDAO.class).toInstance(createNiceMock(MemberDAO.class));
+        bind(PrivilegeDAO.class).toInstance(createNiceMock(PrivilegeDAO.class));
+        bind(PamAuthenticationFactory.class).toInstance(createMock(PamAuthenticationFactory.class));
+        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+      }
+    });
+
+    Configuration configuration = injector.getInstance(Configuration.class);
     configuration.setClientSecurityType(ClientSecurityType.PAM);
     configuration.setProperty(Configuration.PAM_CONFIGURATION_FILE, "ambari-pam");
   }
 
-  @After
-  public void tearDown() throws Exception {
-    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
-  }
-
   @Test(expected = AuthenticationException.class)
   public void testBadCredential() throws Exception {
-    UserEntity userEntity = combineUserEntity();
-    User user = new User(userEntity);
-    Collection<AmbariGrantedAuthority> userAuthorities = Collections.singletonList(createNiceMock(AmbariGrantedAuthority.class));
-    Authentication authentication = new AmbariUserAuthentication("wrong", user, userAuthorities);
+
+    PAM pam = createMock(PAM.class);
+    expect(pam.authenticate(eq(TEST_USER_NAME), eq(TEST_USER_INCORRECT_PASS)))
+        .andThrow(new PAMException())
+        .once();
+    pam.dispose();
+    expectLastCall().once();
+
+    PamAuthenticationFactory pamAuthenticationFactory = injector.getInstance(PamAuthenticationFactory.class);
+    expect(pamAuthenticationFactory.createInstance(anyObject(String.class))).andReturn(pam).once();
+
+    replayAll();
+
+    Authentication authentication = new UsernamePasswordAuthenticationToken(TEST_USER_NAME, TEST_USER_INCORRECT_PASS);
+
+    AmbariPamAuthenticationProvider authenticationProvider = injector.getInstance(AmbariPamAuthenticationProvider.class);
     authenticationProvider.authenticate(authentication);
+
+    verifyAll();
   }
 
   @Test
   public void testAuthenticate() throws Exception {
-    PAM pam = createNiceMock(PAM.class);
+
     UnixUser unixUser = createNiceMock(UnixUser.class);
     expect(unixUser.getUserName()).andReturn(TEST_USER_NAME).atLeastOnce();
+
+    PAM pam = createMock(PAM.class);
+    expect(pam.authenticate(eq(TEST_USER_NAME), eq(TEST_USER_PASS))).andReturn(unixUser).once();
+
     UserEntity userEntity = combineUserEntity();
-    User user = new User(userEntity);
-    UserDAO userDAO = createNiceMock(UserDAO.class);
-    Collection<AmbariGrantedAuthority> userAuthorities = Collections.singletonList(createNiceMock(AmbariGrantedAuthority.class));
-    expect(pam.authenticate(EasyMock.anyObject(String.class), EasyMock.anyObject(String.class))).andReturn(unixUser).atLeastOnce();
-    expect(unixUser.getGroups()).andReturn(Collections.singleton("group")).atLeastOnce();
-    EasyMock.replay(unixUser);
-    EasyMock.replay(pam);
-    Authentication authentication = new AmbariUserAuthentication("userPass", user, userAuthorities);
-    Authentication result = authenticationProvider.authenticateViaPam(pam,authentication);
-    expect(userDAO.findUserByName("userName")).andReturn(null).once();
+
+    UserDAO userDAO = injector.getInstance(UserDAO.class);
+    expect(userDAO.findUserByName(TEST_USER_NAME)).andReturn(userEntity).once();
+
+    MemberDAO memberDAO = injector.getInstance(MemberDAO.class);
+    expect(memberDAO.findAllMembersByUser(userEntity)).andReturn(Collections.emptyList()).once();
+
+    PrivilegeDAO privilegeDAO = injector.getInstance(PrivilegeDAO.class);
+    expect(privilegeDAO.findAllByPrincipal(anyObject())).andReturn(Collections.emptyList()).once();
+
+    replayAll();
+
+    Authentication authentication = new UsernamePasswordAuthenticationToken(TEST_USER_NAME, TEST_USER_PASS);
+    AmbariPamAuthenticationProvider authenticationProvider = injector.getInstance(AmbariPamAuthenticationProvider.class);
+
+    Authentication result = authenticationProvider.authenticateViaPam(pam, authentication);
     Assert.assertNotNull(result);
     Assert.assertEquals(true, result.isAuthenticated());
     Assert.assertTrue(result instanceof AmbariUserAuthentication);
+
+    verifyAll();
   }
 
   @Test
   public void testDisabled() throws Exception {
-    UserEntity userEntity = combineUserEntity();
-    User user = new User(userEntity);
-    Collection<AmbariGrantedAuthority> userAuthorities = Collections.singletonList(createNiceMock(AmbariGrantedAuthority.class));
+
+    Configuration configuration = injector.getInstance(Configuration.class);
     configuration.setClientSecurityType(ClientSecurityType.LOCAL);
-    Authentication authentication = new AmbariUserAuthentication("userPass", user, userAuthorities);
+
+    Authentication authentication = new UsernamePasswordAuthenticationToken(TEST_USER_NAME, TEST_USER_PASS);
+
+    AmbariPamAuthenticationProvider authenticationProvider = injector.getInstance(AmbariPamAuthenticationProvider.class);
     Authentication auth = authenticationProvider.authenticate(authentication);
     Assert.assertTrue(auth == null);
   }

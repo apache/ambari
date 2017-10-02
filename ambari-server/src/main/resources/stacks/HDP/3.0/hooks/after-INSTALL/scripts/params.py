@@ -44,9 +44,6 @@ sudo = AMBARI_SUDO_BINARY
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-# current host stack version
-current_version = default("/hostLevelParams/current_version", None)
-
 # service name
 service_name = config['serviceName']
 
@@ -104,7 +101,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_host) == 0
 
 if has_namenode or dfs_type == 'HCFS':
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 link_configs_lock_file = get_config_lock_file()
 stack_select_lock_file = os.path.join(tmp_dir, "stack_select_lock_file")

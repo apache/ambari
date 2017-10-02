@@ -260,9 +260,9 @@
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
-    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
+    <group xsi:type="update-stack" name="UPDATE_DESIRED_REPOSITORY_ID" title="Update Target Repositories">
+      <execute-stage title="Update Target Repositories">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction">
         </task>
       </execute-stage>
     </group>
@@ -270,6 +270,11 @@
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
+
+      <!-- ZEPPELIN -->
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply external depedency config 2">
+        <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
+      </execute-stage>
 
       <!-- HDFS -->
       <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
@@ -297,9 +302,16 @@
         </task>
       </execute-stage>
 
+      <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Hive properties">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
           <summary>Removing atlas.cluster.name property</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable">
+          <summary>Update tez.runtime.shuffle.ssl.enable property</summary>
         </task>
       </execute-stage>
 

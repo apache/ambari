@@ -85,6 +85,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_TOTAL_COUNT_PROPERTY_ID     = "ServiceComponentInfo/total_count";
   protected static final String COMPONENT_STARTED_COUNT_PROPERTY_ID   = "ServiceComponentInfo/started_count";
   protected static final String COMPONENT_INSTALLED_COUNT_PROPERTY_ID = "ServiceComponentInfo/installed_count";
+  protected static final String COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID
+                                                                      = "ServiceComponentInfo/installed_and_maintenance_off_count";
   protected static final String COMPONENT_INIT_COUNT_PROPERTY_ID      = "ServiceComponentInfo/init_count";
   protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID   = "ServiceComponentInfo/unknown_count";
   protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = "ServiceComponentInfo/install_failed_count";
@@ -124,6 +126,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     PROPERTY_IDS.add(COMPONENT_TOTAL_COUNT_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_STARTED_COUNT_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID);
 
     PROPERTY_IDS.add(COMPONENT_INIT_COUNT_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
@@ -220,6 +223,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("totalCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("startedCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installedCount"), requestedIds);
+      setResourceProperty(resource, COMPONENT_INSTALLED_AND_MAINTENANCE_OFF_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installedAndMaintenanceOffCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installFailedCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_INIT_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("initCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_UNKNOWN_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);
@@ -331,12 +335,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       debug("Received a createComponent request: {}", request);
 
       if (!componentNames.containsKey(request.getClusterName())) {
-        componentNames.put(request.getClusterName(), new HashMap<String, Set<String>>());
+        componentNames.put(request.getClusterName(), new HashMap<>());
       }
 
       Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
       if (!serviceComponents.containsKey(request.getServiceName())) {
-        serviceComponents.put(request.getServiceName(), new HashSet<String>());
+        serviceComponents.put(request.getServiceName(), new HashSet<>());
       }
 
       if (serviceComponents.get(request.getServiceName()).contains(request.getComponentName())) {
@@ -568,10 +572,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Validate.isTrue(clusterNames.size() == 1, "Updates to multiple clusters is not supported");
 
       if (!componentNames.containsKey(clusterName)) {
-        componentNames.put(clusterName, new HashMap<String, Set<String>>());
+        componentNames.put(clusterName, new HashMap<>());
       }
       if (!componentNames.get(clusterName).containsKey(serviceName)) {
-        componentNames.get(clusterName).put(serviceName, new HashSet<String>());
+        componentNames.get(clusterName).put(serviceName, new HashSet<>());
       }
       if (componentNames.get(clusterName).get(serviceName).contains(componentName)){
         // throw error later for dup
@@ -642,7 +646,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
 
         if (!changedComps.containsKey(newState)) {
-          changedComps.put(newState, new ArrayList<ServiceComponent>());
+          changedComps.put(newState, new ArrayList<>());
         }
         debug("Handling update to ServiceComponent"
               + ", clusterName=" + clusterName
@@ -709,10 +713,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", newDesiredState=" + newState);
         }
         if (!changedScHosts.containsKey(sc.getName())) {
-          changedScHosts.put(sc.getName(), new HashMap<State, List<ServiceComponentHost>>());
+          changedScHosts.put(sc.getName(), new HashMap<>());
         }
         if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
-          changedScHosts.get(sc.getName()).put(newState, new ArrayList<ServiceComponentHost>());
+          changedScHosts.get(sc.getName()).put(newState, new ArrayList<>());
         }
 
         debug("Handling update to ServiceComponentHost"

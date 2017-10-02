@@ -250,6 +250,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
         })
       ]);
       sinon.stub(view, 'sortHosts');
+      sinon.stub(view, 'getHosts').returns([]);
       sinon.stub(numberUtils, 'bytesToSize').returns(1);
     });
 
@@ -280,6 +281,28 @@ describe('App.AssignMasterOnStep7Controller', function () {
         disk_info: {},
         host_info: Em.I18n.t('installer.step5.hostInfo').fmt('host1', 1, 1)
       })])).to.be.true;
+    });
+
+    it("should make general request to get hosts", function() {
+      view.reopen({
+        content: Em.Object.create({
+          controllerName: 'name'
+        })
+      });
+      view.renderHostInfo();
+      var args = testHelpers.findAjaxRequest('name', 'hosts.high_availability.wizard');
+      expect(args).exists;
+    });
+
+    it("should make request for installer to get hosts", function() {
+      view.reopen({
+        content: Em.Object.create({
+          controllerName: 'installerController'
+        })
+      });
+      view.renderHostInfo();
+      var args = testHelpers.findAjaxRequest('name', 'hosts.info.install');
+      expect(args).exists;
     });
   });
 

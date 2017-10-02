@@ -117,7 +117,7 @@ public class ConfigMergeHelper {
             twv.savedValue = savedVal.trim();
 
             if (!result.containsKey(entry.getKey())) {
-              result.put(entry.getKey(), new HashMap<String, ThreeWayValue>());
+              result.put(entry.getKey(), new HashMap<>());
             }
 
             result.get(entry.getKey()).put(prop, twv);
@@ -152,7 +152,7 @@ public class ConfigMergeHelper {
           twv.savedValue = (null == savedVal) ? null : savedVal.trim();
 
           if (!result.containsKey(entry.getKey())) {
-            result.put(entry.getKey(), new HashMap<String, ThreeWayValue>());
+            result.put(entry.getKey(), new HashMap<>());
           }
 
           result.get(entry.getKey()).put(prop, twv);
@@ -168,7 +168,7 @@ public class ConfigMergeHelper {
       String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
 
       if (!map.containsKey(type)) {
-        map.put(type, new HashMap<String, String>());
+        map.put(type, new HashMap<>());
       }
       map.get(type).put(pi.getName(), pi.getValue());
     }

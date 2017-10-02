@@ -44,17 +44,12 @@ def setup_users():
       )
 
     for user in params.user_list:
-      if params.override_uid == "true":
-        User(user,
-             uid = get_uid(user),
-             gid = params.user_to_gid_dict[user],
-             groups = params.user_to_groups_dict[user],
-             )
-      else:
-        User(user,
-             gid = params.user_to_gid_dict[user],
-             groups = params.user_to_groups_dict[user],
-             )
+      User(user,
+           uid = get_uid(user) if params.override_uid == "true" else None,
+           gid = params.user_to_gid_dict[user],
+           groups = params.user_to_groups_dict[user],
+           fetch_nonlocal_groups = params.fetch_nonlocal_groups,
+           )
 
     if params.override_uid == "true":
       set_uid(params.smoke_user, params.smoke_user_dirs)
@@ -96,7 +91,7 @@ def create_dfs_cluster_admins():
 
   User(params.hdfs_user,
     groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
+    fetch_nonlocal_groups = params.fetch_nonlocal_groups
   )
 
 def create_tez_am_view_acls():
@@ -144,11 +139,19 @@ def set_uid(user, user_dirs):
        content=StaticFile("changeToSecureUid.sh"),
        mode=0555)
   ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
-  uid = get_uid(user)
-  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {uid}"),
+  uid = get_uid(user, return_existing=True)
+  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} {new_uid}", new_uid=0 if uid is None else uid),
           not_if = format("(test $(id -u {user}) -gt 1000) || ({ignore_groupsusers_create_str})"))
 
-def get_uid(user):
+def get_uid(user, return_existing=False):
+  """
+  Tries to get UID for username. It will try to find UID in custom properties in *cluster_env* and, if *return_existing=True*,
+  it will try to return UID of existing *user*.
+
+  :param user: username to get UID for
+  :param return_existing: return UID for existing user
+  :return:
+  """
   import params
   user_str = str(user) + "_uid"
   service_env = [ serviceEnv for serviceEnv in params.config['configurations'] if user_str in params.config['configurations'][serviceEnv]]
@@ -160,13 +163,18 @@ def get_uid(user):
       Logger.warning("Multiple values found for %s, using %s"  % (user_str, uid))
     return uid
   else:
-    if user == params.smoke_user:
-      return 0
-    File(format("{tmp_dir}/changeUid.sh"),
-         content=StaticFile("changeToSecureUid.sh"),
-         mode=0555)
-    conde, newUid = shell.call((format("{tmp_dir}/changeUid.sh"), format("{user}")), sudo=True)
-    return newUid
+    if return_existing:
+      # pick up existing UID or try to find available UID in /etc/passwd, see changeToSecureUid.sh for more info
+      if user == params.smoke_user:
+        return None
+      File(format("{tmp_dir}/changeUid.sh"),
+           content=StaticFile("changeToSecureUid.sh"),
+           mode=0555)
+      code, newUid = shell.call(format("{tmp_dir}/changeUid.sh {user}"))
+      return int(newUid)
+    else:
+      # do not return UID for existing user, used in User resource call to let OS to choose UID for us
+      return None
 
 def setup_hadoop_env():
   import params
@@ -180,14 +188,6 @@ def setup_hadoop_env():
 
     # create /etc/hadoop
     Directory(params.hadoop_dir, mode=0755)
-
-    # HDP < 2.2 used a conf -> conf.empty symlink for /etc/hadoop/
-    if Script.is_stack_less_than("2.2"):
-      Directory(params.hadoop_conf_empty_dir, create_parents = True, owner="root",
-        group=params.user_group )
-
-      Link(params.hadoop_conf_dir, to=params.hadoop_conf_empty_dir,
-         not_if=format("ls {hadoop_conf_dir}"))
 
     # write out hadoop-env.sh, but only if the directory exists
     if os.path.exists(params.hadoop_conf_dir):

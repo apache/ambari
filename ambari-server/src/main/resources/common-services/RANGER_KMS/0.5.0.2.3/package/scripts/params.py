@@ -20,7 +20,7 @@ limitations under the License.
 import os
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -32,6 +32,7 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import gene
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.core.exceptions import Fail
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -43,6 +44,7 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
+major_stack_version = get_major_version(stack_version_formatted)
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -162,6 +164,7 @@ elif db_flavor == 'sqla':
   db_jdbc_url = format('jdbc:sqlanywhere:database={db_name};host={db_host}')
   db_jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
+else: raise Fail(format("'{db_flavor}' db flavor not supported."))
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
@@ -209,6 +212,7 @@ if has_ranger_admin:
       xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+    else: raise Fail(format("'{xa_audit_db_flavor}' db flavor not supported."))
 
   downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
   driver_source = format("{jdk_location}/{jdbc_jar}") if stack_supports_ranger_audit_db else None

@@ -179,6 +179,7 @@ describe('App.ConfigOverridable', function () {
             "ConfigGroup": {
               "group_name": 'cg1',
               "tag": 'S1',
+              "service_name": "S1",
               "description": '',
               "desired_configs": [],
               "hosts": [{host_name: 'host1'}]
@@ -264,6 +265,7 @@ describe('App.ConfigOverridable', function () {
           group_name: 'cg1',
           description: 'dsc',
           tag: 'S1',
+          service_name: "S1",
           hosts: [{
             host_name: 'host1'
           }],

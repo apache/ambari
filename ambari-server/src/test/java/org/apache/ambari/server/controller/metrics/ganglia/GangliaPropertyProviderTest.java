@@ -651,7 +651,7 @@ public class GangliaPropertyProviderTest {
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
-    Request  request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), temporalInfoMap);
+    Request  request = PropertyHelper.getReadRequest(Collections.emptySet(), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 

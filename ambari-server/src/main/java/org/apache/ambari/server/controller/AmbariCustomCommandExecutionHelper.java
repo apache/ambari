@@ -27,7 +27,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_CO
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
@@ -36,11 +35,11 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JD
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.controller.internal.RequestResourceProvider.HAS_RESOURCE_FILTERS;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -139,6 +138,7 @@ public class AmbariCustomCommandExecutionHelper {
   public final static String DECOM_SLAVE_COMPONENT = "slave_type";
   public final static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
   public final static String UPDATE_FILES_ONLY = "update_files_only";
+  public final static String IS_ADD_OR_DELETE_SLAVE_REQUEST = "is_add_or_delete_slave_request";
 
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
@@ -492,8 +492,6 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
-      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -811,8 +809,7 @@ public class AmbariCustomCommandExecutionHelper {
       actualTimeout = actualTimeout < MIN_STRICT_SERVICE_CHECK_TIMEOUT ? MIN_STRICT_SERVICE_CHECK_TIMEOUT : actualTimeout;
       commandParams.put(COMMAND_TIMEOUT, Integer.toString(actualTimeout));
     }
-    commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+
     StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
     execCmd.setCommandParams(commandParams);
@@ -859,6 +856,10 @@ public class AmbariCustomCommandExecutionHelper {
     Set<String> includedHosts = getHostList(actionExecutionContext.getParameters(),
                                             DECOM_INCLUDED_HOSTS);
 
+    if (actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST) != null &&
+            actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST).equalsIgnoreCase("true")) {
+      includedHosts = getHostList(actionExecutionContext.getParameters(), masterCompType + "_" + DECOM_INCLUDED_HOSTS);
+    }
 
     Set<String> cloneSet = new HashSet<>(excludedHosts);
     cloneSet.retainAll(includedHosts);
@@ -1064,6 +1065,11 @@ public class AmbariCustomCommandExecutionHelper {
       List<String> listOfExcludedHosts) {
     StringBuilder commandDetail = new StringBuilder();
     commandDetail.append(actionExecutionContext.getActionName());
+    if (actionExecutionContext.getParameters().containsKey(IS_ADD_OR_DELETE_SLAVE_REQUEST) &&
+      actionExecutionContext.getParameters().get(IS_ADD_OR_DELETE_SLAVE_REQUEST).equalsIgnoreCase("true")) {
+      commandDetail.append(", Update Include/Exclude Files");
+      return commandDetail;
+    }
     if (listOfExcludedHosts.size() > 0) {
       commandDetail.append(", Excluded: ").append(StringUtils.join(listOfExcludedHosts, ','));
     }
@@ -1083,6 +1089,13 @@ public class AmbariCustomCommandExecutionHelper {
   public void validateAction(ExecuteActionRequest actionRequest) throws AmbariException {
 
     List<RequestResourceFilter> resourceFilters = actionRequest.getResourceFilters();
+
+    if (resourceFilters != null && resourceFilters.isEmpty() &&
+            actionRequest.getParameters().containsKey(HAS_RESOURCE_FILTERS) &&
+            actionRequest.getParameters().get(HAS_RESOURCE_FILTERS).equalsIgnoreCase("true")) {
+      LOG.warn("Couldn't find any resource that satisfies given resource filters");
+      return;
+    }
 
     if (resourceFilters == null || resourceFilters.isEmpty()) {
       throw new AmbariException("Command execution cannot proceed without a " +
@@ -1260,49 +1273,32 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException
    */
   @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
-
-    Function<List<RepositoryInfo>, List<RepositoryInfo>> function = new Function<List<RepositoryInfo>, List<RepositoryInfo>>() {
-      @Override
-      public List<RepositoryInfo> apply(List<RepositoryInfo> input) {
-        // !!! just return what is given
-        return input;
-      }
-    };
-
-    final List<RepositoryInfo> repoInfos = getBaseUrls(cluster, component, host, function);
-
-    if (null == repoInfos) {
-      return null;
-    }
+  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, final Host host) throws AmbariException {
 
     final CommandRepository command = new CommandRepository();
     StackId stackId = component.getDesiredStackId();
-    command.setRepositories(repoInfos);
+    command.setRepositories(Collections.<RepositoryInfo>emptyList());
     command.setStackName(stackId.getStackName());
 
     final BaseUrlUpdater<Void> updater = new BaseUrlUpdater<Void>(null) {
       @Override
       public Void apply(RepositoryVersionEntity rve) {
-
         command.setRepositoryVersionId(rve.getId());
         command.setRepositoryVersion(rve.getVersion());
+        command.setResolved(rve.isResolved());
         command.setStackName(rve.getStackName());
-        command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
 
-        for (CommandRepository.Repository commandRepo : command.getRepositories()) {
-          String osType = commandRepo.getOsType();
-          String repoName = commandRepo.getRepoName();
-          String baseUrl = commandRepo.getBaseUrl();
+        // !!! a repository version entity has all the repos worked out.  We shouldn't use
+        // the stack at all.
+        for (OperatingSystemEntity osEntity : rve.getOperatingSystems()) {
+          String osEntityFamily = os_family.find(osEntity.getOsType());
+          if (osEntityFamily.equals(host.getOsFamily())) {
+            command.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
 
-          for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
-            if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
-              for (RepositoryEntity re : ose.getRepositories()) {
-                if (re.getName().equals(repoName) &&
-                    !re.getBaseUrl().equals(baseUrl)) {
-                  commandRepo.setBaseUrl(re.getBaseUrl());
-                }
-              }
+            if (!osEntity.isAmbariManagedRepos()) {
+              command.setNonManaged();
+            } else {
+              command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
             }
           }
         }
@@ -1528,14 +1524,18 @@ public class AmbariCustomCommandExecutionHelper {
     if (actionName.equals(START_COMMAND_NAME) || actionName.equals(RESTART_COMMAND_NAME)) {
       Cluster cluster = clusters.getCluster(clusterName);
       StackId stackId = null;
-      try {
-        Service service = cluster.getService(serviceName);
-        stackId = service.getDesiredStackId();
-      } catch (AmbariException e) {
-        LOG.debug("Could not load service {}, skipping topology check", serviceName);
-        stackId = cluster.getDesiredStackVersion();
+      if (serviceName != null) {
+        try {
+          Service service = cluster.getService(serviceName);
+          stackId = service.getDesiredStackId();
+        } catch (AmbariException e) {
+          LOG.debug("Could not load service {}, skipping topology check", serviceName);
+        }
       }
 
+      if (stackId == null) {
+        stackId = cluster.getDesiredStackVersion();
+      }
 
       AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
 
