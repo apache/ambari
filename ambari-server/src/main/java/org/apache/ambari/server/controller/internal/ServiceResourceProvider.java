@@ -427,6 +427,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private ServiceRequest getRequest(Map<String, Object> properties) {
 
     String desiredRepoId = (String) properties.get(SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID);
+    String stackid = (String) properties.get(SERVICE_DESIRED_STACK_PROPERTY_ID);
 
     ServiceRequest svcRequest = new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
@@ -435,7 +436,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(SERVICE_SERVICE_DISPLAY_NAME_PROPERTY_ID),
         null == desiredRepoId ? null : Long.valueOf(desiredRepoId),
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID),
-        (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID));
+        (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID),
+            null == stackid ? null : new StackId(stackid));
 
     Object o = properties.get(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
@@ -478,7 +480,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         throw new AmbariException("Could not find any repository on the request.");
       }
 
-      Service s = cluster.addService(sg, request.getServiceName(), request.getServiceDisplayName(), repositoryVersion);
+      Service s = cluster.addService(sg, request.getServiceName(), request.getServiceName(), repositoryVersion);
       if (repositoryVersion.getType() != RepositoryType.STANDARD
           && cluster.getProvisioningState() == State.INIT) {
         throw new AmbariException(String.format(
@@ -1087,10 +1089,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       final String serviceGroupName = request.getServiceGroupName();
       final String serviceName = request.getServiceName();
       final String serviceDisplayName = request.getServiceDisplayName();
+      final StackId desiredStackId = request.getDesiredStackId();
       Validate.notNull(clusterName, "Cluster name should be provided when creating a service");
       Validate.notNull(serviceGroupName, "Service group name should be provided when creating a service");
       Validate.notEmpty(serviceName, "Service name should be provided when creating a service");
       Validate.notEmpty(serviceDisplayName, "Service display name should be provided when creating a service");
+      //Todo Add after UI is ready
+      //Validate.notNull(desiredStackId, "Service display name should be provided when creating a service");
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a createService request, clusterId={}, serviceName={}, request={}", clusterName, serviceName, request);
@@ -1142,12 +1147,23 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (null == desiredRepositoryVersion) {
         Set<Long> repoIds = new HashSet<>();
 
-        for (Service service : cluster.getServices().values()) {
-          RepositoryVersionEntity serviceRepo = service.getDesiredRepositoryVersion();
+        if(desiredStackId != null) {
+          //Todo : How to filter out the right repoversion entity based on the stack id?
+          List<RepositoryVersionEntity> list = repositoryVersionDAO.findByStack(desiredStackId);
+          RepositoryVersionEntity serviceRepo = list.remove(0);
           if (null != serviceRepo.getParentId()) {
             repoIds.add(serviceRepo.getParentId());
           } else {
             repoIds.add(serviceRepo.getId());
+          }
+        } else { //Todo : Remove after UI is ready
+          for (Service service : cluster.getServices().values()) {
+            RepositoryVersionEntity serviceRepo = service.getDesiredRepositoryVersion();
+            if (null != serviceRepo.getParentId()) {
+              repoIds.add(serviceRepo.getParentId());
+            } else {
+              repoIds.add(serviceRepo.getId());
+            }
           }
         }
 
@@ -1175,6 +1191,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
 
       StackId stackId = repositoryVersion.getStackId();
+      //StackId stackId = desiredStackId; //Todo Replace after UI is ready
 
       request.setResolvedRepository(repositoryVersion);
 

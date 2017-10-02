@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.StackId;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -32,6 +33,8 @@ public class ServiceRequest {
   private String credentialStoreEnabled; // CREATE/UPDATE/GET
   private String credentialStoreSupported; //GET
 
+  private StackId desiredStackId;
+
   private Long desiredRepositoryVersionId;
   /**
    * Short-lived object that gets set while validating a request
@@ -39,8 +42,8 @@ public class ServiceRequest {
   private RepositoryVersionEntity resolvedRepository;
 
   public ServiceRequest(String clusterName, String serviceGroupName, String serviceName,
-      Long desiredRepositoryVersionId, String desiredState) {
-    this(clusterName, serviceGroupName, serviceName, serviceName, desiredRepositoryVersionId, desiredState, null);
+      Long desiredRepositoryVersionId, String desiredState, StackId desiredStackId) {
+    this(clusterName, serviceGroupName, serviceName, serviceName, desiredRepositoryVersionId, desiredState, null,desiredStackId );
   }
 
   public ServiceRequest(String clusterName,
@@ -49,7 +52,8 @@ public class ServiceRequest {
                         String serviceDisplayName,
                         Long desiredRepositoryVersionId,
                         String desiredState,
-                        String credentialStoreEnabled) {
+                        String credentialStoreEnabled,
+                        StackId desiredStackId) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
@@ -63,6 +67,7 @@ public class ServiceRequest {
     // Credential store supported cannot be changed after
     // creation since it comes from the stack definition.
     // We can update credential store enabled alone.
+    this.desiredStackId = desiredStackId;
   }
 
   /**
@@ -155,6 +160,22 @@ public class ServiceRequest {
   @ApiModelProperty(name = "credential_store_supporteds")
   public void setCredentialStoreSupported(String credentialStoreSupported) { this.credentialStoreSupported = credentialStoreSupported; }
 
+
+  /***
+   *
+   * @return associated stackid with the service
+   */
+  public StackId getDesiredStackId() {
+    return desiredStackId;
+  }
+
+  /***
+   * @param desiredStackId associated with the service
+   */
+  public void setDesiredStackId(StackId desiredStackId) {
+    this.desiredStackId = desiredStackId;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -164,7 +185,8 @@ public class ServiceRequest {
       + ", desiredState=" + desiredState
       + ", maintenanceState=" + maintenanceState
       + ", credentialStoreEnabled=" + credentialStoreEnabled
-      + ", credentialStoreSupported=" + credentialStoreSupported);
+      + ", credentialStoreSupported=" + credentialStoreSupported
+      + ", desiredStackId=" + desiredStackId);
     return sb.toString();
   }
 

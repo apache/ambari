@@ -552,12 +552,12 @@ public class AmbariMetaInfo {
     return getService(stackId.getStackName(), stackId.getStackVersion(), service.getName());
   }
 
-  public ServiceInfo getService(String stackName, String version, String serviceDisplayName) throws AmbariException {
-    ServiceInfo service = getStack(stackName, version).getService(serviceDisplayName);
+  public ServiceInfo getService(String stackName, String version, String serviceName) throws AmbariException {
+    ServiceInfo service = getStack(stackName, version).getService(serviceName);
 
     if (service == null) {
       throw new StackAccessException("stackName=" + stackName + ", stackVersion=" +
-                                     version + ", serviceDisplayName=" + serviceDisplayName);
+                                     version + ", serviceName=" + serviceName);
     }
 
     return service;

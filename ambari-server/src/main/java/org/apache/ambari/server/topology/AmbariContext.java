@@ -329,7 +329,7 @@ public class AmbariContext {
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
       serviceRequests.add(new ServiceRequest(clusterName, null, service, service,
-              repositoryVersionId, null, credentialStoreEnabled));
+              repositoryVersionId, null, credentialStoreEnabled, null));
 
       for (String component : topology.getBlueprint().getComponents(service)) {
         String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
