@@ -148,13 +148,8 @@ class BaseAlert(object):
 
     data = {}
     data['name'] = self._get_alert_meta_value_safely('name')
-    data['label'] = self._get_alert_meta_value_safely('label')
-    data['uuid'] = self._get_alert_meta_value_safely('uuid')
     data['clusterId'] = self.cluster_id
-    data['service'] = self._get_alert_meta_value_safely('serviceName')
-    data['component'] = self._get_alert_meta_value_safely('componentName')
     data['timestamp'] = long(time.time() * 1000)
-    data['enabled'] = self._get_alert_meta_value_safely('enabled')
 
     try:
       data['state'] = res[0]

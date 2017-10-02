@@ -137,6 +137,12 @@ class ClusterCache(dict):
     with self._cache_lock:
       return Utils.get_mutable_copy(self)
 
+  def __getitem__(self, key):
+    try:
+      return super(ClusterCache, self).__getitem__(key)
+    except KeyError:
+      raise KeyError("{0} for cluster_id={1} are missing. Check if server sent it.".format(self.get_cache_name().title(), key))
+
   def on_cache_update(self):
     """
     Call back function called then cache is updated

@@ -20,17 +20,25 @@ limitations under the License.
 
 import logging
 import threading
+from collections import defaultdict
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
 class AlertStatusReporter(threading.Thread):
+  """
+  Thread sends alert reports to server. The report is only sent if its 'text' or 'state' has changed.
+  This is done to reduce bandwidth usage on large clusters and number of operations (DB and others) done by server.
+  """
+  FIELDS_CHANGED_RESEND_ALERT = ['text', 'state']
+
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
     self.collector = initializer_module.alert_scheduler_handler.collector()
     self.stop_event = initializer_module.stop_event
     self.alert_reports_interval = initializer_module.config.alert_reports_interval
+    self.reported_alerts = defaultdict(lambda:defaultdict(lambda:[]))
     threading.Thread.__init__(self)
 
   def run(self):
@@ -45,8 +53,11 @@ class AlertStatusReporter(threading.Thread):
       try:
         if self.initializer_module.is_registered:
           alerts = self.collector.alerts()
-          if alerts:
-            self.initializer_module.connection.send(message=alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT)
+          changed_alerts = self.get_changed_alerts(alerts)
+
+          if changed_alerts and self.initializer_module.is_registered:
+            self.initializer_module.connection.send(message=changed_alerts, destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT)
+            self.save_results(changed_alerts)
       except ConnectionIsAlreadyClosed: # server and agent disconnected during sending data. Not an issue
         pass
       except:
@@ -55,3 +66,27 @@ class AlertStatusReporter(threading.Thread):
       self.stop_event.wait(self.alert_reports_interval)
 
     logger.info("AlertStatusReporter has successfully finished")
+
+  def save_results(self, alerts):
+    """
+    Save alert reports which were synced to server
+    """
+    for alert in alerts:
+      cluster_id = alert['clusterId']
+      alert_name = alert['name']
+
+      self.reported_alerts[cluster_id][alert_name] = [alert[field] for field in self.FIELDS_CHANGED_RESEND_ALERT]
+
+  def get_changed_alerts(self, alerts):
+    """
+    Get alert reports, which changed since last successful report to server
+    """
+    changed_alerts = []
+    for alert in alerts:
+      cluster_id = alert['clusterId']
+      alert_name = alert['name']
+
+      if [alert[field] for field in self.FIELDS_CHANGED_RESEND_ALERT] != self.reported_alerts[cluster_id][alert_name]:
+        changed_alerts.append(alert)
+
+    return changed_alerts

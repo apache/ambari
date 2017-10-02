@@ -154,12 +154,6 @@ public class AlertReceivedListener {
     Map<Long, Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary>> alertUpdates = new HashMap<>();
 
     for (Alert alert : alerts) {
-      // jobs that were running when a service/component/host was changed
-      // which invalidate the alert should not be reported
-      if (!isValid(alert)) {
-        continue;
-      }
-
       Long clusterId = alert.getClusterId();
       if (clusterId == null) {
         // check event
@@ -177,6 +171,15 @@ public class AlertReceivedListener {
         continue;
       }
 
+      alert.setComponent(definition.getComponentName());
+      alert.setLabel(definition.getComponentName());
+      alert.setService(definition.getServiceName());
+
+      // jobs that were running when a service/component/host was changed
+      // which invalidate the alert should not be reported
+      if (!isValid(alert)) {
+        continue;
+      }
       // it's possible that a definition which is disabled will still have a
       // running alert returned; this will ensure we don't record it
       if (!definition.getEnabled()) {
