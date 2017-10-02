@@ -22,10 +22,14 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep5Controller",
 
-  commands: ['stopServices', 'installNameNode', 'installJournalNodes', 'reconfigureHDFS', 'startJournalNodes', 'disableSNameNode'],
+  commands: ['stopAllServices', 'installNameNode', 'installJournalNodes', 'reconfigureHDFS', 'startJournalNodes', 'disableSNameNode'],
 
   hdfsSiteTag : "",
   coreSiteTag : "",
+
+  stopAllServices: function () {
+    this.stopServices([], true, true);
+  },
 
   installNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
