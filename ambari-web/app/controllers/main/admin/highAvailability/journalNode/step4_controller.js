@@ -23,7 +23,7 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
   clusterDeployState: 'JOURNALNODE_MANAGEMENT',
   tasksMessagesPrefix: 'admin.manageJournalNode.wizard.step',
 
-  commands: ['stopStandbyNameNode', 'stopServices', 'installJournalNodes', 'deleteJournalNodes', 'startJournalNodes', 'reconfigureHDFS'],
+  commands: ['stopStandbyNameNode', 'stopAllServices', 'installJournalNodes', 'deleteJournalNodes', 'startJournalNodes', 'reconfigureHDFS'],
 
   hdfsSiteTag : "",
 
@@ -31,6 +31,10 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
     // save who's active and who's standby at this point in time
     var sbNN = this.get('content.standByNN');
     this.updateComponent('NAMENODE', sbNN.host_name, 'HDFS',  'INSTALLED');
+  },
+
+  stopAllServices: function () {
+    this.stopServices([], true, true);
   },
 
   installJournalNodes: function () {
