@@ -310,7 +310,7 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
     old_conf = dir_def['conf_dir']
     backup_dir = _get_backup_conf_directory(old_conf)
     Logger.info("Backing up {0} to {1} if destination doesn't exist already.".format(old_conf, backup_dir))
-    Execute(("cp", "-R", "-p", old_conf, backup_dir),
+    Execute(("cp", "-R", "-p", unicode(old_conf), unicode(backup_dir)),
       not_if = format("test -e {backup_dir}"), sudo = True)
 
   # we're already in the HDP stack
