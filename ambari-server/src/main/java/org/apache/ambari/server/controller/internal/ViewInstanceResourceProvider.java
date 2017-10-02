@@ -18,8 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.base.Strings;
-import com.google.inject.persist.Transactional;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -44,13 +50,8 @@ import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.validation.Validator;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for view instances.
@@ -90,7 +91,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   /**
    * The key property ids for a view instance resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
@@ -100,7 +101,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   /**
    * The property ids for a view instance resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
@@ -127,6 +128,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   /**
    * Construct a view instance resource provider.
    */
+  @Inject
   public ViewInstanceResourceProvider() {
     super(propertyIds, keyPropertyIds);
 
@@ -155,7 +157,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
     ViewRegistry  viewRegistry = ViewRegistry.getInstance();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
@@ -225,7 +227,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(keyPropertyIds.values());
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 
@@ -261,7 +263,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
           viewInstanceEntity.getPropertyMap(), requestedIds);
     }
 
-    Map<String, String> applicationData = new HashMap<String, String>();
+    Map<String, String> applicationData = new HashMap<>();
 
     String currentUserName = viewInstanceEntity.getCurrentUserName();
     for (ViewInstanceDataEntity viewInstanceDataEntity : viewInstanceEntity.getData()) {
@@ -365,7 +367,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
       viewInstanceEntity.setClusterType(ClusterType.valueOf(clusterType));
     }
 
-    Map<String, String> instanceProperties = new HashMap<String, String>();
+    Map<String, String> instanceProperties = new HashMap<>();
 
     boolean isUserAdmin = viewRegistry.checkAdmin();
 
@@ -397,37 +399,9 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   // Create a create command with all properties set.
   private Command<Void> getCreateCommand(final Map<String, Object> properties) {
     return new Command<Void>() {
-      @Transactional
       @Override
       public Void invoke() throws AmbariException {
-        try {
-          ViewRegistry       viewRegistry   = ViewRegistry.getInstance();
-          ViewInstanceEntity instanceEntity = toEntity(properties, false);
-
-          ViewEntity viewEntity = instanceEntity.getViewEntity();
-          String     viewName   = viewEntity.getCommonName();
-          String     version    = viewEntity.getVersion();
-          ViewEntity view       = viewRegistry.getDefinition(viewName, version);
-
-          if ( view == null ) {
-            throw new IllegalStateException("The view " + viewName + " is not registered.");
-          }
-
-          // the view must be in the DEPLOYED state to create an instance
-          if (!view.isDeployed()) {
-            throw new IllegalStateException("The view " + viewName + " is not loaded.");
-          }
-
-          if (viewRegistry.instanceExists(instanceEntity)) {
-            throw new DuplicateResourceException("The instance " + instanceEntity.getName() + " already exists.");
-          }
-          viewRegistry.installViewInstance(instanceEntity);
-        } catch (org.apache.ambari.view.SystemException e) {
-          throw new AmbariException("Caught exception trying to create view instance.", e);
-        } catch (ValidationException e) {
-          // results in a BAD_REQUEST (400) response for the validation failure.
-          throw new IllegalArgumentException(e.getMessage(), e);
-        }
+        create(properties);
         return null;
       }
     };
@@ -436,23 +410,9 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   // Create an update command with all properties set.
   private Command<Void> getUpdateCommand(final Map<String, Object> properties) {
     return new Command<Void>() {
-      @Transactional
       @Override
       public Void invoke() throws AmbariException {
-        ViewInstanceEntity instance = toEntity(properties, true);
-        ViewEntity         view     = instance.getViewEntity();
-
-        if (includeInstance(view.getCommonName(), view.getVersion(), instance.getInstanceName(), false)) {
-          try {
-            ViewRegistry.getInstance().updateViewInstance(instance);
-            ViewRegistry.getInstance().updateView(instance);
-          } catch (org.apache.ambari.view.SystemException e) {
-            throw new AmbariException("Caught exception trying to update view instance.", e);
-          } catch (ValidationException e) {
-            // results in a BAD_REQUEST (400) response for the validation failure.
-            throw new IllegalArgumentException(e.getMessage(), e);
-          }
-        }
+        update(properties);
         return null;
       }
     };
@@ -463,31 +423,91 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        Set<String>  requestedIds = getRequestPropertyIds(PropertyHelper.getReadRequest(), predicate);
-        ViewRegistry viewRegistry = ViewRegistry.getInstance();
-
-        Set<ViewInstanceEntity> viewInstanceEntities = new HashSet<ViewInstanceEntity>();
-
-        for (ViewEntity viewEntity : viewRegistry.getDefinitions()){
-          // the view must be in the DEPLOYED state to delete an instance
-          if (viewEntity.isDeployed()) {
-            for (ViewInstanceEntity viewInstanceEntity : viewRegistry.getInstanceDefinitions(viewEntity)){
-              Resource resource = toResource(viewInstanceEntity, requestedIds);
-              if (predicate == null || predicate.evaluate(resource)) {
-                if (includeInstance(viewInstanceEntity, false)) {
-                  viewInstanceEntities.add(viewInstanceEntity);
-                }
-              }
-            }
-          }
-        }
-        for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
-          viewRegistry.uninstallViewInstance(viewInstanceEntity);
-        }
+        delete(predicate);
         return null;
       }
     };
   }
+
+  @Transactional
+  void create(Map<String, Object> properties) throws AmbariException {
+    try {
+      ViewRegistry       viewRegistry   = ViewRegistry.getInstance();
+      ViewInstanceEntity instanceEntity = toEntity(properties, false);
+
+      ViewEntity viewEntity = instanceEntity.getViewEntity();
+      String     viewName   = viewEntity.getCommonName();
+      String     version    = viewEntity.getVersion();
+      ViewEntity view       = viewRegistry.getDefinition(viewName, version);
+
+      if ( view == null ) {
+        throw new IllegalStateException("The view " + viewName + " is not registered.");
+      }
+
+      // the view must be in the DEPLOYED state to create an instance
+      if (!view.isDeployed()) {
+        throw new IllegalStateException("The view " + viewName + " is not loaded.");
+      }
+
+      if (viewRegistry.instanceExists(instanceEntity)) {
+        throw new DuplicateResourceException("The instance " + instanceEntity.getName() + " already exists.");
+      }
+      viewRegistry.installViewInstance(instanceEntity);
+    } catch (org.apache.ambari.view.SystemException e) {
+      throw new AmbariException("Caught exception trying to create view instance.", e);
+    } catch (ValidationException e) {
+      // results in a BAD_REQUEST (400) response for the validation failure.
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
+  }
+
+  @Transactional
+  void update(Map<String, Object> properties) throws AmbariException {
+    ViewInstanceEntity instance = toEntity(properties, true);
+    ViewEntity         view     = instance.getViewEntity();
+
+    if (includeInstance(view.getCommonName(), view.getVersion(), instance.getInstanceName(), false)) {
+      try {
+        ViewRegistry.getInstance().updateViewInstance(instance);
+        ViewRegistry.getInstance().updateView(instance);
+      } catch (org.apache.ambari.view.SystemException e) {
+        throw new AmbariException("Caught exception trying to update view instance.", e);
+      } catch (ValidationException e) {
+        // results in a BAD_REQUEST (400) response for the validation failure.
+        throw new IllegalArgumentException(e.getMessage(), e);
+      }
+    }
+
+  }
+
+  @Transactional
+  void delete(Predicate predicate) {
+    Set<String>  requestedIds = getRequestPropertyIds(PropertyHelper.getReadRequest(), predicate);
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+
+    Set<ViewInstanceEntity> viewInstanceEntities = new HashSet<>();
+
+    for (ViewEntity viewEntity : viewRegistry.getDefinitions()){
+      // the view must be in the DEPLOYED state to delete an instance
+      if (viewEntity.isDeployed()) {
+        for (ViewInstanceEntity viewInstanceEntity : viewRegistry.getInstanceDefinitions(viewEntity)){
+          Resource resource = toResource(viewInstanceEntity, requestedIds);
+          if (predicate == null || predicate.evaluate(resource)) {
+            if (includeInstance(viewInstanceEntity, false)) {
+              viewInstanceEntities.add(viewInstanceEntity);
+            }
+          }
+        }
+      }
+    }
+    for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
+      viewRegistry.uninstallViewInstance(viewInstanceEntity);
+    }
+
+  }
+
+
+
 
   // get the icon path
   private static String getIconPath(String contextPath, String iconPath){

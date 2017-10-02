@@ -78,18 +78,18 @@ public class AlertTargetResourceProvider extends
   public static final String ALERT_TARGET_GLOBAL = "AlertTarget/global";
   public static final String ALERT_TARGET_ENABLED = "AlertTarget/enabled";
 
-  private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
+  private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
       Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
 
   /**
    * The property ids for an alert target resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for an alert target resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   static {
     // properties
@@ -124,6 +124,7 @@ public class AlertTargetResourceProvider extends
   /**
    * Constructor.
    */
+  @Inject
   AlertTargetResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
 
@@ -156,7 +157,7 @@ public class AlertTargetResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new HashSet<Resource>();
+    Set<Resource> results = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     if( null == predicate ){
@@ -218,7 +219,7 @@ public class AlertTargetResourceProvider extends
     Set<Resource> resources = getResources(new RequestImpl(null, null, null,
         null), predicate);
 
-    Set<Long> targetIds = new HashSet<Long>();
+    Set<Long> targetIds = new HashSet<>();
 
     for (final Resource resource : resources) {
       Long id = (Long) resource.getPropertyValue(ALERT_TARGET_ID);
@@ -310,7 +311,7 @@ public class AlertTargetResourceProvider extends
       // set the states that this alert target cares about
       final Set<AlertState> alertStateSet;
       if (null != alertStates) {
-        alertStateSet = new HashSet<AlertState>(alertStates.size());
+        alertStateSet = new HashSet<>(alertStates.size());
         for (String state : alertStates) {
           alertStateSet.add(AlertState.valueOf(state));
         }
@@ -332,8 +333,8 @@ public class AlertTargetResourceProvider extends
       if (requestMap.containsKey(ALERT_TARGET_GROUPS)) {
         Collection<Long> groupIds = (Collection<Long>) requestMap.get(ALERT_TARGET_GROUPS);
         if( !groupIds.isEmpty() ){
-          Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
-          List<Long> ids = new ArrayList<Long>(groupIds);
+          Set<AlertGroupEntity> groups = new HashSet<>();
+          List<Long> ids = new ArrayList<>(groupIds);
           groups.addAll(s_dao.findGroupsById(ids));
           entity.setAlertGroups(groups);
         }
@@ -419,7 +420,7 @@ public class AlertTargetResourceProvider extends
       if (alertStates.isEmpty()) {
         alertStateSet = EnumSet.allOf(AlertState.class);
       } else {
-        alertStateSet = new HashSet<AlertState>(alertStates.size());
+        alertStateSet = new HashSet<>(alertStates.size());
         for (String state : alertStates) {
           alertStateSet.add(AlertState.valueOf(state));
         }
@@ -430,8 +431,8 @@ public class AlertTargetResourceProvider extends
 
     // if groups were supplied, replace existing
     if (null != groupIds) {
-      Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
-      List<Long> ids = new ArrayList<Long>(groupIds);
+      Set<AlertGroupEntity> groups = new HashSet<>();
+      List<Long> ids = new ArrayList<>(groupIds);
 
       if (ids.size() > 0) {
         groups.addAll(s_dao.findGroupsById(ids));
@@ -439,7 +440,7 @@ public class AlertTargetResourceProvider extends
 
       entity.setAlertGroups(groups);
     } else if (entity.isGlobal()){
-      Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>(s_dao.findAllGroups());
+      Set<AlertGroupEntity> groups = new HashSet<>(s_dao.findAllGroups());
       entity.setAlertGroups(groups);
     }
 
@@ -486,7 +487,7 @@ public class AlertTargetResourceProvider extends
 
     if (BaseProvider.isPropertyRequested(ALERT_TARGET_GROUPS, requestedIds)) {
       Set<AlertGroupEntity> groupEntities = entity.getAlertGroups();
-      List<AlertGroup> groups = new ArrayList<AlertGroup>(
+      List<AlertGroup> groups = new ArrayList<>(
           groupEntities.size());
 
       for (AlertGroupEntity groupEntity : groupEntities) {
@@ -515,7 +516,7 @@ public class AlertTargetResourceProvider extends
    *         {@code null} if none.
    */
   private Map<String, Object> extractProperties(Map<String, Object> requestMap) {
-    Map<String, Object> normalizedMap = new HashMap<String, Object>(
+    Map<String, Object> normalizedMap = new HashMap<>(
         requestMap.size());
 
     for (Entry<String, Object> entry : requestMap.entrySet()) {
