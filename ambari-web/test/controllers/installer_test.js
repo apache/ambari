@@ -36,8 +36,10 @@ describe('App.InstallerController', function () {
       c = App.InstallerController.create({});
     });
     it('all steps are disabled by default', function () {
-      expect(c.get('isStepDisabled.length')).to.be.above(0);
-      expect(c.get('isStepDisabled').everyProperty('value', true)).to.be.ok;
+      expect(c.get('isStepDisabled.length')).to.eq(c.get('totalSteps'));
+      for (var i = 0, length = c.get('isStepDisabled.length'); i < length; i++) {
+        expect(c.get('isStepDisabled').findProperty('step', i).get('value')).to.eq(true);
+      }
     });
   });
 
@@ -350,7 +352,7 @@ describe('App.InstallerController', function () {
       installerController.setLowerStepsDisable(3);
     });
 
-    it ('Should disable lower steps', function() {
+    it('Should disable lower steps', function() {
       var expected = [
         {
           "step": 0,
@@ -378,6 +380,23 @@ describe('App.InstallerController', function () {
     });
   });
 
+  describe('#totalSteps', function() {
+    beforeEach(function() {
+      installerController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+    });
+
+    it('Should return the number of steps', function() {
+      var totalSteps = installerController.get('totalSteps');
+      expect(totalSteps).to.eq(installerController.get("steps").length);
+    });
+  })
+
   describe('#setStepsEnable', function() {
 
     beforeEach(function () {
@@ -404,7 +423,14 @@ describe('App.InstallerController', function () {
         })
       ]);
       installerController.set('isStepDisabled', steps);
-      installerController.totalSteps = steps.length - 1;
+      installerController.set('steps', [
+        "step0",
+        "step1",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+      //installerController.totalSteps = steps.length - 1;
       installerController.set('currentStep',2);
     });
 
@@ -447,7 +473,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['0'][0].callback.call(checker);
+        installerController.loadMap['step0'][0].callback.call(checker);
       });
 
       it('cluster info is loaded', function () {
@@ -468,7 +494,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['1'][0].callback.call(checker);
+        installerController.loadMap['step1'][0].callback.call(checker);
       });
 
       it('stack info is loaded', function () {
@@ -485,7 +511,7 @@ describe('App.InstallerController', function () {
       };
 
       it('stack versions are loaded', function () {
-        installerController.loadMap['1'][1].callback.call(checker, true).then(function(data){
+        installerController.loadMap['step1'][1].callback.call(checker, true).then(function(data){
           expect(data).to.be.true;
         });
         expect(loadStacksVersions).to.be.false;
@@ -501,7 +527,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['2'][0].callback.call(checker);
+        installerController.loadMap['step2'][0].callback.call(checker);
       });
 
       it('install option are loaded', function () {
@@ -518,7 +544,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['3'][0].callback.call(checker);
+        installerController.loadMap['step3'][0].callback.call(checker);
       });
 
       it('confirmed hosts are loaded', function () {
@@ -535,7 +561,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['4'][0].callback.call(checker);
+        installerController.loadMap['step4'][0].callback.call(checker);
       });
 
       it('services are loaded', function () {
@@ -569,7 +595,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['5'][0].callback.call(checker);
+        installerController.loadMap['step5'][0].callback.call(checker);
       });
 
       it('confirmed hosts are loaded', function() {
@@ -626,7 +652,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['7'][0].callback.call(checker);
+        installerController.loadMap['step7'][0].callback.call(checker);
       });
 
       it('config groups are loaded', function () {
@@ -677,7 +703,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['6'][0].callback.call(checker);
+        installerController.loadMap['step6'][0].callback.call(checker);
       });
 
       it('slave components hosts are loaded', function () {

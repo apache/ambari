@@ -178,7 +178,7 @@ describe('App.serviceMetricsMapper', function () {
           {
             "ServiceComponentInfo" : {
               "component_name" : "STORM_UI_SERVER",
-              "service_name" : "STORM"
+              "service_display_name" : "STORM"
             },
             "metrics" : {
               "api" : {
@@ -231,7 +231,7 @@ describe('App.serviceMetricsMapper', function () {
           {
             "ServiceComponentInfo" : {
               "component_name" : "STORM_REST_API",
-              "service_name" : "STORM"
+              "service_display_name" : "STORM"
             },
             "metrics" : {
               "api" : {

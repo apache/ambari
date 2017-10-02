@@ -73,14 +73,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   },
 
   routePath: function (router, event) {
-    router.setNavigationFlow(event);
+    const stepIndex = installerController.getStepIndex(event)
+    router.setNavigationFlow(stepIndex);
+
     if (!router.isFwdNavigation) {
       this._super(router, event);
     } else {
       router.set('backBtnForHigherStep', true);
 
       var installerController = router.get('installerController');
-      router.transitionTo('step' + installerController.get('currentStep'));
+      router.transitionTo(installerController.get('currentStepName'));
     }
   },
 
@@ -94,7 +96,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step0 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
-      controller.setCurrentStep('0');
+      controller.setCurrentStep('step0');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep0', controller.get('content'));
         self.scrollTop();
@@ -105,7 +107,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     next: function (router) {
       console.time('step0 next');
       var installerController = router.get('installerController');
-      var wizardStep1Controller = router.get('wizardStep1Controller');
       installerController.save('cluster');
       App.db.setStacks(undefined);
       App.db.setRepos(undefined);
@@ -113,6 +114,18 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       App.Stack.find().clear();
 
       installerController.set('content.stacks',undefined);
+      router.transitionTo('step2');
+      console.timeEnd('step0 next');
+    }
+  }),
+
+  step1: Em.Route.extend({
+    route: '/step1',
+    connectOutlets: function (router) {
+      console.time('step1 connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      var wizardStep1Controller = router.get('wizardStep1Controller');
       wizardStep1Controller.set('skipValidationChecked', false);
       wizardStep1Controller.set('optionsToSelect', {
         'usePublicRepo': {
@@ -139,19 +152,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           }
         }
       });
-      router.transitionTo('step1');
-      console.timeEnd('step0 next');
-    }
-  }),
-
-  step1: Em.Route.extend({
-    route: '/step1',
-    connectOutlets: function (router) {
-      console.time('step1 connectOutlets');
-      var self = this;
-      var controller = router.get('installerController'),
-        wizardStep1Controller = router.get('wizardStep1Controller');
-      controller.setCurrentStep('1');
+      controller.setCurrentStep('step1');
       controller.loadAllPriorSteps().done(function () {
         wizardStep1Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep1', controller.get('content'));
@@ -159,7 +160,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step1 connectOutlets');
       });
     },
-    back: Em.Router.transitionTo('step0'),
+    back: Em.Router.transitionTo('step3'),
     next: function (router) {
       console.time('step1 next');
       if(router.get('btnClickInProgress')) {
@@ -172,8 +173,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           App.set('router.nextBtnClickInProgress', true);
           installerController.setDBProperty('service', undefined);
           installerController.setStacks();
-          installerController.clearInstallOptions();
-          router.transitionTo('step2');
+          router.transitionTo('step4');
           console.timeEnd('step1 next');
         });
       }, function() {});
@@ -185,17 +185,18 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router, context) {
       console.time('step2 connectOutlets');
       var self = this;
-      router.setNavigationFlow('step2');
-
       var controller = router.get('installerController');
-      controller.setCurrentStep('2');
+      var newStepIndex = controller.getStepIndex('step2');
+      router.setNavigationFlow(newStepIndex);
+      controller.clearInstallOptions();
+      controller.setCurrentStep('step2');
       controller.loadAllPriorSteps().done(function () {
         self.scrollTop();
         controller.connectOutlet('wizardStep2', controller.get('content'));
         console.timeEnd('step2 connectOutlets');
       });
     },
-    back: Em.Router.transitionTo('step1'),
+    back: Em.Router.transitionTo('step0'),
     next: function (router) {
       console.time('step2 next');
       if (!router.get('btnClickInProgress')) {
@@ -216,7 +217,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step3 connectOutlets');
       var self = this;
       var controller = router.get('installerController');
-      controller.setCurrentStep('3');
+      controller.setCurrentStep('step3');
       controller.loadAllPriorSteps().done(function () {
         var wizardStep3Controller = router.get('wizardStep3Controller');
         wizardStep3Controller.set('wizardController', controller);
@@ -242,7 +243,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           selectedServiceNames: undefined,
           installedServiceNames: undefined
         });
-        router.transitionTo('step4');
+        router.transitionTo('step1');
         console.timeEnd('step3 next');
       }
     },
@@ -266,9 +267,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router, context) {
       console.time('step4 connectOutlets');
       var self = this;
-      router.setNavigationFlow('step4');
       var controller = router.get('installerController');
-      controller.setCurrentStep('4');
+      var newStepIndex = controller.getStepIndex('step4');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('step4');
       controller.loadAllPriorSteps().done(function () {
         var wizardStep4Controller = router.get('wizardStep4Controller');
         wizardStep4Controller.set('wizardController', controller);
@@ -279,7 +281,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function(router) {
-      router.transitionTo('step3');
+      router.transitionTo('step1');
     },
 
     next: function (router) {
@@ -307,15 +309,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router, context) {
       console.time('step5 connectOutlets');
       var self = this;
-      router.setNavigationFlow('step5');
-
       var controller = router.get('installerController');
+      var newStepIndex = controller.getStepIndex('step5');
+      router.setNavigationFlow(newStepIndex);
       var wizardStep5Controller = router.get('wizardStep5Controller');
       wizardStep5Controller.setProperties({
         servicesMasters: [],
         isInitialLayout: true
       });
-      controller.setCurrentStep('5');
+      controller.setCurrentStep('step5');
       controller.loadAllPriorSteps().done(function () {
         wizardStep5Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep5', controller.get('content'));
@@ -350,11 +352,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router, context) {
       console.time('step6 connectOutlets');
       var self = this;
-      router.setNavigationFlow('step6');
-
       var controller = router.get('installerController');
+      var newStepIndex = controller.getStepIndex('step6');
+      router.setNavigationFlow(newStepIndex);
       router.get('wizardStep6Controller').set('hosts', []);
-      controller.setCurrentStep('6');
+      controller.setCurrentStep('step6');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep6', controller.get('content'));
         self.scrollTop();
@@ -397,7 +399,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     enter: function (router) {
       console.time('step7 enter');
       var controller = router.get('installerController');
-      controller.setCurrentStep('7');
+      controller.setCurrentStep('step7');
       console.timeEnd('step7 enter');
     },
 
@@ -458,7 +460,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step8 connectOutlets');
       var controller = router.get('installerController');
       var self = this;
-      controller.setCurrentStep('8');
+      controller.setCurrentStep('step8');
       controller.loadAllPriorSteps().done(function () {
         var wizardStep8Controller = router.get('wizardStep8Controller');
         wizardStep8Controller.set('wizardController', controller);
@@ -500,7 +502,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           wizardStep9Controller = router.get('wizardStep9Controller');
       controller.loadAllPriorSteps().done(function () {
         wizardStep9Controller.loadDoServiceChecksFlag().done(function () {
-          controller.setCurrentStep('9');
+          controller.setCurrentStep('step9');
           if (!App.get('testMode')) {
             controller.setLowerStepsDisable(9);
           }
@@ -562,7 +564,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       controller.loadAllPriorSteps().done(function () {
         if (!App.get('testMode')) {
-          controller.setCurrentStep('10');
+          controller.setCurrentStep('step10');
           controller.setLowerStepsDisable(10);
         }
         controller.connectOutlet('wizardStep10', controller.get('content'));

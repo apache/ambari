@@ -194,11 +194,17 @@ App.Router = Em.Router.extend({
   preferedPath: null,
 
   setNavigationFlow: function (step) {
-    var matches = step.match(/\d+$/);
     var newStep;
-    if (matches) {
-      newStep = parseInt(matches[0], 10);
+
+    if (typeof step !== 'number') {
+      var matches = step.match(/\d+$/);
+      if (matches) {
+        newStep = parseInt(matches[0], 10);
+      }
+    } else {
+      newStep = step;
     }
+    
     var previousStep = parseInt(this.getInstallerCurrentStep(), 10);
     this.set('isFwdNavigation', newStep >= previousStep);
   },

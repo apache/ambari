@@ -1120,7 +1120,7 @@ describe('App.ConfigsSaverMixin', function() {
         header: Em.I18n.t('services.service.config.saved'),
         message: Em.I18n.t('services.service.config.saved.message'),
         messageClass: 'alert alert-success',
-        urlParams: ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count&ServiceComponentInfo/service_name.in(HDFS)'
+        urlParams: ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count&ServiceComponentInfo/service_display_name.in(HDFS)'
       });
     });
 

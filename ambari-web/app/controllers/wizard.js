@@ -73,28 +73,38 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @method setIsStepDisabled
    */
   setIsStepDisabled: function () {
-      this.set('isStepDisabled', Ember.ArrayProxy.create({
-        content:[],
-        isLocked:true,
-        objectAtContent: function(idx) {
-            var obj = this.get('content').objectAt(idx);
-            if (obj && !obj.hasOwnProperty('isLocked')) {
-              obj.reopen({
-                isLocked:true,
-                get:function (key) {
-                  return key === 'value' && this.get('isLocked') || this._super.apply(this,arguments);
-                },
-                notifyValues:function () {
-                  this.notifyPropertyChange('value');
-                }.observes('isLocked')
-              });
-            }
-            return obj;
-        },
-        toggleLock:function () {
-          this.setEach('isLocked',this.get('isLocked'));
-        }.observes('isLocked')
-      }));
+    this.set('isStepDisabled', Ember.ArrayProxy.create({
+      content:[],
+      isLocked:true,
+      objectAtContent: function(idx) {
+          var obj = this.get('content').objectAt(idx);
+          if (obj && !obj.hasOwnProperty('isLocked')) {
+            obj.reopen({
+              isLocked:true,
+              get:function (key) {
+                return key === 'value' && this.get('isLocked') || this._super.apply(this,arguments);
+              },
+              notifyValues:function () {
+                this.notifyPropertyChange('value');
+              }.observes('isLocked')
+            });
+          }
+          return obj;
+      },
+      toggleLock:function () {
+        this.setEach('isLocked',this.get('isLocked'));
+      }.observes('isLocked')
+    }));
+
+    const steps = this.get('steps');
+    if (steps) {
+      for (let i = 0, length = steps.length; i < length; i++) {
+        this.get('isStepDisabled').pushObject(Em.Object.create({
+          step: this.getStepIndex(steps[i]),
+          value: true
+        }));
+      }
+    } else {
       this.get('isStepDisabled').pushObject(Em.Object.create({
         step: 1,
         value: false
@@ -105,6 +115,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           value: true
         }));
       }
+    }
   },
 
   slaveComponents: function () {
@@ -134,7 +145,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   }.property('content.hosts'),
 
   setStepsEnable: function () {
-    for (var i = 1; i <= this.totalSteps; i++) {
+    for (var i = 1; i <= this.get('totalSteps'); i++) {
       var step = this.get('isStepDisabled').findProperty('step', i);
       if (i <= this.get('currentStep')) {
         step.set('value', false);
@@ -142,7 +153,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         step.set('value', true);
       }
     }
-  }.observes('currentStep'),
+  }.observes('currentStep', 'totalSteps'),
 
   /**
    * Enable step link in left nav menu
@@ -153,9 +164,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   setLowerStepsDisable: function (stepNo) {
-    for (var i = 1; i < stepNo; i++) {
+    for (var i = 0; i < stepNo; i++) {
       var step = this.get('isStepDisabled').findProperty('step', i);
-      step.set('value', true);
+      if (step) {
+        step.set('value', true);
+      }
     }
   },
 
@@ -169,63 +182,128 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return App.get('router').getWizardCurrentStep(this.get('name').substr(0, this.get('name').length - 10));
   }.property(),
 
+
+  /**
+   * Get the wizard type based on the wizard name set in the specific controller.
+   * For example, "installerController" will return "installer".
+   *
+   * @return {string}
+   */
+  wizardType: function () {
+    return this.get('name').substr(0, this.get('name').length - 10);
+  }.property('name'),
+
+  /**
+   * Get the name of the current step.
+   *
+   * @return {string}
+   */
+  currentStepName: function () {
+    const index = this.get('currentStep');
+    const steps = this.get('steps');
+
+    if (steps) {
+      return steps[index];
+    }
+
+    //legacy support
+    return 'step' + index;
+  }.property('steps', 'currentStep'),
+
   /**
    * Set current step to new value.
+   * If no new value is provided, it sets current step to same value.
    * Method moved from App.router.setInstallerCurrentStep
    * @param currentStep
    * @param completed
    */
-  setCurrentStep: function (currentStep, completed) {
+  setCurrentStep: function (stepName, completed) {
+    let index = this.get('currentStep');
+    if (typeof stepName === "number" || (typeof stepName === "string" && stepName !== "")) {
+      index = this.getStepIndex(stepName);
+    }
+
     this.set('previousStep', this.get('currentStep'));
-    App.db.setWizardCurrentStep(this.get('name').substr(0, this.get('name').length - 10), currentStep, completed);
-    this.set('currentStep', currentStep);
+    App.db.setWizardCurrentStep(this.get('wizardType'), index, completed);
+    this.set('currentStep', index);
   },
 
   clusters: null,
 
   isStep0: function () {
-    return this.get('currentStep') == 0;
+    return this.get('currentStep') == this.getStepIndex(0);
   }.property('currentStep'),
 
   isStep1: function () {
-    return this.get('currentStep') == 1;
+    return this.get('currentStep') == this.getStepIndex(1);
   }.property('currentStep'),
 
   isStep2: function () {
-    return this.get('currentStep') == 2;
+    return this.get('currentStep') == this.getStepIndex(2);
   }.property('currentStep'),
 
   isStep3: function () {
-    return this.get('currentStep') == 3;
+    return this.get('currentStep') == this.getStepIndex(3);
   }.property('currentStep'),
 
   isStep4: function () {
-    return this.get('currentStep') == 4;
+    return this.get('currentStep') == this.getStepIndex(4);
   }.property('currentStep'),
 
   isStep5: function () {
-    return this.get('currentStep') == 5;
+    return this.get('currentStep') == this.getStepIndex(5);
   }.property('currentStep'),
 
   isStep6: function () {
-    return this.get('currentStep') == 6;
+    return this.get('currentStep') == this.getStepIndex(6);
   }.property('currentStep'),
 
   isStep7: function () {
-    return this.get('currentStep') == 7;
+    return this.get('currentStep') == this.getStepIndex(7);
   }.property('currentStep'),
 
   isStep8: function () {
-    return this.get('currentStep') == 8;
+    return this.get('currentStep') == this.getStepIndex(8);
   }.property('currentStep'),
 
   isStep9: function () {
-    return this.get('currentStep') == 9;
+    return this.get('currentStep') == this.getStepIndex(9);
   }.property('currentStep'),
 
   isStep10: function () {
-    return this.get('currentStep') == 10;
+    return this.get('currentStep') == this.getStepIndex(10);
   }.property('currentStep'),
+
+  /**
+   * Get the index of the step named <code>name</code> in the current wizard
+   * by looking up <code>name</code> in the specific wizard controller's <code>steps</code> array.
+   * For backwards compatibility, if name parses to an integer, it simply returns name.
+   *
+   * @param name
+   * @return {number} index of step or -1 if not found
+   */
+  getStepIndex: function (name) {
+    if (typeof name === "number" || (typeof name === "string" && name !== "")) {
+      const steps = this.get('steps');
+      const isInt = value => !isNaN(value) && parseInt(value, 10) == value;
+
+      if (isInt(name)) {
+        return parseInt(name, 10);
+      }
+
+      if (steps) {
+        return steps.indexOf(name);
+      }
+
+      name = name.toString();
+      var matches = name.match(/\d+$/);
+      if (matches) {
+        return parseInt(matches[0], 10);
+      }
+    }
+
+    return name;
+  },
 
   /**
    * Move user to the selected step
@@ -234,20 +312,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @param {boolean} disableNaviWarning true - don't show warning about moving more than 1 step back
    * @returns {boolean}
    */
-  gotoStep: function (step, disableNaviWarning) {
-    if (this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
+  gotoStep: function (stepName, disableNaviWarning) {
+    const step = this.getStepIndex(stepName);
+
+    if (step === -1 || this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
       return false;
     }
-    // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
-    // to Step 9
-    if (this.get('content.controllerName') === 'installerController' && this.get('currentStep') === '9' && step < 9) {
-      App.clusterStatus.setClusterStatus({
-        clusterName: this.get('clusterName'),
-        clusterState: 'CLUSTER_NOT_CREATED_1',
-        wizardControllerName: 'installerController',
-        localdb: {}
-      });
-    }
+
     if ((this.get('currentStep') - step) > 1 && !disableNaviWarning) {
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),
@@ -260,6 +331,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     } else {
       App.router.send('gotoStep' + step);
     }
+
     return true;
   },
 
@@ -1194,9 +1266,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var operationStack = [];
     var dfd = $.Deferred();
 
-    for (var s in loadMap) {
-      if (parseInt(s, 10) <= parseInt(currentStep, 10)) {
-        operationStack.pushObjects(loadMap[s]);
+    for (var stepName in loadMap) {
+      var stepIndex = this.getStepIndex(stepName);
+      if (stepIndex <= parseInt(currentStep, 10)) {
+        operationStack.pushObjects(loadMap[stepName]);
       }
     }
 

@@ -50,30 +50,30 @@ App.RouterRedirections = Em.Mixin.create({
     switch (currentClusterStatus.clusterState) {
       case 'CLUSTER_NOT_CREATED_1' :
         App.get('router').setAuthenticated(true);
-        router.transitionTo(path + 'step' + installerController.get('currentStep'));
+        router.transitionTo(path + installerController.get('currentStepName'));
         break;
       case 'CLUSTER_DEPLOY_PREP_2' :
-        installerController.setCurrentStep('8');
+        installerController.setCurrentStep('step8');
         App.db.data = currentClusterStatus.localdb;
         App.get('router').setAuthenticated(true);
-        router.transitionTo(path + 'step' + installerController.get('currentStep'));
+        router.transitionTo(path + installerController.get('currentStepName'));
         break;
       case 'CLUSTER_INSTALLING_3' :
       case 'SERVICE_STARTING_3' :
         if (!installerController.get('isStep9')) {
-          installerController.setCurrentStep('9');
+          installerController.setCurrentStep('step9');
           installerController.setLowerStepsDisable(9);
         }
-        router.transitionTo(path + 'step' + installerController.get('currentStep'));
+        router.transitionTo(path + installerController.get('currentStepName'));
         break;
       case 'CLUSTER_INSTALLED_4' :
         if (!installerController.get('isStep10')) {
-          installerController.setCurrentStep('10');
+          installerController.setCurrentStep('step10');
           installerController.setLowerStepsDisable(10);
         }
         App.db.data = currentClusterStatus.localdb;
         App.get('router').setAuthenticated(true);
-        router.transitionTo(path + 'step' + installerController.get('currentStep'));
+        router.transitionTo(path + installerController.get('currentStepName'));
         break;
     }
   }

@@ -22,14 +22,9 @@ require('views/installer');
 
 var view,
   stepsCount = 11,
-  isStepDisabled = [],
   properties = [];
 
 for (var i = 0; i < stepsCount; i++ ) {
-  isStepDisabled.push(Em.Object.create({
-    step: i,
-    value: Boolean(Math.floor(Math.random() * 2))
-  }));
   properties.push('isStep' + i + 'Disabled');
 }
 
@@ -37,16 +32,15 @@ describe('App.InstallerView', function () {
 
   beforeEach(function () {
     view = App.InstallerView.create({
-      controller: {
-        isStepDisabled: isStepDisabled
-      }
+      controller: App.InstallerController.create()
     });
   });
 
   properties.forEach(function (item, index) {
     describe(item, function () {
       it('should take value from isStepDisabled', function () {
-        expect(view.get(item)).to.equal(isStepDisabled.findProperty('step', index).get('value'));
+        var result = view.get('controller.isStepDisabled').findProperty('step', index);
+        expect(view.get(item)).to.equal(result.get('value'));
       });
     });
   });

@@ -452,12 +452,19 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
    * @method disablePreviousSteps
    */
   disablePreviousSteps: function () {
-    App.router.get('installerController.isStepDisabled').filter(function (step) {
-      return step.step >= 0 && step.step <= 2;
-    }).setEach('value', this.get('isBackDisabled'));
-    App.router.get('addHostController.isStepDisabled').filter(function (step) {
-      return step.step >= 0 && step.step <= 1;
-    }).setEach('value', this.get('isBackDisabled'));
+    var currentStep = this.get("wizardController.currentStep");
+
+    if (this.get("wizardType") === "installer") {
+      App.router.get('installerController.isStepDisabled').filter(function (step) {
+        return step.step >= 0 && step.step < currentStep;
+      }).setEach('value', this.get('isBackDisabled'));
+    }
+
+    if (this.get("wizardType") === "addHost") {
+      App.router.get('addHostController.isStepDisabled').filter(function (step) {
+        return step.step >= 0 && step.step < currentStep;
+      }).setEach('value', this.get('isBackDisabled'));
+    }
   }.observes('isBackDisabled'),
 
   /**

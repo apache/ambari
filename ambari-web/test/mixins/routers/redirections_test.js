@@ -26,9 +26,30 @@ describe('App.RouterRedirections', function () {
 
     installerController = Em.Object.create({
       currentStep: '',
-      totalSteps: 11,
+      currentStepName: function () {
+        const index = this.get('currentStep');
+        const steps = this.get('steps');
+
+        if (steps) {
+          return steps[index];
+        }
+
+        //legacy support
+        return 'step' + index;
+      }.property('steps', 'currentStep'),
+      steps: App.router.get('installerController.steps'),
+      totalSteps: function() {
+        const steps = this.get("steps");
+
+        if (steps) {
+          return steps.length;
+        }
+
+        return 0;
+      }.property('steps.[]'),
+      getStepIndex: App.router.get('installerController.getStepIndex'),
       setCurrentStep: function (k) {
-        this.set('currentStep', k);
+        this.set('currentStep', this.getStepIndex(k));
       }
     });
     App.router.get('installerController').setIsStepDisabled.call(installerController);
@@ -63,14 +84,14 @@ describe('App.RouterRedirections', function () {
 
     it('CLUSTER_NOT_CREATED_1. user is on installer', function () {
       currentClusterStatus.clusterState = 'CLUSTER_NOT_CREATED_1';
-      installerController.set('currentStep', '4');
+      installerController.setCurrentStep('step4');
       router.redirectToInstaller(router, currentClusterStatus, true);
       expect(router.transitionTo.calledWith('step4')).to.be.true;
     });
 
     it('CLUSTER_NOT_CREATED_1. user is not on installer', function () {
       currentClusterStatus.clusterState = 'CLUSTER_NOT_CREATED_1';
-      installerController.set('currentStep', '4');
+      installerController.setCurrentStep('step4');
       router.redirectToInstaller(router, currentClusterStatus, false);
       expect(router.transitionTo.calledWith('installer.step4')).to.be.true;
     });

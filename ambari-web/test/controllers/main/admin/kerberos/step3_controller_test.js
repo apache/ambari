@@ -102,7 +102,7 @@ describe('App.KerberosWizardStep3Controller', function() {
         data: {
           context: Em.I18n.t('requestInfo.kerberosService'),
           ServiceInfo: {"state": "INSTALLED"},
-          urlParams: "ServiceInfo/state=INSTALLED&ServiceInfo/service_name=KERBEROS"
+          urlParams: "ServiceInfo/state=INSTALLED&ServiceInfo/service_display_name=KERBEROS"
         },
         success: 'startPolling',
         error: 'onTaskError'

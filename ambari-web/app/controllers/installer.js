@@ -27,7 +27,29 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   isCheckInProgress: false,
 
-  totalSteps: 11,
+  totalSteps: function() {
+    const steps = this.get("steps");
+
+    if (steps) {
+      return steps.length;
+    }
+
+    return 0;
+  }.property('steps.[]'),
+
+  steps: [
+    "step0",
+    "step2",
+    "step3",
+    "step1",
+    "step4",
+    "step5",
+    "step6",
+    "step7",
+    "step8",
+    "step9",
+    "step10"
+  ],
 
   content: Em.Object.create({
     cluster: null,
@@ -49,7 +71,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
      */
     recommendations: null,
     /**
-     * recommendationsHostGroups - current component assignment after 5 and 6 steps, 
+     * recommendationsHostGroups - current component assignment after 5 and 6 steps,
      * or adding hiveserver2 interactive on "configure services" page
      * (uses for host groups validation and to load recommended configs)
      */
@@ -90,11 +112,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   init: function () {
     this._super();
-    this.get('isStepDisabled').setEach('value', true);
-    this.get('isStepDisabled').pushObject(Ember.Object.create({
-      step: 0,
-      value: true
-    }));
+
+    //enable first step, which is at index 0 in this wizard
+    const stepAtIndex0 = this.get('isStepDisabled').findProperty('step', 0)
+    if (stepAtIndex0) {
+      stepAtIndex0.set('value', false);
+    }
   },
   /**
    * redefined connectOutlet method to avoid view loading by unauthorized user
@@ -916,7 +939,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   loadMap: {
-    '0': [
+    'step0': [
       {
         type: 'sync',
         callback: function () {
@@ -924,7 +947,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    '1': [
+    'step1': [
       {
         type: 'async',
         callback: function () {
@@ -958,7 +981,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    '2': [
+    'step2': [
       {
         type: 'sync',
         callback: function () {
@@ -966,7 +989,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    '3': [
+    'step3': [
       {
         type: 'sync',
         callback: function () {
@@ -974,7 +997,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    '4': [
+    'step4': [
       {
         type: 'async',
         callback: function () {
@@ -982,7 +1005,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    '5': [
+    'step5': [
       {
         type: 'sync',
         callback: function () {
@@ -994,7 +1017,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    '6': [
+    'step6': [
       {
         type: 'sync',
         callback: function () {
@@ -1005,7 +1028,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    '7': [
+    'step7': [
       {
         type: 'async',
         callback: function () {
@@ -1025,6 +1048,108 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     ]
   },
 
+  gotoStep: function(stepName, disableNaviWarning) {
+    // if going back from Step 9, delete the checkpoint so that the user is not redirected to Step 9
+    const step9Index = this.getStepIndex("step9");
+    if (this.get('currentStep') === step9Index && this.getStepIndex(stepName) < step9Index) {
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('clusterName'),
+        clusterState: 'CLUSTER_NOT_CREATED_1',
+        wizardControllerName: 'installerController',
+        localdb: {}
+      });
+    }
+
+    return this._super(stepName, disableNaviWarning);
+  },
+
+  gotoStep0: function () {
+    this.gotoStep('step0');
+  },
+
+  gotoStep1: function () {
+    this.gotoStep('step1');
+  },
+
+  gotoStep2: function () {
+    this.gotoStep('step2');
+  },
+
+  gotoStep3: function () {
+    this.gotoStep('step3');
+  },
+
+  gotoStep4: function () {
+    this.gotoStep('step4');
+  },
+
+  gotoStep5: function () {
+    this.gotoStep('step5');
+  },
+
+  gotoStep6: function () {
+    this.gotoStep('step6');
+  },
+
+  gotoStep7: function () {
+    this.gotoStep('step7');
+  },
+
+  gotoStep8: function () {
+    this.gotoStep('step8');
+  },
+
+  gotoStep9: function () {
+    this.gotoStep('step9');
+  },
+
+  gotoStep10: function () {
+    this.gotoStep('step10');
+  },
+
+  isStep0: function () {
+    return this.get('currentStep') == this.getStepIndex('step0');
+  }.property('currentStep'),
+
+  isStep1: function () {
+    return this.get('currentStep') == this.getStepIndex('step1');
+  }.property('currentStep'),
+
+  isStep2: function () {
+    return this.get('currentStep') == this.getStepIndex('step2');
+  }.property('currentStep'),
+
+  isStep3: function () {
+    return this.get('currentStep') == this.getStepIndex('step3');
+  }.property('currentStep'),
+
+  isStep4: function () {
+    return this.get('currentStep') == this.getStepIndex('step4');
+  }.property('currentStep'),
+
+  isStep5: function () {
+    return this.get('currentStep') == this.getStepIndex('step5');
+  }.property('currentStep'),
+
+  isStep6: function () {
+    return this.get('currentStep') == this.getStepIndex('step6');
+  }.property('currentStep'),
+
+  isStep7: function () {
+    return this.get('currentStep') == this.getStepIndex('step7');
+  }.property('currentStep'),
+
+  isStep8: function () {
+    return this.get('currentStep') == this.getStepIndex('step8');
+  }.property('currentStep'),
+
+  isStep9: function () {
+    return this.get('currentStep') == this.getStepIndex('step9');
+  }.property('currentStep'),
+
+  isStep10: function () {
+    return this.get('currentStep') == this.getStepIndex('step10');
+  }.property('currentStep'),
 
   clearConfigActionComponents: function() {
     var masterComponentHosts = this.get('content.masterComponentHosts');
@@ -1065,18 +1190,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   setStepsEnable: function () {
-    for (var i = 0; i <= this.totalSteps; i++) {
-      this.get('isStepDisabled').findProperty('step', i).set('value', i > this.get('currentStep'));
+    const steps = this.get('steps');
+    for (let i = 0, length = steps.length; i < length; i++) {
+      const stepIndex = this.getStepIndex(steps[i]);
+      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepIndex > this.get('currentStep'));
     }
   }.observes('currentStep'),
-
-  setLowerStepsDisable: function (stepNo) {
-    for (var i = 0; i < stepNo; i++) {
-      var step = this.get('isStepDisabled').findProperty('step', i);
-      step.set('value', true);
-    }
-  },
-
 
   /**
    * Compare jdk versions used for ambari and selected stack.

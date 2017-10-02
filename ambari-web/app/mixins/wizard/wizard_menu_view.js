@@ -32,11 +32,13 @@ function isStepCompleted(index) {
 
 App.WizardMenuMixin = Em.Mixin.create({
 
-  isStepDisabled: function (index) {
+  isStepDisabled: function (stepName) {
+    let index = this.get('controller').getStepIndex(stepName);
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   },
 
-  isStepCompleted(index) {
+  isStepCompleted(stepName) {
+    let index = this.get('controller').getStepIndex(stepName);
     return this.get('controller.currentStep') > index;
   },
 

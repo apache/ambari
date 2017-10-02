@@ -405,6 +405,80 @@ describe('App.WizardController', function () {
     });
   });
 
+  describe('#wizardType', function() {
+    it('Should return wizard type', function() {
+      c.set('name', 'wizardController');
+      expect(c.get('wizardType')).to.eq('wizard');
+    });
+  });
+
+  describe('#currentStepName', function() {
+    it('Should return the step name at the index of currentStep', function() {
+      var wizardController = App.WizardController.create({
+        currentStep: 1,
+        steps: [
+          "dog",
+          "cat",
+          "fish"
+        ]
+      });
+
+      var currentStepName = wizardController.get('currentStepName');
+
+      expect(currentStepName).to.eq("cat");
+    });
+
+    it('Should return "step" + currentStep if there is no steps array for legacy support', function () {
+      var wizardController = App.WizardController.create({ currentStep: 1 });
+
+      var currentStepName = wizardController.get('currentStepName');
+
+      expect(currentStepName).to.eq("step" + wizardController.get('currentStep'));
+    });
+  });
+
+  describe('#getStepIndex when steps is not defined', function() {
+    it('Should return name when name does not contain an integer', function() {
+      var index = c.getStepIndex("cat");
+      expect(index).to.eq("cat");
+    });
+
+    it('Should return integer for step name as a string that parses to an integer', function() {
+      var index = c.getStepIndex("2");
+      expect(index).to.eq(2);
+    });
+
+    it('Should return integer for step name as an integer', function() {
+      var index = c.getStepIndex(2);
+      expect(index).to.eq(2);
+    });
+  });
+
+  describe('#getStepIndex when steps is defined', function() {
+    beforeEach(function() {
+      //we can name steps arbitrarily
+      c.set('steps', [
+        "dog",
+        "cat",
+        "fish"
+      ]);
+    });
+
+    it('Should return index for step name as a string', function() {
+      var index = c.getStepIndex("cat");
+      expect(index).to.eq(1);
+    });
+
+    it('Should return -1 for step name that is not found', function() {
+      var index = c.getStepIndex("bird");
+      expect(index).to.eq(-1);
+    });
+
+    afterEach(function() {
+      c.set('steps', undefined);
+    })
+  });
+
   describe('#gotoStep0', function () {
     var res;
     beforeEach(function(){
@@ -584,8 +658,8 @@ describe('App.WizardController', function () {
   describe('#gotoStep', function () {
     beforeEach(function(){
       sinon.stub(App.ModalPopup,'show', Em.K);
-      sinon.stub(App.clusterStatus,'setClusterStatus', Em.K);  
-      sinon.stub(App.router,'send', Em.K);  
+      sinon.stub(App.clusterStatus,'setClusterStatus', Em.K);
+      sinon.stub(App.router,'send', Em.K);
     });
     afterEach(function(){
       App.ModalPopup.show.restore();
@@ -595,14 +669,13 @@ describe('App.WizardController', function () {
     it('should go to step', function () {
       wizardController.set('isStepDisabled', Em.A([
         Em.Object.create({
-          step: '8',
+          step: 8,
           value: false
         })
       ]));
       wizardController.hide = Em.K;
       wizardController.set('content.controllerName','installerController');
       wizardController.set('currentStep','9');
-
       expect(wizardController.gotoStep('8')).to.be.true;
     });
   });
@@ -898,7 +971,7 @@ describe('App.WizardController', function () {
         res = data;
       });
     });
-    
+
     afterEach(function () {
       App.StackService.find.restore();
       App.Service.find.restore();
@@ -931,7 +1004,7 @@ describe('App.WizardController', function () {
           installedServiceNames: ['c','d']
         };
       });
-      sinon.stub(App.stackServiceMapper, 'mapStackServices', Em.K); 
+      sinon.stub(App.stackServiceMapper, 'mapStackServices', Em.K);
     });
     afterEach(function () {
       wizardController.getDBProperties.restore();

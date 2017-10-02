@@ -24,9 +24,7 @@ describe('App.WizardMenuMixin', function () {
 
   beforeEach(function () {
     view = Em.View.create(App.WizardMenuMixin, {
-      controller: Em.Object.create({
-        isStepDisabled: []
-      })
+      controller: App.WizardController.create()
     });
   });
 
