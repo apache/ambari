@@ -19,31 +19,17 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
-import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
-import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
-import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
-import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
-import org.apache.ambari.server.orm.entities.HostGroupEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.gson.Gson;
+import java.util.*;
 
 /**
  * Blueprint implementation.
@@ -52,7 +38,10 @@ public class BlueprintImpl implements Blueprint {
 
   private String name;
   private Map<String, HostGroup> hostGroups = new HashMap<>();
-  private Stack stack;
+
+  private Collection<RepositoryVersion> repositoryVersions = new ArrayList<>();
+  private Collection<ServiceGroup> serviceGroups = new ArrayList<>();
+
   private Configuration configuration;
   private BlueprintValidator validator;
   private SecurityConfiguration security;
@@ -85,7 +74,6 @@ public class BlueprintImpl implements Blueprint {
   public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration,
                        SecurityConfiguration security, Setting setting) {
     this.name = name;
-    this.stack = stack;
     this.security = security;
 
     // caller should set host group configs
@@ -103,14 +91,6 @@ public class BlueprintImpl implements Blueprint {
 
   public String getName() {
     return name;
-  }
-
-  public String getStackName() {
-    return stack.getName();
-  }
-
-  public String getStackVersion() {
-    return stack.getVersion();
   }
 
   public SecurityConfiguration getSecurity() {
@@ -137,6 +117,25 @@ public class BlueprintImpl implements Blueprint {
   @Override
   public Setting getSetting() {
     return setting;
+  }
+
+  @Override
+  public Collection<Stack> getStacks() {
+    Collection<Stack> stackList = new ArrayList<>();
+    for (RepositoryVersion repoVersion : repositoryVersions) {
+      stackList.add(repoVersion.getStack());
+    }
+    return stackList;
+  }
+
+  @Override
+  public Collection<RepositoryVersion> getRepositoryVersions() {
+    return repositoryVersions;
+  }
+
+  @Override
+  public Collection<ServiceGroup> getServiceGroups() {
+    return serviceGroups;
   }
 
   /**
@@ -333,12 +332,8 @@ public class BlueprintImpl implements Blueprint {
       }
     }
 
-    //todo: not using stackDAO so stackEntity.id is not set
-    //todo: this is now being set in BlueprintDAO
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName(stack.getName());
-    stackEntity.setStackVersion(stack.getVersion());
-    entity.setStack(stackEntity);
+    //todo: create repoVersion entities
+    //todo: persits serviceGroup/service entities
 
     createHostGroupEntities(entity);
     createBlueprintConfigEntities(entity);

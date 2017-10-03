@@ -19,32 +19,47 @@
 package org.apache.ambari.server.topology;
 
 
-import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.controller.internal.Stack;
 
-public class Component {
+import java.util.Set;
+
+public class Service {
+
+  private final String type;
 
   private final String name;
 
-  private final Service service;
-
-  private final ProvisionAction provisionAction;
+  private final Stack stack;
 
   private final Configuration configuration;
 
-  public Component(String name, Service service) {
-    this(name, service, null, null);
-  }
+  private final Set<Service> dependentServices;
 
-
-  public Component(String name, Service service, ProvisionAction provisionAction, Configuration configuration) {
-    this.name = name;
-    this.service = service;
-    this.provisionAction = provisionAction;
-    this.configuration = configuration;
+  public Service(String type, Stack stack) {
+    this(type, null, stack, null, null);
   }
 
   /**
-   * Gets the name of this component
+   * In case there's no name specified name will be set to type.
+   * @param type
+   * @param name
+   * @param stack
+   * @param configuration
+   */
+  public Service(String type, String name, Stack stack, Configuration configuration, Set<Service> dependentServices) {
+    this.type = type;
+    if (name == null) {
+      this.name = type;
+    } else {
+      this.name = name;
+    }
+    this.stack = stack;
+    this.configuration = configuration;
+    this.dependentServices = dependentServices;
+  }
+
+  /**
+   * Gets the name of this service
    *
    * @return component name
    */
@@ -52,18 +67,12 @@ public class Component {
     return this.name;
   }
 
-  /**
-   * Gets the provision action associated with this component.
-   *
-   * @return the provision action for this component, which
-   *         may be null if the default action is to be used
-   */
-  public ProvisionAction getProvisionAction() {
-    return this.provisionAction;
+  public String getType() {
+    return type;
   }
 
-  public Service getService() {
-    return service;
+  public Stack getStack() {
+    return stack;
   }
 
   public Configuration getConfiguration() {

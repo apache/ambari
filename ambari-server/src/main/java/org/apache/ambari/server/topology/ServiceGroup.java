@@ -19,32 +19,32 @@
 package org.apache.ambari.server.topology;
 
 
-import org.apache.ambari.server.controller.internal.ProvisionAction;
+import java.util.Collection;
+import java.util.Set;
 
-public class Component {
+public class ServiceGroup {
 
   private final String name;
 
-  private final Service service;
-
-  private final ProvisionAction provisionAction;
+  private final Collection<Service> services;
 
   private final Configuration configuration;
 
-  public Component(String name, Service service) {
-    this(name, service, null, null);
+  private final Set<ServiceGroup> dependencies;
+
+  public ServiceGroup(String name, Collection<Service> services) {
+    this(name, services, null, null);
   }
 
-
-  public Component(String name, Service service, ProvisionAction provisionAction, Configuration configuration) {
+  public ServiceGroup(String name, Collection<Service> services, Configuration configuration, Set<ServiceGroup> dependencies) {
     this.name = name;
-    this.service = service;
-    this.provisionAction = provisionAction;
+    this.services = services;
     this.configuration = configuration;
+    this.dependencies = dependencies;
   }
 
   /**
-   * Gets the name of this component
+   * Gets the name of this service group
    *
    * @return component name
    */
@@ -52,21 +52,16 @@ public class Component {
     return this.name;
   }
 
-  /**
-   * Gets the provision action associated with this component.
-   *
-   * @return the provision action for this component, which
-   *         may be null if the default action is to be used
-   */
-  public ProvisionAction getProvisionAction() {
-    return this.provisionAction;
-  }
 
-  public Service getService() {
-    return service;
+  public Collection<Service> getServices() {
+    return services;
   }
 
   public Configuration getConfiguration() {
     return configuration;
+  }
+
+  public Set<ServiceGroup> getDependencies() {
+    return dependencies;
   }
 }

@@ -87,7 +87,7 @@ public class HostGroupImpl implements HostGroup {
 
     // process each component
     for (Component component : components) {
-      addComponent(component.getName(), component.getProvisionAction());
+      addComponent(component.getName(), component.getService(), component.getProvisionAction());
     }
 
     this.configuration = configuration;
@@ -155,8 +155,8 @@ public class HostGroupImpl implements HostGroup {
    * @return true if component was added; false if component already existed
    */
   @Override
-  public boolean addComponent(String component) {
-    return this.addComponent(component, null);
+  public boolean addComponent(String component, Service service) {
+    return this.addComponent(component, service);
   }
 
   /**
@@ -168,10 +168,10 @@ public class HostGroupImpl implements HostGroup {
    *
    * @return true if component was added; false if component already existed
    */
-  public boolean addComponent(String component, ProvisionAction provisionAction) {
+  public boolean addComponent(String component, Service service, ProvisionAction provisionAction) {
     boolean added;
     if (!components.containsKey(component)) {
-      components.put(component, new Component(component, provisionAction));
+      components.put(component, new Component(component, service, provisionAction, null));
       added = true;
     } else {
       added = false;
@@ -248,12 +248,13 @@ public class HostGroupImpl implements HostGroup {
   /**
    * Parse component information.
    */
+  //TODO set service
   private void parseComponents(HostGroupEntity entity) {
     for (HostGroupComponentEntity componentEntity : entity.getComponents() ) {
       if (componentEntity.getProvisionAction() != null) {
-        addComponent(componentEntity.getName(), ProvisionAction.valueOf(componentEntity.getProvisionAction()));
+        addComponent(componentEntity.getName(), null, ProvisionAction.valueOf(componentEntity.getProvisionAction()));
       } else {
-        addComponent(componentEntity.getName());
+        addComponent(componentEntity.getName(), null);
       }
 
 

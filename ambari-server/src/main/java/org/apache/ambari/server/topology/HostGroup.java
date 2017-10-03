@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.Collection;
-import java.util.regex.Pattern;
-
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
+
+import java.util.Collection;
+import java.util.regex.Pattern;
 
 /**
  * Host Group representation.
@@ -97,7 +97,7 @@ public interface HostGroup {
    *
    * @return true if the component didn't already exist
    */
-  boolean addComponent(String component);
+  boolean addComponent(String component, Service service);
 
   /**
    * Add a component to the host group, with the specified name
@@ -107,7 +107,7 @@ public interface HostGroup {
    * @param provisionAction provision action for this component
    * @return
    */
-  boolean addComponent(String component, ProvisionAction provisionAction);
+  boolean addComponent(String component, Service service, ProvisionAction provisionAction);
 
   /**
    * Determine if the host group contains a master component.
