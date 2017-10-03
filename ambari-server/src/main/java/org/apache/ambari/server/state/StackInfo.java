@@ -437,14 +437,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     this.widgetsDescriptorFileLocation = widgetsDescriptorFileLocation;
   }
 
-  public String getStackHooksFolder() {
-    return stackHooksFolder;
-  }
-
-  public void setStackHooksFolder(String stackHooksFolder) {
-    this.stackHooksFolder = stackHooksFolder;
-  }
-
   /**
    * Set the path of the stack upgrade directory.
    *

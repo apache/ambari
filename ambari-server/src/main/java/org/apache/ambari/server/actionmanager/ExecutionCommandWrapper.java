@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+import static org.apache.ambari.server.stack.StackManager.DEFAULT_HOOKS_FOLDER;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -268,7 +269,7 @@ public class ExecutionCommandWrapper {
           stackId.getStackVersion());
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
-          commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+          commandParams.put(HOOKS_FOLDER, DEFAULT_HOOKS_FOLDER);
         }
 
         if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {

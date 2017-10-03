@@ -818,7 +818,7 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
 
   print_info_msg("Management pack {0}-{1} successfully installed! Please restart ambari-server.".format(mpack_name, mpack_version))
   return mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path
-
+# TODO
 def _execute_hook(mpack_metadata, hook_name, base_dir):
   if "hooks" in mpack_metadata:
     hooks = mpack_metadata["hooks"]

@@ -79,6 +79,11 @@ public class StackManager {
   public static final String COMMON_SERVICES = "common-services";
 
   /**
+   * Prefix used for common stack hooks parent path string
+   */
+  public static final String DEFAULT_HOOKS_FOLDER = "stack-hooks";
+
+  /**
    * Prefix used for extension services parent path string
    */
   public static final String EXTENSIONS = "extensions";

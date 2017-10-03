@@ -72,10 +72,6 @@ public class StackDirectory extends StackDefinitionDirectory {
    * Filename for theme file at service layer
    */
   public static final String SERVICE_THEME_FILE_NAME = "theme.json";
-  /**
-   * hooks directory path
-   */
-  private String hooksDir;
 
   /**
    * upgrades directory path
@@ -142,15 +138,10 @@ public class StackDirectory extends StackDefinitionDirectory {
    */
   ModuleFileUnmarshaller unmarshaller = new ModuleFileUnmarshaller();
 
-  /**
-   * name of the hooks directory
-   */
-  public static final String HOOKS_FOLDER_NAME = "hooks";
   public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String s) {
-      return !(s.equals(".svn") || s.equals(".git") ||
-          s.equals(HOOKS_FOLDER_NAME));
+      return !(s.equals(".svn") || s.equals(".git"));
     }
   };
 
@@ -203,15 +194,6 @@ public class StackDirectory extends StackDefinitionDirectory {
    */
   public String getStackDirName() {
     return getDirectory().getParentFile().getName();
-  }
-
-  /**
-   * Obtain the hooks directory path.
-   *
-   * @return hooks directory path
-   */
-  public String getHooksDir() {
-    return hooksDir;
   }
 
   /**
@@ -327,19 +309,10 @@ public class StackDirectory extends StackDefinitionDirectory {
    */
   private void parsePath() throws AmbariException {
     Collection<String> subDirs = Arrays.asList(directory.list());
-    if (subDirs.contains(HOOKS_FOLDER_NAME)) {
-      // hooksDir is expected to be relative to stack root
-      hooksDir = getStackDirName() + File.separator + getName() +
-          File.separator + HOOKS_FOLDER_NAME;
-    } else {
-      LOG.debug("Hooks folder {}{}" + HOOKS_FOLDER_NAME + " does not exist", getAbsolutePath(), File.separator);
-    }
-
     if (subDirs.contains(RCO_FILE_NAME)) {
       // rcoFile is expected to be absolute
       rcoFilePath = getAbsolutePath() + File.separator + RCO_FILE_NAME;
     }
-
 
     if (subDirs.contains(KERBEROS_DESCRIPTOR_FILE_NAME)) {
       // kerberosDescriptorFilePath is expected to be absolute

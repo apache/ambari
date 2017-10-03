@@ -43,6 +43,7 @@ PATH_TO_STACKS = "main/resources/stacks/HDP"
 PATH_TO_STACK_TESTS = "test/python/stacks/"
 
 PATH_TO_COMMON_SERVICES = "main/resources/common-services"
+PATH_TO_STACK_HOOKS = "main/resources/stack-hooks"
 
 PATH_TO_CUSTOM_ACTIONS = "main/resources/custom_actions"
 PATH_TO_CUSTOM_ACTION_TESTS = "test/python/custom_actions"
@@ -61,6 +62,9 @@ class RMFTestCase(TestCase):
 
   # build all paths to test common services scripts
   TARGET_COMMON_SERVICES = 'TARGET_COMMON_SERVICES'
+
+  # build all paths to test common services scripts
+  TARGET_STACK_HOOKS = 'TARGET_STACK_HOOKS'
 
   def executeScript(self, path, classname=None, command=None, config_file=None,
                     config_dict=None,
@@ -193,6 +197,10 @@ class RMFTestCase(TestCase):
       return base_path, configs_path
     elif target == self.TARGET_COMMON_SERVICES:
       base_path = os.path.join(src_dir, PATH_TO_COMMON_SERVICES)
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+      return base_path, configs_path
+    elif target == self.TARGET_STACK_HOOKS:
+      base_path = os.path.join(src_dir, PATH_TO_STACK_HOOKS)
       configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
       return base_path, configs_path
     else:

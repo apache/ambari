@@ -44,6 +44,7 @@
     <customActionsRoot>src/main/resources/custom_actions</customActionsRoot>
     <ambariProperties>conf/unix/ambari.properties</ambariProperties>
     <commonServicesSrcLocation>src/main/resources/common-services</commonServicesSrcLocation>
+    <stackHooksLocation>src/main/resources/stack-hooks</stackHooksLocation>
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
@@ -1067,6 +1068,7 @@
         <ambariProperties>target/pluggable-stack-definition/conf/unix/ambari.properties</ambariProperties>
         <resourceManagementSrcLocation>target/pluggable-stack-definition/python/resource_management</resourceManagementSrcLocation>
         <commonServicesSrcLocation>target/pluggable-stack-definition/common-services</commonServicesSrcLocation>
+        <stackHooksLocation>target/pluggable-stack-definition/stack-hooks</stackHooksLocation>
         <stacksSrcLocation>target/pluggable-stack-definition/stacks/${stack.distribution}</stacksSrcLocation>
         <resourcesSrcLocation>src/main/resources</resourcesSrcLocation>
         <tarballResourcesFolder>target/pluggable-stack-definition</tarballResourcesFolder>

@@ -59,7 +59,7 @@ class ECSClient(Script):
 
     File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
            mode=0644,
-           content=StaticFile("/var/lib/ambari-agent/cache/stacks/HDP/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar")
+           content=StaticFile("/var/lib/ambari-agent/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar")
     )
 
   def setup_hadoop_env(self, env):
