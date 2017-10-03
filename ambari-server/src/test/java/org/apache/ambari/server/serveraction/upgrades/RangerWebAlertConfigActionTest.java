@@ -19,7 +19,6 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
@@ -48,8 +47,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import com.google.inject.Injector;
 
 import junit.framework.Assert;
 
