@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -64,6 +65,7 @@ public class RangerWebAlertConfigActionTest {
   private AlertDefinitionEntity alertDefinitionEntity;
   private AlertDefinitionHash alertDefinitionHash;
   private AmbariEventPublisher eventPublisher;
+  private Field clustersField;
 
 
 
@@ -75,6 +77,8 @@ public class RangerWebAlertConfigActionTest {
     eventPublisher = Mockito.mock(AmbariEventPublisher.class);
     m_clusters = Mockito.mock(Clusters.class);
     rangerWebAlertConfigAction = new RangerWebAlertConfigAction();
+    clustersField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
+    clustersField.setAccessible(true);
   }
 
   @Test
@@ -129,7 +133,7 @@ public class RangerWebAlertConfigActionTest {
     }
 
     rangerWebAlertConfigAction.alertDefinitionDAO = alertDefinitionDAO;
-    rangerWebAlertConfigAction.m_clusters = m_clusters;
+    clustersField.set(rangerWebAlertConfigAction, m_clusters);
     rangerWebAlertConfigAction.alertDefinitionHash = alertDefinitionHash;
     rangerWebAlertConfigAction.eventPublisher = eventPublisher;
 

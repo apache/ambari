@@ -49,7 +49,7 @@ class TestUpgradeSummary(TestCase):
     self.assertEqual("2.4.0.0-1234", upgrade_summary.get_source_version("HDFS"))
     self.assertEqual("2.5.9.9-9999", upgrade_summary.get_target_version("HDFS"))
 
-    self.assertIsNone(upgrade_summary.get_downgrade_from_version("HDFS"))
+    self.assertTrue(upgrade_summary.get_downgrade_from_version("HDFS") is None)
 
 
   def test_get_downgrade_from_version(self):
@@ -60,7 +60,7 @@ class TestUpgradeSummary(TestCase):
     command_json = TestUpgradeSummary._get_cluster_simple_downgrade_json()
     Script.config = command_json
 
-    self.assertIsNone(upgrade_summary.get_downgrade_from_version("FOO"))
+    self.assertTrue(upgrade_summary.get_downgrade_from_version("FOO") is None)
     self.assertEqual("2.5.9.9-9999", upgrade_summary.get_downgrade_from_version("HDFS"))
 
 

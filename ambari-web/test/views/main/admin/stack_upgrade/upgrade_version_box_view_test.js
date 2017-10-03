@@ -624,12 +624,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         expected: {
           status: 'OUT_OF_SYNC',
-          isButtonGroup: true,
-          buttons: [{
-            text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-            action: 'confirmUpgrade',
-            isDisabled: false
-          }],
+          isButton: true,
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
           action: 'installRepoVersionPopup',
           isDisabled: false
@@ -657,12 +652,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         expected: {
           status: 'OUT_OF_SYNC',
-          isButtonGroup: true,
-          buttons: [{
-            text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-            action: 'confirmUpgrade',
-            isDisabled: true
-          }],
+          isButton: true,
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
           action: 'installRepoVersionPopup',
           isDisabled: true
@@ -1399,14 +1389,8 @@ describe('App.UpgradeVersionBoxView', function () {
       });
       view.processPreUpgradeState(element);
       expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
-        "buttons": [
-          {
-            "text": Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-            "action": "confirmUpgrade",
-            "isDisabled": false
-          }
-        ],
-        "isButtonGroup": true,
+        "buttons": [],
+        "isButton": true,
         "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
         "action": 'installRepoVersionPopup',
         "isDisabled": false

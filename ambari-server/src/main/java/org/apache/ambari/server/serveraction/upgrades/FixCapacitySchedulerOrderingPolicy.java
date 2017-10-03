@@ -27,12 +27,8 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-
-import com.google.inject.Inject;
 
 /**
  * In HDP-2.6, the parent queue's cannot have a ordering-policy other than {@code utilization} or
@@ -40,7 +36,7 @@ import com.google.inject.Inject;
  *
  * This class is used when moving from HDP-2.3/HDP-2.4/HDP-2.5 to HDP2.6
  */
-public class FixCapacitySchedulerOrderingPolicy extends AbstractServerAction {
+public class FixCapacitySchedulerOrderingPolicy extends AbstractUpgradeServerAction {
   private static final String SOURCE_CONFIG_TYPE = "capacity-scheduler";
   private static final String ORDERING_POLICY_SUFFIX = "ordering-policy";
 
@@ -53,17 +49,13 @@ public class FixCapacitySchedulerOrderingPolicy extends AbstractServerAction {
   private static final Pattern ROOT_QUEUE_REGEX = Pattern.compile(
       String.format("%s.([.\\-_\\w]+).queues", CAPACITY_SCHEDULER_PREFIX));
 
-
-  @Inject
-  private Clusters clusters;
-
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     Config config = cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE);
 
     if (null == config) {

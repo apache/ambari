@@ -284,10 +284,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     mergeConfigurations(parentStack, allStacks, commonServices, extensions);
     mergeRoleCommandOrder(parentStack);
 
-    if (stackInfo.getStackHooksFolder() == null) {
-      stackInfo.setStackHooksFolder(parentStack.getModuleInfo().getStackHooksFolder());
-    }
-
     // grab stack level kerberos.json from parent stack
     if (stackInfo.getKerberosDescriptorFileLocation() == null) {
       stackInfo.setKerberosDescriptorFileLocation(parentStack.getModuleInfo().getKerberosDescriptorFileLocation());
@@ -574,7 +570,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
-      stackInfo.setStackHooksFolder(stackDirectory.getHooksDir());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
       stackInfo.setKerberosDescriptorFileLocation(stackDirectory.getKerberosDescriptorFilePath());
       stackInfo.setKerberosDescriptorPreConfigurationFileLocation(stackDirectory.getKerberosDescriptorPreconfigureFilePath());

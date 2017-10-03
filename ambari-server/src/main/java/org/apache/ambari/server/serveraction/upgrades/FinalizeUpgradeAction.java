@@ -84,7 +84,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
 
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
 

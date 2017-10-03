@@ -119,7 +119,7 @@ public class HiveEnvClasspathActionTest {
 
     replay(m_injector, m_clusters, cluster, hiveEnv);
 
-    m_clusterField = HiveEnvClasspathAction.class.getDeclaredField("clusters");
+    m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
   }
 

@@ -28,6 +28,7 @@ import {AuditLog} from '@app/models/audit-log.model';
 import {ServiceLog} from '@app/models/service-log.model';
 import {LogField} from '@app/models/log-field.model';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
+import {HistogramOptions} from '@app/classes/histogram-options.class';
 
 @Component({
   selector: 'logs-container',
@@ -92,9 +93,9 @@ export class LogsContainerComponent implements OnInit {
 
   displayedColumns: any[] = [];
 
-  histogramData: any;
+  histogramData: {[key: string]: number};
 
-  readonly histogramOptions = {
+  readonly histogramOptions: HistogramOptions = {
     keysWithColors: this.logsContainer.colors
   };
 
@@ -116,9 +117,13 @@ export class LogsContainerComponent implements OnInit {
 
   get isServiceLogsFileView(): boolean {
     return this.logsContainer.isServiceLogsFileView;
-  };
+  }
 
   get activeLog(): ActiveServiceLogEntry | null {
     return this.logsContainer.activeLog;
-  };
+  }
+
+  setCustomTimeRange(startTime: number, endTime: number): void {
+    this.filtering.setCustomTimeRange(startTime, endTime);
+  }
 }

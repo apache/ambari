@@ -135,7 +135,7 @@ check_tools
 prepare_input
 
 # the default implementation creates user home folders; the first argument must be the username
-ambari_sudo "yarn jar /var/lib/ambari-server/resources/stacks/HDP/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar $JSON_INPUT"
+ambari_sudo "yarn jar /var/lib/ambari-server/resources/stack-hooks/before-START/files/fast-hdfs-resource.jar $JSON_INPUT"
 
 if [ "$DEBUG" -gt "0" ]; then echo "Switch debug OFF";set -x;unset DEBUG; else echo "debug: OFF"; fi
 unset DEBUG

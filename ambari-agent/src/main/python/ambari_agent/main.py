@@ -89,7 +89,6 @@ import time
 import locale
 import platform
 import ConfigParser
-import ProcessHelper
 import resource
 from logging.handlers import SysLogHandler
 from Controller import Controller
@@ -117,6 +116,9 @@ agentPid = os.getpid()
 
 # Global variables to be set later.
 home_dir = ""
+
+agent_piddir = os.environ['AMBARI_PID_DIR'] if 'AMBARI_PID_DIR' in os.environ else "/var/run/ambari-agent"
+agent_pidfile = os.path.join(agent_piddir, "ambari-agent.pid")
 
 config = AmbariConfig.AmbariConfig()
 
@@ -260,8 +262,8 @@ def perform_prestart_checks(expected_hostname):
       logger.error(msg)
       sys.exit(1)
   # Check if there is another instance running
-  if os.path.isfile(ProcessHelper.pidfile) and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-    print("%s already exists, exiting" % ProcessHelper.pidfile)
+  if os.path.isfile(agent_pidfile) and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
+    print("%s already exists, exiting" % agent_pidfile)
     sys.exit(1)
   # check if ambari prefix exists
   elif config.has_option('agent', 'prefix') and not os.path.isdir(os.path.abspath(config.get('agent', 'prefix'))):
@@ -281,14 +283,14 @@ def perform_prestart_checks(expected_hostname):
 
 def daemonize():
   pid = str(os.getpid())
-  file(ProcessHelper.pidfile, 'w').write(pid)
+  file(agent_pidfile, 'w').write(pid)
 
 def stop_agent():
 # stop existing Ambari agent
   pid = -1
   runner = shellRunner()
   try:
-    with open(ProcessHelper.pidfile, 'r') as f:
+    with open(agent_pidfile, 'r') as f:
       pid = f.read()
     pid = int(pid)
     

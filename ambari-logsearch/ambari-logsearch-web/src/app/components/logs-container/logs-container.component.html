@@ -20,7 +20,9 @@
     {{'filter.capture.triggeringRefresh' | translate: autoRefreshMessageParams}}
   </div>
 </div>
-<time-histogram class="col-md-12" [data]="histogramData" [customOptions]="histogramOptions"></time-histogram>
+<time-histogram class="col-md-12" [data]="histogramData" [customOptions]="histogramOptions"
+                svgId="service-logs-histogram"
+                (selectArea)="setCustomTimeRange($event[0], $event[1])"></time-histogram>
 <dropdown-button *ngIf="!isServiceLogsFileView" class="pull-right" label="logs.columns"
                  [options]="availableColumns | async" [isRightAlign]="true" [isMultipleChoice]="true"
                  action="updateSelectedColumns" [additionalArgs]="logsTypeMapObject.fieldsModel"></dropdown-button>

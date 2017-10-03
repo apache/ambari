@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.stack.StackManager.DEFAULT_HOOKS_FOLDER;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -907,7 +908,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           effectiveStackId.getStackVersion(), serviceName);
 
       commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+      commandParams.put(HOOKS_FOLDER, DEFAULT_HOOKS_FOLDER);
     }
   }
 

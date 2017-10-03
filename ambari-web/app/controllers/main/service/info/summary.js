@@ -420,6 +420,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       }),
       isHideBodyScroll: false,
       primary: Em.I18n.t('common.close'),
+      primaryClass: 'btn-default',
       secondary: null
     });
   },

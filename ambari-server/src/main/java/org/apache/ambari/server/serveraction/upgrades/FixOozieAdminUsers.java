@@ -24,34 +24,28 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.inject.Inject;
 
 /**
  * During stack upgrade, update lzo codec path in mapreduce.application.classpath and
  * at tez.cluster.additional.classpath.prefix to look like
  * /usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.${hdp.version}.jar
  */
-public class FixOozieAdminUsers extends AbstractServerAction {
+public class FixOozieAdminUsers extends AbstractUpgradeServerAction {
   private static final String TARGET_OOZIE_CONFIG_TYPE = "oozie-env";
   private static final String OOZIE_ADMIN_USERS_PROP = "oozie_admin_users";
   private static final String FALCON_CONFIG_TYPE = "falcon-env";
   private static final String FALCON_USER_PROP = "falcon_user";
 
 
-  @Inject
-  private Clusters clusters;
-
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
     throws AmbariException, InterruptedException {
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     Config oozieConfig = cluster.getDesiredConfigByType(TARGET_OOZIE_CONFIG_TYPE);
     Config falconConfig = cluster.getDesiredConfigByType(FALCON_CONFIG_TYPE);
 

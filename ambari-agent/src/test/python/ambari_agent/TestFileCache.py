@@ -93,7 +93,7 @@ class TestFileCache(TestCase):
     # Check existing dir case
     command = {
       'commandParams' : {
-        'hooks_folder' : os.path.join('HDP', '2.1.1', 'hooks')
+        'hooks_folder' : 'stack-hooks'
       }
     }
     provide_directory_mock.return_value = "dummy value"
@@ -103,7 +103,7 @@ class TestFileCache(TestCase):
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache', "
       "{0}, "
-      "'server_url_pref')".format(pprint.pformat(os.path.join('stacks','HDP', '2.1.1', 'hooks'))))
+      "'server_url_pref')".format(pprint.pformat('stack-hooks')))
     self.assertEquals(res, "dummy value")
 
 

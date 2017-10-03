@@ -62,6 +62,7 @@ import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
@@ -75,6 +76,7 @@ import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.internal.UserAuthenticationSourceResourceProvider;
 import org.apache.ambari.server.controller.internal.UserResourceProvider;
+import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
@@ -473,6 +475,8 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("kerberosDescriptor"), KerberosDescriptorResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("upgrade"), UpgradeResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("clusterStackVersion"), ClusterStackVersionResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("alertTarget"), AlertTargetResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("viewInstance"), ViewInstanceResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(

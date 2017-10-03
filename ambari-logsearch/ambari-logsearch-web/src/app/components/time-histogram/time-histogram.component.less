@@ -16,14 +16,24 @@
  * limitations under the License.
  */
 
-/deep/ .axis {
-  .domain {
-    display: none;
-  }
+:host {
+  cursor: crosshair;
 
-  .tick {
-    line {
+  /deep/ .axis {
+    .domain {
       display: none;
     }
+
+    .tick {
+      cursor: default;
+
+      line {
+        display: none;
+      }
+    }
+  }
+
+  /deep/ .value {
+    cursor: pointer;
   }
 }

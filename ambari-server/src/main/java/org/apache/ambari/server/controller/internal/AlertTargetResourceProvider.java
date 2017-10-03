@@ -79,7 +79,7 @@ public class AlertTargetResourceProvider extends
   public static final String ALERT_TARGET_ENABLED = "AlertTarget/enabled";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
-    Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
+      Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
 
   /**
    * The property ids for an alert target resource.
@@ -124,6 +124,7 @@ public class AlertTargetResourceProvider extends
   /**
    * Constructor.
    */
+  @Inject
   AlertTargetResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
 

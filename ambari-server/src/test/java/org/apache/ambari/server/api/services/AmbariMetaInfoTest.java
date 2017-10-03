@@ -1265,25 +1265,6 @@ public class AmbariMetaInfoTest {
     }
   }
 
-
-  @Test
-  public void testHooksDirInheritance() throws Exception {
-    String hookAssertionTemplate = "HDP/%s/hooks";
-    if (System.getProperty("os.name").contains("Windows")) {
-      hookAssertionTemplate = "HDP\\%s\\hooks";
-    }
-    // Test hook dir determination in parent
-    StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.6");
-    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.6"), stackInfo.getStackHooksFolder());
-    // Test hook dir inheritance
-    stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.7");
-    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.6"), stackInfo.getStackHooksFolder());
-    // Test hook dir override
-    stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.8");
-    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.8"), stackInfo.getStackHooksFolder());
-  }
-
-
   @Test
   public void testServicePackageDirInheritance() throws Exception {
     String assertionTemplate07 = StringUtils.join(

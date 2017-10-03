@@ -92,7 +92,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
     if (!isDowngrade()) {
       String clusterName = commandParameters.get("clusterName");
-      Cluster cluster = m_clusters.getCluster(clusterName);
+      Cluster cluster = getClusters().getCluster(clusterName);
 
       if (cluster.getSecurityType() == SecurityType.KERBEROS) {
         StackId stackId;

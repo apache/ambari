@@ -22,7 +22,6 @@ import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/takeUntil';
-import {Moment} from 'moment';
 import * as moment from 'moment-timezone';
 import {ListItem} from '@app/classes/list-item.class';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
@@ -400,29 +399,25 @@ export class FilteringService {
 
   autoRefreshRemainingSeconds: number = 0;
 
-  private startCaptureMoment: Moment;
+  private startCaptureTime: number;
 
-  private stopCaptureMoment: Moment;
+  private stopCaptureTime: number;
 
   startCaptureTimer(): void {
-    this.startCaptureMoment = moment();
+    this.startCaptureTime = new Date().valueOf();
     Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => this.captureSeconds = seconds);
   }
 
   stopCaptureTimer(): void {
     const autoRefreshIntervalSeconds = this.autoRefreshInterval / 1000;
-    this.stopCaptureMoment = moment();
+    this.stopCaptureTime = new Date().valueOf();
     this.captureSeconds = 0;
     this.stopTimer.next();
     Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe(seconds => {
       this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
       if (!this.autoRefreshRemainingSeconds) {
         this.stopAutoRefreshCountdown.next();
-        this.filtersForm.controls.timeRange.setValue({
-          type: 'CUSTOM',
-          start: this.startCaptureMoment,
-          end: this.stopCaptureMoment
-        });
+        this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
       }
     });
   }
@@ -454,6 +449,14 @@ export class FilteringService {
       if (hosts) {
         this.hostsStorage.addInstances(hosts);
       }
+    });
+  }
+
+  setCustomTimeRange(startTime: number, endTime: number): void {
+    this.filtersForm.controls.timeRange.setValue({
+      type: 'CUSTOM',
+      start: moment(startTime),
+      end: moment(endTime)
     });
   }
 

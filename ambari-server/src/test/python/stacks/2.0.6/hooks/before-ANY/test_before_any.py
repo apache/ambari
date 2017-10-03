@@ -28,6 +28,7 @@ import os
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
   TMP_PATH = '/tmp/hbase-hbase'
+  STACK_VERSION = '2.0.6'
 
   @patch("os.path.isfile")
   @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
@@ -43,9 +44,11 @@ class TestHookBeforeInstall(RMFTestCase):
     os_path_exists_mock.side_effect = side_effect
     os_path_isfile_mock.side_effect = [False, True, True, True, True]
 
-    self.executeScript("2.0.6/hooks/before-ANY/scripts/hook.py",
+    self.executeScript("before-ANY/scripts/hook.py",
                        classname="BeforeAnyHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_file="default.json",
                        call_mocks=itertools.cycle([(0, "1000")])
     )

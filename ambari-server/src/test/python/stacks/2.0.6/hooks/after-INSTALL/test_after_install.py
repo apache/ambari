@@ -29,7 +29,7 @@ from resource_management.libraries.script import Script
 @patch("os.path.isfile", new = MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):
   CONFIG_OVERRIDES = {"serviceName":"HIVE", "role":"HIVE_SERVER"}
-
+  STACK_VERSION = '2.0.6'
   def setUp(self):
     Logger.initialize_logger()
 
@@ -41,10 +41,12 @@ class TestHookAfterInstall(RMFTestCase):
 
   def test_hook_default(self):
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
                        config_file="default.json",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_overrides = self.CONFIG_OVERRIDES
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
@@ -82,9 +84,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
@@ -156,9 +160,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
@@ -235,9 +241,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
       classname="AfterInstallHook",
       command="hook",
+      stack_version = self.STACK_VERSION,
+      target=RMFTestCase.TARGET_STACK_HOOKS,
       config_dict = json_content,
       config_overrides = self.CONFIG_OVERRIDES)
 
@@ -265,9 +273,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['roleParams']['upgrade_suspended'] = "true"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
@@ -338,9 +348,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['hostLevelParams']['host_sys_prepped'] = "true"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
