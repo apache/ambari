@@ -122,7 +122,7 @@ public class RangerKerberosConfigCalculationTest {
     replay(m_injector, m_clusters, cluster, hadoopConfig, hiveConfig, yarnConfig, hbaseConfig,
         knoxConfig, stormConfig, kafkaConfig, kmsConfig, hdfsSiteConfig, adminSiteConfig);
 
-    m_clusterField = RangerKerberosConfigCalculation.class.getDeclaredField("m_clusters");
+    m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
   }
 

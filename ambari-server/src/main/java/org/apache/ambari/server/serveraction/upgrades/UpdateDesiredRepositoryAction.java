@@ -34,7 +34,6 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.UpgradeContext;
@@ -59,13 +58,6 @@ public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpdateDesiredRepositoryAction.class);
 
-
-  /**
-   * The Cluster that this ServerAction implementation is executing on.
-   */
-  @Inject
-  private Clusters clusters;
-
   /**
    * The Ambari configuration.
    */
@@ -86,7 +78,7 @@ public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
       throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
 
     Map<String, String> roleParams = getExecutionCommand().getRoleParams();

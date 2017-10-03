@@ -78,7 +78,7 @@ public class FixOozieAdminUsersTest {
     expect(injector.getInstance(Clusters.class)).andReturn(clusters).atLeastOnce();
     replay(injector, clusters, falconEnvConfig, oozieEnvConfig);
 
-    clustersField = FixOozieAdminUsers.class.getDeclaredField("clusters");
+    clustersField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     clustersField.setAccessible(true);
 
   }

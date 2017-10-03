@@ -25,25 +25,19 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-
-import com.google.inject.Inject;
 
 /**
  * Computes HBase properties.  This class is only used when moving from
  * HDP-2.2 to HDP-2.3 in that upgrade pack.
  */
-public class HBaseConfigCalculation extends AbstractServerAction {
+public class HBaseConfigCalculation extends AbstractUpgradeServerAction {
   private static final String SOURCE_CONFIG_TYPE = "hbase-site";
   private static final String OLD_UPPER_LIMIT_PROPERTY_NAME = "hbase.regionserver.global.memstore.upperLimit";
   private static final String OLD_LOWER_LIMIT_PROPERTY_NAME = "hbase.regionserver.global.memstore.lowerLimit";
   private static final String NEW_LOWER_LIMIT_PROPERTY_NAME = "hbase.regionserver.global.memstore.size.lower.limit";
 
-  @Inject
-  private Clusters clusters;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
@@ -51,7 +45,7 @@ public class HBaseConfigCalculation extends AbstractServerAction {
 
     String clusterName = getExecutionCommand().getClusterName();
 
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
 
     Config config = cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE);
 

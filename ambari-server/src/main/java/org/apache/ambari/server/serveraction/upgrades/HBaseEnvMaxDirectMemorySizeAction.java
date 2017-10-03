@@ -26,33 +26,26 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-
-import com.google.inject.Inject;
 
 /**
  * Computes HBase Env content property.
  * This class is only used when moving from HDP-2.3 to HDP-2.4 and HDP-2.3 to HDP-2.5
  */
-public class HBaseEnvMaxDirectMemorySizeAction extends AbstractServerAction {
+public class HBaseEnvMaxDirectMemorySizeAction extends AbstractUpgradeServerAction {
   private static final String SOURCE_CONFIG_TYPE = "hbase-env";
   private static final String CONTENT_NAME = "content";
   private static final String APPEND_CONTENT_LINE = "export HBASE_MASTER_OPTS=\"$HBASE_MASTER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"";
   private static final String CHECK_REGEX = "^.*\\s*(HBASE_MASTER_OPTS)\\s*=.*(XX:MaxDirectMemorySize).*$";
   private static final Pattern REGEX = Pattern.compile(CHECK_REGEX, Pattern.MULTILINE);
 
-  @Inject
-  private Clusters clusters;
-
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
     throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     Config config = cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE);
 
     if (config == null) {

@@ -33,8 +33,12 @@ import com.google.inject.Inject;
  */
 public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
 
+  public Clusters getClusters() {
+    return m_clusters;
+  }
+
   @Inject
-  protected Clusters m_clusters;
+  private Clusters m_clusters;
 
   /**
    * Used to move desired repo versions forward.

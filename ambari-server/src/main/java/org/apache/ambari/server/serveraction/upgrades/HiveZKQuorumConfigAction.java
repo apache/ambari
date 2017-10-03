@@ -23,12 +23,8 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-
-import com.google.inject.Inject;
 
 /**
  * The {@link HiveZKQuorumConfigAction} is used to ensure that the following
@@ -48,16 +44,11 @@ import com.google.inject.Inject;
  * Hive that was upgraded previously. They are actually set (incorrectly) on a
  * non-Kerberized Hive installation by the installation wizard.
  */
-public class HiveZKQuorumConfigAction extends AbstractServerAction {
+public class HiveZKQuorumConfigAction extends AbstractUpgradeServerAction {
   protected static final String HIVE_SITE_CONFIG_TYPE = "hive-site";
   protected static final String HIVE_SITE_ZK_QUORUM = "hive.zookeeper.quorum";
   protected static final String HIVE_SITE_ZK_CONNECT_STRING = "hive.cluster.delegation.token.store.zookeeper.connectString";
 
-  /**
-   * Used for retrieving the cluster (and eventually the desired configuration).
-   */
-  @Inject
-  private Clusters m_clusters;
 
   /**
    * {@inheritDoc}
@@ -67,7 +58,7 @@ public class HiveZKQuorumConfigAction extends AbstractServerAction {
       throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
 
     Config hiveSite = cluster.getDesiredConfigByType(HIVE_SITE_CONFIG_TYPE);
     if (hiveSite == null) {
