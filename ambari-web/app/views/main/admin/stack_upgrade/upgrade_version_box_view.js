@@ -258,14 +258,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
     if (Em.get(currentVersion, 'stack_name') !== this.get('content.stackVersionType') || isVersionHigherThanCurrent) {
       switch (status){
         case 'OUT_OF_SYNC':
-          element.set('isButtonGroup', true);
+          element.set('isButton', true);
           element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
           element.set('action', 'installRepoVersionPopup');
-          element.get('buttons').pushObject({
-            text: this.get('isVersionColumnView') ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-            action: 'confirmUpgrade',
-            isDisabled: isDisabled
-          });
           break;
         case 'INSTALL_FAILED':
           element.set('isButton', true);
