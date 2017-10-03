@@ -915,4 +915,26 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
+  describe("#canSkipFailedItem()", function() {
+    beforeEach(function () {
+      view.reopen({'failedItem': Em.Object.create({skippable: true}) });
+      view.set('controller.upgradeData.Upgrade', {associated_version: '2.1.1'});
+    })
+    it("Should return true if can not find upgrade", function () {
+      view.propertyDidChange('canSkipFailedItem');
+      expect(view.get('canSkipFailedItem')).to.be.true
+    });
+
+    it("Should return false if upgrade is patch or maint", function () {
+      var findResult = [Em.Object.create({repositoryVersion: '2.1.1', isPatch: true})];
+      sinon.stub(App.RepositoryVersion, 'find', function(){
+        return findResult;
+      });
+      view.propertyDidChange('canSkipFailedItem');
+      expect(view.get('canSkipFailedItem')).to.be.false;
+      App.RepositoryVersion.find.restore();
+    });
+
+  });
+
 });

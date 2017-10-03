@@ -118,6 +118,18 @@ App.upgradeWizardView = Em.View.extend({
   }.property('activeGroup.upgradeItems.@each.status'),
 
   /**
+   * can skip failed item or not
+   * @type {boolean}
+   */
+  canSkipFailedItem: function () {
+    var failedItem = this.get('failedItem');
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var version = associatedVersion && App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    var isPatchOrMaint = version && ( version.get('isPatch') || version.get('isMaint') );
+    return failedItem && failedItem.get('skippable') && !isPatchOrMaint;
+  }.property('failedItem'),
+
+  /**
    * upgrade doesn't have any failed or manual or running item
    * @type {boolean}
    */
