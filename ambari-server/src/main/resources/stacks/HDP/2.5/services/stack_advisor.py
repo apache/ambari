@@ -2004,7 +2004,8 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     super(HDP25StackAdvisor, self).recommendRangerKMSConfigurations(configurations, clusterData, services, hosts)
 
     security_enabled = self.isSecurityEnabled(services)
-    required_services = [{'service' : 'RANGER', 'config-type': 'ranger-env', 'property-name': 'ranger_user', 'proxy-category': ['hosts', 'users', 'groups']}]
+    required_services = [{'service' : 'RANGER', 'config-type': 'ranger-env', 'property-name': 'ranger_user', 'proxy-category': ['hosts', 'users', 'groups']},
+    {'service' : 'SPARK2', 'config-type': 'livy2-env', 'property-name': 'livy2_user', 'proxy-category': ['hosts', 'users', 'groups']}]
 
     if security_enabled:
       # recommendations for kms proxy related properties
