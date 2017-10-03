@@ -465,7 +465,7 @@ h2.table-title {
   border-width: 0;
   border-radius: 0;
   border-bottom: 2px solid transparent;
-  color: #666;
+  color: #6B6C6C;
   text-transform: uppercase;
 }
 .nav.nav-tabs li a:hover,
@@ -482,7 +482,8 @@ h2.table-title {
 }
 .nav.nav-tabs li.active a {
   color: #333;
-  border-bottom: 2px solid #3FAE2A;
+  border-bottom: 3px solid #3FAE2A;
+  padding-bottom: 1px;
 }
 .nav-tabs-left li,
 .nav-tabs-right li {
@@ -817,7 +818,7 @@ input.radio:checked + label:after {
   font-size: 13px;
   display: inline-block;
   vertical-align: middle;
-  color: #b8bec4;
+  color: #43AD49;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header .btn-group.open .dropdown-toggle {
   -webkit-box-shadow: none;
@@ -889,7 +890,7 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a .navigation-icon,
 .navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a .navigation-icon {
   line-height: 18px;
-  font-size: 18px;
+  font-size: 14px;
   color: #b8bec4;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer > a .toggle-icon,
@@ -916,11 +917,11 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer,
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer {
   background: #313d54;
-  height: 50px;
+  height: 48px;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer a .navigation-icon,
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer a .navigation-icon {
-  color: #31823a;
+  color: #3fae2a;
   font-size: 20px;
   position: relative;
   padding: 0 15px;
@@ -1189,8 +1190,7 @@ input.radio:checked + label:after {
   top: 1px;
 }
 #notifications-dropdown.dropdown-menu {
-  min-width: 300px;
-  max-width: 300px;
+  width: 400px;
   min-height: 150px;
   padding: 0px;
   z-index: 1000;
@@ -1379,6 +1379,7 @@ input.radio:checked + label:after {
   border-radius: 0px;
   border: none;
   margin-top: 0px;
+  padding: 0 10px;
 }
 .accordion .panel-group .panel .panel-heading,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading {

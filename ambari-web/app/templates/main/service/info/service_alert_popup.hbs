@@ -21,7 +21,7 @@
     {{#each alert in view.alerts}}
       <li class="alert-list-wrap">
         <div class="row">
-          <div class="col-md-9 name-text">
+          <div class="col-md-8 name-text">
             <div>
               <a class="accordion-toggle" href="#" {{action "gotoAlertDetails" alert target="view"}}>{{alert.label}}</a>
             </div>
@@ -29,8 +29,8 @@
               {{alert.latestTextSummary}}
             </div>
           </div>
-          <div class="col-md-3 status-col" rel="alert-status-tooltip" >
-            {{view App.AlertDefinitionSummary contentBinding="alert"}}
+          <div class="col-md-4 status-col" rel="alert-status-tooltip" >
+            <div class="display-inline-block">{{view App.AlertDefinitionSummary contentBinding="alert"}}</div>
             <span class="timeago" {{bindAttr data-original-title="alert.lastTriggeredVerboseDisplay"}}>
               <span class="status-icon">{{{alert.status}}}</span>
               <time>{{alert.lastTriggeredForFormatted}}</time>

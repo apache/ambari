@@ -32,18 +32,18 @@
         <div class="col-md-2" {{QAAttr "progress-message"}}>{{view.progressMessage}}</div>
       </div>
 
-      <div class="panel panel-default panel-internal">
+      <div class="panel panel-default panel-internal install-retry-panel">
         <div class="panel-heading">
-          <div class="pull-left">
+          <div class="pull-right">
             {{#if controller.showRetry}}
-              <a class="btn btn-primary" href="#" {{action retry}} {{QAAttr "retry-button"}}>
-                <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
+              <button class="btn btn-default" href="#" {{action retry}} {{QAAttr "retry-button"}}>
+                <i class="glyphicon glyphicon-repeat glyphicon-white"></i>&nbsp;
                 {{t common.retry}}
-              </a>
+              </button>
             {{/if}}
           </div>
           <!-- filter by host level -->
-          <div id="host-filter" class="pull-right">
+          <div id="host-filter" class="pull-left">
             <ul class="clearfix">
               <li class="first">{{t common.show}}:</li>
               {{#each category in view.categories}}
