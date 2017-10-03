@@ -16,24 +16,21 @@
  * limitations under the License.
  */
 
-:host {
-  cursor: crosshair;
+export interface HistogramMarginOptions {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
 
-  /deep/ .axis {
-    .domain {
-      display: none;
-    }
+export interface HistogramStyleOptions {
+  margin?: HistogramMarginOptions;
+  height?: number;
+  tickPadding?: number;
+  columnWidth?: number;
+  dragAreaColor?: string;
+}
 
-    .tick {
-      cursor: default;
-
-      line {
-        display: none;
-      }
-    }
-  }
-
-  /deep/ .value {
-    cursor: pointer;
-  }
+export interface HistogramOptions extends HistogramStyleOptions {
+  keysWithColors: {[key: string]: string};
 }
