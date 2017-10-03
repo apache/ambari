@@ -224,14 +224,14 @@ class TestMain(unittest.TestCase):
   def test_daemonize_and_stop(self, exists_mock, sleep_mock):
     from ambari_commons.shell import shellRunnerLinux
 
-    oldpid = ProcessHelper.pidfile
+    oldpid = main.agent_pidfile
     pid = str(os.getpid())
     _, tmpoutfile = tempfile.mkstemp()
-    ProcessHelper.pidfile = tmpoutfile
+    main.agent_pidfile = tmpoutfile
 
     # Test daemonization
     main.daemonize()
-    saved = open(ProcessHelper.pidfile, 'r').read()
+    saved = open(main.agent_pidfile, 'r').read()
     self.assertEqual(pid, saved)
 
     main.GRACEFUL_STOP_TRIES = 1
@@ -269,7 +269,7 @@ class TestMain(unittest.TestCase):
                                   call(['ambari-sudo.sh', 'kill', '-9', pid])])
 
     # Restore
-    ProcessHelper.pidfile = oldpid
+    main.pidfile = oldpid
     os.remove(tmpoutfile)
 
   @patch("os.rmdir")
