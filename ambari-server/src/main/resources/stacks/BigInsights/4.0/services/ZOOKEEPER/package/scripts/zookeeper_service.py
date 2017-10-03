@@ -29,7 +29,6 @@ def zookeeper_service(action='start', upgrade_type=None):
   # This path may be missing after Ambari upgrade. We need to create it.
   if upgrade_type is None and not os.path.exists("/usr/iop/current/zookeeper-server") and params.version \
     and compare_versions(format_stack_version(params.version), '4.1.0.0') >= 0:
-    conf_select.select(params.stack_name, "zookeeper", params.version)
     stack_select.select("zookeeper-server", params.version)
 
   cmd = format("env ZOOCFGDIR={config_dir} ZOOCFG=zoo.cfg {zk_bin}/zkServer.sh")

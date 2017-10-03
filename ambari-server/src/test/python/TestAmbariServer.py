@@ -3659,6 +3659,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.dbConfiguration_linux.LinuxDBMSConfig.ensure_jdbc_driver_installed")
   @patch("ambari_server.dbConfiguration_linux.get_YN_input")
   @patch("ambari_server.serverSetup.update_properties")
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
   @patch("ambari_server.dbConfiguration_linux.get_ambari_properties")
   @patch("ambari_server.dbConfiguration_linux.store_password_file")
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
@@ -3690,7 +3691,7 @@ class TestAmbariServer(TestCase):
                  get_YN_input_mock, gvsi_mock, gvsi_1_mock,
                  read_password_mock, verify_setup_allowed_method, is_jdbc_user_changed_mock, check_postgre_up_mock,
                  configure_postgres_mock, run_os_command_1_mock,
-                 store_password_file_mock, get_ambari_properties_1_mock, update_properties_mock,
+                 store_password_file_mock, get_ambari_properties_1_mock, get_ambari_properties_2_mock, update_properties_mock,
                  get_YN_input_1_mock, ensure_jdbc_driver_installed_mock,
                  remove_file_mock, isfile_mock, exists_mock,
                  run_os_command_mock, get_pw_nam_mock):
@@ -3734,6 +3735,7 @@ class TestAmbariServer(TestCase):
     read_password_mock.return_value = "bigdata2"
     get_ambari_properties_mock.return_value = properties
     get_ambari_properties_1_mock.return_value = properties
+    get_ambari_properties_2_mock.return_value = properties
     store_password_file_mock.return_value = "encrypted_bigdata2"
     ensure_jdbc_driver_installed_mock.return_value = True
     check_postgre_up_mock.return_value = (PGConfig.PG_STATUS_RUNNING, 0, "", "")

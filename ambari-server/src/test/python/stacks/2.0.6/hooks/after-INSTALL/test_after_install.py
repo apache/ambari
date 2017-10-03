@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import json
+
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.logger import Logger
@@ -56,7 +57,7 @@ class TestHookAfterInstall(RMFTestCase):
 
     self.assertNoMoreResources()
 
-
+  @patch("os.path.isdir", new = MagicMock(return_value = True))
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -100,25 +101,17 @@ class TestHookAfterInstall(RMFTestCase):
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
+        current_dir = dir_def['current_dir']
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
 
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Directory', conf_dir,
-            action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir,
-            to = current_dir,)
-
-      #HACK for Atlas
-      if package in ["atlas", ]:
-        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
-                                  only_if = 'test -e ' + "/etc/atlas/conf")
+        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
+        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
 
     self.assertNoMoreResources()
 
+  @patch("os.path.isdir", new = MagicMock(return_value = True))
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -168,22 +161,13 @@ class TestHookAfterInstall(RMFTestCase):
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
+        current_dir = dir_def['current_dir']
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
 
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Directory', conf_dir,
-            action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir,
-            to = current_dir,)
-
-      #HACK for Atlas
-      if package in ["atlas", ]:
-        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
-                                  only_if = 'test -e ' + "/etc/atlas/conf")
+        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
+        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
 
     self.assertNoMoreResources()
 
@@ -227,6 +211,7 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
       sudo = True)
 
+  @patch("os.path.isdir", new = MagicMock(return_value = True))
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -269,22 +254,13 @@ class TestHookAfterInstall(RMFTestCase):
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
+        current_dir = dir_def['current_dir']
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
 
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Directory', conf_dir,
-            action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir,
-            to = current_dir,)
-
-      #HACK for Atlas
-      if package in ["atlas", ]:
-        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
-                                  only_if = 'test -e ' + "/etc/atlas/conf")
+        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
+        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
 
     self.assertNoMoreResources()
 

@@ -79,7 +79,6 @@ class HistoryServerDefault(HistoryServer):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-mapreduce-historyserver", params.version)
       # MC Hammer said, "Can't touch this"
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)

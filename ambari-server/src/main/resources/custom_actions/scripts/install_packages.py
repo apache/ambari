@@ -148,10 +148,10 @@ class InstallPackages(Script):
 
     # if installing a version of HDP that needs some symlink love, then create them
     if is_package_install_successful and 'actual_version' in self.structured_output:
-      self._create_config_links_if_necessary(stack_id, self.structured_output['actual_version'])
+      self._relink_configurations_with_conf_select(stack_id, self.structured_output['actual_version'])
 
 
-  def _create_config_links_if_necessary(self, stack_id, stack_version):
+  def _relink_configurations_with_conf_select(self, stack_id, stack_version):
     """
     Sets up the required structure for /etc/<component>/conf symlinks and <stack-root>/current
     configuration symlinks IFF the current stack is < HDP 2.3+ and the new stack is >= HDP 2.3
@@ -179,7 +179,7 @@ class InstallPackages(Script):
       Link("/usr/bin/conf-select", to="/usr/bin/hdfconf-select")
 
     for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
+      conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
 
   def compute_actual_version(self):
     """

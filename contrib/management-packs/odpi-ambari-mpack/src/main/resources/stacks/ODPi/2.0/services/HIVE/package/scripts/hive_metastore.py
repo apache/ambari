@@ -106,7 +106,6 @@ class HiveMetastoreDefault(HiveMetastore):
     is_upgrade = params.upgrade_direction == Direction.UPGRADE
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hive", params.version)
       stack_select.select("hive-metastore", params.version)
 
     if is_upgrade and params.stack_version_formatted_major and \

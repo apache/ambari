@@ -99,7 +99,7 @@ def load_version(struct_out_file):
 
 def link_configs(struct_out_file):
   """
-  Links configs, only on a fresh install of HDP-2.3 and higher
+  Use the conf_select module to link configuration directories correctly.
   """
   import params
 
@@ -111,5 +111,5 @@ def link_configs(struct_out_file):
 
   # On parallel command execution this should be executed by a single process at a time.
   with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
-    for k, v in conf_select.get_package_dirs().iteritems():
-      conf_select.convert_conf_directories_to_symlinks(k, json_version, v)
+    for package_name, directories in conf_select.get_package_dirs().iteritems():
+      conf_select.convert_conf_directories_to_symlinks(package_name, json_version, directories)

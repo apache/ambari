@@ -26,7 +26,6 @@ import subprocess
 import ambari_simplejson as json
 
 # Local Imports
-import stack_select
 from resource_management.core import shell
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
@@ -42,9 +41,6 @@ from resource_management.core import sudo
 from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
-
-DIRECTORY_TYPE_BACKUP = "backup"
-DIRECTORY_TYPE_CURRENT = "current"
 
 def _get_cmd(command, package, version):
   conf_selector_path = stack_tools.get_stack_tool_path(stack_tools.CONF_SELECTOR_NAME)
@@ -98,10 +94,16 @@ def create(stack_name, package, version, dry_run = False):
   :param dry_run: False to create the versioned config directory, True to only return what would be created
   :return List of directories created
   """
-  Logger.info("Checking if need to create versioned conf dir /etc/{0}/{1}/0".format(package, version))
   if not _valid(stack_name, package, version):
-    Logger.info("Will not create it since parameters are not valid.")
+    Logger.info("Unable to create versioned configuration directories since the parameters supplied do not support it")
     return []
+
+  # clarify the logging of what we're doing ...
+  if dry_run:
+    Logger.info(
+      "Checking to see which directories will be created for {0} on version {1}".format(package, version))
+  else:
+    Logger.info("Creating /etc/{0}/{1}/0 if it does not exist".format(package, version))
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
@@ -129,17 +131,13 @@ def create(stack_name, package, version, dry_run = False):
   return created_directories
 
 
-def select(stack_name, package, version, try_create=True, ignore_errors=False):
+def select(stack_name, package, version, ignore_errors=False):
   """
-  Selects a config version for the specified package. If this detects that
-  the stack supports configuration versioning but /etc/<component>/conf is a
-  directory, then it will attempt to bootstrap the conf.backup directory and change
-  /etc/<component>/conf into a symlink.
+  Selects a config version for the specified package.
 
   :param stack_name: the name of the stack
   :param package: the name of the package, as-used by <conf-selector-tool>
   :param version: the version number to create
-  :param try_create: optional argument to attempt to create the directory before setting it
   :param ignore_errors: optional argument to ignore any error and simply log a warning
   """
   try:
@@ -147,67 +145,8 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
     if not _valid(stack_name, package, version):
       return
 
-    if try_create:
-      create(stack_name, package, version)
-
+    create(stack_name, package, version)
     shell.checked_call(_get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
-
-    # for consistency sake, we must ensure that the /etc/<component>/conf symlink exists and
-    # points to <stack-root>/current/<component>/conf - this is because some people still prefer to
-    # use /etc/<component>/conf even though <stack-root> is the "future"
-    package_dirs = get_package_dirs()
-    if package in package_dirs:
-      Logger.info("Ensuring that {0} has the correct symlink structure".format(package))
-
-      directory_list = package_dirs[package]
-      for directory_structure in directory_list:
-        conf_dir = directory_structure["conf_dir"]
-        current_dir = directory_structure["current_dir"]
-
-        # if /etc/<component>/conf is missing or is not a symlink
-        if not os.path.islink(conf_dir):
-          # if /etc/<component>/conf is not a link and it exists, convert it to a symlink
-          if os.path.exists(conf_dir):
-            parent_directory = os.path.dirname(conf_dir)
-            conf_backup_dir = os.path.join(parent_directory, "conf.backup")
-
-            # create conf.backup and copy files to it (if it doesn't exist)
-            Execute(("cp", "-R", "-p", conf_dir, conf_backup_dir),
-              not_if = format("test -e {conf_backup_dir}"), sudo = True)
-
-            # delete the old /etc/<component>/conf directory and link to the backup
-            Directory(conf_dir, action="delete")
-            Link(conf_dir, to = conf_backup_dir)
-          else:
-            # missing entirely
-            # /etc/<component>/conf -> <stack-root>/current/<component>/conf
-            if package in ["atlas", ]:
-              #HACK for Atlas
-              '''
-              In the case of Atlas, the Hive RPM installs /usr/$stack/$version/atlas with some partial packages that
-              contain Hive hooks, while the Atlas RPM is responsible for installing the full content.
-
-              If the user does not have Atlas currently installed on their stack, then /usr/$stack/current/atlas-client
-              will be a broken symlink, and we should not create the
-              symlink /etc/atlas/conf -> /usr/$stack/current/atlas-client/conf .
-              If we mistakenly create this symlink, then when the user performs an EU/RU and then adds Atlas service
-              then the Atlas RPM will not be able to copy its artifacts into /etc/atlas/conf directory and therefore
-              prevent Ambari from by copying those unmanaged contents into /etc/atlas/$version/0
-              '''
-              component_list = default("/localComponents", [])
-              if "ATLAS_SERVER" in component_list or "ATLAS_CLIENT" in component_list:
-                Logger.info("Atlas is installed on this host.")
-                parent_dir = os.path.dirname(current_dir)
-                if os.path.exists(parent_dir):
-                  Link(conf_dir, to=current_dir)
-                else:
-                  Logger.info("Will not create symlink from {0} to {1} because the destination's parent dir does not exist.".format(conf_dir, current_dir))
-              else:
-                Logger.info("Will not create symlink from {0} to {1} because Atlas is not installed on this host.".format(conf_dir, current_dir))
-            else:
-              # Normal path for other packages
-              Link(conf_dir, to=current_dir)
-
   except Exception, exception:
     if ignore_errors is True:
       Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package,
@@ -242,145 +181,117 @@ def get_hadoop_conf_dir():
   return hadoop_conf_dir
 
 
-def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_links=True,
-    link_to=DIRECTORY_TYPE_CURRENT):
+def convert_conf_directories_to_symlinks(package, version, dirs):
   """
-  Assumes HDP 2.3+, moves around directories and creates the conf symlink for the given package.
-  If the package does not exist, then no work is performed.
+  Reverses the symlinks created by the package installer and invokes the conf-select tool to
+  create versioned configuration directories for the given package. If the package does not exist,
+  then no work is performed.
 
-  - Creates a /etc/<component>/conf.backup directory
-  - Copies all configs from /etc/<component>/conf to conf.backup
-  - Removes /etc/<component>/conf
   - Creates /etc/<component>/<version>/0 via <conf-selector-tool>
+  - Creates a /etc/<component>/conf.backup directory, if needed
+  - Copies all configs from /etc/<component>/conf to conf.backup, if needed
+  - Removes /etc/<component>/conf, if needed
   - <stack-root>/current/<component>-client/conf -> /etc/<component>/<version>/0 via <conf-selector-tool>
-  - Links /etc/<component>/conf to <something> depending on function paramter
-  -- /etc/<component>/conf -> <stack-root>/current/[component]-client/conf (usually)
-  -- /etc/<component>/conf -> /etc/<component>/conf.backup (only when supporting < HDP 2.3)
+  - Links /etc/<component>/conf -> <stack-root>/current/[component]-client/conf
 
   :param package: the package to create symlinks for (zookeeper, falcon, etc)
   :param version: the version number to use with <conf-selector-tool> (2.3.0.0-1234)
   :param dirs: the directories associated with the package (from get_package_dirs())
-  :param skip_existing_links: True to not do any work if already a symlink
-  :param link_to: link to "current" or "backup"
   """
-  # lack of enums makes this possible - we need to know what to link to
-  if link_to not in [DIRECTORY_TYPE_CURRENT, DIRECTORY_TYPE_BACKUP]:
-    raise Fail("Unsupported 'link_to' argument. Could not link package {0}".format(package))
-
+  # if the conf_dir doesn't exist, then that indicates that the package's service is not installed
+  # on this host and nothing should be done with conf symlinks
   stack_name = Script.get_stack_name()
-  bad_dirs = []
-  for dir_def in dirs:
-    if not os.path.exists(dir_def['conf_dir']):
-      bad_dirs.append(dir_def['conf_dir'])
+  for directory_struct in dirs:
+    if not os.path.exists(directory_struct['conf_dir']):
+      Logger.info("Skipping the conf-select tool on {0} since {1} does not exist.".format(
+        package, directory_struct['conf_dir']))
 
-  if len(bad_dirs) > 0:
-    Logger.info("Skipping {0} as it does not exist.".format(",".join(bad_dirs)))
-    return
+      return
 
-  # existing links should be skipped since we assume there's no work to do
-  # they should be checked against the correct target though
-  if skip_existing_links:
-    bad_dirs = []
-    for dir_def in dirs:
-      # check if conf is a link already
-      old_conf = dir_def['conf_dir']
-      if os.path.islink(old_conf):
-        # it's already a link; make sure it's a link to where we want it
-        if link_to == DIRECTORY_TYPE_BACKUP:
-          target_conf_dir = _get_backup_conf_directory(old_conf)
-        else:
-          target_conf_dir = dir_def['current_dir']
-
-        # the link isn't to the right spot; re-link it
-        if os.readlink(old_conf) != target_conf_dir:
-          Logger.info("Re-linking symlink {0} to {1}".format(old_conf, target_conf_dir))
-
-          Link(old_conf, action = "delete")
-          Link(old_conf, to = target_conf_dir)
-        else:
-          Logger.info("{0} is already linked to {1}".format(old_conf, os.path.realpath(old_conf)))
-
-        bad_dirs.append(old_conf)
-
-  if len(bad_dirs) > 0:
-    return
-
-  # make backup dir and copy everything in case configure() was called after install()
-  for dir_def in dirs:
-    old_conf = dir_def['conf_dir']
-    backup_dir = _get_backup_conf_directory(old_conf)
-    Logger.info("Backing up {0} to {1} if destination doesn't exist already.".format(old_conf, backup_dir))
-    Execute(("cp", "-R", "-p", unicode(old_conf), unicode(backup_dir)),
-      not_if = format("test -e {backup_dir}"), sudo = True)
-
-  # we're already in the HDP stack
-  # Create the versioned /etc/[component]/[version]/0 folder.
-  # The component must be installed on the host.
-  versioned_confs = create(stack_name, package, version, dry_run = True)
-
-  Logger.info("Package {0} will have new conf directories: {1}".format(package, ", ".join(versioned_confs)))
+  # determine which directories would be created, if any are needed
+  dry_run_directory = create(stack_name, package, version, dry_run = True)
 
   need_dirs = []
-  for d in versioned_confs:
+  for d in dry_run_directory:
     if not os.path.exists(d):
       need_dirs.append(d)
 
+  # log that we'll actually be creating some directories soon
   if len(need_dirs) > 0:
-    create(stack_name, package, version)
+    Logger.info("Package {0} will have the following new configuration directories created: {1}".format(
+      package, ", ".join(dry_run_directory)))
 
-    # find the matching definition and back it up (not the most efficient way) ONLY if there is more than one directory
-    if len(dirs) > 1:
-      for need_dir in need_dirs:
-        for dir_def in dirs:
-          if 'prefix' in dir_def and need_dir.startswith(dir_def['prefix']):
-            old_conf = dir_def['conf_dir']
-            versioned_conf = need_dir
-            Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-              only_if = format("ls -d {old_conf}/*"))
-    elif 1 == len(dirs) and 1 == len(need_dirs):
-      old_conf = dirs[0]['conf_dir']
-      versioned_conf = need_dirs[0]
-      Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-        only_if = format("ls -d {old_conf}/*"))
-
-
-  # <stack-root>/current/[component] is already set to to the correct version, e.g., <stack-root>/[version]/[component]
-
+  # Create the versioned /etc/[component]/[version]/0 folder (using create-conf-dir) and then
+  # set it for the installed component:
+  # - Creates /etc/<component>/<version>/0
+  # - Links <stack-root>/<version>/<component>/conf -> /etc/<component>/<version>/0
   select(stack_name, package, version, ignore_errors = True)
 
-  # Symlink /etc/[component]/conf to /etc/[component]/conf.backup
-  try:
-    # No more references to /etc/[component]/conf
-    for dir_def in dirs:
-      # E.g., /etc/[component]/conf
-      new_symlink = dir_def['conf_dir']
+  # check every existing link to see if it's a link and if it's pointed to the right spot
+  for directory_struct in dirs:
+    try:
+      # check if conf is a link already
+      old_conf = directory_struct['conf_dir']
+      current_dir = directory_struct['current_dir']
+      if os.path.islink(old_conf):
+        # it's already a link; make sure it's a link to where we want it
+        if os.readlink(old_conf) != current_dir:
+          # the link isn't to the right spot; re-link it
+          Logger.info("Re-linking symlink {0} to {1}".format(old_conf, current_dir))
+          Link(old_conf, action = "delete")
+          Link(old_conf, to = current_dir)
+        else:
+          Logger.info("{0} is already linked to {1}".format(old_conf, current_dir))
+      elif os.path.isdir(old_conf):
+        # the /etc/<component>/conf directory is not a link, so turn it into one
+        Logger.info("{0} is a directory - it must be converted into a symlink".format(old_conf))
 
-      # Delete the existing directory/link so that linking will work
-      if not os.path.islink(new_symlink):
-        Directory(new_symlink, action = "delete")
+        backup_dir = _get_backup_conf_directory(old_conf)
+        Logger.info("Backing up {0} to {1} if destination doesn't exist already.".format(old_conf, backup_dir))
+        Execute(("cp", "-R", "-p", old_conf, backup_dir),
+          not_if = format("test -e {backup_dir}"), sudo = True)
+
+        # delete the old /etc/<component>/conf directory now that it's been backed up
+        Directory(old_conf, action = "delete")
+
+        # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
+        Link(old_conf, to = current_dir)
       else:
-        Link(new_symlink, action = "delete")
-
-      old_conf = dir_def['conf_dir']
-      backup_dir = _get_backup_conf_directory(old_conf)
-      # link /etc/[component]/conf -> /etc/[component]/conf.backup
-      # or
-      # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
-      if link_to == DIRECTORY_TYPE_BACKUP:
-        Link(new_symlink, to=backup_dir)
-      else:
-        Link(new_symlink, to=dir_def['current_dir'])
-
-        #HACK
+        # missing entirely
+        # /etc/<component>/conf -> <stack-root>/current/<component>/conf
         if package in ["atlas", ]:
-          Logger.info("Seeding the new conf symlink {0} from the old backup directory {1} in case any "
-                      "unmanaged artifacts are needed.".format(new_symlink, backup_dir))
-          # If /etc/[component]/conf.backup exists, then copy any artifacts not managed by Ambari to the new symlink target
-          # Be careful not to clobber any existing files.
-          Execute(as_sudo(["cp", "-R", "--no-clobber", os.path.join(backup_dir, "*"), new_symlink], auto_escape=False),
-                  only_if=format("test -e {new_symlink}"))
-  except Exception, e:
-    Logger.warning("Could not change symlink for package {0} to point to {1} directory. Error: {2}".format(package, link_to, e))
+          # HACK for Atlas
+          '''
+          In the case of Atlas, the Hive RPM installs /usr/$stack/$version/atlas with some partial packages that
+          contain Hive hooks, while the Atlas RPM is responsible for installing the full content.
+    
+          If the user does not have Atlas currently installed on their stack, then /usr/$stack/current/atlas-client
+          will be a broken symlink, and we should not create the
+          symlink /etc/atlas/conf -> /usr/$stack/current/atlas-client/conf .
+          If we mistakenly create this symlink, then when the user performs an EU/RU and then adds Atlas service
+          then the Atlas RPM will not be able to copy its artifacts into /etc/atlas/conf directory and therefore
+          prevent Ambari from by copying those unmanaged contents into /etc/atlas/$version/0
+          '''
+          component_list = default("/localComponents", [])
+          if "ATLAS_SERVER" in component_list or "ATLAS_CLIENT" in component_list:
+            Logger.info("Atlas is installed on this host.")
+            parent_dir = os.path.dirname(current_dir)
+            if os.path.exists(parent_dir):
+              Link(old_conf, to = current_dir)
+            else:
+              Logger.info(
+                "Will not create symlink from {0} to {1} because the destination's parent dir does not exist.".format(
+                  old_conf, current_dir))
+          else:
+            Logger.info(
+            "Will not create symlink from {0} to {1} because Atlas is not installed on this host.".format(
+              old_conf, current_dir))
+        else:
+          # Normal path for other packages
+          Link(old_conf, to = current_dir)
+
+    except Exception, e:
+      Logger.warning("Could not change symlink for package {0} to point to current directory. Error: {1}".format(package, e))
 
 
 def _seed_new_configuration_directories(package, created_directories):
