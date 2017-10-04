@@ -16,31 +16,31 @@
  * limitations under the License.
  */
 
-import {Log} from '@app/models/log.model';
+import {QueryParams} from '@app/classes/queries/query-params';
 
-export interface AuditLog extends Log {
-  policy?: string;
-  reason?: string;
-  result: number;
-  text?: string;
-  tags?: string[];
-  resource?: string;
-  sess?: string;
-  access?: string;
-  logType: string;
-  tags_str?: string;
-  resType?: string;
-  reqUser: string;
-  reqData?: string;
-  repoType: number;
-  repo: string;
-  proxyUsers?: string[];
-  evtTime: string;
-  enforcer: string;
-  reqContext?: string;
-  cliType?: string;
-  cliIP?: string;
-  agent?: string;
-  agentHost?: string;
-  action?: string;
+export const defaultParams = {
+  page: '0',
+  pageSize: '10'
+};
+
+export class AuditLogsQueryParams extends QueryParams {
+  constructor(options: AuditLogsQueryParams) {
+    let finalParams = Object.assign({}, defaultParams, options);
+    const page = parseInt(finalParams.page),
+      pageSize = parseInt(finalParams.pageSize);
+    finalParams.startIndex = isNaN(page) || isNaN(pageSize) ? '' : (page * pageSize).toString();
+    super(finalParams);
+  }
+  page: string;
+  pageSize: string;
+  startIndex: string;
+  sortBy?: string;
+  sortType?: 'asc' | 'desc';
+  clusters?: string;
+  mustBe?: string;
+  mustNot?: string;
+  includeQuery?: string;
+  excludeQuery?: string;
+  from?: string;
+  to?: string;
 }

@@ -16,14 +16,12 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/models/common-entry.model';
+import {Log} from '@app/classes/models/log';
 
-export interface Node {
-  name: string;
-  type?: string;
-  value: string;
-  isParent: boolean;
-  isRoot: boolean;
-  childs?: Node[];
-  logLevelCount: CommonEntry[];
+export interface ServiceLog extends Log {
+  path: string;
+  host: string;
+  level: string;
+  logtime: number;
+  ip: string;
 }

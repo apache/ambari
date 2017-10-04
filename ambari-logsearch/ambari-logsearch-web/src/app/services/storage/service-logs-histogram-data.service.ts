@@ -18,7 +18,7 @@
 
 import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
-import {AppStore, CollectionModelService, getCollectionReducer} from '@app/models/store.model';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/classes/models/store';
 
 export const modelName = 'serviceLogsHistogramData';
 

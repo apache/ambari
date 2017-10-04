@@ -18,8 +18,8 @@
 
 import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
-import {defaultSettings} from '@app/models/app-settings.model';
-import {AppStore, ObjectModelService, getObjectReducer} from '@app/models/store.model';
+import {defaultSettings} from '@app/classes/models/app-settings';
+import {AppStore, ObjectModelService, getObjectReducer} from '@app/classes/models/store';
 
 export const modelName = 'appSettings';
 

@@ -21,9 +21,9 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
-import {AuditLogField} from '@app/models/audit-log-field.model';
-import {ServiceLogField} from '@app/models/service-log-field.model';
-import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
+import {AuditLogField} from '@app/classes/models/audit-log-field';
+import {ServiceLogField} from '@app/classes/models/service-log-field';
+import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 
 @Component({
   selector: 'main-container',

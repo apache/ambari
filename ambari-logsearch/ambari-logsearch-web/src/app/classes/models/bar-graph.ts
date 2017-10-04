@@ -16,21 +16,9 @@
  * limitations under the License.
  */
 
-import {QueryParams} from '@app/classes/queries/query-params.class';
+import {CommonEntry} from '@app/classes/models/common-entry';
 
-export const defaultParams = {
-  numberRows: '10',
-  scrollType: ''
-};
-
-export class ServiceLogsTruncatedQueryParams extends QueryParams {
-  constructor(options: ServiceLogsTruncatedQueryParams) {
-    const finalParams = Object.assign({}, defaultParams, options);
-    super(finalParams);
-  }
-  id: string;
-  host_name: string;
-  component_name: string;
-  numberRows: string;
-  scrollType: 'before' | 'after' | '';
+export interface BarGraph {
+  dataCount: CommonEntry[];
+  name: string;
 }

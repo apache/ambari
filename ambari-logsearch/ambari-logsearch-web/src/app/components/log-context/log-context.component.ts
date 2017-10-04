@@ -21,8 +21,8 @@ import 'rxjs/add/operator/map';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {ServiceLog} from '@app/models/service-log.model';
-import {ServiceLogContextEntry} from '@app/classes/service-log-context-entry.class';
+import {ServiceLog} from '@app/classes/models/service-log';
+import {ServiceLogContextEntry} from '@app/classes/service-log-context-entry';
 
 @Component({
   selector: 'log-context',

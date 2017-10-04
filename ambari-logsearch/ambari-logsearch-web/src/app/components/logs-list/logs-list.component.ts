@@ -21,8 +21,8 @@ import 'rxjs/add/operator/map';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
-import {AuditLog} from '@app/models/audit-log.model';
-import {ServiceLog} from '@app/models/service-log.model';
+import {AuditLog} from '@app/classes/models/audit-log';
+import {ServiceLog} from '@app/classes/models/service-log';
 
 @Component({
   selector: 'logs-list',

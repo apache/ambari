@@ -19,10 +19,10 @@
 import {Injectable} from '@angular/core';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {CollectionModelService} from '@app/models/store.model';
+import {CollectionModelService} from '@app/classes/models/store';
 import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {ServiceLog} from '@app/models/service-log.model';
+import {ServiceLog} from '@app/classes/models/service-log';
 
 @Injectable()
 export class ComponentActionsService {

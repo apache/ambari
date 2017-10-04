@@ -36,7 +36,7 @@ from mock.mock import MagicMock, patch, ANY, Mock, call
 
 with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
   from ambari_agent import NetUtil, security
-  from ambari_agent import ProcessHelper, main
+  from ambari_agent import main
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent.PingPortListener import PingPortListener
   from ambari_agent.Controller import Controller
@@ -62,8 +62,7 @@ class TestMain(unittest.TestCase):
   @patch("ambari_agent.HeartbeatHandlers.HeartbeatStopHandlersLinux")
   @patch("sys.exit")
   @patch("os.getpid")
-  @patch.object(ProcessHelper, "stopAgent")
-  def test_signal_handler(self, stopAgent_mock, os_getpid_mock, sys_exit_mock, heartbeat_handler_mock):
+  def test_signal_handler(self,os_getpid_mock, sys_exit_mock, heartbeat_handler_mock):
     # testing exit of children
     main.agentPid = 4444
     os_getpid_mock.return_value = 5555

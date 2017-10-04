@@ -16,9 +16,15 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/models/common-entry.model';
+import {CommonEntry} from '@app/classes/models/common-entry';
 
-export interface BarGraph {
-  dataCount: CommonEntry[];
+export interface Node {
   name: string;
+  type?: string;
+  value: string;
+  isParent: boolean;
+  isRoot: boolean;
+  childs?: Node[];
+  logLevelCount?: CommonEntry[];
+  vNodeList?: CommonEntry[];
 }
