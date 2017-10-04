@@ -69,6 +69,12 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>druid.processing.numMergeBuffers</name>
+    <value>2</value>
+    <description>The number of direct memory buffers available for merging query results. The buffers are sized by druid.processing.buffer.sizeBytes.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>druid.broker.cache.useCache</name>
     <value>true</value>
     <description>Enable the cache on the broker.</description>

@@ -39,6 +39,12 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>druid.processing.numMergeBuffers</name>
+    <value>2</value>
+    <description>The number of direct memory buffers available for merging query results. The buffers are sized by druid.processing.buffer.sizeBytes.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>druid.processing.buffer.sizeBytes</name>
     <value>1073741824</value>
     <value-attributes>
