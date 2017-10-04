@@ -2032,7 +2032,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   getServicesToBeReverted: function(version, currentStack) {
     return version.get('stackServices').filter(function(_service) {
-      return (App.Service.find(_service.get('name')).get('isLoaded') && _service.get('isAvailable'));
+      var originalService = App.Service.find(_service.get('name'));
+      var isOriginal = originalService.get('desiredRepositoryVersionId') === version.get('id')
+      return (originalService.get('isLoaded') && _service.get('isAvailable')) && isOriginal;
     }).map(function(_service) {
       return {
         displayName: _service.get('displayName'),
