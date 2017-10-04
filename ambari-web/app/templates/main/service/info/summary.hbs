@@ -60,9 +60,8 @@
                 <i class="glyphicon glyphicon-bell"></i>
                 {{#if view.alertsCount}}
                   <span {{bindAttr class=":label view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-                    {{view.alertsCount}}</span>
-                {{else}}
-                  <span class="label no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+                    {{view.alertsCount}}
+                  </span>
                 {{/if}}
               </span>
             {{/if}}
