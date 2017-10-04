@@ -148,6 +148,9 @@ public class UpgradePack {
    * @return the preCheck name, e.g. "CheckDescription"
    */
   public List<String> getPrerequisiteChecks() {
+    if (prerequisiteChecks == null) {
+      return new ArrayList<String>();
+    }    
     return new ArrayList<>(prerequisiteChecks.checks);
   }
 
@@ -156,6 +159,9 @@ public class UpgradePack {
    * @return the prerequisite check configuration
    */
   public PrerequisiteCheckConfig getPrerequisiteCheckConfig() {
+    if (prerequisiteChecks == null) {
+      return new PrerequisiteCheckConfig();
+    }    
     return prerequisiteChecks.configuration;
   }
 
