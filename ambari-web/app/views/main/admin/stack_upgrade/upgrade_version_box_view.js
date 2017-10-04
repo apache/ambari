@@ -269,28 +269,44 @@ App.UpgradeVersionBoxView = Em.View.extend({
           break;
         default:
           var isVersionColumnView = this.get('isVersionColumnView');
+          var stackServices = this.get('content.stackServices');
+          var isUpgradable = stackServices && stackServices.some( function(stackService){
+              return stackService.get('isUpgradable');
+          });
+          var isPatch = this.get('content.isPatch');
+          var isMaint = this.get('content.isMaint');
+
           element.set('isButtonGroup', true);
-          element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
-          element.set('action', 'confirmUpgrade');
-          element.get('buttons').pushObject({
-            text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionPopup',
-            isDisabled: isDisabled
-          });
+          if (isUpgradable){
+            element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
+            element.set('action', 'confirmUpgrade');
+            element.get('buttons').pushObject({
+              text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
+              action: 'installRepoVersionPopup',
+              isDisabled: isDisabled
+            });
 
-          element.get('buttons').pushObject({
-            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
-            action: 'showUpgradeOptions',
-            isDisabled: isDisabled
-          });
+            element.get('buttons').pushObject({
+              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+              action: 'showUpgradeOptions',
+              isDisabled: isDisabled
+            });
+          }
+          else{
+            element.set('iconClass', 'icon-ok');
+            element.set('text', Em.I18n.t('common.installed'))
+          }
 
-          if (this.get('content.isPatch') || this.get('content.isMaint')) {
+          if ( isPatch || isMaint ) {
             element.get('buttons').pushObject({
               text: Em.I18n.t('common.hide'),
               action: 'confirmDiscardRepoVersion',
               isDisabled: isDisabled
             });
           }
+
+
+
           this.addRemoveIopSelectButton(element, isDisabled);
       }
       element.set('isDisabled', isDisabled);

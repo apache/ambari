@@ -28,7 +28,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
     App.tooltip($('.not-upgradable'), {title: Em.I18n.t('admin.stackVersions.version.service.notUpgradable')});
     App.tooltip($('.icon-bug'), {title: Em.I18n.t('common.patch')});
-    App.tooltip($('.icon-medkit'), {title: Em.I18n.t('common.maint')});
+    App.tooltip($('.icon-wrench'), {title: Em.I18n.t('common.maint')});
     if (!this.get('content.isCompatible')) {
       App.tooltip(this.$(".repo-version-tooltip"), {
         title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')
