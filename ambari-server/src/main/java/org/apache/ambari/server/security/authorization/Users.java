@@ -1281,7 +1281,6 @@ public class Users {
   }
 
   /**
-   * TODO: This is to be revisited for AMBARI-21220 (Update Local Authentication process to work with improved user management facility)
    * Adds the ability for a user to authenticate using a password stored in Ambari's database
    * <p>
    * The supplied plaintext password will be encoded before storing.
@@ -1292,6 +1291,7 @@ public class Users {
    */
   public void addLocalAuthentication(UserEntity userEntity, String password) throws AmbariException {
 
+    // Ensure the password meets configured minimal requirements, if any
     validatePassword(password);
 
     // Encode the password..

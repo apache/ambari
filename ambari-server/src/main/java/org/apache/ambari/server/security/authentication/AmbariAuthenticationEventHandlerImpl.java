@@ -106,10 +106,17 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
       message = cause.getLocalizedMessage();
     }
 
-    // Increment the user's consecutive authentication failure count.
     if (!StringUtils.isEmpty(username)) {
+      // Increment the user's consecutive authentication failure count.
       consecutiveFailures = users.incrementConsecutiveAuthenticationFailures(username);
-      logMessage = String.format("Failed to authenticate %s (attempt #%d): %s", username, consecutiveFailures, message);
+
+      // If consecutiveFailures is NULL, then no user entry was found for the specified username.
+      if(consecutiveFailures == null) {
+        logMessage = String.format("Failed to authenticate %s: The user does not exist in the Ambari database", username);
+      }
+      else {
+        logMessage = String.format("Failed to authenticate %s (attempt #%d): %s", username, consecutiveFailures, message);
+      }
     } else {
       logMessage = String.format("Failed to authenticate an unknown user: %s", message);
     }

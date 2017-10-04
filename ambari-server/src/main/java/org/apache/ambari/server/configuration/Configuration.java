@@ -2768,11 +2768,16 @@ public class Configuration {
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
    */
-  @Markdown(
-    description = "The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures.")
+  @Markdown(description = "The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures.")
   public static final ConfigurationProperty<Integer> MAX_LOCAL_AUTHENTICATION_FAILURES = new ConfigurationProperty<>(
     "authentication.local.max.failures", 10);
 
+  /**
+   * A flag to determine whether locked out messages are to be shown to users, if relevant, when authenticating into Ambari
+   */
+  @Markdown(description = "Show or hide whether the user account is disabled or locked out, if relevant, when an authentication attempt fails.")
+  public static final ConfigurationProperty<String> SHOW_LOCKED_OUT_USER_MESSAGE = new ConfigurationProperty<>(
+    "authentication.local.show.locked.account.messages", "false");
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -6205,5 +6210,9 @@ public class Configuration {
 
   public int getMaxAuthenticationFailures() {
     return Integer.parseInt(getProperty(MAX_LOCAL_AUTHENTICATION_FAILURES));
+  }
+
+  public boolean showLockedOutUserMessage() {
+    return Boolean.parseBoolean(getProperty(SHOW_LOCKED_OUT_USER_MESSAGE));
   }
 }

@@ -110,6 +110,7 @@ The following are the properties which can be used to configure Ambari.
 | authentication.ldap.username.forceLowercase | Declares whether to force the ldap user name to be lowercase or leave as-is. This is useful when local user names are expected to be lowercase but the LDAP user names are not. |`false` | 
 | authentication.ldap.usernameAttribute | The attribute used for determining the user name, such as `uid`. |`uid` | 
 | authentication.local.max.failures | The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures. |`10` | 
+| authentication.local.show.locked.account.messages | Show or hide whether the user account is disabled or locked out, if relevant, when an authentication attempt fails. |`false` | 
 | authorization.ldap.adminGroupMappingRules | A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.<br/><br/>The following are examples of valid values:<ul><li>`administrators`<li>`Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators`</ul> |`Ambari Administrators` | 
 | authorization.ldap.groupSearchFilter | The DN to use when searching for LDAP groups. | | 
 | auto.group.creation | The auto group creation by Ambari |`false` | 
