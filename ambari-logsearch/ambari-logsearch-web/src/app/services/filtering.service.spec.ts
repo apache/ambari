@@ -24,8 +24,8 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {UtilsService} from '@app/services/utils.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {ListItem} from '@app/classes/list-item.class';
-import {Node} from '@app/models/node.model';
+import {ListItem} from '@app/classes/list-item';
+import {Node} from '@app/classes/models/node';
 
 import {FilteringService} from './filtering.service';
 

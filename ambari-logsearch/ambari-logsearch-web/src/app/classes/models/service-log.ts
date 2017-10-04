@@ -16,31 +16,12 @@
  * limitations under the License.
  */
 
-import {Log} from '@app/models/log.model';
+import {Log} from '@app/classes/models/log';
 
-export interface AuditLog extends Log {
-  policy?: string;
-  reason?: string;
-  result: number;
-  text?: string;
-  tags?: string[];
-  resource?: string;
-  sess?: string;
-  access?: string;
-  logType: string;
-  tags_str?: string;
-  resType?: string;
-  reqUser: string;
-  reqData?: string;
-  repoType: number;
-  repo: string;
-  proxyUsers?: string[];
-  evtTime: string;
-  enforcer: string;
-  reqContext?: string;
-  cliType?: string;
-  cliIP?: string;
-  agent?: string;
-  agentHost?: string;
-  action?: string;
+export interface ServiceLog extends Log {
+  path: string;
+  host: string;
+  level: string;
+  logtime: number;
+  ip: string;
 }

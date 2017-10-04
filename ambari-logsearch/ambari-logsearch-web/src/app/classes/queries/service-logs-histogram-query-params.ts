@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {QueryParams} from '@app/classes/queries/query-params.class';
+import {QueryParams} from '@app/classes/queries/query-params';
 
 export class ServiceLogsHistogramQueryParams extends QueryParams {
   constructor(options: ServiceLogsHistogramQueryParams) {

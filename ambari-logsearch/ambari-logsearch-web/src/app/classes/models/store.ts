@@ -18,17 +18,17 @@
 
 import {Observable} from 'rxjs/Observable';
 import {Store, Action} from '@ngrx/store';
-import {AppSettings} from '@app/models/app-settings.model';
-import {AppState} from '@app/models/app-state.model';
-import {AuditLog} from '@app/models/audit-log.model';
-import {ServiceLog} from '@app/models/service-log.model';
-import {BarGraph} from '@app/models/bar-graph.model';
-import {Graph} from '@app/models/graph.model';
-import {Node} from '@app/models/node.model';
-import {UserConfig} from '@app/models/user-config.model';
-import {Filter} from '@app/models/filter.model';
-import {AuditLogField} from '@app/models/audit-log-field.model';
-import {ServiceLogField} from '@app/models/service-log-field.model';
+import {AppSettings} from '@app/classes/models/app-settings';
+import {AppState} from '@app/classes/models/app-state';
+import {AuditLog} from '@app/classes/models/audit-log';
+import {ServiceLog} from '@app/classes/models/service-log';
+import {BarGraph} from '@app/classes/models/bar-graph';
+import {Graph} from '@app/classes/models/graph';
+import {Node} from '@app/classes/models/node';
+import {UserConfig} from '@app/classes/models/user-config';
+import {Filter} from '@app/classes/models/filter';
+import {AuditLogField} from '@app/classes/models/audit-log-field';
+import {ServiceLogField} from '@app/classes/models/service-log-field';
 
 export const storeActions = {
   'ARRAY.ADD': 'ADD',

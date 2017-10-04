@@ -20,10 +20,10 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/first';
 import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams} from '@angular/http';
-import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params.class';
-import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params.class';
-import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params.class';
-import {ServiceLogsTruncatedQueryParams} from '@app/classes/queries/service-logs-truncated-query-params.class';
+import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params';
+import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params';
+import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params';
+import {ServiceLogsTruncatedQueryParams} from '@app/classes/queries/service-logs-truncated-query-params';
 import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Injectable()

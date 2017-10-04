@@ -16,28 +16,15 @@
  * limitations under the License.
  */
 
-import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
+import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params';
 
-export interface AppState {
-  isAuthorized: boolean;
-  isInitialLoading: boolean;
-  isLoginInProgress: boolean;
-  isAuditLogsSet: boolean;
-  isServiceLogsSet: boolean;
-  activeLogsType?: string;
-  isServiceLogsFileView: boolean;
-  isServiceLogContextView: boolean;
-  activeLog: ActiveServiceLogEntry | null;
-}
-
-export const initialState: AppState = {
-  isAuthorized: false,
-  isInitialLoading: false,
-  isLoginInProgress: false,
-  isAuditLogsSet: false,
-  isServiceLogsSet: false,
-  activeLogsType: 'serviceLogs', // TODO implement setting the parameter depending on user's navigation
-  isServiceLogsFileView: false,
-  isServiceLogContextView: false,
-  activeLog: null
+export class ServiceLogsQueryParams extends AuditLogsQueryParams {
+  level?: string;
+  file_name?: string;
+  bundle_id?: string;
+  hostList?: string;
+  find?: string;
+  sourceLogId?: string;
+  keywordType?: string;
+  token?: string;
 }

@@ -21,7 +21,7 @@ import {ContainerElement, Selection} from 'd3';
 import * as d3 from 'd3';
 import * as moment from 'moment-timezone';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
-import {HistogramStyleOptions, HistogramOptions} from '@app/classes/histogram-options.class';
+import {HistogramStyleOptions, HistogramOptions} from '@app/classes/histogram-options';
 
 @Component({
   selector: 'time-histogram',

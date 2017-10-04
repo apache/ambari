@@ -24,11 +24,11 @@ import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {AuditLog} from '@app/models/audit-log.model';
-import {ServiceLog} from '@app/models/service-log.model';
-import {LogField} from '@app/models/log-field.model';
-import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
-import {HistogramOptions} from '@app/classes/histogram-options.class';
+import {AuditLog} from '@app/classes/models/audit-log';
+import {ServiceLog} from '@app/classes/models/service-log';
+import {LogField} from '@app/classes/models/log-field';
+import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
+import {HistogramOptions} from '@app/classes/histogram-options';
 
 @Component({
   selector: 'logs-container',

@@ -16,15 +16,28 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/models/common-entry.model';
+import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 
-export interface Node {
-  name: string;
-  type?: string;
-  value: string;
-  isParent: boolean;
-  isRoot: boolean;
-  childs?: Node[];
-  logLevelCount?: CommonEntry[];
-  vNodeList?: CommonEntry[];
+export interface AppState {
+  isAuthorized: boolean;
+  isInitialLoading: boolean;
+  isLoginInProgress: boolean;
+  isAuditLogsSet: boolean;
+  isServiceLogsSet: boolean;
+  activeLogsType?: string;
+  isServiceLogsFileView: boolean;
+  isServiceLogContextView: boolean;
+  activeLog: ActiveServiceLogEntry | null;
+}
+
+export const initialState: AppState = {
+  isAuthorized: false,
+  isInitialLoading: false,
+  isLoginInProgress: false,
+  isAuditLogsSet: false,
+  isServiceLogsSet: false,
+  activeLogsType: 'serviceLogs', // TODO implement setting the parameter depending on user's navigation
+  isServiceLogsFileView: false,
+  isServiceLogContextView: false,
+  activeLog: null
 }

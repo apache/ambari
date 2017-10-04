@@ -26,7 +26,7 @@ import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-field
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry.class';
+import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 
 @Injectable()
 export class LogsContainerService {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {LogField} from '@app/models/log-field.model';
+import {LogField} from '@app/classes/models/log-field';
 
 const columnsNamesMap = {
   log_message: {

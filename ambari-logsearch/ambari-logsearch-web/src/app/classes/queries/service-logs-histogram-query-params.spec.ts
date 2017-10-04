@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {ServiceLogsHistogramQueryParams} from './service-logs-histogram-query-params.class';
+import {ServiceLogsHistogramQueryParams} from './service-logs-histogram-query-params';
 
 describe('ServiceLogsHistogramQueryParams', () => {
 

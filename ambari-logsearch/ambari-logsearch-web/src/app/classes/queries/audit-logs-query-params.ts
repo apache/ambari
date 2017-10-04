@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {QueryParams} from '@app/classes/queries/query-params.class';
+import {QueryParams} from '@app/classes/queries/query-params';
 
 export const defaultParams = {
   page: '0',

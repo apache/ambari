@@ -17,7 +17,7 @@
  */
 
 import {Component, AfterViewInit, Input, Output, EventEmitter, ViewChildren, ViewContainerRef, QueryList} from '@angular/core';
-import {ListItem} from '@app/classes/list-item.class';
+import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 

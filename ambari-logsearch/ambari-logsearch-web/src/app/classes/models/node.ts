@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 
-import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params.class';
+import {CommonEntry} from '@app/classes/models/common-entry';
 
-export class ServiceLogsQueryParams extends AuditLogsQueryParams {
-  level?: string;
-  file_name?: string;
-  bundle_id?: string;
-  hostList?: string;
-  find?: string;
-  sourceLogId?: string;
-  keywordType?: string;
-  token?: string;
+export interface Node {
+  name: string;
+  type?: string;
+  value: string;
+  isParent: boolean;
+  isRoot: boolean;
+  childs?: Node[];
+  logLevelCount?: CommonEntry[];
+  vNodeList?: CommonEntry[];
 }
