@@ -109,6 +109,8 @@ class TestInstallPackages(RMFTestCase):
       lookup_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value=[]
+      repo_file_name = 'ambari-hdp-1'
+      use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -126,7 +128,7 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=False,
       )
@@ -135,11 +137,11 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=True,
       )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=use_repos, retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -190,7 +192,7 @@ class TestInstallPackages(RMFTestCase):
                          'repository_version_id': 1,
                          'actual_version': VERSION_STUB})
 
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=[], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos={}, retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', None, action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -224,6 +226,8 @@ class TestInstallPackages(RMFTestCase):
       lookup_packages.side_effect = TestInstallPackages._add_packages_available
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value=[]
+      repo_file_name = 'ambari-hdp-1'
+      use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -241,7 +245,7 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=False,
                                 )
@@ -250,11 +254,11 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=True,
                                 )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=use_repos, retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -289,6 +293,8 @@ class TestInstallPackages(RMFTestCase):
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value=["HDP-UTILS-2.2.0.1-885"]
       is_redhat_family_mock.return_value = True
+      repo_file_name = 'ambari-hdp-1'
+      use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -306,7 +312,7 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name='ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=False,
       )
@@ -315,11 +321,11 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=True,
       )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=use_repos, retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -434,6 +440,8 @@ class TestInstallPackages(RMFTestCase):
 
       get_provider.return_value = provider
       is_suse_family_mock.return_value = True
+      repo_file_name = 'ambari-hdp-1'
+      use_repos = { 'HDP-UTILS-1.1.0.20': repo_file_name, 'HDP-2.2': repo_file_name }
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -451,7 +459,7 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=False,
                                 )
@@ -460,11 +468,11 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-1',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=True,
                                 )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20', 'HDP-2.2'], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=use_repos, retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -509,6 +517,8 @@ class TestInstallPackages(RMFTestCase):
 
       command_json['repositoryFile']['repoVersion'] = '2.2.0.1-990'
 
+      repo_file_name = 'ambari-hdp-4'
+      use_repos = { 'HDP-UTILS-1.1.0.20-repo-4': repo_file_name, 'HDP-2.2-repo-4': repo_file_name }
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -526,7 +536,7 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-4',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=False,
                                 )
@@ -535,11 +545,11 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP', 'main'],
                                 repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-4',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=True,
                                 )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20-repo-4', 'HDP-2.2-repo-4'], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=use_repos, retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5,
                                 retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
@@ -1146,6 +1156,8 @@ class TestInstallPackages(RMFTestCase):
       lookup_packages.side_effect = TestInstallPackages._add_packages_lookUpYum
       get_provider.return_value = provider
       list_ambari_managed_repos_mock.return_value=[]
+      repo_file_name = 'ambari-hdp-4'
+      use_repos = { 'HDP-UTILS-1.1.0.20-repo-4': repo_file_name, 'HDP-2.2-repo-4': repo_file_name }
       self.executeScript("scripts/install_packages.py",
                          classname="InstallPackages",
                          command="actionexecute",
@@ -1164,7 +1176,7 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP-UTILS', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-4',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=False,
       )
@@ -1173,11 +1185,11 @@ class TestInstallPackages(RMFTestCase):
                                 action=['create'],
                                 components=[u'HDP', 'main'],
                                 repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                                repo_file_name=u'ambari-hdp-4',
+                                repo_file_name=repo_file_name,
                                 mirror_list=None,
                                 append_to_file=True,
       )
-      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=['HDP-UTILS-1.1.0.20-repo-4', 'HDP-2.2-repo-4'], retry_count=5, retry_on_repo_unavailability=False)
+      self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], use_repos=use_repos, retry_count=5, retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5,
                                 retry_on_repo_unavailability=False)
       self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)

@@ -179,9 +179,10 @@ class ZypperProvider(RPMBasedPackageProvider):
 
     return True
 
-  def install_package(self, name, use_repos=[], skip_repos=[], is_upgrade=False):
+  def install_package(self, name, use_repos={}, skip_repos=[], is_upgrade=False):
     if is_upgrade or use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
+      use_repos = use_repos.keys()
       if use_repos:
         active_base_repos = self.get_active_base_repos()
         if 'base' in use_repos:
@@ -189,7 +190,7 @@ class ZypperProvider(RPMBasedPackageProvider):
           use_repos = filter(lambda x: x != 'base', use_repos)
           use_repos.extend(active_base_repos)
         use_repos_options = []
-        for repo in use_repos:
+        for repo in sorted(use_repos):
           use_repos_options = use_repos_options + ['--repo', repo]
         cmd = cmd + use_repos_options
 
@@ -199,7 +200,7 @@ class ZypperProvider(RPMBasedPackageProvider):
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
-  def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):
+  def upgrade_package(self, name, use_repos={}, skip_repos=[], is_upgrade=True):
     return self.install_package(name, use_repos, skip_repos, is_upgrade)
   
   def remove_package(self, name, ignore_dependencies = False):
