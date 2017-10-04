@@ -79,8 +79,6 @@ class WebHCatServerDefault(WebHCatServer):
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version): 
       # webhcat has no conf, but uses hadoop home, so verify that regular hadoop conf is set
-      conf_select.select(params.stack_name, "hive-hcatalog", params.version)
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hive-webhcat", params.version)
 
   def security_status(self, env):

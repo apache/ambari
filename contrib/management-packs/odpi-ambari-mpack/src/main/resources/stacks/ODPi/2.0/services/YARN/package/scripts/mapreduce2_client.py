@@ -71,7 +71,6 @@ class MapReduce2Client(Script):
       # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
       # must change it now so this function can find the Jinja Templates for the service.
       env.config.basedir = base_dir
-      conf_select.select(params.stack_name, conf_select_name, params.version)
       self.configure(env, config_dir=config_dir)
 
 
@@ -90,7 +89,6 @@ class MapReduce2ClientDefault(MapReduce2Client):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-client", params.version)
 
 
