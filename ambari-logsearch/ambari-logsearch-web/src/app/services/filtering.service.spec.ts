@@ -24,6 +24,8 @@ import {ComponentsService, components} from '@app/services/storage/components.se
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {UtilsService} from '@app/services/utils.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {ListItem} from '@app/classes/list-item.class';
+import {Node} from '@app/models/node.model';
 
 import {FilteringService} from './filtering.service';
 
@@ -64,4 +66,29 @@ describe('FilteringService', () => {
   it('should create service', inject([FilteringService], (service: FilteringService) => {
     expect(service).toBeTruthy();
   }));
+
+  describe('#getListItemFromString()', () => {
+    it('should convert string to ListItem', inject([FilteringService], (service: FilteringService) => {
+      const getListItemFromString: (name: string) => ListItem = service['getListItemFromString'];
+      expect(getListItemFromString('customName')).toEqual({
+        label: 'customName',
+        value: 'customName'
+      });
+    }));
+  });
+
+  describe('#getListItemFromNode()', () => {
+    it('should convert Node to ListItem', inject([FilteringService], (service: FilteringService) => {
+      const getListItemFromNode: (node: Node) => ListItem = service['getListItemFromNode'];
+      expect(getListItemFromNode({
+        name: 'customName',
+        value: '1',
+        isParent: true,
+        isRoot: true
+      })).toEqual({
+        label: 'customName (1)',
+        value: 'customName'
+      });
+    }));
+  });
 });

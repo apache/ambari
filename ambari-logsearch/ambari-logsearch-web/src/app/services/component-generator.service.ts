@@ -18,13 +18,14 @@
 
 import {Injectable, ComponentFactoryResolver, ViewContainerRef} from '@angular/core';
 import {HostsService} from '@app/services/storage/hosts.service';
+import {ComponentsService} from '@app/services/storage/components.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
 
 @Injectable()
 export class ComponentGeneratorService {
 
-  constructor(private resolver: ComponentFactoryResolver, private hostsStorage: HostsService, private logsContainer: LogsContainerService) {
+  constructor(private resolver: ComponentFactoryResolver, private hostsStorage: HostsService, private componentsStorage: ComponentsService, private logsContainer: LogsContainerService) {
   }
 
   private createComponent(type: any, container: ViewContainerRef, properties?: any): void {
@@ -39,6 +40,26 @@ export class ComponentGeneratorService {
     this.hostsStorage.getAll().subscribe(hosts => {
       if (container && hosts && hosts.length) {
         const selectedHost = hosts.find(host => host.name === hostName);
+        data = selectedHost.logLevelCount.map(event => {
+          return {
+            color: this.logsContainer.colors[event.name],
+            value: event.value
+          };
+        });
+        if (data.length) {
+          this.createComponent(NodeBarComponent, container, {
+            data
+          });
+        }
+      }
+    });
+  }
+
+  getDataForComponentsNodeBar(componentName: string, container: ViewContainerRef): void {
+    let data;
+    this.componentsStorage.getAll().subscribe(components => {
+      if (container && components && components.length) {
+        const selectedHost = components.find(host => host.name === componentName);
         data = selectedHost.logLevelCount.map(event => {
           return {
             color: this.logsContainer.colors[event.name],

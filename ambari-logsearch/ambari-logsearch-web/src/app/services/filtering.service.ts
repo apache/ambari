@@ -18,12 +18,14 @@
 
 import {Injectable} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
+import {Response} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/takeUntil';
 import * as moment from 'moment-timezone';
 import {ListItem} from '@app/classes/list-item.class';
+import {Node} from '@app/models/node.model';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
@@ -35,26 +37,38 @@ export class FilteringService {
 
   constructor(private httpClient: HttpClientService, private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private hostsStorage: HostsService) {
     appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
-    clustersStorage.getAll().subscribe(clusters => {
-      this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)];
+    clustersStorage.getAll().subscribe((clusters: string[]): void => {
+      this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItemFromString)];
     });
-    componentsStorage.getAll().subscribe(components => {
-      this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)];
+    componentsStorage.getAll().subscribe((components: Node[]): void => {
+     this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItemFromNode)];
     });
-    hostsStorage.getAll().subscribe(hosts => {
-      this.filters.hosts.options = [...this.filters.hosts.options, ...hosts.map(host => {
-        return {
-          label: `${host.name} (${host.value})`,
-          value: host.name
-        };
-      })];
+    hostsStorage.getAll().subscribe((hosts: Node[]): void => {
+      this.filters.hosts.options = [...this.filters.hosts.options, ...hosts.map(this.getListItemFromNode)];
     });
   }
 
-  private getListItem(name: string): ListItem {
+  /**
+   * Get instance for dropdown list from string
+   * @param name {string}
+   * @returns {ListItem}
+   */
+  private getListItemFromString(name: string): ListItem {
     return {
       label: name,
       value: name
+    };
+  }
+
+  /**
+   * Get instance for dropdown list from Node object
+   * @param name {Node}
+   * @returns {ListItem}
+   */
+  private getListItemFromNode(node: Node): ListItem {
+    return {
+      label: `${node.name} (${node.value})`,
+      value: node.name
     };
   }
 
@@ -423,7 +437,7 @@ export class FilteringService {
   }
 
   loadClusters(): void {
-    this.httpClient.get('clusters').subscribe(response => {
+    this.httpClient.get('clusters').subscribe((response: Response): void => {
       const clusterNames = response.json();
       if (clusterNames) {
         this.clustersStorage.addInstances(clusterNames);
@@ -432,18 +446,21 @@ export class FilteringService {
   }
 
   loadComponents(): void {
-    this.httpClient.get('components').subscribe(response => {
+    this.httpClient.get('components').subscribe((response: Response): void => {
       const jsonResponse = response.json(),
-        components = jsonResponse && jsonResponse.groupList;
+        components = jsonResponse && jsonResponse.vNodeList.map((item): Node => Object.assign(item, {
+            value: item.logLevelCount.reduce((currentValue: number, currentItem): number => {
+              return currentValue + Number(currentItem.value);
+            }, 0)
+          }));
       if (components) {
-        const componentNames = components.map(component => component.type);
-        this.componentsStorage.addInstances(componentNames);
+        this.componentsStorage.addInstances(components);
       }
     });
   }
 
   loadHosts(): void {
-    this.httpClient.get('hosts').subscribe(response => {
+    this.httpClient.get('hosts').subscribe((response: Response): void => {
       const jsonResponse = response.json(),
         hosts = jsonResponse && jsonResponse.vNodeList;
       if (hosts) {

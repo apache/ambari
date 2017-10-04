@@ -25,5 +25,6 @@ export interface Node {
   isParent: boolean;
   isRoot: boolean;
   childs?: Node[];
-  logLevelCount: CommonEntry[];
+  logLevelCount?: CommonEntry[];
+  vNodeList?: CommonEntry[];
 }

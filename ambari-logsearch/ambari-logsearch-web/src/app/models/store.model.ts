@@ -53,7 +53,7 @@ export interface AppStore {
   userConfigs: UserConfig[];
   filters: Filter[];
   clusters: string[];
-  components: string[];
+  components: Node[];
   serviceLogsFields: ServiceLogField[];
   auditLogsFields: AuditLogField[];
 }

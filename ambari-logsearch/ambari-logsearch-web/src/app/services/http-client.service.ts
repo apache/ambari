@@ -62,7 +62,7 @@ export class HttpClientService extends Http {
       params: opts => new ServiceLogsTruncatedQueryParams(opts)
     },
     components: {
-      url: 'service/logs/components'
+      url: 'service/logs/components/levels/counts'
     },
     clusters: {
       url: 'service/logs/clusters'
