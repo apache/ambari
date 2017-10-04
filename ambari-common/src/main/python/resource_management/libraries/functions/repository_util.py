@@ -33,7 +33,7 @@ def create_repo_files(template, command_repository):
   """
   Creates repositories in a consistent manner for all types
   :param command_repository: a CommandRepository instance
-  :return:
+  :return: a dictionary with repo ID => repo file name mapping
   """
 
   if command_repository.version_id is None:
@@ -43,7 +43,7 @@ def create_repo_files(template, command_repository):
     Logger.warning(
       "Repository for {0}/{1} has no repositories.  Ambari may not be managing this version.".format(
         command_repository.stack_name, command_repository.version_string))
-    return
+    return {}
 
   # add the stack name to the file name just to make it a little easier to debug
   # version_id is the primary id of the repo_version table in the database
@@ -51,6 +51,7 @@ def create_repo_files(template, command_repository):
                                       command_repository.version_id)
 
   append_to_file = False  # initialize to False to create the file anew.
+  repo_files = {}
 
   for repository in command_repository.repositories:
 
@@ -71,6 +72,9 @@ def create_repo_files(template, command_repository):
                  components = repository.ubuntu_components,
                  append_to_file = append_to_file)
       append_to_file = True
+      repo_files[repository.repo_id] = file_name
+
+  return repo_files
 
 
 def _find_value(dictionary, key):

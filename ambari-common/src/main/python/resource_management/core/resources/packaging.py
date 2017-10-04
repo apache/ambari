@@ -30,9 +30,19 @@ class Package(Resource):
   package_name = ResourceArgument(default=lambda obj: obj.name)
   location = ResourceArgument(default=lambda obj: obj.package_name)
 
-  # Allow using only specific list of repositories when performing action
-  use_repos = ResourceArgument(default=[])
+  """
+  Dictionary of repositories (repo ID => repo file name) to allow using
+  only a specific list of repositories when performing action.
+  (APT requires repo file names while other providers can filter by repo ID,
+  hence the need to pass both.)
+  """
+  use_repos = ResourceArgument(default={})
+
+  """
+  List of repositories to avoid using (currently only respected by YUM provider)
+  """
   skip_repos = ResourceArgument(default=[])
+
   """
   True           -  log it in INFO mode
   False          -  never log it

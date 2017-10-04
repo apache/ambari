@@ -181,13 +181,13 @@ class TestPackageResource(TestCase):
   def test_action_install_use_repos_rhel(self, shell_mock):
     shell_mock.return_value = (0,'')
     with Environment('/') as env:
-      Package("some_package", use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+      Package("some_package", use_repos={'HDP-UTILS-2.2.0.1-885': 'ambari-hdp-1', 'HDP-2.2.0.1-885': 'ambari-hdp-1'},
               logoutput = False
               )
     self.assertEquals(shell_mock.call_args[0][0],
                       ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install',
                        '--disablerepo=*',
-                       '--enablerepo=HDP-UTILS-2.2.0.1-885,HDP-2.2.0.1-885', 'some_package'])
+                       '--enablerepo=HDP-2.2.0.1-885,HDP-UTILS-2.2.0.1-885', 'some_package'])
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
   @patch.object(shell, "checked_call")
