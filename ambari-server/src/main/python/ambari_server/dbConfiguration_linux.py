@@ -350,6 +350,7 @@ class PGConfig(LinuxDBMSConfig):
 
   PG_ERROR_BLOCKED = "is being accessed by other users"
   PG_STATUS_RUNNING = None
+  PG_STATUS_STOPPED = "stopped"
   SERVICE_CMD = "/usr/bin/env service"
   PG_SERVICE_NAME = "postgresql"
   PG_HBA_DIR = None
@@ -607,12 +608,12 @@ class PGConfig(LinuxDBMSConfig):
     # on RHEL and SUSE PG_ST_COMD returns RC 0 for running and 3 for stoppped
     if retcode == 0:
       if out.strip() == "Running clusters:":
-        pg_status = "stopped"
+        pg_status = PGConfig.PG_STATUS_STOPPED
       else:
         pg_status = PGConfig.PG_STATUS_RUNNING
     else:
       if retcode == 3:
-        pg_status = "stopped"
+        pg_status = PGConfig.PG_STATUS_STOPPED
       else:
         pg_status = None
     return pg_status, retcode, out, err
@@ -751,7 +752,7 @@ class PGConfig(LinuxDBMSConfig):
     PGConfig._configure_postgresql_conf()
     #restart postgresql if already running
     pg_status, retcode, out, err = PGConfig._get_postgre_status()
-    if pg_status == PGConfig.PG_STATUS_RUNNING:
+    if pg_status != PGConfig.PG_STATUS_STOPPED:
       retcode, out, err = PGConfig._restart_postgres()
       return retcode, out, err
     return 0, "", ""
@@ -771,7 +772,7 @@ class PGConfig(LinuxDBMSConfig):
       process.kill()
       pg_status, retcode, out, err = PGConfig._get_postgre_status()
       # SUSE linux set status of stopped postgresql proc to unused
-      if pg_status == "unused" or pg_status == "stopped":
+      if pg_status == "unused" or pg_status == PGConfig.PG_STATUS_STOPPED:
         print_info_msg("PostgreSQL is stopped. Restarting ...")
         retcode, out, err = run_os_command(PGConfig.PG_START_CMD)
         return retcode, out, err
