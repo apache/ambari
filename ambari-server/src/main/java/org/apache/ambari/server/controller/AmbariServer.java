@@ -275,6 +275,9 @@ public class AmbariServer {
   @Inject
   ViewDirectoryWatcher viewDirectoryWatcher;
 
+  @Inject
+  SessionHandlerConfigurer sessionHandlerConfigurer;
+
   public String getServerOsType() {
     return configs.getServerOsType();
   }
@@ -354,7 +357,7 @@ public class AmbariServer {
           ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
 
       configureRootHandler(root);
-      configureSessionHandler(sessionHandler);
+      sessionHandlerConfigurer.configureSessionHandler(sessionHandler);
       root.setSessionHandler(sessionHandler);
 
       //ContextLoaderListener handles all work on registration in servlet container
@@ -553,6 +556,7 @@ public class AmbariServer {
        * Start the server after controller state is recovered.
        */
       server.start();
+      handlerList.shareSessionCacheToViews(sessionHandler.getSessionCache());
 
       serverForAgent.start();
       LOG.info("********* Started Server **********");
@@ -833,30 +837,6 @@ public class AmbariServer {
   private void configureAdditionalContentTypes(ServletContextHandler root) {
     root.getMimeTypes().addMimeMapping("woff", "application/font-woff");
     root.getMimeTypes().addMimeMapping("ttf", "application/font-sfnt");
-  }
-
-  /**
-   * Performs basic configuration of session handler with static values and values from
-   * configuration file.
-   *
-   * @param sessionHandler session handler
-   */
-  protected void configureSessionHandler(SessionHandler sessionHandler) {
-    // use AMBARISESSIONID instead of JSESSIONID to avoid conflicts with
-    // other services (like HDFS) that run on the same context but a different
-    // port
-    sessionHandler.setSessionCookie("AMBARISESSIONID");
-
-    sessionHandler.getSessionCookieConfig().setHttpOnly(true);
-    if (configs.getApiSSLAuthentication()) {
-      sessionHandler.getSessionCookieConfig().setSecure(true);
-    }
-
-    // each request that does not use AMBARISESSIONID will create a new
-    // HashedSession in Jetty; these MUST be reaped after inactivity in order
-    // to prevent a memory leak
-    int sessionInactivityTimeout = configs.getHttpSessionInactiveTimeout();
-    sessionHandler.setMaxInactiveInterval(sessionInactivityTimeout);
   }
 
   /**

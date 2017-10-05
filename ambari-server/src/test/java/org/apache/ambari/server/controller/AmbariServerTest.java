@@ -98,13 +98,13 @@ public class AmbariServerTest {
 
   @Test
   public void testConfigureSessionManager() throws Exception {
-    AmbariServer ambariServer = new AmbariServer();
+    SessionHandlerConfigurer sessionHandlerConfigurer = new SessionHandlerConfigurer();
 
     Configuration configuration = createNiceMock(Configuration.class);
     SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
     SessionCookieConfig sessionCookieConfig = createNiceMock(SessionCookieConfig.class);
 
-    ambariServer.configs = configuration;
+    sessionHandlerConfigurer.configuration = configuration;
 
     expect(sessionHandler.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
 
@@ -118,10 +118,10 @@ public class AmbariServerTest {
     replay(configuration, sessionHandler, sessionCookieConfig);
 
     // getApiSSLAuthentication == false
-    ambariServer.configureSessionHandler(sessionHandler);
+    sessionHandlerConfigurer.configureSessionHandler(sessionHandler);
 
     // getApiSSLAuthentication == true
-    ambariServer.configureSessionHandler(sessionHandler);
+    sessionHandlerConfigurer.configureSessionHandler(sessionHandler);
 
     verify(configuration, sessionHandler, sessionCookieConfig);
   }

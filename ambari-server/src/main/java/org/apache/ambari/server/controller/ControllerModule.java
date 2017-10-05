@@ -312,7 +312,6 @@ public class ControllerModule extends AbstractModule {
     installFactories();
 
     final SessionHandler sessionHandler = new SessionHandler();
-    sessionHandler.getSessionCookieConfig().setPath("/");
     bind(SessionHandler.class).toInstance(sessionHandler);
 
     bind(KerberosOperationHandlerFactory.class);

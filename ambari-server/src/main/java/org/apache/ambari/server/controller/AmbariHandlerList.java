@@ -44,6 +44,7 @@ import org.apache.ambari.view.ViewContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -100,10 +101,13 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   @Inject
   AmbariViewsSecurityHeaderFilter ambariViewsSecurityHeaderFilter;
 
+  @Inject
+  SessionHandlerConfigurer sessionHandlerConfigurer;
+
   /**
    * Mapping of view instance entities to handlers.
    */
-  private final Map<ViewInstanceEntity, Handler> viewHandlerMap = new HashMap<>();
+  private final Map<ViewInstanceEntity, WebAppContext> viewHandlerMap = new HashMap<>();
 
   /**
    * The non-view handlers.
@@ -164,7 +168,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
 
   @Override
   public void addViewInstance(ViewInstanceEntity viewInstanceDefinition) throws SystemException {
-    Handler handler = getHandler(viewInstanceDefinition);
+    WebAppContext handler = getHandler(viewInstanceDefinition);
     viewHandlerMap.put(viewInstanceDefinition, handler);
     super.addHandler(handler);
     // if this is running then start the handler being added...
@@ -174,6 +178,13 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
       } catch (Exception e) {
         throw new SystemException("Caught exception adding a view instance.", e);
       }
+    }
+  }
+
+  @Override
+  public void shareSessionCacheToViews(SessionCache serverSessionCache) {
+    for (WebAppContext webAppContext : viewHandlerMap.values()) {
+      webAppContext.getSessionHandler().setSessionCache(serverSessionCache);
     }
   }
 
@@ -204,7 +215,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   }
 
   // call the given handlers until the request is handled; return true if the request is handled
-  private boolean processHandlers(Collection<Handler> handlers, String target, Request baseRequest,
+  private boolean processHandlers(Collection<? extends Handler> handlers, String target, Request baseRequest,
                                   HttpServletRequest request, HttpServletResponse response)
     throws IOException, ServletException {
 
@@ -226,7 +237,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    *
    * @throws org.apache.ambari.view.SystemException if an handler can not be obtained for the given view instance
    */
-  private Handler getHandler(ViewInstanceEntity viewInstanceDefinition)
+  private WebAppContext getHandler(ViewInstanceEntity viewInstanceDefinition)
     throws SystemException {
 
     ViewEntity    viewDefinition = viewInstanceDefinition.getViewEntity();
@@ -265,8 +276,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    * A session handler that shares its session manager with another app.
    * This handler DOES NOT attempt stop the shared session manager.
    */
-  private static class SharedSessionHandler extends SessionHandler {
-    final SessionHandler sessionHandler;
+  private class SharedSessionHandler extends SessionHandler {
 
     // ----- Constructors ----------------------------------------------------
 
@@ -276,7 +286,8 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
      * @param sessionHandler  the shared session manager.
      */
     public SharedSessionHandler(SessionHandler sessionHandler) {
-      this.sessionHandler = sessionHandler;
+      setSessionIdManager(sessionHandler.getSessionIdManager());
+      sessionHandlerConfigurer.configureSessionHandler(this);
     }
 
 
@@ -286,7 +297,5 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     protected void doStop() throws Exception {
       // do nothing...
     }
-
-    //TODO delagate all other?
   }
 }
