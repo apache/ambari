@@ -137,6 +137,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
@@ -147,6 +148,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
@@ -359,6 +361,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private Provider<AgentConfigsHolder> m_agentConfigsHolder;
+
+  @Inject
+  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -694,6 +699,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
     Multimap<Cluster, ServiceComponentHost> schMap = ArrayListMultimap.create();
+    Map<Long, Map<String, List<String>>> serviceComponentNames = new HashMap<>();
+    Map<Long, Map<String, Map<String, ServiceComponentDesiredStateEntity>>> serviceComponentDesiredStateEntities = new HashMap<>();
+
+    for (ServiceComponentHostRequest request : requests) {
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = s.getServiceComponent(
+          request.getComponentName());
+      serviceComponentNames.computeIfAbsent(sc.getClusterId(), c -> new HashMap<>())
+          .computeIfAbsent(sc.getServiceName(), h ->new ArrayList<>()).add(sc.getName());
+    }
+
+    List<ServiceComponentDesiredStateEntity> entities = serviceComponentDesiredStateDAO.findByNames(serviceComponentNames);
+
+    for (ServiceComponentDesiredStateEntity stateEntity : entities) {
+      serviceComponentDesiredStateEntities.computeIfAbsent(stateEntity.getClusterId(), c -> new HashMap<>())
+          .computeIfAbsent(stateEntity.getServiceName(), h ->new HashMap<>())
+          .putIfAbsent(stateEntity.getComponentName(), stateEntity);
+    }
 
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
@@ -702,8 +726,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           request.getComponentName());
 
       ServiceComponentHost sch =
-          serviceComponentHostFactory.createNew(sc, request.getHostname());
-
+          serviceComponentHostFactory.createNew(sc, request.getHostname(),
+              serviceComponentDesiredStateEntities.get(cluster.getClusterId()).get(s.getName()).get(sc.getName()));
       if (request.getDesiredState() != null
           && !request.getDesiredState().isEmpty()) {
         State state = State.valueOf(request.getDesiredState());
@@ -1205,6 +1229,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private Set<ServiceComponentHostResponse> getHostComponents(
       ServiceComponentHostRequest request) throws AmbariException {
+    return getHostComponents(request, false);
+  }
+
+  private Set<ServiceComponentHostResponse> getHostComponents(
+      ServiceComponentHostRequest request, boolean statusOnly) throws AmbariException {
     LOG.debug("Processing request {}", request);
 
     if (request.getClusterName() == null
@@ -1348,7 +1377,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
 
-            ServiceComponentHostResponse r = sch.convertToResponse(desiredConfigs);
+            ServiceComponentHostResponse r = statusOnly ? sch.convertToResponseStatusOnly(desiredConfigs,
+                filterBasedConfigStaleness)
+                : sch.convertToResponse(desiredConfigs);
             if (null == r || (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig)) {
               continue;
             }
@@ -1404,7 +1435,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
 
-            ServiceComponentHostResponse r = sch.convertToResponse(desiredConfigs);
+            ServiceComponentHostResponse r = statusOnly ? sch.convertToResponseStatusOnly(desiredConfigs,
+                filterBasedConfigStaleness)
+                : sch.convertToResponse(desiredConfigs);
             if (null == r || (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig)) {
               continue;
             }
@@ -3859,12 +3892,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public Set<ServiceComponentHostResponse> getHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException {
+    return getHostComponents(requests, false);
+  }
+
+  @Override
+  public Set<ServiceComponentHostResponse> getHostComponents(
+      Set<ServiceComponentHostRequest> requests, boolean statusOnly) throws AmbariException {
     LOG.debug("Processing requests: {}", requests);
     Set<ServiceComponentHostResponse> response =
         new HashSet<>();
     for (ServiceComponentHostRequest request : requests) {
       try {
-        response.addAll(getHostComponents(request));
+        response.addAll(getHostComponents(request, statusOnly));
       } catch (ServiceComponentHostNotFoundException | ServiceComponentNotFoundException | ServiceNotFoundException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.

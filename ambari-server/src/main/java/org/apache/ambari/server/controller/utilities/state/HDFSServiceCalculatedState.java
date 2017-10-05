@@ -53,7 +53,7 @@ public final class HDFSServiceCalculatedState extends DefaultServiceCalculatedSt
           serviceName, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =
-          managementControllerProvider.get().getHostComponents(Collections.singleton(request));
+          managementControllerProvider.get().getHostComponents(Collections.singleton(request), true);
 
         int     nameNodeCount       = 0;
         int     nameNodeActiveCount = 0;

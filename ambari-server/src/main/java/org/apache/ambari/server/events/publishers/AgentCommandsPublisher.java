@@ -70,31 +70,31 @@ public class AgentCommandsPublisher {
   @Inject
   private StateUpdateEventPublisher stateUpdateEventPublisher;
 
-  public void sendAgentCommand(Multimap<String, AgentCommand> agentCommands) throws AmbariException {
+  public void sendAgentCommand(Multimap<Long, AgentCommand> agentCommands) throws AmbariException {
     if (agentCommands != null && !agentCommands.isEmpty()) {
-      Map<String, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters = new TreeMap<>();
-      for (Map.Entry<String, AgentCommand> acHostEntry : agentCommands.entries()) {
-        String hostName = acHostEntry.getKey();
+      Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters = new TreeMap<>();
+      for (Map.Entry<Long, AgentCommand> acHostEntry : agentCommands.entries()) {
+        Long hostId = acHostEntry.getKey();
         AgentCommand ac = acHostEntry.getValue();
-        populateExecutionCommandsClusters(executionCommandsClusters, hostName, ac);
+        populateExecutionCommandsClusters(executionCommandsClusters, hostId, ac);
       }
-      for (Map.Entry<String, TreeMap<String, ExecutionCommandsCluster>> hostEntry : executionCommandsClusters.entrySet()) {
-        String hostName = hostEntry.getKey();
+      for (Map.Entry<Long, TreeMap<String, ExecutionCommandsCluster>> hostEntry : executionCommandsClusters.entrySet()) {
+        Long hostId = hostEntry.getKey();
         ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostEntry.getValue());
-        executionCommandEvent.setHostName(hostName);
+        executionCommandEvent.setHostId(hostId);
         stateUpdateEventPublisher.publish(executionCommandEvent);
       }
     }
   }
 
-  public void sendAgentCommand(String hostName, AgentCommand agentCommand) throws AmbariException {
-    Multimap<String, AgentCommand> agentCommands = ArrayListMultimap.create();
-    agentCommands.put(hostName, agentCommand);
+  public void sendAgentCommand(Long hostId, AgentCommand agentCommand) throws AmbariException {
+    Multimap<Long, AgentCommand> agentCommands = ArrayListMultimap.create();
+    agentCommands.put(hostId, agentCommand);
     sendAgentCommand(agentCommands);
   }
 
-  private void populateExecutionCommandsClusters(Map<String, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters,
-                                            String hostName, AgentCommand ac) throws AmbariException {
+  private void populateExecutionCommandsClusters(Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters,
+                                            Long hostId, AgentCommand ac) throws AmbariException {
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Sending command string = " + StageUtils.jaxbToString(ac));
@@ -114,7 +114,7 @@ public class AgentCommandsPublisher {
           if ("SET_KEYTAB".equalsIgnoreCase(customCommand) || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
             LOG.info(String.format("%s called", customCommand));
             try {
-              injectKeytab(ec, customCommand, hostName);
+              injectKeytab(ec, customCommand, clusters.getHostById(hostId).getHostName());
             } catch (IOException e) {
               throw new AmbariException("Could not inject keytab into command", e);
             }
@@ -126,15 +126,15 @@ public class AgentCommandsPublisher {
           clusterId = Long.toString(clusters.getCluster(clusterName).getClusterId());
         }
         ec.setClusterId(clusterId);
-        prepareExecutionCommandsClusters(executionCommandsClusters, hostName, clusterId);
-        executionCommandsClusters.get(hostName).get(clusterId).getExecutionCommands().add((ExecutionCommand) ac);
+        prepareExecutionCommandsClusters(executionCommandsClusters, hostId, clusterId);
+        executionCommandsClusters.get(hostId).get(clusterId).getExecutionCommands().add((ExecutionCommand) ac);
         break;
       }
       case CANCEL_COMMAND: {
         CancelCommand cc = (CancelCommand) ac;
         String clusterId = Long.toString(hostRoleCommandDAO.findByPK(cc.getTargetTaskId()).getStage().getClusterId());
-        prepareExecutionCommandsClusters(executionCommandsClusters, hostName, clusterId);
-        executionCommandsClusters.get(hostName).get(clusterId).getCancelCommands().add(cc);
+        prepareExecutionCommandsClusters(executionCommandsClusters, hostId, clusterId);
+        executionCommandsClusters.get(hostId).get(clusterId).getCancelCommands().add(cc);
         break;
       }
       default:
@@ -143,13 +143,13 @@ public class AgentCommandsPublisher {
     }
   }
 
-  private void prepareExecutionCommandsClusters(Map<String, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters,
-                                                String hostName, String clusterId) {
-    if (!executionCommandsClusters.containsKey(hostName)) {
-      executionCommandsClusters.put(hostName, new TreeMap<>());
+  private void prepareExecutionCommandsClusters(Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters,
+                                                Long hostId, String clusterId) {
+    if (!executionCommandsClusters.containsKey(hostId)) {
+      executionCommandsClusters.put(hostId, new TreeMap<>());
     }
-    if (!executionCommandsClusters.get(hostName).containsKey(clusterId)) {
-      executionCommandsClusters.get(hostName).put(clusterId, new ExecutionCommandsCluster(new ArrayList<>(),
+    if (!executionCommandsClusters.get(hostId).containsKey(clusterId)) {
+      executionCommandsClusters.get(hostId).put(clusterId, new ExecutionCommandsCluster(new ArrayList<>(),
           new ArrayList<>()));
     }
   }

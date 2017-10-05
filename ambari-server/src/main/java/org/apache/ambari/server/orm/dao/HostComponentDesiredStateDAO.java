@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -90,7 +91,7 @@ public class HostComponentDesiredStateDAO {
   public HostComponentDesiredStateEntity findByIndex(Long clusterId, String serviceName,
                                                      String componentName, Long hostId) {
     final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
-      .createNamedQuery("HostComponentDesiredStateEntity.findByIndex", HostComponentDesiredStateEntity.class);
+      .createNamedQuery("HostComponentDesiredStateEntity.findByIndexAndHost", HostComponentDesiredStateEntity.class);
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("serviceName", serviceName);
@@ -98,6 +99,37 @@ public class HostComponentDesiredStateDAO {
     query.setParameter("hostId", hostId);
 
     return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Retrieve the single Host Component Desired State for the given unique cluster, service, component, and host.
+   *
+   * @param clusterId Cluster ID
+   * @param serviceName Service Name
+   * @param componentName Component Name
+   * @return Return the Host Component Desired State entity that match the criteria.
+   */
+  @RequiresSession
+  public List<HostComponentDesiredStateEntity> findByIndex(Long clusterId, String serviceName,
+                                                     String componentName) {
+    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
+      .createNamedQuery("HostComponentDesiredStateEntity.findByIndex", HostComponentDesiredStateEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+
+    return daoUtils.selectList(query);
+  }
+
+  @RequiresSession
+  public List<HostComponentDesiredStateEntity> findByHosts(Collection<Long> hostIds) {
+    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
+      .createNamedQuery("HostComponentDesiredStateEntity.findByHosts", HostComponentDesiredStateEntity.class);
+
+    query.setParameter("hostIds", hostIds);
+
+    return daoUtils.selectList(query);
   }
 
   @Transactional

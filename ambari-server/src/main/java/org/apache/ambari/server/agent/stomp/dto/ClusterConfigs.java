@@ -18,33 +18,33 @@
 
 package org.apache.ambari.server.agent.stomp.dto;
 
-import java.util.Map;
+import java.util.SortedMap;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ClusterConfigs {
-  private Map<String, Map<String, String>> configurations;
-  private Map<String, Map<String, Map<String, String>>> configurationAttributes;
+  private SortedMap<String, SortedMap<String, String>> configurations;
+  private SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributes;
 
-  public ClusterConfigs(Map<String, Map<String, String>> configurations, Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+  public ClusterConfigs(SortedMap<String, SortedMap<String, String>> configurations, SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributes) {
     this.configurations = configurations;
     this.configurationAttributes = configurationAttributes;
   }
 
-  public Map<String, Map<String, String>> getConfigurations() {
+  public SortedMap<String, SortedMap<String, String>> getConfigurations() {
     return configurations;
   }
 
-  public void setConfigurations(Map<String, Map<String, String>> configurations) {
+  public void setConfigurations(SortedMap<String, SortedMap<String, String>> configurations) {
     this.configurations = configurations;
   }
 
-  public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
+  public SortedMap<String, SortedMap<String, SortedMap<String, String>>> getConfigurationAttributes() {
     return configurationAttributes;
   }
 
-  public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+  public void setConfigurationAttributes(SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributes) {
     this.configurationAttributes = configurationAttributes;
   }
 

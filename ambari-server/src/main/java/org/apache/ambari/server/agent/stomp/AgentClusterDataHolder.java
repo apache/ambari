@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,8 @@
 package org.apache.ambari.server.agent.stomp;
 
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 
@@ -38,9 +40,17 @@ public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hasha
 
   private T data;
 
+  //TODO perhaps need optimization
+  private Lock lock = new ReentrantLock();
+
   public T getUpdateIfChanged(String agentHash) throws AmbariException {
-    initializeDataIfNeeded(true);
-    return !Objects.equals(agentHash, data.getHash()) ? data : getEmptyData();
+    try {
+      lock.lock();
+      initializeDataIfNeeded(true);
+      return !Objects.equals(agentHash, data.getHash()) ? data : getEmptyData();
+    } finally {
+      lock.unlock();
+    }
   }
 
   /**
@@ -71,7 +81,12 @@ public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hasha
   }
 
   protected final void regenerateHash() {
-    regenerateHash(data);
+    try {
+      lock.lock();
+      regenerateHash(data);
+    } finally {
+      lock.unlock();
+    }
   }
 
   protected final void initializeDataIfNeeded(boolean regenerateHash) throws AmbariException {

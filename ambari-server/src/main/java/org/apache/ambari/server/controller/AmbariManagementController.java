@@ -174,6 +174,9 @@ public interface AmbariManagementController {
   Set<ServiceComponentHostResponse> getHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException;
 
+  Set<ServiceComponentHostResponse> getHostComponents(
+      Set<ServiceComponentHostRequest> requests, boolean statusOnly) throws AmbariException;
+
   /**
    * Gets the configurations identified by the given request objects.
    *

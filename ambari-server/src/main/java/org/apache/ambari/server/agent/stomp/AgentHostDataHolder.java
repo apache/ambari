@@ -38,24 +38,24 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
   @Inject
   private StateUpdateEventPublisher stateUpdateEventPublisher;
 
-  private final Map<String, T> data = new ConcurrentHashMap<>();
+  private final Map<Long, T> data = new ConcurrentHashMap<>();
 
-  protected abstract T getCurrentData(String hostName) throws AmbariException;
+  protected abstract T getCurrentData(Long hostId) throws AmbariException;
   protected abstract boolean handleUpdate(T update) throws AmbariException;
 
-  public T getUpdateIfChanged(String agentHash, String hostName) throws AmbariException {
-    T hostData = initializeDataIfNeeded(hostName, true);
+  public T getUpdateIfChanged(String agentHash, Long hostId) throws AmbariException {
+    T hostData = initializeDataIfNeeded(hostId, true);
     return !Objects.equals(agentHash, hostData.getHash()) ? hostData : getEmptyData();
   }
 
-  private T initializeDataIfNeeded(String hostName, boolean regenerateHash) throws AmbariException {
-    T hostData = data.get(hostName);
+  private T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
+    T hostData = data.get(hostId);
     if (hostData == null) {
-      hostData = getCurrentData(hostName);
+      hostData = getCurrentData(hostId);
       if (regenerateHash) {
         regenerateHash(hostData);
       }
-      data.put(hostName, hostData);
+      data.put(hostId, hostData);
     }
     return hostData;
   }
@@ -65,9 +65,9 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
    * event to listeners.
    */
   public final void updateData(T update) throws AmbariException {
-    initializeDataIfNeeded(update.getHostName(), false);
+    initializeDataIfNeeded(update.getHostId(), false);
     if (handleUpdate(update)) {
-      T hostData = getData(update.getHostName());
+      T hostData = getData(update.getHostId());
       regenerateHash(hostData);
       update.setHash(hostData.getHash());
       stateUpdateEventPublisher.publish(update);
@@ -77,28 +77,28 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
   /**
    * Reset data for the given host.  Used if changes are complex and it's easier to re-create data from scratch.
    */
-  public final void resetData(String hostName) throws AmbariException {
-    T newData = getCurrentData(hostName);
-    data.replace(hostName, newData);
+  public final void resetData(Long hostId) throws AmbariException {
+    T newData = getCurrentData(hostId);
+    data.replace(hostId, newData);
     stateUpdateEventPublisher.publish(newData);
   }
 
   /**
    * Remove data for the given host.
    */
-  public final void onHostRemoved(String hostName) {
-    data.remove(hostName);
+  public final void onHostRemoved(String hostId) {
+    data.remove(hostId);
   }
 
-  public Map<String, T> getData() {
+  public Map<Long, T> getData() {
     return data;
   }
 
-  public T getData(String hostName) {
-    return data.get(hostName);
+  public T getData(Long hostId) {
+    return data.get(hostId);
   }
 
-  public void setData(T data, String hostName) {
-    this.data.put(hostName, data);
+  public void setData(T data, Long hostId) {
+    this.data.put(hostId, data);
   }
 }

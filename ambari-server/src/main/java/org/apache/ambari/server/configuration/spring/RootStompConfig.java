@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.servlet.ServletContext;
 
+import org.apache.ambari.server.agent.stomp.AmbariSubscriptionRegistry;
 import org.apache.ambari.server.api.AmbariSendToMethodReturnValueHandler;
 import org.apache.ambari.server.events.listeners.requests.StateUpdateListener;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
@@ -30,14 +31,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.support.SendToMethodReturnValueHandler;
 import org.springframework.messaging.simp.annotation.support.SimpAnnotationMethodMessageHandler;
+import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
@@ -52,8 +53,11 @@ public class RootStompConfig {
 
   private final ServletContext servletContext;
 
-  public RootStompConfig(ServletContext servletContext) {
+  private final org.apache.ambari.server.configuration.Configuration configuration;
+
+  public RootStompConfig(ServletContext servletContext, Injector injector) {
     this.servletContext = servletContext;
+    configuration = injector.getInstance(org.apache.ambari.server.configuration.Configuration.class);
   }
 
   @Bean
@@ -66,6 +70,13 @@ public class RootStompConfig {
 
     return new DefaultHandshakeHandler(
         new JettyRequestUpgradeStrategy(new WebSocketServerFactory(servletContext)));
+  }
+
+  @Autowired
+  public void configureRegistryCacheSize(SimpleBrokerMessageHandler simpleBrokerMessageHandler) throws NoSuchFieldException, IllegalAccessException {
+    AmbariSubscriptionRegistry defaultSubscriptionRegistry =
+        new AmbariSubscriptionRegistry(configuration.getSubscriptionRegistryCacheSize());
+    simpleBrokerMessageHandler.setSubscriptionRegistry(defaultSubscriptionRegistry);
   }
 
   @Autowired
@@ -94,24 +105,12 @@ public class RootStompConfig {
   public static class ExceptionHandlingAdvice{
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionHandlingAdvice.class);
 
-
-    @MessageExceptionHandler(MessagingException.class)
+    @MessageExceptionHandler(Exception.class)
     @SendToUser("/")
-    public ErrorMessage handle(MessagingException e) {
+    public ErrorMessage handle(Exception e) {
 
-      LOG.error("Exception caught while processing message", e);
-
+      //LOG.error("Exception caught while processing message: " + e.getMessage(), e);
       return new ErrorMessage(e);
-    }
-
-    static class ErrorMessage {
-      Message<?> failedMessage;
-      String exception;
-
-      ErrorMessage(MessagingException e) {
-        this.failedMessage = e.getFailedMessage();
-        this.exception = e.getLocalizedMessage();
-      }
     }
 
 

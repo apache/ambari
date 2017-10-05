@@ -44,14 +44,14 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   private Clusters clusters;
 
   @Override
-  public HostLevelParamsUpdateEvent getCurrentData(String hostName) throws AmbariException {
+  public HostLevelParamsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
     TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
-    for (Cluster cl : clusters.getClustersForHost(hostName)) {
-      Host host = clusters.getHost(hostName);
+    Host host = clusters.getHostById(hostId);
+    for (Cluster cl : clusters.getClustersForHost(host.getHostName())) {
       //TODO fix repo info host param
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
           null,//ambariMetaInfo.getRepoInfo(cl, host),
-          recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), hostName));
+          recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()));
 
       hostLevelParamsClusters.put(Long.toString(cl.getClusterId()),
           hostLevelParamsCluster);
@@ -62,7 +62,7 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
 
   protected boolean handleUpdate(HostLevelParamsUpdateEvent update) throws AmbariException {
     //TODO implement update host level params process
-    setData(update, update.getHostName());
+    setData(update, update.getHostId());
     return true;
   }
 

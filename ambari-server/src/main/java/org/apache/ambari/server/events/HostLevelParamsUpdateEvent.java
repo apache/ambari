@@ -42,7 +42,7 @@ public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements
   /**
    * Host identifier.
    */
-  private String hostName;
+  private Long hostId;
 
   /**
    * Host level parameters by clusters.
@@ -73,13 +73,13 @@ public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements
     return new HostLevelParamsUpdateEvent(null);
   }
 
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   @Override
-  public String getHostName() {
-    return hostName;
+  public Long getHostId() {
+    return hostId;
   }
 
   @Override
@@ -89,12 +89,12 @@ public class HostLevelParamsUpdateEvent extends AmbariHostUpdateEvent implements
 
     HostLevelParamsUpdateEvent that = (HostLevelParamsUpdateEvent) o;
 
-    return Objects.equals(hostName, that.hostName) &&
+    return Objects.equals(hostId, that.hostId) &&
       Objects.equals(hostLevelParamsClusters, that.hostLevelParamsClusters);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(hostName, hostLevelParamsClusters);
+    return Objects.hash(hostId, hostLevelParamsClusters);
   }
 }

@@ -130,12 +130,14 @@ public class UpgradeCatalog300Test {
     Method showHcatDeletedUserMessage = UpgradeCatalog300.class.getDeclaredMethod("showHcatDeletedUserMessage");
     Method setStatusOfStagesAndRequests = UpgradeCatalog300.class.getDeclaredMethod("setStatusOfStagesAndRequests");
     Method updateLogSearchConfigs = UpgradeCatalog300.class.getDeclaredMethod("updateLogSearchConfigs");
+    Method updateHostComponentLastStateTable = UpgradeCatalog300.class.getDeclaredMethod("updateHostComponentLastStateTable");
 
    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
             .addMockedMethod(showHcatDeletedUserMessage)
             .addMockedMethod(addNewConfigurationsFromXml)
             .addMockedMethod(setStatusOfStagesAndRequests)
             .addMockedMethod(updateLogSearchConfigs)
+            .addMockedMethod(updateHostComponentLastStateTable)
             .createMock();
 
 
@@ -144,6 +146,7 @@ public class UpgradeCatalog300Test {
     upgradeCatalog300.setStatusOfStagesAndRequests();
 
     upgradeCatalog300.updateLogSearchConfigs();
+    upgradeCatalog300.updateHostComponentLastStateTable();
     expectLastCall().once();
 
     replay(upgradeCatalog300);
@@ -168,6 +171,9 @@ public class UpgradeCatalog300Test {
     Capture<DBAccessor.DBColumnInfo> hrcOpsDisplayNameColumn = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
 
+    Capture<DBAccessor.DBColumnInfo> lastValidColumn = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog300.COMPONENT_LAST_STATE_COLUMN), capture(lastValidColumn));
+
     dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
     dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
     dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
@@ -182,6 +188,11 @@ public class UpgradeCatalog300Test {
     Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedOpsDisplayNameColumn.getName());
     Assert.assertEquals(null, capturedOpsDisplayNameColumn.getDefaultValue());
     Assert.assertEquals(String.class, capturedOpsDisplayNameColumn.getType());
+
+    DBAccessor.DBColumnInfo capturedLastValidColumn = lastValidColumn.getValue();
+    Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedLastValidColumn.getName());
+    Assert.assertEquals(null, capturedLastValidColumn.getDefaultValue());
+    Assert.assertEquals(String.class, capturedLastValidColumn.getType());
 
     verify(dbAccessor);
   }

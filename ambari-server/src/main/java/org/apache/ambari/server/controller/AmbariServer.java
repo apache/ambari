@@ -134,6 +134,7 @@ import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -455,7 +456,14 @@ public class AmbariServer {
 
       enableLog4jMonitor(configsMap);
 
-      handlerList.addHandler(root);
+      GzipHandler gzipHandler = new GzipHandler();
+      gzipHandler.setHandler(root);
+
+      //TODO minimal set, perhaps is needed to add some other mime types
+      gzipHandler.setIncludedMimeTypes("text/html", "text/plain", "text/xml", "text/css", "application/javascript",
+          "application/x-javascript", "application/xml", "application/x-www-form-urlencoded", "application/json");
+      handlerList.addHandler(gzipHandler);
+
       server.setHandler(handlerList);
 
       ServletHolder agent = new ServletHolder(ServletContainer.class);
@@ -512,7 +520,8 @@ public class AmbariServer {
       LOG.info("********* Initializing Clusters **********");
       Clusters clusters = injector.getInstance(Clusters.class);
       StringBuilder clusterDump = new StringBuilder();
-      clusters.debugDump(clusterDump);
+      //TODO temporally commented because takes a lot of time on 5k cluster
+      //clusters.debugDump(clusterDump);
 
       LOG.info("********* Current Clusters State *********");
       LOG.info(clusterDump.toString());

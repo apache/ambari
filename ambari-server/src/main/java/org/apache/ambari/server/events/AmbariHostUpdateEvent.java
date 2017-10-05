@@ -25,11 +25,11 @@ import java.beans.Transient;
 public abstract class AmbariHostUpdateEvent extends AmbariUpdateEvent {
 
   /**
-   * Host name message will sent to.
-   * @return host name.
+   * Host id message will sent to.
+   * @return host id.
    */
   @Transient
-  public abstract String getHostName();
+  public abstract Long getHostId();
 
   public AmbariHostUpdateEvent(Type type) {
     super(type);

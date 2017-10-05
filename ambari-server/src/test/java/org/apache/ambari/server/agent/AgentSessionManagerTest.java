@@ -42,21 +42,22 @@ public class AgentSessionManagerTest {
   @Test
   public void hostIsRegistered() throws HostNotRegisteredException {
     String sessionId = "session ID";
-    String hostName = "example.com";
+    Long hostId = 1L;
     Host host = EasyMock.createNiceMock(Host.class);
-    expect(host.getHostName()).andReturn(hostName).anyTimes();
+    expect(host.getHostId()).andReturn(hostId).anyTimes();
     replay(host);
 
     underTest.register(sessionId, host);
 
     assertTrue(underTest.isRegistered(sessionId));
-    assertEquals(sessionId, underTest.getSessionId(hostName));
+    assertEquals(sessionId, underTest.getSessionId(hostId));
     assertSame(host, underTest.getHost(sessionId));
   }
 
   @Test(expected = HostNotRegisteredException.class)
   public void exceptionThrownForUnknownHost() throws HostNotRegisteredException {
-    underTest.getSessionId("not registered host");
+    Long notRegisteredHostId = 2L;
+    underTest.getSessionId(notRegisteredHostId);
   }
 
   @Test(expected = HostNotRegisteredException.class)
@@ -68,32 +69,32 @@ public class AgentSessionManagerTest {
   public void registerRemovesOldSessionId() throws HostNotRegisteredException {
     String oldSessionId = "old session ID";
     String newSessionId = "new session ID";
-    String hostName = "example.com";
+    Long hostId = 1L;
     Host host = EasyMock.createNiceMock(Host.class);
-    expect(host.getHostName()).andReturn(hostName).anyTimes();
+    expect(host.getHostId()).andReturn(hostId).anyTimes();
     replay(host);
 
     underTest.register(oldSessionId, host);
     underTest.register(newSessionId, host);
 
     assertFalse(underTest.isRegistered(oldSessionId));
-    assertEquals(newSessionId, underTest.getSessionId(hostName));
+    assertEquals(newSessionId, underTest.getSessionId(hostId));
     assertSame(host, underTest.getHost(newSessionId));
   }
 
   @Test(expected = HostNotRegisteredException.class)
   public void unregisterRemovesSessionId() throws HostNotRegisteredException {
     String sessionId = "session ID";
-    String hostName = "example.com";
+    Long hostId = 1L;
     Host host = EasyMock.createNiceMock(Host.class);
-    expect(host.getHostName()).andReturn(hostName).anyTimes();
+    expect(host.getHostId()).andReturn(hostId).anyTimes();
     replay(host);
 
     underTest.register(sessionId, host);
-    underTest.unregisterByHost(hostName);
+    underTest.unregisterByHost(hostId);
 
     assertFalse(underTest.isRegistered(sessionId));
-    underTest.getSessionId(sessionId);
+    underTest.getSessionId(hostId);
   }
 
 }

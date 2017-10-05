@@ -171,7 +171,9 @@ public class HeartbeatMonitor implements Runnable {
               !sch.getState().equals(State.UNINSTALLED) &&
               !sch.getState().equals(State.DISABLED)) {
               LOG.warn("Setting component state to UNKNOWN for component " + sc.getName() + " on " + host);
+              State oldState = sch.getState();
               sch.setState(State.UNKNOWN);
+              sch.setLastValidState(oldState);
             }
           }
         }

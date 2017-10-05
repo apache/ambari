@@ -56,15 +56,12 @@ import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
@@ -297,51 +294,7 @@ public class HeartbeatProcessor extends AbstractService{
       }
 
       if (calculateHostStatus) {
-        //Use actual component status to compute the host status
-        int masterCount = 0;
-        int mastersRunning = 0;
-        int slaveCount = 0;
-        int slavesRunning = 0;
-
-        Cluster cluster = clusterFsm.getCluster(clusterId);
-
-        List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostName);
-        for (ServiceComponentHost scHost : scHosts) {
-          StackId stackId = scHost.getDesiredStackId();
-
-          ComponentInfo componentInfo =
-              ambariMetaInfo.getComponent(stackId.getStackName(),
-                  stackId.getStackVersion(), scHost.getServiceName(),
-                  scHost.getServiceComponentName());
-
-          String status = scHost.getState().name();
-
-          String category = componentInfo.getCategory();
-
-          if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, host)) {
-            if (category.equals("MASTER")) {
-              ++masterCount;
-              if (status.equals("STARTED")) {
-                ++mastersRunning;
-              }
-            } else if (category.equals("SLAVE")) {
-              ++slaveCount;
-              if (status.equals("STARTED")) {
-                ++slavesRunning;
-              }
-            }
-          }
-        }
-
-        if (masterCount == mastersRunning && slaveCount == slavesRunning) {
-          healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
-        } else if (masterCount > 0 && mastersRunning < masterCount) {
-          healthStatus = HostHealthStatus.HealthStatus.UNHEALTHY;
-        } else {
-          healthStatus = HostHealthStatus.HealthStatus.ALERT;
-        }
-
-        host.setStatus(healthStatus.name());
+        host.calculateHostStatus(clusterId);
       }
 
       //If host doesn't belong to any cluster

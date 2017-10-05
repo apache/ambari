@@ -18,7 +18,9 @@
 package org.apache.ambari.server.events.listeners.services;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
@@ -63,23 +65,26 @@ public class ServiceUpdateListener {
 
   @Subscribe
   public void onHostComponentUpdate(HostComponentsUpdateEvent event) throws AmbariException {
+    Map<Long, Set<String>> clustersServices = new HashMap<>();
     for (HostComponentUpdate hostComponentUpdate : event.getHostComponentUpdates()) {
       Long clusterId = hostComponentUpdate.getClusterId();
-      String clusterName = m_clusters.get().getClusterById(clusterId).getClusterName();
       String serviceName = hostComponentUpdate.getServiceName();
+      clustersServices.computeIfAbsent(clusterId, c -> new HashSet<>()).add(serviceName);
+    }
+    for (Map.Entry<Long, Set<String>> clusterServices : clustersServices.entrySet()) {
+      Long clusterId = clusterServices.getKey();
+      String clusterName = m_clusters.get().getClusterById(clusterId).getClusterName();
+      for (String serviceName : clusterServices.getValue()) {
+        ServiceCalculatedState serviceCalculatedState = ServiceCalculatedStateFactory.getServiceStateProvider(serviceName);
+        State serviceState = serviceCalculatedState.getState(clusterName, serviceName);
 
-      ServiceCalculatedState serviceCalculatedState = ServiceCalculatedStateFactory.getServiceStateProvider(serviceName);
-      State serviceState = serviceCalculatedState.getState(clusterName, serviceName);
-
-      // retrieve state from cache
-      if (states.containsKey(clusterId) && states.get(clusterId).containsKey(serviceName) && states.get(clusterId).get(serviceName).equals(serviceState)) {
-        continue;
+        // retrieve state from cache
+        if (states.containsKey(clusterId) && states.get(clusterId).containsKey(serviceName) && states.get(clusterId).get(serviceName).equals(serviceState)) {
+          continue;
+        }
+        states.computeIfAbsent(clusterId, c -> new HashMap<>()).put(serviceName, serviceState);
+        stateUpdateEventPublisher.publish(new ServiceUpdateEvent(clusterName, null, serviceName, serviceState));
       }
-      if (!states.containsKey(clusterId)) {
-        states.put(clusterId, new HashMap<>());
-      }
-      states.get(clusterId).put(serviceName, serviceState);
-      stateUpdateEventPublisher.publish(new ServiceUpdateEvent(clusterName, null, serviceName, serviceState));
     }
   }
 

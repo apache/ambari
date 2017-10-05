@@ -38,13 +38,16 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +76,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
   protected static final String COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
   protected static final String COMPONENT_STATE_TABLE = "hostcomponentstate";
+  protected static final String COMPONENT_LAST_STATE_COLUMN = "last_live_state";
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
   protected static final String SECURITY_STATE_COLUMN = "security_state";
 
@@ -122,6 +126,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateStageTable();
     addOpsDisplayNameColumnToHostRoleCommand();
     removeSecurityState();
+    addHostComponentLastStateTable();
   }
 
   protected void updateStageTable() throws SQLException {
@@ -131,6 +136,11 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
     dbAccessor.addColumn(REQUEST_TABLE,
         new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+  }
+
+  protected void addHostComponentLastStateTable() throws SQLException {
+    dbAccessor.addColumn(COMPONENT_STATE_TABLE,
+        new DBAccessor.DBColumnInfo(COMPONENT_LAST_STATE_COLUMN, String.class, 255, State.UNKNOWN, true));
   }
 
   /**
@@ -149,6 +159,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     showHcatDeletedUserMessage();
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
+    updateHostComponentLastStateTable();
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -345,5 +356,23 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  protected void updateHostComponentLastStateTable() throws SQLException {
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+          List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
+          for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
+            hostComponentStateEntity.setLastLiveState(hostComponentStateEntity.getCurrentState());
+            hostComponentStateDAO.merge(hostComponentStateEntity);
+          }
+        } catch (Exception e) {
+          LOG.warn("Setting status for stages and Requests threw exception. ", e);
+        }
+      }
+    });
   }
 }

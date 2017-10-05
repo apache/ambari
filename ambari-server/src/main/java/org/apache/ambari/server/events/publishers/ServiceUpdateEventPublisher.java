@@ -18,37 +18,50 @@
 
 package org.apache.ambari.server.events.publishers;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.server.events.HostComponentUpdate;
-import org.apache.ambari.server.events.HostComponentsUpdateEvent;
+import org.apache.ambari.server.events.ServiceUpdateEvent;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Singleton;
 
 @Singleton
-public class HostComponentUpdateEventPublisher extends BufferedUpdateEventPublisher<HostComponentUpdate> {
+public class ServiceUpdateEventPublisher extends BufferedUpdateEventPublisher<ServiceUpdateEvent> {
 
   @Override
   protected Runnable getScheduledPublished(EventBus m_eventBus) {
-    return new HostComponentsEventRunnable(m_eventBus);
+    return new ServiceEventRunnable(m_eventBus);
   }
 
-  private class HostComponentsEventRunnable implements Runnable {
+  private class ServiceEventRunnable implements Runnable {
 
     private final EventBus eventBus;
 
-    public HostComponentsEventRunnable(EventBus eventBus) {
+    public ServiceEventRunnable(EventBus eventBus) {
       this.eventBus = eventBus;
     }
 
     @Override
     public void run() {
-      List<HostComponentUpdate> hostComponentUpdates = retrieveBuffer();
-
-      HostComponentsUpdateEvent resultEvents = new HostComponentsUpdateEvent(hostComponentUpdates);
-      //TODO add logging and metrics posting
-      eventBus.post(resultEvents);
+      List<ServiceUpdateEvent> serviceUpdates = retrieveBuffer();
+      List<ServiceUpdateEvent> filtered = new ArrayList<>();
+      for (ServiceUpdateEvent event : serviceUpdates) {
+        int pos = filtered.indexOf(event);
+        if (pos != -1) {
+          if (event.getState() != null) {
+            filtered.get(pos).setState(event.getState());
+          }
+          if (event.getMaintenanceState() != null) {
+            filtered.get(pos).setMaintenanceState(event.getMaintenanceState());
+          }
+        } else {
+          filtered.add(event);
+        }
+      }
+      for (ServiceUpdateEvent serviceUpdateEvent : serviceUpdates) {
+        eventBus.post(serviceUpdateEvent);
+      }
       resetCollecting();
     }
   }

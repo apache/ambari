@@ -19,6 +19,7 @@ package org.apache.ambari.server.configuration.spring;
 
 import org.apache.ambari.server.agent.stomp.HeartbeatController;
 import org.apache.ambari.server.api.stomp.TestController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -32,9 +33,12 @@ import com.google.inject.Injector;
 @Configuration
 @EnableWebSocketMessageBroker
 @ComponentScan(basePackageClasses = {TestController.class, HeartbeatController.class})
-@Import(RootStompConfig.class)
+@Import({RootStompConfig.class,GuiceBeansConfig.class})
 public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   private org.apache.ambari.server.configuration.Configuration configuration;
+
+  @Autowired
+  private AgentRegisteringQueueChecker agentRegisteringQueueChecker;
 
   public AgentStompConfig(Injector injector) {
     configuration = injector.getInstance(org.apache.ambari.server.configuration.Configuration.class);
@@ -55,5 +59,6 @@ public class AgentStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Override
   public void configureClientOutboundChannel(ChannelRegistration registration) {
     registration.taskExecutor().corePoolSize(configuration.getSpringMessagingThreadPoolSize());
+    registration.setInterceptors(agentRegisteringQueueChecker);
   }
 }

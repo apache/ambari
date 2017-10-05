@@ -90,17 +90,13 @@ public class ServiceUpdateEvent extends AmbariUpdateEvent {
     ServiceUpdateEvent that = (ServiceUpdateEvent) o;
 
     if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (maintenanceState != that.maintenanceState) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
-    return state == that.state;
+    return serviceName != null ? serviceName.equals(that.serviceName) : that.serviceName == null;
   }
 
   @Override
   public int hashCode() {
     int result = clusterName != null ? clusterName.hashCode() : 0;
-    result = 31 * result + (maintenanceState != null ? maintenanceState.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (state != null ? state.hashCode() : 0);
     return result;
   }
 }

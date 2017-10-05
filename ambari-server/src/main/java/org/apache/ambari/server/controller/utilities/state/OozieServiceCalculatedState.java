@@ -54,7 +54,7 @@ public final class OozieServiceCalculatedState extends DefaultServiceCalculatedS
           serviceName, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =
-          managementControllerProvider.get().getHostComponents(Collections.singleton(request));
+          managementControllerProvider.get().getHostComponents(Collections.singleton(request), true);
 
         int     oozieServerActiveCount = 0;
         State   nonStartedState        = null;

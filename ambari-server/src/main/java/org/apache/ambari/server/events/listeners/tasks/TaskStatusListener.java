@@ -42,17 +42,12 @@ import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.events.publishers.TaskEventPublisher;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
-import org.apache.ambari.server.topology.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,26 +95,14 @@ public class TaskStatusListener {
 
   private RequestDAO requestDAO;
 
-  private HostRoleCommandDAO hostRoleCommandDAO;
-
-  private TopologyManager topologyManager;
-
   private StateUpdateEventPublisher stateUpdateEventPublisher;
-
-  private ClusterDAO clusterDAO;
 
   @Inject
   public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO,
-                            StateUpdateEventPublisher stateUpdateEventPublisher,
-                            HostRoleCommandDAO hostRoleCommandDAO,
-                            TopologyManager topologyManager,
-                            ClusterDAO clusterDAO) {
+                            StateUpdateEventPublisher stateUpdateEventPublisher) {
     this.stageDAO = stageDAO;
     this.requestDAO = requestDAO;
     this.stateUpdateEventPublisher = stateUpdateEventPublisher;
-    this.hostRoleCommandDAO = hostRoleCommandDAO;
-    this.topologyManager = topologyManager;
-    this.clusterDAO = clusterDAO;
     taskEventPublisher.register(this);
   }
 
@@ -307,23 +290,13 @@ public class TaskStatusListener {
    * @param requestIdsWithReceivedTaskStatus set of request ids that has received tasks status
    * @param stagesWithChangedTaskStatus set of stages that have received tasks with changed status
    */
-  private void updateActiveRequestsStatus(final Set<Long> requestIdsWithReceivedTaskStatus, Set<StageEntityPK> stagesWithChangedTaskStatus) throws ClusterNotFoundException {
+  private void updateActiveRequestsStatus(final Set<Long> requestIdsWithReceivedTaskStatus, Set<StageEntityPK> stagesWithChangedTaskStatus) {
     for (Long reportedRequestId : requestIdsWithReceivedTaskStatus) {
       if (activeRequestMap.containsKey(reportedRequestId)) {
         ActiveRequest request =  activeRequestMap.get(reportedRequestId);
         Boolean didStatusChange = updateRequestStatus(reportedRequestId, stagesWithChangedTaskStatus);
         if (didStatusChange) {
-          RequestEntity updated = requestDAO.updateStatus(reportedRequestId, request.getStatus(), request.getDisplayStatus());
-          ClusterEntity clusterEntity = clusterDAO.findById(updated.getClusterId());
-          if (clusterEntity == null) {
-            throw new ClusterNotFoundException(updated.getClusterId());
-          }
-          List<HostRoleCommandEntity> hostRoleCommandEntities = hostRoleCommandDAO.findByRequest(updated.getRequestId());
-          stateUpdateEventPublisher.publish(new RequestUpdateEvent(updated,
-              hostRoleCommandDAO,
-              topologyManager,
-              clusterEntity.getClusterName(),
-              hostRoleCommandEntities));
+          requestDAO.updateStatus(reportedRequestId, request.getStatus(), request.getDisplayStatus());
         }
         if (request.isCompleted() && isAllTasksCompleted(reportedRequestId)) {
           // Request is considered ton have been finished if request status and all of it's tasks status are completed

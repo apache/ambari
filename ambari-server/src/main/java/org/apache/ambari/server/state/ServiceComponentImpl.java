@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
@@ -172,19 +173,21 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     updateComponentInfo();
 
-    for (HostComponentStateEntity hostComponentStateEntity : serviceComponentDesiredStateEntity.getHostComponentStateEntities()) {
+    List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities = hostComponentDesiredStateDAO.findByIndex(
+        service.getClusterId(),
+        service.getName(),
+        serviceComponentDesiredStateEntity.getComponentName()
+    );
 
-      HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByIndex(
-        hostComponentStateEntity.getClusterId(),
-        hostComponentStateEntity.getServiceName(),
-        hostComponentStateEntity.getComponentName(),
-        hostComponentStateEntity.getHostId()
-      );
+    Map<String, HostComponentDesiredStateEntity> mappedHostComponentDesiredStateEntitites =
+        hostComponentDesiredStateEntities.stream().collect(Collectors.toMap(h -> h.getHostEntity().getHostName(),
+            java.util.function.Function.identity()));
+    for (HostComponentStateEntity hostComponentStateEntity : serviceComponentDesiredStateEntity.getHostComponentStateEntities()) {
 
       try {
         hostComponents.put(hostComponentStateEntity.getHostName(),
           serviceComponentHostFactory.createExisting(this,
-            hostComponentStateEntity, hostComponentDesiredStateEntity));
+            hostComponentStateEntity, mappedHostComponentDesiredStateEntitites.get(hostComponentStateEntity.getHostName())));
       } catch(ProvisionException ex) {
         StackId currentStackId = getDesiredStackId();
         LOG.error(String.format("Can not get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, hostname=%s",

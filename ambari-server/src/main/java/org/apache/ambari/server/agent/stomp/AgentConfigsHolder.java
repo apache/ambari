@@ -40,28 +40,28 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
   private Provider<Clusters> clusters;
 
   @Override
-  public AgentConfigsUpdateEvent getCurrentData(String hostName) throws AmbariException {
-    return configHelper.getHostActualConfigs(hostName);
+  public AgentConfigsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
+    return configHelper.getHostActualConfigs(hostId);
   }
 
   protected boolean handleUpdate(AgentConfigsUpdateEvent update) throws AmbariException {
-    setData(update, update.getHostName());
+    setData(update, update.getHostId());
     return true;
   }
 
-  public void updateData(Long clusterId, List<String> hostNames) throws AmbariException {
-    if (CollectionUtils.isEmpty(hostNames)) {
+  public void updateData(Long clusterId, List<Long> hostIds) throws AmbariException {
+    if (CollectionUtils.isEmpty(hostIds)) {
       // TODO cluster configs will be created before hosts assigning
       if (CollectionUtils.isEmpty(clusters.get().getCluster(clusterId).getHosts())) {
-        hostNames = clusters.get().getHosts().stream().map(Host::getHostName).collect(Collectors.toList());
+        hostIds = clusters.get().getHosts().stream().map(Host::getHostId).collect(Collectors.toList());
       } else {
-        hostNames = clusters.get().getCluster(clusterId).getHosts().stream().map(Host::getHostName).collect(Collectors.toList());
+        hostIds = clusters.get().getCluster(clusterId).getHosts().stream().map(Host::getHostId).collect(Collectors.toList());
       }
     }
 
-    for (String hostName : hostNames) {
-      AgentConfigsUpdateEvent agentConfigsUpdateEvent = configHelper.getHostActualConfigs(hostName);
-      agentConfigsUpdateEvent.setHostName(hostName);
+    for (Long hostId : hostIds) {
+      AgentConfigsUpdateEvent agentConfigsUpdateEvent = configHelper.getHostActualConfigs(hostId);
+      agentConfigsUpdateEvent.setHostId(hostId);
       updateData(agentConfigsUpdateEvent);
     }
   }

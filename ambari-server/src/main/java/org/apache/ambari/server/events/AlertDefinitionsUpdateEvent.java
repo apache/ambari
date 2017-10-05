@@ -37,17 +37,19 @@ public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implement
   private final Map<Long, AlertCluster> clusters;
   private final EventType eventType;
   private final String hostName;
+  private final Long hostId;
   private String hash;
 
   public static AlertDefinitionsUpdateEvent emptyEvent() {
-    return new AlertDefinitionsUpdateEvent(null, null, null);
+    return new AlertDefinitionsUpdateEvent(null, null, null, null);
   }
 
-  public AlertDefinitionsUpdateEvent(EventType eventType, Map<Long, AlertCluster> clusters, String hostName) {
+  public AlertDefinitionsUpdateEvent(EventType eventType, Map<Long, AlertCluster> clusters, String hostName, Long hostId) {
     super(Type.ALERT_DEFINITIONS);
     this.eventType = eventType;
     this.clusters = clusters != null ? Collections.unmodifiableMap(clusters) : null;
     this.hostName = hostName;
+    this.hostId = hostId;
   }
 
   @Override
@@ -61,7 +63,6 @@ public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implement
     this.hash = hash;
   }
 
-  @Override
   @JsonProperty("hostName")
   public String getHostName() {
     return hostName;
@@ -91,6 +92,11 @@ public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implement
   @Override
   public int hashCode() {
     return Objects.hash(eventType, clusters);
+  }
+
+  @Override
+  public Long getHostId() {
+    return hostId;
   }
 
   public enum EventType {

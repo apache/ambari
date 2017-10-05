@@ -36,6 +36,7 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.HostStateUpdateEvent;
 import org.apache.ambari.server.events.HostStatusUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
@@ -66,7 +67,11 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -139,6 +144,9 @@ public class HostImpl implements Host {
 
   @Inject
   private AmbariEventPublisher ambariEventPublisher;
+
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   /**
    * The ID of the host which is to retrieve it from JPA.
@@ -318,14 +326,7 @@ public class HostImpl implements Host {
     @Override
     public void transition(HostImpl host, HostEvent event) {
       HostRegistrationRequestEvent e = (HostRegistrationRequestEvent) event;
-      host.importHostInfo(e.hostInfo);
-      host.setLastRegistrationTime(e.registrationTime);
-      //Initialize heartbeat time and timeInState with registration time.
-      host.setLastHeartbeatTime(e.registrationTime);
-      host.setLastAgentEnv(e.agentEnv);
-      host.setTimeInState(e.registrationTime);
-      host.setAgentVersion(e.agentVersion);
-      host.setPublicHostName(e.publicHostName);
+      host.updateHost(e);
 
       String agentVersion = null;
       if (e.agentVersion != null) {
@@ -350,6 +351,11 @@ public class HostImpl implements Host {
       }
 
       host.topologyManager.onHostRegistered(host, associatedWithCluster);
+      try {
+        host.restoreComponentsStatuses();
+      } catch (AmbariException e1) {
+        LOG.error("Unable to restore last valid host components status for host", e1);
+      }
     }
   }
 
@@ -560,6 +566,12 @@ public class HostImpl implements Host {
       hostStateEntity.setTimeInState(System.currentTimeMillis());
       hostStateDAO.merge(hostStateEntity);
     }
+  }
+
+  @Override
+  public void setStateMachineState(HostState state) {
+    stateMachine.setCurrentState(state);
+    ambariEventPublisher.publish(new HostStateUpdateEvent(getHostName(), state));
   }
 
   @Override
@@ -1177,6 +1189,93 @@ public class HostImpl implements Host {
     }
 
     return false;
+  }
+
+  public void restoreComponentsStatuses() throws AmbariException {
+    Long clusterId = null;
+    for (Cluster cluster : clusters.getClustersForHost(getHostName())) {
+      clusterId = cluster.getClusterId();
+      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(getHostName())) {
+        Service s = cluster.getService(sch.getServiceName());
+        ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
+        if (!sc.isClientComponent() &&
+            sch.getState().equals(State.UNKNOWN)) {
+          State lastValidState = sch.getLastValidState();
+          LOG.warn("Restore component state to last valid state for component " + sc.getName() + " on " +
+              getHostName() + " to " + lastValidState);
+          sch.setState(lastValidState);
+        }
+      }
+    }
+    //TODO
+    if (clusterId != null) {
+      calculateHostStatus(clusterId);
+    }
+  }
+
+  @Override
+  public void calculateHostStatus(Long clusterId) throws AmbariException {
+    //Use actual component status to compute the host status
+    int masterCount = 0;
+    int mastersRunning = 0;
+    int slaveCount = 0;
+    int slavesRunning = 0;
+
+    StackId stackId;
+    Cluster cluster = clusters.getCluster(clusterId);
+    stackId = cluster.getDesiredStackVersion();
+
+
+    List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostName);
+    for (ServiceComponentHost scHost : scHosts) {
+      ComponentInfo componentInfo =
+          ambariMetaInfo.getComponent(stackId.getStackName(),
+              stackId.getStackVersion(), scHost.getServiceName(),
+              scHost.getServiceComponentName());
+
+      String status = scHost.getState().name();
+
+      String category = componentInfo.getCategory();
+
+      if (MaintenanceState.OFF == maintenanceStateHelper.getEffectiveState(scHost, this)) {
+        if (category.equals("MASTER")) {
+          ++masterCount;
+          if (status.equals("STARTED")) {
+            ++mastersRunning;
+          }
+        } else if (category.equals("SLAVE")) {
+          ++slaveCount;
+          if (status.equals("STARTED")) {
+            ++slavesRunning;
+          }
+        }
+      }
+    }
+
+    HostHealthStatus.HealthStatus healthStatus;
+    if (masterCount == mastersRunning && slaveCount == slavesRunning) {
+      healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
+    } else if (masterCount > 0 && mastersRunning < masterCount) {
+      healthStatus = HostHealthStatus.HealthStatus.UNHEALTHY;
+    } else {
+      healthStatus = HostHealthStatus.HealthStatus.ALERT;
+    }
+
+    setStatus(healthStatus.name());
+  }
+
+  @Transactional
+  public void updateHost(HostRegistrationRequestEvent e) {
+    importHostInfo(e.hostInfo);
+    setLastRegistrationTime(e.registrationTime);
+    //Initialize heartbeat time and timeInState with registration time.
+    setLastHeartbeatTime(e.registrationTime);
+    setLastAgentEnv(e.agentEnv);
+    setTimeInState(e.registrationTime);
+    setAgentVersion(e.agentVersion);
+    setPublicHostName(e.publicHostName);
+    setTimeInState(System.currentTimeMillis());
+    setState(HostState.INIT);
   }
 }
 

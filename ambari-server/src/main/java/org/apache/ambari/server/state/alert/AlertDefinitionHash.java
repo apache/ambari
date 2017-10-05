@@ -238,8 +238,9 @@ public class AlertDefinitionHash {
     return coerce(getAlertDefinitionEntities(clusterName, hostName));
   }
 
-  public Map<Long, Map<Long, AlertDefinition>> getAlertDefinitions(String hostName) throws AmbariException {
+  public Map<Long, Map<Long, AlertDefinition>> getAlertDefinitions(Long hostId) throws AmbariException {
     Map<Long, Map<Long, AlertDefinition>> result = new HashMap<>();
+    String hostName = m_clusters.get().getHostById(hostId).getHostName();
     for (Cluster cluster : m_clusters.get().getClustersForHost(hostName)) {
       List<AlertDefinition> alertDefinitions = getAlertDefinitions(cluster.getClusterName(), hostName);
       result.put(cluster.getClusterId(), mapById(alertDefinitions));

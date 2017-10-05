@@ -67,9 +67,10 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
   }
 
   @Override
-  protected AlertDefinitionsUpdateEvent getCurrentData(String hostName) throws AmbariException {
+  protected AlertDefinitionsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
     Map<Long, AlertCluster> result = new TreeMap<>();
-    Map<Long, Map<Long, AlertDefinition>> alertDefinitions = helper.get().getAlertDefinitions(hostName);
+    Map<Long, Map<Long, AlertDefinition>> alertDefinitions = helper.get().getAlertDefinitions(hostId);
+    String hostName = clusters.get().getHostById(hostId).getHostName();
     long count = 0;
     for (Map.Entry<Long, Map<Long, AlertDefinition>> e : alertDefinitions.entrySet()) {
       Long clusterId = e.getKey();
@@ -78,7 +79,7 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
       count += definitionMap.size();
     }
     LOG.info("Loaded {} alert definitions for {} clusters for host {}", count, result.size(), hostName);
-    return new AlertDefinitionsUpdateEvent(CREATE, result, hostName);
+    return new AlertDefinitionsUpdateEvent(CREATE, result, hostName, hostId);
   }
 
   @Override
@@ -93,9 +94,9 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
       return false;
     }
 
-    String hostName = update.getHostName();
+    Long hostId = update.getHostId();
     boolean changed = false;
-    Map<Long, AlertCluster> existingClusters = getData(hostName).getClusters();
+    Map<Long, AlertCluster> existingClusters = getData(hostId).getClusters();
 
     switch (update.getEventType()) {
       case UPDATE:
@@ -106,7 +107,7 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
         for (Map.Entry<Long, AlertCluster> e : updateClusters.entrySet()) {
           changed |= existingClusters.get(e.getKey()).handleUpdate(update.getEventType(), e.getValue());
         }
-        LOG.debug("Handled {} of alerts for {} cluster(s) on host {}, changed = {}", update.getEventType(), updateClusters.size(), hostName, changed);
+        LOG.debug("Handled {} of alerts for {} cluster(s) on host with id {}, changed = {}", update.getEventType(), updateClusters.size(), hostId, changed);
         break;
       case CREATE:
         if (!updateClusters.isEmpty()) {
@@ -127,25 +128,26 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
   }
 
   @Subscribe
-  public void onAlertDefinitionRegistered(AlertDefinitionRegistrationEvent event) {
+  public void onAlertDefinitionRegistered(AlertDefinitionRegistrationEvent event) throws AmbariException {
     handleSingleDefinitionChange(UPDATE, event.getDefinition());
   }
 
   @Subscribe
-  public void onAlertDefinitionChanged(AlertDefinitionChangedEvent event) {
+  public void onAlertDefinitionChanged(AlertDefinitionChangedEvent event) throws AmbariException {
     handleSingleDefinitionChange(UPDATE, event.getDefinition());
   }
 
   @Subscribe
-  public void onAlertDefinitionDeleted(AlertDefinitionDeleteEvent event) {
+  public void onAlertDefinitionDeleted(AlertDefinitionDeleteEvent event) throws AmbariException {
     handleSingleDefinitionChange(DELETE, event.getDefinition());
   }
 
   @Subscribe
-  public void onServiceComponentInstalled(ServiceComponentInstalledEvent event) {
+  public void onServiceComponentInstalled(ServiceComponentInstalledEvent event) throws AmbariException {
     String hostName = event.getHostName();
     String serviceName = event.getServiceName();
     String componentName = event.getComponentName();
+    Long hostId = clusters.get().getHost(hostName).getHostId();
 
     Map<Long, AlertDefinition> definitions = helper.get().findByServiceComponent(event.getClusterId(), serviceName, componentName);
 
@@ -162,18 +164,19 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
     }
 
     Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    safelyUpdateData(new AlertDefinitionsUpdateEvent(UPDATE, map, hostName));
+    safelyUpdateData(new AlertDefinitionsUpdateEvent(UPDATE, map, hostName, hostId));
   }
 
   @Subscribe
-  public void onServiceComponentUninstalled(ServiceComponentUninstalledEvent event) {
+  public void onServiceComponentUninstalled(ServiceComponentUninstalledEvent event) throws AmbariException {
     String hostName = event.getHostName();
+    Long hostId = clusters.get().getHost(hostName).getHostId();
     Map<Long, AlertDefinition> definitions = helper.get().findByServiceComponent(event.getClusterId(), event.getServiceName(), event.getComponentName());
     if (event.isMasterComponent()) {
       definitions.putAll(helper.get().findByServiceMaster(event.getClusterId(), event.getServiceName()));
     }
     Map<Long, AlertCluster> map = Collections.singletonMap(event.getClusterId(), new AlertCluster(definitions, hostName));
-    safelyUpdateData(new AlertDefinitionsUpdateEvent(DELETE, map, hostName));
+    safelyUpdateData(new AlertDefinitionsUpdateEvent(DELETE, map, hostName, hostId));
   }
 
   @Subscribe
@@ -191,20 +194,21 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
     }
   }
 
-  private void safelyResetData(String hostName) {
+  private void safelyResetData(Long hostId) {
     try {
-      resetData(hostName);
+      resetData(hostId);
     } catch (AmbariException e) {
-      LOG.warn(String.format("Failed to reset alert definitions for host %s", hostName), e);
+      LOG.warn(String.format("Failed to reset alert definitions for host with id %s", hostId), e);
     }
   }
 
-  private void handleSingleDefinitionChange(AlertDefinitionsUpdateEvent.EventType eventType, AlertDefinition alertDefinition) {
+  private void handleSingleDefinitionChange(AlertDefinitionsUpdateEvent.EventType eventType, AlertDefinition alertDefinition) throws AmbariException {
     LOG.info("{} alert definition '{}'", eventType, alertDefinition);
     Set<String> hosts = helper.get().invalidateHosts(alertDefinition);
     for (String hostName : hosts) {
+      Long hostId = clusters.get().getHost(hostName).getHostId();
       Map<Long, AlertCluster> update = Collections.singletonMap(alertDefinition.getClusterId(), new AlertCluster(alertDefinition, hostName));
-      AlertDefinitionsUpdateEvent event = new AlertDefinitionsUpdateEvent(eventType, update, hostName);
+      AlertDefinitionsUpdateEvent event = new AlertDefinitionsUpdateEvent(eventType, update, hostName, hostId);
       safelyUpdateData(event);
     }
   }

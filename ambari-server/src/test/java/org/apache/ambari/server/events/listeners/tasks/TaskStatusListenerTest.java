@@ -20,6 +20,7 @@ package org.apache.ambari.server.events.listeners.tasks;
 
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,17 +36,14 @@ import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.events.publishers.TaskEventPublisher;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
@@ -57,7 +55,6 @@ import com.google.inject.Inject;
 public class TaskStatusListenerTest extends EasyMockSupport {
 
   private TaskEventPublisher publisher = new TaskEventPublisher();
-  private StateUpdateEventPublisher statePublisher = new StateUpdateEventPublisher();
 
   @Inject
   private ExecutionCommandDAO executionCommandDAO;
@@ -71,7 +68,9 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     List<HostRoleCommand> hostRoleCommands = new ArrayList<>();
     ServiceComponentHostEvent serviceComponentHostEvent = createNiceMock(ServiceComponentHostEvent.class);
     HostDAO hostDAO = createNiceMock(HostDAO.class);
-    replayAll();
+
+    EasyMock.replay(hostDAO);
+    EasyMock.replay(serviceComponentHostEvent);
 
     int hostRoleCommandSize = 3;
     int hrcCounter = 1;
@@ -90,12 +89,10 @@ public class TaskStatusListenerTest extends EasyMockSupport {
 
     HostRoleStatus hostRoleStatus = HostRoleStatus.PENDING;
     StageDAO stageDAO = createNiceMock(StageDAO.class);
-    HostRoleCommandDAO hostRoleCommandDAO = createNiceMock(HostRoleCommandDAO.class);
-    TopologyManager topologyManager = createNiceMock(TopologyManager.class);
     RequestDAO requestDAO = createNiceMock(RequestDAO.class);
     StageEntity stageEntity = createNiceMock(StageEntity.class);
-    ClusterDAO clusterDAO = createNiceMock(ClusterDAO.class);
     RequestEntity requestEntity = createNiceMock(RequestEntity.class);
+    StateUpdateEventPublisher statePublisher = createNiceMock(StateUpdateEventPublisher.class);
     EasyMock.expect(stageEntity.getStatus()).andReturn(hostRoleStatus).anyTimes();;
     EasyMock.expect(stageEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();
     EasyMock.expect(stageEntity.isSkippable()).andReturn(Boolean.FALSE).anyTimes();;
@@ -105,19 +102,17 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     EasyMock.expect(requestEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();
     EasyMock.expect(requestDAO.findByPK(anyLong())).andReturn(requestEntity).anyTimes();
 
-    requestDAO.updateStatus(1L,HostRoleStatus.COMPLETED,HostRoleStatus.SKIPPED_FAILED);
-    EasyMock.expectLastCall().times(1);
-
-
+    EasyMock.expect(requestDAO.updateStatus(eq(1L), eq(HostRoleStatus.COMPLETED),
+        eq(HostRoleStatus.SKIPPED_FAILED))).andReturn(new RequestEntity()).times(1);
 
     EasyMock.replay(stageEntity);
     EasyMock.replay(requestEntity);
     EasyMock.replay(stageDAO);
     EasyMock.replay(requestDAO);
+    EasyMock.replay(statePublisher);
 
     TaskCreateEvent event = new TaskCreateEvent(hostRoleCommands);
-    TaskStatusListener listener = new TaskStatusListener(publisher,stageDAO,requestDAO,statePublisher,
-        hostRoleCommandDAO,topologyManager, clusterDAO);
+    TaskStatusListener listener = new TaskStatusListener(publisher,stageDAO,requestDAO,statePublisher);
 
     Assert.assertTrue(listener.getActiveTasksMap().isEmpty());
     Assert.assertTrue(listener.getActiveStageMap().isEmpty());

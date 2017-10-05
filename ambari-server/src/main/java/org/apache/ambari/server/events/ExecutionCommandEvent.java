@@ -31,9 +31,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ExecutionCommandEvent extends AmbariHostUpdateEvent {
 
   /**
-   * Host name with agent execution commands will be send to.
+   * Host id with agent execution commands will be send to.
    */
-  private String hostName;
+  private Long hostId;
 
   /**
    * Execution commands grouped by cluster id.
@@ -54,15 +54,6 @@ public class ExecutionCommandEvent extends AmbariHostUpdateEvent {
     this.clusters = clusters;
   }
 
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
-  }
-
-  @Override
-  public String getHostName() {
-    return hostName;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -70,14 +61,23 @@ public class ExecutionCommandEvent extends AmbariHostUpdateEvent {
 
     ExecutionCommandEvent that = (ExecutionCommandEvent) o;
 
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (hostId != null ? !hostId.equals(that.hostId) : that.hostId != null) return false;
     return clusters != null ? clusters.equals(that.clusters) : that.clusters == null;
   }
 
   @Override
   public int hashCode() {
-    int result = hostName != null ? hostName.hashCode() : 0;
+    int result = hostId != null ? hostId.hashCode() : 0;
     result = 31 * result + (clusters != null ? clusters.hashCode() : 0);
     return result;
+  }
+
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
+  }
+
+  @Override
+  public Long getHostId() {
+    return hostId;
   }
 }

@@ -201,6 +201,7 @@ CREATE TABLE hostcomponentstate (
   component_name VARCHAR2(255) NOT NULL,
   version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
   current_state VARCHAR2(255) NOT NULL,
+  last_live_state VARCHAR2(255) NOT NULL DEFAULT 'UNKNOWN',
   host_id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,

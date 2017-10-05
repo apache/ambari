@@ -30,14 +30,14 @@ import com.google.inject.Singleton;
 public class AgentSessionManager {
 
   private final ConcurrentMap<String, Host> registeredHosts = new ConcurrentHashMap<>(); // session ID -> host
-  private final ConcurrentMap<String, String> registeredSessionIds = new ConcurrentHashMap<>(); // hostname -> session ID
+  private final ConcurrentMap<Long, String> registeredSessionIds = new ConcurrentHashMap<>();
 
   public void register(String sessionId, Host host) {
     Preconditions.checkNotNull(sessionId);
     Preconditions.checkNotNull(host);
-    Preconditions.checkNotNull(host.getHostName());
+    Preconditions.checkNotNull(host.getHostId());
 
-    String oldSessionId = registeredSessionIds.put(host.getHostName(), sessionId);
+    String oldSessionId = registeredSessionIds.put(host.getHostId(), sessionId);
     if (oldSessionId != null) {
       registeredHosts.remove(oldSessionId);
     }
@@ -59,21 +59,21 @@ public class AgentSessionManager {
     throw HostNotRegisteredException.forSessionId(sessionId);
   }
 
-  public String getSessionId(String hostName) throws HostNotRegisteredException {
-    Preconditions.checkNotNull(hostName);
+  public String getSessionId(Long hostId) throws HostNotRegisteredException {
+    Preconditions.checkNotNull(hostId);
 
-    String sessionId = registeredSessionIds.get(hostName);
+    String sessionId = registeredSessionIds.get(hostId);
     if (sessionId != null) {
       return sessionId;
     }
 
-    throw HostNotRegisteredException.forHostName(hostName);
+    throw HostNotRegisteredException.forHostId(hostId);
   }
 
-  public void unregisterByHost(String hostName) {
-    Preconditions.checkNotNull(hostName);
+  public void unregisterByHost(Long hostId) {
+    Preconditions.checkNotNull(hostId);
 
-    String sessionId = registeredSessionIds.remove(hostName);
+    String sessionId = registeredSessionIds.remove(hostId);
     if (sessionId != null) {
       registeredHosts.remove(sessionId);
     }

@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -1555,20 +1556,21 @@ public class ConfigHelper {
 
   /**
    * Collects actual configurations and configuration attributes for specified host.
-   * @param hostName host name to collect configurations and configuration attributes
+   * @param hostId host id to collect configurations and configuration attributes
    * @return event ready to send to agent
    * @throws AmbariException
    */
-  public AgentConfigsUpdateEvent getHostActualConfigs(String hostName) throws AmbariException {
+  public AgentConfigsUpdateEvent getHostActualConfigs(Long hostId) throws AmbariException {
     TreeMap<String, ClusterConfigs> clustersConfigs = new TreeMap<>();
 
+    Host host = clusters.getHostById(hostId);
     for (Cluster cl : clusters.getClusters().values()) {
       Map<String, Map<String, String>> configurations = new HashMap<>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new HashMap<>();
       Map<String, DesiredConfig> clusterDesiredConfigs = cl.getDesiredConfigs();
 
       Map<String, Map<String, String>> configTags =
-          getEffectiveDesiredTags(cl, hostName, clusterDesiredConfigs);
+          getEffectiveDesiredTags(cl, host.getHostName(), clusterDesiredConfigs);
 
       getAndMergeHostConfigs(configurations, configTags, cl);
       getAndMergeHostConfigAttributes(configurationAttributes, configTags, cl);
@@ -1577,12 +1579,42 @@ public class ConfigHelper {
       configurations.entrySet().removeIf(e -> e.getValue().isEmpty());
       configurationAttributes.entrySet().removeIf(e -> e.getValue().isEmpty());
 
+      SortedMap<String, SortedMap<String, String>> configurationsTreeMap = sortConfigutations(configurations);
+      SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributesTreeMap =
+          sortConfigurationAttributes(configurationAttributes);
       clustersConfigs.put(Long.toString(cl.getClusterId()),
-          new ClusterConfigs(configurations, configurationAttributes));
+          new ClusterConfigs(configurationsTreeMap, configurationAttributesTreeMap));
     }
 
     AgentConfigsUpdateEvent agentConfigsUpdateEvent = new AgentConfigsUpdateEvent(clustersConfigs);
     return agentConfigsUpdateEvent;
+  }
+
+  public SortedMap<String, SortedMap<String, String>> sortConfigutations(Map<String, Map<String, String>> configurations) {
+    SortedMap<String, SortedMap<String, String>> configurationsTreeMap = new TreeMap<>();
+    configurations.forEach((k, v) -> {
+      TreeMap<String, String> c = new TreeMap<>();
+      c.putAll(v);
+      configurationsTreeMap.put(k, c);
+    });
+
+    return configurationsTreeMap;
+  }
+
+  public SortedMap<String, SortedMap<String, SortedMap<String, String>>> sortConfigurationAttributes(
+      Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+    SortedMap<String, SortedMap<String, SortedMap<String, String>>> configurationAttributesTreeMap = new TreeMap<>();
+    configurationAttributes.forEach((k, v) -> {
+      SortedMap<String, SortedMap<String, String>> c = new TreeMap<>();
+      v.forEach((k1, v1) -> {
+        SortedMap<String, String> c1 = new TreeMap<>();
+        c1.putAll(v1);
+        c.put(k1, c1);
+      });
+      configurationAttributesTreeMap.put(k, c);
+    });
+
+    return configurationAttributesTreeMap;
   }
 
 }

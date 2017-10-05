@@ -96,6 +96,10 @@ public interface ServiceComponentHost {
 
   void setState(State state);
 
+  State getLastValidState();
+
+  void setLastValidState(State state);
+
   /**
    * Gets the version of the component.
    *
@@ -142,6 +146,8 @@ public interface ServiceComponentHost {
    * @return
    */
   ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs);
+  ServiceComponentHostResponse convertToResponseStatusOnly(Map<String, DesiredConfig> desiredConfigs,
+                                                           boolean collectStaleConfigsStatus);
 
   void debugDump(StringBuilder sb);
 

@@ -29,7 +29,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
 import com.google.inject.Injector;
@@ -55,30 +54,30 @@ public class AgentCurrentDataController {
     alertDefinitionsHolder = injector.getInstance(AlertDefinitionsHolder.class);
   }
 
-  @SubscribeMapping("/topologies")
+  @MessageMapping("/topologies")
   public TopologyUpdateEvent getCurrentTopology(Hash hash) throws AmbariException, InvalidStateTransitionException {
     return topologyHolder.getUpdateIfChanged(hash.getHash());
   }
 
-  @SubscribeMapping("/metadata")
+  @MessageMapping("/metadata")
   public MetadataUpdateEvent getCurrentMetadata(Hash hash) throws AmbariException {
     return metadataHolder.getUpdateIfChanged(hash.getHash());
   }
 
-  @SubscribeMapping("/alert_definitions")
+  @MessageMapping("/alert_definitions")
   public AlertDefinitionsUpdateEvent getAlertDefinitions(@Header String simpSessionId, Hash hash) throws AmbariException {
-    String hostName = agentSessionManager.getHost(simpSessionId).getHostName();
-    return alertDefinitionsHolder.getUpdateIfChanged(hash.getHash(), hostName);
+    Long hostId = agentSessionManager.getHost(simpSessionId).getHostId();
+    return alertDefinitionsHolder.getUpdateIfChanged(hash.getHash(), hostId);
   }
 
-  @SubscribeMapping("/configs")
+  @MessageMapping("/configs")
   public AgentConfigsUpdateEvent getCurrentConfigs(@Header String simpSessionId, Hash hash) throws AmbariException {
-    return agentConfigsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostName());
+    return agentConfigsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostId());
   }
 
-  @SubscribeMapping("/host_level_params")
+  @MessageMapping("/host_level_params")
   public HostLevelParamsUpdateEvent getCurrentHostLevelParams(@Header String simpSessionId, Hash hash) throws AmbariException {
-    return hostLevelParamsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostName());
+    return hostLevelParamsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostId());
   }
 
 }

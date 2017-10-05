@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.configuration.spring;
 
+import org.apache.ambari.server.agent.stomp.AgentsRegistrationQueue;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
@@ -87,6 +88,17 @@ public class GuiceBeansConfig {
   @Bean
   public AmbariPamAuthenticationProvider ambariPamAuthenticationProvider() {
     return injector.getInstance(AmbariPamAuthenticationProvider.class);
+  }
+
+
+  @Bean
+  public AgentRegisteringQueueChecker agentRegisteringQueueChecker() {
+    return new AgentRegisteringQueueChecker();
+  }
+
+  @Bean
+  public AgentsRegistrationQueue agentsRegistrationQueue() {
+    return new AgentsRegistrationQueue(injector);
   }
 
 }

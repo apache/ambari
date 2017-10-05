@@ -27,8 +27,8 @@ public class HostNotRegisteredException extends AmbariException {
     return new HostNotRegisteredException(String.format("Host with sessionId '%s' not registered", sessionId));
   }
 
-  public static HostNotRegisteredException forHostName(String hostName) {
-    return new HostNotRegisteredException(String.format("Host with hostName '%s' not registered", hostName));
+  public static HostNotRegisteredException forHostId(Long hostId) {
+    return new HostNotRegisteredException(String.format("Host with hostId '%s' not registered", hostId));
   }
 
   private HostNotRegisteredException(String message) {

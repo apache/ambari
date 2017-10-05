@@ -42,7 +42,7 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
   /**
    * Host identifier.
    */
-  private String hostName;
+  private Long hostId;
 
   /**
    * Configs grouped by cluster id as keys.
@@ -64,17 +64,17 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
     this.hash = hash;
   }
 
-  public static AgentConfigsUpdateEvent emptyUpdate() {
-    return new AgentConfigsUpdateEvent(null);
-  }
-
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   @Override
-  public String getHostName() {
-    return hostName;
+  public Long getHostId() {
+    return hostId;
+  }
+
+  public static AgentConfigsUpdateEvent emptyUpdate() {
+    return new AgentConfigsUpdateEvent(null);
   }
 
   @Override
@@ -84,12 +84,12 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
 
     AgentConfigsUpdateEvent that = (AgentConfigsUpdateEvent) o;
 
-    return Objects.equals(hostName, that.hostName) &&
+    return Objects.equals(hostId, that.hostId) &&
       Objects.equals(clustersConfigs, that.clustersConfigs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(hostName, clustersConfigs);
+    return Objects.hash(hostId, clustersConfigs);
   }
 }

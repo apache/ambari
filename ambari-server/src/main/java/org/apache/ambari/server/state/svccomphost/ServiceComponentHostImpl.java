@@ -763,7 +763,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @AssistedInject
   public ServiceComponentHostImpl(@Assisted ServiceComponent serviceComponent,
-      @Assisted String hostName, Clusters clusters, StackDAO stackDAO, HostDAO hostDAO,
+      @Assisted String hostName, @Assisted ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity,
+      Clusters clusters, StackDAO stackDAO, HostDAO hostDAO,
       ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO,
       HostComponentStateDAO hostComponentStateDAO,
       HostComponentDesiredStateDAO hostComponentDesiredStateDAO,
@@ -823,7 +824,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       desiredStateEntity.setAdminState(null);
     }
 
-    persistEntities(hostEntity, stateEntity, desiredStateEntity);
+    persistEntities(hostEntity, stateEntity, desiredStateEntity, serviceComponentDesiredStateEntity);
 
     // publish the service component installed event
     ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(getClusterId(),
@@ -836,6 +837,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     hostComponentStateId = stateEntity.getId();
 
     resetLastOpInfo();
+  }
+  @AssistedInject
+  public ServiceComponentHostImpl(@Assisted ServiceComponent serviceComponent,
+      @Assisted String hostName,
+      Clusters clusters, StackDAO stackDAO, HostDAO hostDAO,
+      ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO,
+      HostComponentStateDAO hostComponentStateDAO,
+      HostComponentDesiredStateDAO hostComponentDesiredStateDAO,
+      AmbariEventPublisher eventPublisher) {
+      this(serviceComponent, hostName, null, clusters, stackDAO, hostDAO,
+          serviceComponentDesiredStateDAO, hostComponentStateDAO, hostComponentDesiredStateDAO, eventPublisher);
   }
 
   @AssistedInject
@@ -894,11 +906,39 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
       stateEntity.setCurrentState(state);
+      if (state != State.UNKNOWN) {
+        stateEntity.setLastLiveState(state);
+      }
       stateEntity = hostComponentStateDAO.merge(stateEntity);
       if (!oldState.equals(state)) {
         stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
             new HostComponentUpdate(stateEntity, oldState))));
       }
+    } else {
+      LOG.warn("Setting a member on an entity object that may have been "
+          + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
+          + getServiceComponentName() + ", " + "hostName = " + getHostName());
+    }
+  }
+
+  @Override
+  public State getLastValidState() {
+    HostComponentStateEntity stateEntity = getStateEntity();
+    if (stateEntity != null) {
+      return stateEntity.getLastLiveState();
+    }
+    return State.UNKNOWN;
+  }
+
+  @Override
+  public void setLastValidState(State state) {
+    if (state == State.UNKNOWN) {
+      return;
+    }
+    HostComponentStateEntity stateEntity = getStateEntity();
+    if (stateEntity != null) {
+      stateEntity.setLastLiveState(state);
+      hostComponentStateDAO.merge(stateEntity);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
@@ -1216,10 +1256,31 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     r.setActualConfigs(actualConfigs);
     r.setUpgradeState(upgradeState);
 
-    try {
-      r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs, hostComponentDesiredStateEntity));
-    } catch (Exception e) {
-      LOG.error("Could not determine stale config", e);
+    return r;
+  }
+
+  @Override
+  public ServiceComponentHostResponse convertToResponseStatusOnly(Map<String, DesiredConfig> desiredConfigs,
+                                                                  boolean collectStaleConfigsStatus) {
+    String clusterName = serviceComponent.getClusterName();
+    String serviceName = serviceComponent.getServiceName();
+    String serviceComponentName = serviceComponent.getName();
+    String state = getState().toString();
+
+    ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterName, serviceName,
+        serviceComponentName, null, hostName, null, state, null,
+        null, null, null, null);
+
+    if (collectStaleConfigsStatus) {
+
+      try {
+        HostComponentDesiredStateEntity hostComponentDesiredStateEntity = getDesiredStateEntity();
+        r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs, hostComponentDesiredStateEntity));
+      } catch (Exception e) {
+        LOG.error("Could not determine stale config", e);
+      }
+    } else {
+      r.setStaleConfig(false);
     }
 
     return r;
@@ -1252,10 +1313,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Transactional
   void persistEntities(HostEntity hostEntity, HostComponentStateEntity stateEntity,
-      HostComponentDesiredStateEntity desiredStateEntity) {
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        serviceComponent.getClusterId(), serviceComponent.getServiceName(),
-        serviceComponent.getName());
+                       HostComponentDesiredStateEntity desiredStateEntity,
+                       ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
+
+    if (serviceComponentDesiredStateEntity == null) {
+      serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+          serviceComponent.getClusterId(), serviceComponent.getServiceName(), serviceComponent.getName());
+    }
 
     desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     desiredStateEntity.setHostEntity(hostEntity);

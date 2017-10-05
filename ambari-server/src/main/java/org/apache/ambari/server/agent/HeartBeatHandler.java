@@ -17,11 +17,9 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -42,7 +40,6 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
@@ -190,6 +187,15 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, currentResponseId);
     hostResponses.put(hostname, response);
 
+    // If the host is waiting for component status updates, notify it
+    if (hostObject.getState().equals(HostState.WAITING_FOR_HOST_STATUS_UPDATES)) {
+      try {
+        LOG.debug("Got component status updates for host {}", hostname);
+        hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname, now));
+      } catch (InvalidStateTransitionException e) {
+        LOG.warn("Failed to notify the host {} about component status updates", hostname, e);
+      }
+    }
     if (heartbeat.getRecoveryReport() != null) {
       RecoveryReport rr = heartbeat.getRecoveryReport();
       processRecoveryReport(rr, hostname);
@@ -202,27 +208,6 @@ public class HeartBeatHandler {
       LOG.warn("Asking agent to re-register due to " + ex.getMessage(), ex);
       hostObject.setState(HostState.INIT);
       return createRegisterCommand();
-    }
-
-    /*
-     * A host can belong to only one cluster. Though getClustersForHost(hostname)
-     * returns a set of clusters, it will have only one entry.
-     *
-     * TODO: Handle the case when a host is a part of multiple clusters.
-     */
-    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
-
-    if (clusters.size() > 0) {
-      String clusterName = clusters.iterator().next().getClusterName();
-
-      if (recoveryConfigHelper.isConfigStale(clusterName, hostname, heartbeat.getRecoveryTimestamp())) {
-        RecoveryConfig rc = recoveryConfigHelper.getRecoveryConfig(clusterName, hostname);
-        response.setRecoveryConfig(rc);
-
-        if (response.getRecoveryConfig() != null) {
-          LOG.debug("Recovery configuration set to {}", response.getRecoveryConfig().toString());
-        }
-      }
     }
 
     heartbeatProcessor.addHeartbeat(heartbeat);
@@ -253,7 +238,7 @@ public class HeartBeatHandler {
     } catch (InvalidStateTransitionException ex) {
       LOG.warn("Asking agent to re-register due to " + ex.getMessage(), ex);
       host.setState(HostState.INIT);
-      agentSessionManager.unregisterByHost(hostname);
+      agentSessionManager.unregisterByHost(host.getHostId());
     }
   }
 
@@ -338,18 +323,10 @@ public class HeartBeatHandler {
     }
 
     // Resetting host state
-    hostObject.setState(HostState.INIT);
+    hostObject.setStateMachineState(HostState.INIT);
 
     // Set ping port for agent
     hostObject.setCurrentPingPort(currentPingPort);
-
-    // Get status of service components
-    List<StatusCommand> cmds = heartbeatMonitor.generateStatusCommands(hostname);
-
-    // Add request for component version
-    for (StatusCommand command: cmds) {
-      command.getCommandParams().put("request_version", String.valueOf(true));
-    }
 
     // Save the prefix of the log file paths
     hostObject.setPrefix(register.getPrefix());
@@ -360,43 +337,6 @@ public class HeartBeatHandler {
         register.getAgentEnv()));
 
     RegistrationResponse response = new RegistrationResponse();
-    if (cmds.isEmpty()) {
-      //No status commands needed let the fsm know that status step is done
-      hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname,
-          now));
-    }
-
-    response.setStatusCommands(cmds);
-
-    response.setResponseStatus(RegistrationStatus.OK);
-
-    // force the registering agent host to receive its list of alert definitions
-    List<AlertDefinitionCommand> alertDefinitionCommands = getRegistrationAlertDefinitionCommands(hostname);
-    response.setAlertDefinitionCommands(alertDefinitionCommands);
-
-    response.setAgentConfig(config.getAgentConfigsMap());
-    if(response.getAgentConfig() != null) {
-      LOG.debug("Agent configuration map set to {}", response.getAgentConfig());
-    }
-
-    /*
-     * A host can belong to only one cluster. Though getClustersForHost(hostname)
-     * returns a set of clusters, it will have only one entry.
-     *
-     * TODO: Handle the case when a host is a part of multiple clusters.
-     */
-    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
-
-    if (clusters.size() > 0) {
-      String clusterName = clusters.iterator().next().getClusterName();
-
-      RecoveryConfig rc = recoveryConfigHelper.getRecoveryConfig(clusterName, hostname);
-      response.setRecoveryConfig(rc);
-
-      if(response.getRecoveryConfig() != null) {
-        LOG.info("Recovery configuration set to " + response.getRecoveryConfig());
-      }
-    }
 
     Long requestId = 0L;
     hostResponseIds.put(hostname, requestId);
@@ -461,45 +401,6 @@ public class HeartBeatHandler {
     response.setComponents(componentsMap);
 
     return response;
-  }
-
-  /**
-   * Gets the {@link AlertDefinitionCommand} instances that need to be sent for
-   * each cluster that the registering host is a member of.
-   *
-   * @param hostname
-   * @return
-   * @throws AmbariException
-   */
-  private List<AlertDefinitionCommand> getRegistrationAlertDefinitionCommands(
-      String hostname) throws AmbariException {
-
-    Set<Cluster> hostClusters = clusterFsm.getClustersForHost(hostname);
-    if (null == hostClusters || hostClusters.size() == 0) {
-      return null;
-    }
-
-    List<AlertDefinitionCommand> commands = new ArrayList<>();
-
-    // for every cluster this host is a member of, build the command
-    for (Cluster cluster : hostClusters) {
-      String clusterName = cluster.getClusterName();
-      alertDefinitionHash.invalidate(clusterName, hostname);
-
-      List<AlertDefinition> definitions = alertDefinitionHash.getAlertDefinitions(
-          clusterName, hostname);
-
-      String hash = alertDefinitionHash.getHash(clusterName, hostname);
-      Host host = cluster.getHost(hostname);
-      String publicHostName = host == null? hostname : host.getPublicHostName();
-      AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
-          hostname, publicHostName, hash, definitions);
-
-      command.addConfigs(configHelper, cluster);
-      commands.add(command);
-    }
-
-    return commands;
   }
 
   public void stop() {

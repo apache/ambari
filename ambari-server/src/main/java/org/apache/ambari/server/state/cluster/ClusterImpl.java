@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -78,6 +79,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
@@ -90,6 +92,7 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -305,6 +308,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private StateUpdateEventPublisher stateUpdateEventPublisher;
+
+  @Inject
+  private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
 
   /**
    * A simple cache for looking up {@code cluster-env} properties for a cluster.
@@ -2249,6 +2255,15 @@ public class ClusterImpl implements Cluster {
 
     Collection<Host> hosts = clusterHosts.values();
     Iterator<Host> iterator = hosts.iterator();
+    //TODO to version in sch
+    List<Long> hostIds = hosts.stream().map(Host::getHostId).collect(Collectors.toList());
+    List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities =
+        hostIds.isEmpty() ? Collections.EMPTY_LIST : hostComponentDesiredStateDAO.findByHosts(hostIds);
+    Map<Long, Map<String, HostComponentDesiredStateEntity>> mappedHostIds = hostComponentDesiredStateEntities.stream().collect(
+        Collectors.groupingBy(HostComponentDesiredStateEntity::getHostId,
+            Collectors.toMap(HostComponentDesiredStateEntity::getComponentName, Function.identity())
+        )
+    );
     while (iterator.hasNext()) {
       Host host = iterator.next();
       String hostName = host.getHostName();
@@ -2287,8 +2302,15 @@ public class ClusterImpl implements Cluster {
       boolean maintenanceState = false;
 
       if (serviceComponentHostsByHost.containsKey(hostName)) {
+        Map<String, HostComponentDesiredStateEntity> componentsStates = mappedHostIds.get(host.getHostId());
         for (ServiceComponentHost sch : serviceComponentHostsByHost.get(hostName)) {
-          staleConfig = staleConfig || configHelper.isStaleConfigs(sch, desiredConfigs);
+          HostComponentDesiredStateEntity componentState = componentsStates == null ? null :
+              componentsStates.get(sch.getServiceComponentName());
+          if (componentState != null) {
+            staleConfig = staleConfig || configHelper.isStaleConfigs(sch, desiredConfigs, componentState);
+          } else {
+            staleConfig = staleConfig || configHelper.isStaleConfigs(sch, desiredConfigs);
+          }
           maintenanceState = maintenanceState ||
             maintenanceStateHelper.getEffectiveState(sch) != MaintenanceState.OFF;
         }

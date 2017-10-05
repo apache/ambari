@@ -57,9 +57,9 @@ public class StateUpdateListener {
     String destination = event.getDestination();
     if (event instanceof AmbariHostUpdateEvent) {
       AmbariHostUpdateEvent hostUpdateEvent = (AmbariHostUpdateEvent) event;
-      String hostName = hostUpdateEvent.getHostName();
-      String sessionId = agentSessionManager.getSessionId(hostName);
-      LOG.debug("Received status update event {} for host {} registered with session ID {}", hostUpdateEvent, hostName, sessionId);
+      Long hostId = hostUpdateEvent.getHostId();
+      String sessionId = agentSessionManager.getSessionId(hostId);
+      LOG.debug("Received status update event {} for host {} registered with session ID {}", hostUpdateEvent, hostId, sessionId);
       MessageHeaders headers = createHeaders(sessionId);
       simpMessagingTemplate.convertAndSendToUser(sessionId, destination, event, headers);
     } else {

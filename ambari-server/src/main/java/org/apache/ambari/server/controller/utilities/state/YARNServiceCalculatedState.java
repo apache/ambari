@@ -54,7 +54,7 @@ public final class YARNServiceCalculatedState extends DefaultServiceCalculatedSt
           serviceName, null, null, null);
 
         Set<ServiceComponentHostResponse> hostComponentResponses =
-          managementControllerProvider.get().getHostComponents(Collections.singleton(request));
+          managementControllerProvider.get().getHostComponents(Collections.singleton(request), true);
 
         int     resourceManagerActiveCount      = 0;
         boolean isAppTimeLineServerActive       = false;

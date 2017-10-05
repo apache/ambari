@@ -541,7 +541,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             recoveryConfigHelper.getRecoveryConfig(clusters.getCluster(hostRequest.getClusterName()).getClusterName(),
                 addedHost.getHostName())
         ));
-        hostLevelParamsUpdateEvent.setHostName(addedHost.getHostName());
+        hostLevelParamsUpdateEvent.setHostId(addedHost.getHostId());
         hostLevelParamsUpdateEvents.add(hostLevelParamsUpdateEvent);
       }
     }
@@ -550,12 +550,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     // TODO add rack change to topology update
     updateHostRackInfoIfChanged(clusters, hostRequests);
 
-    TopologyUpdateEvent topologyUpdateEvent =
-        new TopologyUpdateEvent(addedTopologies, TopologyUpdateEvent.EventType.UPDATE);
-    topologyHolder.updateData(topologyUpdateEvent);
     for (HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent : hostLevelParamsUpdateEvents) {
       hostLevelParamsHolder.updateData(hostLevelParamsUpdateEvent);
     }
+    TopologyUpdateEvent topologyUpdateEvent =
+        new TopologyUpdateEvent(addedTopologies, TopologyUpdateEvent.EventType.UPDATE);
+    topologyHolder.updateData(topologyUpdateEvent);
   }
 
   /**
