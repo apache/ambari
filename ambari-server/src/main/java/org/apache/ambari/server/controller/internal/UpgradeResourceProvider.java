@@ -197,7 +197,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String REQUEST_END_TIME_ID = "Upgrade/end_time";
   private static final String REQUEST_EXCLUSIVE_ID = "Upgrade/exclusive";
 
-  private static final String REQUEST_PROGRESS_PERCENT_ID = "Upgrade/progress_percent";
+  protected static final String REQUEST_PROGRESS_PERCENT_ID = "Upgrade/progress_percent";
   private static final String REQUEST_STATUS_PROPERTY_ID = "Upgrade/request_status";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
@@ -415,12 +415,80 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
 
+        if (calc.getStatus() == HostRoleStatus.ABORTED && entity.isSuspended()) {
+          double percent = calculateAbortedProgress(summary);
+          setResourceProperty(r, REQUEST_PROGRESS_PERCENT_ID, percent*100, requestPropertyIds);
+        } else {
+          setResourceProperty(r, REQUEST_PROGRESS_PERCENT_ID, calc.getPercent(), requestPropertyIds);
+        }
+
         setResourceProperty(r, REQUEST_STATUS_PROPERTY_ID, calc.getStatus(), requestPropertyIds);
-        setResourceProperty(r, REQUEST_PROGRESS_PERCENT_ID, calc.getPercent(), requestPropertyIds);
       }
     }
 
     return results;
+  }
+
+  /**
+   * Unlike in CalculatedStatus, we can't use ABORTED here as a COMPLETED state.
+   * Therefore, the values will be slightly off since in CalulatedStatus, ABORTED
+   * contributes all of its progress to the overall progress, but here it
+   * contributes none of it.
+   *
+   * Since this is specifically for ABORTED upgrades that are
+   * also suspended, the percentages should come out pretty close after ABORTED move back
+   * to PENDING.
+   *
+   * @return the percent complete, counting ABORTED as zero percent.
+   */
+  private double calculateAbortedProgress(Map<Long, HostRoleCommandStatusSummaryDTO> summary) {
+    // !!! use the raw states to determine percent completes
+    Map<HostRoleStatus, Integer> countTotals = new HashMap<>();
+    int totalTasks = 0;
+
+
+    for (HostRoleCommandStatusSummaryDTO statusSummary : summary.values()) {
+      totalTasks += statusSummary.getTaskTotal();
+      for (Map.Entry<HostRoleStatus, Integer> entry : statusSummary.getCounts().entrySet()) {
+        if (!countTotals.containsKey(entry.getKey())) {
+          countTotals.put(entry.getKey(), Integer.valueOf(0));
+        }
+        countTotals.put(entry.getKey(), countTotals.get(entry.getKey()) + entry.getValue());
+      }
+    }
+
+    double percent = 0d;
+
+    for (HostRoleStatus status : HostRoleStatus.values()) {
+      if (!countTotals.containsKey(status)) {
+        countTotals.put(status, Integer.valueOf(0));
+      }
+      double countValue = (double) countTotals.get(status);
+
+      // !!! calculation lifted from CalculatedStatus
+      switch (status) {
+        case ABORTED:
+          // !!! see javadoc
+          break;
+        case HOLDING:
+        case HOLDING_FAILED:
+        case HOLDING_TIMEDOUT:
+        case IN_PROGRESS:
+        case PENDING:  // shouldn't be any, we're supposed to be ABORTED
+          percent += countValue * 0.35d;
+          break;
+        case QUEUED:
+          percent += countValue * 0.09d;
+          break;
+        default:
+          if (status.isCompletedState()) {
+            percent += countValue / (double) totalTasks;
+          }
+          break;
+      }
+    }
+
+    return percent;
   }
 
   @Override

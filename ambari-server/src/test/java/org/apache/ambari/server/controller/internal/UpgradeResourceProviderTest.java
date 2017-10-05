@@ -871,9 +871,40 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     UpgradeResourceProvider urp = createProvider(amc);
 
-    // !!! make sure we can.  actual abort is tested elsewhere
     Request req = PropertyHelper.getUpdateRequest(requestProps, null);
     urp.updateResources(req, null);
+
+    List<HostRoleCommandEntity> commands = hrcDAO.findByRequest(id);
+
+    int i = 0;
+    for (HostRoleCommandEntity command : commands) {
+      if (i < 3) {
+        command.setStatus(HostRoleStatus.COMPLETED);
+      } else {
+        command.setStatus(HostRoleStatus.ABORTED);
+      }
+      hrcDAO.merge(command);
+      i++;
+    }
+
+    req = PropertyHelper.getReadRequest(
+        UpgradeResourceProvider.UPGRADE_CLUSTER_NAME,
+        UpgradeResourceProvider.UPGRADE_ID,
+        UpgradeResourceProvider.REQUEST_PROGRESS_PERCENT_ID);
+
+    Predicate pred = new PredicateBuilder()
+        .property(UpgradeResourceProvider.UPGRADE_REQUEST_ID).equals(id.toString())
+        .and()
+        .property(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME).equals("c1")
+        .toPredicate();
+
+    Set<Resource> resources = urp.getResources(req, pred);
+    assertEquals(1, resources.size());
+    res = resources.iterator().next();
+
+    Double value = (Double) res.getPropertyValue(UpgradeResourceProvider.REQUEST_PROGRESS_PERCENT_ID);
+
+    assertEquals(37.5d, value, 0.1d);
   }
 
 
