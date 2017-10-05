@@ -882,6 +882,20 @@ public class ClusterImpl implements Cluster {
     return service;
   }
 
+  // TODO BP3.0
+  @Deprecated
+  @Override
+  public Service addService(String serviceName) {
+    throw (new UnsupportedOperationException("Not supported with 3.0 Blueprints"));
+  }
+
+  // TODO BP3.0
+  @Deprecated
+  @Override
+  public Service addService(String serviceName, RepositoryVersionEntity repositoryVersion) {
+    throw (new UnsupportedOperationException("Not supported with 3.0 Blueprints"));
+  }
+
   @Override
   public void addServiceGroup(ServiceGroup serviceGroup) {
     if (LOG.isDebugEnabled()) {

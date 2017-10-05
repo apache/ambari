@@ -31,6 +31,18 @@ public class Component {
 
   private final Configuration configuration;
 
+  // TODO: remove for BP3.0
+  @Deprecated
+  public Component(String name) {
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
+  }
+
+  // TODO: remove for BP3.0
+  @Deprecated
+  public Component(String name,  ProvisionAction provisionAction) {
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
+  }
+
   public Component(String name, Service service) {
     this(name, service, null, null);
   }

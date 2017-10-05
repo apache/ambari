@@ -45,6 +45,10 @@ public interface ServiceFactory {
                     @Assisted("serviceDisplayName") String serviceDisplayName,
                     RepositoryVersionEntity desiredRepositoryVersion);
 
+  // TODO BP3.0
+  @Deprecated
+  Service createNew(Cluster cluster, String serviceName, RepositoryVersionEntity desiredRepositoryVersion);
+
   /**
    * Creates an in-memory representation of a service from an existing database
    * object.

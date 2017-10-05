@@ -159,6 +159,12 @@ public class HostGroupImpl implements HostGroup {
     return this.addComponent(component, service);
   }
 
+  @Override
+  // TODO BP3.0
+  public boolean addComponent(String component) {
+    throw new UnsupportedOperationException("Not supported with 3.0 blueprints.");
+  }
+
   /**
    * Add a component with the specified provision action to the
    *   host group.
@@ -180,14 +186,14 @@ public class HostGroupImpl implements HostGroup {
     if (stack.isMasterComponent(component)) {
       containsMasterComponent = true;
     }
+    // TODO review for BP3.0
     if (added) {
-      String service = stack.getServiceForComponent(component);
       if (service != null) {
         // an example of a component without a service in the stack is AMBARI_SERVER
-        Set<String> serviceComponents = componentsForService.get(service);
+        Set<String> serviceComponents = componentsForService.get(service.getName());
         if (serviceComponents == null) {
           serviceComponents = new HashSet<>();
-          componentsForService.put(service, serviceComponents);
+          componentsForService.put(service.getName(), serviceComponents);
         }
         serviceComponents.add(component);
       }

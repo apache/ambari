@@ -35,6 +35,17 @@ public class ServiceComponentHostRequest {
   private String adminState; // GET - predicate
   private String maintenanceState; // UPDATE
 
+
+  // TODO: BP3.0
+  @Deprecated
+  public ServiceComponentHostRequest(String clusterName,
+                                     String serviceName,
+                                     String componentName,
+                                     String hostname,
+                                     String desiredState) {
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
+  }
+
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceGroupName,
                                      String serviceDisplayName,

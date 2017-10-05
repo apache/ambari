@@ -38,6 +38,21 @@ public class ServiceRequest {
    */
   private RepositoryVersionEntity resolvedRepository;
 
+  // TODO: BP3.0
+  @Deprecated
+  public ServiceRequest(String clusterName, String serviceName,
+                        Long desiredRepositoryVersionId, String desiredState) {
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
+  }
+
+  // TODO: BP3.0
+  @Deprecated
+  public ServiceRequest(String clusterName, String serviceName,
+                        Long desiredRepositoryVersionId, String desiredState, String credentialStoreEnabled) {
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
+  }
+
+
   public ServiceRequest(String clusterName, String serviceGroupName, String serviceName,
       Long desiredRepositoryVersionId, String desiredState) {
     this(clusterName, serviceGroupName, serviceName, serviceName, desiredRepositoryVersionId, desiredState, null);

@@ -29,6 +29,21 @@ public class ServiceComponentRequest {
   private String componentCategory;
   private String recoveryEnabled; // CREATE/UPDATE
 
+  // TODO: BP3.0
+  @Deprecated
+  public ServiceComponentRequest(String clusterName,
+                                 String componentName, String desiredState) {
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
+  }
+
+  // TODO: BP3.0
+  @Deprecated
+  public ServiceComponentRequest(String clusterName, String componentName,
+                                 String desiredState, String recoveryEnabled) {
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
+  }
+
+
   public ServiceComponentRequest(String clusterName, String serviceGroupName, String serviceDisplayName,
                                  String componentName, String desiredState) {
     this(clusterName, serviceGroupName, serviceDisplayName, componentName, desiredState, null, null);

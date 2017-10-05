@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.Stack;
-
 import java.util.Collection;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.controller.internal.Stack;
 
 /**
  * Host Group representation.
@@ -98,6 +98,10 @@ public interface HostGroup {
    * @return true if the component didn't already exist
    */
   boolean addComponent(String component, Service service);
+
+  // TODO: remove BP3.0
+  @Deprecated
+  boolean addComponent(String component);
 
   /**
    * Add a component to the host group, with the specified name

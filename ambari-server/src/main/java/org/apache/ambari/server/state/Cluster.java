@@ -72,6 +72,14 @@ public interface Cluster {
   Service addService(ServiceGroup serviceGroup, String serviceName, String serviceDisplayName,
                      RepositoryVersionEntity repositoryVersion) throws AmbariException;
 
+  // TODO: BP3.0
+  @Deprecated
+  Service addService(String serviceName);
+
+  // TODO: BP3.0
+  @Deprecated
+  Service addService(String serviceName, RepositoryVersionEntity repositoryVersion);
+
   /**
    * Add service group to the cluster
    *

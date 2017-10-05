@@ -19,17 +19,28 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.gson.Gson;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.controller.AmbariServer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
+import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
+import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
+import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
+import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import com.google.gson.Gson;
 
 /**
  * Blueprint implementation.
@@ -60,7 +71,8 @@ public class BlueprintImpl implements Blueprint {
     // create config first because it is set as a parent on all host-group configs
     processConfiguration(entity.getConfigurations());
     parseBlueprintHostGroups(entity);
-    configuration.setParentConfiguration(stack.getConfiguration(getServices()));
+    // TODO BP3.0
+    // configuration.setParentConfiguration(stack.getConfiguration(getServices()));
     validator = new BlueprintValidatorImpl(this);
     processSetting(entity.getSettings());
     processRepoSettings();
@@ -274,8 +286,10 @@ public class BlueprintImpl implements Blueprint {
   }
 
   @Override
+  @Deprecated
+  // TODO BP3.0
   public Stack getStack() {
-    return stack;
+    throw new UnsupportedOperationException("Not supported with 3.0 Blueprints.");
   }
 
   /**
@@ -353,20 +367,22 @@ public class BlueprintImpl implements Blueprint {
   }
 
   private void parseStack(StackEntity stackEntity) throws NoSuchStackException {
-    try {
+//    try {
       //todo: don't pass in controller
-      stack = new Stack(stackEntity.getStackName(), stackEntity.getStackVersion(), AmbariServer.getController());
-    } catch (StackAccessException e) {
-      throw new NoSuchStackException(stackEntity.getStackName(), stackEntity.getStackVersion());
-    } catch (AmbariException e) {
-      //todo:
-      throw new RuntimeException("An error occurred parsing the stack information.", e);
-    }
+      // TODO BP3.0
+      // stack = new Stack(stackEntity.getStackName(), stackEntity.getStackVersion(), AmbariServer.getController());
+//    } catch (StackAccessException e) {
+//      throw new NoSuchStackException(stackEntity.getStackName(), stackEntity.getStackVersion());
+//    } catch (AmbariException e) {
+//      //todo:
+//      throw new RuntimeException("An error occurred parsing the stack information.", e);
+//    }
   }
 
   private Map<String, HostGroup> parseBlueprintHostGroups(BlueprintEntity entity) {
     for (HostGroupEntity hostGroupEntity : entity.getHostGroups()) {
-      HostGroupImpl hostGroup = new HostGroupImpl(hostGroupEntity, getName(), stack);
+      // TODO BP3.0
+      HostGroupImpl hostGroup = new HostGroupImpl(hostGroupEntity, getName(), null /* TODO */);
       // set the bp configuration as the host group config parent
       hostGroup.getConfiguration().setParentConfiguration(configuration);
       hostGroups.put(hostGroupEntity.getName(), hostGroup);

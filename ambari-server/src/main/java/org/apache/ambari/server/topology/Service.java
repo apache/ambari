@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.Stack;
 
-import java.util.Set;
 
 public class Service {
 
