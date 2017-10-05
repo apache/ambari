@@ -149,11 +149,12 @@ class RMFTestCase(TestCase):
                   with patch('resource_management.libraries.functions.stack_select.is_package_supported', return_value=True):
                     with patch('resource_management.libraries.functions.stack_select.get_supported_packages', return_value=MagicMock()):
                       with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
-                        if not try_install:
-                          with patch.object(Script, 'install_packages') as install_mock_value:
+                        with patch('resource_management.libraries.functions.stack_select.unsafe_get_stack_versions', return_value = (("",0,[]))):
+                          if not try_install:
+                            with patch.object(Script, 'install_packages') as install_mock_value:
+                              method(RMFTestCase.env, *command_args)
+                          else:
                             method(RMFTestCase.env, *command_args)
-                        else:
-                          method(RMFTestCase.env, *command_args)
 
     sys.path.remove(scriptsdir)
 

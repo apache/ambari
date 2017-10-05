@@ -46,7 +46,7 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
-from resource_management.libraries.functions.version_select_util import get_component_version_from_symlink
+from resource_management.libraries.functions import version_select_util
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
@@ -212,6 +212,12 @@ class Script(object):
     Saves the version of the component for this command to the structured out file. If the
     command is an install command and the repository is trusted, then it will use the version of
     the repository. Otherwise, it will consult the stack-select tool to read the symlink version.
+
+    Under rare circumstances, a component may have a bug which prevents it from reporting a
+    version back after being installed. This is most likely due to the stack-select tool not being
+    invoked by the package's installer. In these rare cases, we try to see if the component
+    should have reported a version and we try to fallback to the "<stack-select> versions" command.
+
     :param command_name: command name
     :return: None
     """
@@ -240,7 +246,17 @@ class Script(object):
     if stack_select_package_name and stack_name:
       # only query for the component version from stack-select if we can't trust the repository yet
       if component_version is None:
-        component_version = get_component_version_from_symlink(stack_name, stack_select_package_name)
+        component_version = version_select_util.get_component_version_from_symlink(stack_name, stack_select_package_name)
+
+      # last ditch effort - should cover the edge case where the package failed to setup its
+      # link and we have to try to see if <stack-select> can help
+      if component_version is None:
+        output, code, versions = stack_select.unsafe_get_stack_versions()
+        if len(versions) == 1:
+          component_version = versions[0]
+          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging. " \
+                         "However, the stack-select tool was able to report a single version installed ({1}). " \
+                         "This is the version that will be reported.".format(stack_select_package_name, component_version))
 
       if component_version:
         self.put_structured_out({"version": component_version})
@@ -252,7 +268,7 @@ class Script(object):
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:
         if not self.is_hook():
-          Logger.error("Component '{0}' did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
+          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
 
 
   def should_expose_component_version(self, command_name):
