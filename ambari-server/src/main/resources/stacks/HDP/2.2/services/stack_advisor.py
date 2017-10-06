@@ -91,7 +91,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "HBASE": self.recommendHBASEConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "TEZ": self.recommendTezConfigurations,
-      "AMBARI_METRICS": self.recommendAmsConfigurations,
       "YARN": self.recommendYARNConfigurations,
       "STORM": self.recommendStormConfigurations,
       "KNOX": self.recommendKnoxConfigurations,
