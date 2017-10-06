@@ -21,8 +21,8 @@
     <service>
       <name>DRUID</name>
       <displayName>Druid</displayName>
-      <comment>A fast column-oriented distributed data store. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
-      <version>0.9.2</version>
+      <comment>A fast column-oriented distributed data store.</comment>
+      <version>0.10.1</version>
       <components>
         <component>
           <name>DRUID_COORDINATOR</name>
