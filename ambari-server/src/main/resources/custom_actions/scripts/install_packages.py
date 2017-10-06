@@ -105,7 +105,7 @@ class InstallPackages(Script):
     self.repository_version = self.repository_version.strip()
 
     try:
-      if not command_repository.repositories:
+      if not command_repository.items:
         Logger.warning(
           "Repository list is empty. Ambari may not be managing the repositories for {0}.".format(
             self.repository_version))
@@ -330,6 +330,7 @@ class InstallPackages(Script):
       # specific repo that the stack-select tools are coming out of in case there are multiple
       # patches installed
       repositories = config['repositoryFile']['repositories']
+      command_repos = CommandRepository(config['repositoryFile'])
       repository_ids = [repository['repoId'] for repository in repositories]
       repos_to_use = {}
       for repo_id in repository_ids:
@@ -347,7 +348,7 @@ class InstallPackages(Script):
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       try:
-        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(repositories)
+        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(command_repos)
       except Exception:
         available_packages_in_repos = []
       for package in filtered_package_list:

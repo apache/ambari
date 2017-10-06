@@ -61,23 +61,28 @@ SELECT_TOOL_VERSION_PATTERN = re.compile("(\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,2}-*\
 
 class ZypperProvider(RPMBasedPackageProvider):
 
-  def get_available_packages_in_repos(self, repositories):
+  def get_available_packages_in_repos(self, repos):
     """
     Gets all (both installed and available) packages that are available at given repositories.
-    :param repositories: from command configs like config['repositoryFile']['repositories']
+    :type repos resource_management.libraries.functions.repository_util.CommandRepository
     :return: installed and available packages from these repositories
     """
 
     available_packages = []
-    available_packages_in_repos = []
-    repo_ids = [repository['repoId'] for repository in repositories]
+    repo_ids = [repository.repo_id for repository in repos.items]
+
+    # zypper cant tell from which repository were installed package, as repo r matching by pkg_name
+    # as result repository would be matched if it contains package with same meta info
+    if repos.feat.scoped:
+      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+    else:
+      Logger.info("Packages will be queried using all available repositories on the system.")
 
     for repo in repo_ids:
-      available_packages.extend(self._lookup_packages([AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--details", "--repo", repo]))
+      repo = repo if repos.feat.scoped else None
+      available_packages.extend(self._get_available_packages(repo))
 
-    available_packages_in_repos += [package[0] for package in available_packages]
-
-    return available_packages_in_repos
+    return [package[0] for package in available_packages]
 
   def get_all_package_versions(self, pkg_name):
     """
@@ -97,6 +102,22 @@ class ZypperProvider(RPMBasedPackageProvider):
     """
     matches = SELECT_TOOL_VERSION_PATTERN.findall(v.strip())
     return matches[0] if matches else None
+
+  def _get_available_packages(self, repo_filter=None):
+    """
+    Returning list of available packages with possibility to filter them by name
+    :param repo_filter: repository name
+
+    :type repo_filter str|None
+    :rtype list[list,]
+    """
+
+    cmd = [AMBARI_SUDO_BINARY, "zypper", "--no-gpg-checks", "search", "--details"]
+
+    if repo_filter:
+      cmd.extend(["--repo=" + repo_filter])
+
+    return self._lookup_packages(cmd)
 
   def normalize_select_tool_versions(self, versions):
     """

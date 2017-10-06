@@ -52,6 +52,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
+from resource_management.libraries.functions.repository_util import CommandRepository
 from resource_management.core.resources.system import Execute
 from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -748,7 +749,7 @@ class Script(object):
       agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
       pkg_provider = get_provider("Package")
       try:
-        available_packages_in_repos = pkg_provider.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+        available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(config['repositoryFile']))
       except Exception as err:
         Logger.exception("Unable to load available packages")
         available_packages_in_repos = []

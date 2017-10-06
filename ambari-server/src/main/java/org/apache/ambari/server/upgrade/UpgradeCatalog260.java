@@ -85,6 +85,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String REPO_VERSION_ID_COLUMN = "repo_version_id";
   public static final String REPO_VERSION_RESOLVED_COLUMN = "resolved";
   public static final String REPO_VERSION_HIDDEN_COLUMN = "hidden";
+  public static final String REPO_VERSION_LEGACY_COLUMN = "legacy";
 
   public static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
   public static final String FK_HCDS_DESIRED_STACK_ID = "FK_hcds_desired_stack_id";
@@ -192,6 +193,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     createUpgradeHistoryTable();
     updateRepositoryVersionTable();
     renameServiceDeletedColumn();
+    addLegacyColumn();
     expandUpgradeItemItemTextColumn();
     addViewUrlPKConstraint();
     removeStaleConstraints();
@@ -220,6 +222,17 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   private void expandUpgradeItemItemTextColumn() throws SQLException {
     dbAccessor.changeColumnType(UPGRADE_ITEM_TABLE, UPGRADE_ITEM_ITEM_TEXT,
       String.class, char[].class);
+  }
+
+  private void addLegacyColumn() throws AmbariException, SQLException {
+    Boolean isLegacyColumnExists = dbAccessor.tableHasColumn(REPO_VERSION_TABLE, REPO_VERSION_LEGACY_COLUMN);
+    if (!isLegacyColumnExists) {
+      DBAccessor.DBColumnInfo legacyColumn = new DBAccessor.DBColumnInfo(REPO_VERSION_LEGACY_COLUMN, Boolean.class, null, 1, false);
+      dbAccessor.addColumn(REPO_VERSION_TABLE, legacyColumn);
+
+      legacyColumn.setDefaultValue(0);
+      dbAccessor.alterColumn(REPO_VERSION_TABLE, legacyColumn);
+    }
   }
 
   private void renameServiceDeletedColumn() throws AmbariException, SQLException {

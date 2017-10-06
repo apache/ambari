@@ -176,6 +176,7 @@ CREATE TABLE repo_version (
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved TINYINT(1) NOT NULL DEFAULT 0,
+  legacy TINYINT(1) NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml MEDIUMTEXT,
   version_xsd VARCHAR(512),

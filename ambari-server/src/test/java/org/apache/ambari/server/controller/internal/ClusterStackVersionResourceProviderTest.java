@@ -1448,6 +1448,8 @@ public class ClusterStackVersionResourceProviderTest {
     RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
     expect(repoVersion.getId()).andReturn(1L).anyTimes();
     expect(repoVersion.getStackId()).andReturn(new StackId("HDP-2.1.1")).anyTimes();
+    expect(repoVersion.isLegacy()).andReturn(false).anyTimes();
+    expect(repoVersion.getStackName()).andReturn("HDP").anyTimes();
 
 
     String os_json = "[\n" +
