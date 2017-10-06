@@ -1,0 +1,46 @@
+{
+  "ONEFS":{
+    "service": [
+      {
+        "name": "onefs_namenode_cpu",
+        "label": "OneFS NameNode Host CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the NameNode exceeds certain warning and critical thresholds. It checks the NameNode JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SERVER",
+          "class": "org.apache.ambari.server.alerts.JmxServerSideAlert",
+          "uri": {
+            "http": "${hdfs-site/dfs.namenode.http-address}",
+            "https": "${hdfs-site/dfs.namenode.https-address}",
+            "https_property": "${hdfs-site/dfs.http.policy}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0,number,percent}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0,number,percent}",
+              "value": 5
+            },
+            "critical": {
+              "text": "{1} CPU, load {0,number,percent}",
+              "value": 20
+            },
+            "units" : "%",
+            "type": "PERCENT"
+           },
+           "jmx": {
+             "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+             ]
+           }
+          }
+      }
+    ]
+  }
+}

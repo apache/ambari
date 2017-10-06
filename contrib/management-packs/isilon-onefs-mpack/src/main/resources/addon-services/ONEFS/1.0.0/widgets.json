@@ -1,0 +1,38 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_onefs_layout",
+      "display_name": "Standard ONEFS Dashboard",
+      "section_name": "ONEFS_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "OneFS metrics demo",
+          "description": "Test widget",
+          "default_section_name": "ONEFS_SUMMARY",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "scope" : "SERVICE",
+          "metrics": [
+            {
+              "name": "counter",
+              "metric_path": "metrics/onefs/demo/counter",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLUSTER"
+            }
+          ],
+          "values": [
+            {
+              "name": "demo value",
+              "values" : "${counter}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "%"
+          }
+        }
+      ]
+    }
+  ]
+}

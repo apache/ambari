@@ -1,0 +1,59 @@
+{
+  "ONEFS_CLIENT": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/onefs/demo/counter": {
+              "metric": "onefs.demo.counter",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      },
+      {
+        "type": "jmx",
+        "properties": {
+          "url_config_type": "hdfs-site",
+          "url_property_name": "dfs.namenode.http-address"
+        },
+        "metrics": {
+          "default": {
+            "metrics/dfs/namenode/Used": {
+              "metric": "Hadoop:service=NameNode,name=NameNodeInfo.Used",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/jvm/memHeapUsedM": {
+              "metric": "jvm.JvmMetrics.MemHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/HeapMemoryMax": {
+              "metric": "java.lang:type=Memory.HeapMemoryUsage[max]",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/jvm/HeapMemoryUsed": {
+              "metric": "java.lang:type=Memory.HeapMemoryUsage[used]",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/jvm/NonHeapMemoryMax": {
+              "metric": "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/jvm/NonHeapMemoryUsed": {
+              "metric": "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+              "pointInTime": true,
+              "temporal": false
+            }
+          }
+        }
+      }
+    ]
+  }
+}
