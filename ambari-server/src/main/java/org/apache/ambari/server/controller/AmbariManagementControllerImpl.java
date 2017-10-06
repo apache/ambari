@@ -5184,12 +5184,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         widgetDescriptorFiles.add(widgetDescriptorFile);
       }
     } else {
-      // common cluster level widgets
-      File commonWidgetsFile = ambariMetaInfo.getCommonWidgetsDescriptorFile();
-      if (commonWidgetsFile != null && commonWidgetsFile.exists()) {
-        widgetDescriptorFiles.add(commonWidgetsFile);
-      } else {
-        LOG.warn("Common widgets file with path {%s} doesn't exist. No cluster widgets will be created.", commonWidgetsFile);
+      Set<StackId> stackIds = new HashSet<>();
+
+      for (Service svc : cluster.getServices().values()) {
+        stackIds.add(svc.getDesiredStackId());
+      }
+
+      for (StackId stackId : stackIds) {
+        StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
+
+        String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
+        if (widgetDescriptorFileLocation != null) {
+          File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
+          if (widgetDescriptorFile.exists()) {
+            widgetDescriptorFiles.add(widgetDescriptorFile);
+          }
+        }
       }
     }
 

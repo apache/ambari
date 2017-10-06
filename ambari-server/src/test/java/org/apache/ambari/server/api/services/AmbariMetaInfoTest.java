@@ -1894,14 +1894,6 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(descriptor.getService("NEW_SERVICE").shouldPreconfigure());
   }
 
-  @Test
-  public void testGetCommonWidgetsFile() throws AmbariException {
-    File widgetsFile = metaInfo.getCommonWidgetsDescriptorFile();
-
-    Assert.assertNotNull(widgetsFile);
-    Assert.assertEquals("/var/lib/ambari-server/resources/widgets.json", widgetsFile.getPath());
-  }
-
   private File getStackRootTmp(String buildDir) {
     return new File(buildDir + "/ambari-metaInfo");
   }

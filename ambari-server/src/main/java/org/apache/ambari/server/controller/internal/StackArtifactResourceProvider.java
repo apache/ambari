@@ -426,7 +426,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     }
 
     if (StringUtils.isEmpty(serviceName)) {
-      return null;
+      return getWidgetsDescriptorForCluster(stackInfo);
     } else {
       return getWidgetsDescriptorForService(stackInfo, serviceName);
     }
@@ -445,6 +445,22 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
     if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
       widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+    }
+
+    return widgetDescriptor;
+  }
+
+  public Map<String, Object> getWidgetsDescriptorForCluster(StackInfo stackInfo)
+      throws NoSuchParentResourceException, IOException {
+
+    Map<String, Object> widgetDescriptor = null;
+
+    String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
+    if (widgetDescriptorFileLocation != null) {
+      File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
+      if (widgetDescriptorFile.exists()) {
+        widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+      }
     }
 
     return widgetDescriptor;
