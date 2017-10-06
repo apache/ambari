@@ -126,7 +126,7 @@ App.upgradeWizardView = Em.View.extend({
     var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
     var version = associatedVersion && App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
     var isPatchOrMaint = version && ( version.get('isPatch') || version.get('isMaint') );
-    return failedItem && failedItem.get('skippable') && !isPatchOrMaint;
+    return failedItem && failedItem.get('skippable') && !(this.get('isFinalizeItem') && isPatchOrMaint);
   }.property('failedItem'),
 
   /**
