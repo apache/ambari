@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,37 +6,29 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.resources;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
-package org.apache.ambari.server.controller;
+/**
+ * The {@link ResourceLevelClusterSettingManagerFactory} is used along with {@link AssistedInject} to
+ * build instances of {@link ResourceLevelClusterSettingManager}.
+ */
+public interface ResourceLevelClusterSettingManagerFactory {
 
-public class StackLevelConfigurationRequest extends StackVersionRequest {
-
-  private String propertyName;
-
-  public StackLevelConfigurationRequest(String stackName, String stackVersion,
-      String propertyName) {
-    super(stackName, stackVersion);
-    
-    setPropertyName(propertyName);
-
-  }
-
-  public String getPropertyName() {
-    return propertyName;
-  }
-
-  public void setPropertyName(String propertyName) {
-    this.propertyName = propertyName;
-  }
-
+  /**
+   * @return a ResourceLevelClusterSetting manager instance.
+   */
+  ResourceLevelClusterSettingManager create(@Assisted("resourcesDirPath") String resourcesDirPath);
 }
+

@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlList;
 
-import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
 import org.w3c.dom.Element;
 
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -167,8 +167,8 @@ public class PropertyInfo {
     this.propertyAmbariUpgradeBehavior = propertyAmbariUpgradeBehavior;
   }
 
-  public StackConfigurationResponse convertToResponse() {
-    return new StackConfigurationResponse(getName(), getValue(),
+  public ReadOnlyConfigurationResponse convertToResponse() {
+    return new ReadOnlyConfigurationResponse(getName(), getValue(),
       getDescription(), getDisplayName() , getFilename(), isRequireInput(),
       getPropertyTypes(), getAttributesMap(), getPropertyValueAttributes(),
       getDependsOnProperties());

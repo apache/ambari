@@ -75,6 +75,7 @@ public interface Resource {
    */
   enum InternalType {
     Cluster,
+    RootClusterSetting,
     Service,
     ServiceGroup,
     Setting,
@@ -204,6 +205,7 @@ public interface Resource {
      * Internal types.  See {@link InternalType}.
      */
     public static final Type Cluster = InternalType.Cluster.getType();
+    public static final Type RootClusterSetting = InternalType.RootClusterSetting.getType();
     public static final Type ServiceGroup = InternalType.ServiceGroup.getType();
     public static final Type Service = InternalType.Service.getType();
     public static final Type Setting = InternalType.Setting.getType();

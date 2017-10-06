@@ -16,27 +16,12 @@
  * limitations under the License.
  */
 
+package org.apache.ambari.server;
 
-package org.apache.ambari.server.controller;
+@SuppressWarnings("serial")
+public class PropertyNotFoundException extends ObjectNotFoundException {
 
-public class StackLevelConfigurationRequest extends StackVersionRequest {
-
-  private String propertyName;
-
-  public StackLevelConfigurationRequest(String stackName, String stackVersion,
-      String propertyName) {
-    super(stackName, stackVersion);
-    
-    setPropertyName(propertyName);
-
+  public PropertyNotFoundException(String message) {
+    super(message);
   }
-
-  public String getPropertyName() {
-    return propertyName;
-  }
-
-  public void setPropertyName(String propertyName) {
-    this.propertyName = propertyName;
-  }
-
 }

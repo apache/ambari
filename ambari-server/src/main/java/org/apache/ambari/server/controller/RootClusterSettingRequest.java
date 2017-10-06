@@ -19,16 +19,13 @@
 
 package org.apache.ambari.server.controller;
 
-public class StackLevelConfigurationRequest extends StackVersionRequest {
+public class RootClusterSettingRequest {
 
   private String propertyName;
 
-  public StackLevelConfigurationRequest(String stackName, String stackVersion,
-      String propertyName) {
-    super(stackName, stackVersion);
-    
+  public RootClusterSettingRequest(String propertyName) {
+    super();
     setPropertyName(propertyName);
-
   }
 
   public String getPropertyName() {

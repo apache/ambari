@@ -89,6 +89,7 @@ public class ConfigHelper {
   public static final String HIVE_SITE = "hive-site";
   public static final String YARN_SITE = "yarn-site";
   public static final String CLUSTER_ENV = "cluster-env";
+  public static final String CLUSTER_SETTINGS = "cluster-settings";
   public static final String CLUSTER_ENV_ALERT_REPEAT_TOLERANCE = "alerts_repeat_tolerance";
   public static final String CLUSTER_ENV_RETRY_ENABLED = "command_retry_enabled";
   public static final String SERVICE_CHECK_TYPE = "service_check_type";

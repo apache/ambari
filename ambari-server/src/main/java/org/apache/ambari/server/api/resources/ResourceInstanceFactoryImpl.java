@@ -104,6 +104,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ClusterResourceDefinition();
         break;
 
+      case RootClusterSetting:
+        resourceDefinition = new RootClusterSettingsResourceDefinition();
+        break;
+
       case ServiceGroup:
         resourceDefinition = new ServiceGroupResourceDefinition();
         break;

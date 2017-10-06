@@ -196,6 +196,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RegistryMpackVersionResourceProvider(managementController);
       case Mpack:
         return new MpackResourceProvider(managementController);
+      case RootClusterSetting:
+        return new RootClusterSettingsResourceProvider(managementController);
       case StackVersion:
         return new StackVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
       case ClusterStackVersion:

@@ -27,8 +27,8 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -108,16 +108,16 @@ public class StackConfigurationResourceProvider extends
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
-    Set<StackConfigurationResponse> responses = getResources(new Command<Set<StackConfigurationResponse>>() {
+    Set<ReadOnlyConfigurationResponse> responses = getResources(new Command<Set<ReadOnlyConfigurationResponse>>() {
       @Override
-      public Set<StackConfigurationResponse> invoke() throws AmbariException {
+      public Set<ReadOnlyConfigurationResponse> invoke() throws AmbariException {
         return getManagementController().getStackConfigurations(requests);
       }
     });
 
     Set<Resource> resources = new HashSet<>();
     
-    for (StackConfigurationResponse response : responses) {
+    for (ReadOnlyConfigurationResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.StackConfiguration);
 
       setResourceProperty(resource, STACK_NAME_PROPERTY_ID,

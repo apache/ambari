@@ -41,6 +41,8 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.PropertyNotFoundException;
+import org.apache.ambari.server.ResourcesPathNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MpackRequest;
@@ -61,6 +63,8 @@ import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.resources.ResourceLevelClusterSettingManager;
+import org.apache.ambari.server.resources.ResourceLevelClusterSettingManagerFactory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -139,6 +143,7 @@ public class AmbariMetaInfo {
 
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
+  private String clusterSettingFileName = "cluster-settings.xml";
 
   private File resourcesRoot;
   private File stackRoot;
@@ -220,6 +225,17 @@ public class AmbariMetaInfo {
   */
   private MpackManager mpackManager;
 
+  /**
+   * Factory for injecting {@link ResourceLevelClusterSettingManager} instances.
+   */
+  @Inject
+  private ResourceLevelClusterSettingManagerFactory resourceLevelClusterSettingManagerFactory;
+
+  /**
+   * Singleton instance of Resource Level 'Cluster Setting' Manager
+   */
+  private ResourceLevelClusterSettingManager resourceLevelClusterSettingManager;
+
 
   private Configuration conf;
 
@@ -236,6 +252,8 @@ public class AmbariMetaInfo {
     String resourcesPath = conf.getResourceDirPath();
     if(resourcesPath != null && !resourcesPath.isEmpty()) {
       resourcesRoot = new File(resourcesPath);
+    } else {
+      throw new ResourcesPathNotFoundException(resourcesPath);
     }
 
     String stackPath = conf.getMetadataPath();
@@ -279,6 +297,8 @@ public class AmbariMetaInfo {
         osFamily, false /* validate = false */, true /* refreshArchives = true */);
 
     mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
+
+    resourceLevelClusterSettingManager = resourceLevelClusterSettingManagerFactory.create(conf.getResourceDirPath());
 
     getCustomActionDefinitions(customActionRoot);
   }
@@ -786,6 +806,35 @@ public class AmbariMetaInfo {
           + ", propertyName=" + propertyName);
     }
 
+    return propertyResult;
+  }
+
+  /*
+ Returns Resource Level read only 'Cluster Properties'.
+ */
+  public Set<PropertyInfo> getClusterProperties() {
+    return new HashSet<>(resourceLevelClusterSettingManager.getClusterSettingsMap());
+  }
+
+  /*
+   Returns specific Resource Level read only 'Cluster Property'.
+   */
+  public Set<PropertyInfo> getClusterPropertiesByName(String propertyName) throws AmbariException {
+    HashSet<PropertyInfo> properties = new HashSet<>(resourceLevelClusterSettingManager.getClusterSettingsMap());
+    if (properties.size() == 0) {
+      throw new PropertyNotFoundException("'" + propertyName + "', in " + clusterSettingFileName);
+    }
+    Set<PropertyInfo> propertyResult = new HashSet<>();
+
+    for (PropertyInfo property : properties) {
+      if (property.getName().equals(propertyName)) {
+        propertyResult.add(property);
+      }
+    }
+
+    if (propertyResult.isEmpty()) {
+      throw new PropertyNotFoundException("'" + propertyName + "', in " + clusterSettingFileName);
+    }
     return propertyResult;
   }
 

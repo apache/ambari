@@ -484,7 +484,7 @@ public interface AmbariManagementController {
    *
    * @throws  AmbariException if the resources cannot be read
    */
-  Set<StackConfigurationResponse> getStackConfigurations(Set<StackConfigurationRequest> requests) throws AmbariException;
+  Set<ReadOnlyConfigurationResponse> getStackConfigurations(Set<StackConfigurationRequest> requests) throws AmbariException;
 
 
   /**
@@ -843,7 +843,15 @@ public interface AmbariManagementController {
    * @return
    * @throws AmbariException
    */
-  Set<StackConfigurationResponse> getStackLevelConfigurations(Set<StackLevelConfigurationRequest> requests) throws AmbariException;
+  Set<ReadOnlyConfigurationResponse> getStackLevelConfigurations(Set<StackLevelConfigurationRequest> requests) throws AmbariException;
+
+  /**
+   * Get initial settings for a cluster (!not a service).
+   * @param requests
+   * @return
+   * @throws AmbariException
+   */
+  Set<ReadOnlyConfigurationResponse> getResourceLevelClusterSettings(Set<RootClusterSettingRequest> requests) throws AmbariException;
 
   /**
    * @param serviceInfo service info for a given service
