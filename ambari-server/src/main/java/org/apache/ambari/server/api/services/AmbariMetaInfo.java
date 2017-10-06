@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.services;
 import static org.apache.ambari.server.controller.spi.Resource.InternalType.Component;
 import static org.apache.ambari.server.controller.spi.Resource.InternalType.HostComponent;
 import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
-import static org.apache.ambari.server.stack.StackDirectory.WIDGETS_DESCRIPTOR_FILE_NAME;
 
 import java.io.File;
 import java.io.FileReader;
@@ -126,7 +125,6 @@ public class AmbariMetaInfo {
   private File commonServicesRoot;
   private File extensionsRoot;
   private File serverVersionFile;
-  private File commonWidgetsDescriptorFile;
   private File customActionRoot;
   private Map<String, VersionDefinitionXml> versionDefinitions = null;
 
@@ -216,8 +214,6 @@ public class AmbariMetaInfo {
     serverVersionFile = new File(serverVersionFilePath);
 
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
-
-    commonWidgetsDescriptorFile = new File(conf.getResourceDirPath(), WIDGETS_DESCRIPTOR_FILE_NAME);
   }
 
   /**
@@ -1438,9 +1434,5 @@ public class AmbariMetaInfo {
     }
 
     return null;
-  }
-
-  public File getCommonWidgetsDescriptorFile() {
-    return commonWidgetsDescriptorFile;
   }
 }

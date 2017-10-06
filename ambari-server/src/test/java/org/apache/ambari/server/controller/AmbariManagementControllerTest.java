@@ -34,7 +34,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.text.MessageFormat;
@@ -10424,11 +10423,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("FILES_LOCAL", layoutUserWidgetEntities.get(2).getWidget().getWidgetName());
     Assert.assertEquals("UPDATED_BLOCKED_TIME", layoutUserWidgetEntities.get(3).getWidget().getWidgetName());
     Assert.assertEquals("HBASE_SUMMARY", layoutUserWidgetEntities.get(0).getWidget().getDefaultSectionName());
-
-    File widgetsFile  = ambariMetaInfo.getCommonWidgetsDescriptorFile();
-    assertNotNull(widgetsFile);
-    assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
-    assertTrue(widgetsFile.exists());
 
     candidateLayoutEntity = null;
     for (WidgetLayoutEntity entity : layoutEntities) {

@@ -2367,14 +2367,18 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
     expect(service.getDesiredStackId()).andReturn(stackId).atLeastOnce();
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", service)
+        .build());
 
     expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
 
 
     StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(stackInfo.getWidgetsDescriptorFileLocation()).andReturn(null).once();
 
     expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
-    expect(ambariMetaInfo.getCommonWidgetsDescriptorFile()).andReturn(null).once();
+    expect(ambariMetaInfo.getStack(stackId)).andReturn(stackInfo).atLeastOnce();
 
     replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, service, repoVersionDAO, repoVersion);
 
