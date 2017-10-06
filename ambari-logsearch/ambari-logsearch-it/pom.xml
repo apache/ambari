@@ -122,7 +122,7 @@
   </dependencies>
 
   <build>
-    <testOutputDirectory>target/classes</testOutputDirectory>
+    <testOutputDirectory>test/target/classes</testOutputDirectory>
     <testResources>
       <testResource>
         <directory>src/test/java/</directory>
