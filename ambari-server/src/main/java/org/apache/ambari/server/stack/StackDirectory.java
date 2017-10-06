@@ -57,14 +57,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
   public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
   /**
-   * The filename for a Kerberos descriptor file at either the stack or service level
-   */
-  public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
-  /**
-   * The filename for a Widgets descriptor file at either the stack or service level
-   */
-  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
-  /**
    * The filename for a Kerberos descriptor preconfigure file at either the stack or service level
    */
   public static final String KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME = "kerberos_preconfigure.json";
@@ -82,11 +74,6 @@ public class StackDirectory extends StackDefinitionDirectory {
    * rco file path
    */
   private String rcoFilePath;
-
-  /**
-   * kerberos descriptor file path
-   */
-  private String kerberosDescriptorFilePath;
 
   /**
    * kerberos descriptor (preconfigure) file path
@@ -210,15 +197,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
-   * Obtain the path to the (stack-level) Kerberos descriptor file
-   *
-   * @return the path to the (stack-level) Kerberos descriptor file
-   */
-  public String getKerberosDescriptorFilePath() {
-    return kerberosDescriptorFilePath;
-  }
-
-  /**
    * Obtain the path to the (stack-level) Kerberos descriptor pre-configuration file
    *
    * @return the path to the (stack-level) Kerberos descriptor pre-configuration file
@@ -298,11 +276,6 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (subDirs.contains(RCO_FILE_NAME)) {
       // rcoFile is expected to be absolute
       rcoFilePath = getAbsolutePath() + File.separator + RCO_FILE_NAME;
-    }
-
-    if (subDirs.contains(KERBEROS_DESCRIPTOR_FILE_NAME)) {
-      // kerberosDescriptorFilePath is expected to be absolute
-      kerberosDescriptorFilePath = getAbsolutePath() + File.separator + KERBEROS_DESCRIPTOR_FILE_NAME;
     }
 
     if (subDirs.contains(KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME)) {

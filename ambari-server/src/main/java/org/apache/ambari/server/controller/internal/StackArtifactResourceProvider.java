@@ -483,7 +483,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   private Map<String, Object> buildStackDescriptor(String stackName, String stackVersion)
       throws NoSuchParentResourceException, IOException {
 
-    KerberosDescriptor kerberosDescriptor = null;
+    KerberosDescriptor kerberosDescriptor = new KerberosDescriptor();
 
     AmbariManagementController controller = getManagementController();
     StackInfo stackInfo;
@@ -496,19 +496,8 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
 
     Collection<KerberosServiceDescriptor> serviceDescriptors = getServiceDescriptors(stackInfo);
 
-    String kerberosFileLocation = stackInfo.getKerberosDescriptorFileLocation();
-    if (kerberosFileLocation != null) {
-      kerberosDescriptor = kerberosDescriptorFactory.createInstance(new File(kerberosFileLocation));
-    } else if (! serviceDescriptors.isEmpty()) {
-      // service descriptors present with no stack descriptor,
-      // create an empty stack descriptor to hold services
-      kerberosDescriptor = new KerberosDescriptor();
-    }
-
-    if (kerberosDescriptor != null) {
-      for (KerberosServiceDescriptor descriptor : serviceDescriptors) {
-        kerberosDescriptor.putService(descriptor);
-      }
+    if (serviceDescriptors != null) {
+      serviceDescriptors.forEach(kerberosDescriptor::putService);
       return kerberosDescriptor.toMap();
     } else {
       return null;
