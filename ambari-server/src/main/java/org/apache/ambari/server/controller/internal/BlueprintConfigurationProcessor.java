@@ -30,6 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1337,11 +1338,56 @@ public class BlueprintConfigurationProcessor {
                                              ClusterTopology topology);
   }
 
+  private static class HostGroupUpdater implements PropertyUpdater {
+
+    public static final PropertyUpdater INSTANCE = new HostGroupUpdater();
+
+    @Override
+    public String updateForClusterCreate(String propertyName,
+      String origValue,
+      Map<String, Map<String, String>> properties,
+      ClusterTopology topology) {
+
+      //todo: getHostStrings
+      Matcher m = HOSTGROUP_REGEX.matcher(origValue);
+      if (m.find()) {
+        String hostGroupName = m.group(1);
+
+        HostGroupInfo groupInfo = topology.getHostGroupInfo().get(hostGroupName);
+        if (groupInfo == null) {
+          //todo: this should be validated in configuration validation
+          throw new RuntimeException(
+            "Encountered a host group token in configuration which couldn't be matched to a host group: "
+              + hostGroupName);
+        }
+
+        //todo: warn if > hosts
+        return origValue.replace(m.group(0), groupInfo.getHostNames().iterator().next());
+      }
+
+      return origValue;
+    }
+
+    @Override
+    public Collection<String> getRequiredHostGroups(String propertyName,
+      String origValue,
+      Map<String, Map<String, String>> properties,
+      ClusterTopology topology) {
+      //todo: getHostStrings
+      Matcher m = HOSTGROUP_REGEX.matcher(origValue);
+      if (m.find()) {
+        String hostGroupName = m.group(1);
+        return Collections.singleton(hostGroupName);
+      }
+      return Collections.emptySet();
+    }
+  }
+
   /**
    * Topology based updater which replaces the original host name of a property with the host name
    * which runs the associated (master) component in the new cluster.
    */
-  private static class SingleHostTopologyUpdater implements PropertyUpdater {
+  private static class SingleHostTopologyUpdater extends HostGroupUpdater {
     /**
      * Component name
      */
@@ -1372,21 +1418,9 @@ public class BlueprintConfigurationProcessor {
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology)  {
 
-      //todo: getHostStrings
-      Matcher m = HOSTGROUP_REGEX.matcher(origValue);
-      if (m.find()) {
-        String hostGroupName = m.group(1);
-
-        HostGroupInfo groupInfo = topology.getHostGroupInfo().get(hostGroupName);
-        if (groupInfo == null) {
-          //todo: this should be validated in configuration validation
-          throw new RuntimeException(
-              "Encountered a host group token in configuration which couldn't be matched to a host group: "
-              + hostGroupName);
-        }
-
-        //todo: warn if > hosts
-        return origValue.replace(m.group(0), groupInfo.getHostNames().iterator().next());
+      String replacedValue = super.updateForClusterCreate(propertyName, origValue, properties, topology);
+      if (!Objects.equals(origValue, replacedValue)) {
+        return replacedValue;
       } else {
         int matchingGroupCount = topology.getHostGroupsForComponent(component).size();
         if (matchingGroupCount == 1) {
@@ -1496,10 +1530,9 @@ public class BlueprintConfigurationProcessor {
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
       //todo: getHostStrings
-      Matcher m = HOSTGROUP_REGEX.matcher(origValue);
-      if (m.find()) {
-        String hostGroupName = m.group(1);
-        return Collections.singleton(hostGroupName);
+      Collection<String> result = super.getRequiredHostGroups(propertyName, origValue, properties, topology);
+      if (!result.isEmpty()) {
+        return result;
       } else {
         Collection<String> matchingGroups = topology.getHostGroupsForComponent(component);
         int matchingGroupCount = matchingGroups.size();
@@ -2356,6 +2389,7 @@ public class BlueprintConfigurationProcessor {
     allUpdaters.add(nonTopologyUpdaters);
 
     Map<String, PropertyUpdater> amsSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> druidCommon = new HashMap<>();
     Map<String, PropertyUpdater> hdfsSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> mapredSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> coreSiteMap = new HashMap<>();
@@ -2408,6 +2442,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<>();
 
     singleHostTopologyUpdaters.put("ams-site", amsSiteMap);
+    singleHostTopologyUpdaters.put("druid-common", druidCommon);
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
     singleHostTopologyUpdaters.put("mapred-site", mapredSiteMap);
     singleHostTopologyUpdaters.put("core-site", coreSiteMap);
@@ -2793,6 +2828,11 @@ public class BlueprintConfigurationProcessor {
         }
       }
     });
+
+    // DRUID
+    druidCommon.put("metastore_hostname", HostGroupUpdater.INSTANCE);
+    druidCommon.put("druid.metadata.storage.connector.connectURI", HostGroupUpdater.INSTANCE);
+    druidCommon.put("druid.zk.service.host", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
   }
 
   private Collection<String> setupHDFSProxyUsers(Configuration configuration, Set<String> configTypesUpdated) {

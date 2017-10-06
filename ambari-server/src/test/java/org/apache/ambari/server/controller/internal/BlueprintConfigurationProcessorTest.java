@@ -78,6 +78,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * BlueprintConfigurationProcessor unit tests.
@@ -7883,6 +7884,37 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals(someString, metricsReporterRegister);
   }
 
+  @Test
+  public void druidProperties() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> druidCommon = new HashMap<>();
+    String connectUriKey = "druid.metadata.storage.connector.connectURI";
+    String metastoreHostnameKey = "metastore_hostname";
+    String connectUriTemplate = "jdbc:mysql://%s:3306/druid?createDatabaseIfNotExist=true";
+    druidCommon.put(connectUriKey, String.format(connectUriTemplate, "%HOSTGROUP::group1%"));
+    druidCommon.put(metastoreHostnameKey, "%HOSTGROUP::group1%");
+    properties.put("druid-common", druidCommon);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = Sets.newHashSet("DRUID_COORDINATOR");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<String> hgComponents2 = Sets.newHashSet("DRUID_BROKER", "DRUID_OVERLORD", "DRUID_ROUTER");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("host2"));
+
+    Collection<TestHostGroup> hostGroups = Arrays.asList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals(String.format(connectUriTemplate, "host1"), clusterConfig.getPropertyValue("druid-common", connectUriKey));
+    assertEquals("host1", clusterConfig.getPropertyValue("druid-common", metastoreHostnameKey));
+  }
 
   @Test
   public void testAmsPropertiesDefault() throws Exception {
