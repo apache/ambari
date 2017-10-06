@@ -203,7 +203,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'controller.requestInProgressRepoId',
     'parentView.repoVersions.@each.status',
     'App.currentStackName',
-    'App.upgradeIsRunning'
+    'App.upgradeIsRunning',
+    'isCurrentStackPresent'
   ),
 
   /**
@@ -305,8 +306,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
             });
           }
 
-
-
           this.addRemoveIopSelectButton(element, isDisabled);
       }
       element.set('isDisabled', isDisabled);
@@ -364,12 +363,17 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return false;
   },
 
+  isCurrentStackPresent: Ember.computed('parentView.repoVersions.@each.stackVersion.state', function () {
+    return this.get('parentView.repoVersions').someProperty('stackVersion.state', 'CURRENT');
+  }),
+
   /**
    * check if actions of NOT_REQUIRED stack version disabled
    * @returns {boolean}
    */
   isDisabledOnInit: function() {
     return  this.get('controller.requestInProgress') ||
+            !this.get('isCurrentStackPresent') ||
             !this.get('content.isCompatible') ||
             (App.get('upgradeIsRunning') && !App.get('upgradeSuspended')) ||
             this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
@@ -380,7 +384,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * @returns {boolean}
    */
   isDisabledOnInstalled: function() {
-    return !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
+    return !this.get('isCurrentStackPresent') ||
+      !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
       this.get('controller.requestInProgress') ||
       this.get('parentView.repoVersions').someProperty('status', 'INSTALLING') ||
       (this.get('controller.isDowngrade') &&

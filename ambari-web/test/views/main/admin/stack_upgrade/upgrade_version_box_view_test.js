@@ -29,6 +29,7 @@ describe('App.UpgradeVersionBoxView', function () {
     sinon.stub(App.db, 'getFilterConditions', function () {return [];});
     view = App.UpgradeVersionBoxView.create({
       initFilters: Em.K,
+      isCurrentStackPresent: true,
       controller: Em.Object.create({
         upgrade: Em.K,
         getRepoVersionInstallId: Em.K,
@@ -1038,6 +1039,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: true,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1046,6 +1048,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: false,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1054,6 +1057,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: false,
         status: 'INSTALLING',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1062,6 +1066,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: true,
         status: 'INSTALLED',
         isCompatible: false,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1070,6 +1075,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: true,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: false
       },
       {
@@ -1078,7 +1084,17 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: false,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: false
+      },
+      {
+        requestInProgress: false,
+        upgradeIsRunning: false,
+        upgradeSuspended: false,
+        status: 'INSTALLED',
+        isCompatible: true,
+        isCurrentStackPresent: false,
+        expected: true
       }
     ];
 
@@ -1091,16 +1107,18 @@ describe('App.UpgradeVersionBoxView', function () {
     });
 
     testCases.forEach(function(test) {
-      it("requestInProgress: " + test.requestInProgress +
+      it(" requestInProgress: " + test.requestInProgress +
          " upgradeIsRunning: " + test.upgradeIsRunning +
          " upgradeSuspended: " + test.upgradeSuspended +
-         " status" + test.status +
-         " isCompatible" + test.isCompatible, function() {
+         " status: " + test.status +
+         " isCompatible: " + test.isCompatible +
+         " isCurrentStackPresent: " + test.isCurrentStackPresent, function() {
         this.mock.withArgs('upgradeSuspended').returns(test.upgradeSuspended);
         this.mock.withArgs('upgradeIsRunning').returns(test.upgradeIsRunning);
         view.set('parentView.repoVersions', [Em.Object.create({
           status: test.status
         })]);
+        view.set('isCurrentStackPresent', test.isCurrentStackPresent)
         view.set('controller.requestInProgress', test.requestInProgress);
         view.set('content.isCompatible', test.isCompatible);
         expect(view.isDisabledOnInit()).to.be.equal(test.expected);
@@ -1126,6 +1144,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1135,6 +1154,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1144,6 +1164,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1153,6 +1174,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: true,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.2',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1162,6 +1184,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: true,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: false
       },
       {
@@ -1171,7 +1194,18 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.2',
+        isCurrentStackPresent: true,
         expected: false
+      },
+      {
+        isAuthorized: true,
+        requestInProgress: false,
+        status: 'INSTALLED',
+        isDowngrade: false,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.2',
+        isCurrentStackPresent: false,
+        expected: true
       }
     ];
 
@@ -1181,13 +1215,15 @@ describe('App.UpgradeVersionBoxView', function () {
           "status: " + test.status +
           "isDowngrade: " + test.isDowngrade +
           "repositoryName: " + test.repositoryName +
-          "upgradeVersion: " + test.upgradeVersion, function() {
+          "upgradeVersion: " + test.upgradeVersion +
+          "isCurrentStackPresent: " + test.isCurrentStackPresent, function() {
         this.authorizedMock.returns(test.isAuthorized);
         view.set('controller.requestInProgress', test.requestInProgress);
         view.set('parentView.repoVersions', [Em.Object.create({status: test.status})]);
         view.set('controller.isDowngrade', test.isDowngrade);
         view.set('controller.currentVersion.repository_name', test.repositoryName);
         view.set('controller.upgradeVersion', test.upgradeVersion);
+        view.set('isCurrentStackPresent', test.isCurrentStackPresent);
         expect(view.isDisabledOnInstalled()).to.be.equal(test.expected);
       });
     });
