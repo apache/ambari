@@ -19,9 +19,9 @@
 package org.apache.ambari.server.topology;
 
 
-import org.apache.ambari.server.controller.internal.Stack;
-
 import java.util.Set;
+
+import org.apache.ambari.server.controller.internal.Stack;
 
 public class Service {
 

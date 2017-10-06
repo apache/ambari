@@ -18,13 +18,23 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
-
-import java.util.*;
 
 /**
  * Encapsulates stack information.
