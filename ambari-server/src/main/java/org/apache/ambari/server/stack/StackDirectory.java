@@ -94,11 +94,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   private String kerberosDescriptorPreconfigureFilePath;
 
   /**
-   * widgets descriptor file path
-   */
-  private String widgetsDescriptorFilePath;
-
-  /**
    * repository file
    */
   private RepositoryXml repoFile;
@@ -233,15 +228,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
-   * Obtain the path to the (stack-level) widgets descriptor file
-   *
-   * @return the path to the (stack-level) widgets descriptor file
-   */
-  public String getWidgetsDescriptorFilePath() {
-    return widgetsDescriptorFilePath;
-  }
-
-  /**
    * Obtain the repository directory path.
    *
    * @return repository directory path
@@ -322,10 +308,6 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (subDirs.contains(KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME)) {
       // kerberosDescriptorPreconfigureFilePath is expected to be absolute
       kerberosDescriptorPreconfigureFilePath = getAbsolutePath() + File.separator + KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME;
-    }
-
-    if (subDirs.contains(WIDGETS_DESCRIPTOR_FILE_NAME)) {
-      widgetsDescriptorFilePath = getAbsolutePath() + File.separator + WIDGETS_DESCRIPTOR_FILE_NAME;
     }
 
     parseUpgradePacks(subDirs);

@@ -429,14 +429,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     this.kerberosDescriptorPreConfigurationFileLocation = kerberosDescriptorPreConfigurationFileLocation;
   }
 
-  public String getWidgetsDescriptorFileLocation() {
-    return widgetsDescriptorFileLocation;
-  }
-
-  public void setWidgetsDescriptorFileLocation(String widgetsDescriptorFileLocation) {
-    this.widgetsDescriptorFileLocation = widgetsDescriptorFileLocation;
-  }
-
   /**
    * Set the path of the stack upgrade directory.
    *
