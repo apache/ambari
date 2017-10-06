@@ -143,11 +143,14 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String CURRENT = "CURRENT";
   public static final String SELECTED = "1";
   public static final String VIEWURL_TABLE = "viewurl";
+  public static final String VIEWINSTANCE_TABLE = "viewinstance";
   public static final String PK_VIEWURL = "PK_viewurl";
   public static final String URL_ID_COLUMN = "url_id";
   public static final String STALE_POSTGRESS_VIEWURL_PKEY = "viewurl_pkey";
   public static final String USERS_TABLE = "users";
   public static final String STALE_POSTGRESS_USERS_LDAP_USER_KEY = "users_ldap_user_key";
+  public static final String SHORT_URL_COLUMN = "short_url";
+  public static final String FK_INSTANCE_URL_ID = "FK_instance_url_id";
 
 
   /**
@@ -205,8 +208,11 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * Adds the {@value #PK_VIEWURL} constraint.
    */
   private void addViewUrlPKConstraint() throws SQLException {
+    dbAccessor.dropFKConstraint(VIEWINSTANCE_TABLE, FK_INSTANCE_URL_ID);
     dbAccessor.dropPKConstraint(VIEWURL_TABLE, STALE_POSTGRESS_VIEWURL_PKEY);
     dbAccessor.addPKConstraint(VIEWURL_TABLE, PK_VIEWURL, URL_ID_COLUMN);
+    dbAccessor.addFKConstraint(VIEWINSTANCE_TABLE, FK_INSTANCE_URL_ID,
+        SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
   }
 
   /**
