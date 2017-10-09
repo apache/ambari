@@ -45,7 +45,6 @@ class ClusterCache(dict):
     """
 
     self.cluster_cache_dir = cluster_cache_dir
-    self.hash = None
 
     self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
     self.__current_cache_hash_file = os.path.join(self.cluster_cache_dir, '.'+self.get_cache_name()+'.hash')
@@ -53,16 +52,22 @@ class ClusterCache(dict):
     self._cache_lock = threading.RLock()
     self.__file_lock = ClusterCache.file_locks[self.__current_cache_json_file]
 
-    # if the file exists, then load it
+    self.hash = None
     cache_dict = {}
-    with self.__file_lock:
-      if os.path.isfile(self.__current_cache_json_file):
-        with open(self.__current_cache_json_file, 'r') as fp:
-          cache_dict = json.load(fp)
 
-      if os.path.isfile(self.__current_cache_hash_file):
-        with open(self.__current_cache_hash_file, 'r') as fp:
-          self.hash = fp.read()
+    try:
+      with self.__file_lock:
+        if os.path.isfile(self.__current_cache_json_file):
+          with open(self.__current_cache_json_file, 'r') as fp:
+            cache_dict = json.load(fp)
+
+        if os.path.isfile(self.__current_cache_hash_file):
+          with open(self.__current_cache_hash_file, 'r') as fp:
+            self.hash = fp.read()
+    except (IOError,ValueError):
+      logger.exception("Cannot load data from {0} and {1}".format(self.__current_cache_json_file, self.__current_cache_hash_file))
+      self.hash = None
+      cache_dict = {}
 
     self.rewrite_cache(cache_dict, self.hash)
 
