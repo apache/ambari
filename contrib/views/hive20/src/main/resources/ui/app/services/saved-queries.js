@@ -50,6 +50,27 @@ export default Ember.Service.extend({
     });
   },
 
+  updateSavedQuery(savedQueryId, shortQuery, selectedDb, owner){
+    return new Ember.RSVP.Promise((resolve, reject) => {
+
+      this.get('store').findRecord('saved-query', savedQueryId, {async: true} ).then(savedQuery => {
+          savedQuery.set('shortQuery', shortQuery);
+          savedQuery.set('dataBase', selectedDb );
+          savedQuery.set('owner', owner );
+          savedQuery.save().then(() => {
+            return resolve("");
+          })
+
+
+
+
+       }).catch(function (response) {
+          console.log('error', response);
+          return reject(response);
+       });
+    });
+  },
+
   fetchSavedQuery(path) {
     let url = this.get('store').adapterFor('application').buildURL()+ '/files/' + encodeURIComponent(path);
 
