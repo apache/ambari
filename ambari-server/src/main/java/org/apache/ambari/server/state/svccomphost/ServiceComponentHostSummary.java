@@ -69,7 +69,6 @@ public class ServiceComponentHostSummary {
 
     for (HostComponentStateEntity hostComponentStateEntity : allHostComponents) {
       ClusterServiceEntity serviceEntity = hostComponentStateEntity.getServiceComponentDesiredStateEntity().getClusterServiceEntity();
-      String serviceName = serviceEntity.getServiceName();
       String serviceType  = serviceEntity.getServiceType();
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackName, stackVersion, serviceType,
                                                            hostComponentStateEntity.getComponentName());

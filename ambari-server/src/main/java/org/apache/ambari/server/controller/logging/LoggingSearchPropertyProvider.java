@@ -196,7 +196,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
       final String stackVersion = stackId.getStackVersion();
 
       ComponentInfo componentInfo =
-        metaInfo.getComponent(stackName, stackVersion, serviceName, componentName);
+        metaInfo.getComponent(stackName, stackVersion, service.getServiceType(), componentName);
       if (componentInfo != null) {
         List<LogDefinition> listOfLogs =
           componentInfo.getLogs();

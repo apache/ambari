@@ -182,7 +182,7 @@ public class ServiceCheckGrouping extends Grouping {
           // Services that only have clients such as Pig can still have service check scripts.
           StackId stackId = svc.getDesiredStackId();
           try {
-            ServiceInfo si = m_metaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), service);
+            ServiceInfo si = m_metaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), svc.getServiceType());
             CommandScriptDefinition script = si.getCommandScript();
             if (null != script && null != script.getScript() && !script.getScript().isEmpty()) {
               ctx.setServiceDisplay(service, si.getDisplayName());

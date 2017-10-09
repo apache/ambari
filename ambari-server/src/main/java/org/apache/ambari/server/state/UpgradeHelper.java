@@ -877,7 +877,7 @@ public class UpgradeHelper {
         boolean versionAdvertised = false;
         try {
           ComponentInfo ci = m_ambariMetaInfoProvider.get().getComponent(targetStack.getStackName(),
-              targetStack.getStackVersion(), serviceComponent.getServiceName(),
+              targetStack.getStackVersion(), serviceComponent.getServiceType(),
               serviceComponent.getName());
 
           versionAdvertised = ci.isVersionAdvertised();

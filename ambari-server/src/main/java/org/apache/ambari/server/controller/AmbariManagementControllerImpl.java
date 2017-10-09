@@ -2262,7 +2262,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           getServiceComponent(componentName);
         StackId stackId = sc.getDesiredStackId();
         ComponentInfo compInfo = ambariMetaInfo.getComponent(
-          stackId.getStackName(), stackId.getStackVersion(), serviceName,
+          stackId.getStackName(), stackId.getStackVersion(), s.getServiceType(),
           componentName);
         if (runSmokeTest && compInfo.isMaster() &&
                 // op lvl handling for service component
@@ -2409,10 +2409,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StackId stackId = scHost.getServiceComponent().getDesiredStackId();
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName);
+        stackId.getStackVersion(), scHost.getServiceType());
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
       stackId.getStackName(), stackId.getStackVersion(),
-      serviceName, componentName);
+      scHost.getServiceType(), componentName);
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
@@ -2997,7 +2997,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               case STARTED:
                 StackId stackId = serviceComponent.getDesiredStackId();
                 ComponentInfo compInfo = ambariMetaInfo.getComponent(
-                    stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
+                    stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceType(),
                     scHost.getServiceComponentName());
 
                 if (oldSchState == State.INSTALLED ||
@@ -4115,7 +4115,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StackId stackId = service.getDesiredStackId();
     ComponentInfo compInfo =
         ambariMetaInfo.getService(stackId.getStackName(),
-            stackId.getStackVersion(), service.getName()).getClientComponent();
+            stackId.getStackVersion(), service.getServiceType()).getClientComponent();
     if (compInfo != null) {
       try {
         ServiceComponent serviceComponent =

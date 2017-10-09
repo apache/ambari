@@ -696,8 +696,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {
-      if (repoServices.isEmpty() || repoServices.contains(component.getServiceName())) {
-        servicesOnHost.add(component.getServiceName());
+      String serviceType = component.getServiceType();
+      if (repoServices.isEmpty() || repoServices.contains(serviceType)) {
+        servicesOnHost.add(serviceType);
       }
     }
 
@@ -742,7 +743,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       ComponentInfo componentInfo;
       try {
         componentInfo = ami.getComponent(stackId.getStackName(),
-                stackId.getStackVersion(), component.getServiceName(), component.getServiceComponentName());
+                stackId.getStackVersion(), component.getServiceType(), component.getServiceComponentName());
       } catch (AmbariException e) {
         // It is possible that the component has been removed from the new stack
         // (example: STORM_REST_API has been removed from HDP-2.2)

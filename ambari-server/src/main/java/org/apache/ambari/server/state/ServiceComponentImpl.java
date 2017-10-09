@@ -138,7 +138,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     StackId stackId = service.getDesiredStackId();
     try {
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-          stackId.getStackVersion(), service.getName(), componentName);
+          stackId.getStackVersion(), service.getServiceType(), componentName);
       isClientComponent = compInfo.isClient();
       isMasterComponent = compInfo.isMaster();
       isVersionAdvertised = compInfo.isVersionAdvertised();
@@ -147,7 +147,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       throw new RuntimeException("Trying to create a ServiceComponent"
           + " not recognized in stack info"
           + ", clusterName=" + service.getCluster().getClusterName()
-          + ", serviceName=" + service.getName()
+          + ", serviceName=" + service.getServiceType()
           + ", componentName=" + componentName
           + ", stackInfo=" + stackId.getStackId());
     }

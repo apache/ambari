@@ -1198,7 +1198,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       StackId stackVersion = serviceComponent.getDesiredStackId();
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackVersion.getStackName(),
-              stackVersion.getStackVersion(), serviceName, serviceComponentName);
+              stackVersion.getStackVersion(), service.getServiceType(), serviceComponentName);
       displayName = compInfo.getDisplayName();
     } catch (AmbariException e) {
       displayName = serviceComponentName;

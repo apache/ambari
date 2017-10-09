@@ -342,7 +342,7 @@ public class HostOrderGrouping extends Grouping {
       try {
         ComponentInfo component = upgradeContext.getAmbariMetaInfo().getComponent(
             targetStack.getStackName(), targetStack.getStackVersion(),
-            sch.getServiceName(), sch.getServiceComponentName());
+            sch.getServiceType(), sch.getServiceComponentName());
 
         return component.isVersionAdvertised();
       } catch (AmbariException e) {

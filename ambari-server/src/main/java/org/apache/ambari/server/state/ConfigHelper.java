@@ -943,7 +943,7 @@ public class ConfigHelper {
     // below, no attempt will be made to remove properties that exist in excluded types.
     Service service = cluster.getService(serviceName);
 
-    return getServiceProperties(service.getDesiredStackId(), serviceName, false);
+    return getServiceProperties(service.getDesiredStackId(), service.getServiceType(), false);
   }
 
   /**
@@ -955,15 +955,15 @@ public class ConfigHelper {
    * PropertyInfos will be returned.
    *
    * @param stackId        a StackId declaring the relevant stack
-   * @param serviceName    a String containing the requested service's name
+   * @param stackServiceName    a String containing the requested service's name
    * @param removeExcluded a boolean value indicating whether to remove properties from excluded
    *                       configuration types (<code>true</code>) or return the complete set of properties regardless of exclusions (<code>false</code>)
    * @return a Set of PropertyInfo objects for the requested service
    * @throws AmbariException if the requested stack or the requested service is not found
    */
-  public Set<PropertyInfo> getServiceProperties(StackId stackId, String serviceName, boolean removeExcluded)
+  public Set<PropertyInfo> getServiceProperties(StackId stackId, String stackServiceName, boolean removeExcluded)
       throws AmbariException {
-    ServiceInfo service = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
+    ServiceInfo service = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), stackServiceName);
     Set<PropertyInfo> properties = new HashSet<>(service.getProperties());
 
     if (removeExcluded) {
@@ -1319,7 +1319,7 @@ public class ConfigHelper {
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-            stackId.getStackVersion(), sch.getServiceName());
+            stackId.getStackVersion(), sch.getServiceType());
 
     ComponentInfo componentInfo = serviceInfo.getComponentByName(sch.getServiceComponentName());
     // Configs are considered stale when:

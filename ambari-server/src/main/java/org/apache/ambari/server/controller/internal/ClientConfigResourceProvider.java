@@ -234,10 +234,10 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         StackId stackId = component.getDesiredStackId();
 
         componentInfo = managementController.getAmbariMetaInfo().
-          getComponent(stackId.getStackName(), stackId.getStackVersion(), serviceName, componentName);
+          getComponent(stackId.getStackName(), stackId.getStackVersion(), service.getServiceType(), componentName);
 
         packageFolder = managementController.getAmbariMetaInfo().
-          getService(stackId.getStackName(), stackId.getStackVersion(), serviceName).getServicePackageFolder();
+          getService(stackId.getStackName(), stackId.getStackVersion(), service.getServiceType()).getServicePackageFolder();
 
         String commandScript = componentInfo.getCommandScript().getScript();
         List<ClientConfigFileDefinition> clientConfigFiles = componentInfo.getClientConfigFiles();
@@ -341,12 +341,9 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           SecretReference.replacePasswordsWithReferences(propertiesTypes, configProperties, configType, configVersion);
         }
 
-        Map<String, Set<String>> clusterHostInfo = null;
-        ServiceInfo serviceInfo = null;
-        String osFamily = null;
-        clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
-        serviceInfo = managementController.getAmbariMetaInfo().getService(stackId.getStackName(),
-          stackId.getStackVersion(), serviceName);
+        Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
+        ServiceInfo serviceInfo = managementController.getAmbariMetaInfo().getService(stackId.getStackName(),
+          stackId.getStackVersion(), response.getServiceType());
         try {
           clusterHostInfo = StageUtils.substituteHostIndexes(clusterHostInfo);
         } catch (AmbariException e) {
@@ -357,7 +354,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           // translated to a SystemException.
           throw new SystemException(e.getMessage(), e);
         }
-        osFamily = clusters.getHost(hostName).getOsFamily();
+        String osFamily = clusters.getHost(hostName).getOsFamily();
 
         TreeMap<String, String> hostLevelParams = new TreeMap<>();
         StageUtils.useStackJdkIfExists(hostLevelParams, configs);

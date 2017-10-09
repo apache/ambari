@@ -110,7 +110,7 @@ public class DatabaseChecker {
 
             ComponentInfo componentInfo = ambariMetaInfo.getComponent(
               stackId.getStackName(), stackId.getStackVersion(),
-              clusterServiceEntity.getServiceName(), scDesiredStateEnity.getComponentName());
+              clusterServiceEntity.getServiceType(), scDesiredStateEnity.getComponentName());
 
             boolean zeroCardinality = componentInfo.getCardinality() == null
               || componentInfo.getCardinality().startsWith("0")

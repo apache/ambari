@@ -410,7 +410,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           throw new IllegalArgumentException("Components list contains a component with no 'name' property");
         }
 
-        String serviceName = null;
+        String serviceName;
         try {
           serviceName = ami.getComponentToService(stackName, stackVersion, componentName.trim().toUpperCase());
           if (serviceName == null) {
@@ -426,7 +426,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     } else {
       List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
       for (ServiceComponentHost component : components) {
-        servicesOnHost.add(component.getServiceName());
+        servicesOnHost.add(component.getServiceType());
       }
     }
 

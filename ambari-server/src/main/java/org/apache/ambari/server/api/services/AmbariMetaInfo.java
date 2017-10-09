@@ -1184,7 +1184,7 @@ public class AmbariMetaInfo {
 
       for (Service service : cluster.getServices().values()) {
         ServiceInfo stackService = getService(service.getDesiredStackId().getStackName(),
-            service.getDesiredStackId().getStackVersion(), service.getName());
+            service.getDesiredStackId().getStackVersion(), service.getServiceType());
 
         if (null == stackService) {
           continue;

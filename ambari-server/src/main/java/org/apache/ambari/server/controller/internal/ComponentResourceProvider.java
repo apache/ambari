@@ -470,10 +470,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       } else {
         StackId stackId = s.getDesiredStackId();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-                stackId.getStackVersion(), s.getName(), request.getComponentName());
+                stackId.getStackVersion(), s.getServiceType(), request.getComponentName());
         if (componentInfo == null) {
             throw new AmbariException("Could not get component information from stack definition: Stack=" +
-              stackId + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
+              stackId + ", Service=" + s.getServiceType() + ", Component=" + request.getComponentName());
         }
         sc.setRecoveryEnabled(componentInfo.isRecoveryEnabled());
         LOG.info("Component: {}, recovery_enabled from stack definition:{}", componentInfo.getName(),
@@ -531,7 +531,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       try {
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-            stackId.getStackVersion(), s.getName(), request.getComponentName());
+            stackId.getStackVersion(), s.getServiceType(), request.getComponentName());
         category = componentInfo.getCategory();
         if (category != null) {
           serviceComponentResponse.setCategory(category);
@@ -565,7 +565,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {
           ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-              stackId.getStackVersion(), s.getName(), sc.getName());
+              stackId.getStackVersion(), s.getServiceType(), sc.getName());
           category = componentInfo.getCategory();
           if (category != null) {
             serviceComponentResponse.setCategory(category);

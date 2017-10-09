@@ -133,7 +133,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
         if (!serviceComponent.isMasterComponent()) {
           StackId stackId = service.getDesiredStackId();
           ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(stackId.getStackName(),
-              stackId.getStackVersion(), serviceComponent.getServiceName(),
+              stackId.getStackVersion(), serviceComponent.getServiceType(),
               serviceComponent.getName());
 
           String cardinality = componentInfo.getCardinality();
@@ -195,8 +195,6 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
    * purposes of this check. Component type, maintenance mode, and state are
    * taken into account.
    *
-   * @param clusters
-   *          the clusters instance
    * @param cluster
    *          the cluster
    * @param serviceComponent

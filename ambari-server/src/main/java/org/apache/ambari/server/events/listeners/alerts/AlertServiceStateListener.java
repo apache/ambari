@@ -154,7 +154,7 @@ public class AlertServiceStateListener {
       // which hosts are invalidated; do that in another impl
       try {
         Set<AlertDefinition> alertDefinitions = m_metaInfoProvider.get().getAlertDefinitions(
-            stackName, stackVersion, serviceName);
+            stackName, stackVersion, event.getServiceType());
 
         for (AlertDefinition definition : alertDefinitions) {
           AlertDefinitionEntity entity = m_alertDefinitionFactory.coerce(

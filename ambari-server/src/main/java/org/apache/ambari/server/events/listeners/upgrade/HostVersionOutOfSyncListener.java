@@ -259,11 +259,10 @@ public class HostVersionOutOfSyncListener {
           // We perform check per-stack version, because component may be not versionAdvertised in current
           // stack, but become versionAdvertised in some future (installed, but not yet upgraded to) stack
           boolean hasChangedComponentsWithVersions = false;
-          String serviceName = event.getServiceName();
           for (ServiceComponent comp : affectedHosts.get(hostName)) {
             String componentName = comp.getName();
             ComponentInfo component = ami.get().getComponent(repositoryVersion.getStackName(),
-                    repositoryVersion.getStackVersion(), serviceName, componentName);
+                    repositoryVersion.getStackVersion(), comp.getServiceType(), componentName);
             if (component.isVersionAdvertised()) {
               hasChangedComponentsWithVersions = true;
             }

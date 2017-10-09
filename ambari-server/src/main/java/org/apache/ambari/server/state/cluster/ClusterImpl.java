@@ -437,7 +437,7 @@ public class ClusterImpl implements Cluster {
       StackId stackId = new StackId(stackEntity);
       try {
         if (ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), serviceEntity.getServiceName()) != null) {
+          stackId.getStackVersion(), serviceEntity.getServiceType()) != null) {
           services.put(serviceEntity.getServiceName(),
             serviceFactory.createExisting(this, getServiceGroup(serviceEntity.getServiceGroupId()), serviceEntity));
            stackId = getService(serviceEntity.getServiceName()).getDesiredStackId();
