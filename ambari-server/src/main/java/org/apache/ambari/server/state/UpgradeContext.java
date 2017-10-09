@@ -304,8 +304,8 @@ public class UpgradeContext {
         throw new AmbariException(
             String.format("There are no upgrades for cluster %s which are marked as revertable",
                 cluster.getClusterName()));
-      }      
-      
+      }
+
       if (!revertUpgrade.getOrchestration().isRevertable()) {
         throw new AmbariException(String.format("The %s repository type is not revertable",
             revertUpgrade.getOrchestration()));
@@ -323,14 +323,26 @@ public class UpgradeContext {
             revertableUpgrade.getRepositoryVersion().getVersion()));
       }
 
+      // !!! build all service-specific reversions
       Set<RepositoryVersionEntity> priors = new HashSet<>();
+      Map<String, Service> clusterServices = cluster.getServices();
       for (UpgradeHistoryEntity history : revertUpgrade.getHistory()) {
+        String serviceName = history.getServiceName();
+        String componentName = history.getComponentName();
+
         priors.add(history.getFromReposistoryVersion());
 
-        // !!! build all service-specific
-        m_services.add(history.getServiceName());
-        m_sourceRepositoryMap.put(history.getServiceName(), history.getTargetRepositoryVersion());
-        m_targetRepositoryMap.put(history.getServiceName(), history.getFromReposistoryVersion());
+        // if the service is no longer installed, do nothing
+        if (!clusterServices.containsKey(serviceName)) {
+          LOG.warn("{}/{} will not be reverted since it is no longer installed in the cluster",
+              serviceName, componentName);
+
+          continue;
+        }
+
+        m_services.add(serviceName);
+        m_sourceRepositoryMap.put(serviceName, history.getTargetRepositoryVersion());
+        m_targetRepositoryMap.put(serviceName, history.getFromReposistoryVersion());
       }
 
       if (priors.size() != 1) {
