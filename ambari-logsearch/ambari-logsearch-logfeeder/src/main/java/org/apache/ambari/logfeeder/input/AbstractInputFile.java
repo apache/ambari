@@ -89,6 +89,16 @@ public abstract class AbstractInputFile extends Input {
     }
 
     setFilePath(logPath);
+    // Check there can have pattern in folder
+    if (getFilePath() != null && getFilePath().contains("/")) {
+      int lastIndexOfSlash = getFilePath().lastIndexOf("/");
+      String folderBeforeLogName = getFilePath().substring(0, lastIndexOfSlash);
+      if (folderBeforeLogName.contains("*")) {
+        LOG.info("Found regex in folder path ('" + getFilePath() + "'), will check against multiple folders.");
+        setMultiFolder(true);
+      }
+    }
+
     boolean isFileReady = isReady();
 
     LOG.info("File to monitor " + logPath + ", tail=" + tail + ", isReady=" + isFileReady);

@@ -27,17 +27,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.tools.ant.DirectoryScanner;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileUtil {
-  private static final Logger LOG = Logger.getLogger(FileUtil.class);
-  
+  private static final Logger LOG = LoggerFactory.getLogger(FileUtil.class);
+  private static final String FOLDER_SEPARATOR = "/";
+
   private FileUtil() {
     throw new UnsupportedOperationException();
   }
@@ -85,8 +90,78 @@ public class FileUtil {
       HashMap<String, Object> jsonmap = mapper.readValue(jsonFile, new TypeReference<HashMap<String, Object>>() {});
       return jsonmap;
     } catch (IOException e) {
-      LOG.error(e, e.getCause());
+      LOG.error("{}", e);
     }
     return new HashMap<String, Object>();
+  }
+
+  public static File[] getInputFilesByPattern(String searchPath) {
+    File searchFile = new File(searchPath);
+    if (searchFile.isFile()) {
+      return new File[]{searchFile};
+    } else {
+      if (searchPath.contains("*")) {
+        String folderBeforeRegex = getLogDirNameBeforeWildCard(searchPath);
+        String fileNameAfterLastFolder = searchPath.substring(folderBeforeRegex.length());
+
+        DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setIncludes(new String[]{fileNameAfterLastFolder});
+        scanner.setBasedir(folderBeforeRegex);
+        scanner.setCaseSensitive(true);
+        scanner.scan();
+        String[] fileNames = scanner.getIncludedFiles();
+
+        if (fileNames != null && fileNames.length > 0) {
+          File[] files = new File[fileNames.length];
+          for (int i = 0; i < fileNames.length; i++) {
+            files[i] = new File(folderBeforeRegex + fileNames[i]);
+          }
+          return files;
+        }
+
+      } else {
+        LOG.warn("Input file config not found by pattern; {}", searchPath);
+      }
+      return new File[]{};
+    }
+  }
+
+  public static Map<String, List<File>> getFoldersForFiles(File[] inputFiles) {
+    Map<String, List<File>> foldersMap = new HashMap<>();
+    if (inputFiles != null && inputFiles.length > 0) {
+      for (File inputFile : inputFiles) {
+        File folder = inputFile.getParentFile();
+        if (folder.exists()) {
+          if (foldersMap.containsKey(folder.getAbsolutePath())) {
+            foldersMap.get(folder.getAbsolutePath()).add(inputFile);
+          } else {
+            List<File> fileList = new ArrayList<>();
+            fileList.add(inputFile);
+            foldersMap.put(folder.getAbsolutePath(), fileList);
+          }
+        }
+      }
+    }
+    if (!foldersMap.isEmpty()) {
+      for (Map.Entry<String, List<File>> entry : foldersMap.entrySet()) {
+       Collections.sort(entry.getValue(), Collections.reverseOrder());
+      }
+    }
+    return foldersMap;
+  }
+
+  private static String getLogDirNameBeforeWildCard(String pattern) {
+    String[] splitByFirstRegex = pattern.split("\\*");
+    String beforeRegex = splitByFirstRegex[0];
+    if (beforeRegex.contains(FOLDER_SEPARATOR)) {
+      int endIndex = beforeRegex.lastIndexOf(FOLDER_SEPARATOR);
+      String parentFolder = beforeRegex;
+      if (endIndex != -1) {
+        parentFolder = beforeRegex.substring(0, endIndex) + FOLDER_SEPARATOR;
+      }
+      return parentFolder;
+    } else {
+      return beforeRegex;
+    }
   }
 }

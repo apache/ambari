@@ -20,12 +20,12 @@ package org.apache.ambari.logfeeder.input;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.logfeeder.input.reader.LogsearchReaderFactory;
 import org.apache.ambari.logfeeder.util.FileUtil;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.solr.common.util.Base64;
 
@@ -35,7 +35,9 @@ public class InputFile extends AbstractInputFile {
   public boolean isReady() {
     if (!isReady) {
       // Let's try to check whether the file is available
-      logFiles = getActualFiles(logPath);
+      logFiles = getActualInputLogFiles();
+      Map<String, List<File>> foldersMap = FileUtil.getFoldersForFiles(logFiles);
+      setFolderMap(foldersMap);
       if (!ArrayUtils.isEmpty(logFiles) && logFiles[0].isFile()) {
         if (tail && logFiles.length > 1) {
           LOG.warn("Found multiple files (" + logFiles.length + ") for the file filter " + filePath +
@@ -48,16 +50,6 @@ public class InputFile extends AbstractInputFile {
       }
     }
     return isReady;
-  }
-
-  private File[] getActualFiles(String searchPath) {
-    File searchFile = new File(searchPath);
-    if (searchFile.isFile()) {
-      return new File[]{searchFile};
-    } else {
-      FileFilter fileFilter = new WildcardFileFilter(searchFile.getName());
-      return searchFile.getParentFile().listFiles(fileFilter);
-    }
   }
 
   @Override
@@ -97,6 +89,10 @@ public class InputFile extends AbstractInputFile {
   @Override
   protected Object getFileKey(File logFile) {
     return FileUtil.getFileKey(logFile);
+  }
+
+  public File[] getActualInputLogFiles() {
+    return FileUtil.getInputFilesByPattern(logPath);
   }
 
   private void copyFiles(File[] files) {

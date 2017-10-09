@@ -87,11 +87,15 @@ public class FilterGrok extends Filter {
         LOG.error("message_pattern is not set for filter.");
         return;
       }
-      extractNamedParams(messagePattern, namedParamList);
 
       grokMessage = new Grok();
       loadPatterns(grokMessage);
       grokMessage.compile(messagePattern);
+      if (getBooleanValue("deep_extract", false)) {
+        extractNamedParams(grokMessage.getNamedRegexCollection());
+      } else {
+        extractNamedParams(messagePattern, namedParamList);
+      }
       if (!StringUtils.isEmpty(multilinePattern)) {
         extractNamedParams(multilinePattern, multiLineamedParamList);
 
@@ -106,6 +110,16 @@ public class FilterGrok extends Filter {
       grokMultiline = null;
     }
 
+  }
+
+  private void extractNamedParams(Map<String, String> namedRegexCollection) {
+    if (namedRegexCollection != null) {
+      for (String paramValue : namedRegexCollection.values()) {
+        if (paramValue.toLowerCase().equals(paramValue)) {
+          namedParamList.add(paramValue);
+        }
+      }
+    }
   }
 
   private String escapePattern(String inPattern) {

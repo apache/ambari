@@ -26,7 +26,7 @@ function build_logsearch_project() {
 
 function build_logsearch_container() {
   pushd $sdir
-  docker build -t ambari-logsearch:v1.0 .
+  docker build -t ambari-logsearch:v0.5 .
   popd
 }
 
@@ -41,7 +41,7 @@ function start_logsearch_container() {
     -v $AMBARI_LOCATION:/root/ambari -v $MAVEN_REPOSITORY_LOCATION:/root/.m2 $LOGSEARCH_EXPOSED_PORTS $LOGSEARCH_ENV_OPTS $LOGSEARCH_EXTRA_OPTS $LOGSEARCH_VOLUME_OPTS \
     -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-logfeeder/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes \
     -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-portal/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-portal/src/main/webapp:/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes/webapps/app ambari-logsearch:v1.0
+    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-portal/src/main/webapp:/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes/webapps/app ambari-logsearch:v0.5
   ip_address=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' logsearch)
   echo "Log Search container started on $ip_address (for Mac OSX route to boot2docker/docker-machine VM address, e.g.: 'sudo route add -net 172.17.0.0/16 192.168.59.103')"
   echo "You can follow Log Search logs with 'docker logs -f logsearch' command"
