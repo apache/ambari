@@ -2199,6 +2199,7 @@ Em.I18n.translations = {
   'services.service.info.menu.summary':'Summary',
   'services.service.info.menu.configs':'Configs',
   'services.service.info.menu.heatmaps':'Heatmaps',
+  'services.service.info.menu.metrics':'Metrics',
   'services.service.info.summary.hostsRunningMonitor':'{0}/{1}',
   'services.service.info.summary.serversHostCount':'{0} more',
 

@@ -16,7 +16,10 @@
 * limitations under the License.
 }}
 
-{{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
+{{view App.MainServiceInfoMenuView
+    configTabBinding="view.hasConfigTab"
+    heatmapTabBinding="view.hasHeatmapTab"
+    metricTabBinding="view.hasMetricTab"}}
 
 {{#isAuthorized "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.START_STOP, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA"}}
 <div class="service-button">

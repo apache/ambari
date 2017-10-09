@@ -326,6 +326,12 @@ App.MainServiceItemView = Em.View.extend({
     return App.get('services.servicesWithHeatmapTab').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName', 'App.services.servicesWithHeatmapTab'),
 
+  hasMetricTab: function() {
+    let serviceName = this.get('controller.content.serviceName');
+    let graphs = require('data/service_graph_config')[serviceName.toLowerCase()];
+    return graphs || App.StackService.find(serviceName).get('isServiceWithWidgets');
+  }.property('controller.content.serviceName'),
+
   didInsertElement: function () {
     this.get('controller').setStartStopState();
   },
