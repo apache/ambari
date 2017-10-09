@@ -656,7 +656,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     # druid is not in list of services to be installed
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'DRUID' in servicesList:
-        putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
+        putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
         if 'druid-coordinator' in services['configurations']:
             component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_COORDINATOR', services, hosts)
             if component_hosts is not None and len(component_hosts) > 0:
@@ -693,11 +693,11 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
             else:
                 druid_metadata_user = ""
 
-        putHiveInteractiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
-        putHiveInteractiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
-        putHiveInteractiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
+        putHiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
+        putHiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
+        putHiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
+        putHiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
+        putHiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
 
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
