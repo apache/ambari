@@ -76,8 +76,7 @@ class RMFTestCase(TestCase):
                     mocks_dict={},
                     try_install=False,
                     command_args=[],
-                    log_out_files=False,
-                    available_packages_in_repos = []):
+                    log_out_files=False):
 
     norm_path = os.path.normpath(path)
 
@@ -122,7 +121,6 @@ class RMFTestCase(TestCase):
         Script.instance = None
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
         script_class_inst.log_out_files = log_out_files
-        script_class_inst.available_packages_in_repos = available_packages_in_repos
         method = RMFTestCase._get_attr(script_class_inst, command)
     except IOError, err:
       raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))

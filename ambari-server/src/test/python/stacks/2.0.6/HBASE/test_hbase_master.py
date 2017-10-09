@@ -95,9 +95,7 @@ class TestHBaseMaster(RMFTestCase):
                          try_install=True,
                          os_type=('Redhat', '6.4', 'Final'),
                          checked_call_mocks = [(0, "OK.", "")],
-                         available_packages_in_repos = ['hbase_2_3_0_1_1234'],
                          )
-      
 
       # only assert that the correct package is trying to be installed
       self.assertResourceCalled('Package', 'hbase_2_3_0_1_1234',
