@@ -77,7 +77,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Test
   public void removesAllKerberosIdentitesOfComponentAfterComponentWasUninstalled() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("oozie_server1", "oozie_server2"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1", "/OOZIE/OOZIE_SERVER/oozie_server2"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -95,7 +95,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityThatIsSharedByPrincipalName() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
     installComponent(OOZIE_2, OOZIE_SERVER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("oozie_server1"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -106,7 +106,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityThatIsSharedByKeyTabFilePath() throws Exception {
     installComponent(YARN, RESOURCE_MANAGER, HOST);
     installComponent(YARN_2, RESOURCE_MANAGER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER)), newHashSet("rm_unique"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER)), newHashSet("/YARN/RESOURCE_MANAGER/rm_unique"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(YARN, RESOURCE_MANAGER, HOST);
@@ -133,7 +133,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Test
   public void removesServiceIdentitiesSkipComponentIdentitiesAfterServiceWasUninstalled() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
-    kerberosHelper.deleteIdentities(cluster, hdfsComponents(), newHashSet("hdfs-service"));
+    kerberosHelper.deleteIdentities(cluster, hdfsComponents(), newHashSet("/HDFS/hdfs-service"));
     expectLastCall().once();
     replayAll();
     uninstallService(HDFS, hdfsComponents());

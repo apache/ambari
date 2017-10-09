@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,31 +109,32 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   public static final String DATA_DIRECTORY_PREFIX = ".ambari_";
 
-  /*
+  /**
    * Kerberos action shared data entry name for the principal-to-password map
    */
   private static final String PRINCIPAL_PASSWORD_MAP = "principal_password_map";
 
-  /*
+  /**
    * Kerberos action shared data entry name for the principal-to-key_number map
    */
   private static final String PRINCIPAL_KEY_NUMBER_MAP = "principal_key_number_map";
 
-  /*
-  * Key used in kerberosCommandParams in ExecutionCommand for base64 encoded keytab content
-  */
+  /**
+   * Key used in kerberosCommandParams in ExecutionCommand for base64 encoded keytab content
+   */
   public static final String KEYTAB_CONTENT_BASE64 = "keytab_content_base64";
 
-  /*
-  * Key used in kerberosCommandParams in ExecutionCommand to indicate whether to generate key keytabs
-  * for all principals ("true") or only those that are missing ("false")
-  */
-  public static final String REGENERATE_ALL = "regenerate_all";
+  /**
+   * Key used in kerberosCommandParams in ExecutionCommand to indicate why type of creation operation to perform.
+   *
+   * @see OperationType
+   */
+  public static final String OPERATION_TYPE = "operation_type";
 
-  /*
-  * Key used in kerberosCommandParams in ExecutionCommand to indicate whether to include Ambari server indetity
-  * ("true") or ignore it ("false")
-  */
+  /**
+   * Key used in kerberosCommandParams in ExecutionCommand to indicate whether to include Ambari server indetity
+   * ("true") or ignore it ("false")
+   */
   public static final String INCLUDE_AMBARI_IDENTITY = "include_ambari_identity";
 
   /**
@@ -216,6 +218,22 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   protected static String getDataDirectoryPath(Map<String, String> commandParameters) {
     return getCommandParameterValue(commandParameters, DATA_DIRECTORY);
+  }
+
+  /**
+   * Given a (command parameter) Map, attempts to safely retrieve the "operation_type" property.
+   *
+   * @param commandParameters a Map containing the dictionary of data to interrogate
+   * @return an OperationType
+   */
+  protected static OperationType getOperationType(Map<String, String> commandParameters) {
+    String value = getCommandParameterValue(commandParameters, OPERATION_TYPE);
+    if(StringUtils.isEmpty(value)) {
+      return OperationType.DEFAULT;
+    }
+    else {
+      return OperationType.valueOf(value.toUpperCase());
+    }
   }
 
   /**
@@ -568,5 +586,30 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         }
       }
     }
+  }
+
+  /**
+   * A Kerberos operation type
+   * <ul>
+   * <li>RECREATE_ALL - regenerate keytabs for all principals</li>
+   * <li>CREATE_MISSING - generate keytabs for only those that are missing</li>
+   * <li>DEFAULT - generate needed keytabs for new components</li>
+   * </ul>
+   */
+  public enum OperationType {
+    /**
+     * Regenerate keytabs for all principals
+     */
+    RECREATE_ALL,
+
+    /**
+     *  Generate keytabs for only those that are missing
+     */
+    CREATE_MISSING,
+
+    /**
+     * Generate needed keytabs for new components
+     */
+    DEFAULT
   }
 }

@@ -1441,11 +1441,6 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(Collections.singletonList(schKerberosClient))
         .once();
 
-    final Clusters clusters = injector.getInstance(Clusters.class);
-    expect(clusters.getHost("host1"))
-        .andReturn(host)
-        .once();
-
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
         .andReturn(Collections.emptyMap())

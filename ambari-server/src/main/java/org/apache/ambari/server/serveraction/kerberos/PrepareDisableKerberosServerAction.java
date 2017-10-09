@@ -83,8 +83,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
     List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster,
         kerberosDescriptor,
         getServiceComponentFilter(),
-        null, identityFilter,
-      sch -> true);
+        null);
 
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
     Map<String, String> commandParameters = getCommandParameters();
