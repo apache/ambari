@@ -118,15 +118,13 @@ App.MainSideMenuView = Em.CollectionView.extend({
           });
         }
         if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || upg) {
-          if (App.supports.enableToggleKerberos) {
-            categories.push({
-              name: 'kerberos',
-              url: 'kerberos/',
-              label: Em.I18n.t('common.kerberos'),
-              disabled: App.get('upgradeInProgress') || App.get('upgradeHolding'),
-              href: router.urlFor('main.admin.adminKerberos')
-            });
-          }
+          categories.push({
+            name: 'kerberos',
+            url: 'kerberos/',
+            label: Em.I18n.t('common.kerberos'),
+            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding'),
+            href: router.urlFor('main.admin.adminKerberos')
+          });
         }
         if ((App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') && App.isAuthorized('SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START')) || upg) {
           if (App.supports.serviceAutoStart) {
