@@ -38,10 +38,24 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     var height = App.Service.find().get('length') > 10 ? ((App.Service.find().get('length') - 10) * 40 + 500) : 500;
     $('.version-column').height(height);
 
-    // fix the line up minor diff issue in FireFox
-    if ($.browser.mozilla) {
-      $('.line-separator').css('top', '-6px');
-      $('.line-separator-bottom').css('top', '-4px');
+    // fix the line up minor diff issue
+    var serviceNamesOffset = $('.service-display-name').offset().top;
+    var separatorOffset = $('.line-separator').offset().top;
+    this.fixSeparator(serviceNamesOffset - separatorOffset);
+  },
+
+  /**
+   * Move line-separator and line-separator bottom on gap
+   * @param gap
+   */
+  fixSeparator: function (gap) {
+    if (gap !== 1) {
+      var topSeparators = $('.line-separator');
+      var bottomSeparators = $('.line-separator-bottom');
+      var topPosition = parseInt(topSeparators.css('top'), 10);
+      var bottomPosition = parseInt(bottomSeparators.css('top'), 10);
+      topSeparators.css('top', topPosition + gap - 1 + 'px');
+      bottomSeparators.css('top', bottomPosition + gap - 1 +'px');
     }
   },
 
