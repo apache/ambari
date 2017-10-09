@@ -159,7 +159,7 @@ public class RepositoryVersionEntity {
   private short resolved = 0;
 
   @Column(name = "legacy", nullable = false)
-  private boolean isLegacy = false;
+  private short isLegacy = 0;
 
   @ManyToOne
   @JoinColumn(name = "parent_id")
@@ -504,8 +504,8 @@ public class RepositoryVersionEntity {
    */
   @Deprecated
   @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
-  public Boolean isLegacy(){
-    return this.isLegacy;
+  public boolean isLegacy(){
+    return isLegacy == 1;
   }
 
   /**
@@ -516,7 +516,7 @@ public class RepositoryVersionEntity {
   @Deprecated
   @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
   public void setLegacy(boolean isLegacy){
-    this.isLegacy = isLegacy;
+    this.isLegacy = isLegacy ? (short) 1 : (short) 0;
   }
 
   /**

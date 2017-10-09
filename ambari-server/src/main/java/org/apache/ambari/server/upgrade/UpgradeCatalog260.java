@@ -233,7 +233,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   private void addLegacyColumn() throws AmbariException, SQLException {
     Boolean isLegacyColumnExists = dbAccessor.tableHasColumn(REPO_VERSION_TABLE, REPO_VERSION_LEGACY_COLUMN);
     if (!isLegacyColumnExists) {
-      DBAccessor.DBColumnInfo legacyColumn = new DBAccessor.DBColumnInfo(REPO_VERSION_LEGACY_COLUMN, Boolean.class, null, 1, false);
+      DBAccessor.DBColumnInfo legacyColumn = new DBAccessor.DBColumnInfo(REPO_VERSION_LEGACY_COLUMN, Short.class, null, 1, false);
       dbAccessor.addColumn(REPO_VERSION_TABLE, legacyColumn);
 
       legacyColumn.setDefaultValue(0);
