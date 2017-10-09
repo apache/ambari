@@ -87,9 +87,7 @@ class YumProvider(RPMBasedPackageProvider):
 
     # fallback logic
 
-    fallback_avail_pkgs, fallback_inst_pkgs = len(available_packages) <= 0, len(installed_packages) <= 0
-
-    if fallback_avail_pkgs or fallback_inst_pkgs:
+    if repos.feat.scoped:
       fallback_repo_ids = set(repo_ids) ^ self._build_repos_ids(repos)  # no reason to scan the same repos again
       if fallback_repo_ids:
         Logger.info("Adding fallback repositories: {0}".format(", ".join(fallback_repo_ids)))
