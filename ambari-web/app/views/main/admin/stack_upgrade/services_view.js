@@ -56,7 +56,7 @@ App.MainAdminStackServicesView = Em.View.extend({
    * @param event
    */
   goToAddService: function (event) {
-    if (!App.isAuthorized('SERVICE.ADD_DELETE_SERVICES')) {
+    if (!App.isAuthorized('SERVICE.ADD_DELETE_SERVICES') || !App.supports.enableAddDeleteServices) {
       return;
     } else if (event.context == "KERBEROS") {
       App.router.get('mainAdminKerberosController').checkAndStartKerberosWizard();
