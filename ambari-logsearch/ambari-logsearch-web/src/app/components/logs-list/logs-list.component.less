@@ -30,7 +30,7 @@
 }
 
 .hexagon {
-  // TODO get rid of magic numbers, base on actual design
+  // TODO remove, since it's not a part of updated design
   left: -7.5px;
 
   &.fatal {
@@ -64,34 +64,7 @@
 
 .log-status {
   text-transform: uppercase;
-
-  &.fatal {
-    color: @fatal-color;
-  }
-
-  &.error {
-    color: @error-color;
-  }
-
-  &.warn {
-    color: @warning-color;
-  }
-
-  &.info {
-    color: @info-color;
-  }
-
-  &.debug {
-    color: @debug-color;
-  }
-
-  &.trace {
-    color: @trace-color;
-  }
-
-  &.unknown {
-    color: @unknown-color;
-  }
+  .log-colors;
 }
 
 .log-type {
@@ -117,11 +90,6 @@
   }
 
   .log-actions {
-    position: absolute;
-    right: 40px;
-    top: 0;
-    border: @input-border;
-
     &.collapsing + .log-content-inner-wrapper, &.collapse.in + .log-content-inner-wrapper {
       min-height: 6em;
       max-height: none;

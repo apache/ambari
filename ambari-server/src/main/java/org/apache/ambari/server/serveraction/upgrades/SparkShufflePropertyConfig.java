@@ -27,13 +27,9 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.lang.StringUtils;
-
-import com.google.inject.Inject;
 
 /**
  * Computes Yarn properties for SPARK.
@@ -44,7 +40,7 @@ import com.google.inject.Inject;
  *
  * These properties available starting from HDP-2.4 stack.
  */
-public class SparkShufflePropertyConfig extends AbstractServerAction {
+public class SparkShufflePropertyConfig extends AbstractUpgradeServerAction {
   private static final String YARN_SITE_CONFIG_TYPE = "yarn-site";
 
   private static final String YARN_NODEMANAGER_AUX_SERVICES = "yarn.nodemanager.aux-services";
@@ -52,15 +48,12 @@ public class SparkShufflePropertyConfig extends AbstractServerAction {
   private static final String YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS = "yarn.nodemanager.aux-services.spark_shuffle.class";
   private static final String YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS_VALUE = "org.apache.spark.network.yarn.YarnShuffleService";
 
-  @Inject
-  private Clusters clusters;
-
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     Config yarnSiteConfig = cluster.getDesiredConfigByType(YARN_SITE_CONFIG_TYPE);
 
     if (yarnSiteConfig == null) {

@@ -30,6 +30,7 @@ import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/aud
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
@@ -56,7 +57,8 @@ describe('FilterButtonComponent', () => {
           auditLogsFields,
           serviceLogs,
           serviceLogsFields,
-          serviceLogsHistogramData
+          serviceLogsHistogramData,
+          serviceLogsTruncated
         }),
         ...TranslationModules
       ],
@@ -71,6 +73,7 @@ describe('FilterButtonComponent', () => {
         ServiceLogsService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
+        ServiceLogsTruncatedService,
         ComponentActionsService,
         FilteringService,
         UtilsService,

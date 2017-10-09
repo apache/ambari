@@ -27,9 +27,13 @@ import json
 @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
+  STACK_VERSION = '2.0.6'
+
   def test_hook_default(self):
-    self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
+    self.executeScript("before-INSTALL/scripts/hook.py",
                        classname="BeforeInstallHook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        command="hook",
                        config_file="default.json"
     )
@@ -63,9 +67,11 @@ class TestHookBeforeInstall(RMFTestCase):
 
     command_json['hostLevelParams']['repo_info'] = "[]"
 
-    self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
+    self.executeScript("before-INSTALL/scripts/hook.py",
                        classname="BeforeInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict=command_json)
 
     self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
@@ -75,9 +81,11 @@ class TestHookBeforeInstall(RMFTestCase):
 
 
   def test_hook_default_repository_file(self):
-    self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
+    self.executeScript("before-INSTALL/scripts/hook.py",
                        classname="BeforeInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_file="repository_file.json"
     )
     self.assertResourceCalled('Repository', 'HDP-2.2-repo-4',

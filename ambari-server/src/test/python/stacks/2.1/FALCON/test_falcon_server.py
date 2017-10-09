@@ -236,8 +236,8 @@ class TestFalconServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/falcon-server/bin/falcon-stop',
-      path = ['/usr/hdp/current/hadoop-client/bin'], user='falcon',
-      environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'})
+      path = ['/usr/hdp/2.2.1.0-2135/hadoop/bin'], user='falcon',
+      environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2135/hadoop'})
 
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
       action = ['delete'])
@@ -342,7 +342,7 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('HdfsResource', '/apps/falcon',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        hadoop_bin_dir = '/usr/hdp/2.2.1.0-2135/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
@@ -351,7 +351,7 @@ class TestFalconServer(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         owner = 'falcon',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
@@ -359,7 +359,7 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        hadoop_bin_dir = '/usr/hdp/2.2.1.0-2135/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         source = '/usr/hdp/current/falcon-server/data-mirroring',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -372,7 +372,7 @@ class TestFalconServer(RMFTestCase):
         recursive_chown = True,
         owner = 'falcon',
         group = 'users',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
@@ -380,7 +380,7 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        hadoop_bin_dir = '/usr/hdp/2.2.1.0-2135/hadoop/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
@@ -389,7 +389,7 @@ class TestFalconServer(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon',
         owner = 'falcon',
@@ -404,17 +404,17 @@ class TestFalconServer(RMFTestCase):
         owner = 'falcon',
         create_parents = True,
     )
-   
+
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-config.sh server falcon',
-        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
-        path = ['/usr/hdp/current/hadoop-client/bin'],
+        environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2135/hadoop'},
+        path = ['/usr/hdp/2.2.1.0-2135/hadoop/bin'],
         user = 'falcon',
         not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
-        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
-        path = ['/usr/hdp/current/hadoop-client/bin'],
+        environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2135/hadoop'},
+        path = ['/usr/hdp/2.2.1.0-2135/hadoop/bin'],
         user = 'falcon',
         not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )

@@ -100,12 +100,13 @@ class TestConfSelect(RMFTestCase):
 
 
   @patch("resource_management.core.shell.call")
+  @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "islink")
   @patch("resource_management.libraries.functions.conf_select._valid", new = MagicMock(return_value = True))
   @patch("resource_management.libraries.functions.conf_select.create", new = MagicMock(return_value = ["/etc/hadoop/2.3.0.0-1234/0"]))
   @patch("resource_management.libraries.functions.conf_select.select", new = MagicMock())
-  def test_symlink_conversion_to_current(self, islink_mock, path_mock, shell_call_mock):
+  def test_symlink_conversion_to_current(self, islink_mock, path_mock, isdir_mock, shell_call_mock):
     """
     Tests that conf-select creates the correct symlink directories.
     :return:
@@ -133,6 +134,13 @@ class TestConfSelect(RMFTestCase):
         return False
 
       return False
+
+    def isdir_mock_call(path):
+      if path == "/etc/hadoop/conf":
+        return True
+
+      return False
+
 
     packages = conf_select.get_package_dirs()
 
@@ -175,7 +183,6 @@ class TestConfSelect(RMFTestCase):
     """
     packages = conf_select.get_package_dirs()
 
-    conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234",
-      packages["hadoop"], link_to = conf_select.DIRECTORY_TYPE_BACKUP)
+    conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234", packages["hadoop"])
 
     self.assertEqual(pprint.pformat(self.env.resource_list), "[]")

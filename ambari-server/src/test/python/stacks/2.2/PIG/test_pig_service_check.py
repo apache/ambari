@@ -20,7 +20,20 @@ limitations under the License.
 from mock.mock import patch, MagicMock
 
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.functions.constants import StackFeature
 
+# used for faking out stack features when the config files used by unit tests use older stacks
+def mock_stack_feature(stack_feature, stack_version):
+  if stack_feature == StackFeature.ROLLING_UPGRADE:
+    return True
+  if stack_feature == StackFeature.CONFIG_VERSIONING:
+    return True
+  if stack_feature == StackFeature.PIG_ON_TEZ:
+    return True
+
+  return False
+
+@patch("resource_management.libraries.functions.stack_features.check_stack_feature", new=MagicMock(side_effect=mock_stack_feature))
 class TestPigServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "PIG/0.12.0.2.0/package"
   STACK_VERSION = "2.2"

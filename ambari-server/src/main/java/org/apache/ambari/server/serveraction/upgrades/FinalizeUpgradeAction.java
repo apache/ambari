@@ -84,7 +84,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
 
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
 
@@ -201,6 +201,11 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // move host versions from CURRENT to INSTALLED if their repos are no
       // longer used
       finalizeHostRepositoryVersions(cluster);
+
+      if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
+        outSB.append(String.format("Finalizing the version for cluster %s.\n", cluster.getClusterName()));
+        cluster.setCurrentStackVersion(cluster.getDesiredStackVersion());
+      }
 
       // mark revertable
       if (repositoryType.isRevertable() && direction == Direction.UPGRADE) {

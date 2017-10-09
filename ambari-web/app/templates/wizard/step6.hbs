@@ -61,7 +61,7 @@
                     <div class="checkbox" {{bindAttr data-qa="checkbox.dataQaAttr"}}>
                         <input {{bindAttr id="checkbox.uId" checked="checkbox.checked" disabled="checkbox.isDisabled"}} {{action "checkboxClick" checkbox target="view" }}
                                 type="checkbox"/>
-                      <label {{bindAttr for="checkbox.uId"}}>{{checkbox.title}}</label>
+                      <label class="host-component-checkbox" {{bindAttr for="checkbox.uId"}}>{{checkbox.title}}</label>
                     </div>
                   </td>
                 {{/each}}

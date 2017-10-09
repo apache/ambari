@@ -24,20 +24,16 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.commons.lang.StringUtils;
-
-import com.google.inject.Inject;
 
 /**
 * Computes Ranger properties when upgrading to HDP-2.5
 */
 
-public class RangerKerberosConfigCalculation extends AbstractServerAction {
+public class RangerKerberosConfigCalculation extends AbstractUpgradeServerAction {
   private static final String RANGER_ADMIN_SITE_CONFIG_TYPE = "ranger-admin-site";
   private static final String HADOOP_ENV_CONFIG_TYPE = "hadoop-env";
   private static final String HIVE_ENV_CONFIG_TYPE = "hive-env";
@@ -58,15 +54,12 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
   private static final String RANGER_PLUGINS_KAFKA_SERVICE_USER = "ranger.plugins.kafka.serviceuser";
   private static final String RANGER_PLUGINS_KMS_SERVICE_USER = "ranger.plugins.kms.serviceuser";
 
-  @Inject
-  private Clusters m_clusters;
-
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     String errMsg = "";
     String sucessMsg = "";
 

@@ -70,6 +70,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         properties.put("server.version.file", "target/version");
         properties.put("custom.action.definitions", "/tmp/nofile");
         properties.put("mpacks-v2.staging.path","src/test/resources/mpacks-v2");
+        properties.put("resources.dir", "src/main/resources");
         Configuration configuration = new Configuration(properties);
 
         install(new FactoryModuleBuilder().implement(

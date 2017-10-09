@@ -73,6 +73,7 @@ import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -153,11 +154,12 @@ public class AmbariMetaInfoTest {
   public static void beforeClass() throws Exception {
     File stacks = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
+    File resourcesRoot = new File("src/test/resources/");
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
-    metaInfo = createAmbariMetaInfo(stacks, version);
+    metaInfo = createAmbariMetaInfo(stacks, version, resourcesRoot);
   }
 
   @AfterClass
@@ -452,7 +454,7 @@ public class AmbariMetaInfoTest {
       f3.createNewFile();
     }
 
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
 
     // Tests the stack is loaded as expected
     getServices();
@@ -739,7 +741,7 @@ public class AmbariMetaInfoTest {
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
 
 
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version);
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, new File(""));
     Assert.assertEquals(1, ambariMetaInfo.getStackManager().getStacks().size());
     Assert.assertEquals(false, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").isValid());
     Assert.assertEquals(2, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").getErrors().size());
@@ -1269,25 +1271,6 @@ public class AmbariMetaInfoTest {
     }
   }
 
-
-  @Test
-  public void testHooksDirInheritance() throws Exception {
-    String hookAssertionTemplate = "HDP/%s/hooks";
-    if (System.getProperty("os.name").contains("Windows")) {
-      hookAssertionTemplate = "HDP\\%s\\hooks";
-    }
-    // Test hook dir determination in parent
-    StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.6");
-    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.6"), stackInfo.getStackHooksFolder());
-    // Test hook dir inheritance
-    stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.7");
-    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.6"), stackInfo.getStackHooksFolder());
-    // Test hook dir override
-    stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.8");
-    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.8"), stackInfo.getStackHooksFolder());
-  }
-
-
   @Test
   public void testServicePackageDirInheritance() throws Exception {
     String assertionTemplate07 = StringUtils.join(
@@ -1738,8 +1721,8 @@ public class AmbariMetaInfoTest {
 
     RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
         cluster.getCurrentStackVersion(), repoVersion);
-
-    cluster.addService("HDFS", repositoryVersion);
+    ServiceGroup sg = cluster.addServiceGroup("core");
+    cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
 
     metaInfo.reconcileAlertDefinitions(clusters);
 
@@ -1843,8 +1826,7 @@ public class AmbariMetaInfoTest {
 
   @Test
   public void testReadKerberosDescriptorFromFile() throws AmbariException {
-    StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.8");
-    String path = stackInfo.getKerberosDescriptorFileLocation();
+    String path = metaInfo.getCommonKerberosDescriptorFileLocation();
     KerberosDescriptor descriptor = metaInfo.readKerberosDescriptorFromFile(path);
 
     Assert.assertNotNull(descriptor);
@@ -1917,6 +1899,14 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(descriptor.getService("NEW_SERVICE").shouldPreconfigure());
   }
 
+  @Test
+  public void testGetCommonWidgetsFile() throws AmbariException {
+    File widgetsFile = metaInfo.getCommonWidgetsDescriptorFile();
+
+    Assert.assertNotNull(widgetsFile);
+    Assert.assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
+  }
+
   private File getStackRootTmp(String buildDir) {
     return new File(buildDir + "/ambari-metaInfo");
   }
@@ -1952,17 +1942,18 @@ public class AmbariMetaInfoTest {
   private TestAmbariMetaInfo setupTempAmbariMetaInfoExistingDirs(String buildDir) throws Exception {
     File version = getVersion();
     File stackRootTmp = getStackRootTmp(buildDir);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
     return ambariMetaInfo;
   }
 
   private static TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot,
-    File versionFile) throws Exception {
+    File versionFile, File resourcesRoot) throws Exception {
 
     Properties properties = new Properties();
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
     properties.setProperty(Configuration.MPACKS_V2_STAGING_DIR_PATH.getKey(),"src/test/resources/mpacks-v2");
+    properties.setProperty(Configuration.RESOURCES_DIR.getKey(), resourcesRoot.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
@@ -2078,9 +2069,11 @@ public class AmbariMetaInfoTest {
       Configuration config = createNiceMock(Configuration.class);
       if (System.getProperty("os.name").contains("Windows")) {
         expect(config.getSharedResourcesDirPath()).andReturn(ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+        expect(config.getResourceDirPath()).andReturn(ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
       }
       else {
         expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
+        expect(config.getResourceDirPath()).andReturn("./src/test/resources").anyTimes();
       }
 
       replay(config);

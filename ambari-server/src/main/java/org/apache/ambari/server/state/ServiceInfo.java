@@ -134,7 +134,7 @@ public class ServiceInfo implements Validable, Cloneable {
   private String parent;
 
   @XmlElement(name = "widgetsFileName")
-  private String widgetsFileName = StackDirectory.WIDGETS_DESCRIPTOR_FILE_NAME;
+  private String widgetsFileName = AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME;
 
   @XmlElement(name = "metricsFileName")
   private String metricsFileName = StackDirectory.SERVICE_METRIC_FILE_NAME;

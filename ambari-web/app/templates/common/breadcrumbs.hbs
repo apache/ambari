@@ -24,5 +24,7 @@
     {{{item.formattedLabel}}}
   </a>
   {{/if}}
-  {{#unless item.isLast}}&nbsp;/&nbsp;{{/unless}}
+  {{#unless item.isLast}}
+    <p class="breadcrumbs-forward-slash">/</p>
+  {{/unless}}
 {{/each}}

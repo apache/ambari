@@ -183,5 +183,11 @@ describe('App.UpgradeVersionColumnView', function () {
       view.set('content', versions[3]);
       expect(view.getNotUpgradable(false, true)).to.be.false;
     })
+
+    it ('Should return false for maint, when service is available and not upgradable while is upgrading', function () {
+      view.set('content', versions[3]);
+      view.set('isUpgrading', true);
+      expect(view.getNotUpgradable(false, true)).to.be.false;
+    })
   })
 });

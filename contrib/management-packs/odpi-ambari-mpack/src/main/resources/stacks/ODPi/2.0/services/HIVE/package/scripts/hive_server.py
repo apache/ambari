@@ -119,7 +119,7 @@ class HiveServerDefault(HiveServer):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hive", params.version)
+
       stack_select.select("hive-server2", params.version)
 
       # Copy mapreduce.tar.gz and tez.tar.gz to HDFS

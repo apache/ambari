@@ -150,12 +150,6 @@ public class MpackGenerator {
       mpackRootDir.getAbsolutePath() + File.separator + StackDirectory.SERVICE_CONFIG_FOLDER_NAME);
     exportConfigs(srcStackInfo.getProperties(), stackConfigDir);
 
-    // Export widgets.json
-    exportFile(new File(srcStackInfo.getWidgetsDescriptorFileLocation()), mpackRootDir);
-
-    // Export kerberos.json
-    exportFile(new File(srcStackInfo.getKerberosDescriptorFileLocation()), mpackRootDir);
-
     // Export repoinfo.xml
     RepositoryXml repositoryXml =  srcStackInfo.getRepositoryXml();
     JAXBContext ctx = JAXBContext.newInstance(RepositoryXml.class);
@@ -191,17 +185,6 @@ public class MpackGenerator {
         }
       }
       currentStackVersion = currentStackInfo.getParentStackVersion();
-    }
-
-    // Copy stack hooks folder
-    String srcStackHooksFolder = srcStackInfo.getStackHooksFolder();
-    srcStackHooksFolder = stackRoot.getAbsolutePath() + File.separator + srcStackHooksFolder;
-    File srcStackHooksFile = new File(srcStackHooksFolder);
-    if (srcStackHooksFile != null && srcStackHooksFile.exists()) {
-      File destStackHooksFile = new File(
-        mpackRootDir.getAbsolutePath() + File.separator
-          + srcStackHooksFile.getName());
-      FileUtils.copyDirectory(srcStackHooksFile, destStackHooksFile);
     }
 
     // Export stack metainfo.xml

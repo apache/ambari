@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+: ${JAVA_HOME:?"Please set the JAVA_HOME variable!"}
+
 JVM="java"
 sdir="`dirname \"$0\"`"
 ldir="`dirname "$(readlink -f "$0")"`"
@@ -22,12 +24,11 @@ DIR="$sdir"
 if [ "$sdir" != "$ldir" ]; then
   DIR="$ldir"
 fi
-: ${JAVA_HOME:?"Please set the JAVA_HOME for lucene index migration!"}
 
 function print_help() {
   cat << EOF
 
-   Usage: solrIndexHelper.sh [<command>] [<arguments with flags>]
+   Usage: [<command>] [<arguments with flags>]
 
    commands:
      upgrade-index            Check and upgrade solr index data in core directories.

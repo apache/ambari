@@ -123,7 +123,7 @@
                               <button
                                 class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.failedItem target="controller"}}>{{t common.downgrade}}</button>
                             {{/if}}
-                            {{#if view.failedItem.skippable}}
+                            {{#if view.canSkipFailedItem}}
                               <button
                                 class="btn btn-warning" {{bindAttr disabled="controller.requestInProgress"}} {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
                             {{/if}}

@@ -29,8 +29,8 @@
 
   <properties>
     <logsearch.npm.config.tmp>/tmp/logsearch_npm_config_tmp</logsearch.npm.config.tmp>
-    <node.version>v6.9.0</node.version>
-    <yarn.version>v0.23.3</yarn.version>
+    <node.version>v8.6.0</node.version>
+    <yarn.version>v1.1.0</yarn.version>
   </properties>
 
   <build>
@@ -38,7 +38,7 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.4</version>
+        <version>1.6</version>
         <configuration>
           <nodeVersion>${node.version}</nodeVersion>
           <yarnVersion>${yarn.version}</yarnVersion>

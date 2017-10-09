@@ -17,7 +17,7 @@
  */
 
 import {Component, Input, ViewChild, ElementRef} from '@angular/core';
-import {ListItem} from '@app/classes/list-item.class';
+import {ListItem} from '@app/classes/list-item';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import * as $ from 'jquery';
 

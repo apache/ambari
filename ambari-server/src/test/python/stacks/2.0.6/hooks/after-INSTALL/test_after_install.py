@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import json
+
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.logger import Logger
@@ -29,7 +30,7 @@ from resource_management.libraries.script import Script
 @patch("os.path.isfile", new = MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):
   CONFIG_OVERRIDES = {"serviceName":"HIVE", "role":"HIVE_SERVER"}
-
+  STACK_VERSION = '2.0.6'
   def setUp(self):
     Logger.initialize_logger()
 
@@ -41,10 +42,12 @@ class TestHookAfterInstall(RMFTestCase):
 
   def test_hook_default(self):
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
                        config_file="default.json",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_overrides = self.CONFIG_OVERRIDES
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
@@ -61,7 +64,7 @@ class TestHookAfterInstall(RMFTestCase):
                               create_parents = True)
     self.assertNoMoreResources()
 
-
+  @patch("os.path.isdir", new = MagicMock(return_value = True))
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -82,9 +85,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
@@ -95,10 +100,10 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      conf_dir = "/usr/hdp/current/hadoop-client/conf",
+      conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
-      only_if="ls /usr/hdp/current/hadoop-client/conf")
+      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
                               '/etc/ambari-logsearch-logfeeder/conf',
@@ -111,25 +116,17 @@ class TestHookAfterInstall(RMFTestCase):
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
+        current_dir = dir_def['current_dir']
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
 
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Directory', conf_dir,
-            action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir,
-            to = current_dir,)
-
-      #HACK for Atlas
-      if package in ["atlas", ]:
-        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
-                                  only_if = 'test -e ' + "/etc/atlas/conf")
+        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
+        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
 
     self.assertNoMoreResources()
 
+  @patch("os.path.isdir", new = MagicMock(return_value = True))
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -156,9 +153,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
@@ -169,10 +168,10 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      conf_dir = "/usr/hdp/current/hadoop-client/conf",
+      conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
-      only_if="ls /usr/hdp/current/hadoop-client/conf")
+      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
                               '/etc/ambari-logsearch-logfeeder/conf',
@@ -185,22 +184,13 @@ class TestHookAfterInstall(RMFTestCase):
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
+        current_dir = dir_def['current_dir']
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
 
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Directory', conf_dir,
-            action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir,
-            to = current_dir,)
-
-      #HACK for Atlas
-      if package in ["atlas", ]:
-        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
-                                  only_if = 'test -e ' + "/etc/atlas/conf")
+        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
+        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
 
     self.assertNoMoreResources()
 
@@ -235,15 +225,18 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
       classname="AfterInstallHook",
       command="hook",
+      stack_version = self.STACK_VERSION,
+      target=RMFTestCase.TARGET_STACK_HOOKS,
       config_dict = json_content,
       config_overrides = self.CONFIG_OVERRIDES)
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.3.0.0-1234'),
       sudo = True)
 
+  @patch("os.path.isdir", new = MagicMock(return_value = True))
   @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -265,9 +258,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['roleParams']['upgrade_suspended'] = "true"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 
@@ -276,10 +271,10 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      conf_dir = "/usr/hdp/current/hadoop-client/conf",
+      conf_dir = "/usr/hdp/2.3.0.0-1234/hadoop/conf",
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
-      only_if="ls /usr/hdp/current/hadoop-client/conf")
+      only_if="ls /usr/hdp/2.3.0.0-1234/hadoop/conf")
 
     self.assertResourceCalled('Directory',
                               '/etc/ambari-logsearch-logfeeder/conf',
@@ -292,22 +287,13 @@ class TestHookAfterInstall(RMFTestCase):
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         conf_backup_dir = conf_dir + ".backup"
+        current_dir = dir_def['current_dir']
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
 
-      for dir_def in dir_defs:
-        conf_dir = dir_def['conf_dir']
-        current_dir = dir_def['current_dir']
-        self.assertResourceCalled('Directory', conf_dir,
-            action = ['delete'],)
-        self.assertResourceCalled('Link', conf_dir,
-            to = current_dir,)
-
-      #HACK for Atlas
-      if package in ["atlas", ]:
-        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
-                                  only_if = 'test -e ' + "/etc/atlas/conf")
+        self.assertResourceCalled('Directory', conf_dir, action = ['delete'],)
+        self.assertResourceCalled('Link', conf_dir, to = current_dir,)
 
     self.assertNoMoreResources()
 
@@ -338,9 +324,11 @@ class TestHookAfterInstall(RMFTestCase):
     json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['hostLevelParams']['host_sys_prepped'] = "true"
 
-    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+    self.executeScript("after-INSTALL/scripts/hook.py",
                        classname="AfterInstallHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_dict = json_content,
                        config_overrides = self.CONFIG_OVERRIDES)
 

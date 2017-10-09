@@ -72,7 +72,7 @@ public class SparkShufflePropertyConfigTest {
 
     replay(m_injector, m_clusters, yarnConfig);
 
-    clusterField = SparkShufflePropertyConfig.class.getDeclaredField("clusters");
+    clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     clusterField.setAccessible(true);
   }
 

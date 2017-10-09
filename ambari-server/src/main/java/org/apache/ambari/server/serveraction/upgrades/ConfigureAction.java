@@ -37,7 +37,6 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper;
@@ -87,12 +86,6 @@ import com.google.inject.Provider;
 public class ConfigureAction extends AbstractUpgradeServerAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
-
-  /**
-   * Used to lookup the cluster.
-   */
-  @Inject
-  private Clusters m_clusters;
 
   /**
    * Used to update the configuration properties.
@@ -183,7 +176,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     }
 
     String clusterName = commandParameters.get("clusterName");
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
 
     // such as hdfs-site or hbase-env
@@ -591,7 +584,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
 
     String configType = config.getType();
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
     StackId oldStack = cluster.getCurrentStackVersion();
 
     // iterate over all properties for every cluster service; if the property

@@ -28,9 +28,12 @@ import json
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeStart(RMFTestCase):
+  STACK_VERSION = '2.0.6'
   def test_hook_default(self):
-    self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+    self.executeScript("before-START/scripts/hook.py",
                        classname="BeforeStartHook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        command="hook",
                        config_file="default.json"
     )
@@ -104,8 +107,10 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_hook_secured(self):
-    self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+    self.executeScript("before-START/scripts/hook.py",
                        classname="BeforeStartHook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        command="hook",
                        config_file="secured.json"
     )
@@ -184,8 +189,10 @@ class TestHookBeforeStart(RMFTestCase):
       default_json = json.load(f)
 
     default_json['serviceName']= 'HDFS'
-    self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+    self.executeScript("before-START/scripts/hook.py",
                        classname="BeforeStartHook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        command="hook",
                        config_dict=default_json
     )
@@ -266,8 +273,10 @@ class TestHookBeforeStart(RMFTestCase):
     default_json['serviceName'] = 'HDFS'
     default_json['configurations']['core-site']['net.topology.script.file.name'] = '/home/myhadoop/hadoop/conf.hadoop/topology_script.py'
 
-    self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+    self.executeScript("before-START/scripts/hook.py",
                        classname="BeforeStartHook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        command="hook",
                        config_dict=default_json
     )
@@ -342,8 +351,10 @@ class TestHookBeforeStart(RMFTestCase):
 
   def test_that_jce_is_required_in_secured_cluster(self):
     try:
-      self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+      self.executeScript("before-START/scripts/hook.py",
                          classname="BeforeStartHook",
+                         stack_version = self.STACK_VERSION,
+                         target=RMFTestCase.TARGET_STACK_HOOKS,
                          command="hook",
                          config_file="secured_no_jce_name.json"
       )

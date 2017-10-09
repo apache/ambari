@@ -25,10 +25,6 @@
         <span {{action "showServiceAlertsPopup" comp target="controller"}} {{bindAttr class=":label comp.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
           {{comp.alertsCount}}
         </span>
-      {{else}}
-        <span {{action "showServiceAlertsPopup" comp target="controller"}} class="label no-alerts-label">
-          {{t services.service.summary.alerts.noAlerts}}
-        </span>
       {{/if}}
     </div>
     <div {{bindAttr class=":summary-label comp.summaryLabelClassName"}}>

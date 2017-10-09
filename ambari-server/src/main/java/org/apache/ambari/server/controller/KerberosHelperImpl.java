@@ -3433,18 +3433,20 @@ public class KerberosHelperImpl implements KerberosHelper {
       Collection<ServiceComponentHost> filteredComponents = filterServiceComponentHostsForHosts(
           new ArrayList<>(serviceComponentHosts), getHostsWithValidKerberosClient(cluster));
 
-      List<String> hostsToUpdate = createUniqueHostList(filteredComponents, Collections.singleton(HostState.HEALTHY));
-      Map<String, String> requestParams = new HashMap<>();
-      List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
-      RequestResourceFilter reqResFilter = new RequestResourceFilter(Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToUpdate);
-      requestResourceFilters.add(reqResFilter);
+      if (!filteredComponents.isEmpty()) {
+        List<String> hostsToUpdate = createUniqueHostList(filteredComponents, Collections.singleton(HostState.HEALTHY));
+        Map<String, String> requestParams = new HashMap<>();
+        List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
+        RequestResourceFilter reqResFilter = new RequestResourceFilter(Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToUpdate);
+        requestResourceFilters.add(reqResFilter);
 
-      ActionExecutionContext actionExecContext = new ActionExecutionContext(
+        ActionExecutionContext actionExecContext = new ActionExecutionContext(
           cluster.getClusterName(),
           CHECK_KEYTABS,
           requestResourceFilters,
           requestParams);
-      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
+        customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, null);
+      }
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
 

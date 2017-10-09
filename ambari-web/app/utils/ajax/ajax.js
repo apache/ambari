@@ -791,7 +791,6 @@ var urls = {
           Clusters: {
             desired_config: {
               "type": data.siteName,
-              "tag": 'version' + (new Date).getTime(),
               "properties": data.properties,
               "service_config_version_note": data.service_config_version_note
 
@@ -1456,7 +1455,6 @@ var urls = {
           Clusters: {
             desired_config: {
               "type": data.siteName,
-              "tag": 'version' + (new Date).getTime(),
               "properties": data.properties
             }
           }

@@ -23,43 +23,57 @@ import imp
 from unittest import TestCase
 from mock.mock import patch
 
-class TestHDP22StackAdvisor(TestCase):
+class TestStackAdvisorPerformance(TestCase):
 
-  def instantiate_stack_advisor(self, testDirectory):
-    default_stack_advisor_path = os.path.join(testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
-    hdp_206_stack_advisor_path = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
-    hdp_21_stack_advisor_path = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.1/services/stack_advisor.py')
-    hdp_22_stack_advisor_path = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.2/services/stack_advisor.py')
-    hdp_206_stack_advisor_classname = 'HDP206StackAdvisor'
+  TIME_ALLOWED = 0.2 # somewhat arbitrary, based on test runs
 
-    with open(default_stack_advisor_path, 'rb') as fp:
-      imp.load_module('stack_advisor', fp, default_stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
-    with open(hdp_206_stack_advisor_path, 'rb') as fp:
-      imp.load_module('stack_advisor_impl', fp, hdp_206_stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
-    with open(hdp_21_stack_advisor_path, 'rb') as fp:
-      imp.load_module('stack_advisor_impl', fp, hdp_21_stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
-    with open(hdp_22_stack_advisor_path, 'rb') as fp:
-      stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp_22_stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
-    clazz = getattr(stack_advisor_impl, hdp_206_stack_advisor_classname)
+  def setUp(self):
+    self.testDirectory = os.path.dirname(os.path.abspath(__file__))
+
+  def instantiate_stack_advisor(self):
+    self.load_stack_advisor('main/resources/stacks/stack_advisor.py', 'stack_advisor')
+
+    stack_advisors = (
+      'main/resources/stacks/HDP/2.0.6/services/stack_advisor.py',
+      'main/resources/stacks/HDP/2.1/services/stack_advisor.py',
+      'main/resources/stacks/HDP/2.2/services/stack_advisor.py',
+      'main/resources/stacks/HDP/2.3/services/stack_advisor.py',
+      'main/resources/stacks/HDP/2.4/services/stack_advisor.py',
+      'main/resources/stacks/HDP/2.5/services/stack_advisor.py',
+      'main/resources/stacks/HDP/2.6/services/stack_advisor.py',
+    )
+
+    for filename in stack_advisors:
+      stack_advisor_impl = self.load_stack_advisor(filename, 'stack_advisor_impl')
+
+    current_stack_advisor_classname = 'HDP26StackAdvisor'
+    clazz = getattr(stack_advisor_impl, current_stack_advisor_classname)
     return clazz()
+
+
+  def load_stack_advisor(self, filename, module_name):
+    path = os.path.join(self.testDirectory, '../../../../..', filename)
+    with open(path, 'rb') as fp:
+      return imp.load_module(module_name, fp, path, ('.py', 'rb', imp.PY_SOURCE))
+
 
   @patch('socket.getfqdn')
   def test_performance(self, getfqdn_method):
     getfqdn_method.side_effect = lambda host='perf400-a-1.c.pramod-thangali.internal': host
-    testDirectory = os.path.dirname(os.path.abspath(__file__))
-    current_stack_advisor_path = os.path.join(testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
 
     for folder_name in ['1', '2']:
-      services = json.load(open(os.path.join(testDirectory, folder_name + '/services.json')))
-      hosts = json.load(open(os.path.join(testDirectory, folder_name + '/hosts.json')))
+      with open(os.path.join(self.testDirectory, folder_name, 'services.json')) as fp:
+        services = json.load(fp)
+      with open(os.path.join(self.testDirectory, folder_name, 'hosts.json')) as fp:
+        hosts = json.load(fp)
 
-      stack_advisor = self.instantiate_stack_advisor(testDirectory)
+      stack_advisor = self.instantiate_stack_advisor()
+
       start = time.time()
       recommendation = stack_advisor.recommendComponentLayout(services, hosts)
       time_taken = time.time() - start
-      print "time taken by current stack_advisor.py = " + str(time_taken)
+      print "Current stack advisor elapsed {0}, allowed {1}".format(time_taken, TestStackAdvisorPerformance.TIME_ALLOWED)
 
-      self.assertTrue(time_taken < 0.1)
-
+      self.assertTrue(time_taken < TestStackAdvisorPerformance.TIME_ALLOWED) # Python 2.7: assertLess
 
 

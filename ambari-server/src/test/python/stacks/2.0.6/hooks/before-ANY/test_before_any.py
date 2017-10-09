@@ -28,6 +28,7 @@ import os
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
   TMP_PATH = '/tmp/hbase-hbase'
+  STACK_VERSION = '2.0.6'
 
   @patch("os.path.isfile")
   @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
@@ -43,9 +44,11 @@ class TestHookBeforeInstall(RMFTestCase):
     os_path_exists_mock.side_effect = side_effect
     os_path_isfile_mock.side_effect = [False, True, True, True, True]
 
-    self.executeScript("2.0.6/hooks/before-ANY/scripts/hook.py",
+    self.executeScript("before-ANY/scripts/hook.py",
                        classname="BeforeAnyHook",
                        command="hook",
+                       stack_version = self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_STACK_HOOKS,
                        config_file="default.json",
                        call_mocks=itertools.cycle([(0, "1000")])
     )
@@ -62,19 +65,19 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'oozie',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'nobody',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'nobody'],
+                              groups = [u'hadoop',u'nobody'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'ambari-qa',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'flume',
@@ -110,7 +113,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'tez',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'zookeeper',
@@ -122,7 +125,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'falcon',
                               gid = 'hadoop',
                               uid = None,
-                              groups = [u'users'],
+                              groups = [u'hadoop',u'users'],
                               fetch_nonlocal_groups = True,
                               )
     self.assertResourceCalled('User', 'sqoop',
@@ -181,15 +184,6 @@ class TestHookBeforeInstall(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/etc/hadoop',
                               mode = 0755,
-                              )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
-                              owner = 'root',
-                              create_parents = True,
-                              group = 'hadoop',
-                              )
-    self.assertResourceCalled('Link', '/etc/hadoop/conf',
-                              not_if = 'ls /etc/hadoop/conf',
-                              to = '/etc/hadoop/conf.empty',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),

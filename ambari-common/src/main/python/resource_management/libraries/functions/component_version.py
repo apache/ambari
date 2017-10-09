@@ -20,7 +20,7 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 
-def get_component_repository_version(service_name, component_name = None):
+def get_component_repository_version(service_name = None, component_name = None):
   """
   Gets the version associated with the specified component from the structure in the command.
   Every command should contain a mapping of service/component to the desired repository it's set
@@ -29,11 +29,16 @@ def get_component_repository_version(service_name, component_name = None):
   :service_name: the name of the service
   :component_name: the name of the component
   """
-  versions = _get_component_repositories()
+  config = Script.get_config()
+
+  versions = _get_component_repositories(config)
   if versions is None:
     return None
 
-  if service_name not in versions:
+  if service_name is None:
+    service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
+
+  if service_name is None or service_name not in versions:
     return None
 
   component_versions = versions[service_name]
@@ -41,22 +46,23 @@ def get_component_repository_version(service_name, component_name = None):
     return None
 
   if component_name is None:
-    for component in component_versions:
-      return component_versions[component]
+    component_name = config["role"] if config is not None and "role" in config else None
 
-  if not component_name in component_versions:
-    return None
+  # return a direct match of component name
+  if component_name is not None and component_name in component_versions:
+    return component_versions[component_name]
 
-  return component_versions[component_name]
+  # fall back to the first one for the service
+  return component_versions.values()[0]
 
 
-def _get_component_repositories():
+def _get_component_repositories(config):
   """
   Gets an initialized dictionary from the value in componentVersionMap. This structure is
   sent on every command by Ambari and should contain each service & component's desired repository.
+  :config:  the configuration dictionary
   :return:
   """
-  config = Script.get_config()
   if "componentVersionMap" not in config or config["componentVersionMap"] is "":
     return None
 

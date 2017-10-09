@@ -24,10 +24,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 
 import com.google.inject.Inject;
@@ -42,17 +40,10 @@ import com.google.inject.Inject;
  *  <li>If the KDC type is set (KDCType is not {@link KDCType#NONE}, implying manual)</li>
  * </ul>
  */
-public class KerberosKeytabsAction extends AbstractServerAction {
+public class KerberosKeytabsAction extends AbstractUpgradeServerAction {
 
   private static final String KERBEROS_ENV = "kerberos-env";
   private static final String KDC_TYPE_KEY = "kdc_type";
-
-
-  /**
-   * Used for retrieving the cluster (and eventually the desired configuration).
-   */
-  @Inject
-  private Clusters m_clusters;
 
   @Inject
   private KerberosHelper m_kerberosHelper;
@@ -63,7 +54,7 @@ public class KerberosKeytabsAction extends AbstractServerAction {
 
 
     String clusterName = getExecutionCommand().getClusterName();
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
 
     StringBuilder stdout = new StringBuilder();
 

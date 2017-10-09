@@ -85,6 +85,11 @@ public class StackManager {
   public static final String COMMON_SERVICES = "common-services";
 
   /**
+   * Prefix used for common stack hooks parent path string
+   */
+  public static final String DEFAULT_HOOKS_FOLDER = "stack-hooks";
+
+  /**
    * Prefix used for extension services parent path string
    */
   public static final String EXTENSIONS = "extensions";
@@ -236,12 +241,6 @@ public class StackManager {
     LOG.debug("Refreshing archives for stacks");
     for (StackModule stackModule : stackModules.values()) {
       LOG.debug("Refreshing archives for stack : " + stackModule.getId());
-      String hooksDir = stackModule.getStackDirectory().getHooksDir();
-      if(hooksDir != null) {
-        LOG.debug("Refreshing archive for stack hooks directory : " + hooksDir);
-        String hooksAbsolutePath = stackRoot.getAbsolutePath() + File.separator + hooksDir;
-        ResourceFilesKeeperHelper.updateDirectoryArchive(hooksAbsolutePath, false);
-      }
       for(ServiceModule serviceModule : stackModule.getServiceModules().values()) {
         String packageDir = serviceModule.getServiceDirectory().getPackageDir();
         if(packageDir != null) {

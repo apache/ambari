@@ -357,6 +357,7 @@ Em.I18n.translations = {
   'common.repositoryType': 'Repository Type',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
+  'common.views': 'Views',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -1782,7 +1783,7 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.HOU.title': "Host Ordered",
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.description': "Services are stopped while the upgrade is performed. Incurs downtime, but faster upgrade.",
   'admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed': "Bypassed errors,<br/>proceed at your own risk.",
-  'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun':'Rerun Checks',
+  'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun':'Rerun Pre-Upgrade Checks',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title':'Checks:',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking': 'Checking...',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.failed.title': 'Check failed',
@@ -2961,8 +2962,9 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1}',
 
   'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
-  'dashboard.services.hdfs.blockErrors':'{0} / {1} / {2}',
-  'dashboard.services.hdfs.blockErrorsDesc':'corrupt replica / missing / under replicated',
+  'dashboard.services.hdfs.blockErrors.corrupt': 'corrupt replica',
+  'dashboard.services.hdfs.blockErrors.replicated': 'under replicated',
+  'dashboard.services.hdfs.blockErrors.missing': 'missing',
   'dashboard.services.hdfs.datanode.status.tooltip.live': 'This is the number of DataNodes that are live as reported from ' +
     'the NameNode. Even if a DataNode process is up, NameNode might see the status as dead ' +
     'if the DataNode is not communicating with the NameNode as expected. This can be due situations ' +

@@ -20,9 +20,10 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/first';
 import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams} from '@angular/http';
-import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params.class';
-import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params.class';
-import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params.class';
+import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params';
+import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params';
+import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params';
+import {ServiceLogsTruncatedQueryParams} from '@app/classes/queries/service-logs-truncated-query-params';
 import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Injectable()
@@ -56,8 +57,12 @@ export class HttpClientService extends Http {
     serviceLogsFields: {
       url: 'service/logs/schema/fields'
     },
+    serviceLogsTruncated: {
+      url: 'service/logs/truncated',
+      params: opts => new ServiceLogsTruncatedQueryParams(opts)
+    },
     components: {
-      url: 'service/logs/components'
+      url: 'service/logs/components/levels/counts'
     },
     clusters: {
       url: 'service/logs/clusters'
@@ -88,7 +93,7 @@ export class HttpClientService extends Http {
     const preset = this.endPoints[url],
       rawParams = preset && preset.params ? preset.params(params) : params;
     if (rawParams) {
-      const paramsString = Object.keys(rawParams).map(key => `${key}=${rawParams[key]}`).join('&'),
+      const paramsString = Object.keys(rawParams).map((key: string): string => `${key}=${rawParams[key]}`).join('&'),
         urlParams = new URLSearchParams(paramsString, {
           encodeKey: key => key,
           encodeValue: value => encodeURIComponent(value)

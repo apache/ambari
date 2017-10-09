@@ -23,7 +23,6 @@ import os
 
 from resource_management.core import shell, sudo
 from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate
@@ -320,19 +319,17 @@ class Master(Script):
       and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
 
       if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
-        try:
+        zeppelin_conf_fs = self.getZeppelinConfFS(params)
+        if os.path.exists(zeppelin_conf_fs):
           # copy from hdfs to /etc/zeppelin/conf/interpreter.json
           params.HdfsResource(interpreter_config,
                               type="file",
                               action="download_on_execute",
-                              source=self.getZeppelinConfFS(params),
+                              source=zeppelin_conf_fs,
                               group=params.zeppelin_group,
                               owner=params.zeppelin_user)
-        except Fail as fail:
-          if "doesn't exist" not in fail.args[0]:
-            print "Error getting interpreter.json from HDFS"
-            print fail.args
-            raise Fail
+        else:
+          Logger.info(format("{zeppelin_conf_fs} does not exist. Skipping upload of DFS."))
 
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
@@ -455,6 +452,9 @@ class Master(Script):
             interpreter['properties']['hive.url'] = 'jdbc:hive2://' + \
                                                  params.hive_server_host + \
                                                      ':' + params.hive_server_port
+          if 'hive.splitQueries' not in interpreter['properties']:
+            interpreter['properties']["hive.splitQueries"] = "true"
+
         if params.hive_server_interactive_hosts:
           interpreter['properties'][hive_interactive_properties_key + '.driver'] = 'org.apache.hive.jdbc.HiveDriver'
           interpreter['properties'][hive_interactive_properties_key + '.user'] = 'hive'
@@ -469,6 +469,8 @@ class Master(Script):
             interpreter['properties'][hive_interactive_properties_key + '.url'] = 'jdbc:hive2://' + \
                                                     params.hive_server_interactive_hosts + \
                                                     ':' + params.hive_server_port
+          if hive_interactive_properties_key + '.splitQueries' not in interpreter['properties']:
+            interpreter['properties'][hive_interactive_properties_key + '.splitQueries'] = "true"
 
         if params.spark_thrift_server_hosts:
           interpreter['properties']['spark.driver'] = 'org.apache.hive.jdbc.HiveDriver'
@@ -479,6 +481,8 @@ class Master(Script):
               params.spark_thrift_server_hosts + ':' + params.spark_hive_thrift_port + '/'
           if params.spark_hive_principal:
             interpreter['properties']['spark.url'] += ';principal=' + params.spark_hive_principal
+          if 'spark.splitQueries' not in interpreter['properties']:
+            interpreter['properties']['spark.splitQueries'] = "true"
 
         if params.spark2_thrift_server_hosts:
           interpreter['properties']['spark2.driver'] = 'org.apache.hive.jdbc.HiveDriver'
@@ -489,6 +493,8 @@ class Master(Script):
               params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
           if params.spark_hive_principal:
             interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
+          if 'spark2.splitQueries' not in interpreter['properties']:
+            interpreter['properties']['spark2.splitQueries'] = "true"
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
@@ -499,6 +505,9 @@ class Master(Script):
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
+            if 'phoenix.splitQueries' not in interpreter['properties']:
+              interpreter['properties']['phoenix.splitQueries'] = "true"
+
 
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy':
         if params.livy_livyserver_host:

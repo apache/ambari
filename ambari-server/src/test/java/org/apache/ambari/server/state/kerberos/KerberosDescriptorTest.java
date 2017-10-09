@@ -59,6 +59,41 @@ public class KerberosDescriptorTest {
           "    ]" +
           "}";
 
+  private static final String JSON_VALUE_IDENTITY_REFERENCES =
+      "{" +
+          "  \"identities\": [" +
+          "    {" +
+          "      \"keytab\": {" +
+          "        \"file\": \"${keytab_dir}/spnego.service.keytab\"" +
+          "      }," +
+          "      \"name\": \"spnego\"," +
+          "      \"principal\": {" +
+          "        \"type\": \"service\"," +
+          "        \"value\": \"HTTP/_HOST@${realm}\"" +
+          "      }" +
+          "    }" +
+          "  ]," +
+          "  \"services\": [" +
+          "    {" +
+          "      \"identities\": [" +
+          "        {" +
+          "          \"name\": \"service1_spnego\"," +
+          "          \"reference\": \"/spnego\"" +
+          "        }" +
+          "      ]," +
+          "      \"name\": \"SERVICE1\"" +
+          "    }," +
+          "    {" +
+          "      \"identities\": [" +
+          "        {" +
+          "          \"name\": \"/spnego\"" +
+          "        }" +
+          "      ]," +
+          "      \"name\": \"SERVICE2\"" +
+          "    }" +
+          "  ]" +
+          "}";
+
   private static final Map<String, Object> MAP_VALUE;
 
   static {
@@ -501,5 +536,26 @@ public class KerberosDescriptorTest {
     Map<String, String> principalsPerComponent = descriptor.principals();
     Assert.assertEquals("service2_component1@${realm}", principalsPerComponent.get("SERVICE2/SERVICE2_COMPONENT1/service2_component1_identity"));
     Assert.assertEquals("service1@${realm}", principalsPerComponent.get("SERVICE1/service1_identity"));
+  }
+
+  @Test
+  public void testIdentityReferences() throws Exception {
+    KerberosDescriptor kerberosDescriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(JSON_VALUE_IDENTITY_REFERENCES);
+    KerberosServiceDescriptor serviceDescriptor;
+    List<KerberosIdentityDescriptor> identities;
+
+    // Reference is determined using the "reference" attribute
+    serviceDescriptor = kerberosDescriptor.getService("SERVICE1");
+    identities = serviceDescriptor.getIdentities(true, null);
+    Assert.assertEquals(1, identities.size());
+    Assert.assertEquals("service1_spnego", identities.get(0).getName());
+    Assert.assertEquals("/spnego", identities.get(0).getReference());
+
+    // Reference is determined using the "name" attribute
+    serviceDescriptor = kerberosDescriptor.getService("SERVICE2");
+    identities = serviceDescriptor.getIdentities(true, null);
+    Assert.assertEquals(1, identities.size());
+    Assert.assertEquals("/spnego", identities.get(0).getName());
+    Assert.assertNull(identities.get(0).getReference());
   }
 }

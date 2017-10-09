@@ -75,6 +75,8 @@ const postcssPlugins = function () {
         ].concat(minimizeCss ? [cssnano(minimizeOptions)] : []);
     };
 
+const resourcesDirName = 'resources';
+
 module.exports = {
   "resolve": {
     "extensions": [
@@ -109,9 +111,9 @@ module.exports = {
     ]
   },
   "output": {
-    "path": path.join(process.cwd(), "dist/resources"),
-    "publicPath": "resources/",
-    "filename": "[name].bundle.js",
+    "path": path.join(process.cwd(), "dist"),
+    "publicPath": "",
+    "filename": `${resourcesDirName}/[name].bundle.js`,
     "chunkFilename": "[id].chunk.js"
   },
   "module": {
@@ -130,11 +132,11 @@ module.exports = {
       },
       {
         "test": /\.(eot|svg|cur)$/,
-        "loader": "file-loader?name=[name].[ext]"
+        "loader": `file-loader?name=${resourcesDirName}/[name].[ext]`
       },
       {
         "test": /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
-        "loader": "url-loader?name=[name].[ext]&limit=10000"
+        "loader": `url-loader?name=${resourcesDirName}/[name].[ext]&limit=10000`
       },
       {
         "exclude": [
@@ -408,7 +410,7 @@ module.exports = {
       "uglify": false,
       "sourceMap": true,
       "name": "scripts",
-      "fileName": "../resources/[name].bundle.js",
+      "fileName": `${resourcesDirName}/[name].bundle.js`,
       "filesToConcat": [
         "node_modules/jquery/dist/jquery.min.js",
         "node_modules/bootstrap/dist/js/bootstrap.min.js",
@@ -421,7 +423,7 @@ module.exports = {
     new CopyWebpackPlugin([
       {
         "context": "src/",
-        "to": "",
+        "to": resourcesDirName,
         "from": {
           "glob": "assets/**/*",
           "dot": true
@@ -429,7 +431,7 @@ module.exports = {
       },
       {
         "context": "src/",
-        "to": "../favicon.ico",
+        "to": "favicon.ico",
         "from": {
           "glob": "favicon.ico",
           "dot": true
@@ -449,7 +451,7 @@ module.exports = {
     new NamedLazyChunksWebpackPlugin(),
     new HtmlWebpackPlugin({
       "template": "./src/index.html",
-      "filename": "../index.html",
+      "filename": "index.html",
       "hash": false,
       "inject": true,
       "compile": true,
@@ -533,7 +535,6 @@ module.exports = {
     "setImmediate": false
   },
   "devServer": {
-    "contentBase": path.join(process.cwd(), "dist"),
     "historyApiFallback": true
   }
 };

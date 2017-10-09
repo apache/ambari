@@ -57,12 +57,11 @@
           <div class="col-md-4 col-lg-4 service-alerts">
             {{#if view.hasAlertDefinitions}}
               <span {{action "showServiceAlertsPopup" controller.content target="controller"}} class="pull-right">
-                <i class="glyphicon glyphicon-bell"></i>
                 {{#if view.alertsCount}}
+                  <i class="glyphicon glyphicon-bell"></i>
                   <span {{bindAttr class=":label view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-                    {{view.alertsCount}}</span>
-                {{else}}
-                  <span class="label no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+                    {{view.alertsCount}}
+                  </span>
                 {{/if}}
               </span>
             {{/if}}
@@ -119,6 +118,20 @@
           {{/if}}
         </div>
       {{/view}}
+      <div class="panel-heading">
+         <div class="row col-md-8 col-lg-12">
+           <h4 class="panel-title">{{t common.views}}</h4>
+         </div>
+      </div>
+      <div class="panel-body">
+       {{#if view.views.length}}
+         {{#each item in view.views}}
+           <a href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a>
+         {{/each}}
+       {{else}}
+         <span>{{t menu.item.views.noViews}}</span>
+       {{/if}}
+      </div>
     </div>
   </div>
   {{! widgets in the metrics panel are loaded seperately from summary page text information

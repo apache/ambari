@@ -343,9 +343,6 @@ describe('App.HighAvailabilityProgressPopupController', function () {
     it("calculate data", function() {
       var data = [
         {
-          Requests: {
-            id: 1
-          },
           tasks: [
             {
               Tasks: {
@@ -363,6 +360,7 @@ describe('App.HighAvailabilityProgressPopupController', function () {
         }
       ];
       controller.setProperties({
+        requestIds: [1],
         popupTitle: 'popupTitle'
       });
       controller.calculateHostsData(data);

@@ -201,6 +201,9 @@ public class UpgradeCatalog260Test {
     Capture<DBColumnInfo> unapped = newCapture();
     expectRenameServiceDeletedColumn(unapped);
 
+    expectAddViewUrlPKConstraint();
+    expectRemoveStaleConstraints();
+    
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Injector injector = getInjector();
@@ -216,6 +219,17 @@ public class UpgradeCatalog260Test {
     verifyUpdateUpgradeTable(rvid, orchestration, revertAllowed);
     verifyCreateUpgradeHistoryTable(columns);
     verifyUpdateRepositoryVersionTableTable(repoVersionHiddenColumnCapture, repoVersionResolvedColumnCapture);
+  }
+
+  private void expectRemoveStaleConstraints() throws SQLException {
+    dbAccessor.dropUniqueConstraint(eq(UpgradeCatalog260.USERS_TABLE), eq(UpgradeCatalog260.STALE_POSTGRESS_USERS_LDAP_USER_KEY));
+  }
+
+  private void expectAddViewUrlPKConstraint() throws SQLException {
+    dbAccessor.dropPKConstraint(eq(UpgradeCatalog260.VIEWURL_TABLE), eq(UpgradeCatalog260.STALE_POSTGRESS_VIEWURL_PKEY));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(eq(UpgradeCatalog260.VIEWURL_TABLE), eq(UpgradeCatalog260.PK_VIEWURL), eq(UpgradeCatalog260.URL_ID_COLUMN));
+    expectLastCall().once();
   }
 
   public void expectDropStaleTables() throws SQLException {

@@ -19,20 +19,20 @@
   <filter-dropdown [label]="filters.sorting.label" formControlName="sorting" [options]="filters.sorting.options"
                    [defaultLabel]="filters.sorting.defaultLabel" [isRightAlign]="true"></filter-dropdown>
 </form>
-<div class="col-md-12 text-center" *ngIf="logs && logs.length">
-  <div class="logs-header">
-    <div class="col-md-1">{{'logs.status' | translate}}</div>
-    <div class="col-md-11">{{'logs.details' | translate}}</div>
-  </div>
-</div>
 <div *ngFor="let log of logs; let i = index">
-  <div *ngIf="i === 0 || isDifferentDates(log.logtime, logs[i - 1].logtime)" class="col-md-12">
+  <div *ngIf="!isServiceLogsFileView && (i === 0 || isDifferentDates(log.logtime, logs[i - 1].logtime))" class="col-md-12">
     <div class="logs-header">{{log.logtime | amTz: timeZone | amDateFormat: dateFormat}}</div>
   </div>
-  <accordion-panel [toggleId]="'details-' + i" class="col-md-12">
+  <accordion-panel *ngIf="!isServiceLogsFileView" [toggleId]="'details-' + i" class="col-md-12">
     <ng-template>
-      <div *ngIf="isColumnDisplayed('level')" [ngClass]="'hexagon ' + log.className"></div>
-      <div *ngIf="isColumnDisplayed('level')" [ngClass]="'col-md-1 log-status ' + log.className">{{log.level}}</div>
+      <div *ngIf="isColumnDisplayed('level')" [ngClass]="'hexagon ' + log.level.toLowerCase()"></div>
+      <div class="col-md-1">
+        <dropdown-button iconClass="fa fa-ellipsis-h" [hideCaret]="true" [options]="logActions"
+                         [additionalArgs]="[log]"></dropdown-button>
+      </div>
+      <div *ngIf="isColumnDisplayed('level')" [ngClass]="'col-md-1 log-status ' + log.level.toLowerCase()">
+        {{log.level}}
+      </div>
       <div *ngIf="isColumnDisplayed('type') || isColumnDisplayed('logtime')" class="col-md-3">
         <div *ngIf="isColumnDisplayed('type')" class="log-type">{{log.type}}</div>
         <time *ngIf="isColumnDisplayed('logtime')" class="log-time">
@@ -41,9 +41,7 @@
       </div>
       <div class="col-md-6 log-content-wrapper">
         <div class="collapse log-actions" attr.id="details-{{i}}">
-          <span class="action-icon fa fa-search"></span>
-          <span class="action-icon fa fa-external-link"></span>
-          <span class="action-icon fa fa-crosshairs"></span>
+          <!-- TODO remove after restyling the table -->
         </div>
         <div class="log-content-inner-wrapper">
           <div class="log-content" *ngIf="isColumnDisplayed('log_message')"
@@ -58,8 +56,10 @@
       </div>
     </ng-template>
   </accordion-panel>
+  <log-file-entry *ngIf="isServiceLogsFileView" class="col-md-12" [time]="log.logtime" [level]="log.level"
+                  [fileName]="log.file" [lineNumber]="log.line_number" [message]="log.log_message"></log-file-entry>
 </div>
-<ul #contextmenu data-component="dropdown-list" class="dropdown-menu context-menu" [items]="contextMenuItems"
-    (selectedItemChange)="updateQuery($event)"></ul>
+<ul #contextmenu *ngIf="!isServiceLogsFileView" data-component="dropdown-list" class="dropdown-menu context-menu"
+    [items]="contextMenuItems" (selectedItemChange)="updateQuery($event)"></ul>
 <pagination class="col-md-12" *ngIf="logs && logs.length" [totalCount]="totalCount" [filtersForm]="filtersForm"
             [filterInstance]="filters.pageSize" [currentCount]="logs.length"></pagination>

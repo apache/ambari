@@ -42,6 +42,9 @@ public class StatusCommand extends AgentCommand {
   @SerializedName("serviceType")
   private String serviceType;
 
+  @SerializedName("role")
+  private String role;
+
   @SerializedName("componentName")
   private String componentName;
 
@@ -130,8 +133,17 @@ public class StatusCommand extends AgentCommand {
     return componentName;
   }
 
+  /**
+   * Sets both the {@code componentName} and the {@code role}. Status commands
+   * use the {@code componentName}, while execution commands use the
+   * {@code role}. It's simpler for the Python to just worry about {@code role},
+   * so this ensures that both are set.
+   *
+   * @param componentName
+   */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+    role = componentName;
   }
 
   public Map<String, Map<String, String>> getConfigurations() {
@@ -172,6 +184,10 @@ public class StatusCommand extends AgentCommand {
 
   public String getHostname() {
     return hostname;
+  }
+
+  public String getRole() {
+    return role;
   }
 
   public enum StatusCommandPayload {

@@ -111,8 +111,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   dfsUnderReplicatedBlocks: Em.computed.formatUnavailable('service.dfsUnderReplicatedBlocks'),
 
-  blockErrorsMessage: Em.computed.i18nFormat('dashboard.services.hdfs.blockErrors', 'dfsCorruptBlocks', 'dfsMissingBlocks', 'dfsUnderReplicatedBlocks'),
-
   nodeUptime: function () {
     var uptime = this.get('service.nameNodeStartTime');
     if (uptime && uptime > 0){

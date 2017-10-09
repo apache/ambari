@@ -136,18 +136,16 @@ describe('App.ConfigsSaverMixin', function() {
     });
 
     it('generates config without properties', function() {
-      expect(mixin.createDesiredConfig('type1', 'version1')).to.eql({
+      expect(mixin.createDesiredConfig('type1')).to.eql({
         "type": 'type1',
-        "tag": 'version1',
         "properties": {},
         "service_config_version_note": ""
       })
     });
 
     it('generates config with properties', function() {
-      expect(mixin.createDesiredConfig('type1', 'version1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: true})], "note")).to.eql({
+      expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: true})], "note")).to.eql({
         "type": 'type1',
-        "tag": 'version1',
         "properties": {
           "p1": 'v1',
           "p2": 'v2'
@@ -157,9 +155,8 @@ describe('App.ConfigsSaverMixin', function() {
     });
 
     it('generates config with properties and skip isRequiredByAgent', function() {
-      expect(mixin.createDesiredConfig('type1', 'version1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: false})], "note")).to.eql({
+      expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true}), Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: false})], "note")).to.eql({
         "type": 'type1',
-        "tag": 'version1',
         "properties": {
           p1: 'v1'
         },
@@ -168,9 +165,8 @@ describe('App.ConfigsSaverMixin', function() {
     });
 
     it('generates config with properties and skip service_config_version_note', function() {
-      expect(mixin.createDesiredConfig('type1', 'version1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true})], "note", true)).to.eql({
+      expect(mixin.createDesiredConfig('type1', [Em.Object.create({name: 'p1', value: 'v1', isRequiredByAgent: true})], "note", true)).to.eql({
         "type": 'type1',
-        "tag": 'version1',
         "properties": {
           p1: 'v1'
         }
@@ -178,7 +174,7 @@ describe('App.ConfigsSaverMixin', function() {
     });
 
     it('generates config with final, password, user, group, text, additional_user_property, not_managed_hdfs_path, value_from_property_file', function() {
-      expect(mixin.createDesiredConfig('type1', 'version1', [
+      expect(mixin.createDesiredConfig('type1', [
           Em.Object.create({name: 'p1', value: 'v1', isFinal: true, isRequiredByAgent: true}),
           Em.Object.create({name: 'p2', value: 'v2', isRequiredByAgent: true}),
           Em.Object.create({name: 'p3', value: 'v3', isRequiredByAgent: true, propertyType: ["PASSWORD", "USER", "GROUP"]}),
@@ -188,7 +184,6 @@ describe('App.ConfigsSaverMixin', function() {
           Em.Object.create({name: 'p7', value: 'v7', isRequiredByAgent: true, propertyType: ["PASSWORD"]})
         ], "note")).to.eql({
         "type": 'type1',
-        "tag": 'version1',
         "properties": {
           p1: 'v1',
           p2: 'v2',
@@ -257,19 +252,6 @@ describe('App.ConfigsSaverMixin', function() {
       expect(mixin.generateDesiredConfigsJSON([Em.Object.create({'name': 'p1', 'fileName': 'f1.xml'})], ['f1'])).to.eql(['desiredConfig_f1']);
       expect(mixin.createDesiredConfig).to.be.calledOnce
     })
-  });
-
-  describe('#getUniqueTag', function() {
-
-    it('should generate unique tags', function() {
-      var tags = [];
-      for (var i = 0; i < 3; i++) {
-        tags.push(mixin.getUniqueTag());
-      }
-      expect(tags[1]).to.not.be.equal(tags[0]);
-      expect(tags[2]).to.not.be.equal(tags[1]);
-      expect(tags[0]).to.not.be.equal(tags[2]);
-    });
   });
 
   describe('#getModifiedConfigs', function () {
