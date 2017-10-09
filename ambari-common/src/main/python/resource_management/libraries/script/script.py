@@ -482,6 +482,7 @@ class Script(object):
       Script.stack_version_from_distro_select = pkg_provider.get_installed_package_version(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
 
+
     return Script.stack_version_from_distro_select
 
 
@@ -506,22 +507,20 @@ class Script(object):
     """
     This function replaces ${stack_version} placeholder with actual version.  If the package
     version is passed from the server, use that as an absolute truth.
-    
+
     :param name name of the package
     :param repo_version actual version of the repo currently installing
     """
-    stack_version_package_formatted = ""
+    if not STACK_VERSION_PLACEHOLDER in name:
+      return name
 
-    if not repo_version:
-      repo_version = self.get_stack_version_before_packages_installed()
+    stack_version_package_formatted = ""
 
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
 
     # repositoryFile is the truth
     # package_version should be made to the form W_X_Y_Z_nnnn
     package_version = default("repositoryFile/repoVersion", None)
-    if package_version is not None:
-      package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
 
     # TODO remove legacy checks
     if package_version is None:
@@ -530,6 +529,16 @@ class Script(object):
     # TODO remove legacy checks
     if package_version is None:
       package_version = default("hostLevelParams/package_version", None)
+
+    if package_version is None or '-' not in package_version:
+        self.load_available_packages()
+        package_name = self.get_package_from_available(name, self.available_packages_in_repos)
+        if package_name is None:
+          raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
+        return package_name
+        
+    if package_version is not None:
+      package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
 
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but
@@ -549,6 +558,7 @@ class Script(object):
 
     # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we try to specify it.
     if not package_version or '*' in package_version:
+      repo_version = self.get_stack_version_before_packages_installed()
       stack_version_package_formatted = repo_version.replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
 
     package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
@@ -741,6 +751,18 @@ class Script(object):
     """
     self.install_packages(env)
 
+  def load_available_packages(self):
+    if self.available_packages_in_repos:
+      return self.available_packages_in_repos
+
+    pkg_provider = get_provider("Package")
+    try:
+      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(config['repositoryFile']))
+    except Exception as err:
+      Logger.exception("Unable to load available packages")
+      self.available_packages_in_repos = []
+        
+        
   def install_packages(self, env):
     """
     List of packages that are required< by service is received from the server
@@ -763,17 +785,11 @@ class Script(object):
       package_list_str = config['hostLevelParams']['package_list']
       agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
       agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
-      pkg_provider = get_provider("Package")
-      try:
-        available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(config['repositoryFile']))
-      except Exception as err:
-        Logger.exception("Unable to load available packages")
-        available_packages_in_repos = []
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           if self.check_package_condition(package):
-            name = self.get_package_from_available(package['name'], available_packages_in_repos)
+            name = self.format_package_name(package['name'])
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.
@@ -1072,5 +1088,6 @@ class Script(object):
 
 
   def __init__(self):
+    self.available_packages_in_repos = []
     if Script.instance is not None:
       raise Fail("An instantiation already exists! Use, get_instance() method.")
