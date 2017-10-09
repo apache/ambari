@@ -35,7 +35,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
       });
     }
 
-    var height = App.Service.find().get('length') > 10 ? ((App.Service.find().get('length') - 10) * 40 + 500) : 500;
+    var height = App.Service.find().get('length') > 9 ? ((App.Service.find().get('length') - 9) * 38 + 500) : 500;
     $('.version-column').height(height);
 
     // fix the line up minor diff issue
