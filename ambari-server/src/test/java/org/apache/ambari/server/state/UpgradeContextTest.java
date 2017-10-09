@@ -23,6 +23,7 @@ import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +112,11 @@ public class UpgradeContextTest extends EasyMockSupport {
   private VersionDefinitionXml m_vdfXml;
 
   /**
+   * The upgrade history to return for the completed upgrade.
+   */
+  private List<UpgradeHistoryEntity> m_upgradeHistory = new ArrayList<>();
+
+  /**
    * The cluster services.
    */
   private Map<String, Service> m_services = new HashMap<>();
@@ -128,7 +134,7 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(upgradeHistoryEntity.getServiceName()).andReturn(HDFS_SERVICE_NAME).anyTimes();
     expect(upgradeHistoryEntity.getSourceRepositoryVersion()).andReturn(m_sourceRepositoryVersion).anyTimes();
     expect(upgradeHistoryEntity.getTargetRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
-    List<UpgradeHistoryEntity> upgradeHistory = Lists.newArrayList(upgradeHistoryEntity);
+    m_upgradeHistory = Lists.newArrayList(upgradeHistoryEntity);
 
     expect(m_repositoryVersionDAO.findByPK(1L)).andReturn(m_sourceRepositoryVersion).anyTimes();
     expect(m_repositoryVersionDAO.findByPK(99L)).andReturn(m_targetRepositoryVersion).anyTimes();
@@ -143,12 +149,13 @@ public class UpgradeContextTest extends EasyMockSupport {
     expect(m_completedRevertableUpgrade.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
     expect(m_completedRevertableUpgrade.getRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
     expect(m_completedRevertableUpgrade.getOrchestration()).andReturn(RepositoryType.PATCH).anyTimes();
-    expect(m_completedRevertableUpgrade.getHistory()).andReturn(upgradeHistory).anyTimes();
+    expect(m_completedRevertableUpgrade.getHistory()).andReturn(m_upgradeHistory).anyTimes();
     expect(m_completedRevertableUpgrade.getUpgradePackage()).andReturn(null).anyTimes();
 
     RepositoryVersionEntity hdfsRepositoryVersion = createNiceMock(RepositoryVersionEntity.class);
 
     expect(m_hdfsService.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).anyTimes();
+    expect(m_zookeeperService.getDesiredRepositoryVersion()).andReturn(hdfsRepositoryVersion).anyTimes();
     expect(m_cluster.getService(HDFS_SERVICE_NAME)).andReturn(m_hdfsService).anyTimes();
     m_services.put(HDFS_SERVICE_NAME, m_hdfsService);
 
@@ -312,6 +319,55 @@ public class UpgradeContextTest extends EasyMockSupport {
 
 
     expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
+
+    Map<String, Object> requestMap = new HashMap<>();
+    requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.name());
+    requestMap.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, "1");
+
+    replayAll();
+
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+        m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+
+    assertEquals(Direction.DOWNGRADE, context.getDirection());
+    assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
+    assertEquals(1, context.getSupportedServices().size());
+    assertTrue(context.isPatchRevert());
+
+    verifyAll();
+  }
+
+  /**
+   * Tests that the {@link UpgradeContext} for a reversion has the correct
+   * services included in the reversion if one of the services in the original
+   * upgrade has since been deleted.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRevertWithDeletedService() throws Exception {
+    UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+
+    // give the completed upgrade 2 services which can be reverted
+    UpgradeHistoryEntity upgradeHistoryEntity = createNiceMock(UpgradeHistoryEntity.class);
+    expect(upgradeHistoryEntity.getServiceName()).andReturn(ZOOKEEPER_SERVICE_NAME).anyTimes();
+    expect(upgradeHistoryEntity.getSourceRepositoryVersion()).andReturn(m_sourceRepositoryVersion).anyTimes();
+    expect(upgradeHistoryEntity.getTargetRepositoryVersion()).andReturn(m_targetRepositoryVersion).anyTimes();
+    m_upgradeHistory.add(upgradeHistoryEntity);
+
+    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
+        EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+
+    expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
+
+    // remove HDFS, add ZK
+    m_services.remove(HDFS_SERVICE_NAME);
+    expect(m_cluster.getService(ZOOKEEPER_SERVICE_NAME)).andReturn(m_zookeeperService).anyTimes();
+    m_services.put(ZOOKEEPER_SERVICE_NAME, m_zookeeperService);
+    assertEquals(1, m_services.size());
 
     Map<String, Object> requestMap = new HashMap<>();
     requestMap.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.name());
