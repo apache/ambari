@@ -34,15 +34,15 @@ public interface ServiceFactory {
    *          the ServiceGroup for the service
    * @param serviceName
    *          the name of the service (not {@code null).
-   * @param serviceDisplayName
-   *          the display name of the service (not {@code null).
+   * @param serviceType
+   *          the type of service (stack service name) (not {@code null).
    * @param desiredRepositoryVersion
    *          the repository version of the service (not {@code null).
    * @return
    */
   Service createNew(Cluster cluster, ServiceGroup serviceGroup,
                     @Assisted("serviceName") String serviceName,
-                    @Assisted("serviceDisplayName") String serviceDisplayName,
+                    @Assisted("serviceType") String serviceType,
                     RepositoryVersionEntity desiredRepositoryVersion);
 
   /**

@@ -61,7 +61,7 @@
         "HostRoles/maintenance_state",
         "HostRoles/service_id",
         "HostRoles/service_name",
-        "HostRoles/service_display_name",
+        "HostRoles/service_type",
         "HostRoles/upgrade_state",
         "_"
     ],

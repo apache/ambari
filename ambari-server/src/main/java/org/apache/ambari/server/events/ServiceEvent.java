@@ -29,9 +29,9 @@ public abstract class ServiceEvent extends ClusterEvent {
   protected final String m_serviceName;
 
   /**
-   * The name of the real service.
+   * The type of the service (i.e. stack service name).
    */
-  protected final String m_serviceDisplayName;
+  protected final String m_serviceType;
 
   /**
    * The name of the service group.
@@ -55,12 +55,12 @@ public abstract class ServiceEvent extends ClusterEvent {
    * @param clusterId
    */
   public ServiceEvent(AmbariEventType eventType, long clusterId, String stackName, String stackVersion,
-                      String serviceName, String serviceDisplayName, String serviceGroupName) {
+                      String serviceName, String serviceType, String serviceGroupName) {
     super(eventType, clusterId);
     m_stackName = stackName;
     m_stackVersion = stackVersion;
     m_serviceName = serviceName;
-    m_serviceDisplayName = serviceDisplayName;
+    m_serviceType = serviceType;
     m_serviceGroupName = serviceGroupName;
   }
 
@@ -72,9 +72,9 @@ public abstract class ServiceEvent extends ClusterEvent {
   }
 
   /**
-   * @return the serviceDisplayName (never {@code null}).
+   * @return the serviceType (never {@code null}).
    */
-  public String getServiceDisplayName() { return m_serviceDisplayName; }
+  public String getServiceType() { return m_serviceType; }
 
   /**
    * @return the service group name (never {@code null}).

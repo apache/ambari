@@ -44,7 +44,7 @@ public interface ServiceComponent {
 
   String getServiceName();
 
-  String getServiceDisplayName();
+  String getServiceType();
 
   Long getServiceGroupId();
 

@@ -65,10 +65,10 @@ public interface ServiceComponentHost {
   String getServiceGroupName();
 
   /**
-   * Get the Real Service this object maps to
-   * @return Name of the Real Service
+   * Get the Service Type this object maps to
+   * @return Type of the Service
    */
-  String getServiceDisplayName();
+  String getServiceType();
 
   /**
    * Get the ServiceComponent this object maps to

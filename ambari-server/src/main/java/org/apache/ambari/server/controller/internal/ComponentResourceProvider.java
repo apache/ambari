@@ -88,7 +88,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
   protected static final String COMPONENT_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
   protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
-  protected static final String COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_display_name";
+  protected static final String COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
   protected static final String COMPONENT_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "display_name";
   protected static final String COMPONENT_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "state";
@@ -114,7 +114,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   private static Set<String> pkPropertyIds = Sets.newHashSet(
           COMPONENT_CLUSTER_NAME_PROPERTY_ID,
           COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID,
-          COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID,
+          COMPONENT_SERVICE_NAME_PROPERTY_ID,
           COMPONENT_COMPONENT_NAME_PROPERTY_ID);
 
   /**
@@ -135,7 +135,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     PROPERTY_IDS.add(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_SERVICE_ID_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_SERVICE_NAME_PROPERTY_ID);
-    PROPERTY_IDS.add(COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(COMPONENT_SERVICE_TYPE_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_DISPLAY_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(COMPONENT_STATE_PROPERTY_ID);
@@ -158,7 +158,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Component, COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Service, COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, COMPONENT_SERVICE_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, COMPONENT_CLUSTER_NAME_PROPERTY_ID);
   }
 
@@ -217,7 +217,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         resource.setProperty(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
         resource.setProperty(COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId());
         resource.setProperty(COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
-        resource.setProperty(COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID, response.getServiceDisplayName());
+        resource.setProperty(COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType());
         resource.setProperty(COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName());
         resource.setProperty(COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName());
         resource.setProperty(COMPONENT_STATE_PROPERTY_ID, response.getDesiredState());
@@ -264,7 +264,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName(), requestedIds);
       setResourceProperty(resource, COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId(), requestedIds);
       setResourceProperty(resource, COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
-      setResourceProperty(resource, COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID, response.getServiceDisplayName(), requestedIds);
+      setResourceProperty(resource, COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType(), requestedIds);
       setResourceProperty(resource, COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
       setResourceProperty(resource, COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName(), requestedIds);
       setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
@@ -356,7 +356,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     return new ServiceComponentRequest(
         (String) properties.get(COMPONENT_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID),
+        (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_STATE_PROPERTY_ID),
         (String) properties.get(COMPONENT_RECOVERY_ENABLED_ID),
@@ -384,7 +384,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     for (ServiceComponentRequest request : requests) {
       Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
       Validate.notEmpty(request.getServiceGroupName(), "service group name should be non-empty");
-      Validate.notEmpty(request.getServiceDisplayName(), "service display name should be non-empty");
+      Validate.notEmpty(request.getServiceName(), "service name should be non-empty");
       Cluster cluster = getClusterForRequest(request, clusters);
 
       isAuthorized(cluster, getRequiredCreateAuthorizations());
@@ -396,16 +396,16 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       }
 
       Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
-      if (!serviceComponents.containsKey(request.getServiceDisplayName())) {
-        serviceComponents.put(request.getServiceDisplayName(), new HashSet<String>());
+      if (!serviceComponents.containsKey(request.getServiceName())) {
+        serviceComponents.put(request.getServiceName(), new HashSet<String>());
       }
 
-      if (serviceComponents.get(request.getServiceDisplayName()).contains(request.getComponentName())) {
+      if (serviceComponents.get(request.getServiceName()).contains(request.getComponentName())) {
         // throw error later for dup
         duplicates.add(request.toString());
         continue;
       }
-      serviceComponents.get(request.getServiceDisplayName()).add(request.getComponentName());
+      serviceComponents.get(request.getServiceName()).add(request.getComponentName());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         Validate.isTrue(State.INIT == State.valueOf(request.getDesiredState()),
@@ -427,7 +427,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       StackId stackId = s.getDesiredStackId();
       if (!ambariMetaInfo.isValidServiceComponent(stackId.getStackName(),
-          stackId.getStackVersion(), s.getName(), request.getComponentName())) {
+          stackId.getStackVersion(), s.getServiceType(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
             + " in stack stackInfo=" + stackId.getStackId()
             + " request=" + request);
@@ -448,7 +448,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     // now doing actual work
     for (ServiceComponentRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceDisplayName());
+      Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName());
       sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
@@ -545,7 +545,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     }
 
     Set<Service> services = new HashSet<>();
-    if (StringUtils.isNotEmpty(request.getServiceDisplayName())) {
+    if (StringUtils.isNotEmpty(request.getServiceName())) {
       services.add(getServiceFromCluster(request, cluster));
     } else {
       services.addAll(cluster.getServices().values());
@@ -624,7 +624,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final Cluster cluster = getClusterForRequest(request, clusters);
       final String clusterName = request.getClusterName();
       final String serviceGroupName = request.getServiceGroupName();
-      final String serviceName = request.getServiceDisplayName();
+      final String serviceName = request.getServiceName();
       final String componentName = request.getComponentName();
 
       LOG.info("Received a updateComponent request: {}", request);
@@ -876,7 +876,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   private Service getServiceFromCluster(final ServiceComponentRequest request, final Cluster cluster) throws AmbariException {
     try {
-      return cluster.getService(request.getServiceDisplayName());
+      return cluster.getService(request.getServiceName());
     } catch (ServiceNotFoundException e) {
       throw new ParentObjectNotFoundException("Parent Service resource doesn't exist.", e);
     }
@@ -906,7 +906,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   private void setServiceNameIfAbsent(final ServiceComponentRequest request,
                                       final Cluster cluster,
                                       final AmbariMetaInfo ambariMetaInfo) throws AmbariException {
-    if (StringUtils.isEmpty(request.getServiceDisplayName())) {
+    if (StringUtils.isEmpty(request.getServiceName())) {
 
       String componentName = request.getComponentName();
 
@@ -919,7 +919,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 + ", componentName=" + request.getComponentName()
                 + ", clusterName=" + cluster.getClusterName());
       }
-      request.setServiceDisplayName(serviceName);
+      request.setServiceName(serviceName);
     }
   }
 

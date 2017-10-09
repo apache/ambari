@@ -606,33 +606,33 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AuthorizationException("The authenticated user is not authorized to install service components on to hosts");
       }
 
-      if (StringUtils.isEmpty(request.getServiceDisplayName())) {
-        request.setServiceDisplayName(findService(cluster, request.getComponentName()));
+      if (StringUtils.isEmpty(request.getServiceName())) {
+        request.setServiceName(findService(cluster, request.getComponentName()));
         // TODO : What if request.getServiceGroupName() is null ? Get it from service instead.
       }
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a createHostComponent request, clusterName={}, serviceGroupName={}, serviceName={}, componentName={}, hostname={}, request={}",
-          request.getClusterName(), request.getServiceGroupName(), request.getServiceDisplayName(), request.getComponentName(), request.getHostname(), request);
+          request.getClusterName(), request.getServiceGroupName(), request.getServiceName(), request.getComponentName(), request.getHostname(), request);
       }
 
       if (!hostComponentNames.containsKey(request.getClusterName())) {
         hostComponentNames.put(request.getClusterName(), new HashMap<>());
       }
       if (!hostComponentNames.get(request.getClusterName())
-          .containsKey(request.getServiceDisplayName())) {
+          .containsKey(request.getServiceName())) {
         hostComponentNames.get(request.getClusterName()).put(
-            request.getServiceDisplayName(), new HashMap<String, Set<String>>());
+            request.getServiceName(), new HashMap<String, Set<String>>());
       }
       if (!hostComponentNames.get(request.getClusterName())
-          .get(request.getServiceDisplayName())
+          .get(request.getServiceName())
           .containsKey(request.getComponentName())) {
         hostComponentNames.get(request.getClusterName())
-            .get(request.getServiceDisplayName()).put(request.getComponentName(),
+            .get(request.getServiceName()).put(request.getComponentName(),
                 new HashSet<String>());
       }
       if (hostComponentNames.get(request.getClusterName())
-          .get(request.getServiceDisplayName())
+          .get(request.getServiceName())
           .get(request.getComponentName())
           .contains(request.getHostname())) {
         duplicates.add("[clusterName=" + request.getClusterName() + ", hostName=" + request.getHostname() +
@@ -640,7 +640,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         continue;
       }
       hostComponentNames.get(request.getClusterName())
-          .get(request.getServiceDisplayName()).get(request.getComponentName())
+          .get(request.getServiceName()).get(request.getComponentName())
           .add(request.getHostname());
 
       if (request.getDesiredState() != null
@@ -656,10 +656,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       Service s;
       try {
-        s = cluster.getService(request.getServiceDisplayName());
+        s = cluster.getService(request.getServiceName());
       } catch (ServiceNotFoundException e) {
         throw new IllegalArgumentException(
-            "The service[" + request.getServiceDisplayName() + "] associated with the component[" +
+            "The service[" + request.getServiceName() + "] associated with the component[" +
             request.getComponentName() + "] doesn't exist for the cluster[" + request.getClusterName() + "]");
       }
       ServiceComponent sc = s.getServiceComponent(
@@ -743,7 +743,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceDisplayName());
+      Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
 
@@ -1236,7 +1236,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (request.getComponentName() != null) {
-      if (StringUtils.isBlank(request.getServiceDisplayName())) {
+      if (StringUtils.isBlank(request.getServiceName())) {
 
         // !!! FIXME the assumption that a component is unique across all stacks is a ticking
         // time bomb.  Blueprints are making this assumption.
@@ -1247,13 +1247,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           throw new ServiceComponentHostNotFoundException(
               cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
         }
-        request.setServiceDisplayName(serviceName);
+        request.setServiceName(serviceName);
       }
     }
 
     Set<Service> services = new HashSet<>();
-    if (request.getServiceDisplayName() != null && !request.getServiceDisplayName().isEmpty()) {
-      services.add(cluster.getService(request.getServiceDisplayName()));
+    if (request.getServiceName() != null && !request.getServiceName().isEmpty()) {
+      services.add(cluster.getService(request.getServiceName()));
     } else {
       services.addAll(cluster.getServices().values());
     }
@@ -1363,7 +1363,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
-            if (request.getServiceDisplayName() == null || request.getComponentName() == null) {
+            if (request.getServiceName() == null || request.getComponentName() == null) {
               // Ignore the exception if either the service name or component name are not specified.
               // This is an artifact of how we get host_components and can happen in the case where
               // we get all host_components for a host, for example.
@@ -1375,7 +1375,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               // condition.
               LOG.debug("ServiceComponentHost not found ", e);
               throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
-                  request.getServiceDisplayName(), request.getComponentName(), request.getHostname());
+                  request.getServiceName(), request.getComponentName(), request.getHostname());
             }
           }
         } else {
@@ -3535,14 +3535,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private void checkIfHostComponentsInDeleteFriendlyState(ServiceComponentHostRequest request, Cluster cluster) throws AmbariException {
-    Service service = cluster.getService(request.getServiceDisplayName());
+    Service service = cluster.getService(request.getServiceName());
     ServiceComponent component = service.getServiceComponent(request.getComponentName());
     ServiceComponentHost componentHost = component.getServiceComponentHost(request.getHostname());
 
     if (!componentHost.canBeRemoved()) {
       throw new AmbariException("Host Component cannot be removed"
               + ", clusterName=" + request.getClusterName()
-              + ", serviceDisplayName=" + request.getServiceDisplayName()
+              + ", serviceName=" + request.getServiceName()
               + ", componentName=" + request.getComponentName()
               + ", hostname=" + request.getHostname()
               + ", request=" + request);
@@ -3560,7 +3560,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public String findService(Cluster cluster, String componentName) throws AmbariException {
-    return cluster.getServiceByComponentName(componentName).getServiceDisplayName();
+    return cluster.getServiceByComponentName(componentName).getName();
   }
 
   /**
@@ -3681,18 +3681,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
-      if (StringUtils.isEmpty(request.getServiceDisplayName())) {
-        request.setServiceDisplayName(findService(cluster, request.getComponentName()));
+      if (StringUtils.isEmpty(request.getServiceName())) {
+        request.setServiceName(findService(cluster, request.getComponentName()));
       }
 
       LOG.info("Received a hostComponent DELETE request"
         + ", clusterName=" + request.getClusterName()
-        + ", serviceDisplayName=" + request.getServiceDisplayName()
+        + ", serviceName=" + request.getServiceName()
         + ", componentName=" + request.getComponentName()
         + ", hostname=" + request.getHostname()
         + ", request=" + request);
 
-      Service service = cluster.getService(request.getServiceDisplayName());
+      Service service = cluster.getService(request.getServiceName());
       ServiceComponent component = service.getServiceComponent(request.getComponentName());
       ServiceComponentHost componentHost = component.getServiceComponentHost(request.getHostname());
 

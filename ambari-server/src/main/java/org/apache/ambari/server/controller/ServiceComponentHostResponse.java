@@ -32,7 +32,7 @@ public class ServiceComponentHostResponse {
   private String serviceGroupName;
   private Long serviceId;
   private String serviceName;
-  private String serviceDisplayName;
+  private String serviceType;
   private Long hostComponentId;
   private String componentName;
   private String displayName;
@@ -51,7 +51,7 @@ public class ServiceComponentHostResponse {
   private UpgradeState upgradeState = UpgradeState.NONE;
 
   public ServiceComponentHostResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
-                                      Long serviceId, String serviceName, String serviceDisplayName, Long hostComponentId,
+                                      Long serviceId, String serviceName, String serviceType, Long hostComponentId,
                                       String componentName, String displayName, String hostname, String publicHostname,
                                       String liveState, String version, String desiredState, String desiredStackVersion,
                                       String desiredRepositoryVersion, HostComponentAdminState adminState) {
@@ -61,7 +61,7 @@ public class ServiceComponentHostResponse {
     this.serviceId = serviceId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    this.serviceDisplayName = serviceDisplayName;
+    this.serviceType = serviceType;
     this.hostComponentId = hostComponentId;
     this.componentName = componentName;
     this.displayName = displayName;
@@ -134,12 +134,12 @@ public class ServiceComponentHostResponse {
   /**
    * @return the serviceName
    */
-  public String getServiceDisplayName() { return serviceDisplayName; }
+  public String getServiceType() { return serviceType; }
 
   /**
-   * @param serviceDisplayName the serviceDisplayName to set
+   * @param serviceType the serviceType to set
    */
-  public void setServiceDisplayName(String serviceDisplayName) { this.serviceDisplayName = serviceDisplayName; }
+  public void setServiceType(String serviceType) { this.serviceType = serviceType; }
 
   /**
    * @return the componentName
@@ -328,8 +328,8 @@ public class ServiceComponentHostResponse {
       return false;
     }
 
-    if (serviceDisplayName != null ?
-            !serviceDisplayName.equals(that.serviceDisplayName) : that.serviceDisplayName != null) {
+    if (serviceType != null ?
+            !serviceType.equals(that.serviceType) : that.serviceType != null) {
       return false;
     }
 
@@ -359,7 +359,7 @@ public class ServiceComponentHostResponse {
     result = 71 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
     result = 71 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 71 * result + (serviceDisplayName != null ? serviceDisplayName.hashCode() : 0);
+    result = 71 * result + (serviceType != null ? serviceType.hashCode() : 0);
     result = 71 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 71 * result + (displayName != null ? displayName.hashCode() : 0);
     result = 71 * result + (hostname != null ? hostname.hashCode() : 0);

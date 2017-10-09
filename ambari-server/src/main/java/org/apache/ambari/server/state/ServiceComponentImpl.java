@@ -260,7 +260,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public String getServiceDisplayName() { return service.getServiceDisplayName(); }
+  public String getServiceType() { return service.getServiceType(); }
 
   @Override
   public Long getClusterId() { return service.getClusterId(); }
@@ -439,7 +439,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), sg.getServiceGroupId(), sg.getServiceGroupName(), service.getServiceId(),
-        service.getName(), service.getServiceDisplayName(), getName(), desiredStackId, getDesiredState().toString(),
+        service.getName(), service.getServiceType(), getName(), desiredStackId, getDesiredState().toString(),
         getServiceComponentStateCount(), isRecoveryEnabled(), displayName, repositoryVersionEntity.getVersion(),
         getRepositoryState());
 

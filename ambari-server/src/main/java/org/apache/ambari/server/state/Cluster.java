@@ -69,7 +69,7 @@ public interface Cluster {
    */
   void addService(Service service);
 
-  Service addService(ServiceGroup serviceGroup, String serviceName, String serviceDisplayName,
+  Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType,
                      RepositoryVersionEntity repositoryVersion) throws AmbariException;
 
   /**

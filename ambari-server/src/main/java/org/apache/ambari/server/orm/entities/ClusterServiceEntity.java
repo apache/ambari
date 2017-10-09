@@ -71,8 +71,8 @@ public class ClusterServiceEntity {
   @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
   private String serviceName;
 
-  @Column(name = "service_display_name", nullable = false, insertable = true, updatable = true)
-  private String serviceDisplayName;
+  @Column(name = "service_type", nullable = false, insertable = true, updatable = true)
+  private String serviceType;
 
   @Basic
   @Column(name = "service_enabled", nullable = false, insertable = true, updatable = true, length = 10)
@@ -126,12 +126,12 @@ public class ClusterServiceEntity {
     this.serviceName = serviceName;
   }
 
-  public String getServiceDisplayName() {
-    return serviceDisplayName;
+  public String getServiceType() {
+    return serviceType;
   }
 
-  public void setServiceDisplayName(String serviceDisplayName) {
-    this.serviceDisplayName = serviceDisplayName;
+  public void setServiceType(String serviceType) {
+    this.serviceType = serviceType;
   }
 
   public int getServiceEnabled() {
@@ -154,7 +154,7 @@ public class ClusterServiceEntity {
     if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) return false;
     if (serviceEnabled != null ? !serviceEnabled.equals(that.serviceEnabled) : that.serviceEnabled != null)
       return false;
-    if (serviceDisplayName != null ? !serviceDisplayName.equals(that.serviceDisplayName) : that.serviceDisplayName != null) return false;
+    if (serviceType != null ? !serviceType.equals(that.serviceType) : that.serviceType != null) return false;
 
     return true;
   }
@@ -164,7 +164,7 @@ public class ClusterServiceEntity {
     int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
     result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
-    result = 31 * result + (serviceDisplayName != null ? serviceDisplayName.hashCode() : 0);
+    result = 31 * result + (serviceType != null ? serviceType.hashCode() : 0);
     result = 31 * result + serviceEnabled;
     return result;
   }

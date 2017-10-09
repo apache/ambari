@@ -812,7 +812,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     // publish the service component installed event
     ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(getClusterId(),
-        stackId.getStackName(), stackId.getStackVersion(), getServiceName(), getServiceDisplayName(),
+        stackId.getStackName(), stackId.getStackVersion(), getServiceName(), getServiceType(),
         getServiceGroupName(), getServiceComponentName(), getHostName(), isRecoveryEnabled());
 
     eventPublisher.publish(event);
@@ -1068,8 +1068,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public String getServiceDisplayName() {
-    return serviceComponent.getServiceDisplayName();
+  public String getServiceType() {
+    return serviceComponent.getServiceType();
   }
 
   @Override
@@ -1175,7 +1175,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     String clusterName = serviceComponent.getClusterName();
     Long clusterId = serviceComponent.getClusterId();
-    String serviceName = serviceComponent.getServiceDisplayName();
+    String serviceName = serviceComponent.getServiceName();
     Cluster cluster = null;
     Service service = null;
     try {
@@ -1211,7 +1211,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterId, clusterName, service.getServiceGroupId(),
-            service.getServiceGroupName(), service.getServiceId(), service.getName(), service.getServiceDisplayName(),
+            service.getServiceGroupName(), service.getServiceId(), service.getName(), service.getServiceType(),
             hostComponentId, serviceComponentName, displayName, hostName, publicHostName, state, getVersion(),
             desiredState, desiredStackId, desiredRepositoryVersion, componentAdminState);
 
@@ -1307,14 +1307,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       String stackVersion = stackId.getStackVersion();
       String stackName = stackId.getStackName();
       String serviceName = getServiceName();
-      String serviceDisplayName = getServiceDisplayName();
+      String serviceType = getServiceType();
       String serviceGroupName  = getServiceGroupName();
       String componentName = getServiceComponentName();
       String hostName = getHostName();
       boolean recoveryEnabled = isRecoveryEnabled();
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
-          clusterId, stackName, stackVersion, serviceName, serviceDisplayName, serviceGroupName, componentName,
+          clusterId, stackName, stackVersion, serviceName, serviceType, serviceGroupName, componentName,
           hostName, recoveryEnabled);
 
       eventPublisher.publish(event);

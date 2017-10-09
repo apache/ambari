@@ -1425,7 +1425,7 @@ var urls = {
     'mock': ''
   },
   'common.create_component': {
-    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?ServiceInfo/service_display_name={serviceName}',
+    'real': '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?ServiceInfo/service_name={serviceName}',
     'mock': '',
     'type': 'POST',
     'format': function (data) {
@@ -2596,7 +2596,7 @@ var urls = {
     'mock': ''
   },
   'components.get_category': {
-    'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/service_display_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true',
+    'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true',
     'mock': ''
   },
   'components.update': {
@@ -2666,7 +2666,7 @@ var urls = {
     'mock': ''
   },
   'host_components.with_services_names': {
-    'real': '/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,ServiceComponentInfo/service_display_name,HostRoles/host_name&minimal_response=true',
+    'real': '/clusters/{clusterName}/host_components?fields=component/ServiceComponentInfo/service_name,ServiceComponentInfo/service_name,HostRoles/host_name&minimal_response=true',
     'mock': ''
   },
   'components.get_installed': {

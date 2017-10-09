@@ -45,7 +45,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
           data: {
             context: Em.I18n.t('requestInfo.kerberosService'),
             ServiceInfo: {"state": "INSTALLED"},
-            urlParams: "ServiceInfo/state=INSTALLED&ServiceInfo/service_display_name=KERBEROS"
+            urlParams: "ServiceInfo/state=INSTALLED&ServiceInfo/service_name=KERBEROS"
           },
           success: 'startPolling',
           error: 'onTaskError'

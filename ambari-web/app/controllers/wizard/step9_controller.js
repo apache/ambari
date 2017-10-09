@@ -492,7 +492,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         data = {
           "context": Em.I18n.t("requestInfo.startAddedServices"),
           "ServiceInfo": { "state": "STARTED" },
-          "urlParams": "ServiceInfo/state=INSTALLED&ServiceInfo/service_display_name.in(" + servicesList.join(",") + ")&params/run_smoke_test=true&params/reconfigure_client=false"
+          "urlParams": "ServiceInfo/state=INSTALLED&ServiceInfo/service_name.in(" + servicesList.join(",") + ")&params/run_smoke_test=true&params/reconfigure_client=false"
         };
         break;
       default:

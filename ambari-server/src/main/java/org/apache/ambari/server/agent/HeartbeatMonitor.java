@@ -162,7 +162,7 @@ public class HeartbeatMonitor implements Runnable {
         // mark all components that are not clients with unknown status
         for (Cluster cluster : clusters.getClustersForHost(hostObj.getHostName())) {
           for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostObj.getHostName())) {
-            Service s = cluster.getService(sch.getServiceDisplayName());
+            Service s = cluster.getService(sch.getServiceName());
             ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
             if (!sc.isClientComponent() &&
               !sch.getState().equals(State.INIT) &&
@@ -237,16 +237,16 @@ public class HeartbeatMonitor implements Runnable {
   private StatusCommand createStatusCommand(String hostname, Cluster cluster,
       ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
     String serviceName = sch.getServiceName();
-    String serviceDisplayName = sch.getServiceDisplayName();
+    String serviceType = sch.getServiceType();
     String componentName = sch.getServiceComponentName();
 
     StackId stackId = sch.getDesiredStackId();
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), serviceDisplayName);
+        stackId.getStackVersion(), serviceType);
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
             stackId.getStackName(), stackId.getStackVersion(),
-            serviceDisplayName, componentName);
+            serviceType, componentName);
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
@@ -307,7 +307,7 @@ public class HeartbeatMonitor implements Runnable {
     StatusCommand statusCmd = new StatusCommand();
     statusCmd.setClusterName(cluster.getClusterName());
     statusCmd.setServiceName(serviceName);
-    statusCmd.setServiceDisplayName(serviceDisplayName);
+    statusCmd.setServiceType(serviceType);
     statusCmd.setComponentName(componentName);
     statusCmd.setConfigurations(configurations);
     statusCmd.setConfigurationAttributes(configurationAttributes);

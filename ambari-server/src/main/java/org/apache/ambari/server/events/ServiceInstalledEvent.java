@@ -29,13 +29,13 @@ public class ServiceInstalledEvent extends ServiceEvent {
    * @param stackName
    * @param stackVersion
    * @param serviceName
-   * @param serviceDisplayName
+   * @param serviceType
    * @param serviceGroupName
    */
   public ServiceInstalledEvent(long clusterId, String stackName, String stackVersion, String serviceName,
-                               String serviceDisplayName, String serviceGroupName) {
+                               String serviceType, String serviceGroupName) {
     super(AmbariEventType.SERVICE_INSTALL_SUCCESS, clusterId, stackName,
-        stackVersion, serviceName, serviceDisplayName, serviceGroupName);
+        stackVersion, serviceName, serviceType, serviceGroupName);
   }
 
   /**
@@ -48,7 +48,7 @@ public class ServiceInstalledEvent extends ServiceEvent {
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);
     buffer.append(", serviceName=").append(m_serviceName);
-    buffer.append(", serviceDisplayName=").append(m_serviceDisplayName);
+    buffer.append(", serviceType=").append(m_serviceType);
     buffer.append(", serviceGroupName=").append(m_serviceGroupName);
     buffer.append("}");
     return buffer.toString();

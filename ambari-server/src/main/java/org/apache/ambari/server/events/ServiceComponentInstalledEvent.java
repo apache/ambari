@@ -33,14 +33,15 @@ public class ServiceComponentInstalledEvent extends ServiceEvent {
    * @param stackName
    * @param stackVersion
    * @param serviceName
+   * @param serviceType
    * @param componentName
    * @param hostName
    */
   public ServiceComponentInstalledEvent(long clusterId, String stackName, String stackVersion, String serviceName,
-                                        String serviceDisplayName, String serviceGroupName, String componentName,
+                                        String serviceType, String serviceGroupName, String componentName,
                                         String hostName, boolean recoveryEnabled) {
     super(AmbariEventType.SERVICE_COMPONENT_INSTALL_SUCCESS, clusterId, stackName,
-          stackVersion, serviceName, serviceDisplayName, serviceGroupName);
+          stackVersion, serviceName, serviceType, serviceGroupName);
 
     m_componentName = componentName;
     m_hostName = hostName;
@@ -72,7 +73,7 @@ public class ServiceComponentInstalledEvent extends ServiceEvent {
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);
     buffer.append(", serviceName=").append(m_serviceName);
-    buffer.append(", serviceDisplayName=").append(m_serviceDisplayName);
+    buffer.append(", serviceType=").append(m_serviceType);
     buffer.append(", serviceGroupName=").append(m_serviceGroupName);
     buffer.append(", componentName=").append(m_componentName);
     buffer.append(", hostName=").append(m_hostName);

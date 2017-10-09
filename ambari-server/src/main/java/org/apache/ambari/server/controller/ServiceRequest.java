@@ -26,7 +26,7 @@ public class ServiceRequest {
 
   private String clusterName; // REF
   private String serviceName; // GET/CREATE/DELETE
-  private String serviceDisplayName; // GET/CREATE/UPDATE/DELETE
+  private String serviceType; // GET/CREATE/UPDATE/DELETE
   private String serviceGroupName;
   private String desiredState; // CREATE/UPDATE
   private String maintenanceState; // UPDATE
@@ -49,7 +49,7 @@ public class ServiceRequest {
   public ServiceRequest(String clusterName,
                         String serviceGroupName,
                         String serviceName,
-                        String serviceDisplayName,
+                        String serviceType,
                         Long desiredRepositoryVersionId,
                         String desiredState,
                         String credentialStoreEnabled,
@@ -61,7 +61,7 @@ public class ServiceRequest {
 
     this.desiredRepositoryVersionId = desiredRepositoryVersionId;
 
-    this.serviceDisplayName = serviceDisplayName;
+    this.serviceType = serviceType;
     this.desiredState = desiredState;
     this.credentialStoreEnabled = credentialStoreEnabled;
     // Credential store supported cannot be changed after
@@ -77,20 +77,20 @@ public class ServiceRequest {
   public String getServiceName() { return serviceName; }
 
   /**
-   * @param serviceName the Service Display Name to set
+   * @param serviceName the service name to set
    */
   public void setServiceName(String serviceName) { this.serviceName = serviceName; }
 
   /**
-   * @return the service display name
+   * @return the service type
    */
-  @ApiModelProperty(name = "service_display_name")
-  public String getServiceDisplayName() { return serviceDisplayName; }
+  @ApiModelProperty(name = "service_type")
+  public String getServiceType() { return serviceType; }
 
   /**
-   * @param serviceDisplayName the Service Display Name to set
+   * @param serviceType the service type to set
    */
-  public void setServiceDisplayName(String serviceDisplayName) { this.serviceDisplayName = serviceDisplayName; }
+  public void setServiceType(String serviceType) { this.serviceType = serviceType; }
 
   /**
    * @return the service group Name
@@ -181,7 +181,7 @@ public class ServiceRequest {
     StringBuilder sb = new StringBuilder();
     sb.append("clusterName=" + clusterName
       + ", serviceGroupName=" + serviceGroupName
-      + ", serviceDisplayName=" + serviceDisplayName
+      + ", serviceName=" + serviceName
       + ", desiredState=" + desiredState
       + ", maintenanceState=" + maintenanceState
       + ", credentialStoreEnabled=" + credentialStoreEnabled

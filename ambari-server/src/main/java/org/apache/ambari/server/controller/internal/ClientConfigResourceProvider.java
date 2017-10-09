@@ -200,7 +200,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
     ServiceComponentHostRequest schRequest =  requests.iterator().next();
     String requestComponentName = schRequest.getComponentName();
-    String requestServiceName = schRequest.getServiceDisplayName();
+    String requestServiceName = schRequest.getServiceName();
     String requestHostName =  schRequest.getHostname();
 
     Map<String,List<ServiceComponentHostResponse>> serviceToComponentMap = new HashMap<>();

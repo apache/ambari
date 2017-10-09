@@ -87,9 +87,9 @@ public class DatabaseChecker {
         if (serviceDesiredStateEntity == null) {
           checkPassed = false;
           LOG.error(String.format("ServiceDesiredStateEntity is null for " +
-              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceDisplayName=%s, serviceName=%s ",
-            clusterEntity.getClusterName(), clusterServiceEntity.getServiceDisplayName(),
-            clusterServiceEntity.getServiceName()));
+              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceType=%s ",
+            clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(),
+            clusterServiceEntity.getServiceType()));
         }
         Collection<ServiceComponentDesiredStateEntity> scDesiredStateEntities =
           clusterServiceEntity.getServiceComponentDesiredStateEntities();
@@ -97,9 +97,9 @@ public class DatabaseChecker {
           scDesiredStateEntities.isEmpty()) {
           checkPassed = false;
           LOG.error(String.format("serviceComponentDesiredStateEntities is null or empty for " +
-              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceDisplayName=%s, serviceName=%s ",
-              clusterEntity.getClusterName(), clusterServiceEntity.getServiceDisplayName(),
-              clusterServiceEntity.getServiceName()));
+              "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceType=%s ",
+              clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(),
+              clusterServiceEntity.getServiceType()));
         } else {
           for (ServiceComponentDesiredStateEntity scDesiredStateEnity : scDesiredStateEntities) {
 
@@ -121,28 +121,28 @@ public class DatabaseChecker {
             if (schDesiredStateEntities == null) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentDesiredStateEntities is null for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceType=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceType(),
                 scDesiredStateEnity.getComponentName()));
             } else if (!zeroCardinality && schDesiredStateEntities.isEmpty()) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentDesiredStateEntities is empty for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceType=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceType(),
                 scDesiredStateEnity.getComponentName()));
             }
 
             if (schStateEntities == null) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentStateEntities is null for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceType=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceType(),
                 scDesiredStateEnity.getComponentName()));
             } else if (!zeroCardinality && schStateEntities.isEmpty()) {
               componentCheckFailed = true;
               LOG.error(String.format("hostComponentStateEntities is empty for " +
-                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s ",
-                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(),
+                  "ServiceComponentDesiredStateEntity, clusterName=%s, serviceName=%s, serviceType=%s, componentName=%s ",
+                clusterEntity.getClusterName(), clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceType(),
                 scDesiredStateEnity.getComponentName()));
             }
 
@@ -151,8 +151,8 @@ public class DatabaseChecker {
               checkPassed = false;
               LOG.error(String.format("HostComponentStateEntities and HostComponentDesiredStateEntities " +
                   "tables must contain equal number of rows mapped to ServiceComponentDesiredStateEntity, " +
-                  "(clusterName=%s, serviceName=%s, serviceDisplayName=%s, componentName=%s) ", clusterEntity.getClusterName(),
-                clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceDisplayName(), scDesiredStateEnity.getComponentName()));
+                  "(clusterName=%s, serviceName=%s, serviceType=%s, componentName=%s) ", clusterEntity.getClusterName(),
+                clusterServiceEntity.getServiceName(), clusterServiceEntity.getServiceType(), scDesiredStateEnity.getComponentName()));
             }
             checkPassed = checkPassed && !componentCheckFailed;
           }
@@ -231,26 +231,27 @@ public class DatabaseChecker {
           for (ClusterServiceEntity clusterServiceEntity : clusterServiceEntities) {
             if (!State.INIT.equals(
                 clusterServiceEntity.getServiceDesiredStateEntity().getDesiredState())) {
-              String serviceDisplayName = clusterServiceEntity.getServiceDisplayName();
+              String serviceName = clusterServiceEntity.getServiceName();
+              String stackServiceName = clusterServiceEntity.getServiceType();
               Long serviceGroupId = clusterServiceEntity.getServiceGroupId();
               ServiceInfo serviceInfo = ambariMetaInfo.getService(stack.getName(),
-                  stack.getVersion(), serviceDisplayName);
+                  stack.getVersion(), stackServiceName);
 
               for (String configTypeName : serviceInfo.getConfigTypeAttributes().keySet()) {
                 if (selectedCountForType.get(configTypeName) == null) {
                   checkPassed = false;
                   LOG.error("Configuration {} is missing for service {}", configTypeName,
-                    serviceDisplayName);
+                    serviceName);
                 } else {
                   // Check that for each config type exactly one is selected
                   if (selectedCountForType.get(configTypeName) == 0) {
                     checkPassed = false;
                     LOG.error("Configuration {} has no enabled entries for service {}",
-                        configTypeName, serviceDisplayName);
+                        configTypeName, serviceName);
                   } else if (selectedCountForType.get(configTypeName) > 1) {
                     checkPassed = false;
                     LOG.error("Configuration {} has more than 1 enabled entry for service {}",
-                        configTypeName, serviceDisplayName);
+                        configTypeName, serviceName);
                   }
                 }
               }

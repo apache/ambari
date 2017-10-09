@@ -457,7 +457,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
         }).join(',');
       }
       data.context = "Stop required services";
-      data.urlParams = "ServiceInfo/service_display_name.in(" + servicesList + ")";
+      data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     }
     return App.ajax.send({
       name: 'common.services.update',
@@ -497,7 +497,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
         }).join(',');
       }
       data.context = "Start required services";
-      data.urlParams = "ServiceInfo/service_display_name.in(" + servicesList + ")";
+      data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     } else {
       data.context = "Start all services";
     }

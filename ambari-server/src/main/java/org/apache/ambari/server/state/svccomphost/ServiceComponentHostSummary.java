@@ -24,6 +24,7 @@ import java.util.HashSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -67,9 +68,10 @@ public class ServiceComponentHostSummary {
     String stackVersion = repositoryVersion.getStackVersion();
 
     for (HostComponentStateEntity hostComponentStateEntity : allHostComponents) {
-      String serviceDisplayName  = hostComponentStateEntity.getServiceComponentDesiredStateEntity().
-        getClusterServiceEntity().getServiceDisplayName();
-      ComponentInfo compInfo = ambariMetaInfo.getComponent(stackName, stackVersion, serviceDisplayName,
+      ClusterServiceEntity serviceEntity = hostComponentStateEntity.getServiceComponentDesiredStateEntity().getClusterServiceEntity();
+      String serviceName = serviceEntity.getServiceName();
+      String serviceType  = serviceEntity.getServiceType();
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(stackName, stackVersion, serviceType,
                                                            hostComponentStateEntity.getComponentName());
 
       if (!compInfo.isVersionAdvertised()) {

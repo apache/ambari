@@ -23,29 +23,29 @@ public class ServiceComponentRequest {
 
   private String clusterName; // REF
   private String serviceGroupName;
-  private String serviceDisplayName; // GET/CREATE/UPDATE/DELETE
+  private String serviceName; // GET/CREATE/UPDATE/DELETE
   private String componentName; // GET/CREATE/UPDATE/DELETE
   private String desiredState; // CREATE/UPDATE
   private String componentCategory;
   private String recoveryEnabled; // CREATE/UPDATE
 
-  public ServiceComponentRequest(String clusterName, String serviceGroupName, String serviceDisplayName,
+  public ServiceComponentRequest(String clusterName, String serviceGroupName, String serviceName,
                                  String componentName, String desiredState) {
-    this(clusterName, serviceGroupName, serviceDisplayName, componentName, desiredState, null, null);
+    this(clusterName, serviceGroupName, serviceName, componentName, desiredState, null, null);
   }
 
-  public ServiceComponentRequest(String clusterName, String serviceGroupName, String serviceDisplayName, String componentName,
+  public ServiceComponentRequest(String clusterName, String serviceGroupName, String serviceName, String componentName,
                                  String desiredState, String recoveryEnabled) {
-    this(clusterName, serviceGroupName, serviceDisplayName, componentName, desiredState, recoveryEnabled, null);
+    this(clusterName, serviceGroupName, serviceName, componentName, desiredState, recoveryEnabled, null);
   }
 
   public ServiceComponentRequest(String clusterName, String serviceGroupName,
-                                 String serviceDisplayName, String componentName,
+                                 String serviceName, String componentName,
                                  String desiredState, String recoveryEnabled,
                                  String componentCategory) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.serviceDisplayName = serviceDisplayName;
+    this.serviceName = serviceName;
     this.componentName = componentName;
     this.desiredState = desiredState;
     this.recoveryEnabled = recoveryEnabled;
@@ -65,15 +65,15 @@ public class ServiceComponentRequest {
   /**
    * @return the serviceName
    */
-  public String getServiceDisplayName() {
-    return serviceDisplayName;
+  public String getServiceName() {
+    return serviceName;
   }
 
   /**
-   * @param serviceDisplayName the serviceDisplayName to set
+   * @param serviceName the serviceName to set
    */
-  public void setServiceDisplayName(String serviceDisplayName) {
-    this.serviceDisplayName = serviceDisplayName;
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
 
@@ -141,8 +141,8 @@ public class ServiceComponentRequest {
 
   @Override
   public String toString() {
-    return String.format("[clusterName=%s, serviceGroupName=%s, serviceDisplayName=%s, componentName=%s, " +
-                         "desiredState=%s, recoveryEnabled=%s, componentCategory=%s]", clusterName, serviceGroupName,
-                          serviceDisplayName, clusterName, desiredState, recoveryEnabled, componentCategory);
+    return String.format("[clusterName=%s, serviceGroupName=%s, serviceName=%s, componentName=%s, " +
+      "desiredState=%s, recoveryEnabled=%s, componentCategory=%s]", clusterName, serviceGroupName,
+      serviceName, clusterName, desiredState, recoveryEnabled, componentCategory);
   }
 }

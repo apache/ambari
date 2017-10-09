@@ -163,7 +163,7 @@ CREATE TABLE servicegroups (
 CREATE TABLE clusterservices (
   id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
-  service_display_name VARCHAR(255) NOT NULL,
+  service_type VARCHAR(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   service_group_id NUMBER(19) NOT NULL,
   service_enabled NUMBER(10) NOT NULL,

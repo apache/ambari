@@ -122,13 +122,14 @@ public class HostVersionOutOfSyncListener {
         // If added components do not advertise version, it makes no sense to mark version OUT_OF_SYNC
         // We perform check per-stack version, because component may be not versionAdvertised in current
         // stack, but become versionAdvertised in some future (installed, but not yet upgraded to) stack
-        String serviceDisplayName = event.getServiceDisplayName();
+        String serviceName = event.getServiceName();
+        String serviceType = event.getServiceType();
         String componentName = event.getComponentName();
         ComponentInfo component = ami.get().getComponent(hostStackId.getStackName(),
-                hostStackId.getStackVersion(), serviceDisplayName, componentName);
+                hostStackId.getStackVersion(), serviceType, componentName);
 
         if (!component.isVersionAdvertised()) {
-          RepositoryVersionState state = checkAllHostComponents(hostStackId, serviceDisplayName,
+          RepositoryVersionState state = checkAllHostComponents(hostStackId, serviceName, serviceType,
                                                                 hostVersionEntity.getHostEntity());
           if (null != state) {
             hostVersionEntity.setState(state);
@@ -169,14 +170,15 @@ public class HostVersionOutOfSyncListener {
         HostEntity hostEntity = hostVersionEntity.getHostEntity();
         RepositoryVersionEntity repoVersionEntity = hostVersionEntity.getRepositoryVersion();
         StackId stackId = repoVersionEntity.getStackId();
-        String serviceDisplayName = event.getServiceDisplayName();
+        String serviceName = event.getServiceName();
+        String serviceType = event.getServiceType();
         if (null == stackId) {
           LOG.info("Stack id could not be loaded for host version {}, repo {}", hostVersionEntity.getHostName(),
               repoVersionEntity.getVersion());
           continue;
         }
 
-        RepositoryVersionState repoState = checkAllHostComponents(stackId, serviceDisplayName, hostEntity);
+        RepositoryVersionState repoState = checkAllHostComponents(stackId, serviceName, serviceType, hostEntity);
         if (null != repoState) {
           hostVersionEntity.setState(repoState);
           hostVersionDAO.get().merge(hostVersionEntity);
@@ -199,14 +201,14 @@ public class HostVersionOutOfSyncListener {
    * @param host    the host entity to find components
    * @return {@code null} if there should be no state change.  non-{@code null} to change it
    */
-  private RepositoryVersionState checkAllHostComponents(StackId stackId, String serviceDisplayName,
+  private RepositoryVersionState checkAllHostComponents(StackId stackId, String serviceName, String stackServiceName,
       HostEntity host) throws AmbariException {
 
     Collection<HostComponentDesiredStateEntity> hostComponents = host.getHostComponentDesiredStateEntities();
 
     for (HostComponentDesiredStateEntity hostComponent : hostComponents) {
       ComponentInfo ci = ami.get().getComponent(stackId.getStackName(), stackId.getStackVersion(),
-              serviceDisplayName, hostComponent.getComponentName());
+        stackServiceName, hostComponent.getComponentName());
 
       if (ci.isVersionAdvertised()) {
         return null;

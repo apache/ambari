@@ -172,10 +172,10 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     return services;
   }
 
-  public ServiceInfo getService(String serviceName) {
+  public ServiceInfo getService(String stackServiceName) {
     Collection<ServiceInfo> services = getServices();
     for (ServiceInfo service : services) {
-      if (service.getName().equals(serviceName)) {
+      if (service.getName().equals(stackServiceName)) {
         return service;
       }
     }
@@ -638,7 +638,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   /**
-   * @param xml the version definition parsed from {@link LatestRepoCallable}
+   *
+   * @return
    */
   public VersionDefinitionXml getLatestVersionDefinition() {
     return latestVersion;

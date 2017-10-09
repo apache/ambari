@@ -1034,8 +1034,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       selectedStack = App.Stack.find().findProperty('isSelected', true);
     }
     return this.get('selectedServices').map(service => selectedStack ?
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_display_name": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_display_name": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), }});
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), }});
   },
 
   /**

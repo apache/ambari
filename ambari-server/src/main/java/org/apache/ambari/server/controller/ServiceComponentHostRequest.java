@@ -24,7 +24,7 @@ public class ServiceComponentHostRequest {
 
   private String clusterName; // REF
   private String serviceGroupName;
-  private String serviceDisplayName;
+  private String serviceName;
   private String componentName;
   private String hostname;
   private String publicHostname;
@@ -44,7 +44,7 @@ public class ServiceComponentHostRequest {
     super();
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.serviceDisplayName = serviceDisplayName;
+    this.serviceName = serviceName;
     this.componentName = componentName;
     this.hostname = hostname;
     this.desiredState = desiredState;
@@ -63,15 +63,15 @@ public class ServiceComponentHostRequest {
   /**
    * @return the serviceName
    */
-  public String getServiceDisplayName() {
-    return serviceDisplayName;
+  public String getServiceName() {
+    return serviceName;
   }
 
   /**
-   * @param serviceDisplayName the serviceName to set
+   * @param serviceName the serviceName to set
    */
-  public void setServiceDisplayName(String serviceDisplayName) {
-    this.serviceDisplayName = serviceDisplayName;
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   /**
@@ -161,7 +161,7 @@ public class ServiceComponentHostRequest {
     StringBuilder sb = new StringBuilder();
     sb.append("{" + " clusterName=").append(clusterName)
       .append(", serviceGroupName=").append(serviceGroupName)
-      .append(", serviceDisplayName=").append(serviceDisplayName)
+      .append(", serviceName=").append(serviceName)
       .append(", componentName=").append(componentName)
       .append(", hostname=").append(hostname)
       .append(", publicHostname=").append(publicHostname)

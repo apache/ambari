@@ -302,7 +302,7 @@ public class VersionDefinitionXml {
         continue;
       }
 
-      ServiceVersionSummary summary = new ServiceVersionSummary(service.getServiceDisplayName());
+      ServiceVersionSummary summary = new ServiceVersionSummary(service.getDisplayName());
       summaries.put(service.getName(), summary);
 
       String serviceVersion = service.getDesiredRepositoryVersion().getVersion();

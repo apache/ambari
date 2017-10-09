@@ -89,7 +89,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public static final String HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
   public static final String HOST_COMPONENT_SERVICE_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_id";
   public static final String HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_name";
-  public static final String HOST_COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_display_name";
+  public static final String HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_type";
   public static final String HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
   public static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "component_name";
   public static final String HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "display_name";
@@ -112,7 +112,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     new HashSet<>(Arrays.asList(new String[]{
       HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID,
       HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID,
-      HOST_COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID,
+      HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID,
       HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID,
       HOST_COMPONENT_HOST_NAME_PROPERTY_ID}));
 
@@ -180,7 +180,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         resource.setProperty(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
         resource.setProperty(HOST_COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId());
         resource.setProperty(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
-        resource.setProperty(HOST_COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID, response.getServiceDisplayName());
+        resource.setProperty(HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType());
         resource.setProperty(HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID, response.getHostComponentId());
         resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName());
         resource.setProperty(HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName());
@@ -252,7 +252,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       setResourceProperty(resource, HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_SERVICE_ID_PROPERTY_ID, response.getServiceId(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID, response.getServiceDisplayName(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_SERVICE_TYPE_PROPERTY_ID, response.getServiceType(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_HOST_COMPONENT_ID_PROPERTY_ID, response.getHostComponentId(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName(), requestedIds);
@@ -520,12 +520,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         }
       }
 
-      if (StringUtils.isEmpty(request.getServiceDisplayName())) {
-        request.setServiceDisplayName(getManagementController().findService(cluster, request.getComponentName()));
+      if (StringUtils.isEmpty(request.getServiceName())) {
+        request.setServiceName(getManagementController().findService(cluster, request.getComponentName()));
       }
 
       ServiceComponent sc = getServiceComponent(
-          request.getClusterName(), request.getServiceGroupName(), request.getServiceDisplayName(), request.getComponentName());
+          request.getClusterName(), request.getServiceGroupName(), request.getServiceName(), request.getComponentName());
 
       logRequestInfo("Received a updateHostComponent request", request);
 
@@ -547,10 +547,10 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         requestClusters.put(request.getClusterName(), clusterServices);
       }
 
-      Map<String, Set<String>> serviceComponents = clusterServices.get(request.getServiceDisplayName());
+      Map<String, Set<String>> serviceComponents = clusterServices.get(request.getServiceName());
       if (serviceComponents == null) {
         serviceComponents = new HashMap<>();
-        clusterServices.put(request.getServiceDisplayName(), serviceComponents);
+        clusterServices.put(request.getServiceName(), serviceComponents);
       }
 
       Set<String> componentHosts = serviceComponents.get(request.getComponentName());
@@ -730,7 +730,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     ServiceComponentHostRequest serviceComponentHostRequest = new ServiceComponentHostRequest(
             (String) properties.get(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID),
             (String) properties.get(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID),
-            (String) properties.get(HOST_COMPONENT_SERVICE_DISPLAY_NAME_PROPERTY_ID),
+            (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
             (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
             (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
             (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
@@ -947,12 +947,11 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    * @param request  the request to log
    */
   private void logRequestInfo(String msg, ServiceComponentHostRequest request) {
-    LOG.info("{}, clusterName={}, serviceGroupName={}, serviceName={}, serviceDisplayName={}, componentName={}, hostname={}, request={}",
+    LOG.info("{}, clusterName={}, serviceGroupName={}, serviceName={}, componentName={}, hostname={}, request={}",
         msg,
         request.getClusterName(),
         request.getServiceGroupName(),
-        request.getServiceDisplayName(),
-        request.getServiceDisplayName(),
+        request.getServiceName(),
         request.getComponentName(),
         request.getHostname(),
         request);
@@ -971,8 +970,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     sb.append(msg)
       .append(", clusterName=").append(request.getClusterName())
       .append(", serviceGroupName=").append(request.getServiceGroupName())
-      .append(", serviceName=").append(request.getServiceDisplayName())
-      .append(", serviceDisplayName=").append(request.getServiceDisplayName())
+      .append(", serviceName=").append(request.getServiceName())
       .append(", componentName=").append(request.getComponentName())
       .append(", hostname=").append(request.getHostname())
       .append(", currentState=").append(oldState == null ? "null" : oldState)

@@ -31,7 +31,7 @@ public class ServiceResponse {
   private String serviceGroupName;
   private Long serviceId;
   private String serviceName;
-  private String serviceDisplayName;
+  private String serviceType;
   private StackId desiredStackId;
   private String desiredRepositoryVersion;
   private Long desiredRepositoryVersionId;
@@ -42,7 +42,7 @@ public class ServiceResponse {
   private boolean credentialStoreEnabled;
 
   public ServiceResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
-                         Long serviceId, String serviceName, String serviceDisplayName, StackId desiredStackId,
+                         Long serviceId, String serviceName, String serviceType, StackId desiredStackId,
                          String desiredRepositoryVersion, RepositoryVersionState repositoryVersionState, String desiredState,
                          boolean credentialStoreSupported, boolean credentialStoreEnabled) {
     this.clusterId = clusterId;
@@ -51,7 +51,7 @@ public class ServiceResponse {
     this.serviceGroupName = serviceGroupName;
     this.serviceId = serviceId;
     this.serviceName = serviceName;
-    this.serviceDisplayName = serviceDisplayName;
+    this.serviceType = serviceType;
     this.desiredStackId = desiredStackId;
     this.repositoryVersionState = repositoryVersionState;
     setDesiredState(desiredState);
@@ -137,14 +137,14 @@ public class ServiceResponse {
   public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
 
   /**
-   * @return the real serviceName
+   * @return the serviceType (i.e. stack service name)
    */
-  public String getServiceDisplayName() { return serviceDisplayName; }
+  public String getServiceType() { return serviceType; }
 
   /**
-   * @param serviceDisplayName the real serviceName to set
+   * @param serviceType the serviceType (i.e. stack service name) to set
    */
-  public void setserviceDisplayName(String serviceDisplayName) { this.serviceDisplayName = serviceDisplayName; }
+  public void setServiceType(String serviceType) { this.serviceType = serviceType; }
 
   /**
    * @return the desiredState
@@ -220,8 +220,8 @@ public class ServiceResponse {
             !serviceName.equals(that.serviceName) : that.serviceName != null) {
       return false;
     }
-    if (serviceDisplayName != null ?
-            !serviceDisplayName.equals(that.serviceDisplayName) : that.serviceDisplayName != null) {
+    if (serviceType != null ?
+            !serviceType.equals(that.serviceType) : that.serviceType != null) {
       return false;
     }
 
@@ -287,7 +287,7 @@ public class ServiceResponse {
     result = 71 * result + (serviceGroupName != null ? serviceGroupName.hashCode() : 0);
     result = 71 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 71 * result + (serviceDisplayName != null ? serviceDisplayName.hashCode() : 0);
+    result = 71 * result + (serviceType != null ? serviceType.hashCode() : 0);
     return result;
   }
 

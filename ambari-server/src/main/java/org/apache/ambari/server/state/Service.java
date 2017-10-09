@@ -36,7 +36,9 @@ public interface Service {
 
   String getName();
 
-  String getServiceDisplayName();
+  String getDisplayName();
+
+  String getServiceType();
 
   Cluster getCluster();
 

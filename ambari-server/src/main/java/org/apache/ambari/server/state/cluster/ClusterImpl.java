@@ -856,8 +856,8 @@ public class ClusterImpl implements Cluster {
   @Override
   public void addService(Service service) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a new Service, clusterName={}, clusterId={}, serviceName={} serviceDisplayName={}",
-                 getClusterName(), getClusterId(), service.getName(), service.getServiceDisplayName());
+      LOG.debug("Adding a new Service, clusterName={}, clusterId={}, serviceName={} serviceType={}",
+                 getClusterName(), getClusterId(), service.getName(), service.getServiceType());
     }
     services.put(service.getName(), service);
   }
@@ -866,17 +866,17 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public Service addService(ServiceGroup serviceGroup, String serviceName, String serviceDisplayName,
+  public Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType,
                             RepositoryVersionEntity repositoryVersion) throws AmbariException {
     if (services.containsKey(serviceName)) {
-      String message = MessageFormat.format("The {0} service already exists in {1}", serviceDisplayName,
+      String message = MessageFormat.format("The {0} service already exists in {1}", serviceName,
         getClusterName());
 
       throw new AmbariException(message);
     }
 
     @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-    Service service = serviceFactory.createNew(this, serviceGroup, serviceName, serviceDisplayName, repositoryVersion);
+    Service service = serviceFactory.createNew(this, serviceGroup, serviceName, serviceType, repositoryVersion);
     addService(service);
 
     return service;

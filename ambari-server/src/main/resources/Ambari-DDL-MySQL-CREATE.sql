@@ -181,7 +181,7 @@ CREATE TABLE servicegroups (
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
-  service_display_name VARCHAR(255) NOT NULL,
+  service_type VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_enabled INTEGER NOT NULL,

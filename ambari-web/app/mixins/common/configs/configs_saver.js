@@ -750,7 +750,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       };
 
       if (this.get('content.serviceName') === 'HDFS') {
-        options.urlParams += '&ServiceComponentInfo/service_display_name.in(HDFS)'
+        options.urlParams += '&ServiceComponentInfo/service_name.in(HDFS)'
       }
     } else {
       options = {

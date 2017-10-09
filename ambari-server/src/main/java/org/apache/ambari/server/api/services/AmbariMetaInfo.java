@@ -287,34 +287,34 @@ public class AmbariMetaInfo {
   /**
    * Get components by service
    *
-   * @param stackName     stack name
-   * @param version       stack version
-   * @param serviceName   service name
+   * @param stackName         stack name
+   * @param version           stack version
+   * @param stackServiceName  stack service name
    * @return List of ComponentInfo objects
    * @throws AmbariException
    */
-  public List<ComponentInfo> getComponentsByService(String stackName, String version, String serviceName)
+  public List<ComponentInfo> getComponentsByService(String stackName, String version, String stackServiceName)
       throws AmbariException {
 
     ServiceInfo service;
     try {
-      service = getService(stackName, version, serviceName);
+      service = getService(stackName, version, stackServiceName);
     } catch (StackAccessException e) {
       throw new ParentObjectNotFoundException("Parent Service resource doesn't exist. stackName=" +
-          stackName + ", stackVersion=" + version + ", serviceName=" + serviceName);
+          stackName + ", stackVersion=" + version + ", stackServiceName=" + stackServiceName);
     }
     return service.getComponents();
   }
 
-  public ComponentInfo getComponent(String stackName, String version, String serviceDisplayName,
+  public ComponentInfo getComponent(String stackName, String version, String stackServiceName,
                                     String componentName) throws AmbariException {
 
-    ComponentInfo component = getService(stackName, version, serviceDisplayName).getComponentByName(componentName);
+    ComponentInfo component = getService(stackName, version, stackServiceName).getComponentByName(componentName);
 
     if (component == null) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
-          + ", serviceDisplayName=" + serviceDisplayName
+          + ", stackServiceName=" + stackServiceName
           + ", componentName=" + componentName);
     }
     return component;
@@ -459,10 +459,10 @@ public class AmbariMetaInfo {
   /*
    * support isValidService(), isValidComponent for a given stack/version
    */
-  public boolean isValidService(String stackName, String version, String serviceName){
+  public boolean isValidService(String stackName, String version, String stackServiceName){
 
     try {
-      getService(stackName, version, serviceName);
+      getService(stackName, version, stackServiceName);
       return true;
     } catch (AmbariException e) {
       return false;
@@ -473,9 +473,9 @@ public class AmbariMetaInfo {
    * support isValidService(), isValidComponent for a given stack/version
    */
   public boolean isValidServiceComponent(String stackName, String version,
-                                         String serviceName, String componentName) {
+                                         String stackServiceName, String componentName) {
     try {
-      getService(stackName, version, serviceName).getComponentByName(componentName);
+      getService(stackName, version, stackServiceName).getComponentByName(componentName);
       return true;
     } catch (AmbariException e) {
       return false;
@@ -549,30 +549,30 @@ public class AmbariMetaInfo {
    */
   public ServiceInfo getService(Service service) throws AmbariException {
     StackId stackId = service.getDesiredStackId();
-    return getService(stackId.getStackName(), stackId.getStackVersion(), service.getName());
+    return getService(stackId.getStackName(), stackId.getStackVersion(), service.getServiceType());
   }
 
-  public ServiceInfo getService(String stackName, String version, String serviceName) throws AmbariException {
-    ServiceInfo service = getStack(stackName, version).getService(serviceName);
+  public ServiceInfo getService(String stackName, String version, String stackServiceName) throws AmbariException {
+    ServiceInfo service = getStack(stackName, version).getService(stackServiceName);
 
     if (service == null) {
       throw new StackAccessException("stackName=" + stackName + ", stackVersion=" +
-                                     version + ", serviceName=" + serviceName);
+                                     version + ", stackServiceName=" + stackServiceName);
     }
 
     return service;
   }
 
-  public boolean isServiceRemovedInStack(String stackName, String version, String serviceName) throws AmbariException{
+  public boolean isServiceRemovedInStack(String stackName, String version, String stackServiceName) throws AmbariException{
     StackInfo stack = getStack(stackName, version);
     List<String> removedServices = stack.getRemovedServices();
-    return removedServices.contains(serviceName);
+    return removedServices.contains(stackServiceName);
   }
 
-  public boolean isServiceWithNoConfigs(String stackName, String version, String serviceName) throws AmbariException{
+  public boolean isServiceWithNoConfigs(String stackName, String version, String stackServiceName) throws AmbariException{
     StackInfo stack = getStack(stackName, version);
     List<String> servicesWithNoConfigs = stack.getServicesWithNoConfigs();
-    return servicesWithNoConfigs.contains(serviceName);
+    return servicesWithNoConfigs.contains(stackServiceName);
   }
 
   public Collection<String> getMonitoringServiceNames(String stackName, String version)
@@ -730,10 +730,10 @@ public class AmbariMetaInfo {
     return result;
   }
 
-  public Set<PropertyInfo> getServiceProperties(String stackName, String version, String serviceName)
+  public Set<PropertyInfo> getServiceProperties(String stackName, String version, String stackServiceName)
       throws AmbariException {
 
-    return new HashSet<>(getService(stackName, version, serviceName).getProperties());
+    return new HashSet<>(getService(stackName, version, stackServiceName).getProperties());
   }
 
   public Set<PropertyInfo> getStackProperties(String stackName, String version)
@@ -742,17 +742,17 @@ public class AmbariMetaInfo {
     return new HashSet<>(getStack(stackName, version).getProperties());
   }
 
-  public Set<PropertyInfo> getPropertiesByName(String stackName, String version, String serviceName, String propertyName)
+  public Set<PropertyInfo> getPropertiesByName(String stackName, String version, String stackServiceName, String propertyName)
       throws AmbariException {
 
-    Set<PropertyInfo> properties = serviceName == null ?
+    Set<PropertyInfo> properties = stackServiceName == null ?
       getStackProperties(stackName, version)
-      : getServiceProperties(stackName, version, serviceName);
+      : getServiceProperties(stackName, version, stackServiceName);
 
     if (properties.size() == 0) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
-          + ", serviceName=" + serviceName
+          + ", stackServiceName=" + stackServiceName
           + ", propertyName=" + propertyName);
     }
 
@@ -767,7 +767,7 @@ public class AmbariMetaInfo {
     if (propertyResult.isEmpty()) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
-          + ", serviceName=" + serviceName
+          + ", stackServiceName=" + stackServiceName
           + ", propertyName=" + propertyName);
     }
 
@@ -911,12 +911,12 @@ public class AmbariMetaInfo {
    * Return metrics for a stack service.
    */
   public Map<String, Map<String, List<MetricDefinition>>> getServiceMetrics(String stackName,
-            String stackVersion, String serviceName) throws AmbariException {
+            String stackVersion, String stackServiceName) throws AmbariException {
 
-    ServiceInfo svc = getService(stackName, stackVersion, serviceName);
+    ServiceInfo svc = getService(stackName, stackVersion, stackServiceName);
 
     if (null == svc.getMetricsFile() || !svc.getMetricsFile().exists()) {
-      LOG.debug("Metrics file for {}/{}/{} not found.", stackName, stackVersion, serviceName);
+      LOG.debug("Metrics file for {}/{}/{} not found.", stackName, stackVersion, stackServiceName);
       return null;
     }
 
@@ -1022,11 +1022,11 @@ public class AmbariMetaInfo {
    * @return the list of defined metrics.
    */
   public List<MetricDefinition> getMetrics(String stackName, String stackVersion,
-      String serviceName, String componentName, String metricType)
+      String stackServiceName, String componentName, String metricType)
       throws AmbariException {
 
     Map<String, Map<String, List<MetricDefinition>>> map = getServiceMetrics(
-      stackName, stackVersion, serviceName);
+      stackName, stackVersion, stackServiceName);
 
     if (map != null && map.containsKey(componentName)) {
       if (map.get(componentName).containsKey(metricType)) {
@@ -1044,16 +1044,16 @@ public class AmbariMetaInfo {
    *          the stack name
    * @param stackVersion
    *          the stack version
-   * @param serviceName
-   *          the service name
+   * @param stackServiceName
+   *          the stack service name
    * @return the alert definitions for a stack or an empty list if none (never
    *         {@code null}).
    * @throws AmbariException
    */
   public Set<AlertDefinition> getAlertDefinitions(String stackName, String stackVersion,
-                                                  String serviceName) throws AmbariException {
+                                                  String stackServiceName) throws AmbariException {
 
-    ServiceInfo svc = getService(stackName, stackVersion, serviceName);
+    ServiceInfo svc = getService(stackName, stackVersion, stackServiceName);
     return getAlertDefinitions(svc);
   }
   /**

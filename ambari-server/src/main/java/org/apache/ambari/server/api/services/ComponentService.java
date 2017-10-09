@@ -62,23 +62,23 @@ public class ComponentService extends BaseService {
   /**
    * Parent service display name.
    */
-  private String m_serviceDisplayName;
+  private String m_serviceName;
 
   /**
    * Constructor.
    *
    * @param clusterName           cluster name
    * @param serviceGroupName      servicegroup name
-   * @param serviceDisplayName    service display name
+   * @param serviceName           service name
    */
-  public ComponentService(String clusterName, String serviceGroupName, String serviceDisplayName) {
+  public ComponentService(String clusterName, String serviceGroupName, String serviceName) {
     m_clusterName = clusterName;
     m_serviceGroupName = serviceGroupName;
-    m_serviceDisplayName = serviceDisplayName;
+    m_serviceName = serviceName;
   }
 
   /**
-   * Handles GET: /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/components/{componentName}
+   * Handles GET: /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components/{componentName}
    * Get a specific component.
    *
    * @param headers       http headers
@@ -99,7 +99,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles GET: /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/components
+   * Handles GET: /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components
    * Get all components for a service.
    *
    * @param headers http headers
@@ -119,7 +119,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/components
+   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components
    * Create components by specifying an array of components in the http body.
    * This is used to create multiple components in a single request.
    *
@@ -138,7 +138,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/components/{componentID}
+   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components/{componentID}
    * Create a specific component.
    *
    * @param body          http body
@@ -159,7 +159,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/components/{componentID}
+   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components/{componentID}
    * Update a specific component.
    *
    * @param body          http body
@@ -179,7 +179,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/components
+   * Handles: PUT /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components
    * Update multiple components.
    *
    * @param body          http body
@@ -196,7 +196,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles: DELETE /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceDisplayName}/components/{componentID}
+   * Handles: DELETE /clusters/{clusterName}/servicegroups/{serviceGroupName}/services/{serviceName}/components/{componentID}
    * Delete a specific component.
    *
    * @param headers     http headers
@@ -225,7 +225,7 @@ public class ComponentService extends BaseService {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Cluster, m_clusterName == null? null : m_clusterName.toString());
     mapIds.put(Resource.Type.ServiceGroup, m_serviceGroupName == null? null : m_serviceGroupName.toString());
-    mapIds.put(Resource.Type.Service, m_serviceDisplayName == null? null : m_serviceDisplayName.toString());
+    mapIds.put(Resource.Type.Service, m_serviceName == null? null : m_serviceName.toString());
     mapIds.put(Resource.Type.Component, componentName);
 
     return createResource(Resource.Type.Component, mapIds);
@@ -235,15 +235,15 @@ public class ComponentService extends BaseService {
                                       String componentName) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
-    mapIds.put(Resource.Type.Service, m_serviceDisplayName);
+    mapIds.put(Resource.Type.Service, m_serviceName);
     mapIds.put(Resource.Type.Component, componentName);
     String filePrefixName;
 
     if (StringUtils.isEmpty(componentName)) {
-      if (StringUtils.isEmpty(m_serviceDisplayName)) {
+      if (StringUtils.isEmpty(m_serviceName)) {
         filePrefixName = m_clusterName + "(" + Resource.InternalType.Cluster.toString().toUpperCase()+")";
       } else {
-        filePrefixName = m_serviceDisplayName + "(" + Resource.InternalType.Service.toString().toUpperCase()+")";
+        filePrefixName = m_serviceName + "(" + Resource.InternalType.Service.toString().toUpperCase()+")";
       }
     } else {
       filePrefixName = componentName;
