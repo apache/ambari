@@ -442,6 +442,32 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           String.format("Version %s is backed by a version definition, but it could not be parsed", desiredRepoVersion), e);
     }
 
+    // stop the VDF distribution right now if there are problems with service
+    // dependencies
+    try {
+      if (repoVersionEntity.getType().isPartial()) {
+        Map<String, Set<String>> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster);
+
+        if (!missingDependencies.isEmpty()) {
+          StringBuilder message = new StringBuilder(
+              "The following services are included in this repository, but the repository is missing their dependencies: ").append(
+                  System.lineSeparator());
+
+          for (String failedService : missingDependencies.keySet()) {
+            message.append(String.format("%s requires the following services: %s", failedService,
+                StringUtils.join(missingDependencies.get(failedService), ','))).append(
+                    System.lineSeparator());
+          }
+
+          throw new SystemException(message.toString());
+        }
+      }
+    } catch (AmbariException ambariException) {
+      throw new SystemException(
+          "Unable to determine if this repository contains the necessary service dependencies",
+          ambariException);
+    }
+
     // if true, then we need to force all new host versions into the INSTALLED state
     boolean forceInstalled = Boolean.parseBoolean((String)propertyMap.get(
         CLUSTER_STACK_VERSION_FORCE));
