@@ -27,6 +27,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An extension version is like a stack version but it contains custom services.  Linking an extension
@@ -34,6 +36,8 @@ import org.apache.ambari.server.utils.VersionUtils;
  * the extension version.
  */
 public class ExtensionHelper {
+
+  private final static Logger LOG = LoggerFactory.getLogger(ExtensionHelper.class);
 
   public static void validateDeleteLink(Clusters clusters, StackInfo stack, ExtensionInfo extension) throws AmbariException {
     validateNotRequiredExtension(stack, extension);
@@ -62,9 +66,9 @@ public class ExtensionHelper {
     }
   }
 
-  public static void validateCreateLink(StackInfo stack, ExtensionInfo extension) throws AmbariException {
+  public static void validateCreateLink(StackManager stackManager, StackInfo stack, ExtensionInfo extension) throws AmbariException {
     validateSupportedStackVersion(stack, extension);
-    validateServiceDuplication(stack, extension);
+    validateServiceDuplication(stackManager, stack, extension);
     validateRequiredExtensions(stack, extension);
   }
 
@@ -88,15 +92,24 @@ public class ExtensionHelper {
     throw new AmbariException(message);
   }
 
-  private static void validateServiceDuplication(StackInfo stack, ExtensionInfo extension) throws AmbariException {
+  private static void validateServiceDuplication(StackManager stackManager, StackInfo stack, ExtensionInfo extension) throws AmbariException {
+    LOG.debug("Looking for duplicate services");
     for (ServiceInfo service : extension.getServices()) {
+      LOG.debug("Looking for duplicate service " + service.getName());
       if (service != null) {
         ServiceInfo stackService = null;
         try {
           stackService = stack.getService(service.getName());
+          if (stackService != null) {
+            LOG.debug("Found service " + service.getName());
+            if (isInheritedExtensionService(stackManager, stack, service.getName(), extension.getName())) {
+              stackService = null;
+            }
+          }
         }
         catch (Exception e) {
           //Eat the exception
+          LOG.error("Error validating service duplication", e);
         }
         if (stackService != null) {
           String message = "Existing service is included in extension"
@@ -110,6 +123,44 @@ public class ExtensionHelper {
         }
       }
     }
+  }
+
+  private static boolean isInheritedExtensionService(StackManager stackManager, StackInfo stack, String serviceName, String extensionName) {
+    // Check if service is from an extension at the current stack level, if so then it isn't inherited from its parent stack version
+    if (isExtensionService(stack, serviceName, extensionName)) {
+      LOG.debug("Service is at requested stack/version level " + serviceName);
+      return false;
+    }
+
+    return isExtensionService(stackManager, stack.getName(), stack.getParentStackVersion(), serviceName, extensionName);
+  }
+
+  private static boolean isExtensionService(StackManager stackManager, String stackName, String stackVersion, String serviceName, String extensionName) {
+    LOG.debug("Checking at stack/version " + stackName + "/" + stackVersion);
+    StackInfo stack = stackManager.getStack(stackName, stackVersion);
+
+    if (stack == null) {
+      LOG.warn("Stack/version not found " + stackName + "/" + stackVersion);
+      return false;
+    }
+
+    if (isExtensionService(stack, serviceName, extensionName)) {
+      LOG.debug("Stack/version " + stackName + "/" + stackVersion + " contains service " + serviceName);
+      return true;
+    }
+    else {
+      return isExtensionService(stackManager, stackName, stack.getParentStackVersion(), serviceName, extensionName);
+    }
+  }
+
+  private static boolean isExtensionService(StackInfo stack, String serviceName, String extensionName) {
+    ExtensionInfo extension = stack.getExtension(extensionName);
+    if (extension == null) {
+      LOG.debug("Extension not found " + extensionName);
+      return false;
+    }
+
+    return extension.getService(serviceName) != null;
   }
 
   private static void validateRequiredExtensions(StackInfo stack, ExtensionInfo extension) throws AmbariException {
