@@ -16,17 +16,7 @@
    limitations under the License.
 -->
 <metainfo>
-  <versions>
-    <active>true</active>
-  </versions>
-  <extends>0.2</extends>
-  <auto-link>true</auto-link>
-  <prerequisites>
-    <min-stack-versions>
-      <stack>
-        <name>HDP</name>
-        <version>0.3</version>
-      </stack>
-    </min-stack-versions>
-  </prerequisites>
+    <versions>
+	  <upgrade>0.3</upgrade>
+    </versions>
 </metainfo>

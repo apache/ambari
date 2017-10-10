@@ -16,17 +16,11 @@
    limitations under the License.
 -->
 <metainfo>
-  <versions>
-    <active>true</active>
-  </versions>
-  <extends>0.2</extends>
-  <auto-link>true</auto-link>
-  <prerequisites>
-    <min-stack-versions>
-      <stack>
-        <name>HDP</name>
-        <version>0.3</version>
-      </stack>
-    </min-stack-versions>
-  </prerequisites>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HBASE</name>
+      <extends>common-services/HBASE/1.0</extends>
+    </service>
+  </services>
 </metainfo>
