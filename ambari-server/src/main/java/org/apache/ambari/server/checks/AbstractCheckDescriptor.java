@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
@@ -44,11 +45,11 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -56,8 +57,6 @@ import com.google.inject.Provider;
  * Describes prerequisite check.
  */
 public abstract class AbstractCheckDescriptor {
-
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractCheckDescriptor.class);
 
   protected static final String DEFAULT = "default";
 
@@ -81,6 +80,9 @@ public abstract class AbstractCheckDescriptor {
 
   @Inject
   Configuration config;
+
+  @Inject
+  Gson gson;
 
   private CheckDescription m_description;
 
@@ -128,7 +130,7 @@ public abstract class AbstractCheckDescriptor {
    */
   public final boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
     List<CheckQualification> qualifications = Lists.<CheckQualification> newArrayList(
-        new ServiceQualification());
+        new ServiceQualification(), new OrchestrationQualification(getClass()));
 
     // add any others from the concrete check
     qualifications.addAll(getQualifications());
@@ -302,6 +304,27 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
+   * Gets a de-serialized {@link VersionDefinitionXml} from the repository for
+   * this upgrade.
+   *
+   * @param request
+   *          the upgrade check request.
+   * @return the VDF XML
+   * @throws AmbariException
+   */
+  final VersionDefinitionXml getVersionDefinitionXml(PrereqCheckRequest request) throws AmbariException {
+    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+
+    try {
+      VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
+      return vdf;
+    } catch (Exception exception) {
+      throw new AmbariException("Unable to run upgrade checks because of an invalid VDF",
+          exception);
+    }
+  }
+
+  /**
    * Gets the services participating in the upgrade from the VDF.
    *
    * @param request
@@ -311,12 +334,11 @@ public abstract class AbstractCheckDescriptor {
    */
   final Set<String> getServicesInUpgrade(PrereqCheckRequest request) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
 
     // the check is scoped to some services, so determine if any of those
     // services are included in this upgrade
     try {
-      VersionDefinitionXml vdf = repositoryVersion.getRepositoryXml();
+      VersionDefinitionXml vdf = getVersionDefinitionXml(request);
       ClusterVersionSummary clusterVersionSummary = vdf.getClusterSummary(cluster);
       return clusterVersionSummary.getAvailableServiceNames();
     } catch (Exception exception) {
@@ -401,6 +423,49 @@ public abstract class AbstractCheckDescriptor {
       }
 
       return true;
+    }
+  }
+
+  /**
+   * The {@link OrchestrationQualification} class is used to determine if the
+   * check is required to run based on the {@link RepositoryType}.
+   */
+  final class OrchestrationQualification implements CheckQualification {
+
+    private final Class<? extends AbstractCheckDescriptor> m_checkClass;
+
+    /**
+     * Constructor.
+     *
+     * @param checkClass
+     *          the class of the check which is being considered for
+     *          applicability.
+     */
+    public OrchestrationQualification(Class<? extends AbstractCheckDescriptor> checkClass) {
+      m_checkClass = checkClass;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+      RepositoryVersionEntity repositoryVersion = request.getTargetRepositoryVersion();
+      RepositoryType repositoryType = repositoryVersion.getType();
+
+      UpgradeCheck annotation = m_checkClass.getAnnotation(UpgradeCheck.class);
+      if (null == annotation) {
+        return true;
+      }
+
+      RepositoryType[] repositoryTypes = annotation.orchestration();
+
+      if (ArrayUtils.isEmpty(repositoryTypes)
+          || ArrayUtils.contains(repositoryTypes, repositoryType)) {
+        return true;
+      }
+
+      return false;
     }
   }
 }

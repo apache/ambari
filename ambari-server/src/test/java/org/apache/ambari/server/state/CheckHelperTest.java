@@ -100,6 +100,8 @@ public class CheckHelperTest {
     updateChecksRegistry.add(m_mockCheck);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+
     helper.performChecks(request, updateChecksRegistry, configuration);
 
     Assert.assertEquals(PrereqCheckStatus.PASS, request.getResult(m_mockCheckDescription));
@@ -128,6 +130,7 @@ public class CheckHelperTest {
     updateChecksRegistry.add(m_mockCheck);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+
     helper.performChecks(request, updateChecksRegistry, configuration);
 
 
@@ -151,6 +154,8 @@ public class CheckHelperTest {
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+
     helper.performChecks(request, updateChecksRegistry, configuration);
 
     Assert.assertEquals(PrereqCheckStatus.FAIL, request.getResult(m_mockCheckDescription));
@@ -173,6 +178,8 @@ public class CheckHelperTest {
     Mockito.when(m_mockPerform.toString()).thenThrow(new RuntimeException());
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetRepositoryVersion(m_repositoryVersion);
+
     helper.performChecks(request, updateChecksRegistry, configuration);
 
     Assert.assertEquals(PrereqCheckStatus.BYPASS, request.getResult(m_mockCheckDescription));

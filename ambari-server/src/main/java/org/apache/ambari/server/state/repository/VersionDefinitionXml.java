@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.repository;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.xml.XMLConstants;
@@ -50,17 +52,27 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.AvailableVersion.Component;
+import org.apache.ambari.server.state.repository.StackPackage.UpgradeDependencies;
+import org.apache.ambari.server.state.repository.StackPackage.UpgradeDependencyDeserializer;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+
+import com.google.common.collect.Sets;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import jline.internal.Log;
 
 /**
  * Class that wraps a repository definition file.
@@ -307,6 +319,81 @@ public class VersionDefinitionXml {
     }
 
     return new ClusterVersionSummary(summaries);
+  }
+
+  /**
+   * Gets information about services which cannot be upgraded because the
+   * repository does not contain required dependencies. This method will look at
+   * the {@code cluster-env/stack_packages} structure to see if there are any
+   * dependencies listed in the {@code upgrade-dependencies} key.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @return a mapping of service name to its missing service dependencies, or
+   *         an empty map if there are none (never {@code null}).
+   * @throws AmbariException
+   */
+  public Map<String, Set<String>> getMissingDependencies(Cluster cluster)
+      throws AmbariException {
+    Map<String, Set<String>> missingDependencies = new TreeMap<>();
+
+    String stackPackagesJson = cluster.getClusterProperty(
+        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY, null);
+
+    // quick exit
+    if (StringUtils.isEmpty(stackPackagesJson)) {
+      return missingDependencies;
+    }
+
+    // create a GSON builder which can deserialize the stack_packages.json
+    GsonBuilder gsonBuilder = new GsonBuilder();
+    gsonBuilder.registerTypeAdapter(UpgradeDependencies.class, new UpgradeDependencyDeserializer());
+    Gson gson = gsonBuilder.create();
+    Type type = new TypeToken<Map<String, StackPackage>>(){}.getType();
+
+    // a mapping of stack name to stack-select/conf-select/upgade-deps
+    final Map<String, StackPackage> stackPackages;
+
+    try {
+      stackPackages = gson.fromJson(stackPackagesJson, type);
+    } catch( Exception exception ) {
+      Log.warn("Unable to deserialize the stack packages JSON, assuming no service dependencies",
+          exception);
+
+      return missingDependencies;
+    }
+
+    StackId stackId = new StackId(release.stackId);
+    StackPackage stackPackage = stackPackages.get(stackId.getStackName());
+    if (null == stackPackage || null == stackPackage.upgradeDependencies) {
+      return missingDependencies;
+    }
+
+    Map<String, List<String>> dependencies = stackPackage.upgradeDependencies.dependencies;
+
+    if (null == dependencies || dependencies.isEmpty()) {
+      return missingDependencies;
+    }
+
+    ClusterVersionSummary clusterVersionSummary = getClusterSummary(cluster);
+    Set<String> servicesInUpgrade = clusterVersionSummary.getAvailableServiceNames();
+    Set<String> servicesInRepository = getAvailableServiceNames();
+
+    for (String serviceInUpgrade : servicesInUpgrade) {
+      List<String> servicesRequired = dependencies.get(serviceInUpgrade);
+      if (null == servicesRequired) {
+        continue;
+      }
+
+      for (String serviceRequired : servicesRequired) {
+        if (!servicesInRepository.contains(serviceRequired)) {
+          missingDependencies.put(serviceInUpgrade, Sets.newTreeSet(servicesRequired));
+          break;
+        }
+      }
+    }
+
+    return missingDependencies;
   }
 
   /**

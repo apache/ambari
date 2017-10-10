@@ -23,6 +23,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.ScopeAnnotation;
@@ -69,4 +70,14 @@ public @interface UpgradeCheck {
    *         defined in the upgrade pack or an empty array for none.
    */
   UpgradeType[] required() default {};
+
+
+  /**
+   * The valid orchestration repository type that this check if valid for. By
+   * default, a check is valid for all orchestration types.
+   *
+   * @return the repository types that the check is valid for.
+   */
+  RepositoryType[] orchestration() default { RepositoryType.STANDARD, RepositoryType.PATCH,
+      RepositoryType.MAINT, RepositoryType.SERVICE };
 }

@@ -97,6 +97,8 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.3"));
 
     m_services.clear();
+
+    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
     Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
