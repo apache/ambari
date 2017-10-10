@@ -34,7 +34,7 @@ describe('App.AddServiceController', function() {
       res: {
         "context": Em.I18n.t('requestInfo.installServices'),
         "ServiceInfo": {"state": "INSTALLED"},
-        "urlParams": "ServiceInfo/service_display_name.in(YARN,HBASE)"
+        "urlParams": "ServiceInfo/service_name.in(YARN,HBASE)"
       }
     },
     {
@@ -42,7 +42,7 @@ describe('App.AddServiceController', function() {
       res: {
         "context": Em.I18n.t('requestInfo.installServices'),
         "ServiceInfo": {"state": "INSTALLED"},
-        "urlParams": "ServiceInfo/service_display_name.in(OOZIE,HDFS,YARN,MAPREDUCE2)"
+        "urlParams": "ServiceInfo/service_name.in(OOZIE,HDFS,YARN,MAPREDUCE2)"
       }
     }];
     tests.forEach(function(t){

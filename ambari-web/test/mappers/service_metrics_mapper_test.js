@@ -56,13 +56,13 @@ describe('App.serviceMetricsMapper', function () {
     var services = [
       {
         ServiceInfo: {
-          service_display_name: "HDFS"
+          service_name: "HDFS"
         },
         components: [
           {
             ServiceComponentInfo: {
               component_name: "NAMENODE",
-              service_display_name: "HDFS"
+              service_name: "HDFS"
             },
             host_components: [
               {

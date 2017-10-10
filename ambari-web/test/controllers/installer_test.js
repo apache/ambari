@@ -528,7 +528,7 @@ describe('App.InstallerController', function () {
       });
 
       it('should call loadStacksVersions, stack versions not loaded', function () {
-        installerController.loadMap['1'][1].callback.call(checker, false).then(function(data){
+        installerController.loadMap['step1'][1].callback.call(checker, false).then(function(data){
           expect(data).to.be.true;
         });
         expect(checker.loadStacksVersions.calledOnce).to.be.true;
