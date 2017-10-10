@@ -778,10 +778,10 @@ class Script(object):
 
     pkg_provider = get_provider("Package")   
     try:
-      available_packages_in_repos = pkg_provider.get_available_packages_in_repos(self.get_config()['repositoryFile']['repositories'])
+      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(self.get_config()['repositoryFile']['repositories'])
     except Exception as err:
       Logger.exception("Unable to load available packages")
-      available_packages_in_repos = []
+      self.available_packages_in_repos = []
 
 
   def install_packages(self, env):
