@@ -86,10 +86,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final int PROPERTY_REQUEST_CONNECT_TIMEOUT = 5000;
   private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
 
-  private static final String CLUSTER_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Clusters", "cluster_name");
-  private static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
-  private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
-  private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
   private static final String METRIC_SERVER                             = "METRICS_COLLECTOR";
   private static final String PROPERTIES_CATEGORY = "properties";
@@ -222,6 +218,11 @@ public abstract class AbstractProviderModule implements ProviderModule,
    */
   private final Map<Resource.Type, List<PropertyProvider>> propertyProviders = new HashMap<>();
 
+  /*
+   * TODO: Instantiation for the concrete impl of this class is not done through
+   * dependency injector (guice) so none of these field initialization
+   * are going to work unless refactoring is complete.
+   */
   @Inject
   AmbariManagementController managementController;
 
@@ -523,7 +524,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   @Override
   public String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
-    // Parent map need not be synchronized
     ConcurrentMap<String, ConcurrentMap<String, String>> clusterJmxPorts;
     // Still need double check to ensure single init
     if (!jmxPortMap.containsKey(clusterName)) {
@@ -534,9 +534,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
         }
       }
     }
-
     clusterJmxPorts = jmxPortMap.get(clusterName);
-
     Service.Type service = componentServiceMap.get(componentName);
 
     if (service != null) {
@@ -883,15 +881,14 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
     for (Cluster cluster : clusterMap.values()) {
       String clusterName = cluster.getClusterName();
-
       Map<String, String> hostComponentMap = clusterHostComponentMap.get(clusterName);
+
       if (hostComponentMap == null) {
         hostComponentMap = new HashMap<>();
         clusterHostComponentMap.put(clusterName, hostComponentMap);
       }
 
       List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts();
-
       if (!CollectionUtils.isEmpty(serviceComponentHosts)) {
         for (ServiceComponentHost sch : serviceComponentHosts) {
           String componentName = sch.getServiceComponentName();

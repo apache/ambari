@@ -22,6 +22,7 @@ package org.apache.ambari.server.controller;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
@@ -67,5 +68,8 @@ public interface ResourceProviderFactory {
 
   @Named("upgrade")
   UpgradeResourceProvider getUpgradeResourceProvider(AmbariManagementController managementController);
+
+  @Named("clusterStackVersion")
+  ClusterStackVersionResourceProvider getClusterStackVersionResourceProvider(AmbariManagementController managementController);
 
 }

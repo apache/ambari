@@ -120,7 +120,7 @@ public class KerberosServerActionTest {
           "principal|_HOST|_REALM" + i, "principal_type", "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
-          "false");
+          "false", "false");
     }
     writer.close();
 

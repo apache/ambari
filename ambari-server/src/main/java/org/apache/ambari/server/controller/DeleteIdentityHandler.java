@@ -227,7 +227,8 @@ class DeleteIdentityHandler {
         calculateConfig(kerberosDescriptor, serviceNames()),
         new HashMap<>(),
         false,
-        new HashMap<>());
+        new HashMap<>(),
+          false);
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
     }
 

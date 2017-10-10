@@ -173,6 +173,7 @@ public class UpgradePackTest {
     ConfigureTask ct = (ConfigureTask) t;
     // check that the Configure task successfully parsed id
     assertEquals("hdp_2_1_1_nm_pre_upgrade", ct.getId());
+    assertFalse(ct.supportsPatch);
   }
 
   @Test

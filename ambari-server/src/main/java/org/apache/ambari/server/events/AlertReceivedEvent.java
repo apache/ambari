@@ -27,6 +27,12 @@ import org.apache.ambari.server.state.Alert;
  */
 public final class AlertReceivedEvent extends AlertEvent {
 
+  /**
+   * Constructor.
+   *
+   * @param clusterId
+   * @param alert
+   */
   public AlertReceivedEvent(long clusterId, Alert alert) {
     super(clusterId, alert);
   }
@@ -41,7 +47,7 @@ public final class AlertReceivedEvent extends AlertEvent {
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("AlertReceivedEvent{");
-    buffer.append("clusterId=").append(m_clusterId);
+    buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", alerts=").append(getAlerts());
     buffer.append("}");
     return buffer.toString();

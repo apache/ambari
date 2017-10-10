@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +21,8 @@ import static org.apache.ambari.server.view.ViewContextImpl.CORE_SITE;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +31,24 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +85,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
 
   public static final String REPO_VERSION_TABLE = "repo_version";
   public static final String REPO_VERSION_ID_COLUMN = "repo_version_id";
+  public static final String REPO_VERSION_RESOLVED_COLUMN = "resolved";
   public static final String REPO_VERSION_HIDDEN_COLUMN = "hidden";
 
   public static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
@@ -97,6 +113,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String FK_UPGRADE_FROM_REPO_ID = "FK_upgrade_from_repo_id";
   public static final String FK_UPGRADE_TO_REPO_ID = "FK_upgrade_to_repo_id";
   public static final String FK_UPGRADE_REPO_VERSION_ID = "FK_upgrade_repo_version_id";
+  public static final String UPGRADE_ITEM_ITEM_TEXT = "item_text";
 
   public static final String SERVICE_COMPONENT_HISTORY_TABLE = "servicecomponent_history";
   public static final String UPGRADE_HISTORY_TABLE = "upgrade_history";
@@ -115,6 +132,9 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String HOST_COMPONENT_DESIRED_STATE = "hostcomponentdesiredstate";
   public static final String HOST_COMPONENT_STATE = "hostcomponentstate";
 
+  public static final String AMS_SSL_CLIENT = "ams-ssl-client";
+  public static final String METRIC_TRUSTSTORE_ALIAS = "ssl.client.truststore.alias";
+
   /**
    * Logger.
    */
@@ -123,6 +143,12 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String NOT_REQUIRED = "NOT_REQUIRED";
   public static final String CURRENT = "CURRENT";
   public static final String SELECTED = "1";
+  public static final String VIEWURL_TABLE = "viewurl";
+  public static final String PK_VIEWURL = "PK_viewurl";
+  public static final String URL_ID_COLUMN = "url_id";
+  public static final String STALE_POSTGRESS_VIEWURL_PKEY = "viewurl_pkey";
+  public static final String USERS_TABLE = "users";
+  public static final String STALE_POSTGRESS_USERS_LDAP_USER_KEY = "users_ldap_user_key";
 
 
   /**
@@ -168,6 +194,34 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     createUpgradeHistoryTable();
     updateRepositoryVersionTable();
     renameServiceDeletedColumn();
+    expandUpgradeItemItemTextColumn();
+    addViewUrlPKConstraint();
+    removeStaleConstraints();
+  }
+
+
+  /**
+   * Updates {@value #VIEWURL_TABLE} table.
+   * Adds the {@value #PK_VIEWURL} constraint.
+   */
+  private void addViewUrlPKConstraint() throws SQLException {
+    dbAccessor.dropPKConstraint(VIEWURL_TABLE, STALE_POSTGRESS_VIEWURL_PKEY);
+    dbAccessor.addPKConstraint(VIEWURL_TABLE, PK_VIEWURL, URL_ID_COLUMN);
+  }
+
+  /**
+   * remove stale unnamed constraints
+   */
+  private void removeStaleConstraints() throws SQLException {
+    dbAccessor.dropUniqueConstraint(USERS_TABLE, STALE_POSTGRESS_USERS_LDAP_USER_KEY);
+  }
+
+  /**
+   * Expand item_text column of upgrade_item
+   */
+  private void expandUpgradeItemItemTextColumn() throws SQLException {
+    dbAccessor.changeColumnType(UPGRADE_ITEM_TABLE, UPGRADE_ITEM_ITEM_TEXT,
+      String.class, char[].class);
   }
 
   private void renameServiceDeletedColumn() throws AmbariException, SQLException {
@@ -360,14 +414,20 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Updates {@value #REPO_VERSION_TABLE} table. Adds
-   * {@value #REPO_VERSION_HIDDEN_COLUMN} column.
+   * Updates {@value #REPO_VERSION_TABLE} table. Adds the following columns:
+   * <ul>
+   * <li>{@value #REPO_VERSION_HIDDEN_COLUMN}
+   * <li>{@value #REPO_VERSION_RESOLVED_COLUMN}
+   * </ul>
    *
    * @throws java.sql.SQLException
    */
   private void updateRepositoryVersionTable() throws SQLException {
     dbAccessor.addColumn(REPO_VERSION_TABLE,
         new DBAccessor.DBColumnInfo(REPO_VERSION_HIDDEN_COLUMN, Short.class, null, 0, false));
+
+    dbAccessor.addColumn(REPO_VERSION_TABLE,
+        new DBAccessor.DBColumnInfo(REPO_VERSION_RESOLVED_COLUMN, Short.class, null, 0, false));
   }
 
   /**
@@ -375,7 +435,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-
+    removeSupersetFromDruid();
   }
 
   /**
@@ -385,8 +445,11 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     setUnmappedForOrphanedConfigs();
-    removeSupersetFromDruid();
     ensureZeppelinProxyUserConfigs();
+    updateKerberosDescriptorArtifacts();
+    updateAmsConfigs();
+    updateHDFSWidgetDefinition();
+    updateExistingRepositoriesToBeResolved();
   }
 
   public int getCurrentVersionID() throws AmbariException, SQLException {
@@ -493,6 +556,272 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
           }
         }
       }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity != null) {
+      Map<String, Object> data = artifactEntity.getArtifactData();
+      if (data != null) {
+        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+        if (kerberosDescriptor != null) {
+          fixRangerKMSKerberosDescriptor(kerberosDescriptor);
+          fixIdentityReferences(getCluster(artifactEntity), kerberosDescriptor);
+
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
+        }
+      }
+    }
+  }
+
+  protected void fixRangerKMSKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    KerberosServiceDescriptor rangerKmsServiceDescriptor = kerberosDescriptor.getService("RANGER_KMS");
+    if (rangerKmsServiceDescriptor != null) {
+
+      KerberosIdentityDescriptor rangerKmsServiceIdentity = rangerKmsServiceDescriptor.getIdentity("/smokeuser");
+      if (rangerKmsServiceIdentity != null) {
+        rangerKmsServiceDescriptor.removeIdentity("/smokeuser");
+      }
+      KerberosComponentDescriptor rangerKmscomponentDescriptor = rangerKmsServiceDescriptor.getComponent("RANGER_KMS_SERVER");
+      if (rangerKmscomponentDescriptor != null) {
+        KerberosIdentityDescriptor rangerKmsComponentIdentity = rangerKmscomponentDescriptor.getIdentity("/smokeuser");
+        if (rangerKmsComponentIdentity != null) {
+          rangerKmscomponentDescriptor.removeIdentity("/smokeuser");
+        }
+      }
+    }
+  }
+
+  protected void updateAmsConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+
+          Config amsSslClient = cluster.getDesiredConfigByType(AMS_SSL_CLIENT);
+          if (amsSslClient != null) {
+            Map<String, String> amsSslClientProperties = amsSslClient.getProperties();
+
+            if (amsSslClientProperties.containsKey(METRIC_TRUSTSTORE_ALIAS)) {
+              LOG.info("Removing " + METRIC_TRUSTSTORE_ALIAS + " from " + AMS_SSL_CLIENT);
+              removeConfigurationPropertiesFromCluster(cluster, AMS_SSL_CLIENT, Collections.singleton(METRIC_TRUSTSTORE_ALIAS));
+            }
+
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateHDFSWidgetDefinition() throws AmbariException {
+    LOG.info("Updating HDFS widget definition.");
+
+    Map<String, List<String>> widgetMap = new HashMap<>();
+    Map<String, String> sectionLayoutMap = new HashMap<>();
+
+    List<String> hdfsHeatmapWidgets = new ArrayList<>(Arrays.asList("HDFS Bytes Read", "HDFS Bytes Written",
+      "DataNode Process Disk I/O Utilization", "DataNode Process Network I/O Utilization"));
+    widgetMap.put("HDFS_HEATMAPS", hdfsHeatmapWidgets);
+    sectionLayoutMap.put("HDFS_HEATMAPS", "default_hdfs_heatmap");
+
+    updateWidgetDefinitionsForService("HDFS", widgetMap, sectionLayoutMap);
+  }
+
+  /**
+   * Retrieves the relevant {@link Cluster} given information from the suppliied {@link ArtifactEntity}.
+   * <p>
+   * The cluster id value is taken from the entity's foreign key value and then used to obtain the cluster object.
+   *
+   * @param artifactEntity an {@link ArtifactEntity}
+   * @return a {@link Cluster}
+   */
+  private Cluster getCluster(ArtifactEntity artifactEntity) {
+    if (artifactEntity != null) {
+      Map<String, String> keys = artifactEntity.getForeignKeys();
+      if (keys != null) {
+        String clusterId = keys.get("cluster");
+        if (StringUtils.isNumeric(clusterId)) {
+          Clusters clusters = injector.getInstance(Clusters.class);
+          try {
+            return clusters.getCluster(Long.valueOf(clusterId));
+          } catch (AmbariException e) {
+            LOG.error(String.format("Failed to obtain cluster using cluster id %s -  %s", clusterId, e.getMessage()), e);
+          }
+        } else {
+          LOG.error(String.format("Failed to obtain cluster id from artifact entity with foreign keys: %s", keys));
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Recursively traverses the Kerberos descriptor to find and fix the identity references.
+   * <p>
+   * Each found identity descriptor that indicates it is a reference by having a <code>name</code>
+   * value that starts with a "/" or a "./" is fixed by clearing the <code>principal name</code>value,
+   * setting the <code>reference</code> value to the <code>name</code> value and changing the
+   * <code>name</code> value to a name with the following pattern:
+   * <code>SERVICE_COMPONENT_IDENTITY</code>
+   * <p>
+   * For example, if the identity is for the "SERVICE1" service and is a reference to "HDFS/NAMENODE/hdfs";
+   * then the name is set to "<code>service1_hdfs</code>"
+   * <p>
+   * For example, if the identity is for the "COMPONENT21" component of the "SERVICE2" service and is a reference to "HDFS/NAMENODE/hdfs";
+   * then the name is set to "<code>service2_component21_hdfs</code>"
+   * <p>
+   * Once the identity descriptor properties of the identity are fixed, the relevant configuration
+   * value is fixed to match the value if the referenced identity. This may lead to a new version
+   * of the relevant configuration type.
+   *
+   * @param cluster   the cluster
+   * @param container the current Kerberos descriptor container
+   * @throws AmbariException if an error occurs
+   */
+  private void fixIdentityReferences(Cluster cluster, AbstractKerberosDescriptorContainer container)
+      throws AmbariException {
+    List<KerberosIdentityDescriptor> identities = container.getIdentities();
+    if (identities != null) {
+      for (KerberosIdentityDescriptor identity : identities) {
+        String name = identity.getName();
+
+        if (!StringUtils.isEmpty(name) && (name.startsWith("/") || name.startsWith("./"))) {
+          String[] parts = name.split("/");
+          String newName = buildName(identity.getParent(), parts[parts.length - 1]);
+
+          identity.setName(newName);
+          identity.setReference(name);
+        }
+
+        String identityReference = identity.getReference();
+        if (!StringUtils.isEmpty(identityReference)) {
+          // If this identity references another identity:
+          //  * The principal name needs to be the same as the referenced identity
+          //    - ensure that no principal name is being set for this identity
+          //  * Any configuration set to contain the reference principal name needs to be fixed to
+          //    be the correct principal name
+          KerberosPrincipalDescriptor principal = identity.getPrincipalDescriptor();
+          if (principal != null) {
+            // Fix the value
+            principal.setValue(null);
+
+            // Fix the relative configuration
+            if (!StringUtils.isEmpty(principal.getConfiguration())) {
+              String referencedPrincipalName = getConfiguredPrincipalNameFromReference(cluster, container, identityReference);
+
+              if(!StringUtils.isEmpty(referencedPrincipalName)) {
+                String[] parts = principal.getConfiguration().split("/");
+                if (parts.length == 2) {
+                  String type = parts[0];
+                  String property = parts[1];
+
+                  updateConfigurationPropertiesForCluster(cluster,
+                      type,
+                      Collections.singletonMap(property, referencedPrincipalName),
+                      true,
+                      false);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (container instanceof KerberosDescriptor) {
+      Map<String, KerberosServiceDescriptor> services = ((KerberosDescriptor) container).getServices();
+      if (services != null) {
+        for (KerberosServiceDescriptor serviceDescriptor : services.values()) {
+          fixIdentityReferences(cluster, serviceDescriptor);
+        }
+      }
+    } else if (container instanceof KerberosServiceDescriptor) {
+      Map<String, KerberosComponentDescriptor> components = ((KerberosServiceDescriptor) container).getComponents();
+      if (components != null) {
+        for (KerberosComponentDescriptor componentDescriptor : components.values()) {
+          fixIdentityReferences(cluster, componentDescriptor);
+        }
+      }
+    }
+  }
+
+  /**
+   * Finds the value of the configuration found for the principal in the referenced identity
+   * descriptor.
+   *
+   * @param cluster           the cluster
+   * @param container         the current {@link KerberosIdentityDescriptor}, ideally the identity's parent descriptor
+   * @param identityReference the path to the referenced identity
+   * @return the value of the configuration specified in the referenced identity's principal descriptor
+   * @throws AmbariException if an error occurs
+   */
+  private String getConfiguredPrincipalNameFromReference(Cluster cluster,
+                                                         AbstractKerberosDescriptorContainer container,
+                                                         String identityReference)
+      throws AmbariException {
+    KerberosIdentityDescriptor identityDescriptor = container.getReferencedIdentityDescriptor(identityReference);
+
+    if (identityDescriptor != null) {
+      KerberosPrincipalDescriptor principal = identityDescriptor.getPrincipalDescriptor();
+      if ((principal != null) && (!StringUtils.isEmpty(principal.getConfiguration()))) {
+        String[] parts = principal.getConfiguration().split("/");
+        if (parts.length == 2) {
+          String type = parts[0];
+          String property = parts[1];
+
+          Config config = cluster.getDesiredConfigByType(type);
+
+          if (config != null) {
+            return config.getProperties().get(property);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Builds the name of an identity based on the identity's container and the referenced identity's name.
+   * <p>
+   * The calculated name will be in the following format and converted to all lowercase characters:
+   * <code>SERVICE_COMPONENT_IDENTITY</code>
+   *
+   * @param container    the current {@link KerberosIdentityDescriptor}, ideally the identity's parent descriptor
+   * @param identityName the referenced identity's name
+   * @return a name
+   */
+  private String buildName(AbstractKerberosDescriptor container, String identityName) {
+    if (container instanceof KerberosServiceDescriptor) {
+      return container.getName().toLowerCase() + "_" + identityName;
+    } else if (container instanceof KerberosComponentDescriptor) {
+      return container.getParent().getName().toLowerCase() + "_" + container.getName().toLowerCase() + "_" + identityName;
+    } else {
+      return identityName;
+    }
+  }
+
+  /**
+   * Sets all existing repository versions to be resolved (we have to assume
+   * that they are good since they've been using them to run stuff).
+   *
+   * @throws AmbariException
+   */
+  protected void updateExistingRepositoriesToBeResolved() throws AmbariException {
+    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    List<RepositoryVersionEntity> repositoryVersions = repositoryVersionDAO.findAll();
+    for (RepositoryVersionEntity repositoryVersion : repositoryVersions) {
+      repositoryVersion.setResolved(true);
+      repositoryVersionDAO.merge(repositoryVersion);
     }
   }
 }

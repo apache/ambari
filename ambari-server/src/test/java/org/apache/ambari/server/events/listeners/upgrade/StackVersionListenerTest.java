@@ -306,6 +306,11 @@ public class StackVersionListenerTest extends EasyMockSupport {
     RepositoryVersionDAO dao = createNiceMock(RepositoryVersionDAO.class);
     RepositoryVersionEntity entity = createNiceMock(RepositoryVersionEntity.class);
     expect(entity.getVersion()).andReturn("2.4.0.0").once();
+
+    // when the version gets reported back, we set this repo to resolved
+    entity.setResolved(true);
+    expectLastCall().once();
+
     expect(dao.findByPK(1L)).andReturn(entity).once();
     expect(dao.merge(entity)).andReturn(entity).once();
 
@@ -314,6 +319,47 @@ public class StackVersionListenerTest extends EasyMockSupport {
     String newVersion = VALID_NEW_VERSION;
 
     HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, newVersion, 1L);
+    // !!! avoid injector for test class
+    Field field = StackVersionListener.class.getDeclaredField("repositoryVersionDAO");
+    field.setAccessible(true);
+    field.set(listener, dao);
+
+    listener.onAmbariEvent(event);
+
+    verifyAll();
+  }
+
+  /**
+   * Tests that if a component advertises a version and the repository already
+   * matches, that we ensure that it is marked as resolved.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRepositoryResolvedWhenVersionsMatch() throws Exception {
+    String version = "2.4.0.0";
+
+    expect(sch.getVersion()).andReturn(version);
+    expect(componentInfo.isVersionAdvertised()).andReturn(true).once();
+
+    RepositoryVersionDAO dao = createNiceMock(RepositoryVersionDAO.class);
+    RepositoryVersionEntity entity = createNiceMock(RepositoryVersionEntity.class);
+    expect(entity.getVersion()).andReturn(version).once();
+    expect(entity.isResolved()).andReturn(false).once();
+
+    // when the version gets reported back, we set this repo to resolved
+    entity.setResolved(true);
+    expectLastCall().once();
+
+    expect(dao.findByPK(1L)).andReturn(entity).once();
+    expect(dao.merge(entity)).andReturn(entity).once();
+
+    replayAll();
+
+    String newVersion = version;
+
+    HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, newVersion, 1L);
+
     // !!! avoid injector for test class
     Field field = StackVersionListener.class.getDeclaredField("repositoryVersionDAO");
     field.setAccessible(true);

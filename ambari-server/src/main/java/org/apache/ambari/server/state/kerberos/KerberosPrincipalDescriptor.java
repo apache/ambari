@@ -68,6 +68,11 @@ import java.util.TreeMap;
  */
 public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
 
+  static final String KEY_VALUE = "value";
+  static final String KEY_TYPE = "type";
+  static final String KEY_CONFIGURATION = "configuration";
+  static final String KEY_LOCAL_USERNAME = "local_username";
+
   /**
    * A string declaring the type of principal this KerberosPrincipalDescriptor represents.
    * <p/>
@@ -100,8 +105,8 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
   /**
    * Creates a new KerberosPrincipalDescriptor
    *
-   * @param principal the principal name
-   * @param type the principal type (user, service, etc...)
+   * @param principal     the principal name
+   * @param type          the principal type (user, service, etc...)
    * @param configuration the configuration used to store the principal name
    * @param localUsername the local username to map to the principal
    */
@@ -124,10 +129,10 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    * @see org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor
    */
   public KerberosPrincipalDescriptor(Map<?, ?> data) {
-    this(getStringValue(data, "value"),
-        getKerberosPrincipalTypeValue(data, "type"),
-        getStringValue(data, "configuration"),
-        getStringValue(data, "local_username")
+    this(getStringValue(data, KEY_VALUE),
+        getKerberosPrincipalTypeValue(data, KEY_TYPE),
+        getStringValue(data, KEY_CONFIGURATION),
+        getStringValue(data, KEY_LOCAL_USERNAME)
     );
   }
 
@@ -269,10 +274,10 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
   public Map<String, Object> toMap() {
     Map<String, Object> map = new TreeMap<>();
 
-    map.put("value", getValue());
-    map.put("type", KerberosPrincipalType.translate(getType()));
-    map.put("configuration", getConfiguration());
-    map.put("local_username", getLocalUsername());
+    map.put(KEY_VALUE, getValue());
+    map.put(KEY_TYPE, KerberosPrincipalType.translate(getType()));
+    map.put(KEY_CONFIGURATION, getConfiguration());
+    map.put(KEY_LOCAL_USERNAME, getLocalUsername());
 
     return map;
   }

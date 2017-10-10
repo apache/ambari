@@ -41,13 +41,11 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -205,12 +203,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Inject
   private static Provider<Clusters> clusters;
 
-  @Inject
-  private static Provider<MetadataHolder> m_metadataHolder;
-
-  @Inject
-  private static Provider<AmbariManagementControllerImpl> m_ambariManagementController;
-
   /**
    * Used for updating the existing stack tools with those of the stack being
    * distributed.
@@ -221,6 +213,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   /**
    * Constructor.
    */
+  @Inject
   public ClusterStackVersionResourceProvider(
           AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
@@ -462,7 +455,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
   }
 
-  @Transactional
+  @Transactional(rollbackOn = {RuntimeException.class, SystemException.class, AmbariException.class})
   RequestStatus createOrUpdateHostVersions(Cluster cluster,
       RepositoryVersionEntity repoVersionEntity, VersionDefinitionXml versionDefinitionXml,
       StackId stackId, boolean forceInstalled, Map<String, Object> propertyMap)
@@ -505,6 +498,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
     }
 
+    checkPatchVDFAvailableServices(cluster, repoVersionEntity, versionDefinitionXml);
 
     // the cluster will create/update all of the host versions to the correct state
     List<Host> hostsNeedingInstallCommands = cluster.transitionHostsToInstalling(
@@ -603,9 +597,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // determine services for the repo
       Set<String> serviceNames = new HashSet<>();
 
-
-      checkPatchVDFAvailableServices(cluster, repoVersionEnt, desiredVersionDefinition);
-
       // !!! limit the serviceNames to those that are detailed for the repository.
       // TODO packages don't have component granularity
       if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
@@ -676,10 +667,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
   }
 
-  private ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,
+  @Transactional
+  ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,
       Cluster cluster, AmbariManagementController managementController, AmbariMetaInfo ami,
       final StackId stackId, Set<String> repoServices, Stage stage1, Host host)
           throws SystemException {
+
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
@@ -694,7 +687,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     if (null == osEntity || CollectionUtils.isEmpty(osEntity.getRepositories())) {
       throw new SystemException(String.format("Repositories for os type %s are " +
-          "not defined. Repo version=%s, stackId=%s",
+          "not defined for version %s of Stack %s.",
             osFamily, repoVersion.getVersion(), stackId));
     }
 

@@ -341,6 +341,18 @@ public class CheckDescription {
         .put(AbstractCheckDescriptor.DEFAULT, "The following components do not exist in the target repository's stack. They must be removed from the cluster before upgrading.")
           .build());
 
+  public static CheckDescription DRUID_HA_WARNING = new CheckDescription(
+      "DRUID_HA",
+      PrereqCheckType.SERVICE,
+      "Druid Downtime During Upgrade",
+      new ImmutableMap.Builder<String, String>()
+          .put(
+              AbstractCheckDescriptor.DEFAULT,
+              "High Availability is not enabled for Druid. Druid Service may have some downtime during upgrade. Deploy multiple instances of %s in the Cluster to avoid any downtime."
+          )
+          .build()
+  );
+
   private String m_name;
   private PrereqCheckType m_type;
   private String m_description;

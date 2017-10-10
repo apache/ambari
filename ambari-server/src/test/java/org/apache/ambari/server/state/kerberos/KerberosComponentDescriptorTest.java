@@ -35,9 +35,9 @@ import com.google.gson.reflect.TypeToken;
 
 import junit.framework.Assert;
 
-@Category({ category.KerberosTest.class})
+@Category({category.KerberosTest.class})
 public class KerberosComponentDescriptorTest {
-  public static final String JSON_VALUE =
+  static final String JSON_VALUE =
       " {" +
           "  \"name\": \"COMPONENT_NAME\"," +
           "  \"identities\": [" +
@@ -60,9 +60,9 @@ public class KerberosComponentDescriptorTest {
 
   static {
     Map<String, Object> identitiesMap = new TreeMap<>();
-    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE);
-    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_ALT.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE_ALT);
-    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE.get(KerberosIdentityDescriptor.KEY_NAME), KerberosIdentityDescriptorTest.MAP_VALUE);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_ALT.get(KerberosIdentityDescriptor.KEY_NAME), KerberosIdentityDescriptorTest.MAP_VALUE_ALT);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE.get(KerberosIdentityDescriptor.KEY_NAME), KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE);
 
     Map<String, Object> serviceSiteProperties = new TreeMap<>();
     serviceSiteProperties.put("service.component.property1", "red");
@@ -78,10 +78,10 @@ public class KerberosComponentDescriptorTest {
     authToLocalRules.add("component.name.rules2");
 
     MAP_VALUE = new TreeMap<>();
-    MAP_VALUE.put("name", "A_DIFFERENT_COMPONENT_NAME");
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), new ArrayList<>(identitiesMap.values()));
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), configurationsMap.values());
-    MAP_VALUE.put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), authToLocalRules);
+    MAP_VALUE.put(KerberosIdentityDescriptor.KEY_NAME, "A_DIFFERENT_COMPONENT_NAME");
+    MAP_VALUE.put(KerberosComponentDescriptor.KEY_IDENTITIES, new ArrayList<>(identitiesMap.values()));
+    MAP_VALUE.put(KerberosComponentDescriptor.KEY_CONFIGURATIONS, configurationsMap.values());
+    MAP_VALUE.put(KerberosComponentDescriptor.KEY_AUTH_TO_LOCAL_PROPERTIES, authToLocalRules);
   }
 
   static void validateFromJSON(KerberosComponentDescriptor componentDescriptor) {

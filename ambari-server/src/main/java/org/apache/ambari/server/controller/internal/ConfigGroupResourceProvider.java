@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,8 @@ public class ConfigGroupResourceProvider extends
     .getPropertyId("ConfigGroup", "group_name");
   protected static final String CONFIGGROUP_TAG_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "tag");
+  protected static final String CONFIGGROUP_SERVICENAME_PROPERTY_ID = PropertyHelper
+    .getPropertyId("ConfigGroup", "service_name");
   protected static final String CONFIGGROUP_DESC_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "description");
   protected static final String CONFIGGROUP_SCV_NOTE_ID = PropertyHelper
@@ -562,8 +565,8 @@ public class ConfigGroupResourceProvider extends
 
       verifyHostList(cluster, hosts, request);
 
-      String serviceName = null;
-      if (request.getConfigs() != null && !request.getConfigs().isEmpty()) {
+      String serviceName = request.getServiceName();
+      if (serviceName == null && !MapUtils.isEmpty(request.getConfigs())) {
         try {
           serviceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
         } catch (IllegalArgumentException e) {
@@ -751,6 +754,7 @@ public class ConfigGroupResourceProvider extends
       (String) properties.get(CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_NAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_TAG_PROPERTY_ID),
+      (String) properties.get(CONFIGGROUP_SERVICENAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_DESC_PROPERTY_ID),
       null,
       null);

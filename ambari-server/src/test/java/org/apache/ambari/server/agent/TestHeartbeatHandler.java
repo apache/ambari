@@ -30,6 +30,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -1474,7 +1475,7 @@ public class TestHeartbeatHandler {
     ExecutionCommand executionCommand = new ExecutionCommand();
 
     Map<String, String> hlp = new HashMap<>();
-    hlp.put("custom_command", "SET_KEYTAB");
+    hlp.put("custom_command", SET_KEYTAB);
     executionCommand.setHostLevelParams(hlp);
 
     Map<String, String> commandparams = new HashMap<>();
@@ -1547,7 +1548,7 @@ public class TestHeartbeatHandler {
     kerberosIdentityDataFileWriter.writeRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
         "dn/_HOST@_REALM", "service",
         "/etc/security/keytabs/dn.service.keytab",
-        "hdfs", "r", "hadoop", "", "false");
+        "hdfs", "r", "hadoop", "", "false", "false");
 
     kerberosIdentityDataFileWriter.close();
 

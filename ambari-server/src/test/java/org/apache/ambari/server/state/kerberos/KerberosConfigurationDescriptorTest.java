@@ -32,7 +32,7 @@ import com.google.gson.reflect.TypeToken;
 
 import junit.framework.Assert;
 
-@Category({ category.KerberosTest.class})
+@Category({category.KerberosTest.class})
 public class KerberosConfigurationDescriptorTest {
   private static final String JSON_SINGLE_VALUE =
       "{ \"configuration-type\": {" +

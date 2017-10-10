@@ -1769,6 +1769,12 @@
       <artifactId>jna</artifactId>
       <version>4.2.2</version>
     </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>0.1.10</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <pluginRepositories>

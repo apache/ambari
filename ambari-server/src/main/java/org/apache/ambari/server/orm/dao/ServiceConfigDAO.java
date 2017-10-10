@@ -197,7 +197,7 @@ public class ServiceConfigDAO {
         stackId.getStackVersion());
 
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createNamedQuery(
-        "ServiceConfigEntity.findServiceConfigsByStack",
+        "ServiceConfigEntity.findAllServiceConfigsByStack",
         ServiceConfigEntity.class);
 
     query.setParameter("clusterId", clusterId);

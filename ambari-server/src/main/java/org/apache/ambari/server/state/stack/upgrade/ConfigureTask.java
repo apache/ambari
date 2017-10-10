@@ -110,6 +110,9 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlAttribute(name = "id")
   public String id;
 
+  @XmlAttribute(name="supports-patch")
+  public boolean supportsPatch = false;
+
   /**
    * {@inheritDoc}
    */

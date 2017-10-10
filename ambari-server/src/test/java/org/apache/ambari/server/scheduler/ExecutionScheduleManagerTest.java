@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -87,6 +86,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
 
 import junit.framework.Assert;
 
@@ -640,15 +641,35 @@ public class ExecutionScheduleManagerTest {
   }
 
   @Test
-  public void testCompleteRelativePath() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    ExecutionScheduleManager scheduleManagerMock = createMock(ExecutionScheduleManager.class);
-    Method completeRelativeUri = ExecutionScheduleManager.class.getDeclaredMethod("completeRelativeUri", String.class);
-    completeRelativeUri.setAccessible(true);
+  public void testExtendApiResource() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    WebResource webResource = Client.create().resource("http://localhost:8080/");
 
-    assertEquals("api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "clusters"));
-    assertEquals("api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "/clusters"));
-    assertEquals("/api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "/api/v1/clusters"));
-    assertEquals("api/v1/clusters", completeRelativeUri.invoke(scheduleManagerMock, "api/v1/clusters"));
-    assertEquals("", completeRelativeUri.invoke(scheduleManagerMock, ""));
+    String clustersEndpoint = "http://localhost:8080/api/v1/clusters";
+
+    Clusters clustersMock = createMock(Clusters.class);
+
+    Configuration configurationMock = createNiceMock(Configuration.class);
+    ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
+    InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
+    Gson gson = new Gson();
+
+    replay(clustersMock, configurationMock, executionSchedulerMock, tokenStorageMock,
+      actionDBAccessorMock);
+
+    ExecutionScheduleManager scheduleManager =
+      new ExecutionScheduleManager(configurationMock, executionSchedulerMock,
+        tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
+
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "clusters").getURI().toString());
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "/clusters").getURI().toString());
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "/api/v1/clusters").getURI().toString());
+    assertEquals(clustersEndpoint,
+      scheduleManager.extendApiResource(webResource, "api/v1/clusters").getURI().toString());
+    assertEquals("http://localhost:8080/",
+      scheduleManager.extendApiResource(webResource, "").getURI().toString());
   }
 }

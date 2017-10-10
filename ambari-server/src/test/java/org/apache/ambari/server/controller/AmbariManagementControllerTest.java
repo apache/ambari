@@ -6977,7 +6977,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     StackVersionResponse resp = responsesWithParams.iterator().next();
     assertNotNull(resp.getUpgradePacks());
-    assertEquals(15, resp.getUpgradePacks().size());
+    assertTrue(resp.getUpgradePacks().size() > 0);
     assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 
@@ -9387,6 +9387,7 @@ public class AmbariManagementControllerTest {
     List<Long> requestIDs = actionDB.getRequestsByStatus(null, 1, false);
     Request request = actionDB.getRequest(requestIDs.get(0));
     assertEquals("Update Include/Exclude Files for [HDFS]", request.getRequestContext());
+    assertEquals(false, request.isExclusive());
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     Map<String, String> requestParams = StageUtils.getGson().fromJson(request.getInputs(), type);
     assertEquals(2, requestParams.size());
@@ -10422,6 +10423,17 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("FILES_LOCAL", layoutUserWidgetEntities.get(2).getWidget().getWidgetName());
     Assert.assertEquals("UPDATED_BLOCKED_TIME", layoutUserWidgetEntities.get(3).getWidget().getWidgetName());
     Assert.assertEquals("HBASE_SUMMARY", layoutUserWidgetEntities.get(0).getWidget().getDefaultSectionName());
+
+    candidateLayoutEntity = null;
+    for (WidgetLayoutEntity entity : layoutEntities) {
+      if (entity.getLayoutName().equals("default_system_heatmap")) {
+        candidateLayoutEntity = entity;
+        break;
+      }
+    }
+    Assert.assertNotNull(candidateLayoutEntity);
+    Assert.assertEquals("ambari", candidateVisibleEntity.getAuthor());
+    Assert.assertEquals("CLUSTER", candidateVisibleEntity.getScope());
   }
 
   // this is a temporary measure as a result of moving updateHostComponents from AmbariManagementController
