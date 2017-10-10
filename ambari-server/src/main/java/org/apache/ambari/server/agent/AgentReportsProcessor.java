@@ -52,9 +52,7 @@ public class AgentReportsProcessor {
   private UnitOfWork unitOfWork;
 
   @Inject
-  private Configuration configuration;
-
-  public AgentReportsProcessor() {
+  public AgentReportsProcessor(Configuration configuration) {
 
     ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("agent-report-processor-%d").build();
     int poolSize = configuration.getAgentsReportThreadPoolSize();
