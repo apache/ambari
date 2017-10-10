@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
@@ -115,6 +116,10 @@ public class HostVersionOutOfSyncListener {
       List<HostVersionEntity> hostVersionEntities =
           hostVersionDAO.get().findByClusterAndHost(cluster.getClusterName(), event.getHostName());
 
+      Service service = cluster.getService(event.getServiceName());
+      ServiceComponent serviceComponent = service.getServiceComponent(event.getComponentName());
+      RepositoryVersionEntity componentRepo = serviceComponent.getDesiredRepositoryVersion();
+
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
         StackEntity hostStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
         StackId hostStackId = new StackId(hostStackEntity);
@@ -133,6 +138,12 @@ public class HostVersionOutOfSyncListener {
             hostVersionEntity.setState(state);
             hostVersionDAO.get().merge(hostVersionEntity);
           }
+          continue;
+        }
+
+        // !!! we shouldn't be changing other versions to OUT_OF_SYNC if the event
+        // component repository doesn't match
+        if (!hostVersionEntity.getRepositoryVersion().equals(componentRepo)) {
           continue;
         }
 

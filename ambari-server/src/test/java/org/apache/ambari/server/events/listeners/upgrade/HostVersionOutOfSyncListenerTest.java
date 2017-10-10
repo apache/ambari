@@ -19,6 +19,7 @@
 package org.apache.ambari.server.events.listeners.upgrade;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -335,12 +336,12 @@ public class HostVersionOutOfSyncListenerTest {
 
     for (HostVersionEntity hostVersionEntity : hostVersions) {
       RepositoryVersionEntity repoVersion = hostVersionEntity.getRepositoryVersion();
-      if (repoVersion.getVersion().equals(INSTALLED_VERSION) || repoVersion.getVersion().equals(INSTALLED_VERSION_2)) {
-        if (changedHosts.contains(hostVersionEntity.getHostName())) {
-          assertEquals(hostVersionEntity.getState(), RepositoryVersionState.OUT_OF_SYNC);
-        } else {
-          assertEquals(hostVersionEntity.getState(), RepositoryVersionState.INSTALLED);
-        }
+
+      if (repoVersion.getVersion().equals(INSTALLED_VERSION_2)) {
+        assertEquals(RepositoryVersionState.INSTALLED, hostVersionEntity.getState());
+      } else if (repoVersion.getVersion().equals(INSTALLED_VERSION)) {
+        assertTrue(changedHosts.contains(hostVersionEntity.getHostName()));
+        assertEquals(RepositoryVersionState.OUT_OF_SYNC, hostVersionEntity.getState());
       }
     }
   }
@@ -598,6 +599,5 @@ public class HostVersionOutOfSyncListenerTest {
         }
       }
     }
-
   }
 }
