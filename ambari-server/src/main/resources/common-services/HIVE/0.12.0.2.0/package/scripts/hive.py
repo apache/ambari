@@ -209,7 +209,21 @@ def hive(name=None):
                            owner=params.hive_user,
                            group=params.hdfs_user,
                            mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
-      
+    if params.hive_repl_cmrootdir is not None:
+      params.HdfsResource(params.hive_repl_cmrootdir,
+                          type = "directory",
+                          action = "create_on_execute",
+                          owner = params.hive_user,
+                          group=params.user_group,
+                          mode = 01777)
+    if params.hive_repl_rootdir is not None:
+      params.HdfsResource(params.hive_repl_rootdir,
+                          type = "directory",
+                          action = "create_on_execute",
+                          owner = params.hive_user,
+                          group=params.user_group,
+                          mode = 0700)
+
     params.HdfsResource(None, action="execute")
 
   Directory(params.hive_etc_dir_prefix,
@@ -319,6 +333,23 @@ def hive(name=None):
                            owner = params.hive_user,
                            create_parents = True,
                            mode=0777)
+
+    if params.hive_repl_cmrootdir is not None:
+      params.HdfsResource(params.hive_repl_cmrootdir,
+                        type = "directory",
+                        action = "create_on_execute",
+                        owner = params.hive_user,
+                        group=params.user_group,
+                        mode = 01777)
+    if params.hive_repl_rootdir is not None:
+      params.HdfsResource(params.hive_repl_rootdir,
+                          type = "directory",
+                          action = "create_on_execute",
+                          owner = params.hive_user,
+                          group=params.user_group,
+                          mode = 0700)
+    if params.hive_repl_cmrootdir is not None or params.hive_repl_rootdir is not None:
+      params.HdfsResource(None, action="execute")
 
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
