@@ -666,3 +666,20 @@ class TestDatanode(RMFTestCase):
     self.assertEquals(
       ('hdfs dfsadmin -fs hdfs://ns1 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010'),
       mocks_dict['checked_call'].call_args_list[0][0][0])
+
+  def test_reload_configs(self):
+      with self.assertRaises(Fail):
+          self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
+                             classname = "DataNode",
+                             command = "reload_configs",
+                             config_file = "default.json",
+                             stack_version = self.STACK_VERSION,
+                             target = RMFTestCase.TARGET_COMMON_SERVICES
+                             )
+
+          # self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -reconfig namenode c6401.ambari.apache.org:8020 start",
+          #                       tries=115,
+          #                       try_sleep=10,
+          #                       user="hdfs",
+          #                       logoutput=True
+          #                       )

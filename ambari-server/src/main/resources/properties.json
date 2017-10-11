@@ -57,6 +57,7 @@
         "HostRoles/actual_configs",
         "params/run_smoke_test",
         "HostRoles/stale_configs",
+        "HostRoles/reload_configs",
         "HostRoles/desired_admin_state",
         "HostRoles/maintenance_state",
         "HostRoles/service_id",

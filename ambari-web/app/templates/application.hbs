@@ -35,19 +35,7 @@
           </a>
         {{/if}}
         <div class="btn-group">
-          <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="ambari-header" title="Apache Ambari" {{QAAttr "ambari-title"}}>{{t app.name}}</span>
-            <span class="toggle-icon glyphicon glyphicon-triangle-bottom"></span>
-          </div>
-          <ul class="dropdown-menu">
-            {{#if view.views.length}}
-              {{#each item in view.views}}
-                <li><a class="" href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a></li>
-              {{/each}}
-            {{else}}
-              <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>
-            {{/if}}
-          </ul>
+          <span class="ambari-header" title="Apache Ambari" {{QAAttr "ambari-title"}}>{{t app.name}}</span>
         </div>
       </li>
     </ul>
@@ -120,6 +108,31 @@
           </div>
         {{/if}}
         {{! user dropdown end }}
+
+        {{! views menu}}
+        <div class="navbar-nav navbar-right ambari-views notifications-group">
+          {{#if enableLinks}}
+            <i class="icon-th dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+            <ul class="notifications-dropdown row dropdown-menu">
+              <div class="popup-arrow-up"></div>
+              <div class="notifications-header col-sm-12">
+                <div class="notifications-title">{{t common.views}}</div>
+              </div>
+              <div class="notifications-body col-sm-12">
+                {{#if view.views.length}}
+                  {{#each item in view.views}}
+                    <li>
+                      <a href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a>
+                    </li>
+                  {{/each}}
+                {{else}}
+                  <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>
+                {{/if}}
+              </div>
+            </ul>
+          {{/if}}
+        </div>
+        {{!views menu end}}
 
         <div class="navbar-nav navbar-right cluster-notifications">
           {{#if enableLinks}}

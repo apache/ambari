@@ -83,36 +83,36 @@ public class SavedQueryService extends BaseService {
   @Path("{queryId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getOne(@PathParam("queryId") String queryId,
-		         @QueryParam("op") String operation) {
+             @QueryParam("op") String operation) {
     try {
-      final SavedQuery savedQuery = getResourceManager().read(queryId);    
-      if(operation.equals("download")) {
-    	StreamingOutput stream = new StreamingOutput() {
-    	@Override
-    	public void write(OutputStream os) throws IOException, WebApplicationException {
-    	  Writer writer = new BufferedWriter(new OutputStreamWriter(os));
-    	  try { 
+      final SavedQuery savedQuery = getResourceManager().read(queryId);
+      if(operation!= null && operation.equals("download")) {
+      StreamingOutput stream = new StreamingOutput() {
+      @Override
+      public void write(OutputStream os) throws IOException, WebApplicationException {
+        Writer writer = new BufferedWriter(new OutputStreamWriter(os));
+        try {
             BufferedReader br=new BufferedReader(new InputStreamReader(getSharedObjectsFactory().getHdfsApi().open(savedQuery.getQueryFile())));
-	    String line;
-    	    line=br.readLine();
-    	    while (line != null){
-    	      writer.write(line+"\n");  
-    	      line = br.readLine();
+      String line;
+          line=br.readLine();
+          while (line != null){
+            writer.write(line+"\n");
+            line = br.readLine();
             }
             writer.flush();
-    	  } catch (InterruptedException e) {
-	    e.printStackTrace();
-	  } finally {
-	    writer.close();
-    	  }
-    	}
-    	};
-    	return Response.ok(stream).
+        } catch (InterruptedException e) {
+      e.printStackTrace();
+    } finally {
+      writer.close();
+        }
+      }
+      };
+      return Response.ok(stream).
                type(MediaType.TEXT_PLAIN).
-    	       build();
+             build();
       }
       else {
-    	 JSONObject object = new JSONObject();
+       JSONObject object = new JSONObject();
          object.put("savedQuery", savedQuery);
          return Response.ok(object).build();
       }

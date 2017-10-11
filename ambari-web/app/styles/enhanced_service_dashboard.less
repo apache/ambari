@@ -26,6 +26,10 @@
 
   clear: both;
 
+  .service-widgets-box {
+    padding: 10px 1.1% 10px 1.1%;
+  }
+
   #add-widget-action-box {
     background-color: @add-widget-btn-color;
     width: 97%;
@@ -69,7 +73,7 @@
     width: 93%;
   }
   .span2p4 {
-    width: 22.7%;
+    width: 24.4%;
     height: 100%;
     background-color: white;
     margin: 5px 0 5px 5px;
@@ -185,6 +189,26 @@
     .grey {
       color: #999999;
     }
+  }
+}
+
+@media (min-width: 1200px) {
+
+  .service-metrics-block .service-widgets-box {
+    padding: 10px 1.3% 10px 1.3%;
+  }
+
+  #widget_layout .span2p4 {
+    width: 24.5%;
+    *width: 24.5%;
+  }
+}
+
+@media (min-width: 1500px) {
+
+  #widget_layout .span2p4 {
+    width: 24.6%;
+    *width: 24.6%;
   }
 }
 

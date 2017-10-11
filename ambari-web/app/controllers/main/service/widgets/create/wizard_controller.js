@@ -417,7 +417,7 @@ App.WidgetWizardController = App.WizardController.extend({
     var self = this;
     var successCallBack = function() {
       self.get('popup').hide();
-      App.router.transitionTo('main.services.service.summary', service);
+      App.router.transitionTo('main.services.service.metrics', service);
       App.get('router.updateController').updateAll();
     };
 

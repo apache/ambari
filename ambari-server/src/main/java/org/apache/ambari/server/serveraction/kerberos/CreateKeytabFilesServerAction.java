@@ -217,7 +217,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 return commandReport;
               }
 
-              boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
+              boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
               boolean onlyKeytabWrite = "true".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.ONLY_KEYTAB_WRITE));
               boolean grabKeytabFromCache = regenerateKeytabs && onlyKeytabWrite;
               // if grabKeytabFromCache=true we will try to get keytab from cache and send to agent, it will be true for

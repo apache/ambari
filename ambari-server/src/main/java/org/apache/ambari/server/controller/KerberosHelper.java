@@ -442,12 +442,6 @@ public interface KerberosHelper {
    * @param hostFilter             a set of hostname indicating the set of hosts to process -
    *                               if null, no filter is relevant; if empty, the filter
    *                               indicates no relevant hosts
-   * @param identityFilter         a Collection of identity names indicating the relevant
-   *                               identities - if null, no filter is relevant; if empty,
-   *                               the filter indicates no relevant identities
-   * @param shouldProcessCommand   a Command implementation to determine if the relevant component
-   *                               is in a state in which is should be process for the current
-   *                               Kerberos operation.
    * @return a list of ServiceComponentHost instances and should be processed during the relevant
    * Kerberos operation.
    * @throws AmbariException
@@ -455,8 +449,7 @@ public interface KerberosHelper {
   List<ServiceComponentHost> getServiceComponentHostsToProcess(Cluster cluster,
                                                                KerberosDescriptor kerberosDescriptor,
                                                                Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                                               Collection<String> hostFilter, Collection<String> identityFilter,
-                                                               Command<Boolean, ServiceComponentHost> shouldProcessCommand)
+                                                               Collection<String> hostFilter)
       throws AmbariException;
 
   Set<String> getHostsWithValidKerberosClient(Cluster cluster) throws AmbariException;

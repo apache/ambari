@@ -133,7 +133,7 @@ public class RemovableIdentities {
    * Remove all identities which are not used by other services or components
    */
   public void remove(KerberosHelper kerberosHelper) throws AmbariException, KerberosOperationException {
-    Set<String> identitiesToRemove = skipUsed().stream().map(KerberosIdentityDescriptor::getName).collect(toSet());
+    Set<String> identitiesToRemove = skipUsed().stream().map(KerberosIdentityDescriptor::getPath).collect(toSet());
     if (!identitiesToRemove.isEmpty()) {
       kerberosHelper.deleteIdentities(cluster, components, identitiesToRemove);
     }

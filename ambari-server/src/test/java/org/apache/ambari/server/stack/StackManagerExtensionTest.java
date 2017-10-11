@@ -69,6 +69,9 @@ public class StackManagerExtensionTest  {
     StackEntity stack3 = new StackEntity();
     stack3.setStackName("HDP");
     stack3.setStackVersion("0.3");
+    StackEntity stack4 = new StackEntity();
+    stack4.setStackName("HDP");
+    stack4.setStackVersion("0.4");
     ExtensionEntity extension1 = new ExtensionEntity();
     extension1.setExtensionName("EXT");
     extension1.setExtensionVersion("0.1");
@@ -78,19 +81,28 @@ public class StackManagerExtensionTest  {
     ExtensionEntity extension3 = new ExtensionEntity();
     extension3.setExtensionName("EXT");
     extension3.setExtensionVersion("0.3");
+    ExtensionLinkEntity link1 = new ExtensionLinkEntity();
+    link1.setLinkId(new Long(-1));
+    link1.setStack(stack1);
+    link1.setExtension(extension1);
     List<ExtensionLinkEntity> list = new ArrayList<>();
+    List<ExtensionLinkEntity> linkList = new ArrayList<>();
+    linkList.add(link1);
 
     expect(stackDao.find("HDP", "0.1")).andReturn(stack1).atLeastOnce();
     expect(stackDao.find("HDP", "0.2")).andReturn(stack2).atLeastOnce();
     expect(stackDao.find("HDP", "0.3")).andReturn(stack3).atLeastOnce();
+    expect(stackDao.find("HDP", "0.4")).andReturn(stack3).atLeastOnce();
     expect(extensionDao.find("EXT", "0.1")).andReturn(extension1).atLeastOnce();
     expect(extensionDao.find("EXT", "0.2")).andReturn(extension2).atLeastOnce();
     expect(extensionDao.find("EXT", "0.3")).andReturn(extension3).atLeastOnce();
 
+    expect(linkDao.findByStack("HDP", "0.1")).andReturn(linkList).atLeastOnce();
     expect(linkDao.findByStack(EasyMock.anyObject(String.class),
             EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
 
     expect(linkDao.findByStackAndExtension("HDP", "0.2", "EXT", "0.2")).andReturn(null).atLeastOnce();
+    expect(linkDao.findByStackAndExtension("HDP", "0.1", "EXT", "0.1")).andReturn(link1).atLeastOnce();
 
     replay(actionMetadata, stackDao, metaInfoDao, osFamily, extensionDao, linkDao); //linkEntity
 
@@ -146,19 +158,32 @@ public class StackManagerExtensionTest  {
     assertNotNull(themes);
     assertTrue("Number of themes is " + themes.size(), themes.size() == 0);
 
-    StackInfo stack = stackManager.getStack("HDP", "0.2");
+    StackInfo stack = stackManager.getStack("HDP", "0.1");
     assertNotNull(stack.getService("OOZIE2"));
     oozie = stack.getService("OOZIE2");
     assertNotNull("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder());
     assertTrue("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder().contains("extensions/EXT/0.1/services/OOZIE2/package"));
-    assertEquals(oozie.getVersion(), "4.0.0");
+    assertEquals(oozie.getVersion(), "3.2.0");
 
     assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
     extension = stack.getExtensions().iterator().next();
     assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");
-    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.3");
+    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.1");
+
+    stack = stackManager.getStack("HDP", "0.2");
+    assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 0);
 
     stack = stackManager.getStack("HDP", "0.3");
+    assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
+    extension = stack.getExtensions().iterator().next();
+    assertNotNull(extension.getService("OOZIE2"));
+    oozie = extension.getService("OOZIE2");
+    assertEquals(oozie.getVersion(), "4.0.0");
+
+    assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");
+    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.3");
+
+    stack = stackManager.getStack("HDP", "0.4");
     assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
     extension = stack.getExtensions().iterator().next();
     assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");

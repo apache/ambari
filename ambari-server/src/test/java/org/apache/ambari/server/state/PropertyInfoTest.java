@@ -137,6 +137,26 @@ public class PropertyInfoTest {
   }
 
   @Test
+  public void testBehaviorWithSupportedRefreshCommandsTags() throws JAXBException {
+    // given
+    String xml =
+    "<property>\n" +
+    " <name>prop_name</name>\n" +
+    " <value>prop_val</value>\n" +
+    " <supported-refresh-commands>\n" +
+    "   <refresh-command componentName=\"NAMENODE\" command=\"reload_configs\" />\n" +
+    " </supported-refresh-commands>\n" +
+    "</property>";
+
+    // when
+    PropertyInfo propertyInfo = propertyInfoFrom(xml);
+
+    // then
+    assertEquals(propertyInfo.getSupportedRefreshCommands().iterator().next().getCommand(), "reload_configs");
+    assertEquals(propertyInfo.getSupportedRefreshCommands().iterator().next().getComponentName(), "NAMENODE");
+  }
+
+  @Test
   public void testUnknownPropertyType() throws Exception {
     // Given
     String xml =

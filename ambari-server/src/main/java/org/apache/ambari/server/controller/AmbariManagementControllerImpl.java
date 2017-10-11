@@ -1215,7 +1215,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     try {
       cluster = clusters.getCluster(request.getClusterName());
     } catch (ClusterNotFoundException e) {
-      LOG.error("Cluster not found ", e);
+      LOG.info(e.getMessage());
       throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
     }
 
@@ -4896,7 +4896,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       properties = ambariMetaInfo.getServiceProperties(stackName, stackVersion, serviceName);
     }
     for (PropertyInfo property: properties) {
-      response.add(property.convertToResponse());
+      if (property.shouldBeConfigured()) {
+        response.add(property.convertToResponse());
+      }
     }
 
     return response;

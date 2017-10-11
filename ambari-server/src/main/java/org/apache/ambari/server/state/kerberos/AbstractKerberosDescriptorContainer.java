@@ -862,22 +862,9 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
           referencedIdentity = getReferencedIdentityDescriptor(identity.getName());
 
           if(referencedIdentity != null) {
-            // Calculate the path to this identity descriptor for logging purposes.
-            // Examples:
-            //   /
-            //   /SERVICE
-            //   /SERVICE/COMPONENT
-            StringBuilder path = new StringBuilder();
-            AbstractKerberosDescriptor parent = identity.getParent();
-            while(parent != null && (parent.getName() != null)) {
-              path.insert(0, parent.getName());
-              path.insert(0, '/');
-              parent = parent.getParent();
-            }
-
             // Log this since it is deprecated...
             LOG.warn("Referenced identities should be declared using the identity's \"reference\" attribute, not the identity's \"name\" attribute." +
-                " This is a deprecated feature. Problems may occur in the future unless this is corrected: {}:{}", path, identity.getName());
+                " This is a deprecated feature. Problems may occur in the future unless this is corrected: {}:{}", identity.getPath(), identity.getName());
           }
         }
       } catch (AmbariException e) {
@@ -896,6 +883,9 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       } else {
         dereferencedIdentity = new KerberosIdentityDescriptor(identity.toMap());
       }
+
+      // Force the path for this identity descriptor to be the same as the original identity descriptor's.
+      dereferencedIdentity.setPath(identity.getPath());
     }
 
     return dereferencedIdentity;

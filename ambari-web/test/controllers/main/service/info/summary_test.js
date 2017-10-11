@@ -18,7 +18,6 @@
 
 var App = require('app');
 require('controllers/main/service/info/summary');
-var testHelpers = require('test/helpers');
 function getController() {
   return App.MainServiceInfoSummaryController.create();
 }
@@ -30,8 +29,6 @@ describe('App.MainServiceInfoSummaryController', function () {
   beforeEach(function () {
     controller = App.MainServiceInfoSummaryController.create();
   });
-
-App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isServiceWithEnhancedWidgets', 'someWidgetGraphExists']);
 
   describe('#setRangerPlugins', function () {
 
@@ -182,79 +179,6 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
       expect(controller.get('isPreviousRangerConfigsCallFailed')).to.be.true;
     });
 
-  });
-
-  describe("#getActiveWidgetLayout() for Enhanced Dashboard", function () {
-
-    it("make GET call", function () {
-      var _controller = App.MainServiceInfoSummaryController.create({
-        isServiceWithEnhancedWidgets: true,
-        content: Em.Object.create({serviceName: 'HDFS'})
-      });
-      _controller.getActiveWidgetLayout();
-      expect(testHelpers.findAjaxRequest('name', 'widgets.layouts.active.get')).to.exists;
-    });
-  });
-
-  describe("#getActiveWidgetLayoutSuccessCallback()", function () {
-    beforeEach(function () {
-      sinon.stub( App.widgetLayoutMapper, 'map');
-      sinon.stub( App.widgetMapper, 'map');
-    });
-    afterEach(function () {
-      App.widgetLayoutMapper.map.restore();
-      App.widgetMapper.map.restore();
-    });
-    it("isWidgetLayoutsLoaded should be set to true", function () {
-      var _controller = App.MainServiceInfoSummaryController.create({
-        isServiceWithEnhancedWidgets: true,
-        content: Em.Object.create({serviceName: 'HDFS'})
-      });
-      _controller.getActiveWidgetLayoutSuccessCallback({items:[{
-        WidgetLayoutInfo: {}
-      }]});
-      expect(_controller.get('isWidgetsLoaded')).to.be.true;
-    });
-
-  });
-
-  describe("#hideWidgetSuccessCallback()", function () {
-    beforeEach(function () {
-      sinon.stub(App.widgetLayoutMapper, 'map');
-      sinon.stub(controller, 'propertyDidChange');
-      var params = {
-        data: {
-          WidgetLayoutInfo: {
-            widgets: [
-              {id: 1}
-            ]
-          }
-        }
-      };
-      controller.hideWidgetSuccessCallback({}, {}, params);
-    });
-    afterEach(function () {
-      App.widgetLayoutMapper.map.restore();
-      controller.propertyDidChange.restore();
-    });
-    it("mapper is called with valid data", function () {
-      expect(App.widgetLayoutMapper.map.calledWith({
-        items: [{
-          WidgetLayoutInfo: {
-            widgets: [
-              {
-                WidgetInfo: {
-                  id: 1
-                }
-              }
-            ]
-          }
-        }]
-      })).to.be.true;
-    });
-    it('`widgets` is forced to be recalculated', function () {
-      expect(controller.propertyDidChange.calledWith('widgets')).to.be.true;
-    });
   });
 
 });

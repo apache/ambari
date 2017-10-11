@@ -102,6 +102,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   public static final String HOST_COMPONENT_DESIRED_REPOSITORY_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_repository_version";
   public static final String HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "actual_configs";
   public static final String HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stale_configs";
+  public static final String HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "reload_configs");
   public static final String HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_admin_state";
   public static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "maintenance_state";
   public static final String HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "upgrade_state";
@@ -264,6 +265,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, response.getDesiredStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID, response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID, response.isStaleConfig(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID, response.isReloadConfig(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, response.getUpgradeState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, response.getDesiredRepositoryVersion(), requestedIds);
 
