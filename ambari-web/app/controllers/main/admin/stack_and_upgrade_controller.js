@@ -2124,9 +2124,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
     this.loadRepoVersionsToModel().done(function () {
       var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
-      if (!isDowngrade) {
-        self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
-      }
+      self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
       self.initDBProperties();
       self.loadUpgradeData(true);
     });
