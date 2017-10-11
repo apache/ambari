@@ -210,7 +210,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
               putComponentProperty('druid.processing.numMergeBuffers', numMergeBuffers)
               totalAvailableMemInMb = self.getMinMemory(component_hosts) / 1024
               maxAvailableBufferSizeInMb = totalAvailableMemInMb/(processingThreads + numMergeBuffers)
-              putComponentProperty('druid.processing.buffer.sizeBytes', self.getDruidProcessingBufferSizeInMb(totalAvailableMemInMb) * 1024 * 1024)
+              putComponentProperty('druid.processing.buffer.sizeBytes', self.getDruidProcessingBufferSizeInMb(maxAvailableBufferSizeInMb) * 1024 * 1024)
 
 
   # returns the recommended druid processing buffer size in Mb.

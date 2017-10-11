@@ -985,7 +985,7 @@ class TestHDP26StackAdvisor(TestCase):
           "href": "/api/v1/hosts/c6402.ambari.apache.org",
           "Hosts": {
             "cpu_count": 1,
-            "total_mem": 1922680,
+            "total_mem": 622680,
             "disk_info": [
               {"mountpoint": "/"},
               {"mountpoint": "/dev/shm"},
@@ -1091,12 +1091,12 @@ class TestHDP26StackAdvisor(TestCase):
                         'properties': {'druid.processing.numThreads': '2',
                                        'druid.server.http.numThreads': '40',
                                        'druid.processing.numMergeBuffers': '2',
-                                       'druid.processing.buffer.sizeBytes': '536870912'}},
+                                       'druid.processing.buffer.sizeBytes': '134217728'}},
                         'druid-broker': {
                           'properties': {'druid.processing.numThreads': '1',
                                          'druid.server.http.numThreads': '40',
                                          'druid.processing.numMergeBuffers': '2',
-                                         'druid.processing.buffer.sizeBytes': '268435456'}},
+                                         'druid.processing.buffer.sizeBytes': '67108864'}},
                         'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                         'druid.metadata.storage.connector.port': '1527',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
@@ -1108,7 +1108,7 @@ class TestHDP26StackAdvisor(TestCase):
                                                               'druid.middlemanager.jvm.heap.memory': {
                                                                 'maximum': '49152'},
                                                               'druid.historical.jvm.heap.memory': {'maximum': '3755'},
-                                                              'druid.broker.jvm.heap.memory': {'maximum': '1877'}}}}
+                                                              'druid.broker.jvm.heap.memory': {'maximum': '1024'}}}}
                       )
 
   def test_recommendDruidConfigurations_low_mem_hosts(self):
@@ -1240,12 +1240,12 @@ class TestHDP26StackAdvisor(TestCase):
                       'properties': {'druid.processing.numThreads': '5',
                                      'druid.server.http.numThreads': '40',
                                      'druid.processing.numMergeBuffers': '2',
-                                     'druid.processing.buffer.sizeBytes': '67108864'}},
+                                     'druid.processing.buffer.sizeBytes': '14680064'}},
                       'druid-broker': {
                         'properties': {'druid.processing.numThreads': '3',
                                        'druid.server.http.numThreads': '40',
                                        'druid.processing.numMergeBuffers': '2',
-                                       'druid.processing.buffer.sizeBytes': '67108864'}},
+                                       'druid.processing.buffer.sizeBytes': '41943040'}},
                       'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                       'druid.metadata.storage.connector.port': '1527',
                                                       'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
