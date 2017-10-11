@@ -39,7 +39,6 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.inject.Provider;
 
 /**
