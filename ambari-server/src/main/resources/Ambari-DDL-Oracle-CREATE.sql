@@ -846,12 +846,12 @@ CREATE TABLE upgrade_item (
 );
 
 CREATE TABLE upgrade_history(
-  id BIGINT NOT NULL,
-  upgrade_id BIGINT NOT NULL,
+  id NUMBER(19) NOT NULL,
+  upgrade_id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
-  from_repo_version_id BIGINT NOT NULL,
-  target_repo_version_id BIGINT NOT NULL,
+  from_repo_version_id NUMBER(19) NOT NULL,
+  target_repo_version_id NUMBER(19) NOT NULL,
   CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
   CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
   CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
