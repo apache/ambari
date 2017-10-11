@@ -1225,7 +1225,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     try {
-      Cluster cluster = clusters.getCluster(clusterName);
       ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(serviceComponentName);
       ServiceComponentHost sch = serviceComponent.getServiceComponentHost(hostName);
       String refreshConfigsCommand = helper.getRefreshConfigsCommand(cluster,sch);
