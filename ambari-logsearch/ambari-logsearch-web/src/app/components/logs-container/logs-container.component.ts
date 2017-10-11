@@ -113,6 +113,16 @@ export class LogsContainerComponent implements OnInit {
     };
   }
 
+  /**
+   * The goal is to provide the single source for the parameters of 'xyz events found' message.
+   * @returns {Object}
+   */
+  get totalEventsFoundMessageParams(): object {
+    return {
+      totalCount: this.totalCount
+    }
+  }
+
   isServiceLogContextView: boolean = false;
 
   get isServiceLogsFileView(): boolean {

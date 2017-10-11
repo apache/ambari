@@ -17,26 +17,26 @@
 
 @import '../mixins';
 
-.panel-body {
+.panel-collapsible {
   position: relative;
-
-  .accordion-toggle {
-    position: absolute;
-
-    // TODO get rid of magic numbers, base on actual design
-    right: 10px;
-    top: 15px;
-
-    .toggle-icon {
-      .clickable-item;
-
-      &:before {
-        content: '\F077';
-      }
-
-      &.collapsed:before {
-        content: '\F078';
-      }
+  .panel-heading {
+    .clickable-item;
+    background-color: @panel-heading;
+    border: 0 none;
+    color: @base-font-color;
+    font-size: 1.25rem;
+    a, a:hover, a:visited {
+      color: @base-font-color;
+      text-decoration: none;
+    }
+  }
+  .panel-body {
+    padding: 5px;
+  }
+  &.panel-collapsed {
+    .panel-body {
+      height: 0;
+      overflow: hidden;
     }
   }
 }

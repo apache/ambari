@@ -15,19 +15,31 @@
  * limitations under the License.
  */
 
-:host {
-  display: inline-block;
-  cursor: pointer;
+@import '../variables';
 
+:host {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
   a:hover, a:focus {
     text-decoration: none;
   }
 
   .icon {
-    padding: 5px;
+    padding: @icon-padding;
   }
 
   .unstyled-link {
     color: inherit;
+  }
+
+  .badge {
+    background: @badge-bg;
+    font-size: 1rem;
+    min-width: 1em;
+    padding: @badge-padding;
+    position: absolute;
+    top: 0;
+    right: -1em;
   }
 }
