@@ -75,20 +75,6 @@
             <set key ="atlas.jaas.ticketBased-KafkaClient.option.useTicketCache" value="true"
               if-type="cluster-env" if-key="security_enabled" if-value="true"/>
           </definition>
-          <definition xsi:type="configure" id="hdp_2_6_maint_druid_config_for_hive_hook" summary="Updating druid hive related properties">
-            <type>hive-site</type>
-            <set key="hive.druid.metadata.password" value="{{druid_metadata_password}}" if-type="druid-common"/>
-            <set key="hive.druid.indexer.segments.granularity" value="MINUTE" if-type="druid-common"/>
-            <set key="hive.druid.indexer.partition.size.max" value="5000000" if-type="druid-common"/>
-            <set key="hive.druid.indexer.memory.rownum.max" value="75000" if-type="druid-common"/>
-            <set key="hive.druid.select.distribute" value="true" if-type="druid-common"/>
-            <set key="hive.druid.basePersistDirectory" value="" if-type="druid-common"/>
-            <set key="hive.druid.storage.storageDirectory" value="{{druid_storage_dir}}" if-type="druid-common"/>
-            <set key="hive.druid.passiveWaitTimeMs" value="30000" if-type="druid-common"/>
-            <set key="hive.druid.working.directory" value="/tmp/druid-indexing" if-type="druid-common"/>
-            <set key="hive.druid.bitmap.type" value="roaring" if-type="druid-common"/>
-
-          </definition>
         </changes>
       </component>
       <component name="HIVE_SERVER_INTERACTIVE">
@@ -96,6 +82,19 @@
           <definition xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable" summary="Update additional LLAP-Tez settings">
             <type>tez-interactive-site</type>
             <set key="tez.runtime.shuffle.ssl.enable" value="false"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_maint_druid_config_for_hive_hook" summary="Updating druid hive related properties">
+            <type>hive-site</type>
+            <set key="hive.druid.metadata.password" value="{{druid_metadata_password}}" if-type="druid-common"/>
+            <set key="hive.druid.indexer.segments.granularity" value="DAY" if-type="druid-common"/>
+            <set key="hive.druid.indexer.partition.size.max" value="1000000" if-type="druid-common"/>
+            <set key="hive.druid.indexer.memory.rownum.max" value="75000" if-type="druid-common"/>
+            <set key="hive.druid.select.distribute" value="true" if-type="druid-common"/>
+            <set key="hive.druid.basePersistDirectory" value="" if-type="druid-common"/>
+            <set key="hive.druid.storage.storageDirectory" value="{{druid_storage_dir}}" if-type="druid-common"/>
+            <set key="hive.druid.passiveWaitTimeMs" value="30000" if-type="druid-common"/>
+            <set key="hive.druid.working.directory" value="/tmp/druid-indexing" if-type="druid-common"/>
+            <set key="hive.druid.bitmap.type" value="roaring" if-type="druid-common"/>
           </definition>
         </changes>
       </component>

@@ -1835,12 +1835,7 @@ class TestHDP26StackAdvisor(TestCase):
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.optimize.sort.dynamic.partition': 'false',
-          'hive.server2.enable.doAs': 'false',
-          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
-          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
-          'hive.druid.metadata.db.type': 'mysql',
-          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
-          'hive.druid.metadata.username': 'druid',
+          'hive.server2.enable.doAs': 'false'
         },
         'property_attributes': {
           'hive.tez.container.size': {
@@ -1885,7 +1880,13 @@ class TestHDP26StackAdvisor(TestCase):
         }
       },
       'hive-interactive-site': {
-        'properties': {}
+        'properties': {
+          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
+          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
+          'hive.druid.metadata.db.type': 'mysql',
+          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
+          'hive.druid.metadata.username': 'druid'
+        }
       },
       'yarn-site': {
         'properties': {
@@ -1941,7 +1942,7 @@ class TestHDP26StackAdvisor(TestCase):
     services['configurations']['druid-router'] = {}
     services['configurations']['druid-router']['properties'] = {}
     services['configurations']['druid-router']['properties']['druid.port'] = 8083
-    expected['hive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
+    expected['hive-interactive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)
