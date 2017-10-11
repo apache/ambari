@@ -874,10 +874,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     Config clusterEnv = cluster.getDesiredConfigByType(ConfigHelper.CLUSTER_ENV);
     Map<String, String> clusterEnvProperties = clusterEnv.getProperties();
 
-    // the 3 properties we need to check and update
+    // the 4 properties we need to check and update
     Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
         ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY);
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
 
     // any updates are stored here and merged into the existing config type
     Map<String, String> updatedProperties = new HashMap<>();
