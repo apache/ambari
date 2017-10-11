@@ -360,6 +360,7 @@
         },
         "ZKFC": {
           "STACK-SELECT-PACKAGE": "hadoop-hdfs-zkfc",
+          "LEGACY": "hadoop-client",
           "INSTALL": [
             "hadoop-hdfs-zkfc"
           ],
@@ -367,7 +368,7 @@
             "hadoop-hdfs-zkfc"
           ],
           "STANDARD": [
-            "hadoop-hdfs-zkfc"
+            "hadoop-client"
           ]
         }
       },
