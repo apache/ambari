@@ -242,6 +242,17 @@ class Master(Script):
     if zeppelin_spark_dependencies and os.path.exists(zeppelin_spark_dependencies[0]):
       self.create_zeppelin_dir(params)
 
+    if params.conf_stored_in_hdfs:
+      if not self.is_path_exists_in_HDFS(self.get_zeppelin_conf_FS_directory(params), params.zeppelin_user):
+        # hdfs dfs -mkdir {zeppelin's conf directory}
+        params.HdfsResource(self.get_zeppelin_conf_FS_directory(params),
+                            type="directory",
+                            action="create_on_execute",
+                            owner=params.zeppelin_user,
+                            recursive_chown=True,
+                            recursive_chmod=True
+                            )
+
     # if first_setup:
     if not glob.glob(params.conf_dir + "/interpreter.json") and \
       not os.path.exists(params.conf_dir + "/interpreter.json"):
@@ -323,21 +334,16 @@ class Master(Script):
     import json
 
     interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
-    if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
-      and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
+    if params.conf_stored_in_hdfs:
+      zeppelin_conf_fs = self.get_zeppelin_conf_FS(params)
 
-      if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
-        zeppelin_conf_fs = self.get_zeppelin_conf_FS(params)
-
-        if self.is_path_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
-          # copy from hdfs to /etc/zeppelin/conf/interpreter.json
-          kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths',None))
-          kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
-          shell.call(format("rm {interpreter_config};"
-                            "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -get {zeppelin_conf_fs} {interpreter_config}"),
-                     user=params.zeppelin_user)
-        else:
-          Logger.info(format("{zeppelin_conf_fs} does not exist. Skipping upload of DFS."))
+      if self.is_path_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
+        # copy from hdfs to /etc/zeppelin/conf/interpreter.json
+        kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths',None))
+        kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
+        shell.call(format("rm {interpreter_config};"
+                          "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -get {zeppelin_conf_fs} {interpreter_config}"),
+                   user=params.zeppelin_user)
 
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
@@ -353,28 +359,15 @@ class Master(Script):
          owner=params.zeppelin_user,
          content=json.dumps(config_data, indent=2))
 
-    if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
-      and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
-
-      if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
-        if not self.is_path_exists_in_HDFS(self.get_zeppelin_conf_FS_directory(params), params.zeppelin_user):
-          # hdfs dfs -mkdir {zeppelin's conf directory}
-          params.HdfsResource(self.get_zeppelin_conf_FS_directory(params),
-                              type="directory",
-                              action="create_on_execute",
-                              owner=params.zeppelin_user,
-                              recursive_chown=True,
-                              recursive_chmod=True
-                              )
-
-        params.HdfsResource(self.get_zeppelin_conf_FS(params),
-                            type="file",
-                            action="create_on_execute",
-                            source=interpreter_config,
-                            owner=params.zeppelin_user,
-                            recursive_chown=True,
-                            recursive_chmod=True,
-                            replace_existing_files=True)
+    if params.conf_stored_in_hdfs:
+      params.HdfsResource(self.get_zeppelin_conf_FS(params),
+                          type="file",
+                          action="create_on_execute",
+                          source=interpreter_config,
+                          owner=params.zeppelin_user,
+                          recursive_chown=True,
+                          recursive_chmod=True,
+                          replace_existing_files=True)
 
   def update_kerberos_properties(self):
     import params
@@ -451,7 +444,7 @@ class Master(Script):
     hive_interactive_properties_key = 'hive_interactive'
     for setting_key in interpreter_settings.keys():
       interpreter = interpreter_settings[setting_key]
-      if interpreter['group'] == 'jdbc':
+      if interpreter['group'] == 'jdbc' and interpreter['name'] == 'jdbc':
         interpreter['dependencies'] = []
 
         if not params.hive_server_host and params.hive_server_interactive_hosts:
