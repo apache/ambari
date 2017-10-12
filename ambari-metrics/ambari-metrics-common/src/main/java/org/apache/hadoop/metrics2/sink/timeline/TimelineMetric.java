@@ -146,6 +146,9 @@ public class TimelineMetric implements Comparable<TimelineMetric>, Serializable 
 
   public void addMetricValues(Map<Long, Double> metricValues) {
     this.metricValues.putAll(metricValues);
+    if (!this.metricValues.isEmpty()) {
+      this.setStartTime(this.metricValues.firstKey());
+    }
   }
 
   @XmlElement(name = "metadata")
