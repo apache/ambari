@@ -1496,8 +1496,12 @@ public class DBAccessorImpl implements DBAccessor {
    */
   @Override
   public void clearTable(String tableName) throws SQLException{
-    String sqlQuery = "DELETE FROM " + convertObjectName(tableName);
-    executeQuery(sqlQuery);
+    if (tableExists(tableName)){
+      String sqlQuery = "DELETE FROM " + convertObjectName(tableName);
+      executeQuery(sqlQuery);
+    } else {
+      LOG.warn("{} table doesn't exists, skipping", tableName);
+    }
   }
 
   /**
@@ -1509,8 +1513,12 @@ public class DBAccessorImpl implements DBAccessor {
    */
   @Override
   public void clearTableColumn(String tableName, String columnName, Object value) throws SQLException {
-    String sqlQuery = String.format("UPDATE %s SET %s = ?", convertObjectName(tableName), convertObjectName(columnName));
-    executePreparedUpdate(sqlQuery, value);
+    if (tableExists(tableName)){
+      String sqlQuery = String.format("UPDATE %s SET %s = ?", convertObjectName(tableName), convertObjectName(columnName));
+      executePreparedUpdate(sqlQuery, value);
+    } else {
+      LOG.warn("{} table doesn't exists, skipping", tableName);
+    }
   }
 
   /**
