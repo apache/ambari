@@ -104,6 +104,11 @@ conf_dir = "/etc/zeppelin/conf"
 external_dependency_conf = "/etc/zeppelin/conf/external-dependency-conf"
 notebook_dir = os.path.join(*[install_dir, zeppelin_dirname, 'notebook'])
 
+conf_stored_in_hdfs = False
+if 'zeppelin.config.fs.dir' in config['configurations']['zeppelin-config'] and \
+  not config['configurations']['zeppelin-config']['zeppelin.config.fs.dir'].startswith('file://'):
+  conf_stored_in_hdfs = True
+
 # zeppelin-env.sh
 zeppelin_env_content = config['configurations']['zeppelin-env']['zeppelin_env_content']
 

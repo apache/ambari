@@ -341,12 +341,6 @@ class TestZeppelin070(RMFTestCase):
                               security_enabled=False,
                               )
 
-    self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
-                          content=interpreter_json_generated.template_after_base,
-                          owner='zeppelin',
-                          group='zeppelin',
-                          )
-
     self.assertResourceCalled('HdfsResource',
                               '/user/zeppelin/hdfs:///user/zeppelin/conf',
                               security_enabled=False,
@@ -359,12 +353,19 @@ class TestZeppelin070(RMFTestCase):
                               principal_name=UnknownConfigurationMock(),
                               recursive_chown=True,
                               recursive_chmod=True,
-                              owner='zeppelin',
                               user='hdfs',
+                              owner='zeppelin',
                               hadoop_conf_dir='/usr/hdp/2.5.0.0-1235/hadoop/conf',
                               type='directory',
                               action=['create_on_execute'],
                               )
+
+    self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
+                          content=interpreter_json_generated.template_after_base,
+                          owner='zeppelin',
+                          group='zeppelin',
+                          )
+
 
     self.assertResourceCalled('HdfsResource',
                               '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
@@ -394,25 +395,6 @@ class TestZeppelin070(RMFTestCase):
                               )
 
     self.assertResourceCalled('HdfsResource',
-                              '/user/zeppelin/hdfs:///user/zeppelin/conf',
-                              security_enabled=False,
-                              hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
-                              keytab=UnknownConfigurationMock(),
-                              default_fs='hdfs://c6401.ambari.apache.org:8020',
-                              recursive_chown=True,
-                              recursive_chmod=True,
-                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-                              hdfs_site={u'a': u'b'},
-                              kinit_path_local='/usr/bin/kinit',
-                              principal_name=UnknownConfigurationMock(),
-                              user='hdfs',
-                              owner='zeppelin',
-                              hadoop_conf_dir='/usr/hdp/2.5.0.0-1235/hadoop/conf',
-                              type='directory',
-                              action=['create_on_execute'],
-                              )
-
-    self.assertResourceCalled('HdfsResource',
                               '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
                               security_enabled=False,
                               hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
@@ -437,24 +419,6 @@ class TestZeppelin070(RMFTestCase):
                               content=interpreter_json_generated.template_after_kerberos,
                               owner='zeppelin',
                               group='zeppelin',
-                              )
-
-    self.assertResourceCalled('HdfsResource', '/user/zeppelin/hdfs:///user/zeppelin/conf',
-                              security_enabled = False,
-                              hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
-                              keytab = UnknownConfigurationMock(),
-                              default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                              hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-                              hdfs_site = {u'a': u'b'},
-                              kinit_path_local = '/usr/bin/kinit',
-                              principal_name = UnknownConfigurationMock(),
-                              recursive_chown=True,
-                              recursive_chmod=True,
-                              user = 'hdfs',
-                              owner = 'zeppelin',
-                              hadoop_conf_dir = '/usr/hdp/2.5.0.0-1235/hadoop/conf',
-                              type = 'directory',
-                              action = ['create_on_execute'],
                               )
 
     self.assertResourceCalled('HdfsResource', '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
