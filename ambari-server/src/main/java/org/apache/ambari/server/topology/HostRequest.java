@@ -488,7 +488,7 @@ public class HostRequest implements Comparable<HostRequest> {
     private void buildPropertyMap(Host host) {
       hostResource = new ResourceImpl(Resource.Type.Host);
 
-      hostResource.setProperty(HostResourceProvider.HOST_NAME_PROPERTY_ID,
+      hostResource.setProperty(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID,
           host.getHostName());
       hostResource.setProperty(HostResourceProvider.HOST_PUBLIC_NAME_PROPERTY_ID,
           host.getPublicHostName());
