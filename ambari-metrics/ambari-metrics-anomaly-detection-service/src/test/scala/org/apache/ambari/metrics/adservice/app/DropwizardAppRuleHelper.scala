@@ -15,26 +15,25 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-package org.apache.ambari.metrics.adservice.common
+package org.apache.ambari.metrics.adservice.app
 
-import org.scalatest.FlatSpec
+import org.junit.runner.Description
+
+import io.dropwizard.Configuration
+import io.dropwizard.testing.ConfigOverride
+import io.dropwizard.testing.junit.DropwizardAppRule
 
 import scala.collection.mutable
 
-class ADServiceConfigurationTest extends FlatSpec {
+object DropwizardAppRuleHelper {
 
-  "A Stack" should "pop values in last-in-first-out order" in {
-    val stack = new mutable.Stack[Int]
-    stack.push(1)
-    stack.push(2)
-    assert(stack.pop() === 2)
-    assert(stack.pop() === 1)
+  def withAppRunning[C <: Configuration](serviceClass: Class[_ <: io.dropwizard.Application[C]],
+                                         configPath: String, configOverrides: ConfigOverride*)
+                                        (fn: (DropwizardAppRule[C]) => Unit) {
+    val overrides = new mutable.ListBuffer[ConfigOverride]
+    configOverrides.foreach { o => overrides += o }
+    val rule = new DropwizardAppRule(serviceClass, configPath, overrides.toList: _*)
+    rule.apply(() => fn(rule), Description.EMPTY).evaluate()
   }
 
-  it should "throw NoSuchElementException if an empty stack is popped" in {
-    val emptyStack = new mutable.Stack[String]
-    assertThrows[NoSuchElementException] {
-      emptyStack.pop()
-    }
-  }
 }
