@@ -280,6 +280,7 @@
             <exclude>derby.log</exclude>
             <exclude>**/*.nuspec</exclude>
             <exclude>**/*.json</exclude>
+            <exclude>**/out</exclude>
           </excludes>
         </configuration>
         <executions>

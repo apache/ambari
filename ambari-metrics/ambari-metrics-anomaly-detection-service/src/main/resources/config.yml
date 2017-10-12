@@ -1,0 +1,12 @@
+server:
+  applicationConnectors:
+   - type: http
+     port: 9999
+  adminConnectors:
+    - type: http
+      port: 9990
+  requestLog:
+    type: external
+
+logging:
+  type: external

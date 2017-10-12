@@ -15,26 +15,21 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-package org.apache.ambari.metrics.adservice.common
+package org.apache.ambari.metrics.adservice.resource
 
-import org.scalatest.FlatSpec
+import javax.ws.rs.{GET, Path, Produces}
+import javax.ws.rs.core.Response
+import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
-import scala.collection.mutable
+import org.joda.time.DateTime
 
-class ADServiceConfigurationTest extends FlatSpec {
+@Path("/")
+class RootResource {
 
-  "A Stack" should "pop values in last-in-first-out order" in {
-    val stack = new mutable.Stack[Int]
-    stack.push(1)
-    stack.push(2)
-    assert(stack.pop() === 2)
-    assert(stack.pop() === 1)
+  @Produces(Array(APPLICATION_JSON))
+  @GET
+  def default: Response = {
+    Response.ok.entity(Map("name" -> "anomaly-detection-service", "today" -> DateTime.now.toString("MM-dd-yyyy hh:mm"))).build()
   }
 
-  it should "throw NoSuchElementException if an empty stack is popped" in {
-    val emptyStack = new mutable.Stack[String]
-    assertThrows[NoSuchElementException] {
-      emptyStack.pop()
-    }
-  }
 }
