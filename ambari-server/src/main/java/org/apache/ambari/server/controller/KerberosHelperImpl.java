@@ -1611,7 +1611,7 @@ public class KerberosHelperImpl implements KerberosHelper {
             // Calculate the current host-specific configurations. These will be used to replace
             // variables within the Kerberos descriptor data
             Map<String, Map<String, String>> configurations = calculateConfigurations(cluster,
-                hostname.equals(ambariServerHostname) ? null : hostname,
+                hostname,
                 kerberosDescriptor,
                 false,
                 false);

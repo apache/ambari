@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,6 +125,19 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
           if (serviceDescriptor != null) {
             List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true, filterContext);
+
+            if (!StringUtils.isEmpty(hostName)) {
+              // Update the configurations with the relevant hostname
+              Map<String, String> generalProperties = currentConfigurations.get("");
+              if (generalProperties == null) {
+                generalProperties = new HashMap<>();
+                currentConfigurations.put("", generalProperties);
+              }
+
+              // Add the current hostname under "host" and "hostname"
+              generalProperties.put("host", hostName);
+              generalProperties.put("hostname", hostName);
+            }
 
             // Add service-level principals (and keytabs)
             kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, serviceIdentities,
