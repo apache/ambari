@@ -535,10 +535,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             addedHost.getHostName(),
             addedHost.getRackInfo(),
             addedHost.getIPv4()));
-        //TODO fix repo info param
         HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(clusterId, new HostLevelParamsCluster(
-            null,//ambariMetaInfo.getRepoInfo(cl, addedHost),
-            recoveryConfigHelper.getRecoveryConfig(clusters.getCluster(hostRequest.getClusterName()).getClusterName(),
+            getManagementController().retrieveHostRepositories(cl, addedHost),
+            recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(),
                 addedHost.getHostName())
         ));
         hostLevelParamsUpdateEvent.setHostId(addedHost.getHostId());

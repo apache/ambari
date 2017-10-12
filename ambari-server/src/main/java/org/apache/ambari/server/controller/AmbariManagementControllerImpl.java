@@ -102,10 +102,13 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
+import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
@@ -362,6 +365,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private Provider<AgentConfigsHolder> m_agentConfigsHolder;
+
+  @Inject
+  private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
 
   @Inject
   private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
@@ -746,6 +752,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
     TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
+    Set<String> hostsToUpdate = new HashSet<>();
     for (ServiceComponentHostRequest request : requests) {
       String serviceName = request.getServiceName();
       String componentName = request.getComponentName();
@@ -754,6 +761,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Service s = cluster.getService(serviceName);
       ServiceComponent sc = s.getServiceComponent(componentName);
       String hostName = request.getHostname();
+      hostsToUpdate.add(hostName);
       Set<Long> hostIds = clusterHosts.stream()
           .filter(h -> hostName.equals(h.getHostName()))
           .map(h -> h.getHostId()).collect(Collectors.toSet());
@@ -789,6 +797,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       } else {
         topologyUpdates.get(clusterId).addTopologyComponent(newComponent);
       }
+    }
+    for (String hostName : hostsToUpdate) {
+      Host host = clusters.getHost(hostName);
+      m_hostLevelParamsHolder.get().updateData(m_hostLevelParamsHolder.get().getCurrentData(host.getHostId()));
     }
     return new TopologyUpdateEvent(topologyUpdates, TopologyUpdateEvent.EventType.UPDATE);
   }
@@ -6031,5 +6043,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
 
     return clusterLevelParams;
+  }
+
+  @Override
+  public HostRepositories retrieveHostRepositories(Cluster cluster, Host host) throws AmbariException {
+    List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(host.getHostName());
+    Map<Long, CommandRepository> hostRepositories = new HashMap<>();
+    Map<String, Long> componentsRepos = new HashMap<>();
+    for (ServiceComponentHost serviceComponentHost : hostComponents) {
+      CommandRepository commandRepository = ambariMetaInfo.getCommandRepository(cluster,
+          serviceComponentHost.getServiceComponent(), host);
+      hostRepositories.put(commandRepository.getM_repoVersionId(), commandRepository);
+      componentsRepos.put(serviceComponentHost.getServiceComponentName(), commandRepository.getM_repoVersionId());
+    }
+    return new HostRepositories(hostRepositories, componentsRepos);
   }
 }

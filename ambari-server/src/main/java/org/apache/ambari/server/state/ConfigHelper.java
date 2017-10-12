@@ -1587,6 +1587,7 @@ public class ConfigHelper {
     }
 
     AgentConfigsUpdateEvent agentConfigsUpdateEvent = new AgentConfigsUpdateEvent(clustersConfigs);
+    agentConfigsUpdateEvent.setHostId(hostId);
     return agentConfigsUpdateEvent;
   }
 

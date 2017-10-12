@@ -22,13 +22,14 @@ import java.util.TreeMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.stomp.dto.HostLevelParamsCluster;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -38,25 +39,25 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
   private RecoveryConfigHelper recoveryConfigHelper;
 
   @Inject
-  private AmbariMetaInfo ambariMetaInfo;
+  private Clusters clusters;
 
   @Inject
-  private Clusters clusters;
+  private Provider<AmbariManagementController> m_ambariManagementController;
 
   @Override
   public HostLevelParamsUpdateEvent getCurrentData(Long hostId) throws AmbariException {
     TreeMap<String, HostLevelParamsCluster> hostLevelParamsClusters = new TreeMap<>();
     Host host = clusters.getHostById(hostId);
     for (Cluster cl : clusters.getClustersForHost(host.getHostName())) {
-      //TODO fix repo info host param
       HostLevelParamsCluster hostLevelParamsCluster = new HostLevelParamsCluster(
-          null,//ambariMetaInfo.getRepoInfo(cl, host),
+          m_ambariManagementController.get().retrieveHostRepositories(cl, host),
           recoveryConfigHelper.getRecoveryConfig(cl.getClusterName(), host.getHostName()));
 
       hostLevelParamsClusters.put(Long.toString(cl.getClusterId()),
           hostLevelParamsCluster);
     }
     HostLevelParamsUpdateEvent hostLevelParamsUpdateEvent = new HostLevelParamsUpdateEvent(hostLevelParamsClusters);
+    hostLevelParamsUpdateEvent.setHostId(hostId);
     return hostLevelParamsUpdateEvent;
   }
 

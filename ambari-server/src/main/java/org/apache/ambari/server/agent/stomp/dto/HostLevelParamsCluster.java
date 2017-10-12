@@ -17,30 +17,32 @@
  */
 package org.apache.ambari.server.agent.stomp.dto;
 
-import java.util.List;
 
 import org.apache.ambari.server.agent.RecoveryConfig;
-import org.apache.ambari.server.state.RepositoryInfo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class HostLevelParamsCluster {
 
-  private List<RepositoryInfo> repoInfo;
+  @JsonProperty("hostRepositories")
+  private HostRepositories hostRepositories;
+
+  @JsonProperty("recoveryConfig")
   private RecoveryConfig recoveryConfig;
 
-  public HostLevelParamsCluster(List<RepositoryInfo> repoInfo, RecoveryConfig recoveryConfig) {
-    this.repoInfo = repoInfo;
+  public HostLevelParamsCluster(HostRepositories hostRepositories, RecoveryConfig recoveryConfig) {
+    this.hostRepositories = hostRepositories;
     this.recoveryConfig = recoveryConfig;
   }
 
-  public List<RepositoryInfo> getRepoInfo() {
-    return repoInfo;
+  public HostRepositories getHostRepositories() {
+    return hostRepositories;
   }
 
-  public void setRepoInfo(List<RepositoryInfo> repoInfo) {
-    this.repoInfo = repoInfo;
+  public void setHostRepositories(HostRepositories hostRepositories) {
+    this.hostRepositories = hostRepositories;
   }
 
   public RecoveryConfig getRecoveryConfig() {
