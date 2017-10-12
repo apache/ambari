@@ -530,14 +530,16 @@ class Master(Script):
 
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy':
         if params.livy_livyserver_host:
-          interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host + \
+          interpreter['properties']['zeppelin.livy.url'] = params.livy_livyserver_protocol + \
+                                                           "://" + params.livy_livyserver_host + \
                                                            ":" + params.livy_livyserver_port
         else:
           del interpreter_settings[setting_key]
 
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy2':
         if params.livy2_livyserver_host:
-          interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy2_livyserver_host + \
+          interpreter['properties']['zeppelin.livy.url'] = params.livy2_livyserver_protocol + \
+                                                           "://" + params.livy2_livyserver_host + \
                                                            ":" + params.livy2_livyserver_port
         else:
           del interpreter_settings[setting_key]
