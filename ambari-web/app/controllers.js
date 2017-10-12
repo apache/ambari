@@ -149,6 +149,7 @@ require('controllers/wizard/step0_controller');
 require('controllers/wizard/step1_controller');
 require('controllers/wizard/step2_controller');
 require('controllers/wizard/step3_controller');
+require('controllers/wizard/configureDownload_controller');
 require('controllers/wizard/step4_controller');
 require('controllers/wizard/step5_controller');
 require('controllers/wizard/step6_controller');

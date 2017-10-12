@@ -329,7 +329,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         body: "If you proceed to go back to Step " + step + ", you will lose any changes you have made beyond this step"
       });
     } else {
-      App.router.send('gotoStep' + step);
+      App.router.send('goto' + stepName.capitalize());
     }
 
     return true;
@@ -377,6 +377,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   gotoStep10: function () {
     this.gotoStep(10);
+  },
+
+  gotoConfigureDownload: function () {
+    this.gotoStep("configureDownload");
   },
 
   /**

@@ -367,6 +367,7 @@ require('views/wizard/step3_view');
 require('views/wizard/step3/hostLogPopupBody_view');
 require('views/wizard/step3/hostWarningPopupBody_view');
 require('views/wizard/step3/hostWarningPopupFooter_view');
+require('views/wizard/configureDownload_view');
 require('views/wizard/step4_view');
 require('views/wizard/step5_view');
 require('views/wizard/step6_view');

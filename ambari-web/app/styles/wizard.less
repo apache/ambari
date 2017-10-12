@@ -629,6 +629,72 @@
       .radio-group {
         padding-bottom: 10px;
         color: #666;
+        .local-radio {
+          cursor: not-allowed
+        }
+        .radio.big-radio {
+          height: 100px;
+          background-color: #dddddd;
+          width: 120px;
+          margin: 15px;
+          padding-left: 0;
+          padding-right: 0;
+          border-radius: 2px;
+          p {
+            display: none;
+            font-size: 11px;
+            text-align: center;
+            padding: 0 5px 10px 5px;
+            line-height: 1.2em;
+          }
+          input[type="radio"] + label, p, .repo-group, {
+            cursor: default;
+          }
+          input[type="radio"] + label:before {
+            border-color: #999;
+            background-color: #fff;
+          }
+          input[type="radio"]:checked + label:before {
+            background: #fff;
+            border-color: #5cb85c;
+          }
+          input[type="radio"]:checked + label:after {
+            background-color: #5cb85c;
+          }
+          .repo-checkbox {
+            padding: 0 10px;
+          }
+          .icon {
+            font-size: 36px;
+            text-align: center;
+            position: absolute;
+            top: 20px;
+            padding: 0 20px;
+            width: 100%;
+            color: #fff;
+          }
+          .repo-group {
+            bottom: 0px;
+            position: absolute;
+            background-color: #5cb85c;
+            color: white;
+            padding: 5px 10px;
+            width: 100%;
+            font-size: 12px;
+            text-align: center;
+          }
+        }
+        //for now only allow the public repo to show info on hover
+        //.radio:hover {
+        .public-radio:hover {
+          border: 2px solid #00cc99;
+          p {
+            display:block;
+          }
+          .icon, .repo-group {
+            opacity: 0.1;
+          }
+        }
       }
     }
     table > tbody > tr > td {

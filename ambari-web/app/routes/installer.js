@@ -243,7 +243,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           selectedServiceNames: undefined,
           installedServiceNames: undefined
         });
-        router.transitionTo('step1');
+        router.transitionTo('configureDownload');
         console.timeEnd('step3 next');
       }
     },
@@ -259,6 +259,64 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     removeHosts: function (router, context) {
       var controller = router.get('installerController');
       controller.removeHosts(context);
+    }
+  }),
+
+
+  configureDownload: Em.Route.extend({
+    route: '/configureDownload',
+    connectOutlets: function (router) {
+      console.time('configureDownload connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      var configureDownloadController = router.get('wizardConfigureDownloadController');
+      var newStepIndex = controller.getStepIndex('configureDownload');
+      router.setNavigationFlow(newStepIndex);
+      configureDownloadController.set('optionsToSelect', {
+        'usePublicRepo': {
+          index: 0,
+          isSelected: true
+        },
+        'useLocalRepo': {
+          index: 1,
+          isSelected: false,
+          'uploadFile': {
+            index: 0,
+            name: 'uploadFile',
+            file: '',
+            hasError: false,
+            isSelected: true
+          },
+          'enterUrl': {
+            index: 1,
+            name: 'enterUrl',
+            url: '',
+            placeholder: Em.I18n.t('installer.step1.useLocalRepo.enterUrl.placeholder'),
+            hasError: false,
+            isSelected: false
+          }
+        }
+      });
+      controller.setCurrentStep('configureDownload');
+      controller.loadAllPriorSteps().done(function () {
+        configureDownloadController.set('wizardController', controller);
+        controller.connectOutlet('wizardConfigureDownload', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('configureDownload connectOutlets');
+      });
+    },
+    back: Em.Router.transitionTo('step3'),
+    next: function (router) {
+      console.time('configureDownload next');
+      if(router.get('btnClickInProgress')) {
+        return;
+      }
+      var configureDownloadController = router.get('configureDownloadController');
+      var installerController = router.get('installerController');
+      App.set('router.nextBtnClickInProgress', true);
+      installerController.setDBProperty('service', undefined);
+      router.transitionTo('step1');
+      console.timeEnd('configureDownload next');
     }
   }),
 
@@ -605,6 +663,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   gotoStep9: Em.Router.transitionTo('step9'),
 
-  gotoStep10: Em.Router.transitionTo('step10')
+  gotoStep10: Em.Router.transitionTo('step10'),
+
+  gotoConfigureDownload: Em.Router.transitionTo('configureDownload')
 
 });

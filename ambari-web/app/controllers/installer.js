@@ -41,6 +41,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step0",
     "step2",
     "step3",
+    "configureDownload",
     "step1",
     "step4",
     "step5",
@@ -987,6 +988,40 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
+    'configureDownload': [
+      {
+        type: 'async',
+        callback: function () {
+          var dfd = $.Deferred();
+
+          this.loadStacks().always(function() {
+            App.router.get('clusterController').loadAmbariProperties().always(function() {
+              dfd.resolve();
+            });
+          });
+
+          return dfd.promise();
+        }
+      },
+      {
+        type: 'async',
+        callback: function (stacksLoaded) {
+          var dfd = $.Deferred();
+
+          if (!stacksLoaded) {
+            $.when.apply(this, this.loadStacksVersions()).done(function () {
+              Em.run.later('sync', function() {
+                dfd.resolve(stacksLoaded);
+              }, 1000);
+            });
+          } else {
+            dfd.resolve(stacksLoaded);
+          }
+
+          return dfd.promise();
+        }
+      }
+    ],
     'step3': [
       {
         type: 'sync',
@@ -995,6 +1030,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
+
     'step4': [
       {
         type: 'async',
@@ -1105,6 +1141,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.gotoStep('step10');
   },
 
+  gotoConfigureDownload: function () {
+    this.gotoStep('configureDownload');
+  },
+
   isStep0: function () {
     return this.get('currentStep') == this.getStepIndex('step0');
   }.property('currentStep'),
@@ -1147,6 +1187,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   isStep10: function () {
     return this.get('currentStep') == this.getStepIndex('step10');
+  }.property('currentStep'),
+
+  isConfigureDownload: function () {
+    return this.get('currentStep') == this.getStepIndex('configureDownload');
   }.property('currentStep'),
 
   clearConfigActionComponents: function() {
