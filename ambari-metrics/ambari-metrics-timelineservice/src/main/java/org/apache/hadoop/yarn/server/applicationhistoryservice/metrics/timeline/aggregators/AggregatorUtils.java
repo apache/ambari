@@ -223,7 +223,7 @@ public class AggregatorUtils {
    */
   public static Long getSliceTimeForMetric(List<Long[]> timeSlices, Long timestamp) {
     for (Long[] timeSlice : timeSlices) {
-      if (timestamp > timeSlice[0] && timestamp <= timeSlice[1]) {
+      if (timestamp >= timeSlice[0] && timestamp < timeSlice[1]) {
         return timeSlice[1];
       }
     }
