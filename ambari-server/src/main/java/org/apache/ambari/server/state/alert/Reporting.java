@@ -17,6 +17,15 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import static org.apache.ambari.server.state.alert.Reporting.ReportingType.PERCENT;
+
+import java.text.MessageFormat;
+import java.util.List;
+
+import org.apache.ambari.server.alerts.Threshold;
+import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -197,6 +206,40 @@ public class Reporting {
     }
 
     return true;
+  }
+
+  /**
+   * Map the incoming value to {@link AlertState} and generate an alert with that state.
+   */
+  public Alert alert(double value, List<Object> args, AlertDefinition alertDef) {
+    Alert alert = new Alert(alertDef.getName(), null, alertDef.getServiceName(), alertDef.getComponentName(), null, state(value));
+    alert.setText(MessageFormat.format(message(value), args.toArray()));
+    return alert;
+  }
+
+  private AlertState state(double value) {
+    return getThreshold().state(PERCENT == getType() ? value * 100 : value);
+  }
+
+  private Threshold getThreshold() {
+    return new Threshold(getOk().getValue(), getWarning().getValue(), getCritical().getValue());
+  }
+
+  private String message(double value) {
+    switch (state(value)) {
+      case OK:
+        return getOk().getText();
+      case WARNING:
+        return getWarning().getText();
+      case CRITICAL:
+        return getCritical().getText();
+      case UNKNOWN:
+        return "Unknown";
+      case SKIPPED:
+        return "Skipped";
+      default:
+        throw new IllegalStateException("Invalid alert state: " + state(value));
+    }
   }
 
   /**

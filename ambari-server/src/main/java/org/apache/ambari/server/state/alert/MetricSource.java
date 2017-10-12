@@ -129,6 +129,9 @@ public class MetricSource extends Source {
 
     private String value;
 
+    @SerializedName("url_suffix")
+    private String urlSuffix = "/jmx";
+
     public List<String> getPropertyList() {
       return propertyList;
     }
@@ -151,6 +154,10 @@ public class MetricSource extends Source {
       // !!! even if out of order, this is enough to fail
       return list1.equals(list2);
 
+    }
+
+    public String getUrlSuffix() {
+      return urlSuffix;
     }
   }
 }

@@ -359,6 +359,7 @@ public class ControllerModule extends AbstractModule {
     // So it's an "additional time", given to stage to finish execution before
     // it is considered as timed out
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+    bindConstant().annotatedWith(Names.named("alertServiceCorePoolSize")).to(configuration.getAlertServiceCorePoolSize());
 
     bindConstant().annotatedWith(Names.named("dbInitNeeded")).to(dbInitNeeded);
     bindConstant().annotatedWith(Names.named("statusCheckInterval")).to(5000L);

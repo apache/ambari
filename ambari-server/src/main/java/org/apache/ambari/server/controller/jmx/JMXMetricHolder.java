@@ -18,13 +18,18 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  *
  */
 public final class JMXMetricHolder {
+  private static final String NAME_KEY = "name";
 
   private List<Map<String, Object>> beans;
 
@@ -46,5 +51,27 @@ public final class JMXMetricHolder {
       }
     }
     return stringBuilder.toString();
+  }
+
+  public List<Object> findAll(List<String> properties) {
+    return properties.stream()
+      .map(this::find)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .collect(toList());
+  }
+
+  public Optional<Object> find(String property) {
+    String propertyName = property.split("/")[0];
+    String propertyValue = property.split("/")[1];
+    return beans.stream()
+      .filter(each -> propertyName.equals(name(each)))
+      .map(each -> each.get(propertyValue))
+      .filter(Objects::nonNull)
+      .findFirst();
+  }
+
+  private String name(Map<String, Object> bean) {
+    return bean.containsKey(NAME_KEY) ? (String) bean.get(NAME_KEY) : null;
   }
 }

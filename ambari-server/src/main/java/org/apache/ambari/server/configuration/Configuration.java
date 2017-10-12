@@ -2786,6 +2786,13 @@ public class Configuration {
   @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
   public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<Boolean>("security.passwords.encryption.enabled", false);
 
+  /**
+   * The core pool size of the executor service that runs server side alerts.
+   */
+  @Markdown(description = "The core pool size of the executor service that runs server side alerts.")
+  public static final ConfigurationProperty<Integer> SERVER_SIDE_ALERTS_CORE_POOL_SIZE = new ConfigurationProperty<>(
+          "alerts.server.side.scheduler.threadpool.size.core", 4);
+
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -6233,5 +6240,9 @@ public class Configuration {
 
   public String getAutoGroupCreation() {
     return getProperty(AUTO_GROUP_CREATION);
+  }
+
+  public int getAlertServiceCorePoolSize() {
+    return Integer.parseInt(getProperty(SERVER_SIDE_ALERTS_CORE_POOL_SIZE));
   }
 }

@@ -57,6 +57,7 @@ The following are the properties which can be used to configure Ambari.
 | alerts.execution.scheduler.threadpool.size.core | The core number of threads used to process incoming alert events. The value should be increased as the size of the cluster increases. |`2` | 
 | alerts.execution.scheduler.threadpool.size.max | The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases. |`2` | 
 | alerts.execution.scheduler.threadpool.worker.size | The number of queued alerts allowed before discarding old alerts which have not been handled. The value should be increased as the size of the cluster increases. |`2000` | 
+| alerts.server.side.scheduler.threadpool.size.core | The core pool size of the executor service that runs server side alerts. |`4` | 
 | alerts.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
 | alerts.template.file | The full path to the XML file that describes the different alert templates. | | 
 | ambari.display.url | The URL to use when creating messages which should include the Ambari Server URL.<br/><br/>The following are examples of valid values:<ul><li>`http://ambari.apache.org:8080`</ul> | | 
