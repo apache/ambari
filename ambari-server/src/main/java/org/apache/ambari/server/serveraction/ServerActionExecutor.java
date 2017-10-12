@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.serveraction;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +83,7 @@ public class ServerActionExecutor {
    * requestSharedDataMap object
    */
   private final Map<Long, ConcurrentMap<String, Object>> requestSharedDataMap =
-      new HashMap<>();
+      new ConcurrentHashMap<>();
 
   /**
    * Database accessor to query and update the database of action commands.

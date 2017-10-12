@@ -267,7 +267,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
             errors.size())).append(System.lineSeparator());
 
         for (InfoTuple error : errors) {
-          messageBuff.append(String.format("%s: $s (current = %s, desired = %s ", error.hostName,
+          messageBuff.append(String.format("%s: %s (current = %s, desired = %s)", error.hostName,
               error.componentName, error.currentVersion, error.targetVersion));
 
           messageBuff.append(System.lineSeparator());
@@ -363,23 +363,22 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     Set<InfoTuple> errors = new TreeSet<>();
 
     Cluster cluster = upgradeContext.getCluster();
-    RepositoryVersionEntity repositoryVersionEntity = upgradeContext.getRepositoryVersion();
-    StackId targetStackId = repositoryVersionEntity.getStackId();
-
     Set<String> servicesParticipating = upgradeContext.getSupportedServices();
     for (String serviceName : servicesParticipating) {
       Service service = cluster.getService(serviceName);
-      String targetVersion = upgradeContext.getTargetVersion(serviceName);
+      RepositoryVersionEntity repositoryVersionEntity = upgradeContext.getTargetRepositoryVersion(serviceName);
+      StackId targetStackId = repositoryVersionEntity.getStackId();
+      String targetVersion = repositoryVersionEntity.getVersion();
 
       for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(targetStackId.getStackName(),
+            targetStackId.getStackVersion(), service.getName(), serviceComponent.getName());
+
+        if (!componentInfo.isVersionAdvertised()) {
+          continue;
+        }
+
         for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
-          ComponentInfo componentInfo = ambariMetaInfo.getComponent(targetStackId.getStackName(),
-                  targetStackId.getStackVersion(), service.getName(), serviceComponent.getName());
-
-          if (!componentInfo.isVersionAdvertised()) {
-            continue;
-          }
-
           if (!StringUtils.equals(targetVersion, serviceComponentHost.getVersion())) {
             errors.add(new InfoTuple(service.getName(), serviceComponent.getName(),
                 serviceComponentHost.getHostName(), serviceComponentHost.getVersion(),
