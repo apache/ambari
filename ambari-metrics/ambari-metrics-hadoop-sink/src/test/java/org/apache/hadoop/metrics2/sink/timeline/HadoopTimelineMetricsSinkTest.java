@@ -180,7 +180,7 @@ public class HadoopTimelineMetricsSinkTest {
       createMockBuilder(HadoopTimelineMetricsSink.class)
         .withConstructor().addMockedMethod("appendPrefix")
         .addMockedMethod("findLiveCollectorHostsFromKnownCollector")
-        .addMockedMethod("emitMetrics").createNiceMock();
+        .addMockedMethod("emitMetrics", TimelineMetrics.class).createNiceMock();
 
     SubsetConfiguration conf = PowerMock.createNiceMock(SubsetConfiguration.class);
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
@@ -311,7 +311,7 @@ public class HadoopTimelineMetricsSinkTest {
       createMockBuilder(HadoopTimelineMetricsSink.class)
         .withConstructor().addMockedMethod("appendPrefix")
         .addMockedMethod("findLiveCollectorHostsFromKnownCollector")
-        .addMockedMethod("emitMetrics").createNiceMock();
+        .addMockedMethod("emitMetrics", TimelineMetrics.class).createNiceMock();
 
     SubsetConfiguration conf = PowerMock.createNiceMock(SubsetConfiguration.class);
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
