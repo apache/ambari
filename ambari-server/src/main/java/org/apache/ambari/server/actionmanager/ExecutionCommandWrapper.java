@@ -31,6 +31,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -233,6 +234,12 @@ public class ExecutionCommandWrapper {
     return executionCommand;
   }
 
+  /**
+   * Sets the repository version and hooks information on the execution command.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   */
   public void setVersions(Cluster cluster) {
     // set the repository version for the component this command is for -
     // always use the current desired version
@@ -255,6 +262,7 @@ public class ExecutionCommandWrapper {
       }
 
       Map<String, String> commandParams = executionCommand.getCommandParams();
+      Map<String, String> hostParams = executionCommand.getHostLevelParams();
 
       if (null != repositoryVersion) {
         // only set the version if it's not set and this is NOT an install
@@ -262,6 +270,13 @@ public class ExecutionCommandWrapper {
         if (!commandParams.containsKey(VERSION)
           && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
           commandParams.put(VERSION, repositoryVersion.getVersion());
+        }
+
+        // !!! although not used anymore since the cluster has more than 1 version, this
+        // property might be needed by legacy mpacks or extension services, so
+        // continue to include it for backward compatibility
+        if (repositoryVersion.isResolved()) {
+          hostParams.put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
         }
 
         StackId stackId = repositoryVersion.getStackId();

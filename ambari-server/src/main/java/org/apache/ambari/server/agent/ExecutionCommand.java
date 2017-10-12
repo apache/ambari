@@ -505,10 +505,20 @@ public class ExecutionCommand extends AgentCommand {
      * upgrades, this value may change depending on the progress of the upgrade
      * and the type/direction.
      */
+    String VERSION = "version";
+
+    /**
+     * Previously used to represent the version of a cluster, this singular
+     * value is no longer valid. However, to maintain backward compatibility
+     * with Python code inside of management packs and extension services it
+     * will be still be provided. It should be set to the repository version of
+     * the command, if th repository has been resolved.
+     */
+    @Deprecated
     @Experimental(
         feature = ExperimentalFeature.PATCH_UPGRADES,
-        comment = "Change this to reflect the component version")
-    String VERSION = "version";
+        comment = "This value is still around purely for backward compatibility with mpacks")
+    String CURRENT_VERSION = "current_version";
   }
 
   /**
