@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -51,6 +53,7 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 
 import junit.framework.Assert;
 
@@ -76,6 +79,8 @@ public class KerberosServerActionTest {
       @Override
       protected void configure() {
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+        Provider<EntityManager> entityManagerProvider =  createNiceMock(Provider.class);
+        bind(EntityManager.class).toProvider(entityManagerProvider);
         bind(KerberosServerAction.class).toInstance(new KerberosServerAction() {
 
           @Override
@@ -120,7 +125,7 @@ public class KerberosServerActionTest {
           "principal|_HOST|_REALM" + i, "principal_type", "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
-          "false", "false");
+          "false");
     }
     writer.close();
 
@@ -202,8 +207,7 @@ public class KerberosServerActionTest {
     Assert.assertEquals(HostRoleStatus.COMPLETED.toString(), report.getStatus());
 
     for (Map.Entry<String, Object> entry : sharedMap.entrySet()) {
-      Assert.assertEquals(entry.getValue(),
-          entry.getKey().replace("_HOST", "hostName").replace("_REALM", "REALM.COM"));
+      Assert.assertEquals(entry.getValue(), entry.getKey());
     }
 
     verify(kerberosHelper);

@@ -25,18 +25,21 @@ public class Component {
   private final String hostName;
   private final String serviceName;
   private final String serviceComponentName;
+  private final Long hostId;
 
   public static Component fromServiceComponentHost(ServiceComponentHost serviceComponentHost) {
     return new Component(
       serviceComponentHost.getHostName(),
       serviceComponentHost.getServiceName(),
-      serviceComponentHost.getServiceComponentName());
+      serviceComponentHost.getServiceComponentName(),
+      serviceComponentHost.getHost().getHostId());
   }
 
-  public Component(String hostName, String serviceName, String serviceComponentName) {
+  public Component(String hostName, String serviceName, String serviceComponentName, Long hostId) {
     this.hostName = hostName;
     this.serviceName = serviceName;
     this.serviceComponentName = serviceComponentName;
+    this.hostId = hostId;
   }
 
   public String getHostName() {
@@ -51,6 +54,10 @@ public class Component {
     return serviceComponentName;
   }
 
+  public Long getHostId() {
+    return hostId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -60,6 +67,7 @@ public class Component {
       .append(hostName, component.hostName)
       .append(serviceName, component.serviceName)
       .append(serviceComponentName, component.serviceComponentName)
+      .append(hostId, component.hostId)
       .isEquals();
   }
 
@@ -69,6 +77,7 @@ public class Component {
       .append(hostName)
       .append(serviceName)
       .append(serviceComponentName)
+      .append(hostId)
       .toHashCode();
   }
 }

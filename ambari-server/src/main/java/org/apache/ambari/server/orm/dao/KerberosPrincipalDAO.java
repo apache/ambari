@@ -161,4 +161,11 @@ public class KerberosPrincipalDAO {
     return find(principalName) != null;
   }
 
+  public void remove(List<KerberosPrincipalEntity> entities) {
+    if (entities != null) {
+      for (KerberosPrincipalEntity entity : entities) {
+        remove(entity);
+      }
+    }
+  }
 }

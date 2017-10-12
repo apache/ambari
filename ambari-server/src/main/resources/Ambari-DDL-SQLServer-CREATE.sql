@@ -941,12 +941,21 @@ CREATE TABLE kerberos_principal (
   CONSTRAINT PK_kerberos_principal PRIMARY KEY CLUSTERED (principal_name)
 );
 
+CREATE TABLE kerberos_keytab (
+  keytab_path VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_krb_keytab_path_host_id PRIMARY KEY CLUSTERED (keytab_path)
+);
+
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
+  keytab_path VARCHAR(255) NOT NULL,
+  is_distributed SMALLINT NOT NULL DEFAULT 0,
   host_id BIGINT NOT NULL,
-  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY CLUSTERED (principal_name, host_id),
+  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY CLUSTERED (principal_name, keytab_path, host_id),
   CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name));
+  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
+  CONSTRAINT FK_krb_pr_host_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path)
+);
 
 CREATE TABLE kerberos_descriptor
 (

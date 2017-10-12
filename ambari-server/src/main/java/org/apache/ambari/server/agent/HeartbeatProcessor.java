@@ -52,7 +52,9 @@ import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -88,7 +90,6 @@ import com.google.inject.Injector;
 
 /**
  * HeartbeatProcessor class is used for bulk processing data retrieved from agents in background
- *
  */
 public class HeartbeatProcessor extends AbstractService{
   private static final Logger LOG = LoggerFactory.getLogger(HeartbeatProcessor.class);
@@ -135,6 +136,9 @@ public class HeartbeatProcessor extends AbstractService{
   KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   @Inject
+  KerberosKeytabDAO kerberosKeytabDao;
+
+  @Inject
   Gson gson;
 
   @Inject
@@ -153,7 +157,7 @@ public class HeartbeatProcessor extends AbstractService{
   @Override
   protected void doStart() {
     LOG.info("**** Starting heartbeats processing threads ****");
-    for (int i=0; i< poolSize; i++) {
+    for (int i = 0; i < poolSize; i++) {
       executor.scheduleAtFixedRate(new HeartbeatProcessingTask(), delay, period, TimeUnit.MILLISECONDS);
     }
   }
@@ -201,6 +205,7 @@ public class HeartbeatProcessor extends AbstractService{
 
   /**
    * Incapsulates logic for processing data from agent heartbeat
+   *
    * @param heartbeat Agent heartbeat object
    * @throws AmbariException
    */
@@ -217,14 +222,12 @@ public class HeartbeatProcessor extends AbstractService{
   }
 
 
-
   /**
    * Extracts all of the {@link Alert}s from the heartbeat and fires
    * {@link AlertEvent}s for each one. If there is a problem looking up the
    * cluster, then alerts will not be processed.
    *
-   * @param heartbeat
-   *          the heartbeat to process.
+   * @param heartbeat the heartbeat to process.
    */
   protected void processAlerts(HeartBeat heartbeat) {
     if (heartbeat == null) {
@@ -247,6 +250,7 @@ public class HeartbeatProcessor extends AbstractService{
 
   /**
    * Update host status basing on components statuses
+   *
    * @param heartbeat heartbeat to process
    * @throws AmbariException
    */
@@ -349,8 +353,9 @@ public class HeartbeatProcessor extends AbstractService{
 
   /**
    * Process reports of tasks executed on agents
+   *
    * @param heartbeat heartbeat to process
-   * @param now cached current time
+   * @param now       cached current time
    * @throws AmbariException
    */
   protected void processCommandReports(
@@ -424,8 +429,7 @@ public class HeartbeatProcessor extends AbstractService{
 
         String customCommand = report.getCustomCommand();
 
-        boolean adding = SET_KEYTAB.equalsIgnoreCase(customCommand);
-        if (adding || REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
+        if (SET_KEYTAB.equalsIgnoreCase(customCommand) || REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
           WriteKeytabsStructuredOut writeKeytabsStructuredOut;
           try {
             writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
@@ -435,25 +439,35 @@ public class HeartbeatProcessor extends AbstractService{
           }
 
           if (writeKeytabsStructuredOut != null) {
-            Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
-            if (keytabs != null) {
-              for (Map.Entry<String, String> entry : keytabs.entrySet()) {
-                String principal = entry.getKey();
-                if (!kerberosPrincipalHostDAO.exists(principal, host.getHostId())) {
-                  if (adding) {
-                    kerberosPrincipalHostDAO.create(principal, host.getHostId());
-                  } else if ("_REMOVED_".equalsIgnoreCase(entry.getValue())) {
-                    kerberosPrincipalHostDAO.remove(principal, host.getHostId());
-                  }
+            if (SET_KEYTAB.equalsIgnoreCase(customCommand)) {
+              Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
+              if (keytabs != null) {
+                for (Map.Entry<String, String> entry : keytabs.entrySet()) {
+                  String principal = entry.getKey();
+                  String keytabPath = entry.getValue();
+                  KerberosPrincipalHostEntity kphe = kerberosPrincipalHostDAO.find(principal, host.getHostId(), keytabPath);
+                  kphe.setDistributed(true);
+                  kerberosPrincipalHostDAO.merge(kphe);
+                }
+              }
+            } else if (REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
+              Map<String, String> deletedKeytabs = writeKeytabsStructuredOut.getRemovedKeytabs();
+              if (deletedKeytabs != null) {
+                for (Map.Entry<String, String> entry : deletedKeytabs.entrySet()) {
+                  String keytabPath = entry.getValue();
+                  kerberosPrincipalHostDAO.removeByKeytabPath(keytabPath);
+                  kerberosKeytabDao.remove(keytabPath);
                 }
               }
             }
           }
         } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
           ListKeytabsStructuredOut structuredOut = gson.fromJson(report.getStructuredOut(), ListKeytabsStructuredOut.class);
-          for (MissingKeytab each : structuredOut.missingKeytabs){
-            LOG.info("Missing keytab: {} on host: {} principal: {}", each.keytabFilePath, hostname, each.principal);
-            kerberosPrincipalHostDAO.remove(each.principal, host.getHostId());
+          for (MissingKeytab each : structuredOut.missingKeytabs) {
+            LOG.info("Missing principal: {} for keytab: {} on host: {}", each.principal, each.keytabFilePath, hostname);
+            KerberosPrincipalHostEntity kphe = kerberosPrincipalHostDAO.find(each.principal, host.getHostId(), each.keytabFilePath);
+            kphe.setDistributed(false);
+            kerberosPrincipalHostDAO.merge(kphe);
           }
         }
       }
@@ -517,7 +531,7 @@ public class HeartbeatProcessor extends AbstractService{
             // Necessary for resetting clients stale configs after starting service
             if ((RoleCommand.INSTALL.toString().equals(report.getRoleCommand()) ||
                 (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
-                    "INSTALL".equals(report.getCustomCommand()))) && svcComp.isClientComponent()){
+                    "INSTALL".equals(report.getCustomCommand()))) && svcComp.isClientComponent()) {
               scHost.updateActualConfigs(report.getConfigurationTags());
               scHost.setRestartRequired(false);
             }
@@ -588,6 +602,7 @@ public class HeartbeatProcessor extends AbstractService{
 
   /**
    * Process reports of status commands
+   *
    * @param heartbeat heartbeat to process
    * @throws AmbariException
    */
@@ -701,7 +716,10 @@ public class HeartbeatProcessor extends AbstractService{
    */
   private static class WriteKeytabsStructuredOut {
     @SerializedName("keytabs")
-    private Map<String,String> keytabs;
+    private Map<String, String> keytabs;
+
+    @SerializedName("removedKeytabs")
+    private Map<String, String> removedKeytabs;
 
     public Map<String, String> getKeytabs() {
       return keytabs;
@@ -709,6 +727,14 @@ public class HeartbeatProcessor extends AbstractService{
 
     public void setKeytabs(Map<String, String> keytabs) {
       this.keytabs = keytabs;
+    }
+
+    public Map<String, String> getRemovedKeytabs() {
+      return removedKeytabs;
+    }
+
+    public void setRemovedKeytabs(Map<String, String> removedKeytabs) {
+      this.removedKeytabs = removedKeytabs;
     }
   }
 
