@@ -31,19 +31,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getSliceTimeForMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getTimeSlices;
 
 public class TimelineMetricClusterAggregatorSecondWithCacheSource extends TimelineMetricClusterAggregatorSecond {
   private TimelineMetricDistributedCache distributedCache;
-  private Long cacheTimeSliceIntervalMillis;
   public TimelineMetricClusterAggregatorSecondWithCacheSource(AggregationTaskRunner.AGGREGATOR_NAME metricAggregateSecond, TimelineMetricMetadataManager metricMetadataManager, PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf, String checkpointLocation, long sleepIntervalMillis, int checkpointCutOffMultiplier, String aggregatorDisabledParam, String inputTableName, String outputTableName,
                                                               Long nativeTimeRangeDelay,
                                                               Long timeSliceInterval,
-                                                              MetricCollectorHAController haController, TimelineMetricDistributedCache distributedCache, Long cacheTimeSliceIntervalMillis) {
+                                                              MetricCollectorHAController haController, TimelineMetricDistributedCache distributedCache) {
     super(metricAggregateSecond, metricMetadataManager, hBaseAccessor, metricsConf, checkpointLocation, sleepIntervalMillis, checkpointCutOffMultiplier, aggregatorDisabledParam, inputTableName, outputTableName, nativeTimeRangeDelay, timeSliceInterval, haController);
     this.distributedCache = distributedCache;
-    this.cacheTimeSliceIntervalMillis = cacheTimeSliceIntervalMillis;
   }
 
   @Override
@@ -81,36 +78,11 @@ public class TimelineMetricClusterAggregatorSecondWithCacheSource extends Timeli
 
   //Slices in cache could be different from aggregate slices, so need to recalculate. Counts hosted apps
   Map<TimelineClusterMetric, MetricClusterAggregate> aggregateMetricsFromMetricClusterAggregates(Map<TimelineClusterMetric, MetricClusterAggregate> metricsFromCache, List<Long[]> timeSlices) {
-    Map<TimelineClusterMetric, MetricClusterAggregate> result = new HashMap<>();
-
-    //normalize if slices in cache are different from the aggregation slices
-    //TODO add basic interpolation, current implementation assumes that cacheTimeSliceIntervalMillis <= timeSliceIntervalMillis
-    if (cacheTimeSliceIntervalMillis.equals(timeSliceIntervalMillis)) {
-      result = metricsFromCache;
-    } else {
-      for (Map.Entry<TimelineClusterMetric, MetricClusterAggregate> clusterMetricAggregateEntry : metricsFromCache.entrySet()) {
-        Long timestamp = getSliceTimeForMetric(timeSlices, clusterMetricAggregateEntry.getKey().getTimestamp());
-        if (timestamp <= 0) {
-          LOG.warn("Entry doesn't match any slice. Slices : " + timeSlices + " metric timestamp : " + clusterMetricAggregateEntry.getKey().getTimestamp());
-          continue;
-        }
-        TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric(clusterMetricAggregateEntry.getKey().getMetricName(), clusterMetricAggregateEntry.getKey().getAppId(), clusterMetricAggregateEntry.getKey().getInstanceId(), timestamp);
-        if (result.containsKey(timelineClusterMetric)) {
-          MetricClusterAggregate metricClusterAggregate = result.get(timelineClusterMetric);
-          metricClusterAggregate.updateMax(clusterMetricAggregateEntry.getValue().getMax());
-          metricClusterAggregate.updateMin(clusterMetricAggregateEntry.getValue().getMin());
-          metricClusterAggregate.setSum((metricClusterAggregate.getSum() + clusterMetricAggregateEntry.getValue().getSum()) / 2D);
-          metricClusterAggregate.setNumberOfHosts(Math.max(metricClusterAggregate.getNumberOfHosts(), clusterMetricAggregateEntry.getValue().getNumberOfHosts()));
-        } else {
-          result.put(timelineClusterMetric, clusterMetricAggregateEntry.getValue());
-        }
-      }
-    }
-
+    //TODO add basic interpolation
     //TODO investigate if needed, maybe add config to disable/enable
     //count hosted apps
     Map<String, MutableInt> hostedAppCounter = new HashMap<>();
-    for (Map.Entry<TimelineClusterMetric, MetricClusterAggregate> clusterMetricAggregateEntry : result.entrySet()) {
+    for (Map.Entry<TimelineClusterMetric, MetricClusterAggregate> clusterMetricAggregateEntry : metricsFromCache.entrySet()) {
       int numHosts = clusterMetricAggregateEntry.getValue().getNumberOfHosts();
       String appId = clusterMetricAggregateEntry.getKey().getAppId();
       if (!hostedAppCounter.containsKey(appId)) {
@@ -124,9 +96,9 @@ public class TimelineMetricClusterAggregatorSecondWithCacheSource extends Timeli
     }
 
     // Add liveHosts per AppId metrics.
-    processLiveAppCountMetrics(result, hostedAppCounter, timeSlices.get(timeSlices.size() - 1)[1]);
+    processLiveAppCountMetrics(metricsFromCache, hostedAppCounter, timeSlices.get(timeSlices.size() - 1)[1]);
 
-    return result;
+    return metricsFromCache;
   }
 
 }

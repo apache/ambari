@@ -79,7 +79,7 @@ public class TimelineMetricClusterAggregatorSecondWithCacheSourceTest {
     TimelineMetricClusterAggregatorSecondWithCacheSource secondAggregator = new TimelineMetricClusterAggregatorSecondWithCacheSource(
         METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null, configuration, null,
         aggregatorInterval, 2, "false", "", "", aggregatorInterval,
-        sliceInterval, null, timelineMetricsIgniteCache, 30L);
+        sliceInterval, null, timelineMetricsIgniteCache);
 
     long now = System.currentTimeMillis();
     long startTime = now - 120000;
@@ -111,68 +111,5 @@ public class TimelineMetricClusterAggregatorSecondWithCacheSourceTest {
     Assert.assertNotNull(a2);
     Assert.assertEquals(2d, a1.getSum());
     Assert.assertEquals(5d, a2.getSum());
-  }
-
-  @Test
-  public void testSlicesRecalculation() throws Exception {
-    long aggregatorInterval = 120000;
-    long sliceInterval = 30000;
-
-    Configuration configuration = new Configuration();
-
-    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
-    expect(metricMetadataManagerMock.getMetadataCacheValue((TimelineMetricMetadataKey) anyObject())).andReturn(null).anyTimes();
-    replay(metricMetadataManagerMock);
-
-    TimelineMetricClusterAggregatorSecondWithCacheSource secondAggregator = new TimelineMetricClusterAggregatorSecondWithCacheSource(
-        METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null, configuration, null,
-        aggregatorInterval, 2, "false", "", "", aggregatorInterval,
-        sliceInterval, null, timelineMetricsIgniteCache, 30L);
-
-    long seconds = 1000;
-    long now = getRoundedCheckPointTimeMillis(System.currentTimeMillis(), 120*seconds);
-    long startTime = now - 120*seconds;
-
-    Map<TimelineClusterMetric, MetricClusterAggregate> metricsFromCache = new HashMap<>();
-    metricsFromCache.put(new TimelineClusterMetric("m1", "a1", "i1",startTime + 5 * seconds),
-        new MetricClusterAggregate(1.0, 2, 1.0, 1.0, 1.0));
-    metricsFromCache.put(new TimelineClusterMetric("m1", "a1", "i1",startTime + 25 * seconds),
-        new MetricClusterAggregate(2.0, 2, 1.0, 2.0, 2.0));
-    metricsFromCache.put(new TimelineClusterMetric("m1", "a1", "i1",startTime + 45 * seconds),
-        new MetricClusterAggregate(3.0, 2, 1.0, 1.0, 1.0));
-    metricsFromCache.put(new TimelineClusterMetric("m1", "a1", "i1",startTime + 65 * seconds),
-        new MetricClusterAggregate(4.0, 2, 1.0, 4.0, 4.0));
-    metricsFromCache.put(new TimelineClusterMetric("m1", "a1", "i1",startTime + 85 * seconds),
-        new MetricClusterAggregate(5.0, 2, 1.0, 5.0, 5.0));
-
-    List<Long[]> timeslices = getTimeSlices(startTime, startTime + 120*seconds, 30*seconds);
-
-    Map<TimelineClusterMetric, MetricClusterAggregate> aggregates = secondAggregator.aggregateMetricsFromMetricClusterAggregates(metricsFromCache, timeslices);
-
-    Assert.assertNotNull(aggregates);
-    Assert.assertEquals(4, aggregates.size());
-
-    TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric("m1", "a1", "i1", startTime + 30*seconds);
-    MetricClusterAggregate metricClusterAggregate = aggregates.get(timelineClusterMetric);
-    Assert.assertNotNull(metricClusterAggregate);
-    Assert.assertEquals(1.5, metricClusterAggregate.getSum());
-    Assert.assertEquals(1d, metricClusterAggregate.getMin());
-    Assert.assertEquals(2d, metricClusterAggregate.getMax());
-    Assert.assertEquals(2, metricClusterAggregate.getNumberOfHosts());
-
-    timelineClusterMetric.setTimestamp(startTime + 60*seconds);
-    metricClusterAggregate = aggregates.get(timelineClusterMetric);
-    Assert.assertNotNull(metricClusterAggregate);
-    Assert.assertEquals(3d, metricClusterAggregate.getSum());
-
-    timelineClusterMetric.setTimestamp(startTime + 90*seconds);
-    metricClusterAggregate = aggregates.get(timelineClusterMetric);
-    Assert.assertNotNull(metricClusterAggregate);
-    Assert.assertEquals(4.5d, metricClusterAggregate.getSum());
-
-    timelineClusterMetric = new TimelineClusterMetric("live_hosts", "a1", null, startTime + 120*seconds);
-    metricClusterAggregate = aggregates.get(timelineClusterMetric);
-    Assert.assertNotNull(metricClusterAggregate);
-    Assert.assertEquals(2d, metricClusterAggregate.getSum());
   }
 }

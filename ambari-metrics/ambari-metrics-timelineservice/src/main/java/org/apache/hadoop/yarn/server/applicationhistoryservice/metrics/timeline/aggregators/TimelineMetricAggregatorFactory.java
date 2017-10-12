@@ -41,7 +41,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_SECOND_DISABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_CACHE_AGGREGATOR_TIMESLICE_INTERVAL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_CHECKPOINT_LOCATION;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_AGGREGATOR_DAILY_CHECKPOINT_CUTOFF_MULTIPLIER;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_AGGREGATOR_DAILY_DISABLED;
@@ -273,9 +272,6 @@ public class TimelineMetricAggregatorFactory {
     long timeSliceIntervalMillis = SECONDS.toMillis(metricsConf.getInt
       (CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL, 30));
 
-    long cacheTimeSliceIntervalMillis = SECONDS.toMillis(metricsConf.getInt
-      (CLUSTER_CACHE_AGGREGATOR_TIMESLICE_INTERVAL, 30));
-
     int checkpointCutOffMultiplier =
       metricsConf.getInt(CLUSTER_AGGREGATOR_SECOND_CHECKPOINT_CUTOFF_MULTIPLIER, 2);
 
@@ -297,8 +293,7 @@ public class TimelineMetricAggregatorFactory {
         120000l,
         timeSliceIntervalMillis,
         haController,
-        distributedCache,
-        cacheTimeSliceIntervalMillis
+        distributedCache
       );
     }
 

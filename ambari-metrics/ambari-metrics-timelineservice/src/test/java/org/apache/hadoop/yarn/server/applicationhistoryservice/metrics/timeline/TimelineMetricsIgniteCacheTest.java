@@ -167,62 +167,6 @@ public class TimelineMetricsIgniteCacheTest {
     metricValues.clear();
     timelineMetrics.clear();
 
-    /*
-
-    0      +30s    +60s    +90s
-    |       |       |       |
-     (1)      (2)                h1
-                (3)       (4)    h2
-                 (5)      (6)    h1
-
-    */
-    // Case 3 : merging host data points, ignore (2) for h1 as it will conflict with (5), two hosts.
-    metricValues = new TreeMap<>();
-    metricValues.put(startTime + 15*seconds, 1.0);
-    metricValues.put(startTime + 45*seconds, 2.0);
-    timelineMetric = new TimelineMetric("metric1", "host1", "app1", "instance1");
-    timelineMetric.setMetricValues(metricValues);
-    timelineMetrics.add(timelineMetric);
-
-    metricValues = new TreeMap<>();
-    metricValues.put(startTime + 45*seconds, 3.0);
-    metricValues.put(startTime + 85*seconds, 4.0);
-    timelineMetric = new TimelineMetric("metric1", "host2", "app1", "instance1");
-    timelineMetric.setMetricValues(metricValues);
-    timelineMetrics.add(timelineMetric);
-
-    metricValues = new TreeMap<>();
-    metricValues.put(startTime + 55*seconds, 5.0);
-    metricValues.put(startTime + 85*seconds, 6.0);
-    timelineMetric = new TimelineMetric("metric1", "host1", "app1", "instance1");
-    timelineMetric.setMetricValues(metricValues);
-    timelineMetrics.add(timelineMetric);
-
-    timelineMetricsIgniteCache.putMetrics(timelineMetrics, metricMetadataManagerMock);
-
-    aggregateMap = timelineMetricsIgniteCache.evictMetricAggregates(startTime, startTime + 120*seconds);
-
-    Assert.assertEquals(aggregateMap.size(), 3);
-    timelineClusterMetric = new TimelineClusterMetric(timelineMetric.getMetricName(),
-      timelineMetric.getAppId(), timelineMetric.getInstanceId(), startTime + 30*seconds);
-
-    Assert.assertTrue(aggregateMap.containsKey(timelineClusterMetric));
-    Assert.assertEquals(1.0, aggregateMap.get(timelineClusterMetric).getSum());
-    Assert.assertEquals(1, aggregateMap.get(timelineClusterMetric).getNumberOfHosts());
-
-    timelineClusterMetric.setTimestamp(startTime + 2*30*seconds);
-    Assert.assertTrue(aggregateMap.containsKey(timelineClusterMetric));
-    Assert.assertEquals(8.0, aggregateMap.get(timelineClusterMetric).getSum());
-    Assert.assertEquals(2, aggregateMap.get(timelineClusterMetric).getNumberOfHosts());
-
-    timelineClusterMetric.setTimestamp(startTime + 3*30*seconds);
-    Assert.assertTrue(aggregateMap.containsKey(timelineClusterMetric));
-    Assert.assertEquals(10.0, aggregateMap.get(timelineClusterMetric).getSum());
-    Assert.assertEquals(2, aggregateMap.get(timelineClusterMetric).getNumberOfHosts());
-
-    metricValues.clear();
-    timelineMetrics.clear();
-
     Assert.assertEquals(0d, timelineMetricsIgniteCache.getPointInTimeCacheMetrics().get("Cluster_KeySize"));
   }
 

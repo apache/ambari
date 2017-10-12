@@ -121,9 +121,6 @@ public class TimelineMetricConfiguration {
   public static final String CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL =
     "timeline.metrics.cluster.aggregator.second.timeslice.interval";
 
-  public static final String CLUSTER_CACHE_AGGREGATOR_TIMESLICE_INTERVAL =
-    "timeline.metrics.cluster.cache.aggregator.second.timeslice.interval";
-
   public static final String AGGREGATOR_CHECKPOINT_DELAY =
     "timeline.metrics.service.checkpointDelay";
 

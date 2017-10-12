@@ -508,7 +508,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         LOG.debug("Closing HadoopTimelineMetricSink. Flushing metrics to collector...");
         TimelineMetrics metrics = metricsCache.getAllMetrics();
         if (metrics != null) {
-          emitMetrics(metrics);
+          emitMetrics(metrics, true);
         }
       }
     });

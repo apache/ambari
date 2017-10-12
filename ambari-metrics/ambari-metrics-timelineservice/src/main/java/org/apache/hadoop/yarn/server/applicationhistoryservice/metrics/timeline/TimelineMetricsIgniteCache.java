@@ -50,7 +50,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,12 +59,11 @@ import java.util.concurrent.locks.Lock;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_CACHE_AGGREGATOR_TIMESLICE_INTERVAL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_APP_ID;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_BACKUPS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_COLLECTOR_IGNITE_NODES;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_SINK_COLLECTION_PERIOD;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils.getRoundedCheckPointTimeMillis;
@@ -77,7 +75,6 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
       LogFactory.getLog(TimelineMetricsIgniteCache.class);
   private IgniteCache<TimelineClusterMetric, MetricClusterAggregate> igniteCache;
   private long cacheSliceIntervalMillis;
-  private int collectionPeriodMillis;
   private boolean interpolationEnabled;
   private List<String> skipAggrPatternStrings = new ArrayList<>();
   private List<String> appIdsToAggregate;
@@ -110,8 +107,7 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
     //aggregation parameters
     appIdsToAggregate = timelineMetricConfiguration.getAppIdsForHostAggregation();
     interpolationEnabled = Boolean.parseBoolean(metricConf.get(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, "true"));
-    collectionPeriodMillis = (int) SECONDS.toMillis(metricConf.getInt(TIMELINE_METRICS_SINK_COLLECTION_PERIOD, 10));
-    cacheSliceIntervalMillis = SECONDS.toMillis(metricConf.getInt(CLUSTER_CACHE_AGGREGATOR_TIMESLICE_INTERVAL, 30));
+    cacheSliceIntervalMillis = SECONDS.toMillis(metricConf.getInt(CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL, 30));
     Long aggregationInterval = metricConf.getLong(CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL, 120L);
 
     String filteredMetricPatterns = metricConf.get(TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
@@ -215,12 +211,6 @@ public class TimelineMetricsIgniteCache implements TimelineMetricDistributedCach
 
       if (slicedClusterMetrics != null) {
         for (Map.Entry<TimelineClusterMetric, Double> metricDoubleEntry : slicedClusterMetrics.entrySet()) {
-          if (metricDoubleEntry.getKey().getTimestamp() == timeSlices.get(timeSlices.size()-1)[1] && metricDoubleEntry.getKey().getTimestamp() - metric.getMetricValues().lastKey() > collectionPeriodMillis) {
-            if(LOG.isDebugEnabled()) {
-              LOG.debug("Last skipped timestamp @ " + new Date(metric.getMetricValues().lastKey()) + " slice timestamp @ " + new Date(metricDoubleEntry.getKey().getTimestamp()));
-            }
-            continue;
-          }
           MetricClusterAggregate newMetricClusterAggregate  = new MetricClusterAggregate(
               metricDoubleEntry.getValue(), 1, null, metricDoubleEntry.getValue(), metricDoubleEntry.getValue());
           //put app metric into cache
