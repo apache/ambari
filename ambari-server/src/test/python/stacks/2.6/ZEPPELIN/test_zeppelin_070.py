@@ -342,7 +342,7 @@ class TestZeppelin070(RMFTestCase):
                               )
 
     self.assertResourceCalled('HdfsResource',
-                              '/user/zeppelin/hdfs:///user/zeppelin/conf',
+                              'hdfs:///user/zeppelin/conf',
                               security_enabled=False,
                               hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab=UnknownConfigurationMock(),
@@ -368,7 +368,7 @@ class TestZeppelin070(RMFTestCase):
 
 
     self.assertResourceCalled('HdfsResource',
-                              '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
+                              'hdfs:///user/zeppelin/conf/interpreter.json',
                               security_enabled=False,
                               hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab=UnknownConfigurationMock(),
@@ -395,7 +395,7 @@ class TestZeppelin070(RMFTestCase):
                               )
 
     self.assertResourceCalled('HdfsResource',
-                              '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
+                              'hdfs:///user/zeppelin/conf/interpreter.json',
                               security_enabled=False,
                               hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab=UnknownConfigurationMock(),
@@ -421,7 +421,7 @@ class TestZeppelin070(RMFTestCase):
                               group='zeppelin',
                               )
 
-    self.assertResourceCalled('HdfsResource', '/user/zeppelin/hdfs:///user/zeppelin/conf/interpreter.json',
+    self.assertResourceCalled('HdfsResource', 'hdfs:///user/zeppelin/conf/interpreter.json',
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/2.5.0.0-1235/hadoop/bin',
         keytab = UnknownConfigurationMock(),
