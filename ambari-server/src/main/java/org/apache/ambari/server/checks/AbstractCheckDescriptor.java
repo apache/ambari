@@ -35,7 +35,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
@@ -238,14 +238,12 @@ public abstract class AbstractCheckDescriptor {
         AmbariMetaInfo metaInfo = ambariMetaInfo.get();
 
         Cluster c = clusters.getCluster(request.getClusterName());
-        Map<String, ServiceInfo> services = metaInfo.getServices(
-            c.getDesiredStackVersion().getStackName(),
-            c.getDesiredStackVersion().getStackVersion());
+        Map<String, Service> services = c.getServices();
 
         LinkedHashSet<String> displays = new LinkedHashSet<>();
         for (String name : names) {
           if (services.containsKey(name)) {
-            displays.add(services.get(name).getDisplayName());
+            displays.add(services.get(name).getName());
           } else {
             displays.add(name);
           }

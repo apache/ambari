@@ -684,24 +684,26 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
-      for (PropertyInfo serviceProperty : serviceProperties) {
-        if (serviceProperty.getPropertyTypes().contains(propertyType)) {
-          String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
-          try {
-            String property = actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName());
-            if (null == property){
-              LOG.error(String.format("Unable to obtain property values for %s with property attribute %s. "
-                  + "The property does not exist in version %s of %s configuration.",
-                serviceProperty.getName(),
-                propertyType,
-                desiredConfigs.get(stackPropertyConfigType),
-                stackPropertyConfigType
-              ));
-            } else {
-              result.put(serviceProperty, property);
+      if (servicesMap.containsKey(service.getName())) {
+        Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
+        for (PropertyInfo serviceProperty : serviceProperties) {
+          if (serviceProperty.getPropertyTypes().contains(propertyType)) {
+            String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
+            try {
+              String property = actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName());
+              if (null == property) {
+                LOG.error(String.format("Unable to obtain property values for %s with property attribute %s. "
+                                + "The property does not exist in version %s of %s configuration.",
+                        serviceProperty.getName(),
+                        propertyType,
+                        desiredConfigs.get(stackPropertyConfigType),
+                        stackPropertyConfigType
+                ));
+              } else {
+                result.put(serviceProperty, property);
+              }
+            } catch (Exception ignored) {
             }
-          } catch (Exception ignored) {
           }
         }
       }
@@ -763,24 +765,26 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
-      for (PropertyInfo serviceProperty : serviceProperties) {
-        if (serviceProperty.getPropertyTypes().contains(propertyType)) {
-          String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
-          try {
-            String property = actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName());
-            if (null == property){
-              LOG.error(String.format("Unable to obtain property values for %s with property attribute %s. "
-                  + "The property does not exist in version %s of %s configuration.",
-                  serviceProperty.getName(),
-                  propertyType,
-                  desiredConfigs.get(stackPropertyConfigType),
-                  stackPropertyConfigType
-                  ));
-            } else {
-              result.add(property);
+      if (servicesMap.containsKey(service.getName())) {
+        Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
+        for (PropertyInfo serviceProperty : serviceProperties) {
+          if (serviceProperty.getPropertyTypes().contains(propertyType)) {
+            String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
+            try {
+              String property = actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName());
+              if (null == property) {
+                LOG.error(String.format("Unable to obtain property values for %s with property attribute %s. "
+                                + "The property does not exist in version %s of %s configuration.",
+                        serviceProperty.getName(),
+                        propertyType,
+                        desiredConfigs.get(stackPropertyConfigType),
+                        stackPropertyConfigType
+                ));
+              } else {
+                result.add(property);
+              }
+            } catch (Exception ignored) {
             }
-          } catch (Exception ignored) {
           }
         }
       }

@@ -1544,7 +1544,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       if (stackId == null) {
-        stackId = cluster.getDesiredStackVersion();
+        throw new AmbariException("StackId should not be null. Service " + serviceName + " should have a desiredStackId");
       }
 
       AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();

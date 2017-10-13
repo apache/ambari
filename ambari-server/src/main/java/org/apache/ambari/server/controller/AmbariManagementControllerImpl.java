@@ -2401,7 +2401,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     HostEntity hostEntity = host.getHostEntity();
     Map<String, String> hostAttributes = gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
     String osFamily = host.getOSFamilyFromHostAttributes(hostAttributes);
-
+    Map<String, Service> services = cluster.getServices();
+    Map<String, ServiceInfo> servicesMap = new HashMap<>();
+    for(String clusterServiceName : services.keySet() ){
+      servicesMap.put(clusterServiceName, ambariMetaInfo.getService(services.get(clusterServiceName)));
+    }
     StackId stackId = scHost.getServiceComponent().getDesiredStackId();
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
@@ -2411,7 +2415,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       serviceName, componentName);
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
-    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stackInfo.getName(), stackInfo.getVersion());
 
     ExecutionCommandWrapper execCmdWrapper = stage.getExecutionCommandWrapper(hostname, componentName);
     ExecutionCommand execCmd = execCmdWrapper.getExecutionCommand();
@@ -2445,12 +2448,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Propagate HCFS service type info
     for (Service service : cluster.getServices().values()) {
       ServiceInfo serviceInfoInstance = servicesMap.get(service.getName());
-      LOG.debug("Iterating service type Instance in createHostAction: {}", serviceInfoInstance.getName());
-      String serviceType = serviceInfoInstance.getServiceType();
-      if (serviceType != null) {
-        LOG.info("Adding service type info in createHostAction: {}", serviceType);
-        commandParams.put("dfs_type", serviceType);
-        break;
+      if(serviceInfoInstance != null){
+        LOG.debug("Iterating service type Instance in createHostAction: {}", serviceInfoInstance.getName());
+        String serviceType = serviceInfoInstance.getServiceType();
+        if (serviceType != null) {
+          LOG.info("Adding service type info in createHostAction: {}", serviceType);
+          commandParams.put("dfs_type", serviceType);
+          break;
+        }
       }
     }
 

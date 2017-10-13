@@ -47,6 +47,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
@@ -263,7 +264,8 @@ class DeleteIdentityHandler {
 
     private Set<String> configTypesOfService(String serviceName) {
       try {
-        StackId stackId = getCluster().getCurrentStackVersion();
+        Service service = getCluster().getService(serviceName);
+        StackId stackId = service.getDesiredStackId();
         StackServiceRequest stackServiceRequest = new StackServiceRequest(stackId.getStackName(), stackId.getStackVersion(), serviceName);
         return AmbariServer.getController().getStackServices(singleton(stackServiceRequest)).stream()
           .findFirst()
