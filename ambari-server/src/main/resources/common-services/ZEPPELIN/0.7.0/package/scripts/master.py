@@ -305,7 +305,8 @@ class Master(Script):
   def get_zeppelin_conf_FS_directory(self, params):
     hdfs_interpreter_config = params.config['configurations']['zeppelin-config']['zeppelin.config.fs.dir']
 
-    if not hdfs_interpreter_config.startswith("/"):
+    # if it doesn't start from "/" or doesn't contains "://" as in hdfs://, file://, etc then make it a absolute path
+    if not (hdfs_interpreter_config.startswith("/") or '://' in hdfs_interpreter_config):
       hdfs_interpreter_config = "/user/" + format("{zeppelin_user}") + "/" + hdfs_interpreter_config
 
     return hdfs_interpreter_config
