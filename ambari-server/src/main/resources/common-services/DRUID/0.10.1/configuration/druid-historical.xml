@@ -22,28 +22,26 @@
 <configuration>
   <property>
     <name>druid.service</name>
-    <value>druid/broker</value>
-    <description>The druid.service name of broker node.</description>
+    <value>druid/historical</value>
+    <description>The druid.service name of historical node.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>druid.port</name>
-    <value>8082</value>
-    <description>The port on which the broker will accept connections.</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>druid.broker.http.numConnections</name>
-    <value>20</value>
-    <description>Size of connection pool for the Broker to connect to historical and real-time nodes. If there are more
-      queries than this number that all need to speak to the same node, then they will queue up.
-    </description>
+    <value>8083</value>
+    <description>The port on which the historical nodes will accept connections.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>druid.server.http.numThreads</name>
     <value>50</value>
     <description>Number of threads for HTTP requests.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.processing.numMergeBuffers</name>
+    <value>2</value>
+    <description>The number of direct memory buffers available for merging query results. The buffers are sized by druid.processing.buffer.sizeBytes.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -56,45 +54,41 @@
     </value-attributes>
     <description>This specifies a buffer size for the storage of intermediate results. The computation engine in both
       the Historical and Realtime nodes will use a scratch buffer of this size to do all of their intermediate
-      computations
-      off-heap. Larger values allow for more aggregations in a single pass over the data while smaller values can
-      require more passes depending on the query that is being executed.
+      computations off-heap. Larger values allow for more aggregations in a single pass over the data while smaller
+      values can require more passes depending on the query that is being executed.
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>druid.processing.numThreads</name>
-    <value>2</value>
+    <value>10</value>
     <description>The number of processing threads to have available for parallel processing of segments.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>druid.broker.cache.useCache</name>
-    <value>true</value>
-    <description>Enable the cache on the broker.</description>
+    <name>druid.segmentCache.locations</name>
+    <value>[{"path":"/apps/druid/segmentCache","maxSize":300000000000}]</value>
+    <description>Segments assigned to a Historical node are first stored on the local file system (in a disk cache) and
+      then served by the Historical node. These locations define where that local cache resides.
+    </description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>druid.broker.cache.populateCache</name>
-    <value>true</value>
-    <description>Populate the cache on the broker.</description>
+    <name>druid.server.maxSize</name>
+    <value>300000000000</value>
+    <description>The maximum number of bytes-worth of segments that the node wants assigned to it. This is not a limit
+      that Historical nodes actually enforces, just a value published to the Coordinator node so it can plan
+      accordingly.
+    </description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>druid.cache.type</name>
-    <value>local</value>
-    <description>The type of cache to use for queries.</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>druid.cache.sizeInBytes</name>
-    <value>10000000</value>
-    <value-attributes>
-      <type>int</type>
-      <minimum>0</minimum>
-      <unit>Bytes</unit>
-    </value-attributes>
-    <description>Maximum cache size in bytes. Zero disables caching.</description>
+    <name>druid.segmentCache.infoDir</name>
+    <value>/apps/druid/segmentCache/info_dir</value>
+    <description>Historical nodes keep track of the segments they are serving so that when the process is restarted they
+      can reload the same segments without waiting for the Coordinator to reassign. This path defines where this
+      metadata is kept. Directory will be created if needed.
+    </description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

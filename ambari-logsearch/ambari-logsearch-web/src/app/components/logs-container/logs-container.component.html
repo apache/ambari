@@ -20,9 +20,17 @@
     {{'filter.capture.triggeringRefresh' | translate: autoRefreshMessageParams}}
   </div>
 </div>
-<time-histogram class="col-md-12" [data]="histogramData" [customOptions]="histogramOptions"
-                svgId="service-logs-histogram"
-                (selectArea)="setCustomTimeRange($event[0], $event[1])"></time-histogram>
+<!-- TODO use plugin for singular/plural -->
+<div class="logs-header col-md-12">{{
+  (!totalEventsFoundMessageParams.totalCount ? 'logs.noEventFound' :
+    (totalEventsFoundMessageParams.totalCount === 1 ? 'logs.oneEventFound' : 'logs.totalEventFound'))
+        | translate: totalEventsFoundMessageParams
+}}</div>
+<collapsible-panel openTitle="logs.hideGraph" collapsedTitle="logs.showGraph" class="col-md-12">
+  <time-histogram class="col-md-12" [data]="histogramData" [customOptions]="histogramOptions"
+      svgId="service-logs-histogram"
+      (selectArea)="setCustomTimeRange($event[0], $event[1])"></time-histogram>
+</collapsible-panel>
 <dropdown-button *ngIf="!isServiceLogsFileView" class="pull-right" label="logs.columns"
                  [options]="availableColumns | async" [isRightAlign]="true" [isMultipleChoice]="true"
                  action="updateSelectedColumns" [additionalArgs]="logsTypeMapObject.fieldsModel"></dropdown-button>

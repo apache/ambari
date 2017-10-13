@@ -142,6 +142,7 @@ require('controllers/main/charts');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric');
 require('controllers/main/charts/heatmap');
 require('controllers/main/service/info/heatmap');
+require('controllers/main/service/info/metric');
 require('controllers/main/views_controller');
 require('controllers/main/views/details_controller');
 require('controllers/wizard/step0_controller');

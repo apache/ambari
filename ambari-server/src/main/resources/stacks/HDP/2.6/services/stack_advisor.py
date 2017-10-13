@@ -16,9 +16,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import math
-
 import json
+import math
 import re
 from resource_management.libraries.functions import format
 
@@ -144,7 +143,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       # JVM Configs go to env properties
       putEnvProperty = self.putProperty(configurations, "druid-env", services)
 
-      # processing thread pool Config
+      # processing thread pool and memory configs
       for component in ['DRUID_HISTORICAL', 'DRUID_BROKER']:
           component_hosts = self.getHostsWithComponent("DRUID", component, services, hosts)
           nodeType = self.DRUID_COMPONENT_NODE_TYPE_MAP[component]
@@ -154,8 +153,31 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
               processingThreads = 1
               if totalAvailableCpu > 1:
                   processingThreads = totalAvailableCpu - 1
+              numMergeBuffers = max(2, processingThreads/4)
               putComponentProperty('druid.processing.numThreads', processingThreads)
               putComponentProperty('druid.server.http.numThreads', max(10, (totalAvailableCpu * 17) / 16 + 2) + 30)
+              putComponentProperty('druid.processing.numMergeBuffers', numMergeBuffers)
+              totalAvailableMemInMb = self.getMinMemory(component_hosts) / 1024
+              maxAvailableBufferSizeInMb = totalAvailableMemInMb/(processingThreads + numMergeBuffers)
+              putComponentProperty('druid.processing.buffer.sizeBytes', self.getDruidProcessingBufferSizeInMb(maxAvailableBufferSizeInMb) * 1024 * 1024)
+
+
+  # returns the recommended druid processing buffer size in Mb.
+  # the recommended buffer size is kept lower then the max available memory to have enough free memory to load druid data.
+  # for low memory nodes, the actual allocated buffer size is small to keep some free memory for memory mapping of segments
+  # If user installs all druid processes on a single node, memory available for loading segments will be further decreased.
+  def getDruidProcessingBufferSizeInMb(self, maxAvailableBufferSizeInMb):
+      if maxAvailableBufferSizeInMb <= 256:
+          return min(64, maxAvailableBufferSizeInMb)
+      elif maxAvailableBufferSizeInMb <= 1024:
+          return 128
+      elif maxAvailableBufferSizeInMb <= 2048:
+          return 256
+      elif maxAvailableBufferSizeInMb <= 6144:
+          return 512
+      # High Memory nodes below
+      else :
+          return 1024
 
   def recommendSupersetConfigurations(self, configurations, clusterData, services, hosts):
       # superset is in list of services to be installed
@@ -583,7 +605,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     # druid is not in list of services to be installed
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'DRUID' in servicesList:
-        putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
+        putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
         if 'druid-coordinator' in services['configurations']:
             component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_COORDINATOR', services, hosts)
             if component_hosts is not None and len(component_hosts) > 0:
@@ -599,7 +621,6 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
             if component_hosts is not None and len(component_hosts) > 0:
                 # pick the first
                 host = component_hosts[0]
-            print host
             druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
                 services['configurations']['druid-router']['properties']['druid.port'])
         elif 'druid-broker' in services['configurations']:
@@ -620,11 +641,11 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
             else:
                 druid_metadata_user = ""
 
-        putHiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
-        putHiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
-        putHiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
-        putHiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
-        putHiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
+        putHiveInteractiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
+        putHiveInteractiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
+        putHiveInteractiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
+        putHiveInteractiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
+        putHiveInteractiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
 
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):

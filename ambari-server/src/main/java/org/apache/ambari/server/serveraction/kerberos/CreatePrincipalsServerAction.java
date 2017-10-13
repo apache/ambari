@@ -128,7 +128,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       seenPrincipals.add(evaluatedPrincipal);
 
       boolean processPrincipal;
-      boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
+      boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
 
       if (regenerateKeytabs) {
         // do not process cached identities that can be passed as is(headless identities)

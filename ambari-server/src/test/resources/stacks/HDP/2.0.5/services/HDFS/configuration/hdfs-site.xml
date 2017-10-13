@@ -444,4 +444,12 @@ don't exist, they will be created with this permission.</description>
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>hadoop.caller.context.enabled</name>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+    <supported-refresh-commands>
+      <refresh-command componentName="NAMENODE" command="reload_configs" />
+    </supported-refresh-commands>
+  </property>
 </configuration>

@@ -259,6 +259,31 @@ public abstract class AbstractKerberosDescriptor {
   }
 
   /**
+   * Calculate the path to this identity descriptor for logging purposes.
+   * Examples:
+   * <ul>
+   * <li>/</li>
+   * <li>/SERVICE</li>
+   * <li>/SERVICE/COMPONENT</li>
+   * <li>/SERVICE/COMPONENT/identity_name</li>
+   * </ul>
+   *
+   * @return a path
+   */
+  public String getPath() {
+    //
+    StringBuilder path = new StringBuilder();
+    AbstractKerberosDescriptor current = this;
+    while (current != null && (current.getName() != null)) {
+      path.insert(0, current.getName());
+      path.insert(0, '/');
+      current = current.getParent();
+    }
+
+    return path.toString();
+  }
+
+  /**
    * An enumeration of the different Kerberos (sub)descriptors for internal use.
    */
   public enum Type {

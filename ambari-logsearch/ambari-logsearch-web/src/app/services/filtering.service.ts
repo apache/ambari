@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+import {Injectable, Input} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Response} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
@@ -77,6 +77,14 @@ export class FilteringService {
   private readonly paginationOptions = ['10', '25', '50', '100'];
 
   timeZone: string = this.defaultTimeZone;
+
+  /**
+   * A configurable property to indicate the maximum capture time in milliseconds.
+   * @type {number}
+   * @default 600000 (10 minutes)
+   */
+  @Input()
+  maximumCaptureTimeLimit: number = 600000;
 
   filters = {
     clusters: {
@@ -419,7 +427,13 @@ export class FilteringService {
 
   startCaptureTimer(): void {
     this.startCaptureTime = new Date().valueOf();
-    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => this.captureSeconds = seconds);
+    const maxCaptureTimeInSeconds = this.maximumCaptureTimeLimit / 1000;
+    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => {
+      this.captureSeconds = seconds;
+      if (this.captureSeconds >= maxCaptureTimeInSeconds) {
+        this.stopCaptureTimer();
+      }
+    });
   }
 
   stopCaptureTimer(): void {
@@ -427,6 +441,7 @@ export class FilteringService {
     this.stopCaptureTime = new Date().valueOf();
     this.captureSeconds = 0;
     this.stopTimer.next();
+    this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
     Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe(seconds => {
       this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
       if (!this.autoRefreshRemainingSeconds) {

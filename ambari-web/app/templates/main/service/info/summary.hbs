@@ -57,12 +57,11 @@
           <div class="col-md-4 col-lg-4 service-alerts">
             {{#if view.hasAlertDefinitions}}
               <span {{action "showServiceAlertsPopup" controller.content target="controller"}} class="pull-right">
-                <i class="glyphicon glyphicon-bell"></i>
                 {{#if view.alertsCount}}
+                  <i class="glyphicon glyphicon-bell"></i>
                   <span {{bindAttr class=":label view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-                    {{view.alertsCount}}</span>
-                {{else}}
-                  <span class="label no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+                    {{view.alertsCount}}
+                  </span>
                 {{/if}}
               </span>
             {{/if}}
@@ -119,92 +118,22 @@
           {{/if}}
         </div>
       {{/view}}
-    </div>
-  </div>
-  {{! widgets in the metrics panel are loaded seperately from summary page text information
-      and does not get block due to any global API poller information }}
-  {{#if view.isServiceMetricLoaded}}
-    <div class="service-metrics-block">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="row">
-            <div class="col-md-7 col-lg-7">
-              <h4 class="panel-title">{{t services.service.metrics}}</h4>
-            </div>
-            <div class="col-md-5 col-lg-5">
-              {{#if showTimeRangeControl}}
-                {{view view.timeRangeListView}}
-              {{/if}}
-              {{#if isServiceWithEnhancedWidgets}}
-                {{#if isAmbariMetricsInstalled}}
-                  <div class="btn-group pull-right actions">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                      {{t common.actions}} &nbsp;<span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                      {{#each option in view.widgetActions}}
-                        <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
-                          {{#if option.isAction}}
-                            <a href="#" {{action doWidgetAction option.action target="view"}}>
-                              <i {{bindAttr class="option.class"}}></i>
-                              {{option.label}}
-                            </a>
-                            {{#if option.layouts}}
-                              <ul class="dropdown-menu">
-                                {{#each layout in option.layouts}}
-                                  <li>
-                                    <a href="javascript:void(0);">
-                                      {{layout.layoutName}}
-                                    </a>
-                                  </li>
-                                {{/each}}
-                              </ul>
-                            {{/if}}
-                          {{/if}}
-                        </li>
-                      {{/each}}
-                    </ul>
-                  </div>
-                {{/if}}
-              {{/if}}
-            </div>
-          </div>
-        </div>
-        <div class="panel-body">
-          {{#if isServiceWithEnhancedWidgets}}
-            <div id="widget_layout" class="thumbnails">
-              {{#each widget in controller.widgets}}
-                <div class="widget span2p4" {{bindAttr id="widget.id"}}>
-                  {{view widget.viewClass contentBinding="widget" idBinding="widget.id"}}
-                </div>
-              {{/each}}
-              {{#if isAmbariMetricsInstalled}}
-                <div class="span2p4">
-                  <button id="add-widget-action-box"
-                    {{action "goToWidgetsBrowser" controller.content target="controller"}}
-                          rel="add-widget-tooltip" {{translateAttr data-original-title="dashboard.widgets.addButton.tooltip"}}>
-                    <i class="glyphicon glyphicon-plus"></i></button>
-                </div>
-              {{/if}}
-            </div>
-          {{/if}}
-          <table class="graphs">
-            {{#each graphs in view.serviceMetricGraphs}}
-              <tr>
-                {{#each graph in graphs}}
-                  <td>
-                    <div>
-                      {{view graph}}
-                    </div>
-                  </td>
-                {{/each}}
-              </tr>
-            {{/each}}
-          </table>
-        </div>
+      <div class="panel-heading">
+         <div class="row col-md-8 col-lg-12">
+           <h4 class="panel-title">{{t common.views}}</h4>
+         </div>
+      </div>
+      <div class="panel-body">
+       {{#if view.views.length}}
+         {{#each item in view.views}}
+           <a href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a>
+         {{/each}}
+       {{else}}
+         <span>{{t menu.item.views.noViews}}</span>
+       {{/if}}
       </div>
     </div>
-  {{/if}}
+  </div>
 </div>
 
 {{#if view.collapsedSections}}

@@ -157,6 +157,7 @@ public class ConfigHelperTest {
 
       cluster.addService("FLUME", repositoryVersion);
       cluster.addService("OOZIE", repositoryVersion);
+      cluster.addService("HDFS", repositoryVersion);
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -229,6 +230,45 @@ public class ConfigHelperTest {
       managementController.updateClusters(new HashSet<ClusterRequest>() {{
         add(clusterRequest5);
       }}, null);
+
+      // hdfs-site/hadoop.caller.context.enabled
+      ConfigurationRequest cr6 = new ConfigurationRequest();
+      cr6.setClusterName(clusterName);
+      cr6.setType("hdfs-site");
+      cr6.setVersionTag("version1");
+      cr6.setProperties(new HashMap<String, String>() {{
+        put("hadoop.caller.context.enabled", "true");
+      }});
+      cr6.setPropertiesAttributes(null);
+
+      final ClusterRequest clusterRequest6 =
+              new ClusterRequest(cluster.getClusterId(), clusterName,
+                      cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequest6.setDesiredConfig(Collections.singletonList(cr6));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequest6);
+      }}, null);
+
+      // hdfs-site/hadoop.caller.context.enabled
+      ConfigurationRequest cr7 = new ConfigurationRequest();
+      cr7.setClusterName(clusterName);
+      cr7.setType("hdfs-site");
+      cr7.setVersionTag("version2");
+      cr7.setProperties(new HashMap<String, String>() {{
+        put("hadoop.caller.context.enabled", "false");
+      }});
+      cr7.setPropertiesAttributes(null);
+
+      final ClusterRequest clusterRequest7 =
+              new ClusterRequest(cluster.getClusterId(), clusterName,
+                      cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequest7.setDesiredConfig(Collections.singletonList(cr7));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequest7);
+      }}, null);
+
     }
 
     @After
@@ -545,7 +585,7 @@ public class ConfigHelperTest {
               configHelper.getEffectiveDesiredTags(cluster, "h3"));
 
       Assert.assertNotNull(effectiveAttributes);
-      Assert.assertEquals(7, effectiveAttributes.size());
+      Assert.assertEquals(8, effectiveAttributes.size());
 
       Assert.assertTrue(effectiveAttributes.containsKey("global3"));
       Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global3");
@@ -991,7 +1031,39 @@ public class ConfigHelperTest {
       Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
 
       verify(sch);
-    }
+  }
+
+  @Test
+  public void testCalculateRefreshCommands() throws Exception {
+
+    Map<String, HostConfig> schReturn = new HashMap<>();
+    HostConfig hc = new HostConfig();
+    // Put a different version to check for change
+    hc.setDefaultVersionTag("version1");
+    schReturn.put("hdfs-site", hc);
+
+    ServiceComponent sc = createNiceMock(ServiceComponent.class);
+
+    // set up mocks
+    ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
+    expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+
+    // set up expectations
+    expect(sch.getActualConfigs()).andReturn(schReturn).anyTimes();
+    expect(sch.getHostName()).andReturn("h1").anyTimes();
+    expect(sch.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
+    expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(sch.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+    expect(sch.getServiceComponent()).andReturn(sc).anyTimes();
+
+    replay(sc, sch);
+
+    Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
+    String refreshConfigsCommand = configHelper.getRefreshConfigsCommand(cluster, sch);
+    Assert.assertEquals("reload_configs", refreshConfigsCommand);
+    verify(sch);
+  }
+
   }
 
   public static class RunWithCustomModule {

@@ -39,13 +39,13 @@ class PackageProvider(Provider):
   def __init__(self, *args, **kwargs):
     super(PackageProvider, self).__init__(*args, **kwargs)   
   
-  def install_package(self, name, use_repos=set(), skip_repos=set(), is_upgrade=False):
+  def install_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=False):
     raise NotImplementedError()
 
   def remove_package(self, name, ignore_dependencies=False):
     raise NotImplementedError()
 
-  def upgrade_package(self, name, use_repos=set(), skip_repos=set(), is_upgrade=True):
+  def upgrade_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=True):
     raise NotImplementedError()
 
   def action_install(self):

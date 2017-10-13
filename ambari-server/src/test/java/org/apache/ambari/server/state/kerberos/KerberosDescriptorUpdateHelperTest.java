@@ -66,6 +66,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         properties.put("common.services.path", "src/main/resources/common-services");
         properties.put("server.version.file", "target/version");
         properties.put("custom.action.definitions", "/tmp/nofile");
+        properties.put("resources.dir", "src/main/resources");
         Configuration configuration = new Configuration(properties);
 
         install(new FactoryModuleBuilder().build(StackManagerFactory.class));

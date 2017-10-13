@@ -90,6 +90,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   * */
   private List<String> servicesWithNoConfigs = new ArrayList<>();
 
+  private RefreshCommandConfiguration refreshCommandConfiguration = new RefreshCommandConfiguration();
+
   public String getMinJdk() {
     return minJdk;
   }
@@ -325,9 +327,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   public StackVersionResponse convertToResponse() {
 
-    // Get the stack-level Kerberos descriptor file path
-    String stackDescriptorFileFilePath = getKerberosDescriptorFileLocation();
-
     // Collect the services' Kerberos descriptor files
     Collection<ServiceInfo> serviceInfos = getServices();
     // The collection of service descriptor files. A Set is being used because some Kerberos descriptor
@@ -345,7 +344,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
     return new StackVersionResponse(getVersion(), getMinUpgradeVersion(),
         isActive(), getParentStackVersion(), getConfigTypeAttributes(),
-        (stackDescriptorFileFilePath == null) ? null : new File(stackDescriptorFileFilePath),
         serviceDescriptorFiles,
         null == upgradePacks ? Collections.emptySet() : upgradePacks.keySet(),
         isValid(), getErrors(), getMinJdk(), getMaxJdk());
@@ -392,25 +390,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   }
 
   /**
-   * Gets the path to the stack-level Kerberos descriptor file
-   *
-   * @return a String containing the path to the stack-level Kerberos descriptor file
-   */
-  public String getKerberosDescriptorFileLocation() {
-    return kerberosDescriptorFileLocation;
-  }
-
-  /**
-   * Sets the path to the stack-level Kerberos descriptor file
-   *
-   * @param kerberosDescriptorFileLocation a String containing the path to the stack-level Kerberos
-   *                                       descriptor file
-   */
-  public void setKerberosDescriptorFileLocation(String kerberosDescriptorFileLocation) {
-    this.kerberosDescriptorFileLocation = kerberosDescriptorFileLocation;
-  }
-
-  /**
    * Gets the path to the stack-level Kerberos descriptor pre-configuration file
    *
    * @return a String containing the path to the stack-level Kerberos descriptor pre-configuration file
@@ -427,14 +406,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    */
   public void setKerberosDescriptorPreConfigurationFileLocation(String kerberosDescriptorPreConfigurationFileLocation) {
     this.kerberosDescriptorPreConfigurationFileLocation = kerberosDescriptorPreConfigurationFileLocation;
-  }
-
-  public String getWidgetsDescriptorFileLocation() {
-    return widgetsDescriptorFileLocation;
-  }
-
-  public void setWidgetsDescriptorFileLocation(String widgetsDescriptorFileLocation) {
-    this.widgetsDescriptorFileLocation = widgetsDescriptorFileLocation;
   }
 
   /**
@@ -634,5 +605,13 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
    */
   public VersionDefinitionXml getLatestVersionDefinition() {
     return latestVersion;
+  }
+
+  public RefreshCommandConfiguration getRefreshCommandConfiguration() {
+    return refreshCommandConfiguration;
+  }
+
+  public void setRefreshCommandConfiguration(RefreshCommandConfiguration refreshCommandConfiguration) {
+    this.refreshCommandConfiguration = refreshCommandConfiguration;
   }
 }

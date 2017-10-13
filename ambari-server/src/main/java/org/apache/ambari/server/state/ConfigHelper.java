@@ -17,12 +17,15 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -41,6 +44,7 @@ import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +75,8 @@ public class ConfigHelper {
    * componentName].
    */
   private final Cache<Integer, Boolean> staleConfigsCache;
+
+  private final Cache<Integer, String> refreshConfigCommandCache;
 
   private static final Logger LOG =
       LoggerFactory.getLogger(ConfigHelper.class);
@@ -113,6 +119,9 @@ public class ConfigHelper {
     STALE_CONFIGS_CACHE_EXPIRATION_TIME = configuration.staleConfigCacheExpiration();
     staleConfigsCache = CacheBuilder.newBuilder().
         expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).build();
+
+    refreshConfigCommandCache = CacheBuilder.newBuilder().
+            expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).build();
   }
 
   /**
@@ -1302,6 +1311,8 @@ public class ConfigHelper {
 
     StackId stackId = sch.getServiceComponent().getDesiredStackId();
 
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
+
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
             stackId.getStackVersion(), sch.getServiceName());
 
@@ -1316,8 +1327,10 @@ public class ConfigHelper {
     // ---- merge values, determine changed keys, check stack: stale
 
     Iterator<Entry<String, Map<String, String>>> it = desired.entrySet().iterator();
+    List<String> changedProperties = new LinkedList<>();
 
-    while (it.hasNext() && !stale) {
+    while (it.hasNext()) {
+      boolean staleEntry = false;
       Entry<String, Map<String, String>> desiredEntry = it.next();
 
       String type = desiredEntry.getKey();
@@ -1325,27 +1338,106 @@ public class ConfigHelper {
 
       if (!actual.containsKey(type)) {
         // desired is set, but actual is not
-        if (!serviceInfo.hasConfigDependency(type)) {
-          stale = componentInfo != null && componentInfo.hasConfigType(type);
-        } else {
-          stale = true;
-        }
+        staleEntry = (serviceInfo.hasConfigDependency(type) || componentInfo.hasConfigType(type));
       } else {
         // desired and actual both define the type
         HostConfig hc = actual.get(type);
         Map<String, String> actualTags = buildTags(hc);
 
         if (!isTagChanged(tags, actualTags, hasGroupSpecificConfigsForType(cluster, sch.getHostName(), type))) {
-          stale = false;
+          staleEntry = false;
         } else {
-          stale = serviceInfo.hasConfigDependency(type) || componentInfo.hasConfigType(type);
+          staleEntry = (serviceInfo.hasConfigDependency(type) || componentInfo.hasConfigType(type));
+          if (staleEntry) {
+            Collection<String> changedKeys = findChangedKeys(cluster, type, tags.values(), actualTags.values());
+            changedProperties.addAll(changedKeys);
+          }
+        }
+      }
+      stale = stale | staleEntry;
+    }
+    
+    String refreshCommand = calculateRefreshCommand(stackInfo.getRefreshCommandConfiguration(), sch, changedProperties);
+
+    if (STALE_CONFIGS_CACHE_ENABLED) {
+      staleConfigsCache.put(staleHash, stale);
+      if (refreshCommand != null) {
+        refreshConfigCommandCache.put(staleHash, refreshCommand);
+      }
+    }
+
+    // gather all changed properties and see if we can find a common refreshConfigs command for this component
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Changed properties {} ({}) {} :  COMMAND: {}", stale, sch.getServiceComponentName(), sch.getHostName(), refreshCommand);
+      for (String p : changedProperties) {
+        LOG.debug(p);
+      }
+    }
+
+    return stale;
+  }
+
+  public String getRefreshConfigsCommand(Cluster cluster, String hostName, String serviceName, String componentName) throws AmbariException {
+    ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(componentName);
+    ServiceComponentHost sch = serviceComponent.getServiceComponentHost(hostName);
+    return getRefreshConfigsCommand(cluster, sch);
+  }
+
+  public String getRefreshConfigsCommand(Cluster cluster, ServiceComponentHost sch) throws AmbariException {
+    String refreshCommand = null;
+
+    Map<String, HostConfig> actual = sch.getActualConfigs();
+    if (STALE_CONFIGS_CACHE_ENABLED) {
+      Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster, sch.getHostName(),
+              cluster.getDesiredConfigs());
+      int staleHash = Objects.hashCode(actual.hashCode(),
+              desired.hashCode(),
+              sch.getHostName(),
+              sch.getServiceComponentName(),
+              sch.getServiceName());
+      refreshCommand = refreshConfigCommandCache.getIfPresent(staleHash);
+    }
+    return refreshCommand;
+  }
+
+
+  /**
+   * Calculates refresh command for a set of changed properties as follows:
+   *  - if a property has no refresh command return null
+   *  - in case of multiple refresh commands: as REFRESH_CONFIGS is executed by default in case of any other command as well,
+   *  can be overriden by RELOAD_CONFIGS or any other custom command, however in case of any other different commands return null
+   *  as it's not possible to refresh all properties with one command.
+   *
+   *  examples:
+   *     {REFRESH_CONFIGS, REFRESH_CONFIGS, RELOAD_CONFIGS} ==> RELOAD_CONFIGS
+   *     {REFRESH_CONFIGS, RELOADPROXYUSERS, RELOAD_CONFIGS} ==> null
+   *
+   * @param refreshCommandConfiguration
+   * @param sch
+   * @param changedProperties
+   * @return
+   */
+  private String calculateRefreshCommand(RefreshCommandConfiguration refreshCommandConfiguration,
+                                         ServiceComponentHost sch, List<String> changedProperties) {
+
+    String finalRefreshCommand = null;
+    for (String propertyName : changedProperties) {
+      String refreshCommand = refreshCommandConfiguration.getRefreshCommandForComponent(sch, propertyName);
+      if (refreshCommand == null) {
+        return null;
+      }
+      if (finalRefreshCommand == null) {
+        finalRefreshCommand = refreshCommand;
+      }
+      if (!finalRefreshCommand.equals(refreshCommand)) {
+        if (finalRefreshCommand.equals(RefreshCommandConfiguration.REFRESH_CONFIGS)) {
+          finalRefreshCommand = refreshCommand;
+        } else if (!refreshCommand.equals(RefreshCommandConfiguration.REFRESH_CONFIGS)) {
+          return null;
         }
       }
     }
-    if (STALE_CONFIGS_CACHE_ENABLED) {
-      staleConfigsCache.put(staleHash, stale);
-    }
-    return stale;
+    return finalRefreshCommand;
   }
 
   /**
@@ -1369,6 +1461,62 @@ public class ConfigHelper {
       }
     } catch (AmbariException ambariException) {
       LOG.warn("Could not determine group configuration for host. Details: " + ambariException.getMessage());
+    }
+    return false;
+  }
+
+  /**
+   * @return the keys that have changed values
+   */
+  private Collection<String> findChangedKeys(Cluster cluster, String type,
+                                             Collection<String> desiredTags, Collection<String> actualTags) {
+
+    Map<String, String> desiredValues = new HashMap<>();
+    Map<String, String> actualValues = new HashMap<>();
+
+    for (String tag : desiredTags) {
+      Config config = cluster.getConfig(type, tag);
+      if (null != config) {
+        desiredValues.putAll(config.getProperties());
+      }
+    }
+
+    for (String tag : actualTags) {
+      Config config = cluster.getConfig(type, tag);
+      if (null != config) {
+        actualValues.putAll(config.getProperties());
+      }
+    }
+
+    List<String> keys = new ArrayList<>();
+
+    for (Entry<String, String> entry : desiredValues.entrySet()) {
+      String key = entry.getKey();
+      String value = entry.getValue();
+
+      if (!actualValues.containsKey(key) || !valuesAreEqual(actualValues.get(key), value)) {
+        keys.add(type + "/" + key);
+      }
+    }
+
+    return keys;
+  }
+
+  /**
+   * Compares values as double in case they are numbers.
+   * @param actualValue
+   * @param newValue
+   * @return
+   */
+  private  boolean valuesAreEqual(String actualValue, String newValue) {
+    boolean actualValueIsNumber = NumberUtils.isNumber(actualValue);
+    boolean newValueIsNumber = NumberUtils.isNumber(newValue);
+    if (actualValueIsNumber && newValueIsNumber) {
+      Double ab = Double.parseDouble(actualValue);
+      Double bb = Double.parseDouble(newValue);
+      return ab.equals(bb);
+    } else if (!actualValueIsNumber && !newValueIsNumber) {
+      return actualValue.equals(newValue);
     }
     return false;
   }

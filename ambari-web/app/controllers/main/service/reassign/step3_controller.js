@@ -268,9 +268,16 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
 
   propertiesToChange: {},
 
-  isSubmitDisabled: Em.computed.and('wizardController.isComponentWithReconfiguration', '!isLoaded'),
+  isSubmitDisabled: Em.computed.or('!isLoaded', 'submitButtonClicked'),
+
+  /**
+   * Is Submit-click processing now
+   * @type {bool}
+   */
+  submitButtonClicked: false,
 
   loadStep: function () {
+    this.set('submitButtonClicked', false);
     if (this.get('wizardController.isComponentWithReconfiguration')) {
       this.set('isLoaded', false);
       App.ajax.send({
@@ -695,8 +702,11 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
   },
 
   submit: function() {
-    App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
-      App.router.send("next");
-    });
+    if (!this.get('submitButtonClicked')) {
+      this.set('submitButtonClicked', true);
+      App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+        App.router.send("next");
+      });
+    }
   }
 });

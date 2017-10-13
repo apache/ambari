@@ -31,7 +31,7 @@ from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, FILE_TYPE_XML
 from resource_management.core.logger import Logger
-from hdfs import hdfs
+from hdfs import hdfs, reconfig
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from utils import get_hdfs_binary
@@ -56,6 +56,17 @@ class DataNode(Script):
     env.set_params(params)
     hdfs("datanode")
     datanode(action="configure")
+
+  def save_configs(self, env):
+    import params
+    env.set_params(params)
+    hdfs("datanode")
+
+  def reload_configs(self, env):
+    import params
+    env.set_params(params)
+    Logger.info("RELOAD CONFIGS")
+    reconfig("datanode", params.dfs_dn_ipc_address)
 
   def start(self, env, upgrade_type=None):
     import params

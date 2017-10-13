@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-@import '../variables';
+@import '../mixins';
 
 :host {
   display: block;
@@ -64,6 +64,10 @@
   }
 
   /deep/ .stop-icon {
-    color: @error-color;
+    color: @exclude-color;
+  }
+
+  .filter-buttons {
+    .default-flex;
   }
 }

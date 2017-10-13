@@ -65,6 +65,7 @@ import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dr
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
+import {CollapsiblePanelComponent} from '@app/components/collapsible-panel/collapsible-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
@@ -115,6 +116,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FilterDropdownComponent,
     FilterButtonComponent,
     AccordionPanelComponent,
+    CollapsiblePanelComponent,
     LogsListComponent,
     DropdownButtonComponent,
     PaginationComponent,

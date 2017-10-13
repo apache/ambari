@@ -58,6 +58,8 @@ class InstallPackages(Script):
     super(InstallPackages, self).__init__()
 
     self.pkg_provider = get_provider("Package")
+    self.repo_files = {}
+
 
   def actionexecute(self, env):
     num_errors = 0
@@ -108,7 +110,8 @@ class InstallPackages(Script):
       else:
         Logger.info(
           "Will install packages for repository version {0}".format(self.repository_version))
-        create_repo_files(template, command_repository)
+        new_repo_files = create_repo_files(template, command_repository)
+        self.repo_files.update(new_repo_files)
     except Exception, err:
       Logger.logger.exception("Cannot install repository files. Error: {0}".format(str(err)))
       num_errors += 1
@@ -146,10 +149,10 @@ class InstallPackages(Script):
 
     # if installing a version of HDP that needs some symlink love, then create them
     if is_package_install_successful and 'actual_version' in self.structured_output:
-      self._create_config_links_if_necessary(stack_id, self.structured_output['actual_version'])
+      self._relink_configurations_with_conf_select(stack_id, self.structured_output['actual_version'])
 
 
-  def _create_config_links_if_necessary(self, stack_id, stack_version):
+  def _relink_configurations_with_conf_select(self, stack_id, stack_version):
     """
     Sets up the required structure for /etc/<component>/conf symlinks and <stack-root>/current
     configuration symlinks IFF the current stack is < HDP 2.3+ and the new stack is >= HDP 2.3
@@ -177,7 +180,7 @@ class InstallPackages(Script):
       Link("/usr/bin/conf-select", to="/usr/bin/hdfconf-select")
 
     for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
+      conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
 
   def compute_actual_version(self):
     """
@@ -326,9 +329,14 @@ class InstallPackages(Script):
       # patches installed
       repositories = config['repositoryFile']['repositories']
       repository_ids = [repository['repoId'] for repository in repositories]
+      repos_to_use = {}
+      for repo_id in repository_ids:
+        if repo_id in self.repo_files:
+          repos_to_use[repo_id] = self.repo_files[repo_id]
+
       Package(stack_selector_package,
         action="upgrade",
-        use_repos=repository_ids,
+        use_repos=repos_to_use,
         retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
         retry_count=agent_stack_retry_count)
       

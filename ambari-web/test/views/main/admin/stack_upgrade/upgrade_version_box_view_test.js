@@ -29,6 +29,7 @@ describe('App.UpgradeVersionBoxView', function () {
     sinon.stub(App.db, 'getFilterConditions', function () {return [];});
     view = App.UpgradeVersionBoxView.create({
       initFilters: Em.K,
+      isCurrentStackPresent: true,
       controller: Em.Object.create({
         upgrade: Em.K,
         getRepoVersionInstallId: Em.K,
@@ -357,6 +358,8 @@ describe('App.UpgradeVersionBoxView', function () {
 
   describe("#showHosts()", function () {
     beforeEach(function () {
+      view.set('content.stackVersion', Em.Object.create({supportsRevert: false}));
+      view.set('content.stackServices', [Em.Object.create({isUpgradable: true})])
       sinon.spy(App.ModalPopup, 'show');
       sinon.stub(view, 'filterHostsByStack', Em.K);
     });
@@ -681,6 +684,7 @@ describe('App.UpgradeVersionBoxView', function () {
       {
         inputData: {
           'content.status': 'INSTALLED',
+          'content.stackServices': [Em.Object.create({isUpgradable:true})],
           'controller.requestInProgress': true,
           'content.isPatch': true,
           'parentView.repoVersions': [
@@ -707,15 +711,16 @@ describe('App.UpgradeVersionBoxView', function () {
           isButtonGroup: true,
           buttons: [
             {
-              text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionPopup',
-              isDisabled: true
+              "action": "installRepoVersionPopup",
+              "isDisabled": true,
+              "text": "Reinstall Packages",
             },
             {
-              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
-              action: 'showUpgradeOptions',
-              isDisabled: true
+              "action": "showUpgradeOptions",
+              "isDisabled": true,
+              "text": "Pre-Upgrade Check"
             },
+
             {
               "action": "confirmDiscardRepoVersion",
               "isDisabled": true,
@@ -751,18 +756,7 @@ describe('App.UpgradeVersionBoxView', function () {
         expected: {
           status: 'INSTALLED',
           isButtonGroup: true,
-          buttons: [
-            {
-              text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionPopup',
-              isDisabled: true
-            },
-            {
-              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
-              action: 'showUpgradeOptions',
-              isDisabled: true
-            }
-          ],
+          buttons: [],
           isDisabled: true
         },
         title: 'installed version, later than current one, admin access, no requests in progress, another installation running'
@@ -1110,6 +1104,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: true,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1118,6 +1113,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: false,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1126,6 +1122,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: false,
         status: 'INSTALLING',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1134,6 +1131,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: true,
         status: 'INSTALLED',
         isCompatible: false,
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1142,6 +1140,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: true,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: false
       },
       {
@@ -1150,7 +1149,17 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeSuspended: false,
         status: 'INSTALLED',
         isCompatible: true,
+        isCurrentStackPresent: true,
         expected: false
+      },
+      {
+        requestInProgress: false,
+        upgradeIsRunning: false,
+        upgradeSuspended: false,
+        status: 'INSTALLED',
+        isCompatible: true,
+        isCurrentStackPresent: false,
+        expected: true
       }
     ];
 
@@ -1163,16 +1172,18 @@ describe('App.UpgradeVersionBoxView', function () {
     });
 
     testCases.forEach(function(test) {
-      it("requestInProgress: " + test.requestInProgress +
+      it(" requestInProgress: " + test.requestInProgress +
          " upgradeIsRunning: " + test.upgradeIsRunning +
          " upgradeSuspended: " + test.upgradeSuspended +
-         " status" + test.status +
-         " isCompatible" + test.isCompatible, function() {
+         " status: " + test.status +
+         " isCompatible: " + test.isCompatible +
+         " isCurrentStackPresent: " + test.isCurrentStackPresent, function() {
         this.mock.withArgs('upgradeSuspended').returns(test.upgradeSuspended);
         this.mock.withArgs('upgradeIsRunning').returns(test.upgradeIsRunning);
         view.set('parentView.repoVersions', [Em.Object.create({
           status: test.status
         })]);
+        view.set('isCurrentStackPresent', test.isCurrentStackPresent)
         view.set('controller.requestInProgress', test.requestInProgress);
         view.set('content.isCompatible', test.isCompatible);
         expect(view.isDisabledOnInit()).to.be.equal(test.expected);
@@ -1198,6 +1209,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1207,6 +1219,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1216,6 +1229,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1225,6 +1239,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: true,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.2',
+        isCurrentStackPresent: true,
         expected: true
       },
       {
@@ -1234,6 +1249,7 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: true,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.3',
+        isCurrentStackPresent: true,
         expected: false
       },
       {
@@ -1243,7 +1259,18 @@ describe('App.UpgradeVersionBoxView', function () {
         isDowngrade: false,
         repositoryName: 'HDP-2.2',
         upgradeVersion: 'HDP-2.2',
+        isCurrentStackPresent: true,
         expected: false
+      },
+      {
+        isAuthorized: true,
+        requestInProgress: false,
+        status: 'INSTALLED',
+        isDowngrade: false,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.2',
+        isCurrentStackPresent: false,
+        expected: true
       }
     ];
 
@@ -1253,13 +1280,15 @@ describe('App.UpgradeVersionBoxView', function () {
           "status: " + test.status +
           "isDowngrade: " + test.isDowngrade +
           "repositoryName: " + test.repositoryName +
-          "upgradeVersion: " + test.upgradeVersion, function() {
+          "upgradeVersion: " + test.upgradeVersion +
+          "isCurrentStackPresent: " + test.isCurrentStackPresent, function() {
         this.authorizedMock.returns(test.isAuthorized);
         view.set('controller.requestInProgress', test.requestInProgress);
         view.set('parentView.repoVersions', [Em.Object.create({status: test.status})]);
         view.set('controller.isDowngrade', test.isDowngrade);
         view.set('controller.currentVersion.repository_name', test.repositoryName);
         view.set('controller.upgradeVersion', test.upgradeVersion);
+        view.set('isCurrentStackPresent', test.isCurrentStackPresent);
         expect(view.isDisabledOnInstalled()).to.be.equal(test.expected);
       });
     });
@@ -1397,7 +1426,33 @@ describe('App.UpgradeVersionBoxView', function () {
       })));
     });
 
-    it('version higher than current and in INSTALLED state', function() {
+    it('version higher than current and in INSTALLED state hasnt services andis not patch or maint', function() {
+      view.set('controller', Em.Object.create({
+        currentVersion: Em.Object.create({
+          repository_version: '2.0',
+          stack_name: 'HDP'
+        })
+      }));
+      view.set('content', Em.Object.create({
+        status: 'INSTALLED',
+        repositoryVersion: '2.1',
+        stackVersionType: 'HDP',
+        isPatch: false
+      }));
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.processPreUpgradeState(element);
+      expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
+        "buttons": [],
+        "isButtonGroup": true,
+        'iconClass': 'icon-ok',
+        "text": Em.I18n.t('common.installed'),
+        "isDisabled": false
+      })));
+    });
+
+    it('version higher than current and in INSTALLED state hasnt services ant is patch', function() {
       view.set('controller', Em.Object.create({
         currentVersion: Em.Object.create({
           repository_version: '2.0',
@@ -1417,24 +1472,14 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(JSON.stringify(element)).to.be.equal(JSON.stringify(Em.Object.create({
         "buttons": [
           {
-            "text": Em.I18n.t('admin.stackVersions.version.reinstall'),
-            "action": "installRepoVersionPopup",
-            "isDisabled": false
-          },
-          {
-            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
-            action: 'showUpgradeOptions',
-            isDisabled: false
-          },
-          {
-            "text": Em.I18n.t('common.hide'),
-            "action": "confirmDiscardRepoVersion",
-            "isDisabled": false
+           "text":Em.I18n.t('common.hide'),
+           "action":"confirmDiscardRepoVersion",
+           "isDisabled":false
           }
         ],
         "isButtonGroup": true,
-        "text": Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-        "action": 'confirmUpgrade',
+        'iconClass': 'icon-ok',
+        "text": Em.I18n.t('common.installed'),
         "isDisabled": false
       })));
     });

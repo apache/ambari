@@ -6,7 +6,7 @@
     "ng": "ng",
     "start": "webpack-dev-server --port=4200",
     "build": "webpack",
-    "build-prod": "NODE_ENV='production' webpack -p",
+    "build-prod": "NODE_ENV=production webpack -p",
     "test": "karma start ./karma.conf.js",
     "lint": "ng lint",
     "e2e": "protractor ./protractor.conf.js",

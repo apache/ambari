@@ -104,4 +104,9 @@ describe('LogsContainerComponent', () => {
   it('should create component', () => {
     expect(component).toBeTruthy();
   });
+
+  it('totalEventsFoundMessageParams should provide total count number', () => {
+    expect(Object.keys(component.totalEventsFoundMessageParams)).toContain('totalCount');
+  });
+
 });

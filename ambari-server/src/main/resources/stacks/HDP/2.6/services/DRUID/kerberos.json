@@ -35,27 +35,6 @@
           }
         },
         {
-          "name": "superset",
-          "principal": {
-            "value": "${druid-env/druid_user}@${realm}",
-            "type": "user",
-            "configuration": "druid-superset/KERBEROS_PRINCIPAL",
-            "local_username": "${druid-env/druid_user}"
-          },
-          "keytab": {
-            "file": "${keytab_dir}/superset.headless.keytab",
-            "owner": {
-              "name": "${druid-env/druid_user}",
-              "access": "r"
-            },
-            "group": {
-              "name": "${cluster-env/user_group}",
-              "access": "r"
-            },
-            "configuration": "druid-superset/KERBEROS_KEYTAB"
-          }
-        },
-        {
           "name": "druid_smokeuser",
           "reference": "/smokeuser"
         }
@@ -102,15 +81,6 @@
           "identities": [
             {
               "name": "druid_druid_middlemanager_druid",
-              "reference": "/druid"
-            }
-          ]
-        },
-        {
-          "name": "DRUID_SUPERSET",
-          "identities": [
-            {
-              "name": "druid_druid_superset_druid",
               "reference": "/druid"
             }
           ]

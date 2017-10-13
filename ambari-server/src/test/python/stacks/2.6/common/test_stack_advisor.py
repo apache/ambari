@@ -188,9 +188,15 @@ class TestHDP26StackAdvisor(TestCase):
     self.stackAdvisor.recommendDruidConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations,
                       {'druid-historical': {
-                        'properties': {'druid.processing.numThreads': '3', 'druid.server.http.numThreads': '40'}},
+                        'properties': {'druid.processing.numThreads': '3',
+                                       'druid.server.http.numThreads': '40',
+                                       'druid.processing.numMergeBuffers': '2',
+                                       'druid.processing.buffer.sizeBytes': '1073741824'}},
                         'druid-broker': {
-                          'properties': {'druid.processing.numThreads': '3', 'druid.server.http.numThreads': '40'}},
+                          'properties': {'druid.processing.numThreads': '3',
+                                         'druid.server.http.numThreads': '40',
+                                         'druid.processing.numMergeBuffers': '2',
+                                         'druid.processing.buffer.sizeBytes': '1073741824'}},
                         'druid-common': {'properties': {'druid.extensions.loadList': '["mysql-metadata-storage"]',
                                                         'druid.metadata.storage.connector.port': '3306',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
@@ -767,9 +773,15 @@ class TestHDP26StackAdvisor(TestCase):
     self.stackAdvisor.recommendDruidConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations,
                       {'druid-historical': {
-                        'properties': {'druid.processing.numThreads': '3', 'druid.server.http.numThreads': '40'}},
+                        'properties': {'druid.processing.numThreads': '3',
+                                       'druid.server.http.numThreads': '40',
+                                       'druid.processing.numMergeBuffers': '2',
+                                       'druid.processing.buffer.sizeBytes': '1073741824'}},
                         'druid-broker': {
-                          'properties': {'druid.processing.numThreads': '3', 'druid.server.http.numThreads': '40'}},
+                          'properties': {'druid.processing.numThreads': '3',
+                                         'druid.server.http.numThreads': '40',
+                                         'druid.processing.numMergeBuffers': '2',
+                                         'druid.processing.buffer.sizeBytes': '1073741824'}},
                         'druid-common': {'properties': {'druid.extensions.loadList': '["postgresql-metadata-storage"]',
                                                         'druid.metadata.storage.connector.port': '5432',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:postgresql://c6401.ambari.apache.org:5432/druid',
@@ -875,9 +887,15 @@ class TestHDP26StackAdvisor(TestCase):
     self.stackAdvisor.recommendDruidConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations,
                       {'druid-historical': {
-                        'properties': {'druid.processing.numThreads': '3', 'druid.server.http.numThreads': '40'}},
+                        'properties': {'druid.processing.numThreads': '3',
+                                       'druid.server.http.numThreads': '40',
+                                       'druid.processing.numMergeBuffers': '2',
+                                       'druid.processing.buffer.sizeBytes': '1073741824'}},
                         'druid-broker': {
-                          'properties': {'druid.processing.numThreads': '3', 'druid.server.http.numThreads': '40'}},
+                          'properties': {'druid.processing.numThreads': '3',
+                                         'druid.server.http.numThreads': '40',
+                                         'druid.processing.numMergeBuffers': '2',
+                                         'druid.processing.buffer.sizeBytes': '1073741824'}},
                         'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                         'druid.metadata.storage.connector.port': '1527',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
@@ -890,6 +908,7 @@ class TestHDP26StackAdvisor(TestCase):
                                                               'druid.historical.jvm.heap.memory': {'maximum': '49152'},
                                                               'druid.broker.jvm.heap.memory': {'maximum': '49152'}}}}
                       )
+
 
 
   def test_recommendDruidConfigurations_property_existence_check(self):
@@ -966,7 +985,7 @@ class TestHDP26StackAdvisor(TestCase):
           "href": "/api/v1/hosts/c6402.ambari.apache.org",
           "Hosts": {
             "cpu_count": 1,
-            "total_mem": 1922680,
+            "total_mem": 622680,
             "disk_info": [
               {"mountpoint": "/"},
               {"mountpoint": "/dev/shm"},
@@ -1069,9 +1088,15 @@ class TestHDP26StackAdvisor(TestCase):
     self.stackAdvisor.recommendDruidConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations,
                       {'druid-historical': {
-                        'properties': {'druid.processing.numThreads': '2', 'druid.server.http.numThreads': '40'}},
+                        'properties': {'druid.processing.numThreads': '2',
+                                       'druid.server.http.numThreads': '40',
+                                       'druid.processing.numMergeBuffers': '2',
+                                       'druid.processing.buffer.sizeBytes': '134217728'}},
                         'druid-broker': {
-                          'properties': {'druid.processing.numThreads': '1', 'druid.server.http.numThreads': '40'}},
+                          'properties': {'druid.processing.numThreads': '1',
+                                         'druid.server.http.numThreads': '40',
+                                         'druid.processing.numMergeBuffers': '2',
+                                         'druid.processing.buffer.sizeBytes': '67108864'}},
                         'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                         'druid.metadata.storage.connector.port': '1527',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
@@ -1083,8 +1108,157 @@ class TestHDP26StackAdvisor(TestCase):
                                                               'druid.middlemanager.jvm.heap.memory': {
                                                                 'maximum': '49152'},
                                                               'druid.historical.jvm.heap.memory': {'maximum': '3755'},
-                                                              'druid.broker.jvm.heap.memory': {'maximum': '1877'}}}}
+                                                              'druid.broker.jvm.heap.memory': {'maximum': '1024'}}}}
                       )
+
+  def test_recommendDruidConfigurations_low_mem_hosts(self):
+    hosts = {
+      "items": [
+        {
+          "href": "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts": {
+            "cpu_count": 8,
+            "total_mem": 102400,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          }
+        }, {
+          "href": "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts": {
+            "cpu_count": 4,
+            "total_mem": 204800,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6402.ambari.apache.org",
+            "host_name": "c6402.ambari.apache.org"
+          }
+        },
+        {
+          "href": "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 409600,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6403.ambari.apache.org",
+            "host_name": "c6403.ambari.apache.org"
+          }
+        }
+      ]
+    }
+
+    services = {
+      "Versions": {
+        "parent_stack_version": "2.5",
+        "stack_name": "HDP",
+        "stack_version": "2.6",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
+      "services": [{
+        "StackServices": {
+          "service_name": "DRUID",
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "DRUID_COORDINATOR",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "DRUID_OVERLORD",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "DRUID_BROKER",
+              "hostnames": ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+            },
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "DRUID_HISTORICAL",
+              "hostnames": ["c6401.ambari.apache.org", "c6403.ambari.apache.org"]
+            },
+          },
+          {
+            "StackServiceComponents": {
+              "component_name": "DRUID_MIDDLEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+          }
+        ]
+      }
+      ],
+      "configurations": {
+        "druid-common": {
+          "properties": {
+            "database_name": "druid",
+            "metastore_hostname": "c6401.ambari.apache.org",
+            "druid.metadata.storage.type": "derby",
+            "druid.extensions.loadList": "[\"mysql-metadata-storage\"]",
+            "druid.extensions.pullList": "[]"
+          }
+        }
+      }
+    }
+
+    clusterData = {
+    }
+
+    configurations = {
+    }
+
+    self.stackAdvisor.recommendDruidConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations,
+                    {'druid-historical': {
+                      'properties': {'druid.processing.numThreads': '5',
+                                     'druid.server.http.numThreads': '40',
+                                     'druid.processing.numMergeBuffers': '2',
+                                     'druid.processing.buffer.sizeBytes': '14680064'}},
+                      'druid-broker': {
+                        'properties': {'druid.processing.numThreads': '3',
+                                       'druid.server.http.numThreads': '40',
+                                       'druid.processing.numMergeBuffers': '2',
+                                       'druid.processing.buffer.sizeBytes': '41943040'}},
+                      'druid-common': {'properties': {'druid.extensions.loadList': '[]',
+                                                      'druid.metadata.storage.connector.port': '1527',
+                                                      'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
+                                                      'druid.zk.service.host': ''
+                                                      }},
+                      'druid-env': {'properties': {},
+                                    'property_attributes': {'druid.coordinator.jvm.heap.memory': {'maximum': '1024'},
+                                                            'druid.overlord.jvm.heap.memory': {'maximum': '1024'},
+                                                            'druid.middlemanager.jvm.heap.memory': {
+                                                              'maximum': '1024'},
+                                                            'druid.historical.jvm.heap.memory': {'maximum': '1024'},
+                                                            'druid.broker.jvm.heap.memory': {'maximum': '1024'}}}}
+                    )
 
 
   def test_recommendAtlasConfigurations(self):
@@ -1661,12 +1835,7 @@ class TestHDP26StackAdvisor(TestCase):
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.optimize.sort.dynamic.partition': 'false',
-          'hive.server2.enable.doAs': 'false',
-          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
-          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
-          'hive.druid.metadata.db.type': 'mysql',
-          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
-          'hive.druid.metadata.username': 'druid',
+          'hive.server2.enable.doAs': 'false'
         },
         'property_attributes': {
           'hive.tez.container.size': {
@@ -1711,7 +1880,13 @@ class TestHDP26StackAdvisor(TestCase):
         }
       },
       'hive-interactive-site': {
-        'properties': {}
+        'properties': {
+          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
+          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
+          'hive.druid.metadata.db.type': 'mysql',
+          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
+          'hive.druid.metadata.username': 'druid'
+        }
       },
       'yarn-site': {
         'properties': {
@@ -1767,7 +1942,7 @@ class TestHDP26StackAdvisor(TestCase):
     services['configurations']['druid-router'] = {}
     services['configurations']['druid-router']['properties'] = {}
     services['configurations']['druid-router']['properties']['druid.port'] = 8083
-    expected['hive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
+    expected['hive-interactive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)

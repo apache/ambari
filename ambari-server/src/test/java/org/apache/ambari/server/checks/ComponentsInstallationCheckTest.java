@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
@@ -86,6 +87,8 @@ public class ComponentsInstallationCheckTest {
     MockitoAnnotations.initMocks(this);
 
     m_services.clear();
+
+    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);

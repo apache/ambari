@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div id="alerts">
+<div id="alerts" class="container-wrap-table">
   <div class="row">
     <h2 class="table-title col-sm-1">{{t menu.item.alerts}}</h2>
     <div class="table-controls row col-sm-11 pull-right">
@@ -56,7 +56,6 @@
               {{view App.AlertDefinitionSummary contentBinding="alertDefinition"}}
             </td>
             <td class="alert-name">
-              <span {{bindAttr title="alertDefinition.type"}} {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>
               <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
             </td>
             <td class="alert-service">{{alertDefinition.serviceDisplayName}}</td>

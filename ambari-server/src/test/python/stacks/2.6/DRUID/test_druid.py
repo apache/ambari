@@ -31,7 +31,7 @@ from resource_management.core.logger import Logger
 @patch("resource_management.libraries.Script.get_tmp_dir", new=MagicMock(return_value=('/var/lib/ambari-agent/tmp')))
 @patch.object(functions, "get_stack_version", new=MagicMock(return_value="2.0.0.0-1234"))
 class TestDruid(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "DRUID/0.9.2/package"
+  COMMON_SERVICES_PACKAGE_DIR = "DRUID/0.10.1/package"
   STACK_VERSION = "2.6"
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 

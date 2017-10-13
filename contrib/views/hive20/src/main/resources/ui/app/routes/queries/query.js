@@ -632,78 +632,67 @@ export default Ember.Route.extend(UILoggerMixin, {
       let queryFile = this.get('controller.model').get('queryFile');
       let logFile = this.get('controller.model').get('logFile');
       let shortQuery = (currentQuery.length > 0) ? currentQuery : ";";
-      let savedQueryId = this.get('controller.model').get('id');
+      let savedQueryId = this.get('controller.model').get('id')
+
+      let payload = {"title" : newTitle,
+        "dataBase": selectedDb,
+        "owner" : owner,
+        "shortQuery" : (currentQuery.length > 0) ? currentQuery : ";",
+        "queryFile" : queryFile,
+        "logFile" : logFile};
 
 
-      this.store.findAll('savedQuery').then(savedQueries => {
-        return savedQueries.toArray();
-      }).then((existingSavedQueries) =>{
+      let existingSavedQuery = this.get('store').peekRecord('saved-query', savedQueryId);
 
-        var queryExist = existingSavedQueries.filterBy('id', savedQueryId).get('firstObject');
+      if(existingSavedQuery){
 
-        if(queryExist){
-          this.send('updateSavedQuery',  queryExist.get('id'));
-        } else{
-          this.send('addSavedQuery', selectedDb, newTitle, owner, shortQuery );
-        }
+          this.get('savedQueries').updateSavedQuery(existingSavedQuery.get('id'), shortQuery, selectedDb, owner).then( data => {
+              console.log('saved query updated.');
+              this.get('controller.model').set('title', newTitle);
+              this.get('controller.model').set('isQueryDirty', false);
+              this.get('controller').set('worksheetModalSuccess', true);
 
+              Ember.run.later(() => {
+                this.get('controller').set('showWorksheetModal', false);
+                this.closeWorksheetAfterSave();
+              }, 2 * 1000);
 
-      });
+            }).catch(function (response) {
+               console.log('error', response);
+            });
 
-    },
+      } else{
 
-    addSavedQuery(selectedDb, newTitle, owner, shortQuery){
-
-      let newSaveQuery = this.get('store').createRecord('saved-query',
-        { dataBase:selectedDb,
-          title:newTitle,
-          owner: owner,
-          shortQuery: shortQuery
-        });
-
-      newSaveQuery.save().then((data) => {
-        this.get('controller.model').set('title', newTitle);
-        this.get('controller.model').set('isQueryDirty', false);
-        this.get('controller').set('worksheetModalSuccess', true);
-        Ember.run.later(() => {
-          this.get('controller').set('showWorksheetModal', false);
-          this.closeWorksheetAfterSave();
-        }, 2 * 1000);
-      });
-
-    },
-
-    updateSavedQuery(savedQueryId){
-          let currentQuery = this.get('controller.model').get('query');
-          let selectedDb = this.get('controller.model').get('selectedDb');
-          let owner = this.get('controller.model').get('owner');
-
-          this.get('store').findRecord('saved-query', savedQueryId ).then(savedQuery => {
-            savedQuery.set('shortQuery', (currentQuery.length > 0) ? currentQuery : ";");
-            savedQuery.set('dataBase', selectedDb );
-            savedQuery.set('owner', owner );
-
-            savedQuery.save().then(savedQuery => {
-
-                this.get('controller.model').set('isQueryDirty', false);
-                this.get('controller').set('worksheetModalSuccess', true);
-
-                Ember.run.later(() => {
-                  this.get('controller').set('showWorksheetModal', false);
-                  this.closeWorksheetAfterSave();
-                }, 2 * 1000);
-            })
-
+        let newSaveQuery = this.get('store').createRecord('saved-query',
+          { dataBase:selectedDb,
+            title:newTitle,
+            queryFile: queryFile,
+            owner: owner,
+            shortQuery: (currentQuery.length > 0) ? currentQuery : ";"
           });
 
+        newSaveQuery.save().then((data) => {
+          console.log('saved query saved');
 
+          this.get('controller.model').set('title', newTitle);
+          this.get('controller.model').set('isQueryDirty', false);
+          this.get('controller').set('worksheetModalSuccess', true);
+
+          Ember.run.later(() => {
+            this.get('controller').set('showWorksheetModal', false);
+            this.closeWorksheetAfterSave();
+          }, 2 * 1000);
+
+        });
+
+      }
     },
 
-    closeWorksheetModal(){
+  closeWorksheetModal(){
       this.get('controller').set('showWorksheetModal', false);
       this.closeWorksheetAfterSave();
       this.get('controller.model').set('tabDataToClose', null);
-    },
+  },
 
     expandQueryEdidorPanel(){
       if(!this.get('isQueryEdidorPaneExpanded')){

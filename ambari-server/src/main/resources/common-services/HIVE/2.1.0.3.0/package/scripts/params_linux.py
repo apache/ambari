@@ -848,3 +848,7 @@ ranger_hive_metastore_lookup = default('/configurations/ranger-hive-plugin-prope
 
 if security_enabled:
   hive_metastore_principal_with_host = hive_metastore_principal.replace('_HOST', hostname.lower())
+
+# replication directories
+hive_repl_cmrootdir = default('/configurations/hive-site/hive.repl.cmrootdir', None)
+hive_repl_rootdir = default('/configurations/hive-site/hive.repl.rootdir', None)

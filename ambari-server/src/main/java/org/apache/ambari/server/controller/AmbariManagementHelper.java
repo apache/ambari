@@ -70,7 +70,7 @@ public class AmbariManagementHelper {
    */
   public void createExtensionLink(StackManager stackManager, StackInfo stackInfo, ExtensionInfo extensionInfo) throws AmbariException {
     validateCreateExtensionLinkRequest(stackInfo, extensionInfo);
-    ExtensionHelper.validateCreateLink(stackInfo, extensionInfo);
+    ExtensionHelper.validateCreateLink(stackManager, stackInfo, extensionInfo);
     ExtensionLinkEntity linkEntity = createExtensionLinkEntity(stackInfo, extensionInfo);
     stackManager.linkStackToExtension(stackInfo, extensionInfo);
 

@@ -871,3 +871,7 @@ if 'druid-common' in config['configurations'] \
 
 
 manage_hive_fsroot = default('/configurations/cluster-env/manage_hive_fsroot', True)
+
+# replication directories
+hive_repl_cmrootdir = default('/configurations/hive-site/hive.repl.cmrootdir', None)
+hive_repl_rootdir = default('/configurations/hive-site/hive.repl.rootdir', None)

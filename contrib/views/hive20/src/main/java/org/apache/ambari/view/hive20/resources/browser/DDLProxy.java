@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive20.resources.browser;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
@@ -54,6 +55,8 @@ import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobController;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobImpl;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobResourceManager;
+import org.apache.ambari.view.hive20.resources.settings.Setting;
+import org.apache.ambari.view.hive20.resources.settings.SettingsResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,11 +76,13 @@ public class DDLProxy {
 
   private final ViewContext context;
   private final TableMetaParserImpl tableMetaParser;
+  private SettingsResourceManager settingsResourceManager;
 
   @Inject
-  public DDLProxy(ViewContext context, TableMetaParserImpl tableMetaParser) {
+  public DDLProxy(ViewContext context, TableMetaParserImpl tableMetaParser, SettingsResourceManager settingsResourceManager) {
     this.context = context;
     this.tableMetaParser = tableMetaParser;
+    this.settingsResourceManager = settingsResourceManager;
     LOG.info("Creating DDLProxy");
   }
 
@@ -130,15 +135,19 @@ public class DDLProxy {
   }
 
   public Job getColumnStatsJob(final String databaseName, final String tableName, final String columnName,
-                         JobResourceManager resourceManager) throws ServiceException {
+                               JobResourceManager resourceManager) throws ServiceException {
     FetchColumnStatsQueryGenerator queryGenerator = new FetchColumnStatsQueryGenerator(databaseName, tableName,
-      columnName);
+        columnName);
     Optional<String> q = queryGenerator.getQuery();
     String jobTitle = "Fetch column stats for " + databaseName + "." + tableName + "." + columnName;
-    if(q.isPresent()) {
+    if (q.isPresent()) {
       String query = q.get();
+      Optional<String> settingsString = generateSettingsString();
+      if (settingsString.isPresent()) {
+        query = settingsString.get() + query;
+      }
       return createJob(databaseName, query, jobTitle, resourceManager);
-    }else{
+    } else {
       throw new ServiceException("Failed to generate job for {}" + jobTitle);
     }
   }
@@ -228,32 +237,56 @@ public class DDLProxy {
       tableMeta.setDatabase(databaseName);
     }
     Optional<String> createTableQuery = new CreateTableQueryGenerator(tableMeta).getQuery();
-    if(createTableQuery.isPresent()) {
+    if (createTableQuery.isPresent()) {
       LOG.info("generated create table query : {}", createTableQuery);
       return createTableQuery.get();
-    }else {
+    } else {
       throw new ServiceException("could not generate create table query for database : " + databaseName + " table : " + tableMeta.getTable());
     }
   }
 
   public Job createTable(String databaseName, TableMeta tableMeta, JobResourceManager resourceManager) throws ServiceException {
     String createTableQuery = this.generateCreateTableDDL(databaseName, tableMeta);
+    Optional<String> settingsString = generateSettingsString();
+    if (settingsString.isPresent()) {
+      createTableQuery = settingsString.get() + createTableQuery;
+    }
     String jobTitle = "Create table " + tableMeta.getDatabase() + "." + tableMeta.getTable();
+
     return createJob(databaseName, createTableQuery, jobTitle, resourceManager);
+  }
+
+  private Optional<String> generateSettingsString() {
+    List<Setting> settings = settingsResourceManager.getSettings();
+    if (null != settings && !settings.isEmpty()) {
+      return Optional.of(Joiner.on(";\n").join(FluentIterable.from(settings).transform(new Function<Setting, String>() {
+        @Override
+        public String apply(Setting setting) {
+          return "set " + setting.getKey() + "=" + setting.getValue();
+        }
+      }).toList()) + ";\n"/*need this ;\n at the end of last line also.*/);
+    } else {
+      return Optional.absent();
+    }
   }
 
   public Job deleteTable(String databaseName, String tableName, JobResourceManager resourceManager) throws ServiceException {
     String deleteTableQuery = generateDeleteTableDDL(databaseName, tableName);
     String jobTitle = "Delete table " + databaseName + "." + tableName;
+    Optional<String> settingsString = generateSettingsString();
+    if (settingsString.isPresent()) {
+      deleteTableQuery = settingsString.get() + deleteTableQuery;
+    }
+
     return createJob(databaseName, deleteTableQuery, jobTitle, resourceManager);
   }
 
   public String generateDeleteTableDDL(String databaseName, String tableName) throws ServiceException {
     Optional<String> deleteTableQuery = new DeleteTableQueryGenerator(databaseName, tableName).getQuery();
-    if(deleteTableQuery.isPresent()) {
+    if (deleteTableQuery.isPresent()) {
       LOG.info("deleting table {} with query {}", databaseName + "." + tableName, deleteTableQuery);
       return deleteTableQuery.get();
-    }else{
+    } else {
       throw new ServiceException("Failed to generate query for delete table " + databaseName + "." + tableName);
     }
   }
@@ -261,6 +294,11 @@ public class DDLProxy {
   public Job alterTable(ViewContext context, ConnectionConfig hiveConnectionConfig, String databaseName, String oldTableName, TableMeta newTableMeta, JobResourceManager resourceManager) throws ServiceException {
     String alterQuery = generateAlterTableQuery(context, hiveConnectionConfig, databaseName, oldTableName, newTableMeta);
     String jobTitle = "Alter table " + databaseName + "." + oldTableName;
+    Optional<String> settingsString = generateSettingsString();
+    if (settingsString.isPresent()) {
+      alterQuery = settingsString.get() + alterQuery;
+    }
+
     return createJob(databaseName, alterQuery, jobTitle, resourceManager);
   }
 
@@ -272,58 +310,72 @@ public class DDLProxy {
   public String generateAlterTableQuery(TableMeta oldTableMeta, TableMeta newTableMeta) throws ServiceException {
     AlterTableQueryGenerator queryGenerator = new AlterTableQueryGenerator(oldTableMeta, newTableMeta);
     Optional<String> alterQuery = queryGenerator.getQuery();
-    if(alterQuery.isPresent()){
+    if (alterQuery.isPresent()) {
       return alterQuery.get();
-    }else{
+    } else {
       throw new ServiceException("Failed to generate alter table query for table " + oldTableMeta.getDatabase() + "." + oldTableMeta.getTable() + ". No difference was found.");
     }
   }
 
   public Job renameTable(String oldDatabaseName, String oldTableName, String newDatabaseName, String newTableName,
                          JobResourceManager resourceManager)
-    throws ServiceException {
+      throws ServiceException {
     RenameTableQueryGenerator queryGenerator = new RenameTableQueryGenerator(oldDatabaseName, oldTableName,
-      newDatabaseName, newTableName);
+        newDatabaseName, newTableName);
     Optional<String> renameTable = queryGenerator.getQuery();
-    if(renameTable.isPresent()) {
+    if (renameTable.isPresent()) {
       String renameQuery = renameTable.get();
       String jobTitle = "Rename table " + oldDatabaseName + "." + oldTableName + " to " + newDatabaseName + "." +
-        newTableName;
+          newTableName;
+      Optional<String> settingsString = generateSettingsString();
+      if (settingsString.isPresent()) {
+        renameQuery = settingsString.get() + renameQuery;
+      }
       return createJob(oldDatabaseName, renameQuery, jobTitle, resourceManager);
-    }else{
+    } else {
       throw new ServiceException("Failed to generate rename table query for table " + oldDatabaseName + "." +
-        oldTableName);
+          oldTableName);
     }
   }
 
   public Job deleteDatabase(String databaseName, JobResourceManager resourceManager) throws ServiceException {
     DeleteDatabaseQueryGenerator queryGenerator = new DeleteDatabaseQueryGenerator(databaseName);
     Optional<String> deleteDatabase = queryGenerator.getQuery();
-    if(deleteDatabase.isPresent()) {
+    if (deleteDatabase.isPresent()) {
       String deleteQuery = deleteDatabase.get();
-      return createJob(databaseName, deleteQuery, "Delete database " + databaseName , resourceManager);
-    }else{
+      Optional<String> settingsString = generateSettingsString();
+      if (settingsString.isPresent()) {
+        deleteQuery = settingsString.get() + deleteQuery;
+      }
+
+      return createJob(databaseName, deleteQuery, "Delete database " + databaseName, resourceManager);
+    } else {
       throw new ServiceException("Failed to generate delete database query for database " + databaseName);
     }
   }
 
   public Job createDatabase(String databaseName, JobResourceManager resourceManager) throws ServiceException {
     CreateDatabaseQueryGenerator queryGenerator = new CreateDatabaseQueryGenerator(databaseName);
-    Optional<String> deleteDatabase = queryGenerator.getQuery();
-    if(deleteDatabase.isPresent()) {
-      String deleteQuery = deleteDatabase.get();
-      return createJob("default", deleteQuery, "CREATE DATABASE " + databaseName , resourceManager);
-    }else{
+    Optional<String> createDatabase = queryGenerator.getQuery();
+    if (createDatabase.isPresent()) {
+      String createQuery = createDatabase.get();
+      Optional<String> settingsString = generateSettingsString();
+      if (settingsString.isPresent()) {
+        createQuery = settingsString.get() + createQuery;
+      }
+
+      return createJob("default", createQuery, "CREATE DATABASE " + databaseName, resourceManager);
+    } else {
       throw new ServiceException("Failed to generate create database query for database " + databaseName);
     }
   }
 
-  public Job createJob(String databaseName, String deleteQuery, String jobTitle, JobResourceManager resourceManager)
-    throws ServiceException {
-    LOG.info("Creating job for : {}", deleteQuery );
+  public Job createJob(String databaseName, String query, String jobTitle, JobResourceManager resourceManager)
+      throws ServiceException {
+    LOG.info("Creating job for : {}", query);
     Map jobInfo = new HashMap<>();
     jobInfo.put("title", jobTitle);
-    jobInfo.put("forcedContent", deleteQuery);
+    jobInfo.put("forcedContent", query);
     jobInfo.put("dataBase", databaseName);
     jobInfo.put("referrer", JobImpl.REFERRER.INTERNAL.name());
 
@@ -334,7 +386,7 @@ public class DDLProxy {
       LOG.info("returning job with id {} for {}", returnableJob.getId(), jobTitle);
       return returnableJob;
     } catch (Throwable e) {
-      LOG.error("Exception occurred while {} : {}", jobTitle, deleteQuery, e);
+      LOG.error("Exception occurred while {} : {}", jobTitle, query, e);
       throw new ServiceException(e);
     }
   }
@@ -345,10 +397,14 @@ public class DDLProxy {
     AnalyzeTableQueryGenerator queryGenerator = new AnalyzeTableQueryGenerator(tableMeta, shouldAnalyzeColumns);
     Optional<String> analyzeTable = queryGenerator.getQuery();
     String jobTitle = "Analyze table " + databaseName + "." + tableName;
-    if(analyzeTable.isPresent()) {
+    if (analyzeTable.isPresent()) {
       String query = analyzeTable.get();
+      Optional<String> settingsString = generateSettingsString();
+      if (settingsString.isPresent()) {
+        query = settingsString.get() + query;
+      }
       return createJob(databaseName, query, jobTitle, resourceManager);
-    }else{
+    } else {
       throw new ServiceException("Failed to generate job for {}" + jobTitle);
     }
   }
@@ -356,31 +412,30 @@ public class DDLProxy {
   public ColumnStats fetchColumnStats(String columnName, String jobId, ViewContext context) throws ServiceException {
     try {
       ResultsPaginationController.ResultsResponse results = ResultsPaginationController.getResult(jobId, null, null, null, null, context);
-      if(results.getHasResults()){
-       List<String[]> rows = results.getRows();
-       Map<Integer, String> headerMap = new HashMap<>();
-       boolean header = true;
+      if (results.getHasResults()) {
+        List<String[]> rows = results.getRows();
+        Map<Integer, String> headerMap = new HashMap<>();
+        boolean header = true;
         ColumnStats columnStats = new ColumnStats();
-        for(String[] row : rows){
-          if(header){
-            for(int i = 0 ; i < row.length; i++){
-              if(!Strings.isNullOrEmpty(row[i])){
+        for (String[] row : rows) {
+          if (header) {
+            for (int i = 0; i < row.length; i++) {
+              if (!Strings.isNullOrEmpty(row[i])) {
                 headerMap.put(i, row[i].trim());
               }
             }
             header = false;
-          }
-          else if(row.length > 0 ){
-            if(columnName.equals(row[0])){ // the first column of the row contains column name
+          } else if (row.length > 0) {
+            if (columnName.equals(row[0])) { // the first column of the row contains column name
               createColumnStats(row, headerMap, columnStats);
-            }else if( row.length > 1 && row[0].equalsIgnoreCase("COLUMN_STATS_ACCURATE")){
+            } else if (row.length > 1 && row[0].equalsIgnoreCase("COLUMN_STATS_ACCURATE")) {
               columnStats.setColumnStatsAccurate(row[1]);
             }
           }
         }
 
         return columnStats;
-      }else{
+      } else {
         throw new ServiceException("Cannot find any result for this jobId: " + jobId);
       }
     } catch (HiveClientException e) {
@@ -391,19 +446,20 @@ public class DDLProxy {
 
   /**
    * order of values in array
-   *  row [# col_name, data_type, min, max, num_nulls, distinct_count, avg_col_len, max_col_len,num_trues,num_falses,comment]
+   * row [# col_name, data_type, min, max, num_nulls, distinct_count, avg_col_len, max_col_len,num_trues,num_falses,comment]
    * indexes : 0           1        2    3     4             5               6             7           8         9    10
+   *
    * @param row
    * @param headerMap
    * @param columnStats
    * @return
    */
   private ColumnStats createColumnStats(String[] row, Map<Integer, String> headerMap, ColumnStats columnStats) throws ServiceException {
-    if(null == row){
+    if (null == row) {
       throw new ServiceException("row cannot be null.");
     }
-    for(int i = 0 ; i < row.length; i++){
-      switch(headerMap.get(i)){
+    for (int i = 0; i < row.length; i++) {
+      switch (headerMap.get(i)) {
         case ColumnStats.COLUMN_NAME:
           columnStats.setColumnName(row[i]);
           break;

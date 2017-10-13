@@ -104,6 +104,11 @@ conf_dir = "/etc/zeppelin/conf"
 external_dependency_conf = "/etc/zeppelin/conf/external-dependency-conf"
 notebook_dir = os.path.join(*[install_dir, zeppelin_dirname, 'notebook'])
 
+conf_stored_in_hdfs = False
+if 'zeppelin.config.fs.dir' in config['configurations']['zeppelin-config'] and \
+  not config['configurations']['zeppelin-config']['zeppelin.config.fs.dir'].startswith('file://'):
+  conf_stored_in_hdfs = True
+
 # zeppelin-env.sh
 zeppelin_env_content = config['configurations']['zeppelin-env']['zeppelin_env_content']
 
@@ -219,17 +224,23 @@ livy2_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
 
 livy_livyserver_host = None
 livy_livyserver_port = None
+livy_livyserver_protocol = 'http'
 livy2_livyserver_host = None
 livy2_livyserver_port = None
+livy2_livyserver_protocol = 'http'
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted) and \
     len(livy_hosts) > 0:
   livy_livyserver_host = str(livy_hosts[0])
   livy_livyserver_port = config['configurations']['livy-conf']['livy.server.port']
+  if 'livy.keystore' in config['configurations']['livy-conf']:
+    livy_livyserver_protocol = 'https'
 
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted) and \
     len(livy2_hosts) > 0:
   livy2_livyserver_host = str(livy2_hosts[0])
   livy2_livyserver_port = config['configurations']['livy2-conf']['livy.server.port']
+  if 'livy.keystore' in config['configurations']['livy2-conf']:
+    livy2_livyserver_protocol = 'https'
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 security_enabled = config['configurations']['cluster-env']['security_enabled']

@@ -199,7 +199,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'isUpgrading',
     'controller.requestInProgress',
     'controller.requestInProgressRepoId',
-    'parentView.repoVersions.@each.status'
+    'parentView.repoVersions.@each.status',
+    'isCurrentStackPresent'
   ),
 
   /**
@@ -208,6 +209,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   isDisabledOnInit: function() {
     return  this.get('controller.requestInProgress') ||
+            !this.get('isCurrentStackPresent') ||
             !this.get('content.isCompatible') ||
             (App.get('upgradeIsRunning') && !App.get('upgradeSuspended')) ||
             this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
@@ -276,28 +278,42 @@ App.UpgradeVersionBoxView = Em.View.extend({
           break;
         default:
           var isVersionColumnView = this.get('isVersionColumnView');
+          var stackServices = this.get('content.stackServices');
+          var isUpgradable = stackServices && stackServices.some( function(stackService){
+              return stackService.get('isUpgradable');
+          });
+          var isPatch = this.get('content.isPatch');
+          var isMaint = this.get('content.isMaint');
+
           element.set('isButtonGroup', true);
-          element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
-          element.set('action', 'confirmUpgrade');
-          element.get('buttons').pushObject({
-            text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionPopup',
-            isDisabled: isDisabled
-          });
+          if (isUpgradable){
+            element.set('text', isVersionColumnView ? Em.I18n.t('common.upgrade') : Em.I18n.t('admin.stackVersions.version.performUpgrade'));
+            element.set('action', 'confirmUpgrade');
+            element.get('buttons').pushObject({
+              text: isVersionColumnView ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'),
+              action: 'installRepoVersionPopup',
+              isDisabled: isDisabled
+            });
 
-          element.get('buttons').pushObject({
-            text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
-            action: 'showUpgradeOptions',
-            isDisabled: isDisabled
-          });
+            element.get('buttons').pushObject({
+              text: Em.I18n.t('admin.stackVersions.version.preUpgradeCheck'),
+              action: 'showUpgradeOptions',
+              isDisabled: isDisabled
+            });
+          }
+          else{
+            element.set('iconClass', 'icon-ok');
+            element.set('text', Em.I18n.t('common.installed'))
+          }
 
-          if (this.get('content.isPatch') || this.get('content.isMaint')) {
+          if ( isPatch || isMaint ) {
             element.get('buttons').pushObject({
               text: Em.I18n.t('common.hide'),
               action: 'confirmDiscardRepoVersion',
               isDisabled: isDisabled
             });
           }
+
       }
       element.set('isDisabled', isDisabled);
     }
@@ -341,7 +357,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * @returns {boolean}
    */
   isDisabledOnInstalled: function() {
-    return !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
+    return !this.get('isCurrentStackPresent') ||
+      !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
       this.get('controller.requestInProgress') ||
       this.get('parentView.repoVersions').someProperty('status', 'INSTALLING') ||
       (this.get('controller.isDowngrade') &&
@@ -375,6 +392,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
     $('.hosts-tooltip').tooltip('destroy');
     $('.out-of-sync-badge').tooltip('destroy');
   },
+
+  isCurrentStackPresent: Ember.computed('parentView.repoVersions.@each.stackVersion.state', function () {
+    return this.get('parentView.repoVersions').someProperty('stackVersion.state', 'CURRENT');
+  }),
 
   /**
    * run custom action of controller

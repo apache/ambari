@@ -18,7 +18,9 @@
 package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -30,6 +32,19 @@ public abstract class ServerSideActionTask extends Task {
 
   @XmlAttribute(name="class")
   protected String implClass;
+
+  @XmlElement(name = "parameter")
+  public List<TaskParameter> parameters;
+
+  public Map<String, String> getParameters(){
+    Map<String, String> result = new HashMap<String, String>();
+    if (parameters != null) {
+      for (TaskParameter parameter : parameters) {
+        result.put(parameter.name, parameter.value);
+      }
+    }
+    return result;
+  }
 
   public static final String actionVerb = "Executing";
 

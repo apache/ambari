@@ -69,13 +69,19 @@
             </configuration>
           </execution>
           <execution>
-            <id>generate dist</id>
-            <phase>generate-resources</phase>
+            <id>webpack build</id>
             <goals>
-             <goal>yarn</goal>
+              <goal>webpack</goal>
             </goals>
+            <!-- optional: the default phase is "generate-resources" -->
+            <phase>generate-resources</phase>
             <configuration>
-              <arguments>build-prod</arguments>
+              <environmentVariables>
+                <NODE_ENV>production</NODE_ENV>
+              </environmentVariables>
+              <!-- optional: if not specified, it will run webpack's default
+              build (and you can remove this whole <configuration> section.) -->
+              <arguments>-p</arguments>
             </configuration>
           </execution>
           <execution>

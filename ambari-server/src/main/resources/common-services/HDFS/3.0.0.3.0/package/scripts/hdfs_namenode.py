@@ -460,6 +460,26 @@ def decommission():
                   conf_dir=conf_dir,
                   bin_dir=params.hadoop_bin_dir)
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def refreshProxyUsers():
+  import params
+
+  if params.security_enabled:
+    Execute(params.nn_kinit_cmd,
+            user=params.hdfs_user
+            )
+
+  if params.dfs_ha_enabled:
+    # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
+    # need to execute each command scoped to a particular namenode
+    nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshSuperUserGroupsConfiguration')
+  else:
+    nn_refresh_cmd = format('dfsadmin -fs {namenode_address} -refreshSuperUserGroupsConfiguration')
+  ExecuteHadoop(nn_refresh_cmd,
+                user=params.hdfs_user,
+                conf_dir=params.hadoop_conf_dir,
+                bin_dir=params.hadoop_bin_dir)
+
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def decommission():
   import params

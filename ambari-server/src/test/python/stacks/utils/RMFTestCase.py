@@ -80,7 +80,8 @@ class RMFTestCase(TestCase):
                     mocks_dict={},
                     try_install=False,
                     command_args=[],
-                    log_out_files=False):
+                    log_out_files=False,
+                    available_packages_in_repos = []):
 
     norm_path = os.path.normpath(path)
 
@@ -125,6 +126,7 @@ class RMFTestCase(TestCase):
         Script.instance = None
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
         script_class_inst.log_out_files = log_out_files
+        script_class_inst.available_packages_in_repos = available_packages_in_repos
         method = RMFTestCase._get_attr(script_class_inst, command)
     except IOError, err:
       raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))
@@ -154,11 +156,12 @@ class RMFTestCase(TestCase):
                     with patch('resource_management.libraries.functions.stack_select.is_package_supported', return_value=True):
                       with patch('resource_management.libraries.functions.stack_select.get_supported_packages', return_value=MagicMock()):
                         with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
-                          if not try_install:
-                            with patch.object(Script, 'install_packages') as install_mock_value:
+                          with patch('resource_management.libraries.functions.stack_select.unsafe_get_stack_versions', return_value = (("",0,[]))):
+                            if not try_install:
+                              with patch.object(Script, 'install_packages') as install_mock_value:
+                                method(RMFTestCase.env, *command_args)
+                            else:
                               method(RMFTestCase.env, *command_args)
-                          else:
-                            method(RMFTestCase.env, *command_args)
 
     sys.path.remove(scriptsdir)
 

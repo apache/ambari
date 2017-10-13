@@ -181,6 +181,9 @@
     <value>3</value>
     <description>Determines datanode heartbeat interval in seconds.</description>
     <on-ambari-upgrade add="false"/>
+    <supported-refresh-commands>
+      <refresh-command componentName="NAMENODE" command="reload_configs" />
+    </supported-refresh-commands>
   </property>
   <property>
     <name>dfs.namenode.safemode.threshold-pct</name>
@@ -637,5 +640,8 @@
     <name>hadoop.caller.context.enabled</name>
     <value>true</value>
     <on-ambari-upgrade add="false"/>
+    <supported-refresh-commands>
+      <refresh-command componentName="NAMENODE" command="reload_configs" />
+    </supported-refresh-commands>
   </property>
 </configuration>

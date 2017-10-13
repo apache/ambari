@@ -1111,7 +1111,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     try {
       cluster = clusters.getCluster(request.getClusterName());
     } catch (ClusterNotFoundException e) {
-      LOG.error("Cluster not found ", e);
+      LOG.info(e.getMessage());
       throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
     }
 
@@ -4648,7 +4648,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       properties = ambariMetaInfo.getServiceProperties(stackName, stackVersion, serviceName);
     }
     for (PropertyInfo property: properties) {
-      response.add(property.convertToResponse());
+      if (property.shouldBeConfigured()) {
+        response.add(property.convertToResponse());
+      }
     }
 
     return response;
@@ -5037,22 +5039,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         widgetDescriptorFiles.add(widgetDescriptorFile);
       }
     } else {
-      Set<StackId> stackIds = new HashSet<>();
-
-      for (Service svc : cluster.getServices().values()) {
-        stackIds.add(svc.getDesiredStackId());
-      }
-
-      for (StackId stackId : stackIds) {
-        StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
-
-        String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
-        if (widgetDescriptorFileLocation != null) {
-          File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
-          if (widgetDescriptorFile.exists()) {
-            widgetDescriptorFiles.add(widgetDescriptorFile);
-          }
-        }
+      // common cluster level widgets
+      File commonWidgetsFile = ambariMetaInfo.getCommonWidgetsDescriptorFile();
+      if (commonWidgetsFile != null && commonWidgetsFile.exists()) {
+        widgetDescriptorFiles.add(commonWidgetsFile);
+      } else {
+        LOG.warn("Common widgets file with path {%s} doesn't exist. No cluster widgets will be created.", commonWidgetsFile);
       }
     }
 
