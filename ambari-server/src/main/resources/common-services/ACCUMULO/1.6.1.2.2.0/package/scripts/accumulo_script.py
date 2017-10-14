@@ -37,6 +37,7 @@ from accumulo_service import accumulo_service
 class AccumuloScript(Script):
 
   def __init__(self, component):
+    Script.__init__(self)
     self.component = component
 
 
