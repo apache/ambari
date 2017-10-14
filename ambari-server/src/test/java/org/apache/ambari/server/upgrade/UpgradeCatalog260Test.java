@@ -202,7 +202,7 @@ public class UpgradeCatalog260Test {
 
     expectAddViewUrlPKConstraint();
     expectRemoveStaleConstraints();
-    
+
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Injector injector = getInjector();
@@ -588,6 +588,7 @@ public class UpgradeCatalog260Test {
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
 
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.6")).atLeastOnce();
     expect(cluster.getDesiredConfigByType("zeppelin-env")).andReturn(zeppelinEnvConf).atLeastOnce();
     expect(cluster.getDesiredConfigByType("core-site")).andReturn(coreSiteConf).atLeastOnce();
     expect(cluster.getConfigsByType("core-site")).andReturn(Collections.singletonMap("tag1", coreSiteConf)).atLeastOnce();
@@ -600,7 +601,7 @@ public class UpgradeCatalog260Test {
     expect(coreSiteConf.getProperties()).andReturn(Collections.singletonMap("hadoop.proxyuser.zeppelin_user.hosts", "existing_value")).atLeastOnce();
     expect(coreSiteConf.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).atLeastOnce();
 
-    expect(controller.createConfig(eq(cluster), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), anyObject(StackId.class), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class)))
         .andReturn(coreSiteConfNew)
         .once();
 
@@ -669,7 +670,10 @@ public class UpgradeCatalog260Test {
 
     ServiceConfigVersionResponse response = createMock(ServiceConfigVersionResponse.class);
 
+    StackId stackId = createMock(StackId.class);
+
     Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster.getDesiredConfigByType("dbks-site")).andReturn(config).anyTimes();
     expect(cluster.getDesiredConfigByType("ranger-kms-audit")).andReturn(config).anyTimes();
     expect(cluster.getConfigsByType("ranger-kms-audit")).andReturn(Collections.singletonMap("version1", config)).anyTimes();
@@ -684,7 +688,7 @@ public class UpgradeCatalog260Test {
     Capture<? extends Map<String, String>> captureProperties = newCapture();
 
     AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-    expect(controller.createConfig(eq(cluster), eq("ranger-kms-audit"), capture(captureProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), eq(stackId), eq("ranger-kms-audit"), capture(captureProperties), anyString(), anyObject(Map.class)))
         .andReturn(null)
         .once();
 
@@ -764,7 +768,7 @@ public class UpgradeCatalog260Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
       anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);

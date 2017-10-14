@@ -19,6 +19,8 @@ package org.apache.ambari.server.state;
 
 import java.util.Map;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 
 import com.google.inject.assistedinject.Assisted;
@@ -30,6 +32,14 @@ public interface ConfigFactory {
 
   /**
    * Creates a new {@link Config} object using provided values.
+   */
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
+      comment = "This constructor is only used for test compatibility and should be removed")
+  Config createNew(Cluster cluster, @Assisted("type") String type, @Assisted("tag") String tag,
+      Map<String, String> map, Map<String, Map<String, String>> mapAttributes);
+
+  /**
+   * Creates a new {@link Config} object using provided values.
    *
    * @param cluster
    * @param type
@@ -38,7 +48,7 @@ public interface ConfigFactory {
    * @param mapAttributes
    * @return
    */
-  Config createNew(Cluster cluster, @Assisted("type") String type, @Assisted("tag") String tag,
+  Config createNew(StackId stackId, Cluster cluster, @Assisted("type") String type, @Assisted("tag") String tag,
       Map<String, String> map, Map<String, Map<String, String>> mapAttributes);
 
   /**

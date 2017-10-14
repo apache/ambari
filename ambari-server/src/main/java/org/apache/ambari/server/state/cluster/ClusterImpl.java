@@ -560,6 +560,7 @@ public class ClusterImpl implements Cluster {
     return serviceComponentHosts.get(serviceName).get(serviceComponentName).get(hostname);
   }
 
+  @Override
   public List<ServiceComponentHost> getServiceComponentHosts() {
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     if (!serviceComponentHostsByHost.isEmpty()) {
@@ -1825,7 +1826,7 @@ public class ClusterImpl implements Cluster {
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
       List<ClusterConfigEntity> enabledConfigs = clusterDAO.getEnabledConfigsByTypes(clusterId, configTypes);
       List<ClusterConfigEntity> serviceConfigEntities = serviceConfigEntity.getClusterConfigEntities();
-      ArrayList<ClusterConfigEntity> duplicatevalues = new ArrayList<ClusterConfigEntity>(serviceConfigEntities);
+      ArrayList<ClusterConfigEntity> duplicatevalues = new ArrayList<>(serviceConfigEntities);
       duplicatevalues.retainAll(enabledConfigs);
 
       for (ClusterConfigEntity enabledConfig : enabledConfigs) {
@@ -2413,7 +2414,10 @@ public class ClusterImpl implements Cluster {
       // since the entities which were modified came from the cluster entity's
       // list to begin with, we can just save them right back - no need for a
       // new collection since the entity instances were modified directly
-      clusterEntity = clusterDAO.merge(clusterEntity);
+
+      // !!! without providing the flush here, when this transaction completes it
+      // looks like the database has all unselected configs for some types
+      clusterEntity = clusterDAO.merge(clusterEntity, true);
 
       cacheConfigurations();
 

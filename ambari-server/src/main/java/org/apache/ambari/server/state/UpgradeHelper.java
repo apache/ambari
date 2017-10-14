@@ -951,20 +951,6 @@ public class UpgradeHelper {
     Set<String> clusterConfigTypes = new HashSet<>();
     Set<String> processedClusterConfigTypes = new HashSet<>();
 
-    // downgrades are easy - either do nothing or simply apply configurations
-    // from the target stack
-    if (direction == Direction.DOWNGRADE) {
-      StackId currentStackId = cluster.getCurrentStackVersion();
-      StackId desiredStackId = cluster.getDesiredStackVersion();
-
-      if (!currentStackId.equals(desiredStackId)) {
-        cluster.applyLatestConfigurations(currentStackId);
-      }
-
-      return;
-    }
-
-    // upgrade is a bit harder - we have to merge new stack configurations in
     // merge or revert configurations for any service that needs it
     for (String serviceName : servicesInUpgrade) {
       RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
@@ -984,6 +970,11 @@ public class UpgradeHelper {
       }
 
       ConfigHelper configHelper = m_configHelperProvider.get();
+
+      if (direction == Direction.DOWNGRADE) {
+        cluster.applyLatestConfigurations(targetStackId, serviceName);
+        continue;
+      }
 
       // the auto-merge must take read-only properties even if they have changed
       // - if the properties was read-only in the source stack, then we must

@@ -51,6 +51,8 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,8 +152,8 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupId = configGroupEntity.getGroupId();
     configGroupName = configGroupEntity.getGroupName();
 
-    m_configurations = new ConcurrentHashMap<String, Config>();
-    m_hosts = new ConcurrentHashMap<Long, Host>();
+    m_configurations = new ConcurrentHashMap<>();
+    m_hosts = new ConcurrentHashMap<>();
 
     // Populate configs
     for (ConfigGroupConfigMappingEntity configMappingEntity : configGroupEntity.getConfigGroupConfigMappingEntities()) {
@@ -423,8 +425,12 @@ public class ConfigGroupImpl implements ConfigGroup {
           (cluster.getClusterId(), config.getType(), config.getTag());
 
         if (clusterConfigEntity == null) {
-          config = configFactory.createNew(cluster, config.getType(), config.getTag(),
-              config.getProperties(), config.getPropertiesAttributes());
+          String serviceName = getServiceName();
+          Service service = cluster.getServices().get(serviceName);
+          StackId stackId = (null == service) ? cluster.getDesiredStackVersion() : service.getDesiredStackId();
+
+          config = configFactory.createNew(stackId, cluster, config.getType(),
+              config.getTag(), config.getProperties(), config.getPropertiesAttributes());
 
           entry.setValue(config);
 
@@ -484,17 +490,17 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public ConfigGroupResponse convertToResponse() throws AmbariException {
-    Set<Map<String, Object>> hostnames = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> hostnames = new HashSet<>();
     for (Host host : m_hosts.values()) {
-      Map<String, Object> hostMap = new HashMap<String, Object>();
+      Map<String, Object> hostMap = new HashMap<>();
       hostMap.put("host_name", host.getHostName());
       hostnames.add(hostMap);
     }
 
-    Set<Map<String, Object>> configObjMap = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> configObjMap = new HashSet<>();
 
     for (Config config : m_configurations.values()) {
-      Map<String, Object> configMap = new HashMap<String, Object>();
+      Map<String, Object> configMap = new HashMap<>();
       configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
           config.getType());
       configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID,

@@ -18,21 +18,35 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
 
-import junit.framework.Assert;
-import junit.framework.AssertionFailedError;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -56,6 +70,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -77,36 +92,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.persistence.EntityManager;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertTrue;
+import junit.framework.Assert;
+import junit.framework.AssertionFailedError;
 
 /**
  * {@link UpgradeCatalog250} unit tests.
@@ -737,7 +737,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -824,7 +824,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
       EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -905,7 +905,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).times(2);
 
     replay(controller, injector2);
@@ -959,7 +959,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -1064,7 +1064,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("ams-log4j")).andReturn(mockAmsLog4j).atLeastOnce();
     expect(mockAmsLog4j.getProperties()).andReturn(oldAmsLog4j).anyTimes();
     Capture<Map<String, String>> AmsLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(AmsLog4jCapture), anyString(),
         anyObject(Map.class))).andReturn(config).once();
 
     Map<String, String> oldAmsHbaseLog4j = ImmutableMap.of(
@@ -1179,7 +1179,7 @@ public class UpgradeCatalog250Test {
             "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=INFO\n" +
             "# log4j.logger.org.apache.hadoop.hbase.client.MetaScanner=INFO\n");
 
-    Map<String, String> expectedAmsHbaseLog4j = new HashMap<String, String>();
+    Map<String, String> expectedAmsHbaseLog4j = new HashMap<>();
     expectedAmsHbaseLog4j.put("content", "# Licensed to the Apache Software Foundation (ASF) under one\n" +
         "# or more contributor license agreements.  See the NOTICE file\n" +
         "# distributed with this work for additional information\n" +
@@ -1299,7 +1299,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("ams-hbase-log4j")).andReturn(mockAmsHbaseLog4j).atLeastOnce();
     expect(mockAmsHbaseLog4j.getProperties()).andReturn(oldAmsHbaseLog4j).anyTimes();
     Capture<Map<String, String>> AmsHbaseLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsHbaseLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(AmsHbaseLog4jCapture), anyString(),
         anyObject(Map.class))).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1348,7 +1348,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(mockLogSearchProperties).atLeastOnce();
     expect(mockLogSearchProperties.getProperties()).andReturn(oldLogSearchProperties).anyTimes();
     Capture<Map<String, String>> logSearchPropertiesCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchPropertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchPropertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogFeederEnv = ImmutableMap.of(
@@ -1361,7 +1361,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logfeeder-env")).andReturn(mockLogFeederEnv).atLeastOnce();
     expect(mockLogFeederEnv.getProperties()).andReturn(oldLogFeederEnv).anyTimes();
     Capture<Map<String, String>> logFeederEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogSearchEnv = new HashMap<>();
@@ -1383,7 +1383,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logsearch-env")).andReturn(mockLogSearchEnv).atLeastOnce();
     expect(mockLogSearchEnv.getProperties()).andReturn(oldLogSearchEnv).anyTimes();
     Capture<Map<String, String>> logSearchEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogFeederLog4j = ImmutableMap.of(
@@ -1436,7 +1436,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
     expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
     Capture<Map<String, String>> logFeederLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
@@ -1554,7 +1554,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
     expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
     Capture<Map<String, String>> logSearchLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1613,7 +1613,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("infra-solr-env")).andReturn(mockInfraSolrEnv).atLeastOnce();
     expect(mockInfraSolrEnv.getProperties()).andReturn(oldInfraSolrEnv).anyTimes();
     Capture<Map<String, String>> infraSolrEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class),  anyString(), capture(infraSolrEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldInfraSolrLog4j = ImmutableMap.of(
@@ -1630,7 +1630,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("infra-solr-log4j")).andReturn(mockInfraSolrLog4j).atLeastOnce();
     expect(mockInfraSolrLog4j.getProperties()).andReturn(oldInfraSolrLog4j).anyTimes();
     Capture<Map<String, String>> infraSolrLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(infraSolrLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldInfraSolrClientLog4j = ImmutableMap.of(
@@ -1649,7 +1649,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("infra-solr-client-log4j")).andReturn(mockInfraSolrClientLog4j).atLeastOnce();
     expect(mockInfraSolrClientLog4j.getProperties()).andReturn(oldInfraSolrClientLog4j).anyTimes();
     Capture<Map<String, String>> infraSolrClientLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrClientLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(infraSolrClientLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1708,7 +1708,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("hive-interactive-env")).andReturn(mockHsiEnv).atLeastOnce();
     expect(mockHsiEnv.getProperties()).andReturn(oldHsiEnv).anyTimes();
     Capture<Map<String, String>> hsiEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(hsiEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(hsiEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1724,27 +1724,27 @@ public class UpgradeCatalog250Test {
   @Test
   public void testUpdateAtlasConfigs() throws Exception {
 
-    Map<String, String> oldHiveProperties = new HashMap<String, String>();
-    Map<String, String> newHiveProperties = new HashMap<String, String>();
+    Map<String, String> oldHiveProperties = new HashMap<>();
+    Map<String, String> newHiveProperties = new HashMap<>();
 
     oldHiveProperties.put("hive.atlas.hook", "false");
     newHiveProperties.put("hive.atlas.hook", "true");
     testUpdateAtlasHookConfig(oldHiveProperties, newHiveProperties, "hive-env");
 
-    Map<String, String> oldStormProperties = new HashMap<String, String>();
-    Map<String, String> newStormProperties = new HashMap<String, String>();
+    Map<String, String> oldStormProperties = new HashMap<>();
+    Map<String, String> newStormProperties = new HashMap<>();
     oldStormProperties.put("storm.atlas.hook", "false");
     newStormProperties.put("storm.atlas.hook", "true");
     testUpdateAtlasHookConfig(oldStormProperties, newStormProperties, "storm-env");
 
-    Map<String, String> oldFalconProperties = new HashMap<String, String>();
-    Map<String, String> newFalconProperties = new HashMap<String, String>();
+    Map<String, String> oldFalconProperties = new HashMap<>();
+    Map<String, String> newFalconProperties = new HashMap<>();
     oldFalconProperties.put("falcon.atlas.hook", "false");
     newFalconProperties.put("falcon.atlas.hook", "true");
     testUpdateAtlasHookConfig(oldFalconProperties, newFalconProperties, "falcon-env");
 
-    Map<String, String> oldSqoopProperties = new HashMap<String, String>();
-    Map<String, String> newSqoopProperties = new HashMap<String, String>();
+    Map<String, String> oldSqoopProperties = new HashMap<>();
+    Map<String, String> newSqoopProperties = new HashMap<>();
     oldSqoopProperties.put("sqoop.atlas.hook", "false");
     newSqoopProperties.put("sqoop.atlas.hook", "true");
     testUpdateAtlasHookConfig(oldSqoopProperties, newSqoopProperties, "sqoop-env");
@@ -1789,7 +1789,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -1985,56 +1985,56 @@ public class UpgradeCatalog250Test {
 
   @Test
   public void testUpdateRangerUrlConfigs() throws Exception {
-    Map<String, String> oldHdfsProperties = new HashMap<String, String>();
-    Map<String, String> newHdfsProperties = new HashMap<String, String>();
+    Map<String, String> oldHdfsProperties = new HashMap<>();
+    Map<String, String> newHdfsProperties = new HashMap<>();
     oldHdfsProperties.put("ranger.plugin.hdfs.policy.rest.url", "{{policymgr_mgr_url}}");
     newHdfsProperties.put("ranger.plugin.hdfs.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldHdfsProperties, newHdfsProperties, "ranger-hdfs-security");
 
-    Map<String, String> oldHiveProperties = new HashMap<String, String>();
-    Map<String, String> newHiveProperties = new HashMap<String, String>();
+    Map<String, String> oldHiveProperties = new HashMap<>();
+    Map<String, String> newHiveProperties = new HashMap<>();
     oldHiveProperties.put("ranger.plugin.hive.policy.rest.url", "{{policymgr_mgr_url}}");
     newHiveProperties.put("ranger.plugin.hive.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldHiveProperties, newHiveProperties, "ranger-hive-security");
 
-    Map<String, String> oldHbaseProperties = new HashMap<String, String>();
-    Map<String, String> newHbaseProperties = new HashMap<String, String>();
+    Map<String, String> oldHbaseProperties = new HashMap<>();
+    Map<String, String> newHbaseProperties = new HashMap<>();
     oldHbaseProperties.put("ranger.plugin.hbase.policy.rest.url", "{{policymgr_mgr_url}}");
     newHbaseProperties.put("ranger.plugin.hbase.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldHbaseProperties, newHbaseProperties, "ranger-hbase-security");
 
-    Map<String, String> oldKnoxProperties = new HashMap<String, String>();
-    Map<String, String> newKnoxProperties = new HashMap<String, String>();
+    Map<String, String> oldKnoxProperties = new HashMap<>();
+    Map<String, String> newKnoxProperties = new HashMap<>();
     oldKnoxProperties.put("ranger.plugin.knox.policy.rest.url", "{{policymgr_mgr_url}}");
     newKnoxProperties.put("ranger.plugin.knox.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldKnoxProperties, newKnoxProperties, "ranger-knox-security");
 
-    Map<String, String> oldStormProperties = new HashMap<String, String>();
-    Map<String, String> newStormProperties = new HashMap<String, String>();
+    Map<String, String> oldStormProperties = new HashMap<>();
+    Map<String, String> newStormProperties = new HashMap<>();
     oldStormProperties.put("ranger.plugin.storm.policy.rest.url", "{{policymgr_mgr_url}}");
     newStormProperties.put("ranger.plugin.storm.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldStormProperties, newStormProperties, "ranger-storm-security");
 
-    Map<String, String> oldYarnProperties = new HashMap<String, String>();
-    Map<String, String> newYarnProperties = new HashMap<String, String>();
+    Map<String, String> oldYarnProperties = new HashMap<>();
+    Map<String, String> newYarnProperties = new HashMap<>();
     oldYarnProperties.put("ranger.plugin.yarn.policy.rest.url", "{{policymgr_mgr_url}}");
     newYarnProperties.put("ranger.plugin.yarn.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldYarnProperties, newYarnProperties, "ranger-yarn-security");
 
-    Map<String, String> oldKafkaProperties = new HashMap<String, String>();
-    Map<String, String> newKafkaProperties = new HashMap<String, String>();
+    Map<String, String> oldKafkaProperties = new HashMap<>();
+    Map<String, String> newKafkaProperties = new HashMap<>();
     oldKafkaProperties.put("ranger.plugin.kafka.policy.rest.url", "{{policymgr_mgr_url}}");
     newKafkaProperties.put("ranger.plugin.kafka.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldKafkaProperties, newKafkaProperties, "ranger-kafka-security");
 
-    Map<String, String> oldAtlasProperties = new HashMap<String, String>();
-    Map<String, String> newAtlasProperties = new HashMap<String, String>();
+    Map<String, String> oldAtlasProperties = new HashMap<>();
+    Map<String, String> newAtlasProperties = new HashMap<>();
     oldAtlasProperties.put("ranger.plugin.atlas.policy.rest.url", "{{policymgr_mgr_url}}");
     newAtlasProperties.put("ranger.plugin.atlas.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldAtlasProperties, newAtlasProperties, "ranger-atlas-security");
 
-    Map<String, String> oldKmsProperties = new HashMap<String, String>();
-    Map<String, String> newKmsProperties = new HashMap<String, String>();
+    Map<String, String> oldKmsProperties = new HashMap<>();
+    Map<String, String> newKmsProperties = new HashMap<>();
     oldKmsProperties.put("ranger.plugin.kms.policy.rest.url", "{{policymgr_mgr_url}}");
     newKmsProperties.put("ranger.plugin.kms.policy.rest.url", "http://localhost:6080");
     testUpdateRangerUrl(oldKmsProperties, newKmsProperties, "ranger-kms-security");
@@ -2078,7 +2078,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);

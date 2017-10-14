@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
@@ -191,6 +192,8 @@ public class UpgradeCatalog252Test {
     final Config livy2ConfNew = createMock(Config.class);
     final AmbariManagementController controller = createMock(AmbariManagementController.class);
 
+    StackId stackId = new StackId("HDP", "2.2");
+
     Capture<? extends Map<String, String>> captureLivyConfProperties = newCapture();
     Capture<? extends Map<String, String>> captureLivy2ConfProperties = newCapture();
 
@@ -209,6 +212,7 @@ public class UpgradeCatalog252Test {
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster)).once();
 
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster.getDesiredConfigByType("zeppelin-env")).andReturn(zeppelinEnv).atLeastOnce();
     expect(cluster.getServiceByConfigType("livy-conf")).andReturn("SPARK").atLeastOnce();
     expect(cluster.getDesiredConfigByType("livy-conf")).andReturn(livyConf).atLeastOnce();
@@ -227,10 +231,10 @@ public class UpgradeCatalog252Test {
     expect(livy2Conf.getProperties()).andReturn(Collections.<String, String>emptyMap()).atLeastOnce();
     expect(livy2Conf.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).atLeastOnce();
 
-    expect(controller.createConfig(eq(cluster), eq("livy-conf"), capture(captureLivyConfProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy-conf"), capture(captureLivyConfProperties), anyString(), anyObject(Map.class)))
         .andReturn(livyConfNew)
         .once();
-    expect(controller.createConfig(eq(cluster), eq("livy2-conf"), capture(captureLivy2ConfProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy2-conf"), capture(captureLivy2ConfProperties), anyString(), anyObject(Map.class)))
         .andReturn(livy2ConfNew)
         .once();
 

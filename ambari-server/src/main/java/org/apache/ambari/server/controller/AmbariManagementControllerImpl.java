@@ -904,7 +904,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           request.getType()));
     }
 
-    Config config = createConfig(cluster, request.getType(), requestProperties,
+    StackId stackId = null;
+    if (null != service) {
+      Service svc = cluster.getService(service);
+      stackId = svc.getDesiredStackId();
+    } else {
+      stackId = cluster.getDesiredStackVersion();
+    }
+
+    Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
       request.getVersionTag(), propertiesAttributes);
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
@@ -916,10 +924,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Config createConfig(Cluster cluster, String type, Map<String, String> properties,
+  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
                              String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
 
-    Config config = configFactory.createNew(cluster, type, versionTag, properties,
+    Config config = configFactory.createNew(stackId, cluster, type, versionTag, properties,
         propertiesAttributes);
 
     cluster.addConfig(config);

@@ -1176,7 +1176,7 @@ public class ConfigHelper {
       }
     }
 
-    return controller.createConfig(cluster, type, properties, tag, propertyAttributes);
+    return controller.createConfig(cluster, stackId, type, properties, tag, propertyAttributes);
   }
 
   /**

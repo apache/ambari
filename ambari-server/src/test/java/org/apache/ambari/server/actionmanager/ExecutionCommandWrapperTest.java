@@ -110,7 +110,8 @@ public class ExecutionCommandWrapperTest {
 
     clusters = injector.getInstance(Clusters.class);
     clusters.addHost(HOST1);
-    clusters.addCluster(CLUSTER1, new StackId("HDP-0.1"));
+    StackId stackId = new StackId("HDP-0.1");
+    clusters.addCluster(CLUSTER1, stackId);
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
 
@@ -139,19 +140,19 @@ public class ExecutionCommandWrapperTest {
     CONFIG_ATTRIBUTES = new HashMap<>();
 
     //Cluster level global config
-    configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER,
+    configFactory.createNew(stackId, cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER,
         CONFIG_ATTRIBUTES);
 
     //Cluster level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG,
+    configFactory.createNew(stackId, cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG,
         SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
 
     //Service level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG,
+    configFactory.createNew(stackId, cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG,
         SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
 
     //Host level service config
-    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST,
+    configFactory.createNew(stackId, cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST,
         CONFIG_ATTRIBUTES);
 
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
