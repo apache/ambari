@@ -63,6 +63,19 @@ def hive_interactive(name=None):
   import params
   MB_TO_BYTES = 1048576
 
+  # if warehouse directory is in DFS
+  if not params.whs_dir_protocol or params.whs_dir_protocol == urlparse(params.default_fs).scheme:
+    # Create Hive Metastore Warehouse Dir
+    params.HdfsResource(params.hive_apps_whs_dir,
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.hive_user,
+                        group=params.user_group,
+                        mode=params.hive_apps_whs_mode
+                        )
+  else:
+    Logger.info(format("Not creating warehouse directory '{hive_apps_whs_dir}', as the location is not in DFS."))
+
   # Create Hive User Dir
   params.HdfsResource(params.hive_hdfs_user_dir,
                       type="directory",

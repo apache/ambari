@@ -418,6 +418,22 @@ class TestHiveServerInteractive(RMFTestCase):
 
   def assert_configure_default(self, no_tmp=False, default_fs_default=u'hdfs://c6401.ambari.apache.org:8020', with_cs_enabled=False):
 
+    self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+                              security_enabled = False,
+                              hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              keytab = UnknownConfigurationMock(),
+                              kinit_path_local = '/usr/bin/kinit',
+                              user = 'hdfs',
+                              dfs_type = '',
+                              owner = 'hive',
+                              group = 'hadoop',
+                              hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              type = 'directory',
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
+                              mode = 0777,
+    )
+
     self.assertResourceCalled('HdfsResource', '/user/hive',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
