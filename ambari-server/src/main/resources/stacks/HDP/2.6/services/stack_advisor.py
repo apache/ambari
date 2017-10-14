@@ -134,6 +134,13 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
       putAtlasApplicationProperty('atlas.sso.knox.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
 
+    knox_service_user = ''
+    if 'KNOX' in servicesList and 'knox-env' in services['configurations']:
+      knox_service_user = services['configurations']['knox-env']['properties']['knox_user']
+    else:
+      knox_service_user = 'knox'
+    putAtlasApplicationProperty('atlas.proxyusers',knox_service_user)
+
   def recommendDruidConfigurations(self, configurations, clusterData, services, hosts):
 
       # druid is not in list of services to be installed

@@ -1303,7 +1303,8 @@ class TestHDP26StackAdvisor(TestCase):
           "atlas.graph.storage.hostname": "",
           "atlas.kafka.bootstrap.servers": "",
           "atlas.kafka.zookeeper.connect": "",
-          "atlas.authorizer.impl": "simple"
+          "atlas.authorizer.impl": "simple",
+          'atlas.proxyusers': 'knox'
         }
       },
       "infra-solr-env": {
