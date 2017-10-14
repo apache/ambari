@@ -35,14 +35,14 @@ class AmsMonitor(Script):
     env.set_params(params)
     ams(name='monitor')
 
-  def start(self, env):
+  def start(self, env, upgrade_type=None):
     self.configure(env) # for security
 
     ams_service( 'monitor',
                  action = 'start'
     )
 
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 

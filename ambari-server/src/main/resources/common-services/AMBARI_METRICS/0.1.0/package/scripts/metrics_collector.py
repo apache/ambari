@@ -44,13 +44,13 @@ class AmsCollector(Script):
     hbase('regionserver', action)
     ams(name='collector')
 
-  def start(self, env):
+  def start(self, env, upgrade_type=None):
     self.configure(env, action = 'start') # for security
     # stop hanging components before start
     ams_service('collector', action = 'stop')
     ams_service('collector', action = 'start')
 
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     # Sometimes, stop() may be called before start(), in case restart() is initiated right after installation
