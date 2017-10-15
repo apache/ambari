@@ -122,6 +122,9 @@
                       <sources>
                         <source>
                           <location>${solr.client.dir}/target/package</location>
+                          <exclude>
+                            <exclude>libs/checkstyle*.jar</exclude>
+                          </exclude>
                         </source>
                       </sources>
                     </mapping>
@@ -149,6 +152,7 @@
                             <exclude>classes/user_pass.json</exclude>
                             <exclude>classes/HadoopServiceConfig.json</exclude>
                             <exclude>solr_configsets/**</exclude>
+                            <exclude>libs/checkstyle*.jar</exclude>
                           </excludes>
                         </source>
                       </sources>
@@ -376,6 +380,7 @@
                         <group>root</group>
                         <prefix>${solr.client.mapping.path}</prefix>
                       </mapper>
+                      <excludes>libs/checkstyle*.jar</excludes>
                     </data>
                   </dataSet>
                 </configuration>
@@ -404,7 +409,7 @@
                         <group>root</group>
                       </mapper>
                       <excludes>
-                        classes/log4j.xml,classes/logsearch.properties,classes/user_pass.json,classes/HadoopServiceConfig.json,solr_configsets/**
+                        classes/log4j.xml,classes/logsearch.properties,classes/user_pass.json,classes/HadoopServiceConfig.json,solr_configsets/**,libs/checkstyle*.jar
                       </excludes>
                     </data>
                     <data>

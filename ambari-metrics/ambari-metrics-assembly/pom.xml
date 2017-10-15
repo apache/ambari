@@ -244,6 +244,7 @@
                           <excludes>
                             <exclude>*tests.jar</exclude>
                             <exclude>findbugs*.jar</exclude>
+                            <exclude>jdk.tools*.jar</exclude>
                           </excludes>
                         </source>
                         <source>
@@ -264,6 +265,7 @@
                             <exclude>bin/*</exclude>
                             <exclude>lib/*tests.jar</exclude>
                             <exclude>lib/findbugs*.jar</exclude>
+                            <exclude>lib/jdk.tools*.jar</exclude>
                           </excludes>
                         </source>
                       </sources>
