@@ -192,7 +192,7 @@ class Master(Script):
       notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + \
                            params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
 
-    if not self.is_path_exists_in_HDFS(notebook_directory, params.zeppelin_user):
+    if not self.is_directory_exists_in_HDFS(notebook_directory, params.zeppelin_user):
       # hdfs dfs -mkdir {notebook_directory}
       params.HdfsResource(format("{notebook_directory}"),
                           type="directory",
@@ -243,7 +243,7 @@ class Master(Script):
       self.create_zeppelin_dir(params)
 
     if params.conf_stored_in_hdfs:
-      if not self.is_path_exists_in_HDFS(self.get_zeppelin_conf_FS_directory(params), params.zeppelin_user):
+      if not self.is_directory_exists_in_HDFS(self.get_zeppelin_conf_FS_directory(params), params.zeppelin_user):
         # hdfs dfs -mkdir {zeppelin's conf directory}
         params.HdfsResource(self.get_zeppelin_conf_FS_directory(params),
                             type="directory",
@@ -314,21 +314,48 @@ class Master(Script):
   def get_zeppelin_conf_FS(self, params):
     return self.get_zeppelin_conf_FS_directory(params) + "/interpreter.json"
 
-  def is_path_exists_in_HDFS(self, path, as_user):
+  def is_directory_exists_in_HDFS(self, path, as_user):
     kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
     kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
-    path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -e {path};echo $?"),
+
+    #-d: if the path is a directory, return 0.
+    path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -d {path};echo $?"),
                              user=as_user)[1]
 
     # if there is no kerberos setup then the string will contain "-bash: kinit: command not found"
     if "\n" in path_exists:
-      path_exists = path_exists.split("\n")[1]
+      path_exists = path_exists.split("\n").pop()
 
     # '1' means it does not exists
     if path_exists == '0':
       return True
     else:
       return False
+
+  def is_file_exists_in_HDFS(self, path, as_user):
+    kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+    kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
+
+    #-f: if the path is a file, return 0.
+    path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -f {path};echo $?"),
+                             user=as_user)[1]
+
+    # if there is no kerberos setup then the string will contain "-bash: kinit: command not found"
+    if "\n" in path_exists:
+      path_exists = path_exists.split("\n").pop()
+
+    # '1' means it does not exists
+    if path_exists == '0':
+      #-z: if the file is zero length, return 0.
+      path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -z {path};echo $?"),
+                               user=as_user)[1]
+
+      if "\n" in path_exists:
+        path_exists = path_exists.split("\n").pop()
+      if path_exists != '0':
+        return True
+
+    return False
 
   def get_interpreter_settings(self):
     import params
@@ -338,7 +365,7 @@ class Master(Script):
     if params.conf_stored_in_hdfs:
       zeppelin_conf_fs = self.get_zeppelin_conf_FS(params)
 
-      if self.is_path_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
+      if self.is_file_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
         # copy from hdfs to /etc/zeppelin/conf/interpreter.json
         kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths',None))
         kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
@@ -358,6 +385,7 @@ class Master(Script):
     File(interpreter_config,
          group=params.zeppelin_group,
          owner=params.zeppelin_user,
+         mode=0644,
          content=json.dumps(config_data, indent=2))
 
     if params.conf_stored_in_hdfs:
