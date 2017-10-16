@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -26,13 +26,16 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.*;
 import org.apache.ambari.server.orm.entities.StackEntity;
+
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 
@@ -50,7 +53,7 @@ public class StackV2 {
    */
   private String version;
 
-    /**
+  /**
      * Repo version
    */
   private String repoVersion;
@@ -347,7 +350,7 @@ public class StackV2 {
    *
    * @return collection of required properties for the given service and property type
    */
-  public Collection<ConfigProperty> getRequiredConfigurationProperties(String service, PropertyInfo.PropertyType propertyType) {
+  public Collection<ConfigProperty> getRequiredConfigurationProperties(String service, org.apache.ambari.server.state.PropertyInfo.PropertyType propertyType) {
     Collection<ConfigProperty> matchingProperties = new HashSet<>();
     Map<String, Map<String, ConfigProperty>> requiredProperties = requiredServiceConfigurations.get(service);
     if (requiredProperties != null) {
@@ -368,7 +371,7 @@ public class StackV2 {
             serviceConfigurations.get(service).containsKey(type) &&
             serviceConfigurations.get(service).get(type).containsKey(propertyName) &&
             serviceConfigurations.get(service).get(type).get(propertyName).getPropertyTypes().
-                contains(PropertyInfo.PropertyType.PASSWORD));
+                contains(org.apache.ambari.server.state.PropertyInfo.PropertyType.PASSWORD));
   }
 
   //todo
@@ -388,7 +391,7 @@ public class StackV2 {
             serviceConfigurations.get(service).containsKey(type) &&
             serviceConfigurations.get(service).get(type).containsKey(propertyName) &&
             serviceConfigurations.get(service).get(type).get(propertyName).getPropertyTypes().
-                contains(PropertyInfo.PropertyType.KERBEROS_PRINCIPAL));
+                contains(org.apache.ambari.server.state.PropertyInfo.PropertyType.KERBEROS_PRINCIPAL));
   }
   /**
    * Get config attributes for the specified service and configuration type.
@@ -754,7 +757,7 @@ public class StackV2 {
     private String name;
     private String value;
     private Map<String, String> attributes;
-    private Set<PropertyInfo.PropertyType> propertyTypes;
+    private Set<org.apache.ambari.server.state.PropertyInfo.PropertyType> propertyTypes;
     private String type;
     private Set<PropertyDependencyInfo> dependsOnProperties =
       Collections.emptySet();
@@ -791,7 +794,7 @@ public class StackV2 {
       return type;
     }
 
-    public Set<PropertyInfo.PropertyType> getPropertyTypes() {
+    public Set<org.apache.ambari.server.state.PropertyInfo.PropertyType> getPropertyTypes() {
       return propertyTypes;
     }
 

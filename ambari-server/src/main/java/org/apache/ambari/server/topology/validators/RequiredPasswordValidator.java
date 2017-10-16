@@ -14,19 +14,14 @@ package org.apache.ambari.server.topology.validators;
  * limitations under the License.
  */
 
+import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.topology.*;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.TopologyValidator;
 
 /**
  * Validates that all required passwords are provided.
@@ -80,23 +75,22 @@ public class RequiredPasswordValidator implements TopologyValidator {
           groupEntry.getValue().getConfiguration().getFullProperties(3);
 
       Collection<String> processedServices = new HashSet<>();
-      Blueprint blueprint = topology.getBlueprint();
-      Stack stack = blueprint.getStack();
+      BlueprintV2 blueprint = topology.getBlueprint();
 
-      HostGroup hostGroup = blueprint.getHostGroup(hostGroupName);
-      for (String component : hostGroup.getComponentNames()) {
+      HostGroupV2 hostGroup = blueprint.getHostGroup(hostGroupName);
+      for (ComponentV2 component : hostGroup.getComponents()) {
         //for now, AMBARI is not recognized as a service in Stacks
-        if (component.equals("AMBARI_SERVER")) {
+        if (component.getType().equals("AMBARI_SERVER")) {
           continue;
         }
 
-        String serviceName = stack.getServiceForComponent(component);
-        if (processedServices.add(serviceName)) {
+        Service service = component.getService();
+        if (processedServices.add(service.getName())) {
           //todo: do I need to subtract excluded configs?
-          Collection<Stack.ConfigProperty> requiredProperties =
-              stack.getRequiredConfigurationProperties(serviceName, PropertyInfo.PropertyType.PASSWORD);
+          Collection<StackV2.ConfigProperty> requiredProperties =
+          service.getStack().getRequiredConfigurationProperties(service.getType(), PropertyInfo.PropertyType.PASSWORD);
 
-          for (Stack.ConfigProperty property : requiredProperties) {
+          for (StackV2.ConfigProperty property : requiredProperties) {
             String category = property.getType();
             String name = property.getName();
             if (! propertyExists(topology, groupProperties, category, name)) {

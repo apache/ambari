@@ -18,34 +18,23 @@
 
 package org.apache.ambari.server.api.services.stackadvisor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
-import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.state.ValueAttributesInfo;
-import org.apache.ambari.server.topology.AdvisedConfiguration;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
-import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.HostGroupInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
+import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
+import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
+import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
+import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.topology.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Generate advised configurations for blueprint cluster provisioning by the stack advisor.
@@ -89,14 +78,14 @@ public class StackAdvisorBlueprintProcessor {
   }
 
   private StackAdvisorRequest createStackAdvisorRequest(ClusterTopology clusterTopology, StackAdvisorRequestType requestType) {
-    Stack stack = clusterTopology.getBlueprint().getStack();
+    StackV2 stack = clusterTopology.getBlueprint().getStacks().iterator().next();
     Map<String, Set<String>> hgComponentsMap = gatherHostGroupComponents(clusterTopology);
     Map<String, Set<String>> hgHostsMap = gatherHostGroupBindings(clusterTopology);
     Map<String, Set<String>> componentHostsMap = gatherComponentsHostsMap(hgComponentsMap,
             hgHostsMap);
     return StackAdvisorRequest.StackAdvisorRequestBuilder
       .forStack(stack.getName(), stack.getVersion())
-      .forServices(new ArrayList<>(clusterTopology.getBlueprint().getServices()))
+      .forServices(new ArrayList<>(clusterTopology.getBlueprint().getAllServiceTypes()))
       .forHosts(gatherHosts(clusterTopology))
       .forHostsGroupBindings(gatherHostGroupBindings(clusterTopology))
       .forHostComponents(gatherHostGroupComponents(clusterTopology))
@@ -117,7 +106,7 @@ public class StackAdvisorBlueprintProcessor {
 
   private Map<String, Set<String>> gatherHostGroupComponents(ClusterTopology clusterTopology) {
     Map<String, Set<String>> hgComponentsMap = Maps.newHashMap();
-    for (Map.Entry<String, HostGroup> hgEnrty: clusterTopology.getBlueprint().getHostGroups().entrySet()) {
+    for (Map.Entry<String, HostGroupV2> hgEnrty: clusterTopology.getBlueprint().getHostGroups().entrySet()) {
       hgComponentsMap.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getComponentNames()));
     }
     return hgComponentsMap;
@@ -176,7 +165,7 @@ public class StackAdvisorBlueprintProcessor {
 
     Map<String, BlueprintConfigurations> recommendedConfigurations =
       response.getRecommendations().getBlueprint().getConfigurations();
-    Blueprint blueprint = topology.getBlueprint();
+    BlueprintV2 blueprint = topology.getBlueprint();
 
     for (Map.Entry<String, BlueprintConfigurations> configEntry : recommendedConfigurations.entrySet()) {
       String configType = configEntry.getKey();

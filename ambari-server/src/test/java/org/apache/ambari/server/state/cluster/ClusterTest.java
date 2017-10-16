@@ -599,7 +599,7 @@ public class ClusterTest {
     // TODO write unit tests for
     // public void addService(Service service) throws AmbariException;
     // public Service getService(String serviceName) throws AmbariException;
-    // public Map<String, Service> getServices();
+    // public Map<String, Service> getServiceConfigs();
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
 

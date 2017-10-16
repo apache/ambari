@@ -76,7 +76,7 @@ public class ViewInstanceService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all view instances", nickname = "ViewInstanceService#getServices", notes = "Returns all instances for a view version.", response = ViewInstanceResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all view instances", nickname = "ViewInstanceService#getServiceConfigs", notes = "Returns all instances for a view version.", response = ViewInstanceResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view instance details", defaultValue = "ViewInstanceInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "ViewInstanceInfo/instance_name.desc", dataType = "string", paramType = "query"),

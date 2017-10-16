@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.topology;
 
+import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.StackV2;
-import org.apache.ambari.server.orm.entities.BlueprintEntity;
 
 /**
  * Blueprint representation.
@@ -69,6 +70,29 @@ public interface BlueprintV2 {
    */
   Collection<Service> getAllServices();
 
+
+  /**
+   * Get all of the service types represented in the blueprint.
+   *
+   * @return collection of all represented service types
+   */
+  Collection<String> getAllServiceTypes();
+
+  /**
+   * Get all of the services represented in the blueprint with a given type.
+   *
+   * @return collection of all represented services represented in the blueprint with a given type.
+   */
+  Collection<Service> getServicesByType(String serviceType);
+
+  /**
+   * Get services by type from a service group.
+   * @param serviceGroup
+   * @param serviceType
+   * @return
+   */
+  Collection<Service> getServicesFromServiceGroup(ServiceGroup serviceGroup, String serviceType);
+
   /**
    * Get the components that are included in the blueprint for the specified service.
    *
@@ -77,6 +101,14 @@ public interface BlueprintV2 {
    * @return collection of component names for the service.  Will not return null.
    */
   Collection<ComponentV2> getComponents(Service service);
+
+  /**
+   * Get components by type from a service.
+   * @param service
+   * @param componentType
+   * @return
+   */
+  Collection<ComponentV2> getComponentsByType(Service service, String componentType);
 
 
   /**
@@ -106,6 +138,7 @@ public interface BlueprintV2 {
    *
    * @return blueprint cluster scoped configuration
    */
+  @Deprecated
   Configuration getConfiguration();
 
   /**
@@ -121,12 +154,11 @@ public interface BlueprintV2 {
   /**
    * Get whether a component is enabled for auto start.
    *
-   * @param serviceName - Service name.
-   * @param componentName - Component name.
+   * @param component - Component.
    *
    * @return null if value is not specified; true or false if specified.
    */
-  String getRecoveryEnabled(String serviceName, String componentName);
+  String getRecoveryEnabled(ComponentV2 component);
 
   /**
    * Get whether a service is enabled for credential store use.

@@ -18,22 +18,15 @@
 
 package org.apache.ambari.server.topology;
 
-import static org.easymock.EasyMock.expect;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.replay;
-import static org.powermock.api.easymock.PowerMock.reset;
-import static org.powermock.api.easymock.PowerMock.verify;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import org.apache.ambari.server.controller.internal.Stack;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.*;
+
+import static org.easymock.EasyMock.expect;
+import static org.powermock.api.easymock.PowerMock.*;
 
 /**
  * Unit tests for ClusterTopologyImpl.
@@ -44,13 +37,14 @@ public class ClusterTopologyImplTest {
   private static final String CLUSTER_NAME = "cluster_name";
   private static final long CLUSTER_ID = 1L;
   private static final String predicate = "Hosts/host_name=foo";
-  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private static final HostGroup group1 = createNiceMock(HostGroup.class);
-  private static final HostGroup group2 = createNiceMock(HostGroup.class);
-  private static final HostGroup group3 = createNiceMock(HostGroup.class);
-  private static final HostGroup group4 = createNiceMock(HostGroup.class);
+  private static final BlueprintV2 blueprint = createNiceMock(BlueprintV2.class);
+  private static final HostGroupV2 group1 = createNiceMock(HostGroupV2.class);
+  private static final HostGroupV2 group2 = createNiceMock(HostGroupV2.class);
+  private static final HostGroupV2 group3 = createNiceMock(HostGroupV2.class);
+  private static final HostGroupV2 group4 = createNiceMock(HostGroupV2.class);
+  private static final Stack stack = createNiceMock(Stack.class);
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
-  private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
+  private final Map<String, HostGroupV2> hostGroupMap = new HashMap<>();
 
   private Configuration configuration;
   private Configuration bpconfiguration;
@@ -101,20 +95,20 @@ public class ClusterTopologyImplTest {
     hostGroupMap.put("group3", group3);
     hostGroupMap.put("group4", group4);
 
-    Set<Component> group1Components = new HashSet<>();
-    group1Components.add(new Component("component1"));
-    group1Components.add(new Component("component2"));
+    Set<ComponentV2> group1Components = new HashSet<>();
+    group1Components.add(new ComponentV2("component1", new Service("service1", stack)));
+    group1Components.add(new ComponentV2("component2", new Service("service1", stack)));
 
     Set<String> group1ComponentNames = new HashSet<>();
     group1ComponentNames.add("component1");
     group1ComponentNames.add("component2");
 
-    Set<Component> group2Components = new HashSet<>();
-    group2Components.add(new Component("component3"));
-    Set<Component> group3Components = new HashSet<>();
-    group3Components.add(new Component("component4"));
-    Set<Component> group4Components = new HashSet<>();
-    group4Components.add(new Component("component5"));
+    Set<ComponentV2> group2Components = new HashSet<>();
+    group2Components.add(new ComponentV2("component3", new Service("service1", stack)));
+    Set<ComponentV2> group3Components = new HashSet<>();
+    group3Components.add(new ComponentV2("component4", new Service("service2", stack)));
+    Set<ComponentV2> group4Components = new HashSet<>();
+    group4Components.add(new ComponentV2("component5", new Service("service2", stack)));
 
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
@@ -142,7 +136,6 @@ public class ClusterTopologyImplTest {
   public void tearDown() {
     verify(blueprint, group1, group2, group3, group4);
     reset(blueprint, group1, group2, group3, group4);
-
 
     hostGroupInfoMap.clear();
     hostGroupMap.clear();
@@ -241,13 +234,18 @@ public class ClusterTopologyImplTest {
     }
 
     @Override
-    public Blueprint getBlueprint() {
+    public BlueprintV2 getBlueprint() {
       return blueprint;
     }
 
     @Override
     public Configuration getConfiguration() {
       return bpconfiguration;
+    }
+
+    @Override
+    public Collection<Service> getServiceConfigs() {
+      return null;
     }
 
     @Override

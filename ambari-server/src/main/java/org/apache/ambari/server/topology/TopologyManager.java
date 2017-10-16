@@ -18,22 +18,10 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -42,21 +30,9 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
-import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
-import org.apache.ambari.server.controller.internal.BaseClusterRequest;
-import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.controller.internal.*;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
@@ -79,10 +55,8 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Manages all cluster provisioning actions on the cluster topology.
@@ -274,7 +248,6 @@ public class TopologyManager {
 
     final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
-    final Stack stack = topology.getBlueprint().getStack();
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
 
@@ -291,7 +264,7 @@ public class TopologyManager {
       addKerberosClient(topology);
 
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
+      //topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getAllServices()));
 
       credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       if (credential == null) {
@@ -301,9 +274,8 @@ public class TopologyManager {
 
     topologyValidatorService.validateTopologyConfiguration(topology);
 
-
     // create resources
-    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion, repoVersionID);
+    ambariContext.createAmbariResources(topology, clusterName, securityType);
 
     if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
       submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
@@ -345,8 +317,11 @@ public class TopologyManager {
 
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
     //todo: be tied to cluster state
-
+    //TODO add all stack or remove concrete stack version
+    Collection<StackV2> stackList = topology.getBlueprint().getStacks();
+    StackV2 stack = stackList.iterator().next();
     ambariContext.persistInstallStateForUI(clusterName, stack.getName(), stack.getVersion());
+
     clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
     return getRequestStatus(logicalRequest.getRequestId());
   }
@@ -1101,9 +1076,10 @@ public class TopologyManager {
    * @param topology  cluster topology
    */
   private void addKerberosClient(ClusterTopology topology) {
-    for (HostGroup group : topology.getBlueprint().getHostGroups().values()) {
-      group.addComponent("KERBEROS_CLIENT");
-    }
+    //TODO lookup KERBEROS_CLIENT
+//    for (HostGroupV2 group : topology.getBlueprint().getHostGroups().values()) {
+//      group.addComponent("KERBEROS_CLIENT");
+//    }
   }
 
   /**

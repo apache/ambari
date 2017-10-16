@@ -19,18 +19,20 @@
 
 package org.apache.ambari.server.topology;
 
+import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.ambari.server.controller.StackV2;
-import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import java.util.stream.Collectors;
 
 /**
  * Blueprint implementation.
  */
 public class BlueprintImplV2 implements BlueprintV2 {
-
+  public BlueprintImplV2(BlueprintEntity e) {
+  }
 
   @Override
   public String getName() {
@@ -63,8 +65,35 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
+  public Collection<String> getAllServiceTypes() {
+    return null;
+  }
+
+  @Override
+  public Collection<Service> getServicesByType(String serviceType) {
+    return getAllServices().stream().filter(
+      service -> service.getType().equalsIgnoreCase(serviceType)).collect(Collectors.toList());
+  }
+
+  @Override
+  public Collection<Service> getServicesFromServiceGroup(ServiceGroup serviceGroup, String serviceType) {
+    if (serviceType == null) {
+      return serviceGroup.getServices();
+    } else {
+      return serviceGroup.getServices().stream().filter(
+        service -> service.getType().equalsIgnoreCase(serviceType)).collect(Collectors.toList());
+    }
+  }
+
+  @Override
   public Collection<ComponentV2> getComponents(Service service) {
     return null;
+  }
+
+  @Override
+  public Collection<ComponentV2> getComponentsByType(Service service, String componentType) {
+    return getComponents(service).stream().filter(
+      compnoent -> compnoent.getType().equalsIgnoreCase(componentType)).collect(Collectors.toList());
   }
 
   @Override
@@ -78,6 +107,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
+  @Deprecated
   public Configuration getConfiguration() {
     return null;
   }
@@ -88,7 +118,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
-  public String getRecoveryEnabled(String serviceName, String componentName) {
+  public String getRecoveryEnabled(ComponentV2 component) {
     return null;
   }
 

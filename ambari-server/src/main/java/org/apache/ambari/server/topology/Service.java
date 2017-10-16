@@ -19,9 +19,9 @@
 package org.apache.ambari.server.topology;
 
 
-import java.util.Set;
+import org.apache.ambari.server.controller.internal.StackV2;
 
-import org.apache.ambari.server.controller.internal.Stack;
+import java.util.Set;
 
 public class Service {
 
@@ -29,14 +29,16 @@ public class Service {
 
   private final String name;
 
-  private final Stack stack;
+  private final StackV2 stack;
 
   private final Configuration configuration;
 
+  private final ServiceGroup serviceGroup;
+
   private final Set<Service> dependentServices;
 
-  public Service(String type, Stack stack) {
-    this(type, null, stack, null, null);
+  public Service(String type, StackV2 stack, ServiceGroup serviceGroup) {
+    this(type, type, stack, serviceGroup,  null, null);
   }
 
   /**
@@ -46,7 +48,7 @@ public class Service {
    * @param stack
    * @param configuration
    */
-  public Service(String type, String name, Stack stack, Configuration configuration, Set<Service> dependentServices) {
+  public Service(String type, String name, StackV2 stack, ServiceGroup serviceGroup, Configuration configuration, Set<Service> dependentServices) {
     this.type = type;
     if (name == null) {
       this.name = type;
@@ -54,6 +56,7 @@ public class Service {
       this.name = name;
     }
     this.stack = stack;
+    this.serviceGroup = serviceGroup;
     this.configuration = configuration;
     this.dependentServices = dependentServices;
   }
@@ -71,11 +74,19 @@ public class Service {
     return type;
   }
 
-  public Stack getStack() {
+  public StackV2 getStack() {
     return stack;
   }
 
   public Configuration getConfiguration() {
     return configuration;
+  }
+
+  public ServiceGroup getServiceGroup() {
+    return serviceGroup;
+  }
+
+  public Set<Service> getDependentServices() {
+    return dependentServices;
   }
 }

@@ -14,22 +14,13 @@
 
 package org.apache.ambari.server.topology.validators;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackV2;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.TopologyValidator;
+import org.apache.ambari.server.topology.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 
 /**
@@ -52,14 +43,11 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
-    // collect required properties
-    Map<String, Map<String, Collection<String>>> requiredPropertiesByService = getRequiredPropertiesByService(topology.getBlueprint());
-
     // find missing properties in the cluster configuration
     Map<String, Collection<String>> missingProperties = new TreeMap<>();
     Map<String, Map<String, String>> topologyConfiguration = new HashMap<>(topology.getConfiguration().getFullProperties(1));
 
-    for (HostGroup hostGroup : topology.getBlueprint().getHostGroups().values()) {
+    for (HostGroupV2 hostGroup : topology.getBlueprint().getHostGroups().values()) {
       LOGGER.debug("Processing hostgroup configurations for hostgroup: {}", hostGroup.getName());
 
       // copy of all configurations available in the topology hgConfig -> topologyConfig -> bpConfig
@@ -73,21 +61,21 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
         }
       }
 
-      for (String hostGroupService : hostGroup.getServices()) {
+      for (Service hostGroupService : hostGroup.getServices()) {
 
-        if (!requiredPropertiesByService.containsKey(hostGroupService)) {
+        // collect required properties
+        Map<String, Collection<String>> requiredPropertiesForService = getRequiredPropertiesForService(hostGroupService);
+        if (requiredPropertiesForService.isEmpty()) {
           // there are no required properties for the service
           LOGGER.debug("There are no required properties found for hostgroup/service: [{}/{}]", hostGroup.getName(), hostGroupService);
           continue;
         }
 
-        Map<String, Collection<String>> requiredPropertiesByType = requiredPropertiesByService.get(hostGroupService);
-
-        for (String configType : requiredPropertiesByType.keySet()) {
+        for (String configType : requiredPropertiesForService.keySet()) {
 
           // We need a copy not to modify the original
           Collection<String> requiredPropertiesForType = new HashSet(
-              requiredPropertiesByType.get(configType));
+            requiredPropertiesForService.get(configType));
 
           if (!operationalConfigurations.containsKey(configType)) {
             // all required configuration is missing for the config type
@@ -116,60 +104,48 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
 
 
   /**
-   * Collects required properties for services in the blueprint. Configuration properties are returned by configuration type.
-   * service -> configType -> properties
-   *
-   * @param blueprint the blueprint from the cluster topology
+   * Collects required properties for a specified services in the blueprint. Configuration properties are returned
+   * by configuration type. configType -> properties
+   * @param service the blueprint from the cluster topology
    * @return a map with configuration types mapped to collections of required property names
    */
 
-  private Map<String, Map<String, Collection<String>>> getRequiredPropertiesByService(Blueprint blueprint) {
+  private Map<String, Collection<String>> getRequiredPropertiesForService(Service service) {
 
-    Map<String, Map<String, Collection<String>>> requiredPropertiesForServiceByType = new HashMap<>();
+    LOGGER.debug("Collecting required properties for the service: {}", service.getName());
 
-    for (String bpService : blueprint.getServices()) {
-      LOGGER.debug("Collecting required properties for the service: {}", bpService);
+    Collection<StackV2.ConfigProperty> requiredConfigsForService = service.getStack().
+      getRequiredConfigurationProperties(service.getType());
+    Map<String, Collection<String>> requiredPropertiesByConfigType = new HashMap<>();
 
-      Collection<Stack.ConfigProperty> requiredConfigsForService = blueprint.getStack().getRequiredConfigurationProperties(bpService);
-      Map<String, Collection<String>> requiredPropertiesByConfigType = new HashMap<>();
+    for (StackV2.ConfigProperty configProperty : requiredConfigsForService) {
 
-      for (Stack.ConfigProperty configProperty : requiredConfigsForService) {
-
-        if (configProperty.getPropertyTypes() != null && configProperty.getPropertyTypes().contains(PropertyInfo.PropertyType.PASSWORD)) {
-          LOGGER.debug("Skipping required property validation for password type: {}", configProperty.getName());
-          // skip password types
-          continue;
-        }
-
-        // add / get  service related required propeByType map
-        if (requiredPropertiesForServiceByType.containsKey(bpService)) {
-          requiredPropertiesByConfigType = requiredPropertiesForServiceByType.get(bpService);
-        } else {
-          LOGGER.debug("Adding required properties entry for service: {}", bpService);
-          requiredPropertiesForServiceByType.put(bpService, requiredPropertiesByConfigType);
-        }
-
-        // add collection of required properties
-        Collection<String> requiredPropsForType = new HashSet<>();
-        if (requiredPropertiesByConfigType.containsKey(configProperty.getType())) {
-          requiredPropsForType = requiredPropertiesByConfigType.get(configProperty.getType());
-        } else {
-          LOGGER.debug("Adding required properties entry for configuration type: {}", configProperty.getType());
-          requiredPropertiesByConfigType.put(configProperty.getType(), requiredPropsForType);
-        }
-
-        requiredPropsForType.add(configProperty.getName());
-        LOGGER.debug("Added required property for service; {}, configuration type: {}, property: {}", bpService,
-          configProperty.getType(), configProperty.getName());
+      if (configProperty.getPropertyTypes() != null && configProperty.getPropertyTypes().contains(PropertyInfo.PropertyType.PASSWORD)) {
+        LOGGER.debug("Skipping required property validation for password type: {}", configProperty.getName());
+        // skip password types
+        continue;
       }
+
+      // add collection of required properties
+      Collection<String> requiredPropsForType = new HashSet<>();
+      if (requiredPropertiesByConfigType.containsKey(configProperty.getType())) {
+        requiredPropsForType = requiredPropertiesByConfigType.get(configProperty.getType());
+      } else {
+        LOGGER.debug("Adding required properties entry for configuration type: {}", configProperty.getType());
+        requiredPropertiesByConfigType.put(configProperty.getType(), requiredPropsForType);
+      }
+
+      requiredPropsForType.add(configProperty.getName());
+      LOGGER.debug("Added required property for service; {}, configuration type: {}, property: {}", service.getName(),
+        configProperty.getType(), configProperty.getName());
     }
 
-    LOGGER.info("Identified required properties for blueprint services: {}", requiredPropertiesForServiceByType);
-    return requiredPropertiesForServiceByType;
+    return requiredPropertiesByConfigType;
 
   }
 
-  private Map<String, Collection<String>> addTomissingProperties(Map<String, Collection<String>> missingProperties, String hostGroup, Collection<String> values) {
+  private Map<String, Collection<String>> addTomissingProperties(Map<String, Collection<String>> missingProperties,
+                                                                 String hostGroup, Collection<String> values) {
     Map<String, Collection<String>> missing;
 
     if (missingProperties == null) {

@@ -23,6 +23,8 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 public class ComponentV2 {
 
+  private final String type;
+
   private final String name;
 
   private final Service service;
@@ -31,12 +33,17 @@ public class ComponentV2 {
 
   private final Configuration configuration;
 
-
-  public ComponentV2(String name, Service service) {
-    this(name, service, null, null);
+  public ComponentV2(String type, Service service) {
+    this(type, type, service, null, null);
   }
 
-  public ComponentV2(String name, Service service, ProvisionAction provisionAction, Configuration configuration) {
+
+  public ComponentV2(String type, String name, Service service) {
+    this(type, name, service, null, null);
+  }
+
+  public ComponentV2(String type, String name, Service service, ProvisionAction provisionAction, Configuration configuration) {
+    this.type = type;
     this.name = name;
     this.service = service;
     this.provisionAction = provisionAction;
@@ -50,6 +57,10 @@ public class ComponentV2 {
    */
   public String getName() {
     return this.name;
+  }
+
+  public String getType() {
+    return type;
   }
 
   /**

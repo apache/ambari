@@ -18,16 +18,16 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Host Group information specific to a cluster instance.
@@ -57,14 +57,14 @@ public class HostGroupInfo {
   private final Map<String, String> hostRackInfo = new HashMap<>();
 
   /**
+   * List of services
+   */
+  protected Collection<Service> serviceConfigs;
+
+  /**
    * explicitly specified host count
    */
   private int requested_count = 0;
-
-  /**
-   * host group scoped configuration
-   */
-  Configuration configuration;
 
   /**
    * explicitly specified host predicate string
@@ -108,6 +108,10 @@ public class HostGroupInfo {
     synchronized (hostNames) {
       return new HashSet<>(hostNames);
     }
+  }
+
+  public Collection<Service> getServiceConfigs() {
+    return serviceConfigs;
   }
 
   /**
@@ -166,7 +170,7 @@ public class HostGroupInfo {
    * @param configuration configuration instance
    */
   public void setConfiguration(Configuration configuration) {
-    this.configuration = configuration;
+
   }
 
   /**
@@ -175,8 +179,9 @@ public class HostGroupInfo {
    * @return associated host group scoped configuration or null if no configuration
    *         is specified for the host group
    */
+  @Deprecated
   public Configuration getConfiguration() {
-    return configuration;
+    return null;
   }
 
   /**

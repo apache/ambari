@@ -14,14 +14,15 @@
 
 package org.apache.ambari.server.topology.validators;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Validates whether incoming config types (form the blueprint or the cluster creation template) are valid.
@@ -36,25 +37,27 @@ public class StackConfigTypeValidator implements TopologyValidator {
 
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
+    for (Service service : topology.getServiceConfigs()) {
+      // get the config types form the request
+      Set<String> incomingConfigTypes = new HashSet<>(service.getConfiguration().getAllConfigTypes());
 
-    // get the config types form the request
-    Set<String> incomingConfigTypes = new HashSet<>(topology.getConfiguration().getAllConfigTypes());
+      if (incomingConfigTypes.isEmpty()) {
+        LOGGER.debug("No config types to be checked.");
+        return;
+      }
 
-    if (incomingConfigTypes.isEmpty()) {
-      LOGGER.debug("No config types to be checked.");
-      return;
-    }
+      Set<String> stackConfigTypes = new HashSet<>(service.getStack().getConfiguration().getAllConfigTypes());
 
-    Set<String> stackConfigTypes = new HashSet<>(topology.getBlueprint().getStack().getConfiguration().getAllConfigTypes());
+      // remove all "valid" config types from the incoming set
+      incomingConfigTypes.removeAll(stackConfigTypes);
 
-    // remove all "valid" config types from the incoming set
-    incomingConfigTypes.removeAll(stackConfigTypes);
+      if (!incomingConfigTypes.isEmpty()) {
+        // there are config types in the request that are not in the stack
+        String message = String.format("The following config types are not defined in the stack: %s ", incomingConfigTypes);
+        LOGGER.error(message);
+        throw new InvalidTopologyException(message);
+      }
 
-    if (!incomingConfigTypes.isEmpty()) {
-      // there are config types in the request that are not in the stack
-      String message = String.format("The following config types are not defined in the stack: %s ", incomingConfigTypes);
-      LOGGER.error(message);
-      throw new InvalidTopologyException(message);
     }
   }
 }

@@ -13,14 +13,15 @@
  */
 package org.apache.ambari.server.topology.validators;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Validates configuration types related to services specified in the blueprint.
@@ -44,8 +45,8 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
 
     // collecting all config types for services in the blueprint (from the related stack)
     Set<String> stackServiceConfigTypes = new HashSet<>();
-    for (String serviceName : topology.getBlueprint().getServices()) {
-      stackServiceConfigTypes.addAll(topology.getBlueprint().getStack().getConfigurationTypes(serviceName));
+    for (Service service : topology.getBlueprint().getAllServices()) {
+      stackServiceConfigTypes.addAll(service.getStack().getConfigurationTypes(service.getType()));
     }
 
     // identifying invalid config types

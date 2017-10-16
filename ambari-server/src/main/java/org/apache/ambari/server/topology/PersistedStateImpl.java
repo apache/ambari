@@ -18,43 +18,23 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.inject.Singleton;
-
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.TopologyHostGroupDAO;
-import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
-import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
-import org.apache.ambari.server.orm.dao.TopologyLogicalRequestDAO;
-import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
-import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
-import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
-import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
-import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
-import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
-import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
-import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
+import javax.inject.Singleton;
+import java.util.*;
 
 /**
  * Implementation which uses Ambari Database DAO and Entity objects for persistence
@@ -378,8 +358,8 @@ public class PersistedStateImpl implements PersistedState {
     private final Long clusterId;
     private final Type type;
     private final String description;
-    private final Blueprint blueprint;
-    private final Configuration configuration;
+    private final BlueprintV2 blueprint;
+    private final Collection<Service> services;
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
     public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
@@ -392,8 +372,11 @@ public class PersistedStateImpl implements PersistedState {
       } catch (NoSuchStackException e) {
         throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
       }
-      configuration = createConfiguration(entity.getClusterProperties(), entity.getClusterAttributes());
-      configuration.setParentConfiguration(blueprint.getConfiguration());
+      //TODO load services, merge servie configs from Cluster template with service configs from Blueprint
+      services = new ArrayList<>();
+      //configuration = createConfiguration(entity.getClusterProperties(), entity.getClusterAttributes());
+      //configuration.setParentConfiguration(blueprint.getConfiguration());
+
 
       parseHostGroupInfo(entity);
     }
@@ -409,13 +392,19 @@ public class PersistedStateImpl implements PersistedState {
     }
 
     @Override
-    public Blueprint getBlueprint() {
+    public BlueprintV2 getBlueprint() {
       return blueprint;
     }
 
     @Override
+    @Deprecated
     public Configuration getConfiguration() {
-      return configuration;
+      return null;
+    }
+
+    @Override
+    public Collection<Service> getServiceConfigs() {
+      return services;
     }
 
     @Override

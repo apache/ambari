@@ -19,13 +19,7 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -37,7 +31,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 
-import com.google.inject.Inject;
+import java.util.*;
 
 /**
  * Create a Blueprint instance.
@@ -82,10 +76,10 @@ public class BlueprintFactory {
     this.stackFactory = stackFactory;
   }
 
-  public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
+  public BlueprintV2 getBlueprint(String blueprintName) throws NoSuchStackException {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
     //todo: just return null?
-    return entity == null ? null : new BlueprintImpl(entity);
+    return entity == null ? null : new BlueprintImplV2(entity);
   }
 
   /**

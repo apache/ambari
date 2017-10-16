@@ -8961,7 +8961,7 @@ public class AmbariManagementControllerTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createStrictMock(KerberosHelper.class));
 
-    // getServices
+    // getServiceConfigs
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.getService("service1")).andReturn(service);
 
@@ -9005,7 +9005,7 @@ public class AmbariManagementControllerTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createStrictMock(KerberosHelper.class));
 
-    // getServices
+    // getServiceConfigs
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.getService("service1")).andThrow(new ServiceNotFoundException("custer1", "service1"));
 
@@ -9064,7 +9064,7 @@ public class AmbariManagementControllerTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createStrictMock(KerberosHelper.class));
 
-    // getServices
+    // getServiceConfigs
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
     expect(cluster.getService("service1")).andReturn(service1);
     expect(cluster.getService("service2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));

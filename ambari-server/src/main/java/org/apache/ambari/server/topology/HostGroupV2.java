@@ -110,7 +110,13 @@ public interface HostGroupV2 {
    *
    * @return host group configuration
    */
+  @Deprecated
   Configuration getConfiguration();
+
+  /**
+   * List of services
+   */
+  Collection<Service> getServiceConfigs();
 
   /**
    * Get the cardinality value that was specified for the host group.

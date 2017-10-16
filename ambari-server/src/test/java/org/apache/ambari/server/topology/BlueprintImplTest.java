@@ -459,7 +459,7 @@ public class BlueprintImplTest {
 //    expect(request.getProperties()).andReturn(setProperties);
 //    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
 //    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-//    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+//    expect(metaInfo.getServiceConfigs("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
 //    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
 //        andReturn(serviceComponents).anyTimes();
 //    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
@@ -570,7 +570,7 @@ public class BlueprintImplTest {
 //    expect(request.getProperties()).andReturn(setProperties);
 //    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
 //    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-//    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+//    expect(metaInfo.getServiceConfigs("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
 //    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
 //        andReturn(serviceComponents).anyTimes();
 //    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
@@ -689,7 +689,7 @@ public class BlueprintImplTest {
 //    expect(request.getProperties()).andReturn(setProperties);
 //    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
 //    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-//    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+//    expect(metaInfo.getServiceConfigs("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
 //    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
 //        andReturn(serviceComponents).anyTimes();
 //    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
@@ -797,7 +797,7 @@ public class BlueprintImplTest {
 //    expect(request.getProperties()).andReturn(setProperties);
 //    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
 //    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-//    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+//    expect(metaInfo.getServiceConfigs("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
 //    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
 //        andReturn(serviceComponents).anyTimes();
 //    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
@@ -865,7 +865,7 @@ public class BlueprintImplTest {
 //    expect(request.getProperties()).andReturn(setProperties);
 //    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
 //    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-//    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+//    expect(metaInfo.getServiceConfigs("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
 //    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
 //        andReturn(serviceComponents).anyTimes();
 //    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
