@@ -161,6 +161,13 @@
               if-key="yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor"
               if-key-state="absent" />
           </definition>
+
+
+          <definition xsi:type="configure" id="hdp_2_6_yarn_app_classpath_parameterization" summary="Application Classpath Parameterization">
+            <type>yarn-site</type>
+            <replace key="yarn.application.classpath" find="/usr/hdp/current/hadoop-client" replace-with="{{hadoop_home}}"/>
+          </definition>
+
         </changes>
       </component>
       <component name="NODEMANAGER">
