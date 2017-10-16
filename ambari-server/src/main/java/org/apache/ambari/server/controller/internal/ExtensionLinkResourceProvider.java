@@ -188,6 +188,21 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
         throws SystemException, UnsupportedPropertyException,
         NoSuchResourceException, NoSuchParentResourceException {
 
+    final Set<ExtensionLinkRequest> requests = new HashSet<>();
+    for (Map<String, Object> propertyMap : request.getProperties()) {
+      requests.add(getRequest(propertyMap));
+    }
+
+    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
+      @Override
+      public RequestStatusResponse invoke() throws AmbariException {
+        for (ExtensionLinkRequest extensionLinkRequest : requests) {
+          getManagementController().updateExtensionLink(extensionLinkRequest);
+        }
+        return null;
+      }
+    });
+
     //Need to reread the stacks/extensions directories so the latest information is available
     try {
       getManagementController().updateStacks();

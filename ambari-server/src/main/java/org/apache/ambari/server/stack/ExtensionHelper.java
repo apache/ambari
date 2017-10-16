@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.stack;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.state.Cluster;
@@ -72,6 +75,12 @@ public class ExtensionHelper {
     validateRequiredExtensions(stack, extension);
   }
 
+  public static void validateUpdateLink(StackManager stackManager, StackInfo stack, ExtensionInfo oldExtension, ExtensionInfo newExtension) throws AmbariException {
+    validateSupportedStackVersion(stack, newExtension);
+    validateServiceDuplication(stackManager, stack, oldExtension, newExtension);
+    validateRequiredExtensions(stack, newExtension);
+  }
+
   private static void validateSupportedStackVersion(StackInfo stack, ExtensionInfo extension) throws AmbariException {
     for (ExtensionMetainfoXml.Stack validStack : extension.getStacks()) {
       if (validStack.getName().equals(stack.getName())) {
@@ -93,8 +102,28 @@ public class ExtensionHelper {
   }
 
   private static void validateServiceDuplication(StackManager stackManager, StackInfo stack, ExtensionInfo extension) throws AmbariException {
+    validateServiceDuplication(stackManager, stack, extension, extension.getServices());
+  }
+
+  private static void validateServiceDuplication(StackManager stackManager, StackInfo stack, ExtensionInfo oldExtension, ExtensionInfo newExtension) throws AmbariException {
+    ArrayList<ServiceInfo> services = new ArrayList<>(newExtension.getServices().size());
+    for (ServiceInfo service : newExtension.getServices()) {
+      boolean found = false;
+      for (ServiceInfo current : oldExtension.getServices()) {
+        if (service.getName().equals(current.getName())) {
+          found = true;
+        }
+      }
+      if (!found) {
+        services.add(service);
+      }
+    }
+    validateServiceDuplication(stackManager, stack, newExtension, services);
+  }
+
+  private static void validateServiceDuplication(StackManager stackManager, StackInfo stack, ExtensionInfo extension, Collection<ServiceInfo> services) throws AmbariException {
     LOG.debug("Looking for duplicate services");
-    for (ServiceInfo service : extension.getServices()) {
+    for (ServiceInfo service : services) {
       LOG.debug("Looking for duplicate service " + service.getName());
       if (service != null) {
         ServiceInfo stackService = null;

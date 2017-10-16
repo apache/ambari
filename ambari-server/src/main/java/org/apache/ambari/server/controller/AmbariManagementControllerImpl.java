@@ -5656,12 +5656,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   /**
-   * This method will update a link between an extension version and a stack version (Extension Link).
-   * Updating will only force ambari server to reread the stack and extension directories.
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
-   * An extension version is like a stack version but it contains custom services.  Linking an extension
-   * version to the current stack version allows the cluster to install the custom services contained in
-   * the extension version.
+   * @throws AmbariException if we fail to link the extension to the stack
    */
   @Override
   public void updateExtensionLink(ExtensionLinkRequest request) throws AmbariException {
@@ -5675,32 +5672,43 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new AmbariException("Unable to find extension link"
             + ", linkId=" + request.getLinkId(), e);
     }
-    updateExtensionLink(linkEntity);
+    updateExtensionLink(linkEntity, request);
   }
 
   /**
-   * This method will update a link between an extension version and a stack version (Extension Link).
-   * Updating will only force ambari server to reread the stack and extension directories.
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
-   * An extension version is like a stack version but it contains custom services.  Linking an extension
-   * version to the current stack version allows the cluster to install the custom services contained in
-   * the extension version.
+   * @throws AmbariException if we fail to link the extension to the stack
    */
   @Override
-  public void updateExtensionLink(ExtensionLinkEntity linkEntity) throws AmbariException {
-    StackInfo stackInfo = ambariMetaInfo.getStack(linkEntity.getStack().getStackName(), linkEntity.getStack().getStackVersion());
+  public void updateExtensionLink(ExtensionLinkEntity oldLinkEntity, ExtensionLinkRequest newLinkRequest) throws AmbariException {
+    StackInfo stackInfo = ambariMetaInfo.getStack(oldLinkEntity.getStack().getStackName(), oldLinkEntity.getStack().getStackVersion());
 
     if (stackInfo == null) {
-      throw new StackAccessException("stackName=" + linkEntity.getStack().getStackName() + ", stackVersion=" + linkEntity.getStack().getStackVersion());
+      throw new StackAccessException(String.format("stackName=%s, stackVersion=%s", oldLinkEntity.getStack().getStackName(), oldLinkEntity.getStack().getStackVersion()));
     }
 
-    ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(linkEntity.getExtension().getExtensionName(), linkEntity.getExtension().getExtensionVersion());
-
-    if (extensionInfo == null) {
-      throw new StackAccessException("extensionName=" + linkEntity.getExtension().getExtensionName() + ", extensionVersion=" + linkEntity.getExtension().getExtensionVersion());
+    if (newLinkRequest.getExtensionName() == null || newLinkRequest.getExtensionVersion() == null) {
+      throw new AmbariException(String.format("Invalid extension name or version: %s/%s",
+		  newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion()));
     }
 
-    ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
+    if (!newLinkRequest.getExtensionName().equals(oldLinkEntity.getExtension().getExtensionName())) {
+      throw new AmbariException(String.format("Update is not allowed to switch the extension name, only the version.  Old name/new name: %s/%s",
+		  oldLinkEntity.getExtension().getExtensionName(), newLinkRequest.getExtensionName()));
+    }
+
+    ExtensionInfo oldExtensionInfo = ambariMetaInfo.getExtension(oldLinkEntity.getExtension().getExtensionName(), oldLinkEntity.getExtension().getExtensionVersion());
+    ExtensionInfo newExtensionInfo = ambariMetaInfo.getExtension(newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion());
+
+    if (oldExtensionInfo == null) {
+      throw new StackAccessException(String.format("Old extensionName=%s, extensionVersion=%s", oldLinkEntity.getExtension().getExtensionName(), oldLinkEntity.getExtension().getExtensionVersion()));
+    }
+    if (newExtensionInfo == null) {
+      throw new StackAccessException(String.format("New extensionName=%s, extensionVersion=%s", newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion()));
+    }
+
+    helper.updateExtensionLink(ambariMetaInfo.getStackManager(), oldLinkEntity, stackInfo, oldExtensionInfo, newExtensionInfo);
   }
 
   @Override
