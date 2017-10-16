@@ -20,8 +20,10 @@ Ambari Agent
 """
 import os
 
+from resource_management.core import sudo
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions import component_version
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
@@ -30,12 +32,13 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.version import format_stack_version, get_major_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
+
 import status_params
 
 # a map of the Ambari role to the component name
@@ -65,20 +68,21 @@ tarball_map = default("/configurations/cluster-env/tarball_map", None)
 config_path = os.path.join(stack_root, "current/hadoop-client/conf")
 config_dir = os.path.realpath(config_path)
 
+# get the correct version to use for checking stack features
+version_for_stack_feature_checks = get_stack_feature_version(config)
+
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanager')
+major_stack_version = get_major_version(stack_version_formatted_major)
 
-stack_supports_ru = stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)
-stack_supports_timeline_state_store = stack_version_formatted_major and check_stack_feature(StackFeature.TIMELINE_STATE_STORE, stack_version_formatted_major)
+stack_supports_ru = check_stack_feature(StackFeature.ROLLING_UPGRADE, version_for_stack_feature_checks)
+stack_supports_timeline_state_store = check_stack_feature(StackFeature.TIMELINE_STATE_STORE, version_for_stack_feature_checks)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
 version = default("/commandParams/version", None)
-
-# get the correct version to use for checking stack features
-version_for_stack_feature_checks = get_stack_feature_version(config)
 
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
@@ -86,9 +90,11 @@ stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_D
 hostname = config['hostname']
 
 # hadoop default parameters
+hadoop_home = status_params.hadoop_home
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
@@ -110,12 +116,33 @@ if stack_supports_ru:
   if command_role in YARN_SERVER_ROLE_DIRECTORY_MAP:
     yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
 
-  hadoop_mapred2_jar_location = format("{stack_root}/current/{mapred_role_root}")
-  mapred_bin = format("{stack_root}/current/{mapred_role_root}/sbin")
-
+  # defaults set to current based on role
+  hadoop_mapr_home = format("{stack_root}/current/{mapred_role_root}")
   hadoop_yarn_home = format("{stack_root}/current/{yarn_role_root}")
-  yarn_bin = format("{stack_root}/current/{yarn_role_root}/sbin")
-  yarn_container_bin = format("{stack_root}/current/{yarn_role_root}/bin")
+
+  # try to render the specific version
+  version = component_version.get_component_repository_version()
+  if version is None:
+    version = default("/commandParams/version", None)
+
+
+  if version is not None:
+    hadoop_mapr_versioned_home = format("{stack_root}/{version}/hadoop-mapreduce")
+    hadoop_yarn_versioned_home = format("{stack_root}/{version}/hadoop-yarn")
+
+    if sudo.path_isdir(hadoop_mapr_versioned_home):
+      hadoop_mapr_home = hadoop_mapr_versioned_home
+
+    if sudo.path_isdir(hadoop_yarn_versioned_home):
+      hadoop_yarn_home = hadoop_yarn_versioned_home
+
+
+  hadoop_mapred2_jar_location = hadoop_mapr_home
+  mapred_bin = format("{hadoop_mapr_home}/sbin")
+
+  yarn_bin = format("{hadoop_yarn_home}/sbin")
+  yarn_container_bin = format("{hadoop_yarn_home}/bin")
+
 
 if stack_supports_timeline_state_store:
   # Timeline Service property that was added timeline_state_store stack feature
@@ -347,7 +374,7 @@ HdfsResource = functools.partial(
   immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
  )
-update_files_only = default("/commandParams/update_files_only", False)
+update_files_only = default("/commandParams/update_files_only",False)
 
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
@@ -365,7 +392,7 @@ cgroups_dir = "/cgroups_test/cpu"
 
 # hostname of the active HDFS HA Namenode (only used when HA is enabled)
 dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
-if dfs_ha_namenode_active is not None: 
+if dfs_ha_namenode_active is not None:
   namenode_hostname = dfs_ha_namenode_active
 else:
   namenode_hostname = config['clusterHostInfo']['namenode_host'][0]
