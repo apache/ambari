@@ -364,6 +364,7 @@ class TestZeppelin070(RMFTestCase):
                           content=interpreter_json_generated.template_after_base,
                           owner='zeppelin',
                           group='zeppelin',
+                          mode=0644
                           )
 
 
@@ -392,6 +393,7 @@ class TestZeppelin070(RMFTestCase):
                               content=interpreter_json_generated.template_after_without_spark_and_livy,
                               owner='zeppelin',
                               group='zeppelin',
+                              mode=0644
                               )
 
     self.assertResourceCalled('HdfsResource',
@@ -419,6 +421,7 @@ class TestZeppelin070(RMFTestCase):
                               content=interpreter_json_generated.template_after_kerberos,
                               owner='zeppelin',
                               group='zeppelin',
+                              mode=0644
                               )
 
     self.assertResourceCalled('HdfsResource', 'hdfs:///user/zeppelin/conf/interpreter.json',

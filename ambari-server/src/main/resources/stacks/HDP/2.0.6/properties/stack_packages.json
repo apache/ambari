@@ -368,7 +368,7 @@
             "hadoop-hdfs-zkfc"
           ],
           "STANDARD": [
-            "hadoop-client"
+            "hadoop-hdfs-zkfc"
           ]
         }
       },
