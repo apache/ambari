@@ -162,13 +162,19 @@ if 'hive_server_interactive_hosts' in master_configs and len(master_configs['hiv
 spark_thrift_server_hosts = None
 spark_hive_thrift_port = None
 spark_hive_principal = None
+hive_principal = None
+hive_transport_mode = None
+
+if 'hive-site' in config['configurations']:
+  if 'hive.server2.authentication.kerberos.principal' in config['configurations']['hive-site']:
+    hive_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
+  if 'hive.server2.transport.mode' in config['configurations']['hive-site']:
+    hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
+
 if 'spark_thriftserver_hosts' in master_configs and len(master_configs['spark_thriftserver_hosts']) != 0:
   spark_thrift_server_hosts = str(master_configs['spark_thriftserver_hosts'][0])
   if config['configurations']['spark-hive-site-override']:
     spark_hive_thrift_port = config['configurations']['spark-hive-site-override']['hive.server2.thrift.port']
-  if config['configurations']['spark-thrift-sparkconf'] and \
-      'spark.sql.hive.hiveserver2.jdbc.url.principal' in config['configurations']['spark-thrift-sparkconf']:
-    spark_hive_principal = config['configurations']['spark-thrift-sparkconf']['spark.sql.hive.hiveserver2.jdbc.url.principal']
 
 spark2_thrift_server_hosts = None
 spark2_hive_thrift_port = None
@@ -177,9 +183,6 @@ if 'spark2_thriftserver_hosts' in master_configs and len(master_configs['spark2_
   spark2_thrift_server_hosts = str(master_configs['spark2_thriftserver_hosts'][0])
   if config['configurations']['spark2-hive-site-override']:
     spark2_hive_thrift_port = config['configurations']['spark2-hive-site-override']['hive.server2.thrift.port']
-  if config['configurations']['spark2-thrift-sparkconf'] and \
-      'spark.sql.hive.hiveserver2.jdbc.url.principal' in config['configurations']['spark2-thrift-sparkconf']:
-    spark2_hive_principal = config['configurations']['spark2-thrift-sparkconf']['spark.sql.hive.hiveserver2.jdbc.url.principal']
 
 
 # detect hbase details if installed
