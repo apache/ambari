@@ -122,9 +122,9 @@
                       <sources>
                         <source>
                           <location>${solr.client.dir}/target/package</location>
-                          <exclude>
+                          <excludes>
                             <exclude>libs/checkstyle*.jar</exclude>
-                          </exclude>
+                          </excludes>
                         </source>
                       </sources>
                     </mapping>
