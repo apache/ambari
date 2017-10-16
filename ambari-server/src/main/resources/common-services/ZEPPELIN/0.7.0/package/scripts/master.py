@@ -492,8 +492,10 @@ class Master(Script):
           interpreter['properties']['spark.proxy.user.property'] = 'hive.server2.proxy.user'
           interpreter['properties']['spark.url'] = 'jdbc:hive2://' + \
               params.spark_thrift_server_hosts + ':' + params.spark_hive_thrift_port + '/'
-          if params.spark_hive_principal:
-            interpreter['properties']['spark.url'] += ';principal=' + params.spark_hive_principal
+          if params.hive_principal:
+            interpreter['properties']['spark.url'] += ';principal=' + params.hive_principal
+          if params.hive_transport_mode:
+            interpreter['properties']['spark.url'] += ';transportMode=' + params.hive_transport_mode
           if 'spark.splitQueries' not in interpreter['properties']:
             interpreter['properties']['spark.splitQueries'] = "true"
 
@@ -504,8 +506,10 @@ class Master(Script):
           interpreter['properties']['spark2.proxy.user.property'] = 'hive.server2.proxy.user'
           interpreter['properties']['spark2.url'] = 'jdbc:hive2://' + \
               params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
-          if params.spark_hive_principal:
-            interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
+          if params.hive_principal:
+            interpreter['properties']['spark2.url'] += ';principal=' + params.hive_principal
+          if params.hive_transport_mode:
+            interpreter['properties']['spark2.url'] += ';transportMode=' + params.hive_transport_mode
           if 'spark2.splitQueries' not in interpreter['properties']:
             interpreter['properties']['spark2.splitQueries'] = "true"
 
