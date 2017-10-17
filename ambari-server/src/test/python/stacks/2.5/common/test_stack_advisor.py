@@ -4446,7 +4446,8 @@ class TestHDP25StackAdvisor(TestCase):
           },
         "tez-site": {
           "properties": {
-            "tez.am.resource.memory.mb": "1024"
+            "tez.am.resource.memory.mb": "1024",
+            "tez.runtime.sorter.class": "LEGACY"
           }
         },
       }
@@ -4481,6 +4482,8 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '186368')
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '9830')
+    self.assertEqual(configurations['tez-interactive-site']['properties']['tez.runtime.io.sort.mb'], '1092')
+    self.assertEquals(configurations['tez-interactive-site']['property_attributes']['tez.runtime.io.sort.mb'], {'maximum': '1800'})
 
 
 
