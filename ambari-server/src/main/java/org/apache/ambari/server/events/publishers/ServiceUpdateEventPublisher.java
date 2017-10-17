@@ -30,7 +30,7 @@ import com.google.inject.Singleton;
 public class ServiceUpdateEventPublisher extends BufferedUpdateEventPublisher<ServiceUpdateEvent> {
 
   @Override
-  protected Runnable getScheduledPublished(EventBus m_eventBus) {
+  protected Runnable getScheduledPublisher(EventBus m_eventBus) {
     return new ServiceEventRunnable(m_eventBus);
   }
 
@@ -45,6 +45,9 @@ public class ServiceUpdateEventPublisher extends BufferedUpdateEventPublisher<Se
     @Override
     public void run() {
       List<ServiceUpdateEvent> serviceUpdates = retrieveBuffer();
+      if (serviceUpdates.isEmpty()) {
+        return;
+      }
       List<ServiceUpdateEvent> filtered = new ArrayList<>();
       for (ServiceUpdateEvent event : serviceUpdates) {
         int pos = filtered.indexOf(event);
@@ -62,7 +65,6 @@ public class ServiceUpdateEventPublisher extends BufferedUpdateEventPublisher<Se
       for (ServiceUpdateEvent serviceUpdateEvent : serviceUpdates) {
         eventBus.post(serviceUpdateEvent);
       }
-      resetCollecting();
     }
   }
 }

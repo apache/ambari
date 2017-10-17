@@ -19,7 +19,6 @@
 package org.apache.ambari.server.events.publishers;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -34,21 +33,21 @@ import com.google.inject.Singleton;
 @Singleton
 public abstract class BufferedUpdateEventPublisher<T> {
 
-  private static final long TIMEOUT = 1L;
+  private static final long TIMEOUT = 1000L;
   private final AtomicLong previousTime = new AtomicLong(0);
   private final AtomicBoolean collecting = new AtomicBoolean(false);
   private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
   private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
-  public void publish(Collection<T> event, EventBus m_eventBus) {
+  public void publish(T event, EventBus m_eventBus) {
     long eventTime = System.currentTimeMillis();
-    if (eventTime - previousTime.get() <= TIMEOUT && !collecting.get()) {
-      buffer.addAll(event);
+    if ((eventTime - previousTime.get() <= TIMEOUT) && !collecting.get()) {
+      buffer.add(event);
       collecting.set(true);
-      scheduledExecutorService.schedule(getScheduledPublished(m_eventBus),
+      scheduledExecutorService.schedule(getScheduledPublisher(m_eventBus),
           TIMEOUT, TimeUnit.MILLISECONDS);
     } else if (collecting.get()) {
-      buffer.addAll(event);
+      buffer.add(event);
     } else {
       //TODO add logging and metrics posting
       previousTime.set(eventTime);
@@ -56,9 +55,10 @@ public abstract class BufferedUpdateEventPublisher<T> {
     }
   }
 
-  protected abstract Runnable getScheduledPublished(EventBus m_eventBus);
+  protected abstract Runnable getScheduledPublisher(EventBus m_eventBus);
 
   protected List<T> retrieveBuffer() {
+    resetCollecting();
     List<T> bufferContent = new ArrayList<>();
     while (!buffer.isEmpty()) {
       bufferContent.add(buffer.poll());

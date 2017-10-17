@@ -245,6 +245,7 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
     private final Map<String, LinkedMultiValueMap<String, String>> accessCache =
         new ConcurrentHashMap<>(cacheLimit);
 
+    //TODO optimize usage of this cache on perf cluster
     private final Cache<String, String> notSubscriptionCache =
         CacheBuilder.newBuilder().maximumSize(cacheLimit).build();
 
@@ -275,7 +276,7 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
     }
 
     public void updateAfterNewSubscription(String destination, String sessionId, String subsId) {
-      this.accessCache.computeIfPresent(destination, (key, value) -> {
+      LinkedMultiValueMap<String, String> updatedMap = this.accessCache.computeIfPresent(destination, (key, value) -> {
         if (getPathMatcher().match(destination, key)) {
           LinkedMultiValueMap<String, String> subs = value.deepCopy();
           subs.add(sessionId, subsId);
@@ -283,6 +284,9 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
         }
         return value;
       });
+      if (updatedMap == null) {
+        this.notSubscriptionCache.invalidate(destination);
+      }
     }
 
     public void updateAfterRemovedSubscription(String sessionId, String subsId) {
@@ -301,6 +305,7 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
             iterator.remove();
           }
           else {
+            this.notSubscriptionCache.invalidate(destination);
             this.accessCache.put(destination, sessionMap.deepCopy());
           }
         }
@@ -318,6 +323,7 @@ public class AmbariSubscriptionRegistry extends AbstractSubscriptionRegistry {
             iterator.remove();
           }
           else {
+            this.notSubscriptionCache.invalidate(destination);
             this.accessCache.put(destination, sessionMap.deepCopy());
           }
         }

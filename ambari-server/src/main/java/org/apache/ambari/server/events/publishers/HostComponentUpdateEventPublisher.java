@@ -19,6 +19,7 @@
 package org.apache.ambari.server.events.publishers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.events.HostComponentUpdate;
 import org.apache.ambari.server.events.HostComponentsUpdateEvent;
@@ -27,10 +28,10 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Singleton;
 
 @Singleton
-public class HostComponentUpdateEventPublisher extends BufferedUpdateEventPublisher<HostComponentUpdate> {
+public class HostComponentUpdateEventPublisher extends BufferedUpdateEventPublisher<HostComponentsUpdateEvent> {
 
   @Override
-  protected Runnable getScheduledPublished(EventBus m_eventBus) {
+  protected Runnable getScheduledPublisher(EventBus m_eventBus) {
     return new HostComponentsEventRunnable(m_eventBus);
   }
 
@@ -44,12 +45,16 @@ public class HostComponentUpdateEventPublisher extends BufferedUpdateEventPublis
 
     @Override
     public void run() {
-      List<HostComponentUpdate> hostComponentUpdates = retrieveBuffer();
+      List<HostComponentsUpdateEvent> hostComponentUpdateEvents = retrieveBuffer();
+      if (hostComponentUpdateEvents.isEmpty()) {
+        return;
+      }
+      List<HostComponentUpdate> hostComponentUpdates = hostComponentUpdateEvents.stream().flatMap(
+          u -> u.getHostComponentUpdates().stream()).collect(Collectors.toList());
 
       HostComponentsUpdateEvent resultEvents = new HostComponentsUpdateEvent(hostComponentUpdates);
       //TODO add logging and metrics posting
       eventBus.post(resultEvents);
-      resetCollecting();
     }
   }
 }

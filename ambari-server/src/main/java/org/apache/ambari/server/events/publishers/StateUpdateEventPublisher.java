@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.events.publishers;
 
-import java.util.Collections;
 import java.util.concurrent.Executors;
 
 import org.apache.ambari.server.events.AmbariUpdateEvent;
@@ -53,9 +52,9 @@ public class StateUpdateEventPublisher {
     if (event.getType().equals(AmbariUpdateEvent.Type.REQUEST)) {
       requestUpdateEventPublisher.publish((RequestUpdateEvent) event, m_eventBus);
     } else if (event.getType().equals(AmbariUpdateEvent.Type.HOSTCOMPONENT)) {
-      hostComponentUpdateEventPublisher.publish(((HostComponentsUpdateEvent) event).getHostComponentUpdates(), m_eventBus);
+      hostComponentUpdateEventPublisher.publish((HostComponentsUpdateEvent) event, m_eventBus);
     } else if (event.getType().equals(AmbariUpdateEvent.Type.SERVICE)) {
-      serviceUpdateEventPublisher.publish(Collections.singletonList((ServiceUpdateEvent) event), m_eventBus);
+      serviceUpdateEventPublisher.publish((ServiceUpdateEvent) event, m_eventBus);
     } else {
       m_eventBus.post(event);
     }
