@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -126,6 +127,18 @@ public class ClusterGrouping extends Grouping {
       return Objects.toStringHelper(this).add("id", id).add("title",
           title).omitNullValues().toString();
     }
+
+    /**
+     * If a task is found that is configure, set its associated service.  This is used
+     * if the configuration type cannot be isolated by service.
+     */
+    void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
+      if (task.getType().equals(Task.Type.CONFIGURE) && StringUtils.isNotEmpty(service)) {
+        ((ConfigureTask) task).associatedService = service;
+      }
+    }
+
+
   }
 
   public class ClusterBuilder extends StageWrapperBuilder {
