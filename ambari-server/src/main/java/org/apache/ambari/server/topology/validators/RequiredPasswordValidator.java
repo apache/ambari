@@ -14,14 +14,21 @@ package org.apache.ambari.server.topology.validators;
  * limitations under the License.
  */
 
-import org.apache.ambari.server.controller.internal.StackV2;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.topology.*;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ComponentV2;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.HostGroupV2;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Service;
+import org.apache.ambari.server.topology.TopologyValidator;
 
 /**
  * Validates that all required passwords are provided.

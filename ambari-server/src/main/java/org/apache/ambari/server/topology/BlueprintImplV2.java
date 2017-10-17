@@ -19,13 +19,13 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.internal.StackV2;
-import org.apache.ambari.server.orm.entities.BlueprintEntity;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
 
 /**
  * Blueprint implementation.

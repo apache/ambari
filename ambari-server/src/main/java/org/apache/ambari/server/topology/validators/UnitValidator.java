@@ -17,16 +17,16 @@
  */
 package org.apache.ambari.server.topology.validators;
 
+import static org.apache.ambari.server.controller.internal.UnitUpdater.PropertyValue;
+
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.internal.StackV2;
 import org.apache.ambari.server.controller.internal.UnitUpdater.PropertyUnit;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.TopologyValidator;
-
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.ambari.server.controller.internal.UnitUpdater.PropertyValue;
 
 /**
  * I validate the unit of properties by checking if it matches to the stack defined unit.

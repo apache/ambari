@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Collection;
+import java.util.Map;
+
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationContext;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * Represents a full cluster topology including all instance information as well as the associated

@@ -14,11 +14,16 @@
 
 package org.apache.ambari.server.topology.validators;
 
-import org.apache.ambari.server.topology.*;
+import java.util.Collection;
+
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ComponentV2;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Service;
+import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 /**
  * Validates hive service related setup before provisioning the cluster.

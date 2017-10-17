@@ -19,6 +19,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.topology.BlueprintV2;
@@ -27,10 +31,6 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A request for a scaling an existing cluster.

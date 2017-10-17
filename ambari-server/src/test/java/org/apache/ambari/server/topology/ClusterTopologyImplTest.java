@@ -18,15 +18,23 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.expect;
+import static org.powermock.api.easymock.PowerMock.createNiceMock;
+import static org.powermock.api.easymock.PowerMock.replay;
+import static org.powermock.api.easymock.PowerMock.reset;
+import static org.powermock.api.easymock.PowerMock.verify;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.internal.Stack;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.*;
-
-import static org.easymock.EasyMock.expect;
-import static org.powermock.api.easymock.PowerMock.*;
 
 /**
  * Unit tests for ClusterTopologyImpl.

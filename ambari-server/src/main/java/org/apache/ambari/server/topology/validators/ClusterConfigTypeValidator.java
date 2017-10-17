@@ -13,15 +13,15 @@
  */
 package org.apache.ambari.server.topology.validators;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Validates configuration types related to services specified in the blueprint.

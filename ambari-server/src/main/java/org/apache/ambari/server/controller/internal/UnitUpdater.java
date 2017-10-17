@@ -17,15 +17,15 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 
 /**
  * I append the stack defined unit to the original property value.

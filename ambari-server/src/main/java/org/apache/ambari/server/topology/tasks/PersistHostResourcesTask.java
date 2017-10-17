@@ -17,16 +17,21 @@
  */
 package org.apache.ambari.server.topology.tasks;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import org.apache.ambari.server.topology.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ComponentV2;
+import org.apache.ambari.server.topology.HostGroupV2;
+import org.apache.ambari.server.topology.HostRequest;
+import org.apache.ambari.server.topology.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 public class PersistHostResourcesTask extends TopologyHostTask  {
 
