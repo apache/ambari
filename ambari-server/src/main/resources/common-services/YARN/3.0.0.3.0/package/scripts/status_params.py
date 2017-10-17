@@ -33,11 +33,11 @@ mapred_pid_dir_prefix = config['configurations']['mapred-env']['mapred_pid_dir_p
 yarn_pid_dir = format("{yarn_pid_dir_prefix}/{yarn_user}")
 mapred_pid_dir = format("{mapred_pid_dir_prefix}/{mapred_user}")
 
-resourcemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-resourcemanager.pid")
-nodemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-nodemanager.pid")
-yarn_historyserver_pid_file_old = format("{yarn_pid_dir}/yarn-{yarn_user}-historyserver.pid")
-yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
-mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
+resourcemanager_pid_file = format("{yarn_pid_dir}/hadoop-{yarn_user}-resourcemanager.pid")
+nodemanager_pid_file = format("{yarn_pid_dir}/hadoop-{yarn_user}-nodemanager.pid")
+yarn_historyserver_pid_file_old = format("{yarn_pid_dir}/hadoop-{yarn_user}-historyserver.pid")
+yarn_historyserver_pid_file = format("{yarn_pid_dir}/hadoop-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
+mapred_historyserver_pid_file = format("{mapred_pid_dir}/hadoop-{mapred_user}-historyserver.pid")
 
 hadoop_home = stack_select.get_hadoop_dir("home")
 hadoop_conf_dir = functions.conf_select.get_hadoop_conf_dir()
