@@ -271,9 +271,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
         default:
           var isVersionColumnView = this.get('isVersionColumnView');
           var stackServices = this.get('content.stackServices');
-          var isUpgradable = stackServices && stackServices.some( function(stackService){
+          var isUpgradable = stackServices && (this.get('content.isStandard') || stackServices.some( function(stackService){
               return stackService.get('isUpgradable');
-          });
+          }));
           var isPatch = this.get('content.isPatch');
           var isMaint = this.get('content.isMaint');
 
