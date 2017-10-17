@@ -56,7 +56,7 @@ def get_package_dirs():
   Get package dir mappings
   :return:
   """
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for conf-select tool cannot be loaded.")
 

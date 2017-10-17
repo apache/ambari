@@ -472,6 +472,11 @@ class CustomServiceOrchestrator():
       if service_name is not None and service_name != 'null':
         command_dict['serviceLevelParams'] = metadata_cache.serviceLevelParams[service_name]
 
+      host_repos = host_level_params_cache.hostRepositories
+      if component_name in host_repos.componentRepos:
+        repo_version_id = host_repos.componentRepos[component_name]
+        command_dict['repositoryFile'] = host_repos.commandRepos[str(repo_version_id)]
+        
       component_dict = self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name)
       if component_dict is not None:
         command_dict.update({

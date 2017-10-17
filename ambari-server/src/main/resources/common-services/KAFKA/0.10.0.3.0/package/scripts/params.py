@@ -41,7 +41,7 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import get_
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 retryAble = default("/commandParams/command_retry_enabled", False)
 
 # Version being upgraded/downgraded to

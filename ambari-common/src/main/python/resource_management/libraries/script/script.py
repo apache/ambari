@@ -247,7 +247,7 @@ class Script(object):
 
         # if repository_version_id is passed, pass it back with the version
         from resource_management.libraries.functions.default import default
-        repo_version_id = default("/roleParams/repository_version_id", None)
+        repo_version_id = default("/repositoryFile/repoVersionId", None)
         if repo_version_id:
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:

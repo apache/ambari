@@ -71,7 +71,7 @@ class HeartbeatThread(threading.Thread):
     (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener),
     (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener),
     (Constants.HOST_LEVEL_PARAMS_TOPIC_ENPOINT, initializer_module.host_level_params_cache, self.host_level_params_events_listener),
-    #(Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener)
+    (Constants.ALERTS_DEFINITIONS_REQUEST_ENDPOINT, initializer_module.alert_definitions_cache, self.alert_definitions_events_listener)
     ]
     self.responseId = 0
     self.file_cache = initializer_module.file_cache

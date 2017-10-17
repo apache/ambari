@@ -32,7 +32,7 @@ import status_params
 # server configurations
 config = Script.get_config()
 stack_root = Script.get_stack_root()
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 user_group = config['configurations']['cluster-env']['user_group']
 
 # stack version

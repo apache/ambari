@@ -89,7 +89,7 @@ class TestRUSetAll(RMFTestCase):
     exists_mock.return_value = True
 
     # Ensure that the json file was actually read.
-    stack_name = default("/hostLevelParams/stack_name", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
     stack_version = default("/hostLevelParams/stack_version", None)
     service_package_folder = default('/roleParams/service_package_folder', None)
 
@@ -130,7 +130,7 @@ class TestRUSetAll(RMFTestCase):
     exists_mock.return_value = True
 
     # Ensure that the json file was actually read.
-    stack_name = default("/hostLevelParams/stack_name", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
     stack_version = default("/hostLevelParams/stack_version", None)
     service_package_folder = default('/roleParams/service_package_folder', None)
 
@@ -181,7 +181,7 @@ class TestRUSetAll(RMFTestCase):
     call_mock.side_effect = hdp_select_call
 
     # Ensure that the json file was actually read.
-    stack_name = default("/hostLevelParams/stack_name", None)
+    stack_name = default("/clusterLevelParams/stack_name", None)
     stack_version = default("/hostLevelParams/stack_version", None)
     service_package_folder = default('/roleParams/service_package_folder', None)
 

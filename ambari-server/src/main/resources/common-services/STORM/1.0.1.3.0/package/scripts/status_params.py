@@ -80,4 +80,4 @@ else:
   storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)
   storm_ui_keytab = default('/configurations/storm-env/storm_ui_keytab', None)
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

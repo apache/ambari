@@ -45,7 +45,7 @@ config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']

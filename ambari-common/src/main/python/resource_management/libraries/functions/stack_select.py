@@ -174,7 +174,7 @@ def get_packages(scope, service_name = None, component_name = None):
     component_name = config['role']
 
 
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
 

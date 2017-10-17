@@ -253,7 +253,6 @@ class AlertSchedulerHandler():
       # cache the cluster and cluster hash after loading the JSON
       if clusterName != '' and clusterHash is not None:
         logger.info('[AlertScheduler] Caching cluster {0} with alert hash {1}'.format(clusterName, clusterHash))
-        self._cluster_hashes[clusterName] = clusterHash
 
       for definition in command_json['alertDefinitions']:
         alert = self.__json_to_callable(clusterName, hostName, publicHostName, Utils.get_mutable_copy(definition))

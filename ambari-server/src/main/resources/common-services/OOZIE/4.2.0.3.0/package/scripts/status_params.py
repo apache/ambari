@@ -62,4 +62,4 @@ else:
   oozie_user = config['configurations']['oozie-env']['oozie_user']
   hostname = config["hostname"]
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = default("/clusterLevelParams/stack_name", None)

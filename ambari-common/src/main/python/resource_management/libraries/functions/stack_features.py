@@ -44,7 +44,7 @@ def check_stack_feature(stack_feature, stack_version):
   from resource_management.libraries.functions.default import default
   from resource_management.libraries.functions.version import compare_versions
 
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
