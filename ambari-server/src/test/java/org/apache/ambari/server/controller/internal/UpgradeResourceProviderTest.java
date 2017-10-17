@@ -45,6 +45,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -67,12 +68,14 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -100,6 +103,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -1832,6 +1836,15 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
       if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
           command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
         foundConfigTask = true;
+
+        ExecutionCommandDAO dao = injector.getInstance(ExecutionCommandDAO.class);
+        ExecutionCommandEntity entity = dao.findByPK(command.getTaskId());
+        ExecutionCommandWrapperFactory factory = injector.getInstance(ExecutionCommandWrapperFactory.class);
+        ExecutionCommandWrapper wrapper = factory.createFromJson(new String(entity.getCommand()));
+        Map<String, String> params = wrapper.getExecutionCommand().getCommandParams();
+        assertTrue(params.containsKey(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE));
+        assertEquals("ZOOKEEPER", params.get(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE));
+
         break;
       }
     }

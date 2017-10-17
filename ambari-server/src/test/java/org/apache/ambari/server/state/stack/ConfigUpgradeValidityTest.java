@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,6 +129,12 @@ public class ConfigUpgradeValidityTest {
                   ConfigureTask configureTask = (ConfigureTask) executionStage.task;
                   assertIdDefinitionExists(configureTask.id, configUpgradePack, upgradePack,
                       sourceStack);
+
+                  if (StringUtils.isNotBlank(executionStage.service)) {
+                    Assert.assertEquals(executionStage.service, configureTask.associatedService);
+                  } else {
+                    Assert.assertTrue(null == configureTask.associatedService);
+                  }
                 }
               }
             }
@@ -144,6 +151,7 @@ public class ConfigUpgradeValidityTest {
                   ConfigureTask configureTask = (ConfigureTask) preTask;
                   assertIdDefinitionExists(configureTask.id, configUpgradePack, upgradePack,
                       sourceStack);
+                  Assert.assertTrue(StringUtils.isNotBlank(configureTask.associatedService));
                 }
               }
 
@@ -153,6 +161,7 @@ public class ConfigUpgradeValidityTest {
                     ConfigureTask configureTask = (ConfigureTask) task;
                     assertIdDefinitionExists(configureTask.id, configUpgradePack, upgradePack,
                         sourceStack);
+                    Assert.assertTrue(StringUtils.isNotBlank(configureTask.associatedService));
                   }
                 }
               }
@@ -163,6 +172,7 @@ public class ConfigUpgradeValidityTest {
                     ConfigureTask configureTask = (ConfigureTask) postTask;
                     assertIdDefinitionExists(configureTask.id, configUpgradePack, upgradePack,
                         sourceStack);
+                    Assert.assertTrue(StringUtils.isNotBlank(configureTask.associatedService));
                   }
                 }
               }

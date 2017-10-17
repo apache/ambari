@@ -26,6 +26,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
@@ -91,6 +92,11 @@ public class ConfigureTask extends ServerSideActionTask {
    */
   public static final String PARAMETER_INSERTIONS = "configure-task-insertions";
 
+  /**
+   * The associated service for the config task
+   */
+  public static final String PARAMETER_ASSOCIATED_SERVICE = "configure-task-associated-service";
+
   public static final String actionVerb = "Configuring";
 
   /**
@@ -112,6 +118,12 @@ public class ConfigureTask extends ServerSideActionTask {
 
   @XmlAttribute(name="supports-patch")
   public boolean supportsPatch = false;
+
+  /**
+   * The associated service is the service where this config task is specified
+   */
+  @XmlTransient
+  public String associatedService;
 
   /**
    * {@inheritDoc}
@@ -234,6 +246,10 @@ public class ConfigureTask extends ServerSideActionTask {
     List<Insert> insertions = definition.getInsertions();
     if (!insertions.isEmpty()) {
       configParameters.put(ConfigureTask.PARAMETER_INSERTIONS, m_gson.toJson(insertions));
+    }
+
+    if (StringUtils.isNotEmpty(associatedService)) {
+      configParameters.put(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE, associatedService);
     }
 
     return configParameters;

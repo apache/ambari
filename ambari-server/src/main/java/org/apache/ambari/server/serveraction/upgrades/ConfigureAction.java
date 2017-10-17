@@ -190,6 +190,11 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
     String serviceName = cluster.getServiceByConfigType(configType);
 
+    // !!! we couldn't get the service based on its config type, so try the associated
+    if (StringUtils.isBlank(serviceName)) {
+      serviceName = commandParameters.get(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE);
+    }
+
     RepositoryVersionEntity sourceRepoVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
     RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
     StackId sourceStackId = sourceRepoVersion.getStackId();
