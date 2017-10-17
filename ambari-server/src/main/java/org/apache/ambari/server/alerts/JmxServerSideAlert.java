@@ -23,6 +23,7 @@ import static java.util.Collections.singletonList;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -35,7 +36,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.MetricSource;
-import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.ServerSource;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.slf4j.Logger;
@@ -64,11 +64,28 @@ public class JmxServerSideAlert extends AlertRunnable {
   List<Alert> execute(Cluster cluster, AlertDefinitionEntity entity) throws AmbariException {
     AlertDefinition alertDef = definitionFactory.coerce(entity);
     ServerSource serverSource = (ServerSource) alertDef.getSource();
-    URI jmxUrl = jmxUrl(cluster, serverSource);
-    JMXMetricHolder metricHolder = jmxMetric(serverSource, jmxUrl);
-    return metricHolder == null
-      ? emptyList()
-      : alerts(alertDef, serverSource.getJmxInfo(), metricHolder, serverSource.getReporting());
+    return buildAlert(jmxMetric(serverSource, cluster), serverSource.getJmxInfo(), alertDef)
+      .map(alert -> singletonList(alert))
+      .orElse(emptyList());
+  }
+
+  public Optional<Alert> buildAlert(Optional<JMXMetricHolder> metricHolder, MetricSource.JmxInfo jmxInfo, AlertDefinition alertDef) {
+    return metricHolder.flatMap(metric -> buildAlert(metric, jmxInfo, alertDef));
+  }
+
+  private Optional<Alert> buildAlert(JMXMetricHolder metricHolder, MetricSource.JmxInfo jmxInfo, AlertDefinition alertDef) {
+    List<Object> allMetrics = metricHolder.findAll(jmxInfo.getPropertyList());
+    return jmxInfo.eval(metricHolder).map(val -> alertDef.buildAlert(val.doubleValue(), allMetrics));
+  }
+
+  private Optional<JMXMetricHolder> jmxMetric(ServerSource serverSource, Cluster cluster) throws AmbariException {
+    URI jmxUri = jmxUrl(cluster, serverSource);
+    URLStreamProvider streamProvider = new URLStreamProvider(
+      serverSource.getUri().getConnectionTimeoutMsec(),
+      serverSource.getUri().getReadTimeoutMsec(),
+      ComponentSSLConfiguration.instance());
+    metricsRetrievalService.submitRequest(MetricsRetrievalService.MetricSourceType.JMX, streamProvider, jmxUri.toString());
+    return Optional.ofNullable(metricsRetrievalService.getCachedJMXMetric(jmxUri.toString()));
   }
 
   private URI jmxUrl(Cluster cluster, ServerSource serverSource) throws AmbariException {
@@ -77,28 +94,5 @@ public class JmxServerSideAlert extends AlertRunnable {
 
   private Map<String, Map<String, String>> config(Cluster cluster) throws AmbariException {
     return configHelper.getEffectiveConfigProperties(cluster, configHelper.getEffectiveDesiredTags(cluster, null));
-  }
-
-  private JMXMetricHolder jmxMetric(ServerSource serverSource, URI jmxUri) {
-    URLStreamProvider streamProvider = new URLStreamProvider(
-      serverSource.getUri().getConnectionTimeoutMsec(),
-      serverSource.getUri().getReadTimeoutMsec(),
-      ComponentSSLConfiguration.instance());
-    metricsRetrievalService.submitRequest(MetricsRetrievalService.MetricSourceType.JMX, streamProvider, jmxUri.toString());
-    return metricsRetrievalService.getCachedJMXMetric(jmxUri.toString());
-  }
-
-  private List<Alert> alerts(AlertDefinition alertDef, MetricSource.JmxInfo jmxInfo, JMXMetricHolder jmxMetricHolder, Reporting reporting) throws AmbariException {
-    List<Object> metrics = jmxMetricHolder.findAll(jmxInfo.getPropertyList());
-    if (metrics.isEmpty()) {
-      return emptyList();
-    }
-    if (metrics.get(0) instanceof Number) {
-      Alert alert = reporting.alert(((Number) metrics.get(0)).doubleValue(), metrics, alertDef);
-      return singletonList(alert);
-    } else {
-      LOG.info("Unsupported metrics value: {} when running alert: {}", metrics.get(0), alertDef);
-      return emptyList();
-    }
   }
 }
