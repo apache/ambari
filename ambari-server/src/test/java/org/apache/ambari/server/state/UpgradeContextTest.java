@@ -317,7 +317,6 @@ public class UpgradeContextTest extends EasyMockSupport {
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
         EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
 
-
     expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
 
     Map<String, Object> requestMap = new HashMap<>();
@@ -331,6 +330,43 @@ public class UpgradeContextTest extends EasyMockSupport {
 
     assertEquals(Direction.DOWNGRADE, context.getDirection());
     assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
+    assertEquals(1, context.getSupportedServices().size());
+    assertTrue(context.isPatchRevert());
+
+    verifyAll();
+  }
+
+
+  /**
+   * Tests that the {@link UpgradeContext} for a EU reversion has the correct
+   * parameters set.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRevertEU() throws Exception {
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
+    UpgradePack upgradePack = createNiceMock(UpgradePack.class);
+
+    expect(upgradeHelper.suggestUpgradePack(EasyMock.anyString(), EasyMock.anyObject(StackId.class),
+      EasyMock.anyObject(StackId.class), EasyMock.anyObject(Direction.class),
+      EasyMock.anyObject(UpgradeType.class), EasyMock.anyString())).andReturn(upgradePack).once();
+
+    expect(m_upgradeDAO.findRevertable(1L)).andReturn(m_completedRevertableUpgrade).once();
+    expect(m_completedRevertableUpgrade.getUpgradeType()).andReturn(UpgradeType.NON_ROLLING);
+
+    Map<String, Object> requestMap = new HashMap<>();
+    requestMap.put(UpgradeResourceProvider.UPGRADE_REVERT_UPGRADE_ID, "1");
+
+    replayAll();
+
+    UpgradeContext context = new UpgradeContext(m_cluster, requestMap, null, upgradeHelper,
+      m_upgradeDAO, m_repositoryVersionDAO, configHelper);
+
+    assertEquals(Direction.DOWNGRADE, context.getDirection());
+    assertEquals(RepositoryType.PATCH, context.getOrchestrationType());
+    assertEquals(UpgradeType.NON_ROLLING, context.getType());
     assertEquals(1, context.getSupportedServices().size());
     assertTrue(context.isPatchRevert());
 

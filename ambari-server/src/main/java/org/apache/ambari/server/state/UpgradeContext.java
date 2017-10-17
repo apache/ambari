@@ -261,6 +261,38 @@ public class UpgradeContext {
    */
   private RepositoryType m_orchestration = RepositoryType.STANDARD;
 
+  /**
+   * Reading upgrade type from provided request  or if nothing were provided,
+   * from previous upgrade for downgrade direction.
+   *
+   * @param upgradeRequestMap arguments provided for current upgrade request
+   * @param upgradeEntity previous upgrade entity, should be passed only for downgrade direction
+   *
+   * @return
+   * @throws AmbariException
+   */
+  private UpgradeType calculateUpgradeType(Map<String, Object> upgradeRequestMap,
+                                           UpgradeEntity upgradeEntity) throws AmbariException{
+
+    UpgradeType upgradeType = UpgradeType.ROLLING;
+
+    String upgradeTypeProperty = (String) upgradeRequestMap.get(UPGRADE_TYPE);
+    boolean upgradeTypePassed = StringUtils.isNotBlank(upgradeTypeProperty);
+
+    if (upgradeTypePassed){
+      try {
+        upgradeType = UpgradeType.valueOf(upgradeRequestMap.get(UPGRADE_TYPE).toString());
+      } catch (Exception e) {
+        throw new AmbariException(String.format("Property %s has an incorrect value of %s.",
+          UPGRADE_TYPE, upgradeTypeProperty));
+      }
+    } else if (upgradeEntity != null){
+      upgradeType = upgradeEntity.getUpgradeType();
+    }
+
+    return upgradeType;
+  }
+
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster,
       @Assisted Map<String, Object> upgradeRequestMap, Gson gson, UpgradeHelper upgradeHelper,
@@ -271,23 +303,7 @@ public class UpgradeContext {
     m_upgradeHelper = upgradeHelper;
     m_upgradeDAO = upgradeDAO;
     m_repoVersionDAO = repoVersionDAO;
-
     m_cluster = cluster;
-
-    // determine upgrade type (default is ROLLING)
-    String upgradeTypeProperty = (String) upgradeRequestMap.get(UPGRADE_TYPE);
-    if (StringUtils.isNotBlank(upgradeTypeProperty)) {
-      try {
-        m_type = UpgradeType.valueOf(upgradeRequestMap.get(UPGRADE_TYPE).toString());
-      } catch (Exception e) {
-        throw new AmbariException(String.format("Property %s has an incorrect value of %s.",
-            UPGRADE_TYPE, upgradeTypeProperty));
-      }
-    } else {
-      // default type
-      m_type= UpgradeType.ROLLING;
-    }
-
     m_isRevert = upgradeRequestMap.containsKey(UPGRADE_REVERT_UPGRADE_ID);
 
     if (m_isRevert) {
@@ -316,12 +332,14 @@ public class UpgradeContext {
             "Only successfully completed upgrades can be reverted. Downgrades cannot be reverted.");
       }
 
-      if (revertableUpgrade.getId() != revertUpgrade.getId()) {
+      if (!revertableUpgrade.getId().equals(revertUpgrade.getId())) {
         throw new AmbariException(String.format(
             "The only upgrade which is currently allowed to be reverted for cluster %s is upgrade ID %s which was an upgrade to %s",
             cluster.getClusterName(), revertableUpgrade.getId(),
             revertableUpgrade.getRepositoryVersion().getVersion()));
       }
+
+      m_type = calculateUpgradeType(upgradeRequestMap, revertUpgrade);
 
       // !!! build all service-specific reversions
       Map<String,Service> clusterServices = cluster.getServices();
@@ -375,6 +393,8 @@ public class UpgradeContext {
                     UPGRADE_REPO_VERSION_ID, m_direction));
           }
 
+          m_type = calculateUpgradeType(upgradeRequestMap, null);
+
           // depending on the repository, add services
           m_repositoryVersion = m_repoVersionDAO.findByPK(Long.valueOf(repositoryVersionId));
           m_orchestration = m_repositoryVersion.getType();
@@ -389,6 +409,7 @@ public class UpgradeContext {
 
           m_repositoryVersion = upgrade.getRepositoryVersion();
           m_orchestration = upgrade.getOrchestration();
+          m_type = calculateUpgradeType(upgradeRequestMap, upgrade);
 
           // populate the repository maps for all services in the upgrade
           for (UpgradeHistoryEntity history : upgrade.getHistory()) {
