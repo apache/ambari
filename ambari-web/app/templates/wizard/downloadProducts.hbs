@@ -1,0 +1,97 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="download-step-content" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
+  <h4 class="step-title">{{t installer.downloadProducts.header}}</h4>
+
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView}}
+      {{else}}
+        <div class="panel panel-default">
+          <div class="step-title">
+            <p>{{t installer.downloadProducts.body.title}}</p>
+          </div>
+          <p class="step-description">{{t installer.downloadProducts.body.description}}</p>
+
+          <div class="panel-body version-contents-body">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th class="col-sm-4">{{t common.mpack}}</th>
+                  <th class="col-sm-4">{{t common.status}}</th>
+                  <th class="col-sm-3">{{t common.actions}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each mpack in mpacks}}
+                  <tr>
+                    <td class="col-sm-4">{{mpack.displayName}}</td>
+                    <td class="download-status col-sm-4">
+                      {{#if mpack.inProgress}}
+                        <div class="progress-wrapper col-sm-9">
+                          <div class="progress">
+                            <div class="active progress-bar-striped progress-bar"}}></div>
+                          </div>
+                        </div>
+                      {{else}}
+                        {{#if mpack.success}}
+                          <i class="glyphicon glyphicon-ok"></i>&nbsp;
+                          {{t common.download}}&nbsp;{{t common.complete}}
+                        {{else}}
+                          <i class="glyphicon glyphicon-remove"></i>&nbsp;
+                          {{t common.download}}&nbsp;{{t common.failed}}
+                        {{/if}}
+                      {{/if}}
+                    </td>
+                    <td class="col-sm-3">
+                      {{#if mpack.failed}}
+                        <button type="button" class="btn btn-default btn-xs" {{action retryDownload mpack target="controller"}}>
+                          <i class="icon icon-repeat"></i>
+                          {{t common.retry}}
+                        </button>
+                      {{/if}}
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {{/if}}
+
+    </div>
+  </div>
+
+</div>
+
+<div class="wizard-footer col-md-12">
+  <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}} {{QAAttr "wizard-back"}}>
+    &larr; {{t common.back}}
+    {{#if App.router.backBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+  </button>
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}} {{QAAttr "wizard-next"}}>
+    {{#if App.router.nextBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+    {{t common.next}} &rarr;
+  </button>
+</div>

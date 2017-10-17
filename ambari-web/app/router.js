@@ -43,7 +43,9 @@ App.WizardRoute = Em.Route.extend({
 
   gotoStep10: Em.Router.transitionTo('step10'),
 
-  gotoStepConfigureDownload: Em.Router.transitionTo('configureDownload'),
+  gotoConfigureDownload: Em.Router.transitionTo('configureDownload'),
+
+  gotoDownloadProducts: Em.Router.transitionTo('configureDownload'),
 
   isRoutable: function() {
     return typeof this.get('route') === 'string' && App.router.get('loggedIn');

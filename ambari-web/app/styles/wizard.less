@@ -566,6 +566,38 @@
   max-height: 440px;
 }
 
+#download-step-content {
+  .panel-body .version-contents-body {
+    padding: 10px 0px 20px 0;
+    tbody > tr {
+      height:40px;
+      td {
+        vertical-align: middle;
+        padding: 6px;
+        button {
+          padding: 2px 8px;
+          font-size: 12px;
+          line-height: 1.5;
+          height: 25px;
+        }
+      }
+      .download-status {
+        font-size: 11px;
+        .progress-wrapper {
+          padding:0px;
+          .progress {
+            height:8px;
+            margin:5px 5px 5px 0;
+            .progress-bar {
+              width:100%;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 #select-stack .stack-version-selection{
   .select-version-label {
     padding: 5px 25px;

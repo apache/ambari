@@ -42,6 +42,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step2",
     "step3",
     "configureDownload",
+    "downloadProducts",
     "step1",
     "step4",
     "step5",
@@ -948,7 +949,15 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    'step1': [
+    'step2': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('installOptions');
+        }
+      }
+    ],
+    'configureDownload': [
       {
         type: 'async',
         callback: function () {
@@ -980,23 +989,15 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-    'step2': [
-      {
-        type: 'sync',
-        callback: function () {
-          this.load('installOptions');
-        }
-      }
-    ],
-    'configureDownload': [
+    'downloadProducts': [
       {
         type: 'async',
         callback: function () {
           var dfd = $.Deferred();
 
-          this.loadStacks().always(function() {
+          this.loadStacks().done(function(stacksLoaded) {
             App.router.get('clusterController').loadAmbariProperties().always(function() {
-              dfd.resolve();
+              dfd.resolve(stacksLoaded);
             });
           });
 
@@ -1010,9 +1011,39 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
           if (!stacksLoaded) {
             $.when.apply(this, this.loadStacksVersions()).done(function () {
-              Em.run.later('sync', function() {
-                dfd.resolve(stacksLoaded);
-              }, 1000);
+              dfd.resolve(true);
+            });
+          } else {
+            dfd.resolve(stacksLoaded);
+          }
+
+          return dfd.promise();
+        }
+      }
+    ],
+    'step1': [
+      {
+        type: 'async',
+        callback: function () {
+          var dfd = $.Deferred();
+
+          this.loadStacks().done(function(stacksLoaded) {
+            App.router.get('clusterController').loadAmbariProperties().always(function() {
+              dfd.resolve(stacksLoaded);
+            });
+          });
+
+          return dfd.promise();
+        }
+      },
+      {
+        type: 'async',
+        callback: function (stacksLoaded) {
+          var dfd = $.Deferred();
+
+          if (!stacksLoaded) {
+            $.when.apply(this, this.loadStacksVersions()).done(function () {
+              dfd.resolve(true);
             });
           } else {
             dfd.resolve(stacksLoaded);
@@ -1145,6 +1176,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     this.gotoStep('configureDownload');
   },
 
+  gotoDownloadProducts: function () {
+    this.gotoStep('downloadProducts');
+  },
+
   isStep0: function () {
     return this.get('currentStep') == this.getStepIndex('step0');
   }.property('currentStep'),
@@ -1191,6 +1226,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   isConfigureDownload: function () {
     return this.get('currentStep') == this.getStepIndex('configureDownload');
+  }.property('currentStep'),
+
+  isDownloadProducts: function () {
+    return this.get('currentStep') == this.getStepIndex('downloadProducts');
   }.property('currentStep'),
 
   clearConfigActionComponents: function() {

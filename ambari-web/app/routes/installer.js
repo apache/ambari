@@ -160,7 +160,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step1 connectOutlets');
       });
     },
-    back: Em.Router.transitionTo('step3'),
+    back: Em.Router.transitionTo('downloadProducts'),
     next: function (router) {
       console.time('step1 next');
       if(router.get('btnClickInProgress')) {
@@ -311,12 +311,42 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       if(router.get('btnClickInProgress')) {
         return;
       }
-      var configureDownloadController = router.get('configureDownloadController');
-      var installerController = router.get('installerController');
       App.set('router.nextBtnClickInProgress', true);
-      installerController.setDBProperty('service', undefined);
-      router.transitionTo('step1');
+      router.transitionTo('downloadProducts');
       console.timeEnd('configureDownload next');
+    }
+  }),
+
+  downloadProducts: App.StepRoute.extend({
+    route: '/downloadProducts',
+    connectOutlets: function (router) {
+      console.time('downloadProducts connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      var configureDownloadController = router.get('wizardDownloadProductsController');
+      var newStepIndex = controller.getStepIndex('downloadProducts');
+      router.setNavigationFlow(newStepIndex);
+      controller.setCurrentStep('downloadProducts');
+      controller.loadAllPriorSteps().done(function () {
+        configureDownloadController.set('wizardController', controller);
+        controller.connectOutlet('wizardDownloadProducts', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('downloadProducts connectOutlets');
+      });
+    },
+
+    backTransition: function (router) {
+      router.transitionTo('configureDownload');
+    },
+
+    next: function (router) {
+      console.time('downloadProducts next');
+      if(router.get('btnClickInProgress')) {
+        return;
+      }
+      App.set('router.nextBtnClickInProgress', true);
+      router.transitionTo('step1');
+      console.timeEnd('downloadProducts next');
     }
   }),
 

@@ -358,6 +358,7 @@ Em.I18n.translations = {
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
   'common.views': 'Views',
+  'common.mpack': 'Management Pack',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -614,6 +615,10 @@ Em.I18n.translations = {
   'installer.configureDownload.localRepo': 'Local Repository',
   'installer.configureDownload.publicRepo.hoverDesc': 'Management Packs will be downloaded using the internet',
   'installer.configureDownload.localRepo.hoverDesc': 'Management Packs will be downloaded from the specified local repository',
+
+  'installer.downloadProducts.header': 'Download Products',
+  'installer.downloadProducts.body.title': 'Downloading and validating Management Packs',
+  'installer.downloadProducts.body.description': 'Ambari is downloading the Management Packs and validating its contents',
 
   'installer.step1.header':'Select Version',
   'installer.step1.body':'Select the software version and method of delivery for your cluster.',

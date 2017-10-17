@@ -3062,7 +3062,29 @@ var urls = {
   'service.components.load': {
     real: '/clusters/{clusterName}/servicegroups/{defaultServiceGroupName}/services?fields=components&minimal_response=true',
     mock: '/data/services/components.json'
+  },
+
+  /** Mpack related APIs */
+
+  'mpack.download': {
+    'real': '/mpacks',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          Body: {
+            "MpackInfo" : {
+              "mpack_name" : data.name,
+              "mpack_version" : data.version,
+              "registry_id" : data.registry
+            }
+          }
+        })
+      };
+    }
   }
+
+
 };
 /**
  * Replace data-placeholders to its values

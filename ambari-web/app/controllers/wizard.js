@@ -383,6 +383,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.gotoStep("configureDownload");
   },
 
+  gotoDownloadProducts: function () {
+    this.gotoStep("downloadProducts");
+  },
+
   /**
    * Initialize host status info for step9
    */
