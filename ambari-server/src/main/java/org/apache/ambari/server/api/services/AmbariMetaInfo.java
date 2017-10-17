@@ -1527,6 +1527,7 @@ public class AmbariMetaInfo {
         command.setRepositoryVersionId(rve.getId());
         command.setRepositoryVersion(rve.getVersion());
         command.setStackName(rve.getStackName());
+        command.setResolved(rve.isResolved());
 
         // !!! a repository version entity has all the repos worked out.  We shouldn't use
         // the stack at all.

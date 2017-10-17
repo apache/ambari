@@ -202,7 +202,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
 
 
   @Test
-  public void testNoActionTakenOnNullVersion() {
+  public void testNoActionTakenOnNullVersion() throws AmbariException {
     expect(componentInfo.isVersionAdvertised()).andReturn(true).once();
     resetAll();
     replayAll();
@@ -211,7 +211,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
-  public void testSetUpgradeStateToCompleteWhenUpgradeIsInProgressAndNewVersionIsEqualToComponentDesiredVersion() {
+  public void testSetUpgradeStateToCompleteWhenUpgradeIsInProgressAndNewVersionIsEqualToComponentDesiredVersion() throws AmbariException {
     expect(cluster.getUpgradeInProgress()).andReturn(DUMMY_UPGRADE_ENTITY);
 
     expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
@@ -227,7 +227,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
-  public void testSetUpgradeStateToNoneWhenNoUpgradeAndNewVersionIsEqualToComponentDesiredVersion() {
+  public void testSetUpgradeStateToNoneWhenNoUpgradeAndNewVersionIsEqualToComponentDesiredVersion() throws AmbariException {
     expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
     expect(sch.getUpgradeState()).andReturn(UpgradeState.IN_PROGRESS);
     expect(componentInfo.isVersionAdvertised()).andReturn(true).once();
@@ -258,7 +258,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
-  public void testSetUpgradeStateToCompleteWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersionAndClusterUpgradeIsInProgress() {
+  public void testSetUpgradeStateToCompleteWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersionAndClusterUpgradeIsInProgress() throws AmbariException {
     expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
     expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH);
     expect(cluster.getUpgradeInProgress()).andReturn(DUMMY_UPGRADE_ENTITY);
@@ -273,7 +273,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
-  public void testSetUpgradeStateToNoneWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersion() {
+  public void testSetUpgradeStateToNoneWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersion() throws AmbariException {
     expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
     expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH);
     expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_NEW_VERSION);
@@ -287,7 +287,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
   }
 
   @Test
-  public void testSetUpgradeStateToVersionMismatchByDefaultWhenHostAndNewVersionsAreValid() {
+  public void testSetUpgradeStateToVersionMismatchByDefaultWhenHostAndNewVersionsAreValid() throws AmbariException {
     expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
     expect(componentInfo.isVersionAdvertised()).andReturn(true).once();
     sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
@@ -406,7 +406,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
     verifyAll();
   }
 
-  private void sendEventAndVerify(String newVersion) {
+  private void sendEventAndVerify(String newVersion) throws AmbariException {
     HostComponentVersionAdvertisedEvent event = new HostComponentVersionAdvertisedEvent(cluster, sch, newVersion);
     listener.onAmbariEvent(event);
 
