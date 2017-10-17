@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
 import org.apache.commons.lang.math.NumberUtils;

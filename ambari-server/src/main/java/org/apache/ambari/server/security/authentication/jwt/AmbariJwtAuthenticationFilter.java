@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.authorization.jwt;
+
+package org.apache.ambari.server.security.authentication.jwt;
 
 import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -33,19 +33,17 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
-import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandler;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
-import org.apache.ambari.server.security.authentication.UserNotFoundException;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
-import org.apache.ambari.server.security.authorization.UserAuthenticationType;
-import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenticationFilter;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -59,41 +57,88 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
 
 /**
- * Filter is used to validate JWT token and authenticate user.
- * It is also responsive for creating user in local Ambari database for further management
+ * AmbariBasicAuthenticationFilter  is used to validate JWT token and authenticate users.
+ * <p>
+ * This authentication filter is expected to be used withing an {@link AmbariDelegatingAuthenticationFilter}.
+ *
+ * @see AmbariDelegatingAuthenticationFilter
  */
-public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
-  private static final Logger LOG = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter {
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariJwtAuthenticationFilter.class);
 
+  /**
+   * Ambari authentication event handler
+   */
+  private final AmbariAuthenticationEventHandler eventHandler;
+
+  /**
+   * Authentication entry point implementation
+   */
+  private final AuthenticationEntryPoint ambariEntryPoint;
+
+  /**
+   * The /JWT authentication provider
+   */
+  private final AuthenticationProvider authenticationProvider;
+
+  /**
+   * Authentication properties for JWT authenticatioin
+   * <p>
+   * If null JWT authentication has not been enabled
+   */
   private final JwtAuthenticationProperties jwtProperties;
 
-  private String originalUrlQueryParam = "originalUrl";
-  private String authenticationProviderUrl = null;
-  private RSAPublicKey publicKey = null;
-  private List<String> audiences = null;
-  private String cookieName = "hadoop-jwt";
+  /**
+   * The name of the HTTP cookie containing the authentication token
+   */
+  private final String jwtCookieName;
 
-  private boolean ignoreFailure = false;
-  private AuthenticationEntryPoint entryPoint;
-  private Users users;
+  /**
+   * The expected/allowed JWT audiences
+   * <p>
+   * If empty, any audience is allowed
+   */
+  private final List<String> audiences;
 
-  public JwtAuthenticationFilter(Configuration configuration, AuthenticationEntryPoint entryPoint, Users users) {
-    this.entryPoint = entryPoint;
-    this.users = users;
-    jwtProperties = configuration.getJwtProperties();
-    loadJwtProperties();
-  }
+  /**
+   * The public key of the token producer, used to verify the signed token
+   */
+  private final RSAPublicKey publicKey;
 
-  public JwtAuthenticationFilter(JwtAuthenticationProperties jwtProperties, AuthenticationEntryPoint entryPoint,
-                                 Users users) {
-    this.jwtProperties = jwtProperties;
-    this.entryPoint = entryPoint;
-    this.users = users;
-    loadJwtProperties();
+  /**
+   * Constructor.
+   *
+   * @param ambariEntryPoint the Spring entry point
+   * @param configuration    the Ambari configuration
+   * @param eventHandler     the Ambari authentication event handler
+   */
+  AmbariJwtAuthenticationFilter(AuthenticationEntryPoint ambariEntryPoint,
+                                Configuration configuration,
+                                AuthenticationProvider authenticationProvider,
+                                AmbariAuthenticationEventHandler eventHandler) {
+    if (eventHandler == null) {
+      throw new IllegalArgumentException("The AmbariAuthenticationEventHandler must not be null");
+    }
+
+    this.ambariEntryPoint = ambariEntryPoint;
+    this.eventHandler = eventHandler;
+
+    this.jwtProperties = configuration.getJwtProperties();
+    this.authenticationProvider = authenticationProvider;
+
+    if (jwtProperties == null) {
+      this.jwtCookieName = null;
+      this.audiences = null;
+      this.publicKey = null;
+    } else {
+      this.jwtCookieName = jwtProperties.getCookieName();
+      this.audiences = jwtProperties.getAudiences();
+      this.publicKey = jwtProperties.getPublicKey();
+    }
   }
 
   /**
-   * Tests to see if this JwtAuthenticationFilter should be applied in the authentication
+   * Tests to see if this JwtAuthenticationFilter shold be applied in the authentication
    * filter chain.
    * <p>
    * <code>true</code> will be returned if JWT authentication is enabled and the HTTP request contains
@@ -115,19 +160,34 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
   }
 
   @Override
+  public boolean shouldIncrementFailureCount() {
+    return false;
+  }
+
+  @Override
   public void init(FilterConfig filterConfig) throws ServletException {
 
   }
 
-  // TODO: ************
-  // TODO: This is to be revisited for AMBARI-21217 (Update JWT Authentication process to work with improved user management facility)
-  // TODO: ************
+  /**
+   * Checks whether the authentication information is filled. If it is not, then a login failed audit event is logged
+   *
+   * @param servletRequest  the request
+   * @param servletResponse the response
+   * @param chain           the Spring filter chain
+   * @throws IOException
+   * @throws ServletException
+   */
   @Override
-  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
+
+    if (eventHandler != null) {
+      eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
+    }
 
     if (jwtProperties == null) {
       //disable filter if not configured
-      filterChain.doFilter(servletRequest, servletResponse);
+      chain.doFilter(servletRequest, servletResponse);
       return;
     }
 
@@ -144,54 +204,13 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
 
           if (valid) {
             String userName = jwtToken.getJWTClaimsSet().getSubject();
-            UserEntity userEntity = users.getUserEntity(userName);
 
-            if (userEntity == null) {
-              //TODO we temporary expect that LDAP is configured to same server as JWT source
-              throw new UserNotFoundException(userName, "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
-            } else {
-              // Check to see if the user is allowed to authenticate using JWT or LDAP
-              Collection<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
-              boolean hasJWT = false;
-              boolean hasLDAP = false;
-
-              if (authenticationEntities != null) {
-                for (UserAuthenticationEntity entity : authenticationEntities) {
-                  if (entity.getAuthenticationType() == UserAuthenticationType.JWT) {
-                    // TODO: possibly check the authentication key to see if it is relevant
-                    hasJWT = true;
-                    break;
-                  } else if (entity.getAuthenticationType() == UserAuthenticationType.LDAP) {
-                    hasLDAP = true;
-                  }
-                }
-              }
-
-              if(!hasJWT) {
-                if (hasLDAP) {
-                  // TODO: Determine if LDAP users can authenticate using JWT
-                  try {
-                    users.addJWTAuthentication(userEntity, userName);
-                  } catch (AmbariException e) {
-                    LOG.error(String.format("Failed to add the JWT authentication method for %s: %s", userName, e.getLocalizedMessage()), e);
-                  }
-                  hasJWT = true;
-                }
-              }
-
-              if (!hasJWT) {
-                throw new UserNotFoundException(userName, "User is not authorized to authenticate from JWT. Please, ensure LDAP is configured and users are synced.");
-              }
-            }
-
-            // If we made it this far, the user was found and is authorized to authenticate via JWT
-            Collection<AmbariGrantedAuthority> userAuthorities = users.getUserAuthorities(userEntity);
-
-            JwtAuthentication authentication = new JwtAuthentication(serializedJWT, users.getUser(userEntity), userAuthorities);
-            authentication.setAuthenticated(true);
-
+            Authentication authentication = authenticationProvider.authenticate(new JwtAuthenticationToken(userName, serializedJWT, null));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            onSuccessfulAuthentication(httpServletRequest, httpServletResponse, authentication);
+
+            if (eventHandler != null) {
+              eventHandler.onSuccessfulAuthentication(this, httpServletRequest, httpServletResponse, authentication);
+            }
           } else {
             throw new BadCredentialsException("Invalid JWT token");
           }
@@ -203,32 +222,32 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
         LOG.trace("No JWT cookie found, do nothing");
       }
 
-      filterChain.doFilter(servletRequest, servletResponse);
+      chain.doFilter(servletRequest, servletResponse);
     } catch (AuthenticationException e) {
       LOG.warn("JWT authentication failed - {}", e.getLocalizedMessage());
 
       //clear security context if authentication was required, but failed
       SecurityContextHolder.clearContext();
 
-      onUnsuccessfulAuthentication(httpServletRequest, httpServletResponse, e);
+      if (eventHandler != null) {
+        AmbariAuthenticationException cause;
 
-      if (ignoreFailure) {
-        filterChain.doFilter(servletRequest, servletResponse);
-      } else {
-        //used to indicate authentication failure, not used here as we have more than one filter
-        entryPoint.commence(httpServletRequest, httpServletResponse, e);
+        if (e instanceof AmbariAuthenticationException) {
+          cause = (AmbariAuthenticationException) e;
+        } else {
+          cause = new AmbariAuthenticationException(null, e.getMessage(), e);
+        }
+
+        eventHandler.onUnsuccessfulAuthentication(this, httpServletRequest, httpServletResponse, cause);
       }
+
+      //used to indicate authentication failure, not used here as we have more than one filter
+      ambariEntryPoint.commence(httpServletRequest, httpServletResponse, e);
     }
   }
 
-  private void loadJwtProperties() {
-    if (jwtProperties != null) {
-      authenticationProviderUrl = jwtProperties.getAuthenticationProviderUrl();
-      publicKey = jwtProperties.getPublicKey();
-      audiences = jwtProperties.getAudiences();
-      cookieName = jwtProperties.getCookieName();
-      originalUrlQueryParam = jwtProperties.getOriginalUrlQueryParam();
-    }
+  @Override
+  public void destroy() {
   }
 
   /**
@@ -245,7 +264,7 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
     }
 
     //revalidate if token was changed
-    if (existingAuth instanceof JwtAuthentication && !StringUtils.equals(token, (String) existingAuth.getCredentials())) {
+    if (existingAuth instanceof AmbariUserAuthentication && !StringUtils.equals(token, (String) existingAuth.getCredentials())) {
       return true;
     }
 
@@ -260,38 +279,19 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
    * @param req servlet request to get the JWT token from
    * @return serialized JWT token
    */
-  protected String getJWTFromCookie(HttpServletRequest req) {
+  String getJWTFromCookie(HttpServletRequest req) {
     String serializedJWT = null;
     Cookie[] cookies = req.getCookies();
     if (cookies != null) {
       for (Cookie cookie : cookies) {
-        if (cookieName.equals(cookie.getName())) {
-          LOG.info(cookieName
-              + " cookie has been found and is being processed");
+        if (jwtCookieName.equals(cookie.getName())) {
+          LOG.info("{} cookie has been found and is being processed", jwtCookieName);
           serializedJWT = cookie.getValue();
           break;
         }
       }
     }
     return serializedJWT;
-  }
-
-  /**
-   * Create the URL to be used for authentication of the user in the absence of
-   * a JWT token within the incoming request.
-   *
-   * @param request for getting the original request URL
-   * @return url to use as login url for redirect
-   */
-  protected String constructLoginURL(HttpServletRequest request) {
-    String delimiter = "?";
-    if (authenticationProviderUrl.contains("?")) {
-      delimiter = "&";
-    }
-    String loginURL = authenticationProviderUrl + delimiter
-        + originalUrlQueryParam + "="
-        + request.getRequestURL();
-    return loginURL;
   }
 
   /**
@@ -303,7 +303,7 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
    * @param jwtToken the token to validate
    * @return true if valid
    */
-  protected boolean validateToken(SignedJWT jwtToken) {
+  private boolean validateToken(SignedJWT jwtToken) {
     boolean sigValid = validateSignature(jwtToken);
     if (!sigValid) {
       LOG.warn("Signature could not be verified");
@@ -329,7 +329,7 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
    * @param jwtToken the token that contains the signature to be validated
    * @return valid true if signature verifies successfully; false otherwise
    */
-  protected boolean validateSignature(SignedJWT jwtToken) {
+  boolean validateSignature(SignedJWT jwtToken) {
     boolean valid = false;
     if (JWSObject.State.SIGNED == jwtToken.getState()) {
       LOG.debug("JWT token is in a SIGNED state");
@@ -359,11 +359,10 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
    * @param jwtToken the JWT token where the allowed audiences will be found
    * @return true if an expected audience is present, otherwise false
    */
-  protected boolean validateAudiences(SignedJWT jwtToken) {
+  boolean validateAudiences(SignedJWT jwtToken) {
     boolean valid = false;
     try {
-      List<String> tokenAudienceList = jwtToken.getJWTClaimsSet()
-          .getAudience();
+      List<String> tokenAudienceList = jwtToken.getJWTClaimsSet().getAudience();
       // if there were no expected audiences configured then just
       // consider any audience acceptable
       if (audiences == null) {
@@ -375,7 +374,9 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
           LOG.warn("JWT token has no audiences, validation failed.");
           return false;
         }
+        LOG.info("Audience List: {}", audiences);
         for (String aud : tokenAudienceList) {
+          LOG.info("Found audience: {}", aud);
           if (audiences.contains(aud)) {
             LOG.debug("JWT token audience has been successfully validated");
             valid = true;
@@ -400,13 +401,12 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
    * @param jwtToken the token that contains the expiration date to validate
    * @return valid true if the token has not expired; false otherwise
    */
-  protected boolean validateExpiration(SignedJWT jwtToken) {
+  boolean validateExpiration(SignedJWT jwtToken) {
     boolean valid = false;
     try {
       Date expires = jwtToken.getJWTClaimsSet().getExpirationTime();
       if (expires == null || new Date().before(expires)) {
-        LOG.debug("JWT token expiration date has been "
-            + "successfully validated");
+        LOG.debug("JWT token expiration date has been successfully validated");
         valid = true;
       } else {
         LOG.warn("JWT expiration date validation failed.");
@@ -415,34 +415,5 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
       LOG.warn("JWT expiration date validation failed.", pe);
     }
     return valid;
-  }
-
-  /**
-   * Called to declare an authentication attempt was successful.  Classes may override this method
-   * to perform additional tasks when authentication completes.
-   *
-   * @param request    the request
-   * @param response   the response
-   * @param authResult the authenticated user
-   * @throws IOException
-   */
-  protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException {
-  }
-
-  /**
-   * Called to declare an authentication attempt failed.  Classes may override this method
-   * to perform additional tasks when authentication fails.
-   *
-   * @param request       the request
-   * @param response      the response
-   * @param authException the cause for the faulure
-   * @throws IOException
-   */
-  protected void onUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
-  }
-
-  @Override
-  public void destroy() {
-
   }
 }

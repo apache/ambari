@@ -22,7 +22,7 @@ import java.util.Collection;
 
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserName;
 import org.junit.Assert;

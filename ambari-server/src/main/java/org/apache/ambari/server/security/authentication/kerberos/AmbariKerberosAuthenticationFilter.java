@@ -135,6 +135,12 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     }
   }
 
+  @Override
+  public boolean shouldIncrementFailureCount() {
+    // Always return false since authentication happens remotely.
+    return false;
+  }
+
   /**
    * Performs the logic for this filter.
    * <p>

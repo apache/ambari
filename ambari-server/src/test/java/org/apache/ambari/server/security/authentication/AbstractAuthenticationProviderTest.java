@@ -31,7 +31,6 @@ import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;

@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authentication.pam.PamAuthenticationFactory;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;

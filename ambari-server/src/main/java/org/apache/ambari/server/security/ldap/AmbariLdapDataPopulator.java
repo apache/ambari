@@ -671,7 +671,7 @@ public class AmbariLdapDataPopulator {
         }
       }
     } while (configuration.getLdapServerProperties().isPaginationEnabled()
-        && processor.getCookie().getCookie() != null);
+        && (processor.getCookie() != null) && (processor.getCookie().getCookie() != null));
     return users;
   }
 

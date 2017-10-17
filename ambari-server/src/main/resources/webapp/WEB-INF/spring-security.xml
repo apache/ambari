@@ -58,10 +58,10 @@
     <beans:constructor-arg ref="ambariAuthenticationEventHandler"/>
   </beans:bean>
 
-  <beans:bean id="ambariJwtAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariJWTAuthenticationFilter">
+  <beans:bean id="ambariJwtAuthenticationFilter" class="org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationFilter">
     <beans:constructor-arg ref="ambariEntryPoint"/>
     <beans:constructor-arg ref="ambariConfiguration"/>
-    <beans:constructor-arg ref="ambariUsers"/>
+    <beans:constructor-arg ref="ambariJwtAuthenticationProvider"/>
     <beans:constructor-arg ref="ambariAuthenticationEventHandler"/>
   </beans:bean>
 

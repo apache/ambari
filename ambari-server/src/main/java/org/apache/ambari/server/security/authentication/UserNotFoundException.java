@@ -23,6 +23,15 @@ package org.apache.ambari.server.security.authentication;
  * when the user specified in an authentication attempt is not found in the Ambari user database.
  */
 public class UserNotFoundException extends AmbariAuthenticationException {
+  public static final String MESSAGE = "User does not exist.";
+
+  public UserNotFoundException(String userName) {
+    super(userName, MESSAGE);
+  }
+
+  public UserNotFoundException(String userName, Throwable cause) {
+    super(userName, MESSAGE, cause);
+  }
 
   public UserNotFoundException(String username, String message) {
     super(username, message);

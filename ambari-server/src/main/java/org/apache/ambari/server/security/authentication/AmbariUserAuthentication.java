@@ -15,10 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.authorization;
+package org.apache.ambari.server.security.authentication;
 
 import java.util.Collection;
 
+import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.UserIdAuthentication;
 import org.springframework.security.core.Authentication;
 
 public class AmbariUserAuthentication implements Authentication, UserIdAuthentication {

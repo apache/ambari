@@ -63,10 +63,10 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
@@ -5299,7 +5299,7 @@ public class Configuration {
     if (enableJwt) {
       String providerUrl = getProperty(JWT_AUTH_PROVIDER_URL);
       if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.", providerUrl);
+        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.");
         return null;
       }
       String publicKeyPath = getProperty(JWT_PUBLIC);

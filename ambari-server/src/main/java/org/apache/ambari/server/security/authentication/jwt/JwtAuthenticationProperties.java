@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.authorization.jwt;
+package org.apache.ambari.server.security.authentication.jwt;
 
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;

@@ -24,7 +24,6 @@ import java.util.Collections;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.UserName;
 import org.springframework.security.authentication.AuthenticationProvider;

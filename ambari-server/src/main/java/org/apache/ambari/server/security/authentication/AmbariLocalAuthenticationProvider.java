@@ -20,7 +20,6 @@ package org.apache.ambari.server.security.authentication;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
@@ -59,24 +58,27 @@ public class AmbariLocalAuthenticationProvider extends AmbariAuthenticationProvi
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     String userName = authentication.getName().trim();
 
-    UserEntity userEntity = getUserEntity(userName);
+    UserEntity userEntity;
+    try {
+      userEntity = getUserEntity(userName);
 
-    if (userEntity == null) {
-      LOG.info("User not found: {}", userName);
-      throw new InvalidUsernamePasswordCombinationException(userName);
-    }
-
-    int maxConsecutiveFailures = configuration.getMaxAuthenticationFailures();
-    if (maxConsecutiveFailures > 0 && userEntity.getConsecutiveFailures() >= maxConsecutiveFailures) {
-      LOG.info("User account is locked out due to too many authentication failures ({}/{}): {}",
-          userEntity.getConsecutiveFailures(), maxConsecutiveFailures, userName);
-      if (configuration.showLockedOutUserMessage()) {
-        throw new TooManyLoginFailuresException(userName);
-      } else {
+      if (userEntity == null) {
+        LOG.info("User not found: {}", userName);
         throw new InvalidUsernamePasswordCombinationException(userName);
       }
     }
-
+    catch(UserNotFoundException e) {
+      // Do not give away information about the existence or status of a user
+      throw new InvalidUsernamePasswordCombinationException(userName, e);
+    }
+    catch (AccountDisabledException | TooManyLoginFailuresException e) {
+      if (configuration.showLockedOutUserMessage()) {
+        throw e;
+      } else {
+        // Do not give away information about the existence or status of a user
+        throw new InvalidUsernamePasswordCombinationException(userName, e);
+      }
+    }
 
     if (authentication.getCredentials() == null) {
       LOG.info("Authentication failed: no credentials provided: {}", userName);

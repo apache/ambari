@@ -92,6 +92,11 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
     return (header != null) && header.startsWith("Basic ");
   }
 
+  @Override
+  public boolean shouldIncrementFailureCount() {
+    return true;
+  }
+
   /**
    * Checks whether the authentication information is filled. If it is not, then a login failed audit event is logged
    *
