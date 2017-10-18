@@ -675,6 +675,9 @@
           <summary>Update Storm log directory in storm worker log4j</summary>
         </task>
       </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
+        <task xsi:type="configure" id="storm_remove_jmxetric"/>
+      </execute-stage>
 
       <!--ATLAS-->
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Parameterizing Atlas Log4J Properties">

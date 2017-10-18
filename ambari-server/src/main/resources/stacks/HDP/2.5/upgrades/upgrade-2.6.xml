@@ -1051,6 +1051,7 @@
           <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
           <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
           <task xsi:type="configure" id="storm_nimbus_autocred_config" />
+          <task xsi:type="configure" id="storm_remove_jmxetric"/>
         </pre-upgrade>
         <pre-downgrade/>
         <upgrade>

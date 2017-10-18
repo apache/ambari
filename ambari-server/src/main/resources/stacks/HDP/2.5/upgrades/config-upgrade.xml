@@ -69,7 +69,10 @@
             <set key="nimbus.credential.renewers.classes" value="['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
             <set key="nimbus.credential.renewers.freq.secs" value="82800" if-type="streamline-common" if-key="authorizer.class.name" if-key-state="present"/>
           </definition>
-
+          <definition xsi:type="configure" id="storm_remove_jmxetric" summary="Removing jmxetric from childopts.">
+            <type>storm-site</type>
+            <regex-replace key="content" find=" -javaagent:.*JVM" replace-with=""/>
+          </definition>
         </changes>
       </component>
     </service>

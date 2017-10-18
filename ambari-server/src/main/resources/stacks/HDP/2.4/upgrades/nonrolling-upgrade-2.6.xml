@@ -595,6 +595,9 @@
           <summary>Update Storm log directory in storm worker log4j</summary>
         </task>
       </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
+        <task xsi:type="configure" id="storm_remove_jmxetric"/>
+      </execute-stage>
 
       <!-- KAFKA -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka Broker">
