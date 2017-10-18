@@ -21,13 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -94,7 +92,7 @@ import com.google.inject.Provider;
         query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC"),
     @NamedQuery(
         name = "findByServiceDesiredVersion",
-        query = "SELECT DISTINCT sd.desiredRepositoryVersion from ServiceDesiredStateEntity sd WHERE sd.desiredRepositoryVersion IN ?1") })
+        query = "SELECT sd.desiredRepositoryVersion from ServiceDesiredStateEntity sd WHERE sd.desiredRepositoryVersion IN ?1 GROUP BY sd.desiredRepositoryVersion.id") })
 @StaticallyInject
 public class RepositoryVersionEntity {
   private static Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
@@ -131,7 +129,6 @@ public class RepositoryVersionEntity {
   @Enumerated(value = EnumType.STRING)
   private RepositoryType type = RepositoryType.STANDARD;
 
-  @Basic(fetch=FetchType.LAZY)
   @Lob
   @Column(name="version_xml", insertable = true, updatable = true)
   private String versionXml;
