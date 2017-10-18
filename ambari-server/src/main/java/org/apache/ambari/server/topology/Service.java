@@ -21,45 +21,19 @@ package org.apache.ambari.server.topology;
 
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.StackV2;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Service {
+public class Service implements Configurable {
 
-  private final String type;
+  private String type;
 
-  private final String name;
+  private ServiceId id = new ServiceId();
 
-  private final StackV2 stack;
+  private String stackId;
 
-  private final Configuration configuration;
+  private Configuration configuration;
 
-  private final ServiceGroup serviceGroup;
-
-  private final Set<Service> dependentServices;
-
-  public Service(String type, StackV2 stack, ServiceGroup serviceGroup) {
-    this(type, type, stack, serviceGroup,  null, null);
-  }
-
-  /**
-   * In case there's no name specified name will be set to type.
-   * @param type
-   * @param name
-   * @param stack
-   * @param configuration
-   */
-  public Service(String type, String name, StackV2 stack, ServiceGroup serviceGroup, Configuration configuration, Set<Service> dependentServices) {
-    this.type = type;
-    if (name == null) {
-      this.name = type;
-    } else {
-      this.name = name;
-    }
-    this.stack = stack;
-    this.serviceGroup = serviceGroup;
-    this.configuration = configuration;
-    this.dependentServices = dependentServices;
-  }
+  private Set<ServiceId> dependencies;
 
   /**
    * Gets the name of this service
@@ -67,26 +41,57 @@ public class Service {
    * @return component name
    */
   public String getName() {
-    return this.name;
+    return this.id.getName();
+  }
+
+  public String getServiceGroup() {
+    return this.id.getServiceGroup();
   }
 
   public String getType() {
     return type;
   }
 
-  public StackV2 getStack() {
-    return stack;
+  public String getStackId() {
+    return stackId;
+  }
+
+  public Set<ServiceId> getDependencies() {
+    return dependencies;
   }
 
   public Configuration getConfiguration() {
     return configuration;
   }
 
-  public ServiceGroup getServiceGroup() {
-    return serviceGroup;
+
+  public void setType(String type) {
+    this.type = type;
   }
 
-  public Set<Service> getDependentServices() {
-    return dependentServices;
+  public void setName(String name) {
+    this.id.setName(name);
   }
+
+  public void setServiceGroup(String serviceGroup) {
+    this.id.setServiceGroup(serviceGroup);
+  }
+
+  @JsonProperty("stack_id")
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
+  }
+
+  public void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
+  }
+
+  public void setDependencies(Set<ServiceId> dependencies) {
+    this.dependencies = dependencies;
+  }
+
+  public ServiceId getId() {
+    return id;
+  }
+
 }

@@ -18,37 +18,28 @@
 
 package org.apache.ambari.server.topology;
 
-
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 
-public class ComponentV2 {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-  private final String type;
+public class ComponentV2 implements Configurable {
 
-  private final String name;
+  private String type;
 
-  private final Service service;
+  private String name;
 
-  private final ProvisionAction provisionAction;
+  private ServiceId serviceId = new ServiceId();
 
-  private final Configuration configuration;
+  private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
 
-  public ComponentV2(String type, Service service) {
-    this(type, type, service, null, null);
-  }
+  private Configuration configuration;
 
+  private boolean masterComponent = false;
 
-  public ComponentV2(String type, String name, Service service) {
-    this(type, name, service, null, null);
-  }
+  public ComponentV2() { }
 
-  public ComponentV2(String type, String name, Service service, ProvisionAction provisionAction, Configuration configuration) {
-    this.type = type;
-    this.name = name;
-    this.service = service;
-    this.provisionAction = provisionAction;
-    this.configuration = configuration;
-  }
 
   /**
    * Gets the name of this component
@@ -59,8 +50,9 @@ public class ComponentV2 {
     return this.name;
   }
 
-  public String getType() {
-    return type;
+  /** @return the masterComponent flag */
+  public boolean isMasterComponent() {
+    return masterComponent;
   }
 
   /**
@@ -73,11 +65,59 @@ public class ComponentV2 {
     return this.provisionAction;
   }
 
-  public Service getService() {
-    return service;
+  public ServiceId getServiceId() {
+    return serviceId;
   }
 
   public Configuration getConfiguration() {
     return configuration;
   }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+    if (null == this.name) {
+      this.name = type;
+    }
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getServiceGroup() {
+    return serviceId.getServiceGroup();
+  }
+
+  @JsonProperty("service_group")
+  public void setServiceGroup(String serviceGroup) {
+    serviceId.setServiceGroup(serviceGroup);
+  }
+
+  @JsonProperty("service_name")
+  public void setServiceName(String serviceName) {
+    serviceId.setName(serviceName);
+  }
+
+  public String getServiceName() {
+    return serviceId.getName();
+  }
+
+  @JsonProperty("provision_action")
+  public void setProvisionAction(ProvisionAction provisionAction) {
+    this.provisionAction = provisionAction;
+  }
+
+  public void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
+  }
+
+  @JsonIgnore
+  public void setMasterComponent(StackV2 stack) {
+    this.masterComponent = stack.isMasterComponent(this.type);
+  }
+
 }

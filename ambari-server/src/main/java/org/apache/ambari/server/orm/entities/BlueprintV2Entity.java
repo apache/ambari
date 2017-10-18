@@ -18,10 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collection;
-
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -29,25 +26,23 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.apache.ambari.server.state.SecurityType;
 
-
 /**
  * Entity representing a Blueprint.
  */
-@Table(name = "blueprint")
-@NamedQuery(name = "allBlueprints",
-    query = "SELECT blueprint FROM BlueprintEntity blueprint")
+@Table(name = "blueprintv2")
+@NamedQuery(name = "allBlueprintsv2",
+  query = "SELECT blueprint FROM BlueprintV2Entity blueprint")
 @Entity
-public class BlueprintEntity {
+public class BlueprintV2Entity {
 
   @Id
   @Column(name = "blueprint_name", nullable = false, insertable = true,
-      updatable = false, unique = true, length = 100)
+    updatable = false, unique = true, length = 100)
   private String blueprintName;
 
   @Basic
@@ -59,39 +54,16 @@ public class BlueprintEntity {
   @Column(name = "security_descriptor_reference", nullable = true, insertable = true, updatable = true)
   private String securityDescriptorReference;
 
+  @Basic
+  @Column(name = "content", nullable = false, insertable = true, updatable = true)
+  private String content;
+
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
    */
   @OneToOne
   @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = false)
   private StackEntity stack;
-
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<HostGroupEntity> hostGroups;
-
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<BlueprintConfigEntity> configurations;
-
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<BlueprintSettingEntity> settings;
-
-  /**
-   * Get the blueprint name.
-   *
-   * @return blueprint name
-   */
-  public String getBlueprintName() {
-    return blueprintName;
-  }
-
-  /**
-   * Set the blueprint name
-   *
-   * @param blueprintName  the blueprint name
-   */
-  public void setBlueprintName(String blueprintName) {
-    this.blueprintName = blueprintName;
-  }
 
   /**
    * Gets the blueprint's stack.
@@ -112,58 +84,13 @@ public class BlueprintEntity {
     this.stack = stack;
   }
 
-  /**
-   * Get the collection of associated host groups.
-   *
-   * @return collection of host groups
-   */
-  public Collection<HostGroupEntity> getHostGroups() {
-    return hostGroups;
+
+  public String getBlueprintName() {
+    return blueprintName;
   }
 
-  /**
-   * Set the host group collection.
-   *
-   * @param hostGroups  collection of associated host groups
-   */
-  public void setHostGroups(Collection<HostGroupEntity> hostGroups) {
-    this.hostGroups = hostGroups;
-  }
-
-  /**
-   * Get the collection of associated configurations.
-   *
-   * @return collection of configurations
-   */
-  public Collection<BlueprintConfigEntity> getConfigurations() {
-    return configurations;
-  }
-
-  /**
-   * Set the configuration collection.
-   *
-   * @param configurations  collection of associated configurations
-   */
-  public void setConfigurations(Collection<BlueprintConfigEntity> configurations) {
-    this.configurations = configurations;
-  }
-
-  /**
-   * Get the collection of associated setting.
-   *
-   * @return collection of setting
-   */
-  public Collection<BlueprintSettingEntity> getSettings() {
-    return settings;
-  }
-
-  /**
-   * Set the settings collection.
-   *
-   * @param settings collection of associated setting
-   */
-  public void setSettings(Collection<BlueprintSettingEntity> settings) {
-    this.settings = settings;
+  public void setBlueprintName(String blueprintName) {
+    this.blueprintName = blueprintName;
   }
 
   public SecurityType getSecurityType() {
@@ -180,5 +107,13 @@ public class BlueprintEntity {
 
   public void setSecurityDescriptorReference(String securityDescriptorReference) {
     this.securityDescriptorReference = securityDescriptorReference;
+  }
+
+  public String getContent() {
+    return content;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
   }
 }

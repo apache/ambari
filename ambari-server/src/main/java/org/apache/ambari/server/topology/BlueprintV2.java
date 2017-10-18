@@ -22,7 +22,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.internal.StackV2;
+
+import javax.annotation.Nonnull;
+
+import org.apache.ambari.server.controller.StackV2;
+
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 
 
@@ -60,6 +64,10 @@ public interface BlueprintV2 {
    */
   Collection<StackV2> getStacks();
 
+  /**
+  * @return associated stack ids
+  **/
+  public Collection<String> getStackIds();
 
   Collection<ServiceGroup> getServiceGroups();
 
@@ -68,7 +76,16 @@ public interface BlueprintV2 {
    *
    * @return collection of all represented service names
    */
-  Collection<Service> getAllServices();
+  Collection<ServiceId> getAllServices();
+
+  /**
+   * Get the names of all the services represented in the blueprint.
+   *
+   * @return collection of all represented service names
+   */
+  @Nonnull
+  Collection<String> getAllServiceNames();
+
 
 
   /**
@@ -96,11 +113,22 @@ public interface BlueprintV2 {
   /**
    * Get the components that are included in the blueprint for the specified service.
    *
-   * @param service  service name
+   * @param serviceId  serviceId
    *
    * @return collection of component names for the service.  Will not return null.
    */
-  Collection<ComponentV2> getComponents(Service service);
+  @Nonnull
+  Collection<String> getComponentNames(ServiceId serviceId);
+
+  /**
+   * Get the component names s that are included in the blueprint for the specified service.
+   *
+   * @param serviceId  serviceId
+   *
+   * @return collection of component names for the service.  Will not return null.
+   */
+  Collection<ComponentV2> getComponents(ServiceId serviceId);
+
 
   /**
    * Get components by type from a service.
@@ -114,12 +142,12 @@ public interface BlueprintV2 {
   /**
    * Get the host groups which contain components for the specified service.
    *
-   * @param service  service name
+   * @param serviceId  service Id
    *
    * @return collection of host groups containing components for the specified service;
    *         will not return null
    */
-  Collection<HostGroupV2> getHostGroupsForService(Service service);
+  Collection<HostGroupV2> getHostGroupsForService(ServiceId serviceId);
 
   /**
    * Get the host groups which contain the give component.
@@ -129,6 +157,7 @@ public interface BlueprintV2 {
    * @return collection of host groups containing the specified component; will not return null
    */
   Collection<HostGroupV2> getHostGroupsForComponent(ComponentV2 component);
+
 
   /**
    * Get the Blueprint cluster scoped configuration.
@@ -140,6 +169,7 @@ public interface BlueprintV2 {
    */
   @Deprecated
   Configuration getConfiguration();
+
 
   /**
    * Get the Blueprint cluster scoped setting.
@@ -178,19 +208,6 @@ public interface BlueprintV2 {
 
   SecurityConfiguration getSecurity();
 
-  /**
-   * Validate the blueprint topology.
-   *
-   * @throws InvalidTopologyException if the topology is invalid
-   */
-  void validateTopology() throws InvalidTopologyException;
-
-  /**
-   * Validate that the blueprint contains all of the required properties.
-   *
-   * @throws InvalidTopologyException if the blueprint doesn't contain all required properties
-   */
-  void validateRequiredProperties() throws InvalidTopologyException;
 
   /**
    *
