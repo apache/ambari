@@ -526,6 +526,9 @@
           <summary>Updating the Storm cluster Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
+        <task xsi:type="configure" id="storm_remove_jmxetric"/>
+      </execute-stage>
 
       <!-- PIG -->
       <execute-stage service="PIG" component="PIG" title="Apply config changes for Pig">
