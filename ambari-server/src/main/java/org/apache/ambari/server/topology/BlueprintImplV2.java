@@ -19,7 +19,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -38,11 +37,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
  * Blueprint implementation.
@@ -335,28 +329,5 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
     public Blueprints() { }
   }
-
-  public static void main(String[] args) throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-    SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
-    SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-    resolver.addMapping(HostGroupV2.class, HostGroupV2Impl.class);
-    module.setAbstractTypes(resolver);
-    mapper.registerModule(module);
-    mapper.enable(SerializationFeature.INDENT_OUTPUT);
-    BlueprintImplV2 bp = mapper.readValue(new File("/Users/bsari/develop/blueprints/blueprintv2.json"), BlueprintImplV2.class);
-    String bpJson = mapper.writeValueAsString(bp);
-    System.out.println(bpJson);
-    System.out.println("\n\n====================================================================================\n\n");
-    Map<String, Object> map = mapper.readValue(new File("/Users/bsari/develop/blueprints/blueprintv2.json"), HashMap.class);
-    System.out.println(map);
-    System.out.println("\n\n====================================================================================\n\n");
-    String bpJson2 = mapper.writeValueAsString(map);
-    System.out.println(bpJson2);
-    System.out.println("\n\n====================================================================================\n\n");
-    BlueprintImplV2 bp2 = mapper.readValue(bpJson2, BlueprintImplV2.class);
-    System.out.println(bp2);
-  }
-
 
 }
