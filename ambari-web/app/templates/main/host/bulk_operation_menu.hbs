@@ -16,7 +16,8 @@
 * limitations under the License.
 }}
 
-<button class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#">{{t common.actions}} <span class="caret"></span></button>
+<button class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser"}}>{{t common.actions}} <span class="caret"></span></button>
+{{#unless App.router.wizardWatcherController.isNonWizardUser}}
 <ul class="dropdown-menu">
   {{#isAuthorized "HOST.ADD_DELETE_HOSTS"}}
     <li><a href="#" {{action addHost}}><i class="glyphicon glyphicon-plus glyphicon-white"></i> {{t hosts.host.add}}</a></li>
@@ -151,3 +152,4 @@
     </div>
   </li>
 </ul>
+{{/unless}}

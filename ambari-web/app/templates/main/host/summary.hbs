@@ -26,38 +26,40 @@
             <h4 class="panel-title">{{t common.components}}</h4>
           </div>
           <div class="col-md-6">
-            {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
+            {{#havePermissions "HOST.ADD_DELETE_COMPONENTS"}}
               <div class="dropdown pull-right">
-                <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-default :dropdown-toggle"}}>
+                <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-default :dropdown-toggle" disabled="App.router.wizardWatcherController.isNonWizardUser"}}>
                   <span class="glyphicon glyphicon-plus"></span>&nbsp;{{t add}}
                 </button>
-                <ul class="dropdown-menu">
-                  {{#each component in view.addableComponents}}
-                    <li>
-                      <a href="javascript:void(null)" data-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
-                        {{component.displayName}}
-                      </a>
-                    </li>
-                  {{/each}}
-                </ul>
+                {{#unless App.router.wizardWatcherController.isNonWizardUser}}
+                  <ul class="dropdown-menu">
+                    {{#each component in view.addableComponents}}
+                      <li>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
+                          {{component.displayName}}
+                        </a>
+                      </li>
+                    {{/each}}
+                  </ul>
+                {{/unless}}
               </div>
-            {{/isAuthorized}}
+            {{/havePermissions}}
           </div>
         </div>
       </div>
       <div class="host-components panel-body">
           {{#if view.sortedComponents.length}}
 
-              {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
+              {{#havePermissions "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
                   {{#if view.content.componentsWithStaleConfigsCount}}
                     <div class="alert alert-warning clearfix restart-required">
                       <i class="glyphicon glyphicon-refresh"></i> {{view.needToRestartMessage}}
-                      <button {{bindAttr class=":btn :restart-components :pull-right :btn-warning"}} {{action restartAllStaleConfigComponents target="controller"}}>
+                      <button {{bindAttr class=":btn :restart-components :pull-right :btn-warning" disabled="App.router.wizardWatcherController.isNonWizardUser"}} {{action restartAllStaleConfigComponents target="controller"}}>
                           {{t hosts.host.details.needToRestart.button}}
                       </button>
                     </div>
                   {{/if}}
-              {{/isAuthorized}}
+              {{/havePermissions}}
 
               {{#each component in view.sortedComponents}}
                 {{view component.viewClass classNames="row row-no-pad" contentBinding="component"}}
@@ -89,58 +91,60 @@
               {{/if}}
           </div>
           <div class="col-md-5 col-lg-4 pull-right">
-              {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
+              {{#havePermissions "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
                   {{#if view.clients.length}}
                     <div class="dropdown">
                       <button id="add_component"
-                              data-toggle="dropdown" {{bindAttr class=":btn :btn-default :btn-block :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
+                              data-toggle="dropdown" {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser" class=":btn :btn-default :btn-block :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
                           {{t common.installed}}
                         <span class="caret pull-right button-caret-margin"></span>
                       </button>
-                      <ul class="dropdown-menu">
-                        <li>
-                          <a href="javascript:void(null)"
-                             data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
-                              {{t hosts.host.details.refreshConfigs}}
-                          </a>
-                        </li>
-                        <li>
-                          <a href="javascript:void(null)" {{bindAttr class="view.areClientsNotInstalled::disabled" }}
-                             data-toggle="modal" {{action installClients target="view"}}>
-                              {{t host.host.details.installClients}}
-                          </a>
-                        </li>
-                          {{#if view.anyClientFailedToInstall}}
-                            <li>
-                              <a href="javascript:void(null)" {{action reinstallClients target="view"}}>
-                                  {{t host.host.details.reinstallClients}}
-                              </a>
-                            </li>
-                          {{/if}}
-                          {{#each option in view.clientsWithCustomCommands}}
-                            <li class="dropdown-submenu submenu-left">
-                              <a href="javascript:void(null)">
-                                <i class="glyphicon glyphicon-play-circle"></i>
-                                  {{option.label}}
-                              </a>
+                      {{#unless App.router.wizardWatcherController.isNonWizardUser}}
+                        <ul class="dropdown-menu">
+                          <li>
+                            <a href="javascript:void(null)"
+                               data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
+                                {{t hosts.host.details.refreshConfigs}}
+                            </a>
+                          </li>
+                          <li>
+                            <a href="javascript:void(null)" {{bindAttr class="view.areClientsNotInstalled::disabled" }}
+                               data-toggle="modal" {{action installClients target="view"}}>
+                                {{t host.host.details.installClients}}
+                            </a>
+                          </li>
+                            {{#if view.anyClientFailedToInstall}}
+                              <li>
+                                <a href="javascript:void(null)" {{action reinstallClients target="view"}}>
+                                    {{t host.host.details.reinstallClients}}
+                                </a>
+                              </li>
+                            {{/if}}
+                            {{#each option in view.clientsWithCustomCommands}}
+                              <li class="dropdown-submenu submenu-left">
+                                <a href="javascript:void(null)">
+                                  <i class="glyphicon glyphicon-play-circle"></i>
+                                    {{option.label}}
+                                </a>
 
-                              <div class="dropdown-menu-wrap">
-                                <ul class="dropdown-menu">
-                                    {{#each command in option.commands}}
-                                      <li>
-                                        <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>
-                                          {{command.label}}
-                                        </a>
-                                      </li>
-                                    {{/each}}
-                                </ul>
-                              </div>
-                            </li>
-                          {{/each}}
-                      </ul>
+                                <div class="dropdown-menu-wrap">
+                                  <ul class="dropdown-menu">
+                                      {{#each command in option.commands}}
+                                        <li>
+                                          <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>
+                                            {{command.label}}
+                                          </a>
+                                        </li>
+                                      {{/each}}
+                                  </ul>
+                                </div>
+                              </li>
+                            {{/each}}
+                        </ul>
+                      {{/unless}}
                     </div>
                   {{/if}}
-              {{/isAuthorized}}
+              {{/havePermissions}}
           </div>
         </div>
       </div>
