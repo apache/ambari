@@ -52,6 +52,8 @@ public class AuthPropsConfig {
   private String originalUrlQueryParam;
   @Value("#{'${logsearch.auth.jwt.audiances:}'.split(',')}")
   private List<String> audiences;
+  @Value("${logsearch.auth.redirect.forward:false}")
+  private boolean redirectForward;
 
   public boolean isAuthFileEnabled() {
     return authFileEnabled;
@@ -155,5 +157,13 @@ public class AuthPropsConfig {
 
   public void setAudiences(List<String> audiences) {
     this.audiences = audiences;
+  }
+
+  public boolean isRedirectForward() {
+    return redirectForward;
+  }
+
+  public void setRedirectForward(boolean redirectForward) {
+    this.redirectForward = redirectForward;
   }
 }

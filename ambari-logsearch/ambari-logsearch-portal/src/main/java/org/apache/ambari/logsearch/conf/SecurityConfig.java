@@ -40,7 +40,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -96,14 +96,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/**").authenticated()
       .and()
       .authenticationProvider(logsearchAuthenticationProvider())
-        .formLogin()
-        .loginPage("/login.html")
-      .and()
       .httpBasic()
         .authenticationEntryPoint(logsearchAuthenticationEntryPoint())
       .and()
-      .addFilterBefore(logsearchUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-      .addFilterBefore(logsearchKRBAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+      .addFilterBefore(logsearchKRBAuthenticationFilter(), BasicAuthenticationFilter.class)
+      .addFilterBefore(logsearchUsernamePasswordAuthenticationFilter(), LogsearchKRBAuthenticationFilter.class)
       .addFilterAfter(securityContextFormationFilter(), FilterSecurityInterceptor.class)
       .addFilterAfter(logsearchUserConfigFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchAuditLogFilter(), LogsearchSecurityContextFormationFilter.class)
@@ -149,6 +146,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public LogsearchAuthenticationEntryPoint logsearchAuthenticationEntryPoint() {
     LogsearchAuthenticationEntryPoint entryPoint = new LogsearchAuthenticationEntryPoint("/login.html");
     entryPoint.setForceHttps(false);
+    entryPoint.setUseForward(authPropsConfig.isRedirectForward());
     return entryPoint;
   }
 
