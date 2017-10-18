@@ -19,29 +19,22 @@
 package org.apache.ambari.server.topology;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 public class ServiceGroup {
 
-  private final String name;
+  private String name = null;
 
-  private final Collection<Service> services;
+  private Collection<Service> services = new ArrayList<>();
 
-  private final Configuration configuration;
+  private Configuration configuration = null;
 
-  private final Set<ServiceGroup> dependencies;
+  private Set<String> dependencies = new HashSet<>();
 
-  public ServiceGroup(String name, Collection<Service> services) {
-    this(name, services, null, null);
-  }
-
-  public ServiceGroup(String name, Collection<Service> services, Configuration configuration, Set<ServiceGroup> dependencies) {
-    this.name = name;
-    this.services = services;
-    this.configuration = configuration;
-    this.dependencies = dependencies;
-  }
+  public ServiceGroup() { }
 
   /**
    * Gets the name of this service group
@@ -52,7 +45,6 @@ public class ServiceGroup {
     return this.name;
   }
 
-
   public Collection<Service> getServices() {
     return services;
   }
@@ -61,7 +53,24 @@ public class ServiceGroup {
     return configuration;
   }
 
-  public Set<ServiceGroup> getDependencies() {
+  public Set<String> getDependencies() {
     return dependencies;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setServices(Collection<Service> services) {
+    this.services = services;
+    services.forEach(s -> s.setServiceGroup(this.name));
+  }
+
+  public void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
+  }
+
+  public void setDependencies(Set<String> dependencies) {
+    this.dependencies = dependencies;
   }
 }
