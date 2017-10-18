@@ -379,7 +379,7 @@ angular.module('ambariAdminConsole')
 
     'versions': {
       'current': 'Current',
-      'addVersion': 'Add Version or Hotfix',
+      'addVersion': 'Add Version',
       'defaultVersion': '(Default Version Definition)',
       'inUse': 'In Use',
       'installed': 'Installed',
