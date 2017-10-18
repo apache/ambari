@@ -22,6 +22,7 @@ import com.google.common.collect.Multimap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
@@ -94,7 +95,12 @@ public class PhoenixHBaseAccessorTest {
       public Connection getConnection() throws SQLException {
         return null;
       }
-    };
+
+      @Override
+      public Connection getConnectionRetryingOnException(RetryCounterFactory retryCounterFactory) throws SQLException, InterruptedException {
+        return null;
+      }
+      };
 
     accessor = new PhoenixHBaseAccessor(connectionProvider);
   }
@@ -248,6 +254,11 @@ public class PhoenixHBaseAccessorTest {
 
       @Override
       public Connection getConnection() throws SQLException {
+        return connection;
+      }
+
+      @Override
+      public Connection getConnectionRetryingOnException(RetryCounterFactory retryCounterFactory) throws SQLException, InterruptedException {
         return connection;
       }
     };
