@@ -20,8 +20,6 @@ package org.apache.ambari.metrics.adservice.prototype.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -72,22 +70,22 @@ public class AmbariServerInterface implements Serializable{
         responseJsonSb.append(line);
       }
 
-      JSONObject jsonObject = new JSONObject(responseJsonSb.toString());
-      JSONArray array = jsonObject.getJSONArray("items");
-      for(int i = 0 ; i < array.length() ; i++){
-        JSONObject alertDefn = array.getJSONObject(i).getJSONObject("AlertDefinition");
-        if (alertDefn.get("name") != null && alertDefn.get("name").equals("point_in_time_metrics_anomalies")) {
-          JSONObject sourceNode = alertDefn.getJSONObject("source");
-          JSONArray params = sourceNode.getJSONArray("parameters");
-          for(int j = 0 ; j < params.length() ; j++){
-            JSONObject param = params.getJSONObject(j);
-            if (param.get("name").equals("sensitivity")) {
-              return param.getInt("value");
-            }
-          }
-          break;
-        }
-      }
+//      JSONObject jsonObject = new JSONObject(responseJsonSb.toString());
+//      JSONArray array = jsonObject.getJSONArray("items");
+//      for(int i = 0 ; i < array.length() ; i++){
+//        JSONObject alertDefn = array.getJSONObject(i).getJSONObject("AlertDefinition");
+//        if (alertDefn.get("name") != null && alertDefn.get("name").equals("point_in_time_metrics_anomalies")) {
+//          JSONObject sourceNode = alertDefn.getJSONObject("source");
+//          JSONArray params = sourceNode.getJSONArray("parameters");
+//          for(int j = 0 ; j < params.length() ; j++){
+//            JSONObject param = params.getJSONObject(j);
+//            if (param.get("name").equals("sensitivity")) {
+//              return param.getInt("value");
+//            }
+//          }
+//          break;
+//        }
+//      }
 
     } catch (Exception e) {
       LOG.error(e);
