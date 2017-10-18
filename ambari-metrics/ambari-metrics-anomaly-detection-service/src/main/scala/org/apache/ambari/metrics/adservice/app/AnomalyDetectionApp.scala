@@ -61,6 +61,8 @@ class AnomalyDetectionApp extends Application[AnomalyDetectionAppConfig] {
     provider.setMapper(objectMapper)
     provider
   }
+
+  override def bootstrapLogging(): Unit = {}
 }
 
 

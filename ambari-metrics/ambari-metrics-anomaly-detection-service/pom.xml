@@ -35,7 +35,7 @@
     <scala.version>2.12.3</scala.version>
     <scala.binary.version>2.11</scala.binary.version>
     <hadoop.version>2.7.3.2.6.0.3-8</hadoop.version>
-    <jackson.version>2.8.9</jackson.version>
+    <jackson.version>2.9.1</jackson.version>
     <dropwizard.version>1.2.0</dropwizard.version>
     <spark.version>2.2.0</spark.version>
   </properties>
@@ -223,6 +223,11 @@
       <version>0.10.1.0</version>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>connect-json</artifactId>
       <version>0.10.1.0</version>
@@ -236,6 +241,28 @@
       <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-spark</artifactId>
       <version>4.10.0-HBase-1.1</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jersey-server</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-core</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-client</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-guice</artifactId>
+          <groupId>com.sun.jersey.contribs</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-json</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
@@ -257,6 +284,12 @@
       <artifactId>spark-core_${scala.binary.version}</artifactId>
       <version>${spark.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-scala_2.11</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
@@ -285,6 +318,18 @@
         <exclusion>
           <groupId>org.mortbay.jetty</groupId>
           <artifactId>jsp-2.1-jetty</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-server</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-core</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-json</artifactId>
+          <groupId>com.sun.jersey</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -384,6 +429,11 @@
       <artifactId>guava</artifactId>
       <version>21.0</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
+      <version>3.2.5</version>
     </dependency>
   </dependencies>
 </project>
