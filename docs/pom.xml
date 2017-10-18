@@ -186,6 +186,18 @@
             </organization>
         </developer>
         <developer>
+            <id>amruta</id>
+            <name>Amruta R Borkar</name>
+            <email>amruta@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                IBM
+            </organization>
+        </developer>
+        <developer>
             <id>aonishuk</id>
             <name>Andrew Onischuk</name>
             <email>aonishuk@apache.org</email>
