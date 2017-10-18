@@ -151,7 +151,7 @@
   </property>
   <property>
     <name>yarn.application.classpath</name>
-    <value>$HADOOP_CONF_DIR,{{stack_root}}/current/hadoop-client/*,{{stack_root}}/current/hadoop-client/lib/*,{{stack_root}}/current/hadoop-hdfs-client/*,{{stack_root}}/current/hadoop-hdfs-client/lib/*,{{stack_root}}/current/hadoop-yarn-client/*,{{stack_root}}/current/hadoop-yarn-client/lib/*</value>
+    <value>$HADOOP_CONF_DIR,{{hadoop_home}}/*,{{hadoop_home}}/lib/*,{{stack_root}}/current/hadoop-hdfs-client/*,{{stack_root}}/current/hadoop-hdfs-client/lib/*,{{stack_root}}/current/hadoop-yarn-client/*,{{stack_root}}/current/hadoop-yarn-client/lib/*</value>
     <description>Classpath for typical applications.</description>
     <on-ambari-upgrade add="false"/>
   </property>

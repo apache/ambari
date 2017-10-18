@@ -196,7 +196,19 @@
             <organization>
                 Hortonworks
             </organization>
-        </developer>        
+        </developer>
+        <developer>
+            <id>anitajebaraj</id>
+            <name>Anita Jebaraj</name>
+            <email>anitajebaraj@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                IBM
+            </organization>
+        </developer>
         <developer>
             <id>atkach</id>
             <name>Andrii Tkach</name>
@@ -360,6 +372,17 @@
             <organization>
                 Hortonworks                
             </organization>            
+        </developer>
+        <developer>
+            <id>dgergely</id>
+            <name>Daniel Gergely</name>
+            <email>dgergely</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+            </organization>
         </developer>
         <developer>
             <id>dillidorai</id>
@@ -852,6 +875,18 @@
             </organization>
         </developer>
         <developer>
+            <id>qin</id>
+            <name>Qin Liu</name>
+            <email>qin@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                IBM
+            </organization>
+        </developer>
+        <developer>
             <id>ramya</id>
             <name>Ramya Sunil</name>
             <email>ramya@apache.org</email>
@@ -1136,6 +1171,18 @@
                 Hortonworks                
             </organization>
         </developer>       
+        <developer>
+            <id>vishalsuvagia</id>
+            <name>Vishal Suvagia</name>
+            <email>vishalsuvagia@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>
             <id>vsairam</id>
             <name>Venkata Sairam Lanka</name>
