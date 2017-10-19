@@ -67,7 +67,12 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
-  public Collection<ComponentV2> getComponents(ServiceId serviceId) {
+  public Collection<ComponentV2> getComponents(Service serviceId) {
+    return null;
+  }
+
+  @Override
+  public Collection<ComponentV2> getComponentsByServiceId(ServiceId serviceId) {
     return components.stream().filter(c -> c.getServiceId().equals(serviceId)).collect(Collectors.toList());
   }
 
@@ -77,9 +82,14 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
-  @JsonIgnore
-  public Collection<ServiceId> getServices() {
+  public Collection<ServiceId> getServiceIds() {
     return services;
+  }
+
+  @Override
+  @JsonIgnore
+  public Collection<Service> getServices() {
+    return null;
   }
 
   @Override
@@ -91,6 +101,11 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   @Override
   public Configuration getConfiguration() {
     return configuration;
+  }
+
+  @Override
+  public Collection<Service> getServiceConfigs() {
+    return null;
   }
 
   @Override

@@ -135,8 +135,31 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
   @Override
   @JsonIgnore
-  public Collection<ServiceId> getAllServices() {
-    return hostGroups.stream().flatMap(hg -> hg.getServices().stream()).collect(Collectors.toSet());
+  public Collection<ServiceId> getAllServiceIds() {
+    return hostGroups.stream().flatMap(hg -> hg.getServiceIds().stream()).collect(Collectors.toSet());
+  }
+
+  @Override
+  @JsonIgnore
+  public Collection<Service> getServicesFromServiceGroup(ServiceGroup serviceGroup, String serviceType) {
+    if (serviceType == null) {
+      return serviceGroup.getServices();
+    } else {
+      return serviceGroup.getServices().stream().filter(
+              service -> service.getType().equalsIgnoreCase(serviceType)).collect(Collectors.toList());
+    }
+  }
+
+  @Override
+  @JsonIgnore
+  public StackV2 getStackById(String stackId) {
+    return null;
+  }
+
+  @Override
+  @JsonIgnore
+  public Collection<Service> getAllServices() {
+    return null;
   }
 
   @Override
@@ -151,17 +174,6 @@ public class BlueprintImplV2 implements BlueprintV2 {
     return null;
 //    getAllServices().stream().filter(
 //            service -> service.getType().equalsIgnoreCase(serviceType)).collect(Collectors.toList());
-  }
-
-  @Override
-  @JsonIgnore
-  public Collection<Service> getServicesFromServiceGroup(ServiceGroup serviceGroup, String serviceType) {
-    if (serviceType == null) {
-      return serviceGroup.getServices();
-    } else {
-      return serviceGroup.getServices().stream().filter(
-              service -> service.getType().equalsIgnoreCase(serviceType)).collect(Collectors.toList());
-    }
   }
 
   @Override
@@ -186,7 +198,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   @Override
   @JsonIgnore
   public Collection<HostGroupV2> getHostGroupsForService(ServiceId serviceId) {
-    return hostGroups.stream().filter(hg -> !hg.getComponents(serviceId).isEmpty()).collect(Collectors.toList());
+    return hostGroups.stream().filter(hg -> !hg.getComponentsByServiceId(serviceId).isEmpty()).collect(Collectors.toList());
   }
 
   @Override
@@ -205,10 +217,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
     return this.setting;
   }
 
-  @Override
-  public String getRecoveryEnabled(ComponentV2 component) {
-    return null;
-  }
+
 
   @Nonnull
   @Override
@@ -224,6 +233,10 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
+  public String getRecoveryEnabled(ComponentV2 component) {
+    return null;
+  }
+
   public String getRecoveryEnabled(String serviceName, String componentName) {
     // If component name was specified in the list of "component_settings",
     // determine if recovery_enabled is true or false and return it.

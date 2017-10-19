@@ -82,10 +82,10 @@ public class BlueprintFactory {
     this.stackFactory = stackFactory;
   }
 
-  public BlueprintV2 getBlueprint(String blueprintName) throws NoSuchStackException {
+  public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
     //todo: just return null?
-    return entity == null ? null : new BlueprintImplV2(entity);
+    return entity == null ? null : new BlueprintImpl(entity);
   }
 
   /**

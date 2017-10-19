@@ -85,14 +85,14 @@ public class StackV2Factory {
     stackData.serviceConfigurations.put(service, mapServiceConfig);
     stackData.requiredServiceConfigurations.put(service, mapRequiredServiceConfig);
 
-    Set<StackConfigurationResponse> serviceConfigs = controller.getStackConfigurations(
+    Set<ReadOnlyConfigurationResponse> serviceConfigs = controller.getStackConfigurations(
       Collections.singleton(new StackConfigurationRequest(stackData.stackName, stackData.stackVersion, service, null)));
-    Set<StackConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
+    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
       Collections.singleton(new StackLevelConfigurationRequest(stackData.stackName, stackData.stackVersion, null)));
     serviceConfigs.addAll(stackLevelConfigs);
 
     // shouldn't have any required properties in stack level configuration
-    for (StackConfigurationResponse config : serviceConfigs) {
+    for (ReadOnlyConfigurationResponse config : serviceConfigs) {
       StackV2.ConfigProperty configProperty = new StackV2.ConfigProperty(config);
       String type = configProperty.getType();
 
@@ -118,10 +118,10 @@ public class StackV2Factory {
   }
 
   private void parseStackConfigurations (StackData stackData) throws AmbariException {
-    Set<StackConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
+    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
       Collections.singleton(new StackLevelConfigurationRequest(stackData.stackName, stackData.stackVersion, null)));
 
-    for (StackConfigurationResponse config : stackLevelConfigs) {
+    for (ReadOnlyConfigurationResponse config : stackLevelConfigs) {
       StackV2.ConfigProperty configProperty = new StackV2.ConfigProperty(config);
       String type = configProperty.getType();
 

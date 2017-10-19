@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -165,28 +166,28 @@ public class StackV2 {
         return serviceComponents;
     }
 
-//  /**
-//   * Get info for the specified component.
-//   *
-//   * @param component  component name
-//   *
-//   * @return component information for the requested component
-//   *         or null if the component doesn't exist in the stack
-//   */
-//  @Deprecated
-//  public ComponentInfo getComponentInfo(String component) {
-//    ComponentInfo componentInfo = null;
-//    String service = getServiceForComponent(component);
-//    if (service != null) {
-//      try {
-//        componentInfo = controller.getAmbariMetaInfo().getComponent(
-//            getName(), getVersion(), service, component);
-//      } catch (AmbariException e) {
-//        // just return null if component doesn't exist
-//      }
-//    }
-//    return componentInfo;
-//  }
+      /**
+       * Get info for the specified component.
+       *
+       * @param component  component name
+       *
+       * @return component information for the requested component
+       *         or null if the component doesn't exist in the stack
+       */
+      @Deprecated
+      public ComponentInfo getComponentInfo(String component) {
+        ComponentInfo componentInfo = null;
+//        String service = getServiceForComponent(component);
+//        if (service != null) {
+//          try {
+//            componentInfo = controller.getAmbariMetaInfo().getComponent(
+//                getName(), getVersion(), service, component);
+//          } catch (AmbariException e) {
+//            // just return null if component doesn't exist
+//          }
+//        }
+        return componentInfo;
+      }
 
     /**
      * Get all configuration types, including excluded types for the specified service.
@@ -586,7 +587,7 @@ public class StackV2 {
             this.attributes = attributes;
         }
 
-        Set<PropertyDependencyInfo> getDependsOnProperties() {
+        public Set<PropertyDependencyInfo> getDependsOnProperties() {
             return this.dependsOnProperties;
         }
 

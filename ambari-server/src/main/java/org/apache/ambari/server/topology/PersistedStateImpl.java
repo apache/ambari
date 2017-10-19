@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -93,7 +94,7 @@ public class PersistedStateImpl implements PersistedState {
   private HostRoleCommandDAO physicalTaskDAO;
 
   @Inject
-  private BlueprintFactory blueprintFactory;
+  private BlueprintV2Factory blueprintFactory;
 
   @Inject
   private LogicalRequestFactory logicalRequestFactory;
@@ -382,13 +383,17 @@ public class PersistedStateImpl implements PersistedState {
     private final Collection<Service> services;
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
-    public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
+    public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintV2Factory blueprintFactory) {
       clusterId = entity.getClusterId();
       type = Type.valueOf(entity.getAction());
       description = entity.getDescription();
 
       try {
         blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());
+      } catch (NoSuchBlueprintException e) {
+        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
       } catch (NoSuchStackException e) {
         throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
       }

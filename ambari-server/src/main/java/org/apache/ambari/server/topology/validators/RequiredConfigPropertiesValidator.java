@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroupV2;

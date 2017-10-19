@@ -22,11 +22,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-
 import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.controller.StackV2;
-
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 
 
@@ -69,6 +67,8 @@ public interface BlueprintV2 {
   **/
   public Collection<String> getStackIds();
 
+  StackV2 getStackById(String stackId);
+
   Collection<ServiceGroup> getServiceGroups();
 
   /**
@@ -76,7 +76,9 @@ public interface BlueprintV2 {
    *
    * @return collection of all represented service names
    */
-  Collection<ServiceId> getAllServices();
+  Collection<ServiceId> getAllServiceIds();
+
+  ;Collection<Service> getAllServices();
 
   /**
    * Get the names of all the services represented in the blueprint.
@@ -128,6 +130,8 @@ public interface BlueprintV2 {
    * @return collection of component names for the service.  Will not return null.
    */
   Collection<ComponentV2> getComponents(ServiceId serviceId);
+
+  Collection<ComponentV2> getComponents(Service service);
 
 
   /**

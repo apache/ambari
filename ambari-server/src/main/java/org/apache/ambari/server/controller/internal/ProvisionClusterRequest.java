@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -295,7 +296,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   private void parseBlueprint(Map<String, Object> properties) throws NoSuchStackException, NoSuchBlueprintException {
     String blueprintName = String.valueOf(properties.get(ClusterResourceProvider.BLUEPRINT));
     // set blueprint field
-    setBlueprint(getBlueprintFactory().getBlueprint(blueprintName));
+    try {
+      setBlueprint(getBlueprintFactory().getBlueprint(blueprintName));
+    } catch (IOException e) {
+      throw new NoSuchBlueprintException(blueprintName);
+    }
 
     if (blueprint == null) {
       throw new NoSuchBlueprintException(blueprintName);

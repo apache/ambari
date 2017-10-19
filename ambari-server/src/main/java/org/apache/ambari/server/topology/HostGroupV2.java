@@ -87,7 +87,9 @@ public interface HostGroupV2 {
    *
    * @return collection of component names for the specified service; will not return null
    */
-  Collection<ComponentV2> getComponents(ServiceId serviceId);
+  Collection<ComponentV2> getComponentsByServiceId(ServiceId serviceId);
+
+  Collection<ComponentV2> getComponents(Service serviceId);
 
   /**
    * Determine if the host group contains a master component.
@@ -99,7 +101,12 @@ public interface HostGroupV2 {
   /**
    * @return collection of service ids associated with the host group components.
    */
-  Collection<ServiceId> getServices();
+  Collection<ServiceId> getServiceIds();
+
+  /**
+   * @return collection of service ids associated with the host group components.
+   */
+  Collection<Service> getServices();
 
   /**
    * @return collection of service names associated with the host group components.

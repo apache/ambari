@@ -69,6 +69,16 @@ public class ComponentV2 implements Configurable {
     return serviceId;
   }
 
+  //TODO
+  public Service getService() {
+    return null;
+  }
+
+  //TODO
+  public ServiceGroup getServiceGroup() {
+    return null;
+  }
+
   public Configuration getConfiguration() {
     return configuration;
   }
@@ -88,7 +98,7 @@ public class ComponentV2 implements Configurable {
     this.name = name;
   }
 
-  public String getServiceGroup() {
+  public String getServiceGroupName() {
     return serviceId.getServiceGroup();
   }
 

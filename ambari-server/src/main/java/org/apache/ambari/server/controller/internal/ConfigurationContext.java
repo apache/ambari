@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Map;
 
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.topology.Configuration;
 
 /**

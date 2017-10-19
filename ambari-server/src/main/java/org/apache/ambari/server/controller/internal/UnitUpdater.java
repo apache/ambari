@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 

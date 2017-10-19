@@ -21,6 +21,8 @@ package org.apache.ambari.server.topology;
 
 import java.util.Set;
 
+import org.apache.ambari.server.controller.StackV2;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Service implements Configurable {
@@ -44,8 +46,13 @@ public class Service implements Configurable {
     return this.id.getName();
   }
 
-  public String getServiceGroup() {
+  public String getServiceGroupId() {
     return this.id.getServiceGroup();
+  }
+
+  //TODO
+  public ServiceGroup getServiceGroup() {
+    return null;
   }
 
   public String getType() {
@@ -56,8 +63,18 @@ public class Service implements Configurable {
     return stackId;
   }
 
-  public Set<ServiceId> getDependencies() {
+  //TODO
+  public StackV2 getStack() {
+    return null;
+  }
+
+  public Set<ServiceId> getDependentServiceIds() {
     return dependencies;
+  }
+
+  //TODO
+  public Set<Service> getDependencies() {
+    return null;
   }
 
   public Configuration getConfiguration() {

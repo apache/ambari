@@ -33,11 +33,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationContext;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.controller.internal.StackV2;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
@@ -361,7 +361,8 @@ public class ClusterConfigurationRequest {
       //todo: remove intermediate request type
       // one bp config request per service
       BlueprintServiceConfigRequest blueprintConfigRequest = new BlueprintServiceConfigRequest(service.getType());
-      StackV2 serviceStack = service.getStack();
+      String serviceStackId = service.getStackId();
+      StackV2 serviceStack = blueprint.getStackById(serviceStackId);
       for (String serviceConfigType : serviceStack.getAllConfigurationTypes(service.getType())) {
         Set<String> excludedConfigTypes = serviceStack.getExcludedConfigurationTypes(service.getType());
         if (!excludedConfigTypes.contains(serviceConfigType)) {

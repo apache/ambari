@@ -38,6 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
@@ -2923,7 +2924,8 @@ public class BlueprintConfigurationProcessor {
     for (Service blueprintService : blueprintServices) {
 
       LOG.debug("Handling excluded properties for blueprint service: {}", blueprintService);
-      StackV2 stack = blueprintService.getStack();
+      String stackId = blueprintService.getStackId();
+      StackV2 stack = clusterTopology.getBlueprint().getStackById(stackId);
       Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(blueprintService.getType());
 
       if (excludedConfigTypes.isEmpty()) {

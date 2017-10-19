@@ -53,6 +53,7 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceGroupRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
@@ -62,7 +63,6 @@ import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
-import org.apache.ambari.server.controller.internal.StackV2;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -242,7 +242,8 @@ public class AmbariContext {
       for (Service service : serviceGroup.getServices()) {
         String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service.getType());
 
-        StackV2 stack = service.getStack();
+        String stackIdStr = service.getStackId();
+        StackV2 stack = topology.getBlueprint().getStackById(stackIdStr);
         StackId stackId = new StackId(stack.getName(), stack.getVersion());
         RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, stack.getRepoVersion());
 

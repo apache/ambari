@@ -19,6 +19,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -201,6 +203,10 @@ public class ScaleClusterRequest extends BaseClusterRequest {
     BlueprintV2 blueprint;
     try {
       blueprint = getBlueprintFactory().getBlueprint(blueprintName);
+    } catch (NoSuchBlueprintException e) {
+      throw new InvalidTopologyTemplateException("Invalid blueprint specified: " + blueprintName);
+    } catch (IOException e) {
+      throw new InvalidTopologyTemplateException("Error reading blueprint: " + blueprintName);
     } catch (NoSuchStackException e) {
       throw new InvalidTopologyTemplateException("Invalid stack specified in the blueprint: " + blueprintName);
     }

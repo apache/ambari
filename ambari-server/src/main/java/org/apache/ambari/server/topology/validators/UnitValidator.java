@@ -22,7 +22,7 @@ import static org.apache.ambari.server.controller.internal.UnitUpdater.PropertyV
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.StackV2;
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.UnitUpdater.PropertyUnit;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
@@ -42,11 +42,13 @@ public class UnitValidator implements TopologyValidator {
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
     topology.getServiceConfigs().forEach(service -> {
-      validateConfig(service.getConfiguration().getFullProperties(), service.getStack());
-      topology.getHostGroupInfo().values().forEach(hostGroup ->
-        validateConfig(hostGroup.getConfiguration().getFullProperties(), service.getStack()));
+      String stackId = service.getStackId();
+      validateConfig(service.getConfiguration().getFullProperties(), topology.getBlueprint().getStackById(stackId));
+      topology.getHostGroupInfo().values().forEach(hostGroup -> {
+        String stackId2 = service.getStackId();
+        validateConfig(hostGroup.getConfiguration().getFullProperties(), topology.getBlueprint().getStackById(stackId2));
+      });
     });
-
   }
 
   private void validateConfig(Map<String, Map<String, String>> configuration, StackV2 stack) {

@@ -30,8 +30,8 @@ import org.apache.ambari.server.api.predicate.Token;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
@@ -74,7 +74,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   /**
    * blueprint factory
    */
-  protected static BlueprintFactory blueprintFactory;
+  protected static BlueprintV2Factory blueprintFactory;
 
   /**
    * List of services
@@ -96,7 +96,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    * inject blueprint factory
    * @param factory  blueprint factory
    */
-  public static void init(BlueprintFactory factory) {
+  public static void init(BlueprintV2Factory factory) {
     blueprintFactory = factory;
   }
 
@@ -179,7 +179,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   /**
    * Get the blueprint factory.
    */
-  protected BlueprintFactory getBlueprintFactory() {
+  protected BlueprintV2Factory getBlueprintFactory() {
     return blueprintFactory;
   }
 
