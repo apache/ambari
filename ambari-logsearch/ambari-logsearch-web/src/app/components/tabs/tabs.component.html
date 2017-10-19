@@ -15,9 +15,11 @@
   limitations under the License.
 -->
 
-<ng-template [ngTemplateOutlet]="template"></ng-template>
-<div *ngIf="isInitialLoading" class="text-center">
-  <span class="fa fa-spinner fa-spin"></span>
-</div>
-<login-form *ngIf="!isInitialLoading && !isAuthorized"></login-form>
-<logs-container *ngIf="isAuthorized" class="col-md-12"></logs-container>
+<ul class="nav nav-tabs">
+  <li *ngFor="let tab of items" [ngClass]="{'active': tab.isActive}">
+    <a href="#" (click)="switchTab(tab)">
+      {{tab.label | translate}}
+      <span *ngIf="tab.isCloseable" class="fa fa-times close-icon" (click)="closeTab(tab)"></span>
+    </a>
+  </li>
+</ul>

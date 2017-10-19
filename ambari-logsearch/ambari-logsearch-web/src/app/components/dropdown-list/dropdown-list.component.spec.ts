@@ -30,6 +30,7 @@ import {AppStateService, appState} from '@app/services/storage/app-state.service
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
@@ -66,7 +67,8 @@ describe('DropdownListComponent', () => {
           appState,
           clusters,
           components,
-          serviceLogsTruncated
+          serviceLogsTruncated,
+          tabs
         })
       ],
       providers: [
@@ -88,7 +90,8 @@ describe('DropdownListComponent', () => {
         AppStateService,
         ClustersService,
         ComponentsService,
-        ServiceLogsTruncatedService
+        ServiceLogsTruncatedService,
+        TabsService
       ]
     })
     .compileComponents();

@@ -16,17 +16,18 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {initialTabs} from '@app/classes/models/tab';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/classes/models/store';
 
-:host {
-  display: block;
-  overflow: hidden;
+export const modelName = 'tabs';
 
-  .tabs-container, .auto-refresh-message {
-    background-color: @filters-panel-background-color;
-  }
-
-  filters-panel {
-    margin-bottom: @block-margin-top;
+@Injectable()
+export class TabsService extends CollectionModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
   }
 }
+
+export const tabs = getCollectionReducer(modelName, initialTabs);

@@ -21,7 +21,6 @@ import {By} from '@angular/platform-browser';
 import {TranslationModules} from '@app/test-config.spec';
 import {HttpClientService} from '@app/services/http-client.service';
 
-//import {AppModule} from '@app/app.module';
 import {CollapsiblePanelComponent} from './collapsible-panel.component';
 
 describe('CollapsiblePanelComponent', () => {
@@ -31,11 +30,22 @@ describe('CollapsiblePanelComponent', () => {
   let el: HTMLElement;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [CollapsiblePanelComponent],
       imports: TranslationModules,
       providers: [
-        HttpClientService
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        }
       ]
     })
     .compileComponents();

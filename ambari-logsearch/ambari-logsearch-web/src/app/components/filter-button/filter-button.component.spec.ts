@@ -31,6 +31,7 @@ import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-log
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
@@ -44,6 +45,14 @@ describe('FilterButtonComponent', () => {
   let fixture: ComponentFixture<FilterButtonComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [FilterButtonComponent],
       imports: [
@@ -58,7 +67,8 @@ describe('FilterButtonComponent', () => {
           serviceLogs,
           serviceLogsFields,
           serviceLogsHistogramData,
-          serviceLogsTruncated
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
@@ -74,10 +84,14 @@ describe('FilterButtonComponent', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
+        TabsService,
         ComponentActionsService,
         FilteringService,
         UtilsService,
-        HttpClientService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
         LogsContainerService
       ],
       schemas: [NO_ERRORS_SCHEMA]

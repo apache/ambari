@@ -19,6 +19,7 @@
 import {TestBed, inject} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
@@ -43,6 +44,7 @@ describe('FilteringService', () => {
       imports: [
         StoreModule.provideStore({
           appSettings,
+          appState,
           clusters,
           components,
           hosts
@@ -51,6 +53,7 @@ describe('FilteringService', () => {
       providers: [
         FilteringService,
         AppSettingsService,
+        AppStateService,
         ClustersService,
         ComponentsService,
         HostsService,

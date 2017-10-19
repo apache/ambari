@@ -16,12 +16,14 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
 import {TranslateService} from '@ngx-translate/core';
 import {ListItem} from '@app/classes/list-item';
+import {filtersFormItemsMap} from '@app/classes/filtering';
 import {CommonEntry} from '@app/classes/models/common-entry';
+import {LogField} from '@app/classes/models/log-field';
 import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -36,38 +38,42 @@ export class FiltersPanelComponent {
   constructor(private translate: TranslateService, private filtering: FilteringService, private logsContainer: LogsContainerService, private appState: AppStateService) {
     appState.getParameter('activeLogsType').subscribe(value => {
       this.logsType = value;
-      logsContainer.logsTypeMap[value].fieldsModel.getAll().subscribe(fields => {
+      logsContainer.logsTypeMap[value].fieldsModel.getAll().subscribe((fields: LogField[]): void => {
         if (fields.length) {
-          const items = fields.filter(field => this.excludedParameters.indexOf(field.name) === -1).map(field => {
+          const items = fields.filter((field: LogField): boolean => {
+              return this.excludedParameters.indexOf(field.name) === -1;
+            }).map((field: LogField): CommonEntry => {
               return {
                 name: field.displayName || field.name,
                 value: field.name
               };
             }),
-            labelKeys = items.map(item => item.name);
-          this.searchBoxItems = items.map(item => {
+            labelKeys = items.map((item: CommonEntry): string => item.name);
+          this.searchBoxItems = items.map((item: CommonEntry): ListItem => {
             return {
               label: item.name,
               value: item.value
             };
           });
-          translate.get(labelKeys).first().subscribe(translation => this.searchBoxItemsTranslated = items.map(item => {
-            return {
-              name: translation[item.name],
-              value: item.value
-            };
-          }));
+          translate.get(labelKeys).first().subscribe((translation: {[key: string]: string}): void => {
+            this.searchBoxItemsTranslated = items.map((item: CommonEntry): CommonEntry => {
+              return {
+                name: translation[item.name],
+                value: item.value
+              };
+            })
+          });
         }
       })
     });
-    filtering.loadClusters();
-    filtering.loadComponents();
-    filtering.loadHosts();
   }
+
+  @Input()
+  filtersForm: FormGroup;
 
   private readonly excludedParameters = ['cluster', 'host', 'level', 'type', 'logtime'];
 
-  private logsType: string; // TODO implement setting the parameter depending on user's navigation
+  private logsType: string;
 
   searchBoxItems: ListItem[] = [];
 
@@ -75,10 +81,6 @@ export class FiltersPanelComponent {
 
   get filters(): any {
     return this.filtering.filters;
-  }
-
-  get filtersForm(): FormGroup {
-    return this.filtering.filtersForm;
   }
 
   get queryParameterNameChange(): Subject<any> {
@@ -91,6 +93,10 @@ export class FiltersPanelComponent {
 
   get captureSeconds(): number {
     return this.filtering.captureSeconds;
+  }
+
+  isFilterConditionDisplayed(key: string): boolean {
+    return filtersFormItemsMap[this.logsType].indexOf(key) > -1;
   }
 
 }

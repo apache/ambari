@@ -29,6 +29,7 @@ import {ClustersService, clusters} from '@app/services/storage/clusters.service'
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {TranslationModules} from '@app/test-config.spec';
 import {ModalComponent} from '@app/components/modal/modal.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -67,7 +68,8 @@ describe('LogContextComponent', () => {
           clusters,
           components,
           hosts,
-          serviceLogsTruncated
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
@@ -83,6 +85,7 @@ describe('LogContextComponent', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
+        TabsService,
         LogsContainerService,
         {
           provide: HttpClientService,

@@ -2,6 +2,8 @@
   "common.title": "Log Search",
   "common.hide": "Hide",
   "common.show": "Show",
+  "common.serviceLogs": "Service Logs",
+  "common.auditLogs": "Audit Logs",
 
   "modal.submit": "OK",
   "modal.cancel": "Cancel",

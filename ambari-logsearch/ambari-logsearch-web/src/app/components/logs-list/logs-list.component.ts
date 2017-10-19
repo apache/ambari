@@ -18,11 +18,11 @@
 import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import 'rxjs/add/operator/map';
-import {AppStateService} from '@app/services/storage/app-state.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 import {AuditLog} from '@app/classes/models/audit-log';
 import {ServiceLog} from '@app/classes/models/service-log';
+import {LogField} from '@app/classes/models/log-field';
 
 @Component({
   selector: 'logs-list',
@@ -31,12 +31,13 @@ import {ServiceLog} from '@app/classes/models/service-log';
 })
 export class LogsListComponent implements AfterViewInit {
 
-  constructor(private filtering: FilteringService, private utils: UtilsService, private appState: AppStateService) {
-    appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
+  constructor(private filtering: FilteringService, private utils: UtilsService) {
   }
 
   ngAfterViewInit() {
-    this.contextMenuElement = this.contextMenu.nativeElement;
+    if (this.contextMenu) {
+      this.contextMenuElement = this.contextMenu.nativeElement;
+    }
   }
 
   @Input()
@@ -46,7 +47,13 @@ export class LogsListComponent implements AfterViewInit {
   totalCount: number = 0;
 
   @Input()
-  displayedColumns: any[] = [];
+  displayedColumns: LogField[] = [];
+
+  @Input()
+  isServiceLogsFileView: boolean = false;
+
+  @Input()
+  filtersForm: FormGroup;
 
   @ViewChild('contextmenu', {
     read: ElementRef
@@ -103,19 +110,13 @@ export class LogsListComponent implements AfterViewInit {
   get filters(): any {
     return this.filtering.filters;
   }
-  
-  get filtersForm(): FormGroup {
-    return this.filtering.filtersForm;
-  }
-
-  isServiceLogsFileView: boolean = false;
 
   isDifferentDates(dateA, dateB): boolean {
     return this.utils.isDifferentDates(dateA, dateB, this.timeZone);
   }
 
   isColumnDisplayed(key: string): boolean {
-    return this.displayedColumns.some(column => column.name === key);
+    return this.displayedColumns.some((column: LogField): boolean  => column.name === key);
   }
 
   openMessageContextMenu(event: MouseEvent): void {
