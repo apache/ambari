@@ -35,6 +35,9 @@ public class JsonRegistryMpack implements RegistryMpack {
   @SerializedName("name")
   private String name;
 
+  @SerializedName("displayName")
+  private String displayName;
+
   @SerializedName("description")
   private String description;
 
@@ -48,6 +51,9 @@ public class JsonRegistryMpack implements RegistryMpack {
   public String getMpackName() {
     return name;
   }
+
+  @Override
+  public String getMpackDisplayName() {return displayName;}
 
   @Override
   public String getMpackDescription() {

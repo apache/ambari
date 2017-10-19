@@ -27,6 +27,7 @@ import io.swagger.annotations.ApiModelProperty;
 public class RegistryMpackResponse {
   private Long registryId;
   private String mpackName;
+  private String mpackDisplayName;
   private String mpackDescription;
   private String mpackLogoUrl;
 
@@ -34,12 +35,14 @@ public class RegistryMpackResponse {
    * Constructor
    * @param registryId        registry id
    * @param mpackName         mpack name
+   * @param mpackDisplayName      mpack Display Name
    * @param mpackDescription  mpack description
    * @param mpackLogoUrl      mpack logo url
    */
-  public RegistryMpackResponse(Long registryId, String mpackName, String mpackDescription, String mpackLogoUrl) {
+  public RegistryMpackResponse(Long registryId, String mpackName, String mpackDisplayName, String mpackDescription, String mpackLogoUrl) {
     this.registryId = registryId;
     this.mpackName = mpackName;
+    this.mpackDisplayName = mpackDisplayName;
     this.mpackDescription = mpackDescription;
     this.mpackLogoUrl = mpackLogoUrl;
   }
@@ -59,6 +62,12 @@ public class RegistryMpackResponse {
   public String getMpackName() {
     return mpackName;
   }
+
+  /**
+   * Get mpack summary
+   * @return
+   */
+  public String getMpackDisplayName() {return mpackDisplayName;}
 
   /**
    * Get mpack description
