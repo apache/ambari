@@ -220,14 +220,14 @@ if has_rm:
 
 hive_http_port = default('/configurations/hive-site/hive.server2.thrift.http.port', "10001")
 hive_http_path = default('/configurations/hive-site/hive.server2.thrift.http.path', "cliservice")
-hive_server_hosts = default("/clusterHostInfo/hive_server_host", None)
+hive_server_hosts = default("/clusterHostInfo/hive_server_hosts", None)
 if type(hive_server_hosts) is list:
   hive_server_host = hive_server_hosts[0]
 else:
   hive_server_host = hive_server_hosts
 
 templeton_port = default('/configurations/webhcat-site/templeton.port', "50111")
-webhcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", None)
+webhcat_server_hosts = default("/clusterHostInfo/webhcat_server_hosts", None)
 if type(webhcat_server_hosts) is list:
   webhcat_server_host = webhcat_server_hosts[0]
 else:

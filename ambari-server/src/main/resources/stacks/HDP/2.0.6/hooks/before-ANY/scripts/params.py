@@ -186,7 +186,7 @@ zeppelin_group = config['configurations']['zeppelin-env']["zeppelin_group"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
+ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])

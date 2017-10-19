@@ -45,6 +45,7 @@ class ClusterTopologyCache(ClusterCache):
     self.components_by_key = ImmutableDictionary({})
     self.hostname = hostname.hostname(config)
     self.current_host_ids_to_cluster = {}
+    self.cluster_local_components = {}
     self.cluster_host_info = None
     super(ClusterTopologyCache, self).__init__(cluster_cache_dir)
 
@@ -69,6 +70,14 @@ class ClusterTopologyCache(ClusterCache):
         for component_dict in cluster_topology.components:
           key = "{0}/{1}".format(component_dict.serviceName, component_dict.componentName)
           components_by_key[cluster_id][key] = component_dict
+
+    for cluster_id, cluster_topology in self.iteritems():
+      current_host_id = self.current_host_ids_to_cluster[cluster_id]
+      self.cluster_local_components[cluster_id] = []
+      for component_dict in self[cluster_id].components:
+        if current_host_id in component_dict.hostIds:
+          self.cluster_local_components[cluster_id].append(component_dict.componentName)
+
 
     self.hosts_to_id = ImmutableDictionary(hosts_to_id)
     self.components_by_key = ImmutableDictionary(components_by_key)
@@ -99,6 +108,9 @@ class ClusterTopologyCache(ClusterCache):
       return self.components_by_key[cluster_id][key]
     except KeyError:
       return None
+
+  def get_cluster_local_components(self, cluster_id):
+    return self.cluster_local_components[cluster_id]
 
   def get_host_info_by_id(self, cluster_id, host_id):
     """

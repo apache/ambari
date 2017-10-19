@@ -51,7 +51,7 @@ default_group = None
 kdc_server_host = None
 cluster_host_info = None
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 
 kdb5_util_path = 'kdb5_util'
 

@@ -125,7 +125,7 @@ spark_env_sh = config['configurations']['spark2-env']['content']
 spark_log4j_properties = config['configurations']['spark2-log4j-properties']['content']
 spark_metrics_properties = config['configurations']['spark2-metrics-properties']['content']
 
-hive_server_host = default("/clusterHostInfo/hive_server_host", [])
+hive_server_host = default("/clusterHostInfo/hive_server_hosts", [])
 is_hive_installed = not len(hive_server_host) == 0
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']

@@ -237,7 +237,7 @@ ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr
 if xa_audit_db_flavor == 'sqla':
   xa_audit_db_is_enabled = False
 
-current_host = config['hostname']
+current_host = config['agentLevelParams']['hostname']
 ranger_kms_hosts = config['clusterHostInfo']['ranger_kms_server_hosts']
 if current_host in ranger_kms_hosts:
   kms_host = current_host
@@ -299,7 +299,7 @@ ranger_kms_ssl_passwd = config['configurations']['ranger-kms-site']['ranger.serv
 ranger_kms_ssl_enabled = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.ssl.enabled']
 
 xa_audit_hdfs_is_enabled = default("/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False)
-namenode_host = default("/clusterHostInfo/namenode_host", [])
+namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 
 # need this to capture cluster name from where ranger kms plugin is enabled
 cluster_name = config['clusterName']

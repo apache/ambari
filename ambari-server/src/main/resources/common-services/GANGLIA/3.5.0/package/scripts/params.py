@@ -59,11 +59,11 @@ rrdcached_flush_timeout = default("/configurations/ganglia-env/rrdcached_flush_t
 rrdcached_delay = default("/configurations/ganglia-env/rrdcached_delay", 1800)
 rrdcached_write_threads = default("/configurations/ganglia-env/rrdcached_write_threads", 4)
 
-ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
+ganglia_server_host = config["clusterHostInfo"]["ganglia_server_hosts"][0]
 
 hostname = config['agentLevelParams']['hostname']
 namenode_host = set(default("/clusterHostInfo/namenode_hosts", []))
-jtnode_host = set(default("/clusterHostInfo/jtnode_host", []))
+jtnode_host = set(default("/clusterHostInfo/jtnode_hosts", []))
 rm_host = set(default("/clusterHostInfo/resourcemanager_hosts", []))
 hs_host = set(default("/clusterHostInfo/historyserver_hosts", []))
 hbase_master_hosts = set(default("/clusterHostInfo/hbase_master_hosts", []))

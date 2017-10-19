@@ -126,7 +126,7 @@ spark_env_sh = config['configurations']['spark-env']['content']
 spark_log4j_properties = config['configurations']['spark-log4j-properties']['content']
 spark_metrics_properties = config['configurations']['spark-metrics-properties']['content']
 
-hive_server_host = default("/clusterHostInfo/hive_server_host", [])
+hive_server_host = default("/clusterHostInfo/hive_server_hosts", [])
 is_hive_installed = not len(hive_server_host) == 0
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -242,7 +242,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
   if len(livy_livyserver_hosts) > 0:
     has_livyserver = True
     if security_enabled:
-      livy_principal = livy_kerberos_principal.replace('_HOST', config['hostname'].lower())
+      livy_principal = livy_kerberos_principal.replace('_HOST', config['agentLevelParams']['hostname'].lower())
 
   livy_livyserver_port = default('configurations/livy-conf/livy.server.port',8999)
 

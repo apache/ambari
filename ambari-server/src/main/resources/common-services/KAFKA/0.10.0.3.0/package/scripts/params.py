@@ -62,7 +62,7 @@ stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CO
 # downgrade_from_version provides the source-version the downgrade is happening from
 downgrade_from_version = upgrade_summary.get_downgrade_from_version("KAFKA")
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 
 # default kafka parameters
 kafka_home = '/usr/lib/kafka'
@@ -116,10 +116,10 @@ if (('kafka-log4j' in config['configurations']) and ('content' in config['config
 else:
     log4j_props = None
 
-if 'ganglia_server_host' in config['clusterHostInfo'] and \
-    len(config['clusterHostInfo']['ganglia_server_host'])>0:
+if 'ganglia_server_hosts' in config['clusterHostInfo'] and \
+    len(config['clusterHostInfo']['ganglia_server_hosts'])>0:
   ganglia_installed = True
-  ganglia_server = config['clusterHostInfo']['ganglia_server_host'][0]
+  ganglia_server = config['clusterHostInfo']['ganglia_server_hosts'][0]
   ganglia_report_interval = 60
 else:
   ganglia_installed = False
@@ -167,7 +167,7 @@ kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configura
 
 if security_enabled and stack_version_formatted != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] \
   and check_stack_feature(StackFeature.KAFKA_KERBEROS, stack_version_formatted):
-    _hostname_lowercase = config['hostname'].lower()
+    _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
     _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
     kafka_jaas_principal = _kafka_principal_name.replace('_HOST',_hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
@@ -310,7 +310,7 @@ cluster_name = config['clusterName']
 
 # ranger kafka plugin section end
 
-namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_hosts) == 0
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None

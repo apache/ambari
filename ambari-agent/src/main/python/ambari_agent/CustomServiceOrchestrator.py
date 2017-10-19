@@ -466,6 +466,7 @@ class CustomServiceOrchestrator():
         'clusterLevelParams': metadata_cache.clusterLevelParams,
         'hostLevelParams': host_level_params_cache,
         'clusterHostInfo': self.topology_cache.get_cluster_host_info(cluster_id),
+        'localComponents': self.topology_cache.get_cluster_local_components(cluster_id),
         'agentLevelParams': {'hostname': self.topology_cache.get_current_host_info(cluster_id)['hostName']}
       }
 

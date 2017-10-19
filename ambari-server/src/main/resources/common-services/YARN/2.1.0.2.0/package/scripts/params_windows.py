@@ -50,7 +50,7 @@ rm_https_port = "8090"
 rm_webui_address = format("{rm_host}:{rm_port}")
 rm_webui_https_address = format("{rm_host}:{rm_https_port}")
 
-hs_host = config['clusterHostInfo']['hs_host'][0]
+hs_host = config['clusterHostInfo']['historyserver_hosts'][0]
 hs_port = config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address'].split(':')[-1]
 hs_webui_address = format("{hs_host}:{hs_port}")
 

@@ -120,7 +120,7 @@ info_log_size = config['configurations']['accumulo-log4j']['info_log_size']
 info_num_logs = config['configurations']['accumulo-log4j']['info_num_logs']
 
 # metrics2 properties
-ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
+ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_hosts', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
 
 set_instanceId = "false"

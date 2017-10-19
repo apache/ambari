@@ -93,7 +93,7 @@ stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, 
 atlas_kafka_group_id = default('/configurations/application-properties/atlas.kafka.hook.group.id', None)
 
 if security_enabled:
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   _atlas_principal_name = config['configurations']['application-properties']['atlas.authentication.principal']
   atlas_jaas_principal = _atlas_principal_name.replace('_HOST',_hostname_lowercase)
   atlas_keytab_path = config['configurations']['application-properties']['atlas.authentication.keytab']
@@ -143,7 +143,7 @@ else:
   metadata_port = http_port
   metadata_protocol = 'http'
 
-metadata_host = config['hostname']
+metadata_host = config['agentLevelParams']['hostname']
 
 atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
 metadata_server_host = atlas_hosts[0] if len(atlas_hosts) > 0 else "UNKNOWN_HOST"
@@ -278,7 +278,7 @@ if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_fea
                              (config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_PLAINTEXT")))
   if security_enabled and stack_version_formatted != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] \
     and check_stack_feature(StackFeature.KAFKA_KERBEROS, stack_version_formatted):
-    _hostname_lowercase = config['hostname'].lower()
+    _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
     _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
     kafka_jaas_principal = _kafka_principal_name.replace('_HOST', _hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
@@ -289,7 +289,7 @@ if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_fea
     kafka_jaas_principal = None
     kafka_keytab_path = None
 
-namenode_host = set(default("/clusterHostInfo/namenode_host", []))
+namenode_host = set(default("/clusterHostInfo/namenode_hosts", []))
 has_namenode = not len(namenode_host) == 0
 
 # ranger altas plugin section start

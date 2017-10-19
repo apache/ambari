@@ -251,7 +251,7 @@ ranger_ug_ldap_user_searchfilter = config["configurations"]["ranger-ugsync-site"
 ranger_ug_ldap_group_searchbase = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchbase"]
 ranger_ug_ldap_group_searchfilter = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchfilter"]
 ug_sync_source = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.source.impl.class"]
-current_host = config['hostname']
+current_host = config['agentLevelParams']['hostname']
 if current_host in ranger_admin_hosts:
   ranger_host = current_host
 
@@ -280,7 +280,7 @@ tagsync_log4j = config['configurations']['tagsync-log4j']['content']
 
 # ranger kerberos
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = len(namenode_hosts) > 0
 
 ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.alias"]

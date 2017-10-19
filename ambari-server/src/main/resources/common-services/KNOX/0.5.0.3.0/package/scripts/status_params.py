@@ -51,7 +51,7 @@ else:
       knox_keytab_path = None
       knox_principal_name = None
 
-  hostname = config['hostname'].lower()
+  hostname = config['agentLevelParams']['hostname'].lower()
   knox_user = default("/configurations/knox-env/knox_user", "knox")
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   temp_dir = Script.get_tmp_dir()

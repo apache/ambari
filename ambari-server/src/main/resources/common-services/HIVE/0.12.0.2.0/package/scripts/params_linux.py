@@ -343,11 +343,11 @@ if sqla_db_used:
 # Start, Common Hosts and Ports
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-hive_metastore_hosts = default('/clusterHostInfo/hive_metastore_host', [])
+hive_metastore_hosts = default('/clusterHostInfo/hive_metastore_hosts', [])
 hive_metastore_host = hive_metastore_hosts[0] if len(hive_metastore_hosts) > 0 else None
 hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris'])
 
-hive_server_hosts = default("/clusterHostInfo/hive_server_host", [])
+hive_server_hosts = default("/clusterHostInfo/hive_server_hosts", [])
 hive_server_host = hive_server_hosts[0] if len(hive_server_hosts) > 0 else None
 
 hive_server_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
@@ -454,7 +454,7 @@ java_version = expect("/ambariLevelParams/java_version", int)
 ##### MYSQL
 db_name = config['configurations']['hive-env']['hive_database_name']
 mysql_group = 'mysql'
-mysql_host = config['clusterHostInfo']['hive_mysql_host']
+mysql_host = config['clusterHostInfo']['mysql_server_hosts']
 
 mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 mysql_deluser_path = format("{tmp_dir}/removeMysqlUser.sh")
@@ -600,7 +600,7 @@ webhcat_pid_file = status_params.webhcat_pid_file
 templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
 
 
-webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
+webhcat_server_host = config['clusterHostInfo']['webhcat_server_hosts']
 
 hcat_hdfs_user_dir = format("/user/{webhcat_user}")
 hcat_hdfs_user_mode = 0755

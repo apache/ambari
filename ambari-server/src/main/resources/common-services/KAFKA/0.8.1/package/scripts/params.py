@@ -111,10 +111,10 @@ if (('kafka-log4j' in config['configurations']) and ('content' in config['config
 else:
     log4j_props = None
 
-if 'ganglia_server_host' in config['clusterHostInfo'] and \
-    len(config['clusterHostInfo']['ganglia_server_host'])>0:
+if 'ganglia_server_hosts' in config['clusterHostInfo'] and \
+    len(config['clusterHostInfo']['ganglia_server_hosts'])>0:
   ganglia_installed = True
-  ganglia_server = config['clusterHostInfo']['ganglia_server_host'][0]
+  ganglia_server = config['clusterHostInfo']['ganglia_server_hosts'][0]
   ganglia_report_interval = 60
 else:
   ganglia_installed = False

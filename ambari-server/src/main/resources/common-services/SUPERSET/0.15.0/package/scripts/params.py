@@ -38,7 +38,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 # stack version
 stack_version = default("/commandParams/version", None)
 
-hostname = config['hostname']
+hostname = config['agentLevelParams']['hostname']
 
 # status params
 status_pid_dir = status_params.superset_pid_dir

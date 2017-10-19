@@ -131,9 +131,9 @@ rest_api_conf_file = format("{conf_dir}/config.yaml")
 storm_env_sh_template = config['configurations']['storm-env']['content']
 jmxremote_port = config['configurations']['storm-env']['jmxremote_port']
 
-if 'ganglia_server_host' in config['clusterHostInfo'] and len(config['clusterHostInfo']['ganglia_server_host'])>0:
+if 'ganglia_server_hosts' in config['clusterHostInfo'] and len(config['clusterHostInfo']['ganglia_server_hosts'])>0:
   ganglia_installed = True
-  ganglia_server = config['clusterHostInfo']['ganglia_server_host'][0]
+  ganglia_server = config['clusterHostInfo']['ganglia_server_hosts'][0]
   ganglia_report_interval = 60
 else:
   ganglia_installed = False
@@ -146,7 +146,7 @@ storm_user_nofile_limit = default('/configurations/storm-env/storm_user_nofile_l
 storm_user_nproc_limit = default('/configurations/storm-env/storm_user_noproc_limit', 65536)
 
 if security_enabled:
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   _ambari_principal_name = default('/configurations/cluster-env/ambari_principal_name', None)
@@ -391,7 +391,7 @@ if enable_ranger_storm:
 
 # ranger storm plugin end section
 
-namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = not len(namenode_hosts) == 0
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None

@@ -141,7 +141,7 @@ if dfs_ha_enabled:
         namenode_port_map[nn_host_parts[0]] = nn_host_parts[1]
 
 
-namenode_hosts = default("/clusterHostInfo/namenode_host", None)
+namenode_hosts = default("/clusterHostInfo/namenode_hosts", None)
 if type(namenode_hosts) is list:
   namenode_host = namenode_hosts[0]
 else:
@@ -199,7 +199,7 @@ if yarn_http_policy !=  None :
    yarn_https_on = ( yarn_http_policy.upper() == 'HTTPS_ONLY')
    yarn_scheme = 'http' if not yarn_https_on else 'https'
 
-rm_hosts = default("/clusterHostInfo/rm_host", None)
+rm_hosts = default("/clusterHostInfo/resourcemanager_hosts", None)
 if type(rm_hosts) is list:
   rm_host = rm_hosts[0]
 else:
@@ -218,14 +218,14 @@ if has_rm:
 
 hive_http_port = default('/configurations/hive-site/hive.server2.thrift.http.port', "10001")
 hive_http_path = default('/configurations/hive-site/hive.server2.thrift.http.path', "cliservice")
-hive_server_hosts = default("/clusterHostInfo/hive_server_host", None)
+hive_server_hosts = default("/clusterHostInfo/hive_server_hosts", None)
 if type(hive_server_hosts) is list:
   hive_server_host = hive_server_hosts[0]
 else:
   hive_server_host = hive_server_hosts
 
 templeton_port = default('/configurations/webhcat-site/templeton.port', "50111")
-webhcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", None)
+webhcat_server_hosts = default("/clusterHostInfo/webhcat_server_hosts", None)
 if type(webhcat_server_hosts) is list:
   webhcat_server_host = webhcat_server_hosts[0]
 else:
@@ -351,7 +351,7 @@ knox_ldap_log_maxbackupindex = default('/configurations/ldap-log4j/knox_ldap_log
 # server configurations
 knox_master_secret = config['configurations']['knox-env']['knox_master_secret']
 knox_host_name = config['clusterHostInfo']['knox_gateway_hosts'][0]
-knox_host_name_in_cluster = config['hostname']
+knox_host_name_in_cluster = config['agentLevelParams']['hostname']
 knox_host_port = config['configurations']['gateway-site']['gateway.port']
 topology_template = config['configurations']['topology']['content']
 admin_topology_template = default('/configurations/admin-topology/content', None)
@@ -367,7 +367,7 @@ smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 if security_enabled:
   knox_keytab_path = config['configurations']['knox-env']['knox_keytab_path']
-  _hostname_lowercase = config['hostname'].lower()
+  _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   knox_principal_name = config['configurations']['knox-env']['knox_principal_name'].replace('_HOST',_hostname_lowercase)
 
 # for curl command in ranger plugin to get db connector

@@ -116,7 +116,6 @@ log4j_properties_content = config['configurations']['zeppelin-log4j-properties']
 # detect configs
 master_configs = config['clusterHostInfo']
 java64_home = config['ambariLevelParams']['java_home']
-ambari_host = str(master_configs['ambari_server_host'][0])
 zeppelin_host = str(master_configs['zeppelin_master_hosts'][0])
 ui_ssl_enabled = config['configurations']['zeppelin-config']['zeppelin.ssl']
 
@@ -132,13 +131,13 @@ is_hive_installed = False
 hive_zookeeper_namespace = None
 hive_interactive_zookeeper_namespace = None
 
-if 'hive_server_host' in master_configs and len(master_configs['hive_server_host']) != 0:
+if 'hive_server_hosts' in master_configs and len(master_configs['hive_server_hosts']) != 0:
   is_hive_installed = True
   spark_hive_properties = {
     'hive.metastore.uris': default('/configurations/hive-site/hive.metastore.uris', '')
   }
-  hive_server_host = str(master_configs['hive_server_host'][0])
-  hive_metastore_host = str(master_configs['hive_metastore_host'][0])
+  hive_server_host = str(master_configs['hive_server_hosts'][0])
+  hive_metastore_host = str(master_configs['hive_metastore_hosts'][0])
   hive_metastore_port = str(
     get_port_from_url(default('/configurations/hive-site/hive.metastore.uris', '')))
   hive_server_port = str(config['configurations']['hive-site']['hive.server2.thrift.http.port'])

@@ -154,7 +154,7 @@ master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
 regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
 queryserver_jaas_config_file = format("{hbase_conf_dir}/hbase_queryserver_jaas.conf")
 
-ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
+ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_hosts', []) # is not passed when ganglia is not present
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]

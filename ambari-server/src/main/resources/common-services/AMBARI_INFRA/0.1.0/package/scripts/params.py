@@ -49,7 +49,7 @@ stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
-hostname = config['hostname'].lower()
+hostname = config['agentLevelParams']['hostname'].lower()
 
 infra_solr_conf = "/etc/ambari-infra-solr/conf"
 
