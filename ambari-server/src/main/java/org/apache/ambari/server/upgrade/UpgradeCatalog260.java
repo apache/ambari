@@ -155,6 +155,8 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID = "FK_servicedesiredstate_desired_stack_id";
   public static final String FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID = "FK_hostcomponentdesiredstate_desired_stack_id";
   public static final String FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID = "FK_hostcomponentstate_current_stack_id";
+  public static final String FK_UPGRADE_FROM_REPO_VERSION_ID = "FK_upgrade_from_repo_version_id";
+  public static final String FK_UPGRADE_TO_REPO_VERSION_ID = "FK_upgrade_to_repo_version_id";
 
 
   /**
@@ -213,8 +215,12 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * {@value #FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID}
    * {@value #FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID}
    * {@value #FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID}
+   * {@value #FK_UPGRADE_FROM_REPO_VERSION_ID}
+   * {@value #FK_UPGRADE_TO_REPO_VERSION_ID}
    */
   private void dropBrokenFK() throws SQLException {
+    dbAccessor.dropFKConstraint(UPGRADE_TABLE, FK_UPGRADE_FROM_REPO_VERSION_ID);
+    dbAccessor.dropFKConstraint(UPGRADE_TABLE, FK_UPGRADE_TO_REPO_VERSION_ID);
     dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, FK_SERVICECOMPONENTDESIREDSTATE_DESIRED_STACK_ID);
     dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID);
     dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID);

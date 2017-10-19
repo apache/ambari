@@ -956,8 +956,12 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public void dropTable(String tableName) throws SQLException {
-    String query = dbmsHelper.getDropTableStatement(tableName);
-    executeQuery(query);
+    if (tableExists(tableName)){
+      String query = dbmsHelper.getDropTableStatement(tableName);
+      executeQuery(query);
+    } else {
+      LOG.warn("{} table doesn't exists, skipping", tableName);
+    }
   }
 
 
