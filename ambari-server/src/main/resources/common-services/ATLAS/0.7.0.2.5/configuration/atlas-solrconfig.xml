@@ -170,7 +170,7 @@
     <infoStream>true</infoStream>
   </indexConfig>
 
-
+  <queryParser name="xmlparser" class="solr.ExtendedDismaxQParserPlugin" />
   <!-- JMX
 
        This example enables JMX if and only if an existing MBeanServer
