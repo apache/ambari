@@ -185,7 +185,7 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
         RegistryMpackResponse response = new RegistryMpackResponse(
           registry.getRegistryId(),
           registryMpack.getMpackName(),
-          registryMpack.getSummary(),
+          registryMpack.getMpackDisplayName(),
           registryMpack.getMpackDescription(),
           registryMpack.getMpackLogoUrl());
         responses.add(response);
@@ -196,7 +196,7 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
         RegistryMpackResponse response = new RegistryMpackResponse(
           registry.getRegistryId(),
           registryMpack.getMpackName(),
-          registryMpack.getSummary(),
+          registryMpack.getMpackDisplayName(),
           registryMpack.getMpackDescription(),
           registryMpack.getMpackLogoUrl());
         responses.add(response);
