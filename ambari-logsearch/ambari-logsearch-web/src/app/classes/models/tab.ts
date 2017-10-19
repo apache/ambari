@@ -16,17 +16,38 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {getFiltersForm} from '@app/classes/filtering';
 
-:host {
-  display: block;
-  overflow: hidden;
-
-  .tabs-container, .auto-refresh-message {
-    background-color: @filters-panel-background-color;
-  }
-
-  filters-panel {
-    margin-bottom: @block-margin-top;
-  }
+export interface Tab {
+  id: string;
+  type: string;
+  isActive: boolean;
+  isCloseable?: boolean;
+  label: string;
+  appState: any;
 }
+
+export const initialTabs: Tab[] = [
+  {
+    id: 'serviceLogs',
+    type: 'serviceLogs',
+    isActive: true,
+    label: 'common.serviceLogs',
+    appState: {
+      activeLogsType: 'serviceLogs',
+      isServiceLogsFileView: false,
+      activeFiltersForm: getFiltersForm('serviceLogs')
+    }
+  },
+  {
+    id: 'auditLogs',
+    type: 'auditLogs',
+    isActive: false,
+    label: 'common.auditLogs',
+    appState: {
+      activeLogsType: 'auditLogs',
+      isServiceLogsFileView: false,
+      activeFiltersForm: getFiltersForm('auditLogs')
+    }
+  }
+];

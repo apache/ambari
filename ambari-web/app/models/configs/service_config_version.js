@@ -141,12 +141,13 @@ App.ServiceConfigVersion = DS.Model.extend({
    * {{view: (string|boolean), compare: (string|boolean), revert: (string|boolean)}} disabledActionAttr
    */
   disabledActionAttr: function () {
+    var isNonWizardUser = App.router.get('wizardWatcherController.isNonWizardUser');
     return {
-      view: (this.get('isDisplayed')) ? 'disabled' : false,
-      compare: (this.get('isDisabled') || this.get('isDisplayed')) ? 'disabled' : false,
-      revert: (this.get('isDisabled') || this.get('isCurrent')) ? 'disabled' : false
+      view: (this.get('isDisplayed') || isNonWizardUser) ? 'disabled' : false,
+      compare: (this.get('isDisabled') || isNonWizardUser || this.get('isDisplayed')) ? 'disabled' : false,
+      revert: (this.get('isDisabled') || isNonWizardUser || this.get('isCurrent')) ? 'disabled' : false
     }
-  }.property('isDisplayed', 'isCurrent', 'isDisabled')
+  }.property('isDisplayed', 'isCurrent', 'isDisabled', 'App.router.wizardWatcherController.isNonWizardUser')
 });
 
 App.ServiceConfigVersion.FIXTURES = [];

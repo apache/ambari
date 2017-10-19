@@ -31,6 +31,7 @@ import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
@@ -69,7 +70,8 @@ describe('FiltersPanelComponent', () => {
           serviceLogsFields,
           serviceLogsHistogramData,
           appState,
-          serviceLogsTruncated
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
@@ -85,6 +87,7 @@ describe('FiltersPanelComponent', () => {
         ServiceLogsHistogramDataService,
         AppStateService,
         ServiceLogsTruncatedService,
+        TabsService,
         FilteringService,
         LogsContainerService,
         {

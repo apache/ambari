@@ -28,7 +28,9 @@ export class PaginationComponent implements OnInit {
 
   ngOnInit() {
     this.setPageSizeFromString(this.filterInstance.defaultValue);
-    this.filtersForm.controls.pageSize.valueChanges.subscribe(value => this.setPageSizeFromString(value));
+    this.filtersForm.controls.pageSize.valueChanges.subscribe((value: string): void => {
+      this.setPageSizeFromString(value);
+    });
   }
 
   @Input()
@@ -45,7 +47,7 @@ export class PaginationComponent implements OnInit {
 
   private pageSize: number = 0;
 
-  setPageSizeFromString(value: string) {
+  private setPageSizeFromString(value: string) {
     this.pageSize = parseInt(value);
   }
 

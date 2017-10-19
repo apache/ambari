@@ -29,6 +29,7 @@ import {UserConfig} from '@app/classes/models/user-config';
 import {Filter} from '@app/classes/models/filter';
 import {AuditLogField} from '@app/classes/models/audit-log-field';
 import {ServiceLogField} from '@app/classes/models/service-log-field';
+import {Tab} from '@app/classes/models/tab';
 
 export const storeActions = {
   'ARRAY.ADD': 'ADD',
@@ -56,6 +57,7 @@ export interface AppStore {
   components: Node[];
   serviceLogsFields: ServiceLogField[];
   auditLogsFields: AuditLogField[];
+  tabs: Tab[];
 }
 
 export class ModelService {
@@ -115,13 +117,21 @@ export class CollectionModelService extends ModelService {
     });
   }
 
-  mapCollection(modifier: (item: any) => {}): void {
+  mapCollection(modifier: (item: any) => any): void {
     this.store.dispatch({
       type: `${storeActions['ARRAY.MAP']}_${this.modelName}`,
       payload: {
         modifier: modifier
       }
     });
+  }
+
+  findInCollection(findFunction): Observable<any> {
+    return this.getAll().map((result: any[]): any => result.find(findFunction));
+  }
+
+  filterCollection(filterFunction): Observable<any[]> {
+    return this.getAll().map((result: any[]): any[] => result.filter(filterFunction));
   }
 
 }

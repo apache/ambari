@@ -16,28 +16,28 @@
  * limitations under the License.
  */
 
+import {FormGroup} from '@angular/forms';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
+import {Tab, initialTabs} from '@app/classes/models/tab';
 
 export interface AppState {
   isAuthorized: boolean;
   isInitialLoading: boolean;
   isLoginInProgress: boolean;
-  isAuditLogsSet: boolean;
-  isServiceLogsSet: boolean;
   activeLogsType?: string;
   isServiceLogsFileView: boolean;
   isServiceLogContextView: boolean;
   activeLog: ActiveServiceLogEntry | null;
+  activeFiltersForm: FormGroup;
 }
 
 export const initialState: AppState = {
   isAuthorized: false,
   isInitialLoading: false,
   isLoginInProgress: false,
-  isAuditLogsSet: false,
-  isServiceLogsSet: false,
-  activeLogsType: 'serviceLogs', // TODO implement setting the parameter depending on user's navigation
+  activeLogsType: 'serviceLogs',
   isServiceLogsFileView: false,
   isServiceLogContextView: false,
-  activeLog: null
-}
+  activeLog: null,
+  activeFiltersForm: initialTabs.find((tab: Tab): boolean => tab.isActive).appState.activeFiltersForm
+};

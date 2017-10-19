@@ -26,13 +26,13 @@
           <li {{bindAttr class="service.isActive:active"}}>
             <a {{action "filterByService" service.value target="view"}}>{{service.label}}</a></li>
         {{/each}}
-        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+        {{#havePermissions "SERVICE.MODIFY_CONFIGS"}}
           <li class="pull-right">
-            <button type="button" class="btn btn-primary" {{action "createWidget" target="view"}} >
+            <button type="button" class="btn btn-primary" {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser"}} {{action "createWidget" target="view"}} >
               <i class="glyphicon glyphicon-plus"></i> &nbsp; {{t dashboard.widgets.create}}
             </button>
           </li>
-        {{/isAuthorized}}
+        {{/havePermissions}}
       </ul>
 
       <!--Widgets table two column-->

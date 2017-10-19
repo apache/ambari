@@ -20,6 +20,8 @@ import {Component, OnInit, Input, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Moment} from 'moment';
 import {FilteringService} from '@app/services/filtering.service';
+import {ListItem} from '@app/classes/list-item';
+import {TimeUnitListItem} from '@app/classes/filtering';
 
 @Component({
   selector: 'time-range-picker',
@@ -53,7 +55,7 @@ export class TimeRangePickerComponent implements OnInit, ControlValueAccessor {
 
   private onChange: (fn: any) => void;
 
-  get quickRanges(): any[][] {
+  get quickRanges(): (ListItem | TimeUnitListItem[])[] {
     return this.filtering.filters.timeRange.options;
   }
 

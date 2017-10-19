@@ -31,10 +31,12 @@ import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {TabsComponent} from '@app/components/tabs/tabs.component';
 
 import {LogsContainerComponent} from './logs-container.component';
 
@@ -52,7 +54,10 @@ describe('LogsContainerComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [LogsContainerComponent],
+      declarations: [
+        LogsContainerComponent,
+        TabsComponent
+      ],
       imports: [
         StoreModule.provideStore({
           appSettings,
@@ -64,6 +69,7 @@ describe('LogsContainerComponent', () => {
           serviceLogs,
           serviceLogsFields,
           serviceLogsHistogramData,
+          tabs,
           hosts,
           serviceLogsTruncated
         }),
@@ -85,6 +91,7 @@ describe('LogsContainerComponent', () => {
         ServiceLogsHistogramDataService,
         HostsService,
         ServiceLogsTruncatedService,
+        TabsService,
         FilteringService,
         UtilsService,
         LogsContainerService
@@ -97,7 +104,7 @@ describe('LogsContainerComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(LogsContainerComponent);
     component = fixture.componentInstance;
-    component.logsType = 'serviceLogs';
+    component['logsType'] = 'serviceLogs';
     fixture.detectChanges();
   });
 
