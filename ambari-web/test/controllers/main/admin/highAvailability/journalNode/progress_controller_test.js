@@ -52,13 +52,11 @@ describe('App.ManageJournalNodeProgressPageController', function () {
           "properties": {},
           "properties_attributes": {},
           "service_config_version_note": "note",
-          "tag": "version1",
           "type": "site1"
         },
         {
           "properties": undefined,
           "service_config_version_note": "note",
-          "tag": "version1",
           "type": "site2"
         }
       ]);

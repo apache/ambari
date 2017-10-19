@@ -74,7 +74,10 @@ class AtlasServiceAdvisor(service_advisor.ServiceAdvisor):
     Modify the dictionary of heap size properties.
     Must be overriden in child class.
     """
-    pass
+    self.heap_size_properties = {"ATLAS_SERVER":
+                                   [{"config-name": "atlas-env",
+                                     "property": "atlas_server_xmx",
+                                     "default": "2048m"}]}
 
   def modifyNotValuableComponents(self):
     """

@@ -45,6 +45,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -67,12 +68,14 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -100,6 +103,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -871,9 +875,40 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     UpgradeResourceProvider urp = createProvider(amc);
 
-    // !!! make sure we can.  actual abort is tested elsewhere
     Request req = PropertyHelper.getUpdateRequest(requestProps, null);
     urp.updateResources(req, null);
+
+    List<HostRoleCommandEntity> commands = hrcDAO.findByRequest(id);
+
+    int i = 0;
+    for (HostRoleCommandEntity command : commands) {
+      if (i < 3) {
+        command.setStatus(HostRoleStatus.COMPLETED);
+      } else {
+        command.setStatus(HostRoleStatus.ABORTED);
+      }
+      hrcDAO.merge(command);
+      i++;
+    }
+
+    req = PropertyHelper.getReadRequest(
+        UpgradeResourceProvider.UPGRADE_CLUSTER_NAME,
+        UpgradeResourceProvider.UPGRADE_ID,
+        UpgradeResourceProvider.REQUEST_PROGRESS_PERCENT_ID);
+
+    Predicate pred = new PredicateBuilder()
+        .property(UpgradeResourceProvider.UPGRADE_REQUEST_ID).equals(id.toString())
+        .and()
+        .property(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME).equals("c1")
+        .toPredicate();
+
+    Set<Resource> resources = urp.getResources(req, pred);
+    assertEquals(1, resources.size());
+    res = resources.iterator().next();
+
+    Double value = (Double) res.getPropertyValue(UpgradeResourceProvider.REQUEST_PROGRESS_PERCENT_ID);
+
+    assertEquals(37.5d, value, 0.1d);
   }
 
 
@@ -1801,6 +1836,15 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
       if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
           command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
         foundConfigTask = true;
+
+        ExecutionCommandDAO dao = injector.getInstance(ExecutionCommandDAO.class);
+        ExecutionCommandEntity entity = dao.findByPK(command.getTaskId());
+        ExecutionCommandWrapperFactory factory = injector.getInstance(ExecutionCommandWrapperFactory.class);
+        ExecutionCommandWrapper wrapper = factory.createFromJson(new String(entity.getCommand()));
+        Map<String, String> params = wrapper.getExecutionCommand().getCommandParams();
+        assertTrue(params.containsKey(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE));
+        assertEquals("ZOOKEEPER", params.get(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE));
+
         break;
       }
     }

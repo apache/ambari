@@ -16,6 +16,15 @@
             "local_username": "beacon"
           }
         }
+      ],
+      "configurations": [
+          {
+            "core-site": {
+              "hadoop.proxyuser.beacon.groups": "*",
+              "hadoop.proxyuser.beacon.hosts": "*",
+              "hadoop.proxyuser.beacon.users": "*"
+            }
+        }
       ]
     }
   ]

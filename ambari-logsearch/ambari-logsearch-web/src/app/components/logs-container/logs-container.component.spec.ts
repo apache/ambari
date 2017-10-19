@@ -30,6 +30,7 @@ import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-log
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
@@ -63,7 +64,8 @@ describe('LogsContainerComponent', () => {
           serviceLogs,
           serviceLogsFields,
           serviceLogsHistogramData,
-          hosts
+          hosts,
+          serviceLogsTruncated
         }),
         ...TranslationModules
       ],
@@ -82,6 +84,7 @@ describe('LogsContainerComponent', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         HostsService,
+        ServiceLogsTruncatedService,
         FilteringService,
         UtilsService,
         LogsContainerService
@@ -101,4 +104,9 @@ describe('LogsContainerComponent', () => {
   it('should create component', () => {
     expect(component).toBeTruthy();
   });
+
+  it('totalEventsFoundMessageParams should provide total count number', () => {
+    expect(Object.keys(component.totalEventsFoundMessageParams)).toContain('totalCount');
+  });
+
 });

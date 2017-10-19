@@ -82,11 +82,10 @@ class FileCache():
     Returns a base directory for hooks
     """
     try:
-      hooks_subpath = command['clusterLevelParams']['hooks_folder']
+      hooks_path = command['clusterLevelParams']['hooks_folder']
     except KeyError:
       return None
-    subpath = os.path.join(self.STACKS_CACHE_DIRECTORY, hooks_subpath)
-    return self.provide_directory(self.cache_dir, subpath,
+    return self.provide_directory(self.cache_dir, hooks_path,
                                   server_url_prefix)
 
 

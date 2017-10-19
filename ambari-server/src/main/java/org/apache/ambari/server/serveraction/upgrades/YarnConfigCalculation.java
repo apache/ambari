@@ -24,25 +24,18 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-
-import com.google.inject.Inject;
 
 /**
  * Computes Yarn properties.  This class is only used when moving from
  * HDP-2.1 to HDP-2.3 in that upgrade pack.
  */
-public class YarnConfigCalculation extends AbstractServerAction {
+public class YarnConfigCalculation extends AbstractUpgradeServerAction {
   private static final String YARN_SITE_CONFIG_TYPE = "yarn-site";
 
   private static final String YARN_RM_ZK_ADDRESS_PROPERTY_NAME = "yarn.resourcemanager.zk-address";
   private static final String HADOOP_REGISTRY_ZK_QUORUM_PROPERTY_NAME = "hadoop.registry.zk.quorum";
-
-  @Inject
-  private Clusters clusters;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
@@ -50,7 +43,7 @@ public class YarnConfigCalculation extends AbstractServerAction {
 
     String clusterName = getExecutionCommand().getClusterName();
 
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
 
     Config yarnSiteConfig = cluster.getDesiredConfigByType(YARN_SITE_CONFIG_TYPE);
 

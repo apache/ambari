@@ -28,6 +28,7 @@ public class InsertFromQueryInput {
   private String fromTable;
   private String toDatabase;
   private String toTable;
+  private String globalSettings;
   private List<ColumnInfo> partitionedColumns;
   private List<ColumnInfo> normalColumns;
   private Boolean unhexInsert = Boolean.FALSE;
@@ -36,13 +37,15 @@ public class InsertFromQueryInput {
   }
 
   public InsertFromQueryInput(String fromDatabase, String fromTable, String toDatabase, String toTable,
-                              List<ColumnInfo> partitionedColumns, List<ColumnInfo> normalColumns, Boolean unhexInsert) {
+                              List<ColumnInfo> partitionedColumns, List<ColumnInfo> normalColumns,
+                              String globalSettings, Boolean unhexInsert) {
     this.fromDatabase = fromDatabase;
     this.fromTable = fromTable;
     this.toDatabase = toDatabase;
     this.toTable = toTable;
     this.partitionedColumns = partitionedColumns;
     this.normalColumns = normalColumns;
+    this.globalSettings = globalSettings;
     this.unhexInsert = unhexInsert;
   }
 
@@ -100,5 +103,13 @@ public class InsertFromQueryInput {
 
   public void setToTable(String toTable) {
     this.toTable = toTable;
+  }
+
+  public String getGlobalSettings() {
+    return globalSettings;
+  }
+
+  public void setGlobalSettings(String globalSettings) {
+    this.globalSettings = globalSettings;
   }
 }

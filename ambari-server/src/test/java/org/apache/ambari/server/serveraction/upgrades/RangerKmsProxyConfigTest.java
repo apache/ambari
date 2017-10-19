@@ -76,7 +76,7 @@ public class RangerKmsProxyConfigTest {
 
     replay(m_injector, m_clusters, cluster, rangerEnv, kmsSite);
 
-    m_clusterField = RangerKmsProxyConfig.class.getDeclaredField("m_clusters");
+    m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
   }
 

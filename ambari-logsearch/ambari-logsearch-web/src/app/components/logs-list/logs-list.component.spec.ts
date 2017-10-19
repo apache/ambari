@@ -24,6 +24,7 @@ import {MomentTimezoneModule} from 'angular-moment-timezone';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
@@ -53,6 +54,7 @@ describe('LogsListComponent', () => {
           auditLogs,
           serviceLogs,
           appSettings,
+          appState,
           clusters,
           components,
           hosts
@@ -69,6 +71,7 @@ describe('LogsListComponent', () => {
         AuditLogsService,
         ServiceLogsService,
         AppSettingsService,
+        AppStateService,
         ClustersService,
         ComponentsService,
         HostsService,

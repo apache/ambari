@@ -61,7 +61,7 @@ public class FixYarnWebServiceUrlTest {
         injector = EasyMock.createMock(Injector.class);
         clusters = EasyMock.createMock(Clusters.class);
         cluster = EasyMock.createMock(Cluster.class);
-        clustersField = FixYarnWebServiceUrl.class.getDeclaredField("clusters");
+        clustersField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
         clustersField.setAccessible(true);
 
         expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();

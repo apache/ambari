@@ -95,7 +95,9 @@ class TestHBaseMaster(RMFTestCase):
                          try_install=True,
                          os_type=('Redhat', '6.4', 'Final'),
                          checked_call_mocks = [(0, "OK.", "")],
+                         available_packages_in_repos = ['hbase_2_3_0_1_1234'],
                          )
+
 
       # only assert that the correct package is trying to be installed
       self.assertResourceCalled('Package', 'hbase_2_3_0_1_1234',
@@ -678,7 +680,7 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         owner = 'hbase',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
@@ -694,7 +696,7 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         owner = 'hbase',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0711,
@@ -711,7 +713,7 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hdfs',
         dfs_type = '',
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        hadoop_conf_dir = '/etc/hadoop/conf',
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-master/conf start master',

@@ -17,7 +17,7 @@
  */
 
 import {Component, Input, ViewChild, ElementRef} from '@angular/core';
-import {ListItem} from '@app/classes/list-item.class';
+import {ListItem} from '@app/classes/list-item';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import * as $ from 'jquery';
 
@@ -61,6 +61,9 @@ export class MenuButtonComponent {
   @Input()
   additionalLabelComponentSetter?: string;
 
+  @Input()
+  badge: string;
+
   get hasSubItems(): boolean {
     return Boolean(this.subItems && this.subItems.length);
   }
@@ -90,7 +93,7 @@ export class MenuButtonComponent {
       event.stopPropagation();
     }
   }
-  
+
   updateValue(options: ListItem) {
     // TODO implement value change behaviour
   }

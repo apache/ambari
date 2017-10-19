@@ -426,7 +426,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     }
 
     if (StringUtils.isEmpty(serviceName)) {
-      return getWidgetsDescriptorForCluster(stackInfo);
+      return null;
     } else {
       return getWidgetsDescriptorForService(stackInfo, serviceName);
     }
@@ -445,22 +445,6 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
     if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
       widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-    }
-
-    return widgetDescriptor;
-  }
-
-  public Map<String, Object> getWidgetsDescriptorForCluster(StackInfo stackInfo)
-      throws NoSuchParentResourceException, IOException {
-
-    Map<String, Object> widgetDescriptor = null;
-
-    String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
-    if (widgetDescriptorFileLocation != null) {
-      File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
-      if (widgetDescriptorFile.exists()) {
-        widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-      }
     }
 
     return widgetDescriptor;
@@ -499,7 +483,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   private Map<String, Object> buildStackDescriptor(String stackName, String stackVersion)
       throws NoSuchParentResourceException, IOException {
 
-    KerberosDescriptor kerberosDescriptor = null;
+    KerberosDescriptor kerberosDescriptor = new KerberosDescriptor();
 
     AmbariManagementController controller = getManagementController();
     StackInfo stackInfo;
@@ -512,19 +496,8 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
 
     Collection<KerberosServiceDescriptor> serviceDescriptors = getServiceDescriptors(stackInfo);
 
-    String kerberosFileLocation = stackInfo.getKerberosDescriptorFileLocation();
-    if (kerberosFileLocation != null) {
-      kerberosDescriptor = kerberosDescriptorFactory.createInstance(new File(kerberosFileLocation));
-    } else if (! serviceDescriptors.isEmpty()) {
-      // service descriptors present with no stack descriptor,
-      // create an empty stack descriptor to hold services
-      kerberosDescriptor = new KerberosDescriptor();
-    }
-
-    if (kerberosDescriptor != null) {
-      for (KerberosServiceDescriptor descriptor : serviceDescriptors) {
-        kerberosDescriptor.putService(descriptor);
-      }
+    if (serviceDescriptors != null) {
+      serviceDescriptors.forEach(kerberosDescriptor::putService);
       return kerberosDescriptor.toMap();
     } else {
       return null;

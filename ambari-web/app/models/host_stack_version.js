@@ -61,7 +61,9 @@ App.HostStackVersion = DS.Model.extend({
    */
   installEnabled: Em.computed.existsIn('status', ['OUT_OF_SYNC', 'INSTALL_FAILED']),
 
-  installDisabled: Em.computed.not('installEnabled')
+  installDisabled: function(){
+    return !this.get('installEnabled') || App.router.get('wizardWatcherController.isNonWizardUser');
+  }.property('installEnabled', 'App.routerwizardWatcherController.isNonWizardUser')
 });
 
 App.HostStackVersion.FIXTURES = [];

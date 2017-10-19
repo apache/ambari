@@ -64,7 +64,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   }.property(),
 
   getNotUpgradable: function(isAvailable, isUpgradable) {
-    return this.get('content.isMaint') && this.get('content.status') !== 'CURRENT' && isAvailable && !isUpgradable;
+    return this.get('content.isMaint') && !this.get('isUpgrading') && this.get('content.status') !== 'CURRENT' && isAvailable && !isUpgradable;
   },
 
 

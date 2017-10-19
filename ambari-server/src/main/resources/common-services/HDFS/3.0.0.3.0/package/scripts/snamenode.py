@@ -44,6 +44,16 @@ class SNameNode(Script):
     hdfs("secondarynamenode")
     snamenode(action="configure")
 
+  def save_configs(self, env):
+    import params
+    env.set_params(params)
+    hdfs("secondarynamenode")
+
+  def reload_configs(self, env):
+    import params
+    env.set_params(params)
+    Logger.info("RELOAD CONFIGS")
+
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)

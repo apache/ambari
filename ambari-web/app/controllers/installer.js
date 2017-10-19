@@ -930,9 +930,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         callback: function () {
           var dfd = $.Deferred();
 
-          this.loadStacks().always(function() {
+          this.loadStacks().done(function(stacksLoaded) {
             App.router.get('clusterController').loadAmbariProperties().always(function() {
-              dfd.resolve();
+              dfd.resolve(stacksLoaded);
             });
           });
 
@@ -946,9 +946,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
           if (!stacksLoaded) {
             $.when.apply(this, this.loadStacksVersions()).done(function () {
-              Em.run.later('sync', function() {
-                dfd.resolve(stacksLoaded);
-              }, 1000);
+              dfd.resolve(true);
             });
           } else {
             dfd.resolve(stacksLoaded);

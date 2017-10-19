@@ -23,7 +23,7 @@
 {{else}}
   <div class="wizard">
     <div class="wizard-body row">
-      <div class="wizard-nav col-md-3">
+      <div class="wizard-nav">
         <ul class="nav nav-pills nav-stacked" {{QAAttr "wizard-nav"}}>
           <li {{QAAttr "wizard-nav-step"}} {{bindAttr class="isStep0:active view.isStep0Disabled:disabled view.isStep0Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep0 target="controller"}}><i class="step-marker"><span class="step-index">0</span></i><p class="step-name">{{t installer.step0.header}}</p></a></li>
           <li {{QAAttr "wizard-nav-step"}} {{bindAttr class="isStep1:active view.isStep1Disabled:disabled view.isStep1Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}><i class="step-marker"><span class="step-index">1</span></i><p class="step-name">{{t installer.step1.header}}</p></a></li>

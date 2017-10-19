@@ -17,11 +17,11 @@
 }}
 
 <div id="versions-filter-section" class="btn-toolbar">
-  {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
-    <button class="btn btn-primary" {{action goToVersions target="view"}} id="manage-versions-link">
+  {{#havePermissions "AMBARI.MANAGE_STACK_VERSIONS"}}
+    <button class="btn btn-primary" {{action goToVersions target="view"}}  {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser"}} id="manage-versions-link">
         <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
     </button>
-  {{/isAuthorized}}
+  {{/havePermissions}}
   <div class="btn-group display-inline-block">
     <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
       <span class="filters-label">{{t common.filter}}: </span>

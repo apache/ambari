@@ -117,6 +117,17 @@ public class AmbariMetaInfo {
    * Version of XML files with support of custom services and custom commands
    */
   public static final String SCHEMA_VERSION_2 = "2.0";
+
+  /**
+   * The filename for a Kerberos descriptor file at either the stack or service level
+   */
+  public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
+
+  /**
+   * The filename for a Widgets descriptor file at either the stack or service level
+   */
+  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
+
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
 
 
@@ -140,7 +151,9 @@ public class AmbariMetaInfo {
   private File commonServicesRoot;
   private File extensionsRoot;
   private File serverVersionFile;
+  private File commonWidgetsDescriptorFile;
   private File customActionRoot;
+  private String commonKerberosDescriptorFileLocation;
   private Map<String, VersionDefinitionXml> versionDefinitions = null;
 
 
@@ -229,6 +242,9 @@ public class AmbariMetaInfo {
     serverVersionFile = new File(serverVersionFilePath);
 
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
+
+    commonKerberosDescriptorFileLocation = new File(conf.getResourceDirPath(), KERBEROS_DESCRIPTOR_FILE_NAME).getAbsolutePath();
+    commonWidgetsDescriptorFile = new File(conf.getResourceDirPath(), WIDGETS_DESCRIPTOR_FILE_NAME);
   }
 
   /**
@@ -1268,38 +1284,25 @@ public class AmbariMetaInfo {
   public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion, boolean includePreconfigureData) throws AmbariException {
     StackInfo stackInfo = getStack(stackName, stackVersion);
 
-    KerberosDescriptor kerberosDescriptor = null;
+    KerberosDescriptor kerberosDescriptor = readKerberosDescriptorFromFile(getCommonKerberosDescriptorFileLocation());
 
+    if (kerberosDescriptor == null) {
+      LOG.warn("Couldn't read common Kerberos descriptor with path {%s}", getCommonKerberosDescriptorFileLocation());
+      kerberosDescriptor = new KerberosDescriptor();
+    }
     // Read in the stack-level Kerberos descriptor pre-configuration data
     if (includePreconfigureData) {
-      kerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorPreConfigurationFileLocation());
+      KerberosDescriptor preConfigureKerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorPreConfigurationFileLocation());
 
-      if (kerberosDescriptor != null) {
+      if (preConfigureKerberosDescriptor != null) {
         // Ensure the all services to be pre-configured are flagged appropriately.
-        Map<String, KerberosServiceDescriptor> serviceDescriptors = kerberosDescriptor.getServices();
+        Map<String, KerberosServiceDescriptor> serviceDescriptors = preConfigureKerberosDescriptor.getServices();
         if (serviceDescriptors != null) {
           for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors.values()) {
             serviceDescriptor.setPreconfigure(true);
           }
         }
-      }
-    }
-
-    // Read in the base stack-level Kerberos descriptor.
-    KerberosDescriptor stackKerberosDescriptor = readKerberosDescriptorFromFile(stackInfo.getKerberosDescriptorFileLocation());
-    if (stackKerberosDescriptor == null) {
-      // If kerberosDescriptor is null and stackKerberosDescriptor is null, then ensure
-      // kerberosDescriptor is an empty KerberosDescriptor.
-      if (kerberosDescriptor == null) {
-        kerberosDescriptor = new KerberosDescriptor();
-      }
-    } else {
-      if (kerberosDescriptor == null) {
-        // If kerberosDescriptor is null; then set it to stackKerberosDescriptor.
-        kerberosDescriptor = stackKerberosDescriptor;
-      } else {
-        // If kerberosDescriptor is not null; then update it using stackKerberosDescriptor.
-        kerberosDescriptor.update(stackKerberosDescriptor);
+        kerberosDescriptor.update(preConfigureKerberosDescriptor);
       }
     }
 
@@ -1322,6 +1325,15 @@ public class AmbariMetaInfo {
     }
 
     return kerberosDescriptor;
+  }
+
+  /**
+   * Gets the path to the common Kerberos descriptor file
+   *
+   * @return a String containing the path to the common Kerberos descriptor file
+   */
+  protected String getCommonKerberosDescriptorFileLocation() {
+    return commonKerberosDescriptorFileLocation;
   }
 
   /**
@@ -1679,5 +1691,9 @@ public class AmbariMetaInfo {
       return m_default;
     }
 
+  }
+
+  public File getCommonWidgetsDescriptorFile() {
+    return commonWidgetsDescriptorFile;
   }
 }

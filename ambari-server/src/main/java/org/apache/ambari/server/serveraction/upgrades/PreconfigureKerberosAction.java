@@ -92,7 +92,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
     if (!isDowngrade()) {
       String clusterName = commandParameters.get("clusterName");
-      Cluster cluster = m_clusters.getCluster(clusterName);
+      Cluster cluster = getClusters().getCluster(clusterName);
 
       if (cluster.getSecurityType() == SecurityType.KERBEROS) {
         StackId stackId;
@@ -304,6 +304,19 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
             String componentName = sch.getServiceComponentName();
 
             KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
+
+            if (!StringUtils.isEmpty(hostName)) {
+              // Update the configurations with the relevant hostname
+              Map<String, String> generalProperties = currentConfigurations.get("");
+              if (generalProperties == null) {
+                generalProperties = new HashMap<>();
+                currentConfigurations.put("", generalProperties);
+              }
+
+              // Add the current hostname under "host" and "hostname"
+              generalProperties.put("host", hostName);
+              generalProperties.put("hostname", hostName);
+            }
 
             if (serviceDescriptor != null) {
               List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true, filterContext);

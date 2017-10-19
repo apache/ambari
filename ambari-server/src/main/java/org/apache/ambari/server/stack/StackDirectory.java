@@ -57,14 +57,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
   public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
   /**
-   * The filename for a Kerberos descriptor file at either the stack or service level
-   */
-  public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
-  /**
-   * The filename for a Widgets descriptor file at either the stack or service level
-   */
-  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
-  /**
    * The filename for a Kerberos descriptor preconfigure file at either the stack or service level
    */
   public static final String KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME = "kerberos_preconfigure.json";
@@ -72,10 +64,6 @@ public class StackDirectory extends StackDefinitionDirectory {
    * Filename for theme file at service layer
    */
   public static final String SERVICE_THEME_FILE_NAME = "theme.json";
-  /**
-   * hooks directory path
-   */
-  private String hooksDir;
 
   /**
    * upgrades directory path
@@ -88,19 +76,9 @@ public class StackDirectory extends StackDefinitionDirectory {
   private String rcoFilePath;
 
   /**
-   * kerberos descriptor file path
-   */
-  private String kerberosDescriptorFilePath;
-
-  /**
    * kerberos descriptor (preconfigure) file path
    */
   private String kerberosDescriptorPreconfigureFilePath;
-
-  /**
-   * widgets descriptor file path
-   */
-  private String widgetsDescriptorFilePath;
 
   /**
    * repository file
@@ -142,15 +120,10 @@ public class StackDirectory extends StackDefinitionDirectory {
    */
   ModuleFileUnmarshaller unmarshaller = new ModuleFileUnmarshaller();
 
-  /**
-   * name of the hooks directory
-   */
-  public static final String HOOKS_FOLDER_NAME = "hooks";
   public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String s) {
-      return !(s.equals(".svn") || s.equals(".git") ||
-          s.equals(HOOKS_FOLDER_NAME));
+      return !(s.equals(".svn") || s.equals(".git"));
     }
   };
 
@@ -206,15 +179,6 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
-   * Obtain the hooks directory path.
-   *
-   * @return hooks directory path
-   */
-  public String getHooksDir() {
-    return hooksDir;
-  }
-
-  /**
    * Obtain the upgrades directory path.
    *
    * @return upgrades directory path
@@ -233,30 +197,12 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
-   * Obtain the path to the (stack-level) Kerberos descriptor file
-   *
-   * @return the path to the (stack-level) Kerberos descriptor file
-   */
-  public String getKerberosDescriptorFilePath() {
-    return kerberosDescriptorFilePath;
-  }
-
-  /**
    * Obtain the path to the (stack-level) Kerberos descriptor pre-configuration file
    *
    * @return the path to the (stack-level) Kerberos descriptor pre-configuration file
    */
   public String getKerberosDescriptorPreconfigureFilePath() {
     return kerberosDescriptorPreconfigureFilePath;
-  }
-
-  /**
-   * Obtain the path to the (stack-level) widgets descriptor file
-   *
-   * @return the path to the (stack-level) widgets descriptor file
-   */
-  public String getWidgetsDescriptorFilePath() {
-    return widgetsDescriptorFilePath;
   }
 
   /**
@@ -327,32 +273,14 @@ public class StackDirectory extends StackDefinitionDirectory {
    */
   private void parsePath() throws AmbariException {
     Collection<String> subDirs = Arrays.asList(directory.list());
-    if (subDirs.contains(HOOKS_FOLDER_NAME)) {
-      // hooksDir is expected to be relative to stack root
-      hooksDir = getStackDirName() + File.separator + getName() +
-          File.separator + HOOKS_FOLDER_NAME;
-    } else {
-      LOG.debug("Hooks folder {}{}" + HOOKS_FOLDER_NAME + " does not exist", getAbsolutePath(), File.separator);
-    }
-
     if (subDirs.contains(RCO_FILE_NAME)) {
       // rcoFile is expected to be absolute
       rcoFilePath = getAbsolutePath() + File.separator + RCO_FILE_NAME;
     }
 
-
-    if (subDirs.contains(KERBEROS_DESCRIPTOR_FILE_NAME)) {
-      // kerberosDescriptorFilePath is expected to be absolute
-      kerberosDescriptorFilePath = getAbsolutePath() + File.separator + KERBEROS_DESCRIPTOR_FILE_NAME;
-    }
-
     if (subDirs.contains(KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME)) {
       // kerberosDescriptorPreconfigureFilePath is expected to be absolute
       kerberosDescriptorPreconfigureFilePath = getAbsolutePath() + File.separator + KERBEROS_DESCRIPTOR_PRECONFIGURE_FILE_NAME;
-    }
-
-    if (subDirs.contains(WIDGETS_DESCRIPTOR_FILE_NAME)) {
-      widgetsDescriptorFilePath = getAbsolutePath() + File.separator + WIDGETS_DESCRIPTOR_FILE_NAME;
     }
 
     parseUpgradePacks(subDirs);

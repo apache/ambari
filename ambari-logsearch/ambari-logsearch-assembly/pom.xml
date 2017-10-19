@@ -94,6 +94,7 @@
                             <exclude>classes/user_pass.json</exclude>
                             <exclude>classes/HadoopServiceConfig.json</exclude>
                             <exclude>solr_configsets/**</exclude>
+                            <exclude>libs/checkstyle*.jar</exclude>
                           </excludes>
                         </source>
                       </sources>
@@ -241,7 +242,7 @@
                         <group>root</group>
                       </mapper>
                       <excludes>
-                        classes/log4j.xml,classes/logsearch.properties,classes/user_pass.json,classes/HadoopServiceConfig.json,solr_configsets/**
+                        classes/log4j.xml,classes/logsearch.properties,classes/user_pass.json,classes/HadoopServiceConfig.json,solr_configsets/**,libs/checkstyle*.jar
                       </excludes>
                     </data>
                     <data>
@@ -267,6 +268,7 @@
                         <user>root</user>
                         <group>root</group>
                       </mapper>
+                      <excludes>libs/checkstyle*.jar</excludes>
                     </data>
                   </dataSet>
                 </configuration>

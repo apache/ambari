@@ -44,6 +44,7 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
+import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
 import {GraphsService} from '@app/services/storage/graphs.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 import {UserConfigsService} from '@app/services/storage/user-configs.service';
@@ -64,6 +65,7 @@ import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dr
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
+import {CollapsiblePanelComponent} from '@app/components/collapsible-panel/collapsible-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
@@ -76,6 +78,8 @@ import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
 import {SearchBoxComponent} from '@app/components/search-box/search-box.component';
 import {TimeRangePickerComponent} from '@app/components/time-range-picker/time-range-picker.component';
 import {DatePickerComponent} from '@app/components/date-picker/date-picker.component';
+import {LogContextComponent} from '@app/components/log-context/log-context.component';
+import {LogFileEntryComponent} from '@app/components/log-file-entry/log-file-entry.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -112,6 +116,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FilterDropdownComponent,
     FilterButtonComponent,
     AccordionPanelComponent,
+    CollapsiblePanelComponent,
     LogsListComponent,
     DropdownButtonComponent,
     PaginationComponent,
@@ -124,6 +129,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     SearchBoxComponent,
     TimeRangePickerComponent,
     DatePickerComponent,
+    LogContextComponent,
+    LogFileEntryComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -157,6 +164,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     AuditLogsService,
     ServiceLogsService,
     ServiceLogsHistogramDataService,
+    ServiceLogsTruncatedService,
     GraphsService,
     HostsService,
     UserConfigsService,

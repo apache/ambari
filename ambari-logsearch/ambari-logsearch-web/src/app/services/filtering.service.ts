@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+import {Injectable, Input} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
+import {Response} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/takeUntil';
-import {Moment} from 'moment';
 import * as moment from 'moment-timezone';
-import {ListItem} from '@app/classes/list-item.class';
+import {ListItem} from '@app/classes/list-item';
+import {Node} from '@app/classes/models/node';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
@@ -36,26 +37,38 @@ export class FilteringService {
 
   constructor(private httpClient: HttpClientService, private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private hostsStorage: HostsService) {
     appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
-    clustersStorage.getAll().subscribe(clusters => {
-      this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItem)];
+    clustersStorage.getAll().subscribe((clusters: string[]): void => {
+      this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItemFromString)];
     });
-    componentsStorage.getAll().subscribe(components => {
-      this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItem)];
+    componentsStorage.getAll().subscribe((components: Node[]): void => {
+     this.filters.components.options = [...this.filters.components.options, ...components.map(this.getListItemFromNode)];
     });
-    hostsStorage.getAll().subscribe(hosts => {
-      this.filters.hosts.options = [...this.filters.hosts.options, ...hosts.map(host => {
-        return {
-          label: `${host.name} (${host.value})`,
-          value: host.name
-        };
-      })];
+    hostsStorage.getAll().subscribe((hosts: Node[]): void => {
+      this.filters.hosts.options = [...this.filters.hosts.options, ...hosts.map(this.getListItemFromNode)];
     });
   }
 
-  private getListItem(name: string): ListItem {
+  /**
+   * Get instance for dropdown list from string
+   * @param name {string}
+   * @returns {ListItem}
+   */
+  private getListItemFromString(name: string): ListItem {
     return {
       label: name,
       value: name
+    };
+  }
+
+  /**
+   * Get instance for dropdown list from Node object
+   * @param name {Node}
+   * @returns {ListItem}
+   */
+  private getListItemFromNode(node: Node): ListItem {
+    return {
+      label: `${node.name} (${node.value})`,
+      value: node.name
     };
   }
 
@@ -64,6 +77,14 @@ export class FilteringService {
   private readonly paginationOptions = ['10', '25', '50', '100'];
 
   timeZone: string = this.defaultTimeZone;
+
+  /**
+   * A configurable property to indicate the maximum capture time in milliseconds.
+   * @type {number}
+   * @default 600000 (10 minutes)
+   */
+  @Input()
+  maximumCaptureTimeLimit: number = 600000;
 
   filters = {
     clusters: {
@@ -400,35 +421,38 @@ export class FilteringService {
 
   autoRefreshRemainingSeconds: number = 0;
 
-  private startCaptureMoment: Moment;
+  private startCaptureTime: number;
 
-  private stopCaptureMoment: Moment;
+  private stopCaptureTime: number;
 
   startCaptureTimer(): void {
-    this.startCaptureMoment = moment();
-    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => this.captureSeconds = seconds);
+    this.startCaptureTime = new Date().valueOf();
+    const maxCaptureTimeInSeconds = this.maximumCaptureTimeLimit / 1000;
+    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => {
+      this.captureSeconds = seconds;
+      if (this.captureSeconds >= maxCaptureTimeInSeconds) {
+        this.stopCaptureTimer();
+      }
+    });
   }
 
   stopCaptureTimer(): void {
     const autoRefreshIntervalSeconds = this.autoRefreshInterval / 1000;
-    this.stopCaptureMoment = moment();
+    this.stopCaptureTime = new Date().valueOf();
     this.captureSeconds = 0;
     this.stopTimer.next();
+    this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
     Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe(seconds => {
       this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
       if (!this.autoRefreshRemainingSeconds) {
         this.stopAutoRefreshCountdown.next();
-        this.filtersForm.controls.timeRange.setValue({
-          type: 'CUSTOM',
-          start: this.startCaptureMoment,
-          end: this.stopCaptureMoment
-        });
+        this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
       }
     });
   }
 
   loadClusters(): void {
-    this.httpClient.get('clusters').subscribe(response => {
+    this.httpClient.get('clusters').subscribe((response: Response): void => {
       const clusterNames = response.json();
       if (clusterNames) {
         this.clustersStorage.addInstances(clusterNames);
@@ -437,23 +461,34 @@ export class FilteringService {
   }
 
   loadComponents(): void {
-    this.httpClient.get('components').subscribe(response => {
+    this.httpClient.get('components').subscribe((response: Response): void => {
       const jsonResponse = response.json(),
-        components = jsonResponse && jsonResponse.groupList;
+        components = jsonResponse && jsonResponse.vNodeList.map((item): Node => Object.assign(item, {
+            value: item.logLevelCount.reduce((currentValue: number, currentItem): number => {
+              return currentValue + Number(currentItem.value);
+            }, 0)
+          }));
       if (components) {
-        const componentNames = components.map(component => component.type);
-        this.componentsStorage.addInstances(componentNames);
+        this.componentsStorage.addInstances(components);
       }
     });
   }
 
   loadHosts(): void {
-    this.httpClient.get('hosts').subscribe(response => {
+    this.httpClient.get('hosts').subscribe((response: Response): void => {
       const jsonResponse = response.json(),
         hosts = jsonResponse && jsonResponse.vNodeList;
       if (hosts) {
         this.hostsStorage.addInstances(hosts);
       }
+    });
+  }
+
+  setCustomTimeRange(startTime: number, endTime: number): void {
+    this.filtersForm.controls.timeRange.setValue({
+      type: 'CUSTOM',
+      start: moment(startTime),
+      end: moment(endTime)
     });
   }
 

@@ -49,7 +49,7 @@ smoke_hdfs_user_mode = 0770
 java64_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])
 
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hadoop_dir = "/etc/hadoop"

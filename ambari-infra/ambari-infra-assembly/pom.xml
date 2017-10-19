@@ -110,12 +110,19 @@
                   <name>${solr.client.package.name}</name>
                   <needarch>noarch</needarch>
                   <targetOS>linux</targetOS>
+                  <postinstallScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/solr-client/postinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </postinstallScriptlet>
                   <mappings>
                     <mapping>
                       <directory>${solr.client.mapping.path}</directory>
                       <sources>
                         <source>
                           <location>${solr.client.dir}/target/package</location>
+                          <excludes>
+                            <exclude>libs/checkstyle*.jar</exclude>
+                          </excludes>
                         </source>
                       </sources>
                     </mapping>
@@ -131,6 +138,10 @@
                 <configuration>
                   <group>Development</group>
                   <name>${infra-manager.package.name}</name>
+                  <postinstallScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/manager/postinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </postinstallScriptlet>
                   <mappings>
                     <mapping>
                       <directory>${infra-manager.mapping.path}</directory>
@@ -316,6 +327,7 @@
                         <group>root</group>
                         <prefix>${solr.client.mapping.path}</prefix>
                       </mapper>
+                      <excludes>libs/checkstyle*.jar</excludes>
                     </data>
                   </dataSet>
                 </configuration>

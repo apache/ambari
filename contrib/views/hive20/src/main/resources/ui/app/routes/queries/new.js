@@ -43,5 +43,7 @@ export default Ember.Route.extend({
     existingWorksheets.setEach('selected', false);
     this.controllerFor('queries').set('worksheets', this.store.peekAll('worksheet'));
     this.transitionTo('queries.query', newWorksheetTitle);
+    this.controllerFor("queries.query").set('previewJobData', null);
+
   }
 });

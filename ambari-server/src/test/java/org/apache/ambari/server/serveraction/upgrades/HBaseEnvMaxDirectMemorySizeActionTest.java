@@ -138,7 +138,7 @@ public class HBaseEnvMaxDirectMemorySizeActionTest {
 
     replay(injector, clusters, cluster, hbaseEnv);
 
-    m_clusterField = HBaseEnvMaxDirectMemorySizeAction.class.getDeclaredField("clusters");
+    m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
   }
 

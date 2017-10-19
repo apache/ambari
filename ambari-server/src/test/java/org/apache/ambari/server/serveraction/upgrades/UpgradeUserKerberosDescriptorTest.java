@@ -213,7 +213,7 @@ public class UpgradeUserKerberosDescriptorTest {
   }
 
   private void prepareFields() throws NoSuchFieldException {
-    String[] fieldsNames = { "artifactDAO", "clusters", "ambariMetaInfo",
+    String[] fieldsNames = { "artifactDAO", "m_clusters", "ambariMetaInfo",
         "kerberosDescriptorFactory", "m_upgradeContextFactory" };
 
     for (String fieldName : fieldsNames) {
@@ -230,7 +230,7 @@ public class UpgradeUserKerberosDescriptorTest {
   }
   private void injectFields(UpgradeUserKerberosDescriptor action) throws IllegalAccessException {
     fields.get("artifactDAO").set(action, artifactDAO);
-    fields.get("clusters").set(action, clusters);
+    fields.get("m_clusters").set(action, clusters);
     fields.get("ambariMetaInfo").set(action, ambariMetaInfo);
     fields.get("kerberosDescriptorFactory").set(action, kerberosDescriptorFactory);
     fields.get("m_upgradeContextFactory").set(action, upgradeContextFactory);

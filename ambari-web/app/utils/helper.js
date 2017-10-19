@@ -445,6 +445,29 @@ Em.Handlebars.registerHelper('isAuthorized', function (property, options) {
 });
 
 /**
+ * Usage:
+ *
+ * <pre>
+ *   {{#havePermissions "SERVICE.TOGGLE_ALERTS"}}
+ *     {{! some truly code }}
+ *   {{else}}
+ *     {{! some falsy code }}
+ *   {{/havePermissions}}
+ * </pre>
+ */
+Em.Handlebars.registerHelper('havePermissions', function (property, options) {
+  var permission = Ember.Object.create({
+    havePermissions: function() {
+      return App.havePermissions(property);
+    }.property()
+  });
+
+  // wipe out contexts so boundIf uses `this` (the permission) as the context
+  options.contexts = null;
+  return Ember.Handlebars.helpers.boundIf.call(permission, "havePermissions", options);
+});
+
+/**
  * @namespace App
  */
 App = require('app');

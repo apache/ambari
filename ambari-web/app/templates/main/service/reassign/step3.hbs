@@ -64,8 +64,8 @@
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
-    <a class="btn btn-default pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
-    <a class="btn btn-success pull-right"
-       id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
+      <button class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</button>
+      <button class="btn btn-success pull-right"
+              id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</button>
   </div>
 </div>

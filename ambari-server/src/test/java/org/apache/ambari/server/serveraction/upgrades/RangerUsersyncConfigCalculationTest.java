@@ -81,7 +81,7 @@ public class RangerUsersyncConfigCalculationTest {
 
     replay(m_injector, m_clusters, cluster, rangerUsersyncConfig, rangerEnvConfig);
 
-    m_clusterField = RangerUsersyncConfigCalculation.class.getDeclaredField("m_clusters");
+    m_clusterField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
 
   }

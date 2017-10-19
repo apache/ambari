@@ -18,19 +18,17 @@
 
 @import 'common.less';
 
-#dashboard-widgets-container{
-  .tabs-left {
-    float: left;
-  }
+#dashboard-widgets-container {
   .btn-toolbar {
     float: right;
     padding-top: 5px;
     margin-bottom: 20px;
+    margin-top: -60px;
   }
   .dashboard-widgets-box {
     clear: both;
     display: inline-block;
-    padding: 10px;
+    padding: 10px 1.1% 10px 1.1%;
     background-color: #ffffff;
   }
   #widgets-options-menu {
@@ -351,11 +349,14 @@
 
   #dashboard-widgets-container {
 
+    .dashboard-widgets-box {
+      padding: 10px 1.3% 10px 1.3%;
+    }
+
     #dashboard-widgets {
       .span2p4 {
-        float: left;
-        width: 22.3%;
-        *width: 22.3%;
+        width: 23.2%;
+        *width: 23.2%;
       }
       .img-thumbnail {
         .caption {
@@ -373,4 +374,15 @@
     }
   }
 
+}
+
+@media (min-width: 1500px) {
+  #dashboard-widgets-container {
+    #dashboard-widgets {
+      .span2p4 {
+        width: 23.4%;
+        *width: 23.4%;
+      }
+    }
+  }
 }

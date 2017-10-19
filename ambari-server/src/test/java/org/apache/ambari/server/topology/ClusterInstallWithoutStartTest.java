@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
@@ -145,6 +146,8 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
   private HostRoleCommand hostRoleCommand;
   @Mock(type = MockType.NICE)
   private ConfigureClusterTaskFactory configureClusterTaskFactory;
+  @Mock(type = MockType.NICE)
+  private ConfigureClusterTask configureClusterTask;
 
 
   @Mock(type = MockType.NICE)
@@ -363,6 +366,9 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
     expectLastCall().once();
 
+    expect(configureClusterTaskFactory.createConfigureClusterTask(anyObject(), anyObject(), anyObject())).andReturn(configureClusterTask);
+    expect(configureClusterTask.getTimeout()).andReturn(1000L);
+    expect(configureClusterTask.getRepeatDelay()).andReturn(50L);
     expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).times(1);
 
     persistedTopologyRequest = new PersistedTopologyRequest(1, request);

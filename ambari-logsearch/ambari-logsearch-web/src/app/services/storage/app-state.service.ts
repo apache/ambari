@@ -18,8 +18,8 @@
 
 import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
-import {initialState} from '@app/models/app-state.model';
-import {AppStore, ObjectModelService, getObjectReducer} from '@app/models/store.model';
+import {initialState} from '@app/classes/models/app-state';
+import {AppStore, ObjectModelService, getObjectReducer} from '@app/classes/models/store';
 
 export const modelName = 'appState';
 

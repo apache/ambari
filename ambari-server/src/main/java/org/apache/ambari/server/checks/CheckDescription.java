@@ -352,6 +352,14 @@ public class CheckDescription {
           )
           .build()
   );
+  
+  public static CheckDescription VALID_SERVICES_INCLUDED_IN_REPOSITORY = new CheckDescription("VALID_SERVICES_INCLUDED_IN_REPOSITORY",
+      PrereqCheckType.CLUSTER,
+      "The repository is missing services which are required",
+      new ImmutableMap.Builder<String, String>()
+        .put(AbstractCheckDescriptor.DEFAULT,
+            "The following services are included in the upgrade but the repository is missing their dependencies:\n%s").build());
+  
 
   private String m_name;
   private PrereqCheckType m_type;

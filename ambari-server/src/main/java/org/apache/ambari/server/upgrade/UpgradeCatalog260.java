@@ -81,6 +81,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String DESIRED_REPO_VERSION_ID_COLUMN = "desired_repo_version_id";
   public static final String REPO_STATE_COLUMN = "repo_state";
   public static final String FK_SCDS_DESIRED_STACK_ID = "FK_scds_desired_stack_id";
+  public static final String FK_SERVICECOMPONENTDESIREDSTATE_DESIRED_STACK_ID = "FK_servicecomponentdesiredstate_desired_stack_id";
   public static final String FK_SCDS_DESIRED_REPO_ID = "FK_scds_desired_repo_id";
 
   public static final String REPO_VERSION_TABLE = "repo_version";
@@ -144,11 +145,17 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String CURRENT = "CURRENT";
   public static final String SELECTED = "1";
   public static final String VIEWURL_TABLE = "viewurl";
+  public static final String VIEWINSTANCE_TABLE = "viewinstance";
   public static final String PK_VIEWURL = "PK_viewurl";
   public static final String URL_ID_COLUMN = "url_id";
   public static final String STALE_POSTGRESS_VIEWURL_PKEY = "viewurl_pkey";
   public static final String USERS_TABLE = "users";
   public static final String STALE_POSTGRESS_USERS_LDAP_USER_KEY = "users_ldap_user_key";
+  public static final String SHORT_URL_COLUMN = "short_url";
+  public static final String FK_INSTANCE_URL_ID = "FK_instance_url_id";
+  public static final String FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID = "FK_servicedesiredstate_desired_stack_id";
+  public static final String FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID = "FK_hostcomponentdesiredstate_desired_stack_id";
+  public static final String FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID = "FK_hostcomponentstate_current_stack_id";
 
 
   /**
@@ -184,6 +191,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     int currentVersionID = getCurrentVersionID();
+    dropBrokenFK();
     updateServiceComponentDesiredStateTable(currentVersionID);
     updateServiceDesiredStateTable(currentVersionID);
     addSelectedCollumsToClusterconfigTable();
@@ -199,14 +207,31 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     removeStaleConstraints();
   }
 
+  /**
+   * Drop broken FK
+   * {@value #FK_SERVICECOMPONENTDESIREDSTATE_DESIRED_STACK_ID}
+   * {@value #FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID}
+   * {@value #FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID}
+   * {@value #FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID}
+   */
+  private void dropBrokenFK() throws SQLException {
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, FK_SERVICECOMPONENTDESIREDSTATE_DESIRED_STACK_ID);
+    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID);
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID);
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID);
+  }
+
 
   /**
    * Updates {@value #VIEWURL_TABLE} table.
    * Adds the {@value #PK_VIEWURL} constraint.
    */
   private void addViewUrlPKConstraint() throws SQLException {
+    dbAccessor.dropFKConstraint(VIEWINSTANCE_TABLE, FK_INSTANCE_URL_ID);
     dbAccessor.dropPKConstraint(VIEWURL_TABLE, STALE_POSTGRESS_VIEWURL_PKEY);
     dbAccessor.addPKConstraint(VIEWURL_TABLE, PK_VIEWURL, URL_ID_COLUMN);
+    dbAccessor.addFKConstraint(VIEWINSTANCE_TABLE, FK_INSTANCE_URL_ID,
+        SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
   }
 
   /**

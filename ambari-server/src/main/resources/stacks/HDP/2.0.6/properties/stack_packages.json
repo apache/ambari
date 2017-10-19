@@ -360,6 +360,7 @@
         },
         "ZKFC": {
           "STACK-SELECT-PACKAGE": "hadoop-hdfs-zkfc",
+          "LEGACY": "hadoop-client",
           "INSTALL": [
             "hadoop-hdfs-zkfc"
           ],
@@ -1173,6 +1174,11 @@
           "current_dir": "{0}/current/zookeeper-client/conf"
         }
       ]
-    }
+    },
+    "upgrade-dependencies" : {
+      "YARN": ["TEZ"],
+      "TEZ": ["YARN"],
+      "MAHOUT": ["MAPREDUCE2"]
+    }    
   }
 }

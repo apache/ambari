@@ -855,7 +855,18 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
     if (identity != null) {
       KerberosIdentityDescriptor referencedIdentity;
       try {
-        referencedIdentity = getReferencedIdentityDescriptor(identity.getReference());
+        if (identity.getReference() != null) {
+          referencedIdentity = getReferencedIdentityDescriptor(identity.getReference());
+        } else {
+          // For backwards compatibility, see if the identity's name indicates a reference...
+          referencedIdentity = getReferencedIdentityDescriptor(identity.getName());
+
+          if(referencedIdentity != null) {
+            // Log this since it is deprecated...
+            LOG.warn("Referenced identities should be declared using the identity's \"reference\" attribute, not the identity's \"name\" attribute." +
+                " This is a deprecated feature. Problems may occur in the future unless this is corrected: {}:{}", identity.getPath(), identity.getName());
+          }
+        }
       } catch (AmbariException e) {
         throw new AmbariException(String.format("Invalid Kerberos identity reference: %s", identity.getReference()), e);
       }
@@ -872,6 +883,9 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       } else {
         dereferencedIdentity = new KerberosIdentityDescriptor(identity.toMap());
       }
+
+      // Force the path for this identity descriptor to be the same as the original identity descriptor's.
+      dereferencedIdentity.setPath(identity.getPath());
     }
 
     return dereferencedIdentity;

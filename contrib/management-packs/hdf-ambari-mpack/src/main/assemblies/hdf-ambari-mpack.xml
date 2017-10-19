@@ -40,6 +40,7 @@
   -->
   <fileSets>
     <fileSet>
+      <!--TODO-->
       <directory>src/main/resources/hooks</directory>
       <outputDirectory>hooks</outputDirectory>
     </fileSet>

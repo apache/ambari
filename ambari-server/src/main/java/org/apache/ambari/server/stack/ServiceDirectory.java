@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
@@ -259,7 +260,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
     File af = new File(directory, StackDirectory.SERVICE_ALERT_FILE_NAME);
     alertsFile = af.exists() ? af : null;
 
-    File kdf = new File(directory, StackDirectory.KERBEROS_DESCRIPTOR_FILE_NAME);
+    File kdf = new File(directory, AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME);
     kerberosDescriptorFile = kdf.exists() ? kdf : null;
 
     File rco = new File(directory, StackDirectory.RCO_FILE_NAME);

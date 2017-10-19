@@ -17,12 +17,17 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../mixins/ui-logger';
 
-export default Ember.Component.extend({
+export default Ember.Component.extend(UILoggerMixin, {
   jobs: Ember.inject.service(),
   tagName: '',
   expanded: false,
   expandedValue: null,
+  store: Ember.inject.service(),
+  savedQueries: Ember.inject.service(),
+
+
   actions: {
     toggleExpandJob(jobId) {
       if(this.get('expanded')) {
@@ -38,6 +43,48 @@ export default Ember.Component.extend({
           this.set('valueLoading', false);
         });
       }
+
+    },
+    openAsWorksheet(savedQuery){
+
+      let hasWorksheetModel = this.get('model'), self = this;
+      let worksheetId;
+
+      if (Ember.isEmpty(hasWorksheetModel)){
+        worksheetId = 1;
+      }else {
+
+        let isWorksheetExist = (this.get('model').filterBy('title', savedQuery.title).get('length') > 0);
+        if(isWorksheetExist) {
+          this.sendAction('openWorksheet', savedQuery, true);
+          return;
+        }
+
+        let worksheets = this.get('model');
+        worksheets.forEach((worksheet) => {
+          worksheet.set('selected', false);
+      });
+        worksheetId = `worksheet${worksheets.get('length') + 1}`;
+      }
+      var isTabExisting = this.get("store").peekRecord('worksheet', savedQuery.id);
+      if(isTabExisting) {
+        self.sendAction('openWorksheet', savedQuery, true);
+        return;
+      }
+      this.get("savedQueries").fetchSavedQuery(savedQuery.get('queryFile')).then(function(response) {
+        let localWs = {
+          id: savedQuery.get('id'),
+          title: savedQuery.get('title'),
+          queryFile: savedQuery.get('queryFile'),
+          query: response.file.fileContent,
+          selectedDb : savedQuery.get('dataBase'),
+          owner: savedQuery.get('owner'),
+          selected: true
+        };
+        self.sendAction('openWorksheet', localWs);
+      }, (error) => {
+        self.get('logger').danger('Failed to load the query', self.extractError(error));
+    });
 
     }
   }

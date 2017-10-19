@@ -27,6 +27,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -87,6 +88,7 @@ public class DruidHighAvailabilityCheckTest
     druidHighAvailabilityCheck.config = config;
 
     m_services.clear();
+    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
     Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
     Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());

@@ -19,6 +19,7 @@
 import {TestBed, inject} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
@@ -27,6 +28,7 @@ import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-log
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -48,6 +50,7 @@ describe('ComponentActionsService', () => {
       imports: [
         StoreModule.provideStore({
           appSettings,
+          appState,
           clusters,
           components,
           hosts,
@@ -55,12 +58,14 @@ describe('ComponentActionsService', () => {
           serviceLogs,
           auditLogsFields,
           serviceLogsFields,
-          serviceLogsHistogramData
+          serviceLogsHistogramData,
+          serviceLogsTruncated
         })
       ],
       providers: [
         ComponentActionsService,
         AppSettingsService,
+        AppStateService,
         ClustersService,
         ComponentsService,
         HostsService,
@@ -69,6 +74,7 @@ describe('ComponentActionsService', () => {
         AuditLogsFieldsService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
+        ServiceLogsTruncatedService,
         FilteringService,
         {
           provide: HttpClientService,

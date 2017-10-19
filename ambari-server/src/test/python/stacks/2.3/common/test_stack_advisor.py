@@ -28,7 +28,7 @@ class TestHDP23StackAdvisor(TestCase):
   def setUp(self):
     import imp
     self.maxDiff = None
-    unittest.util._MAX_LENGTH=2000
+    if 'util' in dir(unittest): unittest.util._MAX_LENGTH=2000
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
     stackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
     hdp206StackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')

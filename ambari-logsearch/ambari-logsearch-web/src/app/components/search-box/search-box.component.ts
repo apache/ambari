@@ -19,7 +19,7 @@
 import {Component, OnInit, OnDestroy, Input, ViewChild, ElementRef, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
-import {CommonEntry} from '@app/models/common-entry.model';
+import {CommonEntry} from '@app/classes/models/common-entry';
 import {UtilsService} from '@app/services/utils.service';
 
 @Component({

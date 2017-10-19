@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -152,6 +153,10 @@ public class AbstractPrepareKerberosServerActionTest {
         false, propertiesToIgnore, false);
 
     verify(kerberosHelper);
+
+    // Ensure the host and hostname values were set in the configuration context
+    Assert.assertEquals("host1", configurations.get("").get("host"));
+    Assert.assertEquals("host1", configurations.get("").get("hostname"));
   }
 
 }

@@ -38,7 +38,7 @@ class AmsGrafana(Script):
     env.set_params(params)
     ams(name='grafana', action=action)
 
-  def start(self, env):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env, action = 'start')
@@ -61,7 +61,7 @@ class AmsGrafana(Script):
     # Create pre-built dashboards
     create_ams_dashboards()
 
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env, action = 'stop')

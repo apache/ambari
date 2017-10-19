@@ -16,9 +16,13 @@
  * limitations under the License.
  */
 
-@import '../variables';
+@import '../mixins';
 
 :host {
   .full-size;
   overflow-x: hidden;
+
+  .close-icon {
+    .clickable-item;
+  }
 }
