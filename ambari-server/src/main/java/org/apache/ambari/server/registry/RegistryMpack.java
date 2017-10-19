@@ -32,6 +32,12 @@ public interface RegistryMpack {
   public String getMpackName();
 
   /**
+   * Get mpack display name
+   * @return
+   */
+  public String getMpackDisplayName();
+
+  /**
    * Get mpack description
    * @return
    */
