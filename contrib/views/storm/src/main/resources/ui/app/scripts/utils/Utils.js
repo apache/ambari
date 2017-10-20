@@ -16,26 +16,36 @@
  limitations under the License.
 **/
 
-import React, {Component}from 'react';
-import { render } from 'react-dom';
-import ReactToastr, {ToastMessage, ToastContainer} from "react-toastr";
+import React from 'react';
+import _ from 'lodash';
 
-class CustomToastContainer extends ToastContainer{
-  success(msg, title, opts){
-    super.success(msg.props.children, msg, opts);
+const filterByKey = function(entities, filterValue,entity) {
+  let matchFilter = new RegExp(filterValue, 'i');
+  return entities.filter(filteredList => !filterValue || _.isEmpty(entity) ? matchFilter.test(filteredList) : matchFilter.test(filteredList[entity]));
+};
+
+const hideFSModal = function(modal,callback){
+  this.refs[modal].hide();
+  if(!!callback){
+    return  new Promise((resolve,reject) => {
+      return resolve(callback);
+    });
   }
+};
 
-  error(msg, title, opts){
-    super.error(msg.props.children, msg, opts);
-  }
+const populateWindowsOptions = function(optionsArr){
+  let options=[];
+  _.map(optionsArr, (opt) => {
+    options.push({
+      label : opt.windowPretty,
+      value : opt.window
+    });
+  });
+  return options;
+};
 
-  info(msg, title, opts){
-    super.info(msg.props.children, msg, opts);
-  }
-
-  warning(msg, title, opts){
-    super.warning(msg.props.children, msg, opts);
-  }
-}
-
-export default CustomToastContainer;
+export default{
+  filterByKey,
+  hideFSModal,
+  populateWindowsOptions
+};

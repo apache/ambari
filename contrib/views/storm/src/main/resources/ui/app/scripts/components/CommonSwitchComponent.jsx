@@ -17,24 +17,25 @@
 **/
 
 import React, {Component} from 'react';
-import routes from './routers/routes';
-import {render} from 'react-dom';
-import {Router, browserHistory, hashHistory} from 'react-router';
-import {getStormVersion} from './utils/Constants';
 
-class App extends Component {
-  constructor() {
-    super();
-    this.fetchVersion();
-  }
-  fetchVersion(){
-    getStormVersion().then((res) => {
-      this.forceUpdate();
-    });
-  }
-  render() {
-    return (<Router ref="router" history={hashHistory} routes={routes}/>);
+export default class CommonSwitchComponent extends Component {
+  render(){
+    const {switchCallBack,checked,textON,textOFF,KYC} = this.props;
+    let switchId = "switch-"+((Math.random())*100).toFixed(0);
+    return (
+      <div className={`switchWrapper ${!!KYC ? 'lagSwitchSetting pull-right' : ''}`}>
+        <span className={`switchSlider ${checked ?  'onSlider' : 'offSlider'}`} onClick={switchCallBack}>
+          <span className={`switchItemOn sliderText ${!!KYC ? 'graphSwitchOn' : ''}`}>{textON}</span>
+          <span className="switchItemMid"></span>
+          <span className={`switchItemOff sliderText ${!!KYC ? 'graphSwitchOff' : ''}`}>{textOFF}</span>
+        </span>
+      </div>
+
+    );
   }
 }
 
-export default App;
+CommonSwitchComponent.defaultProps = {
+  textON : "ON",
+  textOFF : "OFF"
+};

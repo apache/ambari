@@ -16,26 +16,30 @@
  limitations under the License.
 **/
 
-import React, {Component}from 'react';
-import { render } from 'react-dom';
-import ReactToastr, {ToastMessage, ToastContainer} from "react-toastr";
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import ReactDom from 'react-dom';
 
-class CustomToastContainer extends ToastContainer{
-  success(msg, title, opts){
-    super.success(msg.props.children, msg, opts);
+export default class Breadcrumbs extends Component{
+  static propTypes = {
+    links: PropTypes.array.isRequired
   }
-
-  error(msg, title, opts){
-    super.error(msg.props.children, msg, opts);
+  render() {
+    return (
+      <ol id="breadcrumb">
+        {this.renderLinks()}
+      </ol>
+    );
   }
-
-  info(msg, title, opts){
-    super.info(msg.props.children, msg, opts);
-  }
-
-  warning(msg, title, opts){
-    super.warning(msg.props.children, msg, opts);
+  renderLinks() {
+    var links = [];
+    for(var i = 0; i < this.props.links.length; i++){
+      var object = this.props.links[i];
+      if(object.link === '#/'){
+        object.title = <i className="fa fa-home"></i>;
+      }
+      links.push(<li key={i}><a href={object.link}>{object.title}</a></li>);
+    }
+    return links;
   }
 }
-
-export default CustomToastContainer;

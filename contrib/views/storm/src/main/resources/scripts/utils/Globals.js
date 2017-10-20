@@ -14,17 +14,15 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
-*/
+**/
 
-define(['require'], function (require) {
-  'use strict';
-	var Globals = {};
+import React, {Component} from 'react';
+import {stormVersion} from '../utils/Constants';
 
-	Globals.baseURL = App.baseURL;
+const Footer = () =>{
+  return(
+    <p className="text-center">Apache Storm - {stormVersion}</p>
+  );
+};
 
-	Globals.settings = {
-		PAGE_SIZE: 25
-	};
-
-	return Globals;
-});
+export default Footer;
