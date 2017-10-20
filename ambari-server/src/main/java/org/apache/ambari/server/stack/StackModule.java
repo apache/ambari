@@ -1236,7 +1236,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
           LOG.warn("Discarding service repository with duplicate name and different content: {}", repo);
         }
         else {
-          String key = String.join("-", repo.getOsType(), repo.getRepoName(), repo.getRepoId());
+          String key = repo.getOsType() + "-" + repo.getRepoName() + "-" + repo.getRepoId();
           if(uniqueServiceRepos.containsKey(key)) {
             uniqueServiceRepos.get(key).getApplicableServices().addAll(repo.getApplicableServices());
           } else {

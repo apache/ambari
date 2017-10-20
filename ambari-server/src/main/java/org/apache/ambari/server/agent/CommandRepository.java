@@ -25,6 +25,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.google.gson.annotations.SerializedName;
@@ -344,7 +345,7 @@ public class CommandRepository {
           .append("components", m_components)
           .append("id", m_repoId)
           .append("baseUrl", m_baseUrl)
-          .append("applicableServices", (m_applicableServices != null? String.join(",", m_applicableServices) : ""))
+          .append("applicableServices", (m_applicableServices != null? StringUtils.join(m_applicableServices, ",") : ""))
           .toString();
     }
   }

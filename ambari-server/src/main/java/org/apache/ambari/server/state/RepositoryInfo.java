@@ -25,6 +25,7 @@ import com.google.common.base.Objects;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.RepositoryResponse;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
@@ -198,7 +199,7 @@ public class RepositoryInfo {
         + ", mirrorsList=" + mirrorsList
         + ", unique=" + unique
         + ", ambariManagedRepositories=" + ambariManagedRepositories
-        + ", applicableServices=" +  String.join(",", applicableServices)
+        + ", applicableServices=" +  StringUtils.join(applicableServices, ",")
         + " ]";
   }
 
