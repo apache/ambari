@@ -8000,10 +8000,6 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_version")
   def test_check_database_name_property(self, get_ambari_version_mock, get_ambari_properties_mock, write_property_mock):
-    parser = OptionParser()
-    parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres", dest="dbms")
-    args = parser.parse_args()
-
     # negative case
     get_ambari_properties_mock.return_value = {JDBC_DATABASE_NAME_PROPERTY: ""}
     try:
