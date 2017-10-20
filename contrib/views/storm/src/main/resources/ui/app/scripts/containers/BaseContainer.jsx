@@ -16,26 +16,35 @@
  limitations under the License.
 **/
 
-import React, {Component}from 'react';
-import { render } from 'react-dom';
-import ReactToastr, {ToastMessage, ToastContainer} from "react-toastr";
+import React, {Component} from 'react';
+import Footer from '../components/Footer';
+import {Confirm} from '../components/FSModel';
 
-class CustomToastContainer extends ToastContainer{
-  success(msg, title, opts){
-    super.success(msg.props.children, msg, opts);
+export default class BaseContainer extends Component {
+
+  constructor(props) {
+    super(props);
   }
 
-  error(msg, title, opts){
-    super.error(msg.props.children, msg, opts);
+  handleKeyPress = (event) => {
+    event.key === "Enter"
+      ? this.refs.Confirm.state.show
+        ? this.refs.Confirm.sure()
+        : ''
+    :event.key === "Escape"
+      ? this.refs.Confirm.state.show
+        ? this.refs.Confirm.cancel()
+        : ''
+    :'';
   }
 
-  info(msg, title, opts){
-    super.info(msg.props.children, msg, opts);
-  }
-
-  warning(msg, title, opts){
-    super.warning(msg.props.children, msg, opts);
+  render() {
+    return (
+      <div className="container-fluid">
+        {this.props.children}
+        <Confirm ref="Confirm" onKeyUp={this.handleKeyPress}/>
+        <Footer />
+      </div>
+    );
   }
 }
-
-export default CustomToastContainer;

@@ -26,3 +26,6 @@ rebel.xml
 rebel-remote.xml
 out
 createDDL.jdbc
+/contrib/views/storm/src/main/resources/ui/node_modules/
+/contrib/views/storm/src/main/resources/ui/public/
+/contrib/views/storm/src/main/resources/ui/npm-debug.log

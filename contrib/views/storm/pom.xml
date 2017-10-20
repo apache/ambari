@@ -23,6 +23,7 @@
   </parent>
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
+    <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
   </properties>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari.contrib.views</groupId>
@@ -55,14 +56,17 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>src/main/resources/libs/**</exclude>
-            <exclude>src/main/resources/styles/**</exclude>
-	    <exclude>src/main/resources/templates/**</exclude>
+            <exclude>src/main/resources/ui/.*</exclude>
+            <exclude>src/main/resources/ui/node_modules/**</exclude>
+            <exclude>src/main/resources/ui/public/**</exclude>
+            <exclude>src/main/resources/ui/app/styles/**</exclude>
+            <exclude>src/main/resources/ui/package.json</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -74,6 +78,52 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Building frontend -->
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.4</version>
+        <configuration>
+          <workingDirectory>src/main/resources/ui/</workingDirectory>
+          <installDirectory>target</installDirectory>
+          <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
+        </configuration>
+        <executions>
+          <execution>
+            <id>install node and npm</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>v5.6.0</nodeVersion>
+              <npmVersion>3.6.0</npmVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <arguments>install</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm run build</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <arguments>run build</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -98,6 +148,27 @@
         </executions>
       </plugin>
     </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources/ui/public</directory>
+        <filtering>false</filtering>
+      </resource>
+
+      <resource>
+        <directory>src/main/resources/WEB-INF</directory>
+        <targetPath>WEB-INF</targetPath>
+        <filtering>false</filtering>
+      </resource>
+
+      <resource>
+        <directory>src/main/resources/</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>view.xml</include>
+          <include>view.log4j.properties</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
   <dependencies>
     <dependency>
@@ -125,4 +196,30 @@
     </dependency>
 
   </dependencies>
+  <profiles>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>win</family>
+        </os>
+      </activation>
+      <properties>
+        <node.executable>node.exe</node.executable>
+        <skip.nodegyp.chmod>true</skip.nodegyp.chmod>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <node.executable>node</node.executable>
+        <skip.nodegyp.chmod>false</skip.nodegyp.chmod>
+      </properties>
+    </profile>
+  </profiles>
 </project>
