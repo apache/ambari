@@ -514,6 +514,7 @@ public class AmbariCustomCommandExecutionHelper {
         if (refreshConfigsCommand != null && !refreshConfigsCommand.equals(RefreshCommandConfiguration.REFRESH_CONFIGS)) {
               LOG.info("Refreshing configs for {}/{} with command: ", componentName, hostName, refreshConfigsCommand);
           commandParams.put("reconfigureAction", refreshConfigsCommand);
+          //execCmd.setForceRefreshConfigTagsBeforeExecution(true);
         }
       }
 
