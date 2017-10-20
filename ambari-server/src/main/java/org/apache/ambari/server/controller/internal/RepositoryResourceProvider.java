@@ -26,6 +26,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -62,6 +64,9 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "repository_version_id");
   public static final String REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "version_definition_id");
   public static final String REPOSITORY_UNIQUE_PROPERTY_ID                = PropertyHelper.getPropertyId("Repositories", "unique");
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public static final String REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID   = PropertyHelper.getPropertyId("Repositories", "applicable_services");
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -92,6 +97,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       add(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
       add(REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       add(REPOSITORY_UNIQUE_PROPERTY_ID);
+      add(REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID);
     }
   };
 
@@ -177,6 +183,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, response.getDefaultBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_LATEST_BASE_URL_PROPERTY_ID, response.getLatestBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_UNIQUE_PROPERTY_ID, response.isUnique(), requestedIds);
+        setResourceProperty(resource, REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID, response.getApplicableServices(), requestedIds);
         if (null != response.getClusterVersionId()) {
           setResourceProperty(resource, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID, response.getClusterVersionId(), requestedIds);
         }

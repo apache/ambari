@@ -150,3 +150,4 @@ class CommandRepositoryItem(object):
 
     self.ubuntu_components = [self.distribution if self.distribution else self.repo_name] + \
                              [self.components.replace(",", " ") if self.components else UBUNTU_REPO_COMPONENTS_POSTFIX]
+    self.applicable_services = _find_value(json_dict, 'applicableServices')

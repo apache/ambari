@@ -110,6 +110,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ListMultimap;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -1274,39 +1275,57 @@ public class AmbariCustomCommandExecutionHelper {
   @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, final Host host) throws AmbariException {
 
-    final CommandRepository command = new CommandRepository();
+    final CommandRepository commandRepo = new CommandRepository();
     boolean sysPreppedHost = configs.areHostsSysPrepped().equalsIgnoreCase("true");
     StackId stackId = component.getDesiredStackId();
-    command.setRepositories(Collections.<RepositoryInfo>emptyList());
-    command.setStackName(stackId.getStackName());
-    command.getFeature().setPreInstalled(configs.areHostsSysPrepped());
-    command.getFeature().setIsScoped(!sysPreppedHost);
+    commandRepo.setRepositories(Collections.<RepositoryInfo>emptyList());
+    commandRepo.setStackName(stackId.getStackName());
+    commandRepo.getFeature().setPreInstalled(configs.areHostsSysPrepped());
+    commandRepo.getFeature().setIsScoped(!sysPreppedHost);
+    final ListMultimap<String, RepositoryInfo> stackReposByOs =
+      ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
 
+    @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+      comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
     final BaseUrlUpdater<Void> updater = new BaseUrlUpdater<Void>(null) {
       @Override
       public Void apply(RepositoryVersionEntity rve) {
-        command.setRepositoryVersionId(rve.getId());
-        command.setRepositoryVersion(rve.getVersion());
-        command.setResolved(rve.isResolved());
-        command.setStackName(rve.getStackName());
+        commandRepo.setRepositoryVersionId(rve.getId());
+        commandRepo.setRepositoryVersion(rve.getVersion());
+        commandRepo.setResolved(rve.isResolved());
+        commandRepo.setStackName(rve.getStackName());
 
         // !!! a repository version entity has all the repos worked out.  We shouldn't use
         // the stack at all.
+        // NOTE: The only exception here is we will add applicableServices from the stack model
+        // if the repository version entity doesn't include it.
         for (OperatingSystemEntity osEntity : rve.getOperatingSystems()) {
           String osEntityFamily = os_family.find(osEntity.getOsType());
           if (osEntityFamily.equals(host.getOsFamily())) {
-            command.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
+
+            commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
+            for(CommandRepository.Repository repo : commandRepo.getRepositories()) {
+              List<String> applicableServices = repo.getApplicableServices();
+              if(applicableServices == null || applicableServices.isEmpty()) {
+                List<RepositoryInfo> stackRepos = stackReposByOs.get(osEntity.getOsType());
+                for(RepositoryInfo stackRepo : stackRepos) {
+                  if(stackRepo.getRepoName().equals(repo.getRepoName()) && stackRepo.getRepoId().equals(repo.getRepoId())) {
+                    repo.setApplicableServices(stackRepo.getApplicableServices());
+                  }
+                }
+              }
+            }
 
             if (!osEntity.isAmbariManagedRepos()) {
-              command.setNonManaged();
+              commandRepo.setNonManaged();
             } else {
               if (rve.isLegacy()){
-                command.setLegacyRepoId(rve.getVersion());
-                command.setLegacyRepoFileName(rve.getStackName(), rve.getVersion());
-                command.getFeature().setIsScoped(false);
+                commandRepo.setLegacyRepoId(rve.getVersion());
+                commandRepo.setLegacyRepoFileName(rve.getStackName(), rve.getVersion());
+                commandRepo.getFeature().setIsScoped(false);
               } else {
-                command.setRepoFileName(rve.getStackName(), rve.getId());
-                command.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
+                commandRepo.setRepoFileName(rve.getStackName(), rve.getId());
+                commandRepo.setUniqueSuffix(String.format("-repo-%s", rve.getId()));
               }
             }
           }
@@ -1320,10 +1339,10 @@ public class AmbariCustomCommandExecutionHelper {
 
     if (configs.arePackagesLegacyOverridden()) {
       LOG.warn("Legacy override option is turned on, disabling CommandRepositoryFeature.scoped feature");
-      command.getFeature().setIsScoped(false);
+      commandRepo.getFeature().setIsScoped(false);
     }
 
-    return command;
+    return commandRepo;
   }
 
   /**

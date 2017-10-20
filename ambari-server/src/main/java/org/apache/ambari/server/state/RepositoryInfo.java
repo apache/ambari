@@ -18,7 +18,12 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.LinkedList;
+import java.util.List;
 import com.google.common.base.Objects;
+
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.RepositoryResponse;
 
 import com.google.common.base.Function;
@@ -37,6 +42,9 @@ public class RepositoryInfo {
   private boolean baseSaved = false;
   private boolean unique = false;
   private boolean ambariManagedRepositories = true;
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  private List<String> applicableServices = new LinkedList<>();
 
   /**
    * @return the baseUrl
@@ -166,6 +174,18 @@ public class RepositoryInfo {
     baseSaved = saved;
   }
 
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public List<String> getApplicableServices() {
+    return applicableServices;
+  }
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public void setApplicableServices(List<String> applicableServices) {
+    this.applicableServices = applicableServices;
+  }
+
   @Override
   public String toString() {
     return "[ repoInfo: "
@@ -178,6 +198,7 @@ public class RepositoryInfo {
         + ", mirrorsList=" + mirrorsList
         + ", unique=" + unique
         + ", ambariManagedRepositories=" + ambariManagedRepositories
+        + ", applicableServices=" +  String.join(",", applicableServices)
         + " ]";
   }
 
@@ -206,8 +227,8 @@ public class RepositoryInfo {
 
   public RepositoryResponse convertToResponse()
   {
-    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
-        getRepoName(), getDistribution(), getComponents(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl());
+    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(), getRepoName(), getDistribution(),
+      getComponents(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl(), getApplicableServices());
   }
 
   /**

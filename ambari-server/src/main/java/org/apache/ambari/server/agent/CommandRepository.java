@@ -255,6 +255,11 @@ public class CommandRepository {
     @SerializedName("mirrorsList")
     private String m_mirrorsList;
 
+    @SerializedName("applicableServices")
+    @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+      comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+    private List<String> m_applicableServices;
+
     private transient String m_osType;
 
     private Repository(RepositoryInfo info) {
@@ -265,6 +270,7 @@ public class CommandRepository {
       m_distribution = info.getDistribution();
       m_components = info.getComponents();
       m_mirrorsList = info.getMirrorsList();
+      m_applicableServices = info.getApplicableServices();
     }
 
     private Repository(String osType, RepositoryEntity entity) {
@@ -275,6 +281,7 @@ public class CommandRepository {
       m_components = entity.getComponents();
       m_mirrorsList = entity.getMirrorsList();
       m_osType = osType;
+      m_applicableServices = entity.getApplicableServices();
     }
 
     public void setRepoId(String repoId){
@@ -313,6 +320,18 @@ public class CommandRepository {
       return m_ambariManaged;
     }
 
+    @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+      comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+    public void setApplicableServices(List<String> applicableServices) {
+      m_applicableServices = applicableServices;
+    }
+
+    @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+      comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+    public List<String> getApplicableServices() {
+      return m_applicableServices;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -325,8 +344,8 @@ public class CommandRepository {
           .append("components", m_components)
           .append("id", m_repoId)
           .append("baseUrl", m_baseUrl)
+          .append("applicableServices", (m_applicableServices != null? String.join(",", m_applicableServices) : ""))
           .toString();
     }
-
   }
 }

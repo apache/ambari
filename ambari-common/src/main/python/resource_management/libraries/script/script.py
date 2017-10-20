@@ -756,9 +756,19 @@ class Script(object):
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
+    config = self.get_config()
+
+    service_name = config['serviceName'] if 'serviceName' in config else None
+    repos = CommandRepository(config['repositoryFile'])
+    repo_ids = [repo.repo_id for repo in repos.items]
+    Logger.info("Command repositories: {0}".format(", ".join(repo_ids)))
+    repos.items = [x for x in repos.items if (not x.applicable_services or service_name in x.applicable_services) ]
+    applicable_repo_ids = [repo.repo_id for repo in repos.items]
+    Logger.info("Applicable repositories: {0}".format(", ".join(applicable_repo_ids)))
+
     pkg_provider = get_provider("Package")
     try:
-      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
+      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(repos)
     except Exception as err:
       Logger.exception("Unable to load available packages")
       self.available_packages_in_repos = []

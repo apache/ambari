@@ -20,11 +20,14 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -51,8 +54,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -136,6 +141,14 @@ public class RepositoryVersionHelper {
         if (repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID) != null) {
           repositoryEntity.setUnique(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID).getAsBoolean());
         }
+        if (repositoryJson.get(RepositoryResourceProvider.REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID) != null) {
+          List<String> applicableServices = new LinkedList<>();
+          JsonArray jsonArray = repositoryJson.get(RepositoryResourceProvider.REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID).getAsJsonArray();
+          for(JsonElement je : jsonArray) {
+            applicableServices.add(je.getAsString());
+          }
+          repositoryEntity.setApplicableServices(applicableServices);
+        }
         operatingSystemEntity.getRepositories().add(repositoryEntity);
       }
       operatingSystems.add(operatingSystemEntity);
@@ -187,6 +200,12 @@ public class RepositoryVersionHelper {
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, repository.getComponents());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
+
+        if(repository.getApplicableServices() != null) {
+          Gson gson = new GsonBuilder().create();
+          JsonArray applicableServicesJson = gson.toJsonTree(repository.getApplicableServices()).getAsJsonArray();
+          repositoryJson.add(RepositoryResourceProvider.REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID, applicableServicesJson);
+        }
         repositoriesJson.add(repositoryJson);
         operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, repository.isAmbariManagedRepositories());
       }
@@ -312,13 +331,34 @@ public class RepositoryVersionHelper {
    * @param osEntity      the OS family
    * @param repoVersion   the repository version entity
    */
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos in Ambari 3.0")
   public void addCommandRepository(ActionExecutionContext context,
-      RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) {
+      RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) throws SystemException {
 
     final CommandRepository commandRepo = new CommandRepository();
     boolean sysPreppedHost = configuration.get().areHostsSysPrepped().equalsIgnoreCase("true");
-
+    StackId stackId = repoVersion.getStackId();
+    ListMultimap<String, RepositoryInfo> stackReposByOs = null;
+    try {
+      stackReposByOs =
+        ami.get().getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
+    } catch (AmbariException e) {
+      throw new SystemException(String.format("Cannot obtain stack information for %s-%s", stackId.getStackName(), stackId.getStackVersion()), e);
+    }
     commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
+    for(CommandRepository.Repository repo : commandRepo.getRepositories()) {
+      List<String> applicableServices = repo.getApplicableServices();
+      if(applicableServices == null || applicableServices.isEmpty() && stackReposByOs != null) {
+        List<RepositoryInfo> stackRepos = stackReposByOs.get(osEntity.getOsType());
+        for(RepositoryInfo stackRepo : stackRepos) {
+          if(stackRepo.getRepoName().equals(repo.getRepoName()) && stackRepo.getRepoId().equals(repo.getRepoId())) {
+            repo.setApplicableServices(stackRepo.getApplicableServices());
+          }
+        }
+      }
+    }
+
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
     commandRepo.setResolved(repoVersion.isResolved());

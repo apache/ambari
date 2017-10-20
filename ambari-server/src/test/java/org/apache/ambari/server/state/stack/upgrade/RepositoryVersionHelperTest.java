@@ -53,6 +53,6 @@ public class RepositoryVersionHelperTest {
     repositories.add(repository);
 
     final String serialized = helper.serializeOperatingSystems(repositories);
-    Assert.assertEquals("[{\"OperatingSystems/ambari_managed_repositories\":true,\"repositories\":[{\"Repositories/base_url\":\"baseurl\",\"Repositories/repo_id\":\"repoId\",\"Repositories/unique\":true}],\"OperatingSystems/os_type\":\"os\"}]", serialized);
+    Assert.assertEquals("[{\"OperatingSystems/ambari_managed_repositories\":true,\"repositories\":[{\"Repositories/base_url\":\"baseurl\",\"Repositories/repo_id\":\"repoId\",\"Repositories/unique\":true,\"Repositories/applicable_services\":[]}],\"OperatingSystems/os_type\":\"os\"}]", serialized);
   }
 }

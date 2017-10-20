@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
@@ -588,6 +590,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    *
    * @throws AmbariException if some properties are missing or json has incorrect structure
    */
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   protected void toRepositoryVersionEntity(XmlHolder holder) throws AmbariException {
 
     // !!! TODO validate parsed object graph
@@ -775,6 +779,18 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             entity.getStackName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),
             entity.getStackVersion());
+
+        @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+          comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+        ArrayNode applicableServicesNode = factory.arrayNode();
+        if(repo.getApplicableServices() != null) {
+          for (String applicableService : repo.getApplicableServices()) {
+            applicableServicesNode.add(applicableService);
+          }
+        }
+        repoElement.put(PropertyHelper.getPropertyName(
+          RepositoryResourceProvider.REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID), applicableServicesNode);
+
         repoBase.put(PropertyHelper.getPropertyCategory(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
             repoElement);
 

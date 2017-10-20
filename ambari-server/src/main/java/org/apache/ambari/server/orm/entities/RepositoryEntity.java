@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.List;
+
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
+
 /**
  * Emulates entity to provide a quick way to change it to real entity in future.
  */
@@ -29,6 +34,9 @@ public class RepositoryEntity {
   private String repositoryId;
   private String mirrorsList;
   private boolean unique;
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  private List<String> applicableServices;
 
   public String getName() {
     return name;
@@ -70,32 +78,6 @@ public class RepositoryEntity {
     this.repositoryId = repositoryId;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    RepositoryEntity that = (RepositoryEntity) o;
-
-    if (name != null ? !name.equals(that.name) : that.name != null) return false;
-    if (distribution != null ? !distribution.equals(that.distribution) : that.distribution != null) return false;
-    if (components != null ? !components.equals(that.components) : that.components != null) return false;
-    if (baseUrl != null ? !baseUrl.equals(that.baseUrl) : that.baseUrl != null) return false;
-    if (repositoryId != null ? !repositoryId.equals(that.repositoryId) : that.repositoryId != null) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    result = 31 * result + (distribution != null ? distribution.hashCode() : 0);
-    result = 31 * result + (components != null ? components.hashCode() : 0);
-    result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
-    result = 31 * result + (repositoryId != null ? repositoryId.hashCode() : 0);
-    return result;
-  }
-
   public String getMirrorsList() {
     return mirrorsList;
   }
@@ -110,5 +92,44 @@ public class RepositoryEntity {
 
   public void setUnique(boolean unique) {
     this.unique = unique;
+  }
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public List<String> getApplicableServices() {
+    return applicableServices;
+  }
+
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  public void setApplicableServices(List<String> applicableServices) {
+    this.applicableServices = applicableServices;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RepositoryEntity that = (RepositoryEntity) o;
+
+    if (name != null ? !name.equals(that.name) : that.name != null) return false;
+    if (distribution != null ? !distribution.equals(that.distribution) : that.distribution != null) return false;
+    if (components != null ? !components.equals(that.components) : that.components != null) return false;
+    if (baseUrl != null ? !baseUrl.equals(that.baseUrl) : that.baseUrl != null) return false;
+    if (repositoryId != null ? !repositoryId.equals(that.repositoryId) : that.repositoryId != null) return false;
+    if (applicableServices != null? !applicableServices.equals(that.applicableServices) : that.applicableServices != null) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (distribution != null ? distribution.hashCode() : 0);
+    result = 31 * result + (components != null ? components.hashCode() : 0);
+    result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
+    result = 31 * result + (repositoryId != null ? repositoryId.hashCode() : 0);
+    result = 31 * result + (applicableServices != null ? applicableServices.hashCode() : 0);
+    return result;
   }
 }

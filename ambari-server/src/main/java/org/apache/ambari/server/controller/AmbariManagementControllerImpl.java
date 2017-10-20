@@ -67,6 +67,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.persistence.RollbackException;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -4467,6 +4469,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return response;
   }
 
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   private Set<RepositoryResponse> getRepositories(RepositoryRequest request) throws AmbariException {
 
     String stackName = request.getStackName();
@@ -4493,8 +4497,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
           if (operatingSystem.getOsType().equals(osType)) {
             for (RepositoryEntity repository: operatingSystem.getRepositories()) {
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
-                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "", "");
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType,
+                repository.getRepositoryId(),
+                repository.getName(), repository.getDistribution(), repository.getComponents(), "", "", "",
+                repository.getApplicableServices());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4523,7 +4529,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl(), repo.getLatestUri());
+              repo.getBaseUrl(), repo.getLatestUri(), Collections.EMPTY_LIST);
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());

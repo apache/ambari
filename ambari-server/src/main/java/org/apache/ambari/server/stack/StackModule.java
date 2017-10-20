@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ExtensionInfo;
@@ -1138,7 +1140,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     }
 
     LOG.debug("Process service custom repositories");
-    Set<RepositoryInfo> serviceRepos = getUniqueServiceRepos(stackRepos);
+    Collection<RepositoryInfo> serviceRepos = getUniqueServiceRepos(stackRepos);
     stackInfo.getRepositories().addAll(serviceRepos);
 
     if (null != rxml && null != rxml.getLatestURI() && stackRepos.size() > 0) {
@@ -1200,12 +1202,14 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param stackRepos the list of stack repositories
    * @return the service repos with duplicates filtered out.
    */
-  private Set<RepositoryInfo> getUniqueServiceRepos(List<RepositoryInfo> stackRepos) {
+  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
+    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
+  private Collection<RepositoryInfo> getUniqueServiceRepos(List<RepositoryInfo> stackRepos) {
     List<RepositoryInfo> serviceRepos = getAllServiceRepos();
     ImmutableListMultimap<String, RepositoryInfo> serviceReposByOsType = Multimaps.index(serviceRepos, RepositoryInfo.GET_OSTYPE_FUNCTION);
     ImmutableListMultimap<String, RepositoryInfo> stackReposByOsType = Multimaps.index(stackRepos, RepositoryInfo.GET_OSTYPE_FUNCTION);
 
-    Set<RepositoryInfo> uniqueServiceRepos = new HashSet<>();
+    Map<String, RepositoryInfo> uniqueServiceRepos = new HashMap<>();
 
     // Uniqueness is checked for each os type
     for (String osType: serviceReposByOsType.keySet()) {
@@ -1232,11 +1236,16 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
           LOG.warn("Discarding service repository with duplicate name and different content: {}", repo);
         }
         else {
-          uniqueServiceRepos.add(repo);
+          String key = String.join("-", repo.getOsType(), repo.getRepoName(), repo.getRepoId());
+          if(uniqueServiceRepos.containsKey(key)) {
+            uniqueServiceRepos.get(key).getApplicableServices().addAll(repo.getApplicableServices());
+          } else {
+            uniqueServiceRepos.put(key, repo);
+          }
         }
       }
     }
-    return uniqueServiceRepos;
+    return uniqueServiceRepos.values();
   }
 
   /**
@@ -1273,7 +1282,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         StackServiceDirectory ssd = (StackServiceDirectory) sd;
         RepositoryXml serviceRepoXml = ssd.getRepoFile();
         if (null != serviceRepoXml) {
-          repos.addAll(serviceRepoXml.getRepositories());
+          List<RepositoryInfo> serviceRepos = serviceRepoXml.getRepositories();
+          for(RepositoryInfo serviceRepo : serviceRepos) {
+            serviceRepo.getApplicableServices().add(sm.getId());
+          }
+          repos.addAll(serviceRepos);
           if (null != serviceRepoXml.getLatestURI()) {
             registerRepoUpdateTask(serviceRepoXml);
           }
