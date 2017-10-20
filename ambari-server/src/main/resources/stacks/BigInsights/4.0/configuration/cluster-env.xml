@@ -323,7 +323,7 @@ gpgcheck=0</value>
     <value>{"BigInsights":"/usr/iop"}</value>
     <description>JSON which defines the stack root by stack name</description>  
     <value-attributes>
-      <read-only>true</read-only>
+      <read-only>false</read-only>
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>

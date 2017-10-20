@@ -70,6 +70,8 @@ stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CO
 upgrade_from_version = upgrade_summary.get_source_version()
 
 source_stack = default("/commandParams/source_stack", None)
+if source_stack is None:
+  source_stack = upgrade_summary.get_source_stack("KNOX")
 source_stack_name = get_stack_name(source_stack)
 if source_stack_name is not None and source_stack_name != stack_name:
   source_stack_root = get_stack_root(source_stack_name, default('/configurations/cluster-env/stack_root', None))
