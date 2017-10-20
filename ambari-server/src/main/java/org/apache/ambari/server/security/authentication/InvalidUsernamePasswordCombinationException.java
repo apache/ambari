@@ -23,10 +23,18 @@ public class InvalidUsernamePasswordCombinationException extends AmbariAuthentic
   public static final String MESSAGE = "Unable to sign in. Invalid username/password combination.";
 
   public InvalidUsernamePasswordCombinationException(String username) {
-    super(username, MESSAGE);
+    super(username, MESSAGE, true);
+  }
+
+  public InvalidUsernamePasswordCombinationException(String username, boolean incrementFailureCount) {
+    super(username, MESSAGE, incrementFailureCount);
   }
 
   public InvalidUsernamePasswordCombinationException(String username, Throwable t) {
-    super(username, MESSAGE, t);
+    super(username, MESSAGE, true, t);
+  }
+
+  public InvalidUsernamePasswordCombinationException(String username, boolean incrementFailureCount, Throwable t) {
+    super(username, MESSAGE, incrementFailureCount, t);
   }
 }

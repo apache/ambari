@@ -27,17 +27,30 @@ import org.springframework.security.core.AuthenticationException;
 public class AmbariAuthenticationException extends AuthenticationException {
   private final String username;
 
-  public AmbariAuthenticationException(String username, String message) {
+  /**
+   * A boolean value indicating whether the faulire was due to invalid credentials (<code>true</code>) or not (<code>false</code>)
+   * <p>
+   * An invalid credential failure will count towards a user's authentication failure count.
+   */
+  private final boolean credentialFailure;
+
+  public AmbariAuthenticationException(String username, String message, boolean credentialFailure) {
     super(message);
     this.username = username;
+    this.credentialFailure = credentialFailure;
   }
 
-  public AmbariAuthenticationException(String username, String message, Throwable throwable) {
+  public AmbariAuthenticationException(String username, String message, boolean credentialFailure, Throwable throwable) {
     super(message, throwable);
     this.username = username;
+    this.credentialFailure = credentialFailure;
   }
 
   public String getUsername() {
     return username;
+  }
+
+  public boolean isCredentialFailure() {
+    return credentialFailure;
   }
 }

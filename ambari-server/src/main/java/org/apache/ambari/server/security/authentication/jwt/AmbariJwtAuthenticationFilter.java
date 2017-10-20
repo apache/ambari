@@ -235,7 +235,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
         if (e instanceof AmbariAuthenticationException) {
           cause = (AmbariAuthenticationException) e;
         } else {
-          cause = new AmbariAuthenticationException(null, e.getMessage(), e);
+          cause = new AmbariAuthenticationException(null, e.getMessage(), false, e);
         }
 
         eventHandler.onUnsuccessfulAuthentication(this, httpServletRequest, httpServletResponse, cause);

@@ -26,18 +26,18 @@ public class UserNotFoundException extends AmbariAuthenticationException {
   public static final String MESSAGE = "User does not exist.";
 
   public UserNotFoundException(String userName) {
-    super(userName, MESSAGE);
+    super(userName, MESSAGE, false);
   }
 
   public UserNotFoundException(String userName, Throwable cause) {
-    super(userName, MESSAGE, cause);
+    super(userName, MESSAGE, false, cause);
   }
 
   public UserNotFoundException(String username, String message) {
-    super(username, message);
+    super(username, message, false);
   }
 
   public UserNotFoundException(String username, String message, Throwable throwable) {
-    super(username, message, throwable);
+    super(username, message, false, throwable);
   }
 }

@@ -37,8 +37,12 @@ import org.springframework.security.authentication.AuthenticationProvider;
 public abstract class AmbariAuthenticationProvider implements AuthenticationProvider {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariAuthenticationProvider.class);
 
-  private Users users;
-  private Configuration configuration;
+  /**
+   * Helper object to provide logic for working with users.
+   */
+  private final Users users;
+
+  private final Configuration configuration;
 
   protected AmbariAuthenticationProvider(Users users, Configuration configuration) {
     this.users = users;
@@ -46,40 +50,28 @@ public abstract class AmbariAuthenticationProvider implements AuthenticationProv
   }
 
   /**
-   * Gets the {@link UserEntity} for the user with the specified username.
-   * <p>
-   * The entity is validated such that the account is allowed to log in before returning. For example,
-   * if the account is not active, no user may not login as that account.
+   * Validates the user account such that the user is allowed to log in.
    *
-   * @param userName
-   * @return
+   * @param userEntity the user entity
+   * @param userName   the Ambari username
    */
-  protected UserEntity getUserEntity(String userName) {
-    LOG.debug("Loading user by name: {}", userName);
-    UserEntity userEntity = users.getUserEntity(userName);
-
+  protected void validateLogin(UserEntity userEntity, String userName) {
     if (userEntity == null) {
-      LOG.info("User not found: {}", userName);
+      LOG.info("User not found");
       throw new UserNotFoundException(userName);
-    }
+    } else {
+      if (!userEntity.getActive()) {
+        LOG.info("User account is disabled: {}", userName);
+        throw new AccountDisabledException(userName);
+      }
 
-    if (!userEntity.getActive()) {
-      LOG.info("User account is disabled: {}", userName);
-      throw new AccountDisabledException(userName);
-    }
-
-    int maxConsecutiveFailures = configuration.getMaxAuthenticationFailures();
-    if (maxConsecutiveFailures > 0 && userEntity.getConsecutiveFailures() >= maxConsecutiveFailures) {
-      LOG.info("User account is locked out due to too many authentication failures ({}/{}): {}",
-          userEntity.getConsecutiveFailures(), maxConsecutiveFailures, userName);
-      if (configuration.showLockedOutUserMessage()) {
+      int maxConsecutiveFailures = configuration.getMaxAuthenticationFailures();
+      if (maxConsecutiveFailures > 0 && userEntity.getConsecutiveFailures() >= maxConsecutiveFailures) {
+        LOG.info("User account is locked out due to too many authentication failures ({}/{}): {}",
+            userEntity.getConsecutiveFailures(), maxConsecutiveFailures, userName);
         throw new TooManyLoginFailuresException(userName);
-      } else {
-        throw new InvalidUsernamePasswordCombinationException(userName);
       }
     }
-
-    return userEntity;
   }
 
   /**
@@ -103,4 +95,11 @@ public abstract class AmbariAuthenticationProvider implements AuthenticationProv
     return null;
   }
 
+  protected Users getUsers() {
+    return users;
+  }
+
+  protected Configuration getConfiguration() {
+    return configuration;
+  }
 }

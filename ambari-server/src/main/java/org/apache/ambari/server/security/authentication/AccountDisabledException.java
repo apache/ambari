@@ -22,6 +22,6 @@ package org.apache.ambari.server.security.authentication;
  */
 public class AccountDisabledException extends AmbariAuthenticationException {
   public AccountDisabledException(String username) {
-    super(username, "The account is disabled");
+    super(username, "The account is disabled", false);
   }
 }

@@ -42,46 +42,34 @@ import com.google.inject.Inject;
 public class AmbariLocalAuthenticationProvider extends AmbariAuthenticationProvider {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariLocalAuthenticationProvider.class);
 
-  private Users users;
   private PasswordEncoder passwordEncoder;
-  private Configuration configuration;
 
   @Inject
   public AmbariLocalAuthenticationProvider(Users users, PasswordEncoder passwordEncoder, Configuration configuration) {
     super(users, configuration);
-    this.users = users;
     this.passwordEncoder = passwordEncoder;
-    this.configuration = configuration;
   }
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    if (authentication.getName() == null) {
+      LOG.info("Authentication failed: no username provided");
+      throw new InvalidUsernamePasswordCombinationException("");
+    }
+
     String userName = authentication.getName().trim();
-
-    UserEntity userEntity;
-    try {
-      userEntity = getUserEntity(userName);
-
-      if (userEntity == null) {
-        LOG.info("User not found: {}", userName);
-        throw new InvalidUsernamePasswordCombinationException(userName);
-      }
-    }
-    catch(UserNotFoundException e) {
-      // Do not give away information about the existence or status of a user
-      throw new InvalidUsernamePasswordCombinationException(userName, e);
-    }
-    catch (AccountDisabledException | TooManyLoginFailuresException e) {
-      if (configuration.showLockedOutUserMessage()) {
-        throw e;
-      } else {
-        // Do not give away information about the existence or status of a user
-        throw new InvalidUsernamePasswordCombinationException(userName, e);
-      }
-    }
 
     if (authentication.getCredentials() == null) {
       LOG.info("Authentication failed: no credentials provided: {}", userName);
+      throw new InvalidUsernamePasswordCombinationException(userName);
+    }
+
+    Users users = getUsers();
+
+    UserEntity userEntity = users.getUserEntity(userName);
+
+    if (userEntity == null) {
+      LOG.info("User not found: {}", userName);
       throw new InvalidUsernamePasswordCombinationException(userName);
     }
 
@@ -93,6 +81,18 @@ public class AmbariLocalAuthenticationProvider extends AmbariAuthenticationProvi
       if (passwordEncoder.matches(presentedPassword, password)) {
         // The user was  authenticated, return the authenticated user object
         LOG.debug("Authentication succeeded - a matching username and password were found: {}", userName);
+
+        try {
+          validateLogin(userEntity, userName);
+        }
+        catch (AccountDisabledException | TooManyLoginFailuresException e) {
+          if (getConfiguration().showLockedOutUserMessage()) {
+            throw e;
+          } else {
+            // Do not give away information about the existence or status of a user
+            throw new InvalidUsernamePasswordCombinationException(userName, false, e);
+          }
+        }
 
         User user = new User(userEntity);
         Authentication auth = new AmbariUserAuthentication(password, user, users.getUserAuthorities(userEntity));

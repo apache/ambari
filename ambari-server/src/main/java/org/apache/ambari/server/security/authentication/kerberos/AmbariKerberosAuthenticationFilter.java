@@ -95,7 +95,7 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
           if (e instanceof AmbariAuthenticationException) {
             cause = (AmbariAuthenticationException) e;
           } else {
-            cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), e);
+            cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), false, e);
           }
           eventHandler.onUnsuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, cause);
         }

@@ -22,6 +22,6 @@ package org.apache.ambari.server.security.authentication;
  */
 public class TooManyLoginFailuresException extends AmbariAuthenticationException {
   public TooManyLoginFailuresException(String username) {
-    super(username, "Too many authentication failures");
+    super(username, "Too many authentication failures", false);
   }
 }

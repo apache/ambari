@@ -129,7 +129,7 @@ The following are the properties which can be used to configure Ambari.
 | client.api.ssl.port | The port that client connections will use with the REST API when using SSL. The Ambari Web client runs on this port if SSL is enabled. |`8443` | 
 | client.api.ssl.truststore_name | The name of the truststore used when the Ambari Server REST API is protected by SSL. |`https.keystore.p12` | 
 | client.api.ssl.truststore_type | The type of the keystore file specified in `client.api.ssl.truststore_name`. Self-signed certificates can be `PKCS12` while CA signed certificates are `JKS` |`PKCS12` | 
-| client.security | The type of authentication mechanism used by Ambari.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`ldap`</ul> | | 
+| client.security | The type of authentication mechanism used by Ambari.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`ldap`<li>`pam`</ul> | | 
 | client.threadpool.size.max | The size of the Jetty connection pool used for handling incoming REST API requests. This should be large enough to handle requests from both web browsers and embedded Views. |`25` | 
 | common.services.path | The location on the Ambari Server where common service resources exist. Stack services share the common service files.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/common-services`</ul> | | 
 | custom.action.definitions | The location on the Ambari Server where custom actions are defined. |`/var/lib/ambari-server/resources/custom_action_definitions` | 

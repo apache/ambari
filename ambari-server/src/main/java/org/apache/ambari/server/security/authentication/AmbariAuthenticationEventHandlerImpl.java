@@ -97,19 +97,22 @@ public class AmbariAuthenticationEventHandlerImpl implements AmbariAuthenticatio
     String message;
     String logMessage;
     Integer consecutiveFailures = null;
+    boolean incrementFailureCount;
 
     if (cause == null) {
       username = null;
       message = "Unknown cause";
+      incrementFailureCount = false;
     } else {
       username = cause.getUsername();
       message = cause.getLocalizedMessage();
+      incrementFailureCount = cause.isCredentialFailure();
     }
 
     if (!StringUtils.isEmpty(username)) {
       // Only increment the authentication failure count if the authentication filter declares to
       // do so.
-      if(filter.shouldIncrementFailureCount()) {
+      if(incrementFailureCount && filter.shouldIncrementFailureCount()) {
         // Increment the user's consecutive authentication failure count.
         consecutiveFailures = users.incrementConsecutiveAuthenticationFailures(username);
 

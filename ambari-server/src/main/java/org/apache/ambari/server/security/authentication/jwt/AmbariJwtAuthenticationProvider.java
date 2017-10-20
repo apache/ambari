@@ -21,9 +21,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AccountDisabledException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
+import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authentication.UserNotFoundException;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
@@ -46,11 +48,6 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
   private static final Logger LOG = LoggerFactory.getLogger(AmbariJwtAuthenticationProvider.class);
 
   /**
-   * Helper object to provide logic for working with users.
-   */
-  private Users users;
-
-  /**
    * Constructor.
    *
    * @param users         the users helper
@@ -59,28 +56,28 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
   @Inject
   public AmbariJwtAuthenticationProvider(Users users, Configuration configuration) {
     super(users, configuration);
-    this.users = users;
   }
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    String userName = authentication.getName().trim();
-
-    UserEntity userEntity;
-    try {
-      userEntity = getUserEntity(userName);
-
-      if (userEntity == null) {
-        LOG.info("User not found: {}", userName);
-        throw new UserNotFoundException(userName, "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
-      }
-    } catch (UserNotFoundException e) {
-      throw new UserNotFoundException(userName, "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.", e);
+    if (authentication.getName() == null) {
+      LOG.info("Authentication failed: no username provided");
+      throw new AmbariAuthenticationException(null, "Unexpected error due to missing username", false);
     }
 
+    String userName = authentication.getName().trim();
+
     if (authentication.getCredentials() == null) {
-      LOG.info("Authentication failed: no token provided: {}", userName);
-      throw new AmbariAuthenticationException(userName, "Unexpected error due to missing JWT token");
+      LOG.info("Authentication failed: no credentials provided: {}", userName);
+      throw new AmbariAuthenticationException(userName, "Unexpected error due to missing JWT token", false);
+    }
+
+    Users users = getUsers();
+    UserEntity userEntity = users.getUserEntity(userName);
+
+    if (userEntity == null) {
+      LOG.info("User not found: {}", userName);
+      throw new UserNotFoundException(userName, "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
     }
 
     // If the user was found and allowed to log in, make sure that user is allowed to authentcate using a JWT token.
@@ -100,7 +97,7 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
           authOK = true;
         } catch (AmbariException e) {
           LOG.error(String.format("Failed to add the JWT authentication method for %s: %s", userName, e.getLocalizedMessage()), e);
-          throw new AmbariAuthenticationException(userName, "Unexpected error has occurred", e);
+          throw new AmbariAuthenticationException(userName, "Unexpected error has occurred", false, e);
         }
       }
     }
@@ -108,6 +105,19 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
     if (authOK) {
       // The user was  authenticated, return the authenticated user object
       LOG.debug("Authentication succeeded - a matching user was found: {}", userName);
+
+      // Ensure the user account is allowed to log in
+      try {
+        validateLogin(userEntity, userName);
+      } catch (AccountDisabledException | TooManyLoginFailuresException e) {
+        if (getConfiguration().showLockedOutUserMessage()) {
+          throw e;
+        } else {
+          // Do not give away information about the existence or status of a user
+          throw new AmbariAuthenticationException(userName, "Unexpected error due to missing JWT token", false);
+        }
+      }
+
       User user = new User(userEntity);
       Authentication auth = new AmbariUserAuthentication(authentication.getCredentials().toString(), user, users.getUserAuthorities(userEntity));
       auth.setAuthenticated(true);

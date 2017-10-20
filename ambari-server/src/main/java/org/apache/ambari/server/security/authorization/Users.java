@@ -337,9 +337,20 @@ public class Users {
    * @param groupType group type
    * @return group
    */
-  public Group getGroupByNameAndType(String groupName, GroupType groupType) {
-    final GroupEntity groupEntity = groupDAO.findGroupByNameAndType(groupName, groupType);
+  public Group getGroup(String groupName, GroupType groupType) {
+    final GroupEntity groupEntity = getGroupEntity(groupName, groupType);
     return (null == groupEntity) ? null : new Group(groupEntity);
+  }
+
+  /**
+   * Gets a {@link GroupEntity} by name and type.
+   *
+   * @param groupName group name
+   * @param groupType group type
+   * @return group
+   */
+  public GroupEntity getGroupEntity(String groupName, GroupType groupType) {
+    return groupDAO.findGroupByNameAndType(groupName, groupType);
   }
 
   /**
@@ -640,7 +651,7 @@ public class Users {
    * @param groupEntity group entity
    * @return true if user presents in group
    */
-  private boolean isUserInGroup(UserEntity userEntity, GroupEntity groupEntity) {
+  public boolean isUserInGroup(UserEntity userEntity, GroupEntity groupEntity) {
     for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
       if (memberEntity.getGroup().equals(groupEntity)) {
         return true;

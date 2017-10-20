@@ -159,7 +159,7 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
           LOG.warn("Error occurred during decoding authorization header.", e);
         }
 
-        cause = new AmbariAuthenticationException(username, authException.getMessage(), authException);
+        cause = new AmbariAuthenticationException(username, authException.getMessage(), false, authException);
       }
 
       eventHandler.onUnsuccessfulAuthentication(this, servletRequest, servletResponse, cause);

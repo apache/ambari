@@ -813,7 +813,7 @@ public class Configuration {
    * @see ClientSecurityType
    */
   @Markdown(
-      examples = { "local", "ldap" },
+      examples = { "local", "ldap", "pam" },
       description = "The type of authentication mechanism used by Ambari.")
   public static final ConfigurationProperty<String> CLIENT_SECURITY = new ConfigurationProperty<>(
       "client.security", null);
