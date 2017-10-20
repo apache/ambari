@@ -7,9 +7,9 @@
       "type":"https",
       "checks":[
         {
-          "property":"falcon.enableTLS",
+          "property":"*.falcon.enableTLS",
           "desired":"true",
-          "site":"falcon-startup-properties"
+          "site":"falcon-startup.properties"
         }
       ]
     },
