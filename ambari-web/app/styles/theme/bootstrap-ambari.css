@@ -1028,7 +1028,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container ul.nav.side-nav-menu .more-actions,
 .navigation-bar-container ul.nav.side-nav-footer .more-actions {
-  display: none;
+  display: block;
   position: absolute;
   top: 14px;
   right: 33px;
