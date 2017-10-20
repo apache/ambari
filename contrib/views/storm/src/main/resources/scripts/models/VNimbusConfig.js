@@ -14,32 +14,29 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
-**/
+*/
 
-import TopologyREST from '../rest/TopologyREST';
-// const baseUrl = '/api/v1/';
-const baseUrl = location.pathname+'proxy?url=/api/v1/';
-const toastOpt = {
-  timeOut: 0,
-  closeButton: true,
-  tapToDismiss: false,
-  extendedTimeOut: 0,
-  preventDuplicates:true
-};
+define(['require',
+  'utils/Globals',
+  'models/BaseModel'
+], function(require, Globals, vBaseModel) {
+  'use strict';
+  var vNimbusConfig = vBaseModel.extend({
+    urlRoot: Globals.baseURL + '/api/v1/cluster/configuration',
 
-const pageSize = 25;
+    defaults: {},
 
-let stormVersion = '';
-function getStormVersion(){
-  return TopologyREST.getSummary('cluster').then((res) => {
-    stormVersion = res.stormVersion;
-  });
-}
+    serverSchema: {},
 
-export {
-  baseUrl,
-  toastOpt,
-  pageSize,
-  getStormVersion,
-  stormVersion
-};
+    idAttribute: 'key',
+
+    initialize: function() {
+      this.modelName = 'VNimbusConfig';
+      this.bindErrorEvents();
+    },
+    toString: function() {
+      return this.get('name');
+    }
+  }, {});
+  return vNimbusConfig;
+});

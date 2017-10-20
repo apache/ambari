@@ -14,24 +14,29 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
-**/
+*/
 
-import React, {Component}from 'react';
-import { render } from 'react-dom';
-import ReactToastr, {ToastMessage, ToastContainer} from "react-toastr";
-import CustomToastContainer from './CustomToastContainer';
-var {animation}  = ToastMessage;
+define(['require',
+  'utils/Globals',
+  'models/BaseModel'
+], function(require, Globals, vBaseModel) {
+  'use strict';
+  var vCluster = vBaseModel.extend({
+    urlRoot: Globals.baseURL + '/api/v1/cluster/summary',
 
-var ToastMessageFactory = React.createFactory(animation);
+    defaults: {},
 
-var container = document.createElement('div');
-var body = document.getElementsByTagName('body').item(0);
-body.appendChild(container);
+    serverSchema: {},
 
-const FSReactToastr = render(
-    <CustomToastContainer
-                  toastMessageFactory={ToastMessageFactory}
-                  className="toast-top-right" />, container
-);
+    idAttribute: 'id',
 
-export default FSReactToastr;
+    initialize: function() {
+      this.modelName = 'VCluster';
+      this.bindErrorEvents();
+    },
+    toString: function() {
+      return this.get('name');
+    }
+  }, {});
+  return vCluster;
+});

@@ -14,33 +14,39 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
-**/
+*/
 
-import React, {Component} from 'react';
-import {render} from 'react-dom';
-import debug from 'debug';
-import 'babel-polyfill';
-import App from './app';
-import {AppContainer} from 'react-hot-loader';
+define(['require',
+  'utils/Globals',
+  'collections/BaseCollection',
+  'models/VSupervisor'
+  ], function (require, Globals, BaseCollection, vSupervisor) {
+  'use strict';
+  var vSupervisorList = BaseCollection.extend(
+    //Prototypal attributes
+    {
 
-import '../styles/css/toastr.min.css';
-import '../styles/css/font-awesome.min.css';
-import '../styles/css/bootstrap.css';
-import 'animate.css/animate.css';
-import 'react-select/dist/react-select.css';
-import '../styles/css/style.css';
+      url: Globals.baseURL + '/api/v1/supervisor/summary',
 
-render(
-  <AppContainer>
-    <App/>
-  </AppContainer>, document.getElementById('app_container'));
+      model: vSupervisor,
 
-if (module.hot) {
-  module.hot.accept('./app', () => {
-    const NextApp = require('./app').default;
-    render(
-      <AppContainer>
-        <NextApp/>
-      </AppContainer>, document.getElementById('app_container'));
-  });
-}
+      searchFields:['host'],
+
+      initialize: function () {
+        this.modelName = 'VSupervisor';
+        this.modelAttrName = 'supervisors';
+        this.bindErrorEvents();
+      }
+    },
+    //Static Class Members
+    {
+      /**
+       * Table Cols to be passed to Backgrid
+       * UI has to use this as base and extend this.
+       *
+       */
+      tableCols: {}
+    }
+  );
+  return vSupervisorList;
+});

@@ -14,17 +14,21 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
-**/
+*/
 
-import React, {Component} from 'react';
-
-const CommonExpanded = (props) => {
-  const {expandFlag} = props;
-  return (
-    <div className="box-control pull-right" style={{marginLeft : '17px',marginTop : '-2px'}}>
-      <span className="primary"><i className={`fa ${expandFlag ? 'fa-compress' : 'fa-expand'}`}></i></span>
-    </div>
-  );
-};
-
-export default CommonExpanded;
+define(['require',
+  'utils/Globals',
+  'models/BaseModel'
+], function(require, Globals, vBaseModel) {
+  'use strict';
+  var vTopologyConfig = vBaseModel.extend({
+    initialize: function() {
+      this.modelName = 'vTopologyConfig';
+      this.bindErrorEvents();
+    },
+    toString: function() {
+      return this.get('name');
+    }
+  }, {});
+  return vTopologyConfig;
+});
