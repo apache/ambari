@@ -14,28 +14,29 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
-**/
+*/
 
-import React, {Component}from 'react';
-import { render } from 'react-dom';
-import ReactToastr, {ToastMessage, ToastContainer} from "react-toastr";
+define(['require',
+  'utils/Globals',
+  'models/BaseModel'
+], function(require, Globals, vBaseModel) {
+  'use strict';
+  var vNimbus = vBaseModel.extend({
+    urlRoot: Globals.baseURL + '/api/v1/nimbus/summary',
 
-class CustomToastContainer extends ToastContainer{
-  success(msg, title, opts){
-    super.success(msg.props.children, msg, opts);
-  }
+    defaults: {},
 
-  error(msg, title, opts){
-    super.error(msg.props.children, msg, opts);
-  }
+    serverSchema: {},
 
-  info(msg, title, opts){
-    super.info(msg.props.children, msg, opts);
-  }
+    idAttribute: 'id',
 
-  warning(msg, title, opts){
-    super.warning(msg.props.children, msg, opts);
-  }
-}
-
-export default CustomToastContainer;
+    initialize: function() {
+      this.modelName = 'VNimbus';
+      this.bindErrorEvents();
+    },
+    toString: function() {
+      return this.get('name');
+    }
+  }, {});
+  return vNimbus;
+});

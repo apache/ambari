@@ -14,27 +14,29 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
-**/
+*/
 
-import React, {Component} from 'react';
-import routes from './routers/routes';
-import {render} from 'react-dom';
-import {Router, browserHistory, hashHistory} from 'react-router';
-import {getStormVersion} from './utils/Constants';
+define(['require',
+  'utils/Globals',
+  'models/BaseModel'
+], function(require, Globals, vBaseModel) {
+  'use strict';
+  var VSupervisor = vBaseModel.extend({
+    urlRoot: Globals.baseURL + '/api/v1/supervisor/summary',
 
-class App extends Component {
-  constructor() {
-    super();
-    this.fetchVersion();
-  }
-  fetchVersion(){
-    getStormVersion().then((res) => {
-      this.forceUpdate();
-    });
-  }
-  render() {
-    return (<Router ref="router" history={hashHistory} routes={routes}/>);
-  }
-}
+    defaults: {},
 
-export default App;
+    serverSchema: {},
+
+    idAttribute: 'id',
+
+    initialize: function() {
+      this.modelName = 'VSupervisor';
+      this.bindErrorEvents();
+    },
+    toString: function() {
+      return this.get('name');
+    }
+  }, {});
+  return VSupervisor;
+});
