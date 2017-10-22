@@ -144,12 +144,15 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
       MpackResponse response = getManagementController().registerMpack(mpackRequest);
       if (response != null) {
         notifyCreate(Resource.Type.Mpack, request);
+        String[] stackNameVersion = response.getStackId().split("-");
         Resource resource = new ResourceImpl(Resource.Type.Mpack);
         resource.setProperty(MPACK_ID, response.getMpackId());
         resource.setProperty(REGISTRY_ID, response.getRegistryId());
         resource.setProperty(MPACK_NAME, response.getMpackName());
         resource.setProperty(MPACK_VERSION, response.getMpackVersion());
         resource.setProperty(MPACK_URI, response.getMpackUri());
+        resource.setProperty(STACK_NAME_PROPERTY_ID, stackNameVersion[0]);
+        resource.setProperty(STACK_VERSION_PROPERTY_ID, stackNameVersion[1]);
 
         associatedResources.add(resource);
         return getRequestStatus(null, associatedResources);
@@ -252,6 +255,9 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(MPACK_VERSION, entity.getMpackVersion());
         resource.setProperty(MPACK_URI, entity.getMpackUri());
         resource.setProperty(REGISTRY_ID, entity.getRegistryId());
+        StackEntity stackEntity = stackDAO.findByMpack(entity.getMpackId());
+        resource.setProperty(STACK_NAME_PROPERTY_ID, stackEntity.getStackName());
+        resource.setProperty(STACK_VERSION_PROPERTY_ID, stackEntity.getStackVersion());
         results.add(resource);
       }
     } else {
@@ -290,7 +296,9 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
           resource.setProperty(MPACK_VERSION, entity.getMpackVersion());
           resource.setProperty(MPACK_URI, entity.getMpackUri());
           resource.setProperty(REGISTRY_ID, entity.getRegistryId());
-
+          StackEntity stackEntity = stackDAO.findByMpack(entity.getMpackId());
+          resource.setProperty(STACK_NAME_PROPERTY_ID, stackEntity.getStackName());
+          resource.setProperty(STACK_VERSION_PROPERTY_ID, stackEntity.getStackVersion());
           List<Packlet> packlets = getManagementController().getPacklets(entity.getMpackId());
           resource.setProperty(PACKLETS, packlets);
           results.add(resource);
