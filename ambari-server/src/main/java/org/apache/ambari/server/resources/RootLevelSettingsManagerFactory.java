@@ -21,14 +21,16 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
 /**
- * The {@link ResourceLevelClusterSettingManagerFactory} is used along with {@link AssistedInject} to
- * build instances of {@link ResourceLevelClusterSettingManager}.
+ * The {@link RootLevelSettingsManagerFactory} is used along with {@link AssistedInject} to
+ * build instances of {@link RootLevelSettingsManager}.
  */
-public interface ResourceLevelClusterSettingManagerFactory {
+public interface RootLevelSettingsManagerFactory {
 
   /**
    * @return a ResourceLevelClusterSetting manager instance.
    */
-  ResourceLevelClusterSettingManager create(@Assisted("resourcesDirPath") String resourcesDirPath);
+  RootLevelSettingsManager create(@Assisted("directoryPath") String directoryPath,
+                                            @Assisted("settingsFileName") String settingsFileName,
+                                            @Assisted("settingsTypeName") String settingsTypeName);
 }
 

@@ -43,29 +43,35 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
-public class ResourceLevelClusterSettingManager {
+public class RootLevelSettingsManager {
   /**
    * Used to unmarshal a configuration file to an object representation
    */
   private static ModuleFileUnmarshaller unmarshaller = new ModuleFileUnmarshaller();
 
   private String clusterSettingsPath;
-  private static final String CLUSTER_SETTINGS_FILE_NAME = "cluster-settings.xml";
-  private static final String clusterSettingsConfigType = "cluster-settings";
+  private String clusterSettingsFileName;
+  private String clusterSettingsConfigType;
   private static File clusterSettingsFile;
-  private final static Logger LOG = LoggerFactory.getLogger(ResourceLevelClusterSettingManager.class);
+  private final static Logger LOG = LoggerFactory.getLogger(RootLevelSettingsManager.class);
   private Map<String, Map<String, PropertyInfo>> clusterSettingsMap = new ConcurrentHashMap<>();
   private Map<String, ConfigurationModule> configurationModules = new HashMap<>();
 
   @AssistedInject
-  public ResourceLevelClusterSettingManager(@Assisted("resourcesDirPath") String resourcesDirPath) {
-    clusterSettingsPath = resourcesDirPath;
-    clusterSettingsFile = new File(clusterSettingsPath + File.separator + CLUSTER_SETTINGS_FILE_NAME);
+  public RootLevelSettingsManager(@Assisted("directoryPath") String directoryPath,
+                                            @Assisted("settingsFileName") String settingsFileName,
+                                            @Assisted("settingsTypeName") String settingsTypeName) {
+    clusterSettingsPath = directoryPath;
+    clusterSettingsFileName = settingsFileName;
+    clusterSettingsConfigType = settingsTypeName;
+    clusterSettingsFile = new File(clusterSettingsPath + File.separator + clusterSettingsFileName);
+    LOG.info("\n\n\n\n SWAP - clusterSettingsPath = "+clusterSettingsPath+" - clusterSettingsFileName = "+clusterSettingsFileName
+            +" - clusterSettingsConfigType = "+clusterSettingsFile + "clusterSettingsFile = "+clusterSettingsFile);
     populateClusterSettingsXml();
   }
 
   public Collection<PropertyInfo> getClusterSettingsMap() {
-    return configurationModules.get("cluster-settings").getModuleInfo().getProperties();
+    return configurationModules.get(clusterSettingsConfigType).getModuleInfo().getProperties();
   }
 
   /**
@@ -153,7 +159,7 @@ public class ResourceLevelClusterSettingManager {
                       clusterSettingsFile.getAbsolutePath(), e.getMessage());
             }
           } else {
-            throw new FileNotFoundException("Failed to find '" + CLUSTER_SETTINGS_FILE_NAME + "' file with path : "
+            throw new FileNotFoundException("Failed to find '" + clusterSettingsFileName + "' file with path : "
                     + clusterSettingsFile);
           }
         } else {

@@ -152,6 +152,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
     switch (type.getInternalType()) {
       case Cluster:
         return new ClusterResourceProvider(managementController);
+      case RootClusterSetting:
+        return new RootClusterSettingsResourceProvider(managementController);
       case Service:
         return resourceProviderFactory.getServiceResourceProvider(managementController);
       case ServiceGroup:
@@ -198,8 +200,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RegistryMpackVersionResourceProvider(managementController);
       case Mpack:
         return new MpackResourceProvider(managementController);
-      case RootClusterSetting:
-        return new RootClusterSettingsResourceProvider(managementController);
       case StackVersion:
         return new StackVersionResourceProvider(managementController);
       case ClusterStackVersion:
@@ -212,6 +212,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new StackServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackConfiguration:
         return new StackConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootStackSetting:
+        return new RootStackSettingsResourceProvider(managementController);
       case StackConfigurationDependency:
         return new StackConfigurationDependencyResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackLevelConfiguration:

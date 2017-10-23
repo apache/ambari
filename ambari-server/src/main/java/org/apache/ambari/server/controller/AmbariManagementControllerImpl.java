@@ -156,7 +156,6 @@ import org.apache.ambari.server.stack.ExtensionHelper;
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -4872,8 +4871,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           Set<RootClusterSettingRequest> requests) throws AmbariException {
     Set<ReadOnlyConfigurationResponse> response = new HashSet<>();
     for (RootClusterSettingRequest request : requests) {
-      Set<ReadOnlyConfigurationResponse> stackConfigurations = getResourceLevelClusterSettings(request);
-      response.addAll(stackConfigurations);
+      Set<ReadOnlyConfigurationResponse> clusterSettings = getResourceLevelClusterSettings(request);
+      response.addAll(clusterSettings);
     }
 
     return response;
@@ -4896,6 +4895,45 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return response;
   }
 
+  @Override
+  public Set<ReadOnlyConfigurationResponse> getReadOnlyStackSettings(
+          Set<StackConfigurationRequest> requests) throws AmbariException {
+    Set<ReadOnlyConfigurationResponse> response = new HashSet<>();
+    for (StackConfigurationRequest request : requests) {
+      String stackName    = request.getStackName();
+      String stackVersion = request.getStackVersion();
+      Set<ReadOnlyConfigurationResponse> stackSettings = getReadOnlyStackSettings(request);
+
+      for (ReadOnlyConfigurationResponse stackSetting : stackSettings) {
+        stackSetting.setStackName(stackName);
+        stackSetting.setStackVersion(stackVersion);
+      }
+      response.addAll(stackSettings);
+    }
+
+    return response;
+  }
+
+  private Set<ReadOnlyConfigurationResponse> getReadOnlyStackSettings(
+          StackConfigurationRequest request) throws AmbariException {
+    Set<ReadOnlyConfigurationResponse> response = new HashSet<>();
+
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String settingName = request.getPropertyName();
+
+    Set<PropertyInfo> settings;
+    if (settingName != null) {
+      settings = ambariMetaInfo.getStackSettingsByName(stackName, stackVersion, settingName);
+    } else {
+      settings = ambariMetaInfo.getStackSettings(stackName, stackVersion);
+    }
+
+    for (PropertyInfo setting : settings) {
+      response.add(setting.convertToResponse());
+    }
+    return response;
+  }
 
   @Override
   public Set<ReadOnlyConfigurationResponse> getStackConfigurations(

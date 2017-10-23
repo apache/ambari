@@ -846,6 +846,14 @@ public interface AmbariManagementController {
   Set<ReadOnlyConfigurationResponse> getStackLevelConfigurations(Set<StackLevelConfigurationRequest> requests) throws AmbariException;
 
   /**
+   * Get initial settings for a given stack (!not a service).
+   * @param requests
+   * @return
+   * @throws AmbariException
+   */
+  Set<ReadOnlyConfigurationResponse> getReadOnlyStackSettings(Set<StackConfigurationRequest> requests) throws AmbariException;
+
+  /**
    * Get initial settings for a cluster (!not a service).
    * @param requests
    * @return

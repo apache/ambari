@@ -101,6 +101,7 @@ public interface Resource {
     RegistryMpackVersion,
     Mpack,
     Stack,
+    RootStackSetting,
     StackVersion,
     ExtensionLink,
     Extension,
@@ -233,6 +234,7 @@ public interface Resource {
     public static final Type RegistryMpackVersion = InternalType.RegistryMpackVersion.getType();
     public static final Type Mpack = InternalType.Mpack.getType();
     public static final Type Stack = InternalType.Stack.getType();
+    public static final Type RootStackSetting = InternalType.RootStackSetting.getType();
     public static final Type StackVersion = InternalType.StackVersion.getType();
     public static final Type ExtensionLink = InternalType.ExtensionLink.getType();
     public static final Type Extension = InternalType.Extension.getType();

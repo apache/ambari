@@ -60,6 +60,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   // stack-level properties
   private List<PropertyInfo> properties;
   private Map<String, Map<String, Map<String, String>>> configTypes;
+
+  // Gets information from stacks/<stack-name>/<version>/settings.xml
+  private List<PropertyInfo> stackSettings;
+  private Map<String, Map<String, Map<String, String>>> stackSettingsConfigTypes;
+
   private Map<String, UpgradePack> upgradePacks;
   private ConfigUpgradePack configUpgradePack;
   private StackRoleCommandOrder roleCommandOrder;
@@ -245,6 +250,12 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     this.properties = properties;
   }
 
+  public List<PropertyInfo> getStackSettings() { return stackSettings; }
+
+  public void setStackSettings(List<PropertyInfo> stackSettings) {
+    this.stackSettings = stackSettings;
+  }
+
   /**
    * Obtain the config types associated with this stack.
    * The returned map is an unmodifiable view.
@@ -269,6 +280,32 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
     }
     // todo: no exclusion mechanism for stack config types
     configTypes.put(type, typeAttributes);
+  }
+
+  /**
+   * Obtain the config types associated with this stack's settings.
+   * The returned map is an unmodifiable view.
+   * @return copy of the map of config types associated with this stack's settings
+   */
+  public synchronized Map<String, Map<String, Map<String, String>>> getStackSettingsConfigTypeAttributes() {
+    return stackSettingsConfigTypes == null ?
+            Collections.emptyMap() :
+            Collections.unmodifiableMap(stackSettingsConfigTypes);
+  }
+
+
+  /**
+   * Add the given type and set it's attributes.
+   *
+   * @param type            configuration type
+   * @param typeAttributes  attributes associated with the type
+   */
+  public synchronized void setStackSettingsConfigTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
+    if (this.stackSettingsConfigTypes == null) {
+      stackSettingsConfigTypes = new HashMap<>();
+    }
+    // todo: no exclusion mechanism for stack config types
+    stackSettingsConfigTypes.put(type, typeAttributes);
   }
 
   /**
