@@ -19,8 +19,12 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,9 +34,11 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RegistryMpackVersionRequest;
 import org.apache.ambari.server.controller.RegistryMpackVersionResponse;
+import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
@@ -42,11 +48,12 @@ import org.apache.ambari.server.exceptions.RegistryMpackNotFoundException;
 import org.apache.ambari.server.registry.Registry;
 import org.apache.ambari.server.registry.RegistryMpack;
 import org.apache.ambari.server.registry.RegistryMpackVersion;
+import org.apache.ambari.server.utils.VersionUtils;
 
 /**
  * ResourceProvider for mpacks in software registry
  */
-public class RegistryMpackVersionResourceProvider extends AbstractControllerResourceProvider {
+public class RegistryMpackVersionResourceProvider extends AbstractControllerResourceProvider implements ExtendedResourceProvider {
   public static final String RESPONSE_KEY = "RegistryMpackVersionInfo";
   public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
 
@@ -72,6 +79,11 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
    */
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
+  /***
+   * Resource count for get resources
+   */
+  private static int resourceCount;
+
   static {
     // properties
     PROPERTY_IDS.add(REGISTRY_ID);
@@ -96,6 +108,7 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
    */
   protected RegistryMpackVersionResourceProvider(final AmbariManagementController managementController) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    resourceCount = 0;
   }
 
   /**
@@ -133,7 +146,7 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
       }
     });
 
-    Set<Resource> resources = new HashSet<>();
+    List<Resource> sortedResources = new LinkedList<>();
     for (RegistryMpackVersionResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RegistryMpackVersion);
       setResourceProperty(resource, REGISTRY_ID, response.getRegistryId(), requestedIds);
@@ -144,9 +157,25 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
       setResourceProperty(resource, REGISTRY_MPACK_DOC_URL, response.getMpackDocUrl(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_SERVICES, response.getMpackServices(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_COMPATIBLE_MPACKS, response.getCompatibleMpacks(), requestedIds);
-      resources.add(resource);
+      sortedResources.add(resource);
     }
-    return resources;
+    sortedResources.sort(new Comparator<Resource>() {
+      @Override
+      public int compare(final Resource o1, final Resource o2) {
+        int o1Wins = 0;
+        int o2Wins = 0;
+          int compareResult = VersionUtils.compareVersions((String)o1.getPropertyValue(REGISTRY_MPACK_VERSION), (String)o2.getPropertyValue(REGISTRY_MPACK_VERSION));
+          if(compareResult > 0) {
+            o1Wins++;
+          } else if(compareResult < 0) {
+            o2Wins++;
+          }
+        // Order in reverse order
+        return o2Wins - o1Wins;
+      }
+    });
+    resourceCount = sortedResources.size();
+    return new LinkedHashSet<>(sortedResources);
   }
 
   private RegistryMpackVersionRequest getRequest(Map<String, Object> properties) {
@@ -231,5 +260,22 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
       }
     }
     return responses;
-  }  
+  }
+
+  @Override
+  public QueryResponse queryForResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    return new QueryResponseImpl(
+            getResourcesAuthorized(request, predicate),
+            true,
+            request.getPageRequest() != null,
+            getResourceCount());
+  }
+
+  /***
+   *
+   * @return number of resources returned in response to GET calls.
+   */
+  private int getResourceCount() {
+    return resourceCount;
+  }
 }
