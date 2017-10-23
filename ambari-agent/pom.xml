@@ -19,13 +19,13 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.5.1.0.0</version>
+    <version>2.6.0.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
-  <version>2.5.1.0.0</version>
+  <version>2.6.0.0.0</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>

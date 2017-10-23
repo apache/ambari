@@ -29,7 +29,7 @@
   <version>2.0.0.0-SNAPSHOT</version>
   <name>Ambari Contrib Management Packs</name>
   <properties>
-    <ambari.version>2.5.1.0.0</ambari.version>
+    <ambari.version>2.6.0.0.0</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
     <hadoop.version>2.7.1</hadoop.version>
   </properties>

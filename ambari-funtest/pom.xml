@@ -13,12 +13,12 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.5.1.0.0</version>
+    <version>2.6.0.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-funtest</artifactId>
-  <version>2.5.1.0.0</version>
+  <version>2.6.0.0.0</version>
   <packaging>${packagingFormat}</packaging>
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
