@@ -360,9 +360,10 @@
             <exclude>contrib/views/slider/src/main/resources/ui/app/assets/javascripts/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/bower_components/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/runner.js</exclude>
-	          <exclude>contrib/views/storm/src/main/resources/libs/**</exclude>
-            <exclude>contrib/views/storm/src/main/resources/styles/default.css</exclude>
-            <exclude>contrib/views/storm/src/main/resources/templates/**</exclude>
+            <exclude>contrib/views/storm/src/main/resources/ui/.*</exclude>
+            <exclude>contrib/views/storm/src/main/resources/ui/node_modules/**</exclude>
+            <exclude>contrib/views/storm/src/main/resources/ui/public/**</exclude>
+            <exclude>contrib/views/storm/src/main/resources/ui/app/styles/**</exclude>
             <exclude>contrib/addons/package/deb/nagios_addon_deb_control</exclude>
             <exclude>contrib/addons/src/addOns/nagios/conf.d/hdp_mon_nagios_addons.conf</exclude>
             <exclude>contrib/views/*/.classpath</exclude>
