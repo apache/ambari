@@ -23,11 +23,19 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   healthStatusCategories: require('data/host/categories'),
   errMsg: '',
   serviceMap : {},
+  classNames: ['col-sm-12'],
 
   didInsertElement: function () {
     this.initVS();
     this.restoreComboFilterQuery();
     this.showHideClearButton();
+    this.initOpenVSButton();
+  },
+
+  initOpenVSButton: function() {
+    $('.VS-open-box button').click(function() {
+      $('.VS-open-box .popup-arrow-up, .search-box-row').toggleClass('hide');
+    });
   },
 
   initVS: function() {

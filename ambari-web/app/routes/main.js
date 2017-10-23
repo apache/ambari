@@ -375,6 +375,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       route: '/',
       connectOutlets: function (router, context) {
         router.get('mainController').connectOutlet('mainAlertDefinitions');
+        router.get('mainAlertDefinitionsController').connectOutlet('MainAlertDefinitionSearchBox');
       }
     }),
 
