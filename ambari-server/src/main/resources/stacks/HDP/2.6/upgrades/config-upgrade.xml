@@ -140,7 +140,9 @@
           </definition>
           <definition xsi:type="configure" id="storm_remove_jmxetric" summary="Removing jmxetric from childopts.">
             <type>storm-site</type>
-            <regex-replace key="content" find=" -javaagent:.*JVM" replace-with=""/>
+            <regex-replace key="nimbus.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+            <regex-replace key="supervisor.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
+            <regex-replace key="worker.childopts" find=" -javaagent:(.*)JVM" replace-with=""/>
           </definition>
         </changes>
       </component>
