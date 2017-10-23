@@ -277,6 +277,7 @@ var files = [
   'test/views/main/alerts/manage_alert_notifications_view_test',
   'test/views/main/alerts/definition_details_view_test',
   'test/views/main/alerts/definition_configs_view_test',
+  'test/views/main/alerts/alert_search_box_test',
   'test/views/main/alerts/add_alert_definition/step1_view_test',
   'test/views/main/alerts/add_alert_definition/step3_view_test',
   'test/views/main/alerts/manage_alert_groups/select_definitions_popup_body_view_test',

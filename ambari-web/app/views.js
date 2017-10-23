@@ -125,6 +125,7 @@ require('views/main/alert_definitions_view');
 require('views/main/alerts/alert_definition/alert_definition_summary');
 require('views/main/alerts/alert_definition/alert_definition_state');
 require('views/main/alerts/definition_details_view');
+require('views/main/alerts/alert_search_box');
 require('views/main/alerts/alert_definitions_actions_view');
 require('views/main/alerts/definition_configs_view');
 require('views/main/alerts/manage_alert_groups/select_definitions_popup_body_view');

@@ -26,7 +26,7 @@ newUid=$3
 function find_available_uid() {
  for ((i=1001; i<=2000; i++))
  do
-   grep -q $i /etc/passwd
+   getent passwd $i | cut -d: -f4
    if [ "$?" -ne 0 ]
    then
     newUid=$i

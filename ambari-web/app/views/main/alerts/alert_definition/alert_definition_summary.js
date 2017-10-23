@@ -40,7 +40,7 @@ App.AlertDefinitionSummary = Em.View.extend({
     var showCounts = hostCnt > 1;
     var ret = [];
     order.forEach(function (state) {
-      var shortState = content.get('shortState')[state];
+      var shortState = App.AlertDefinition.shortState[state];
       var _stateSummary = {
         state: 'alert-state-' + state,
         count: '',
