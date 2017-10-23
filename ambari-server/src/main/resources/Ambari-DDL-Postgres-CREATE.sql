@@ -160,6 +160,7 @@ CREATE TABLE repo_version (
   version_xsd VARCHAR(512),
   parent_id BIGINT,
   resolved SMALLINT NOT NULL DEFAULT 0,
+  legacy SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_repo_version PRIMARY KEY (repo_version_id),
   CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
