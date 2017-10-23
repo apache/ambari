@@ -50,7 +50,9 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
     @NamedQuery(name = "UserAuthenticationEntity.findAll",
         query = "SELECT entity FROM UserAuthenticationEntity entity"),
     @NamedQuery(name = "UserAuthenticationEntity.findByType",
-        query = "SELECT entity FROM UserAuthenticationEntity entity where lower(entity.authenticationType)=lower(:authenticationType)")
+        query = "SELECT entity FROM UserAuthenticationEntity entity where lower(entity.authenticationType)=lower(:authenticationType)"),
+    @NamedQuery(name = "UserAuthenticationEntity.findByTypeAndKey",
+        query = "SELECT entity FROM UserAuthenticationEntity entity where lower(entity.authenticationType)=lower(:authenticationType) and entity.authenticationKey=:authenticationKey")
 })
 @TableGenerator(name = "user_authentication_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"

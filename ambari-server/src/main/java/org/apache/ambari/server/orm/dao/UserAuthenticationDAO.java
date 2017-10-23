@@ -58,6 +58,14 @@ public class UserAuthenticationDAO {
     return daoUtils.selectList(query);
   }
 
+  @RequiresSession
+  public List<UserAuthenticationEntity> findByTypeAndKey(UserAuthenticationType authenticationType, String key) {
+    TypedQuery<UserAuthenticationEntity> query = entityManagerProvider.get().createNamedQuery("UserAuthenticationEntity.findByTypeAndKey", UserAuthenticationEntity.class);
+    query.setParameter("authenticationType", authenticationType.name());
+    query.setParameter("authenticationKey", (key == null) ? null : key.getBytes());
+    return daoUtils.selectList(query);
+  }
+
   @Transactional
   public void create(UserAuthenticationEntity entity) {
     entityManagerProvider.get().persist(entity);

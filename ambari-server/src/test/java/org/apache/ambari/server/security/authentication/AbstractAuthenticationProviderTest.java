@@ -179,6 +179,11 @@ abstract class AbstractAuthenticationProviderTest extends EasyMockSupport {
   }
 
   protected Injector getInjector() {
+    final Users users = createMockBuilder(Users.class)
+        .addMockedMethod("getUserEntity",  String.class)
+        .addMockedMethod("getUserAuthorities", UserEntity.class)
+        .createMock();
+
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -192,7 +197,7 @@ abstract class AbstractAuthenticationProviderTest extends EasyMockSupport {
         bind(HookService.class).toInstance(createMock(HookService.class));
         bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
 
-        bind(Users.class).toInstance(createMock(Users.class));
+        bind(Users.class).toInstance(users);
         bind(Configuration.class).toInstance(configuration);
       }
     }, getAdditionalModule());

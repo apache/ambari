@@ -136,7 +136,7 @@ public class AmbariPamAuthenticationProvider extends AmbariAuthenticationProvide
         } else {
           // Ensure the user is allowed to login....
           try {
-            validateLogin(userEntity, ambariUsername);
+            users.validateLogin(userEntity, ambariUsername);
           } catch (AccountDisabledException | TooManyLoginFailuresException e) {
             if (getConfiguration().showLockedOutUserMessage()) {
               throw e;

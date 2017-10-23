@@ -53,8 +53,12 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AccountDisabledException;
+import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
+import org.apache.ambari.server.security.authentication.UserNotFoundException;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,6 +194,31 @@ public class Users {
       };
 
       safelyUpdateUserEntity(userEntity, command, MAX_RETRIES);
+    }
+  }
+
+  /**
+   * Validates the user account such that the user is allowed to log in.
+   *
+   * @param userEntity the user entity
+   * @param userName   the Ambari username
+   */
+  public void validateLogin(UserEntity userEntity, String userName) {
+    if (userEntity == null) {
+      LOG.info("User not found");
+      throw new UserNotFoundException(userName);
+    } else {
+      if (!userEntity.getActive()) {
+        LOG.info("User account is disabled: {}", userName);
+        throw new AccountDisabledException(userName);
+      }
+
+      int maxConsecutiveFailures = configuration.getMaxAuthenticationFailures();
+      if (maxConsecutiveFailures > 0 && userEntity.getConsecutiveFailures() >= maxConsecutiveFailures) {
+        LOG.info("User account is locked out due to too many authentication failures ({}/{}): {}",
+            userEntity.getConsecutiveFailures(), maxConsecutiveFailures, userName);
+        throw new TooManyLoginFailuresException(userName);
+      }
     }
   }
 
@@ -1137,6 +1166,16 @@ public class Users {
   }
 
   /**
+   *
+   * @param authenticationType
+   * @param key
+   * @return
+   */
+  public Collection<UserAuthenticationEntity> getUserAuthenticationEntities(UserAuthenticationType authenticationType, String key) {
+    return userAuthenticationDAO.findByTypeAndKey(authenticationType, key);
+  }
+
+  /**
    * Modifies authentication key of an authentication source for a user
    *
    * @throws AmbariException
@@ -1242,7 +1281,6 @@ public class Users {
 
 
   /**
-   * TODO: This is to be revisited for AMBARI-21217 (Update JWT Authentication process to work with improved user management facility)
    * Adds the ability for a user to authenticate using a JWT token.
    * <p>
    * The key for this authentication mechanism is the username expected to be in the JWT token.
@@ -1268,7 +1306,6 @@ public class Users {
   }
 
   /**
-   * TODO: This is to be revisited for AMBARI-21223 (Update Kerberos Authentication process to work with improved user management facility)
    * Adds the ability for a user to authenticate using a Kerberos token.
    *
    * @param userEntity    the user
@@ -1278,14 +1315,9 @@ public class Users {
   public void addKerberosAuthentication(UserEntity userEntity, String principalName) throws AmbariException {
     addAuthentication(userEntity, UserAuthenticationType.KERBEROS, principalName, new Validator() {
       public void validate(UserEntity userEntity, String key) throws AmbariException {
-        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
-
-        // Ensure only one UserAuthenticationEntity exists for LOCAL for the user...
-        for (UserAuthenticationEntity entity : authenticationEntities) {
-          if ((entity.getAuthenticationType() == UserAuthenticationType.KERBEROS) &&
-              ((key == null) ? (entity.getAuthenticationKey() == null) : key.equals(entity.getAuthenticationKey()))) {
-            throw new AmbariException("The authentication type already exists for this user");
-          }
+        // Ensure no other authentication entries exist for the same principal...
+        if (!CollectionUtils.isEmpty(userAuthenticationDAO.findByTypeAndKey(UserAuthenticationType.KERBEROS, key))) {
+          throw new AmbariException("The authentication type already exists for this principal");
         }
       }
     });
@@ -1323,7 +1355,6 @@ public class Users {
   }
 
   /**
-   * TODO: This is to be revisited for AMBARI-21221 (Update Pam Authentication process to work with improved user management facility)
    * Adds the ability for a user to authenticate using Pam
    *
    * @param userEntity the user

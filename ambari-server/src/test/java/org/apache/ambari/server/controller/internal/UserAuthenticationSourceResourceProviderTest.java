@@ -260,7 +260,7 @@ public class UserAuthenticationSourceResourceProviderTest extends EasyMockSuppor
       entities.put("User100", createMockUserAuthenticationEntity("User100"));
       entities.put("admin", createMockUserAuthenticationEntity("admin"));
 
-      expect(users.getUserAuthenticationEntities(null, null)).andReturn(entities.values()).once();
+      expect(users.getUserAuthenticationEntities((String)null, null)).andReturn(entities.values()).once();
     } else {
       expect(users.getUserAuthenticationEntities("User1", null)).andReturn(entities.values()).once();
     }

@@ -50,31 +50,6 @@ public abstract class AmbariAuthenticationProvider implements AuthenticationProv
   }
 
   /**
-   * Validates the user account such that the user is allowed to log in.
-   *
-   * @param userEntity the user entity
-   * @param userName   the Ambari username
-   */
-  protected void validateLogin(UserEntity userEntity, String userName) {
-    if (userEntity == null) {
-      LOG.info("User not found");
-      throw new UserNotFoundException(userName);
-    } else {
-      if (!userEntity.getActive()) {
-        LOG.info("User account is disabled: {}", userName);
-        throw new AccountDisabledException(userName);
-      }
-
-      int maxConsecutiveFailures = configuration.getMaxAuthenticationFailures();
-      if (maxConsecutiveFailures > 0 && userEntity.getConsecutiveFailures() >= maxConsecutiveFailures) {
-        LOG.info("User account is locked out due to too many authentication failures ({}/{}): {}",
-            userEntity.getConsecutiveFailures(), maxConsecutiveFailures, userName);
-        throw new TooManyLoginFailuresException(userName);
-      }
-    }
-  }
-
-  /**
    * Finds the specific {@link UserAuthenticationEntity} from the collection of authentication methods
    * available to the specified {@link UserEntity}.
    *

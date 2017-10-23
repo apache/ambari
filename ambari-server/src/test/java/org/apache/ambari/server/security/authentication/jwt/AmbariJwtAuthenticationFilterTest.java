@@ -404,7 +404,6 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     UserEntity userEntity = createMock(UserEntity.class);
     expect(userEntity.getAuthenticationEntities()).andReturn(Collections.singletonList(userAuthenticationEntity)).once();
     expect(userEntity.getActive()).andReturn(true).atLeastOnce();
-    expect(userEntity.getConsecutiveFailures()).andReturn(1).atLeastOnce();
     expect(userEntity.getUserId()).andReturn(1).atLeastOnce();
     expect(userEntity.getUserName()).andReturn("username").atLeastOnce();
     expect(userEntity.getCreateTime()).andReturn(new Date()).atLeastOnce();
@@ -415,6 +414,8 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
     Users users = createMock(Users.class);
     expect(users.getUserEntity("test-user")).andReturn(userEntity).once();
     expect(users.getUserAuthorities(userEntity)).andReturn(Collections.emptyList()).once();
+    users.validateLogin(userEntity, "test-user");
+    expectLastCall().once();
 
     AmbariAuthenticationEventHandler eventHandler = createNiceMock(AmbariAuthenticationEventHandler.class);
     eventHandler.beforeAttemptAuthentication(capture(captureFilter), eq(request), eq(response));

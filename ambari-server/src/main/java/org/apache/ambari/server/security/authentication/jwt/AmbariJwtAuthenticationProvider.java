@@ -108,7 +108,7 @@ public class AmbariJwtAuthenticationProvider extends AmbariAuthenticationProvide
 
       // Ensure the user account is allowed to log in
       try {
-        validateLogin(userEntity, userName);
+        users.validateLogin(userEntity, userName);
       } catch (AccountDisabledException | TooManyLoginFailuresException e) {
         if (getConfiguration().showLockedOutUserMessage()) {
           throw e;

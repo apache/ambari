@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -116,19 +115,6 @@ public class AmbariKerberosAuthenticationProperties {
    */
   public void setSpnegoKeytabFilePath(String spnegoKeytabFilePath) {
     this.spnegoKeytabFilePath = spnegoKeytabFilePath;
-  }
-
-  /**
-   * Sets the list of {@link UserAuthenticationType}s (in preference order) to use to look up uer accounts in the Ambari database.
-   *
-   * @param orderedUserTypes a list of {@link UserAuthenticationType}s
-   */
-  public void setOrderedUserTypes(List<UserAuthenticationType> orderedUserTypes) {
-    if (orderedUserTypes == null) {
-      this.orderedUserTypes = Collections.emptyList();
-    } else {
-      this.orderedUserTypes = Collections.unmodifiableList(new ArrayList<>(orderedUserTypes));
-    }
   }
 
   /**

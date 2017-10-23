@@ -66,7 +66,6 @@ import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
@@ -1466,14 +1465,6 @@ public class Configuration {
   @Markdown(description = "The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO")
   public static final ConfigurationProperty<String> KERBEROS_AUTH_SPNEGO_KEYTAB_FILE = new ConfigurationProperty<>(
       "authentication.kerberos.spnego.keytab.file", "/etc/security/keytabs/spnego.service.keytab");
-
-  /**
-   * A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user
-   * account for the user-supplied Kerberos identity during authentication via SPNEGO.
-   */
-  @Markdown(description = "A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user account for the user-supplied Kerberos identity during authentication via SPNEGO")
-  public static final ConfigurationProperty<String> KERBEROS_AUTH_USER_TYPES = new ConfigurationProperty<>(
-      "authentication.kerberos.user.types", "LDAP");
 
   /**
    * The auth-to-local rules set to use when translating a user's principal name to a local user name
@@ -6065,37 +6056,6 @@ public class Configuration {
       return kerberosAuthProperties;
     }
 
-    // Get and process the configured user type values to convert the comma-delimited string of
-    // user types into a ordered (as found in the comma-delimited value) list of UserType values.
-    String userTypes = getProperty(KERBEROS_AUTH_USER_TYPES);
-    List<UserAuthenticationType> orderedUserTypes = new ArrayList<>();
-
-    String[] types = userTypes.split(",");
-    for (String type : types) {
-      type = type.trim();
-
-      if (!type.isEmpty()) {
-        try {
-          orderedUserTypes.add(UserAuthenticationType.valueOf(type.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-          String message = String.format("While processing ordered user types from %s, " +
-                  "%s was found to be an invalid user type.",
-              KERBEROS_AUTH_USER_TYPES.getKey(), type);
-          LOG.error(message);
-          throw new IllegalArgumentException(message, e);
-        }
-      }
-    }
-
-    // If no user types have been specified, assume only LDAP users...
-    if (orderedUserTypes.isEmpty()) {
-      LOG.info("No (valid) user types were specified in {}. Using the default value of LOCAL.",
-          KERBEROS_AUTH_USER_TYPES.getKey());
-      orderedUserTypes.add(UserAuthenticationType.LDAP);
-    }
-
-    kerberosAuthProperties.setOrderedUserTypes(orderedUserTypes);
-
     // Get and process the SPNEGO principal name.  If it exists and contains the host replacement
     // indicator (_HOST), replace it with the hostname of the current host.
     String spnegoPrincipalName = getProperty(KERBEROS_AUTH_SPNEGO_PRINCIPAL);
@@ -6156,7 +6116,6 @@ public class Configuration {
             "\t{}: {}\n" +
             "\t{}: {}\n" +
             "\t{}: {}\n" +
-            "\t{}: {}\n" +
             "\t{}: {}\n",
         KERBEROS_AUTH_ENABLED.getKey(),
         kerberosAuthProperties.isKerberosAuthenticationEnabled(),
@@ -6164,8 +6123,6 @@ public class Configuration {
         kerberosAuthProperties.getSpnegoPrincipalName(),
         KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(),
         kerberosAuthProperties.getSpnegoKeytabFilePath(),
-        KERBEROS_AUTH_USER_TYPES.getKey(),
-        kerberosAuthProperties.getOrderedUserTypes(),
         KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(),
         kerberosAuthProperties.getAuthToLocalRules());
 

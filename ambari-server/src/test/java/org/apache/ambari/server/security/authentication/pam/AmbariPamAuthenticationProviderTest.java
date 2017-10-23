@@ -69,6 +69,14 @@ public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
 
   @Before
   public void setup() {
+    final Users users = createMockBuilder(Users.class)
+        .addMockedMethod("getUserEntity", String.class)
+        .addMockedMethod("getUserAuthorities", UserEntity.class)
+        .addMockedMethod("createUser", String.class, String.class, String.class, Boolean.class)
+        .addMockedMethod("addPamAuthentication", UserEntity.class, String.class)
+        .addMockedMethod("getUser", UserEntity.class)
+        .createMock();
+
     injector = Guice.createInjector(new AbstractModule() {
 
       @Override
@@ -80,7 +88,7 @@ public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(PamAuthenticationFactory.class).toInstance(createMock(PamAuthenticationFactory.class));
         bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
-        bind(Users.class).toInstance(createMock(Users.class));
+        bind(Users.class).toInstance(users);
       }
     });
 
@@ -264,7 +272,7 @@ public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
     userEntity.setActive(active);
     userEntity.setConsecutiveFailures(consecutiveFailures);
 
-    if(addAuthentication) {
+    if (addAuthentication) {
       UserAuthenticationEntity userAuthenticationEntity = new UserAuthenticationEntity();
       userAuthenticationEntity.setAuthenticationType(UserAuthenticationType.PAM);
       userAuthenticationEntity.setAuthenticationKey(TEST_USER_NAME);

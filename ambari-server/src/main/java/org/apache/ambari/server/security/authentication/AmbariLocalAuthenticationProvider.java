@@ -83,7 +83,7 @@ public class AmbariLocalAuthenticationProvider extends AmbariAuthenticationProvi
         LOG.debug("Authentication succeeded - a matching username and password were found: {}", userName);
 
         try {
-          validateLogin(userEntity, userName);
+          users.validateLogin(userEntity, userName);
         }
         catch (AccountDisabledException | TooManyLoginFailuresException e) {
           if (getConfiguration().showLockedOutUserMessage()) {
