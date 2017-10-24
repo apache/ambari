@@ -18,9 +18,15 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 
 public class StackVersionResourceDefinition extends BaseResourceDefinition {
@@ -52,6 +58,50 @@ public class StackVersionResourceDefinition extends BaseResourceDefinition {
     children.add(new SubResourceDefinition(Resource.Type.CompatibleRepositoryVersion));
     children.add(new SubResourceDefinition(Resource.Type.Mpack, null, false));
     return children;
+  }
+
+  @Override
+  public List<PostProcessor> getPostProcessors() {
+    List<PostProcessor> listProcessors = new ArrayList<>();
+    listProcessors.add(new StackVersionHrefProcessor());
+    listProcessors.add(new StackVersionPostProcessor());
+    return listProcessors;
+  }
+
+  /**
+   * Post Processing the mpack href when the call comes from stack endpoint to ensure that the
+   * href is a backreference to the mpacks end point
+   */
+  private class StackVersionHrefProcessor extends BaseHrefPostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      if (href.contains("/mpacks/")) {
+        ResourceImpl mpack = (ResourceImpl) resultNode.getObject();
+        Map<String, Map<String, Object>> mapInfo = mpack.getPropertiesMap();
+        Map<String, Object> versionInfo = mapInfo.get("Versions");
+
+        int idx = href.indexOf("mpacks/");
+        String stackName = (String)versionInfo.get("stack_name");
+        String stackVersion = (String)versionInfo.get("stack_version");
+        href = href.substring(0, idx) + "stacks/" + stackName + "/versions/" + stackVersion;
+        resultNode.setProperty("href", href);
+      } else {
+        super.process(request, resultNode, href);
+      }
+    }
+  }
+
+  /***
+   * Post processing to change the name of the result node to current_mpack
+   */
+  private class StackVersionPostProcessor implements PostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      if (href.contains("/mpacks/")) {
+        resultNode.setName("stack");
+
+      }
+    }
   }
 
  }

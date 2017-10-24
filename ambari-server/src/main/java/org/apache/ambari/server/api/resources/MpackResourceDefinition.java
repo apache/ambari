@@ -18,8 +18,10 @@
 package org.apache.ambari.server.api.resources;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -53,6 +55,13 @@ public class MpackResourceDefinition extends BaseResourceDefinition {
   @Override
   public String getSingularName() {
     return "mpack";
+  }
+
+  @Override
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    Set<SubResourceDefinition> setChildren = new HashSet<>();
+    setChildren.add(new SubResourceDefinition(Resource.Type.StackVersion, null, false));
+    return setChildren;
   }
 
   @Override

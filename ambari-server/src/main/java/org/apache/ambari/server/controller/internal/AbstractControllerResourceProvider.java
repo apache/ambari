@@ -199,7 +199,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case RootClusterSetting:
         return new RootClusterSettingsResourceProvider(managementController);
       case StackVersion:
-        return new StackVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackVersionResourceProvider(managementController);
       case ClusterStackVersion:
         return resourceProviderFactory.getClusterStackVersionResourceProvider(managementController);
       case HostStackVersion:

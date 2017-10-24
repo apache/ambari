@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -35,34 +36,71 @@ import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.StackEntity;
+
+import com.google.inject.Inject;
 
 @StaticallyInject
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
+  public static final String RESPONSE_KEY = "Versions";
+  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
+  public static final String STACK_VERSION_PROPERTY_ID     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
+  public static final String STACK_NAME_PROPERTY_ID        = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
+  public static final String STACK_MIN_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "min_upgrade_version";
+  public static final String STACK_ACTIVE_PROPERTY_ID      = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "active";
+  public static final String STACK_VALID_PROPERTY_ID      = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "valid";
+  public static final String STACK_ERROR_SET      = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP +"stack-errors";
+  public static final String STACK_CONFIG_TYPES            = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "config_types";
+  public static final String STACK_PARENT_PROPERTY_ID      = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "parent_stack_version";
+  public static final String UPGRADE_PACKS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "upgrade_packs";
+  public static final String STACK_MIN_JDK     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "min_jdk";
+  public static final String STACK_MAX_JDK     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "max_jdk";
+  public static final String MPACK_ID     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_id";
 
-  public static final String STACK_VERSION_PROPERTY_ID     = PropertyHelper.getPropertyId("Versions", "stack_version");
-  public static final String STACK_NAME_PROPERTY_ID        = PropertyHelper.getPropertyId("Versions", "stack_name");
-  public static final String STACK_MIN_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "min_upgrade_version");
-  public static final String STACK_ACTIVE_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "active");
-  public static final String STACK_VALID_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "valid");
-  public static final String STACK_ERROR_SET      = PropertyHelper.getPropertyId("Versions", "stack-errors");
-  public static final String STACK_CONFIG_TYPES            = PropertyHelper.getPropertyId("Versions", "config_types");
-  public static final String STACK_PARENT_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "parent_stack_version");
-  public static final String UPGRADE_PACKS_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "upgrade_packs");
-  public static final String STACK_MIN_JDK     = PropertyHelper.getPropertyId("Versions", "min_jdk");
-  public static final String STACK_MAX_JDK     = PropertyHelper.getPropertyId("Versions", "max_jdk");
+  public static final Set<String> PROPERTY_IDS = new HashSet<>();
+
+  @Inject
+  protected static StackDAO stackDAO;
 
   private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID}));
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID, MPACK_ID}));
 
-  protected StackVersionResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The key property ids for a mpack resource.
+   */
+  public static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(MPACK_ID);
+    PROPERTY_IDS.add(STACK_VERSION_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_MIN_VERSION_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_ACTIVE_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_VALID_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_ERROR_SET);
+    PROPERTY_IDS.add(STACK_CONFIG_TYPES);
+    PROPERTY_IDS.add(STACK_PARENT_PROPERTY_ID);
+    PROPERTY_IDS.add(UPGRADE_PACKS_PROPERTY_ID);
+    PROPERTY_IDS.add(STACK_MIN_JDK);
+    PROPERTY_IDS.add(STACK_MAX_JDK);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID);
+
   }
+
+  StackVersionResourceProvider(AmbariManagementController controller) {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+  }
+
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
@@ -70,14 +108,32 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<StackVersionRequest> requests = new HashSet<>();
+    Set<Resource> resources = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.emptyMap()));
     } else {
-      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-        requests.add(getRequest(propertyMap));
-      }
-    }
+      Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(predicate));
+      if (propertyMap.containsKey(MPACK_ID)) {
+        Resource resource = new ResourceImpl(Resource.Type.StackVersion);
+        Long mpackId = Long.valueOf((String) propertyMap.get(MPACK_ID));
+        StackEntity stackEntity = stackDAO.findByMpack(mpackId);
+        requests.add(new StackVersionRequest(stackEntity.getStackName(), stackEntity.getStackVersion()));
+        resource.setProperty(STACK_NAME_PROPERTY_ID,
+                (String)stackEntity.getStackName());
+
+        resource.setProperty(STACK_VERSION_PROPERTY_ID,
+                (String)stackEntity.getStackVersion());
+
+        resource.setProperty(MPACK_ID, mpackId);
+
+        resources.add(resource);
+
+      } else {
+        for (Map<String, Object> propertyMap1:
+             getPropertyMaps(predicate)) {
+          requests.add(getRequest(propertyMap1));
+        }
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
@@ -88,7 +144,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       }
     });
 
-    Set<Resource> resources = new HashSet<>();
 
     for (StackVersionResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.StackVersion);
@@ -107,16 +162,16 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, STACK_VALID_PROPERTY_ID,
           response.isValid(), requestedIds);
-      
+
       setResourceProperty(resource, STACK_ERROR_SET,
           response.getErrors(), requestedIds);
-      
+
       setResourceProperty(resource, STACK_PARENT_PROPERTY_ID,
         response.getParentVersion(), requestedIds);
 
       setResourceProperty(resource, STACK_CONFIG_TYPES,
           response.getConfigTypes(), requestedIds);
-      
+
       setResourceProperty(resource, UPGRADE_PACKS_PROPERTY_ID,
           response.getUpgradePacks(), requestedIds);
 
@@ -126,11 +181,13 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       setResourceProperty(resource, STACK_MAX_JDK,
               response.getMaxJdk(), requestedIds);
 
-      resources.add(resource);
+        resources.add(resource);
+      }
+      }
     }
 
-    return resources;
-  }
+      return resources;
+    }
 
   private StackVersionRequest getRequest(Map<String, Object> properties) {
     return new StackVersionRequest(
