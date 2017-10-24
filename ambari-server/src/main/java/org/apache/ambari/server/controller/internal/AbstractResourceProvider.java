@@ -61,7 +61,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   /**
    * Key property mapping by resource type.
    */
-  private final Map<Resource.Type, String> keyPropertyIds;
+  protected final Map<Resource.Type, String> keyPropertyIds;
 
   /**
    * Observers of this observable resource provider.
