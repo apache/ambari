@@ -150,6 +150,11 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
+  public Service getServiceById(ServiceId serviceId) {
+    return null;
+  }
+
+  @Override
   @JsonIgnore
   public Collection<Service> getServicesFromServiceGroup(ServiceGroup serviceGroup, String serviceType) {
     if (serviceType == null) {

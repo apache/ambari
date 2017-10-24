@@ -51,6 +51,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   //todo: this will need to change to allow usage of multiple bp's for the same cluster
   //todo: for example: provision using bp1 and scale using bp2
   private BlueprintV2 blueprint;
+  private Configuration configuration;
   private Collection<Service> serviceConfigs;
   private ConfigRecommendationStrategy configRecommendationStrategy;
   private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
@@ -73,6 +74,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
     }
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
+
+    // merge service configs into global cluster configs
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
+    serviceConfigs.forEach(service -> {
+      properties.putAll(service.getConfiguration().getProperties());
+      attributes.putAll(service.getConfiguration().getAttributes());
+    });
+    configuration = new Configuration(properties, attributes);
 
     // todo extract validation to specialized service
     validateTopology();
@@ -102,7 +112,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   @Deprecated
   public Configuration getConfiguration() {
-    return null;
+    return configuration;
   }
 
   public Collection<Service> getServiceConfigs() {

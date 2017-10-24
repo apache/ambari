@@ -52,13 +52,12 @@ public class HostGroupComponentEntity {
   private String serviceName;
 
   @Id
-  @Column(name = "instance_name", nullable = true, insertable = true, updatable = false)
-  private String name;
-
-
-  @Id
   @Column(name = "type", nullable = false, insertable = true, updatable = false)
   private String type;
+
+  @Id
+  @Column(name = "instance_name", nullable = true, insertable = true, updatable = false)
+  private String name;
 
   @Column(name = "provision_action", nullable = true, insertable = true, updatable = false)
   private String provisionAction;

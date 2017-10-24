@@ -78,7 +78,8 @@ public class ClusterConfigurationRequest {
     BlueprintV2 blueprint = clusterTopology.getBlueprint();
     // set initial configuration (not topology resolved)
     //TODO set up proper ConfigurationContext
-    ConfigurationContext configurationContext = new ConfigurationContext(blueprint.getStacks().iterator().next(), blueprint.getConfiguration());
+    ConfigurationContext configurationContext = new ConfigurationContext(blueprint.getStacks().iterator().next(), clusterTopology
+            .getConfiguration());
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology, configurationContext);
     this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
     removeOrphanConfigTypes();

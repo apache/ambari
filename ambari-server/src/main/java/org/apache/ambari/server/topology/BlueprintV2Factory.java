@@ -73,8 +73,11 @@ public class BlueprintV2Factory {
   private static StackDAO stackDao;
   private ConfigurationFactory configFactory = new ConfigurationFactory();
 
-  private final StackV2Factory stackFactory;
+  private StackV2Factory stackFactory;
 
+  protected BlueprintV2Factory() {
+
+  }
   protected BlueprintV2Factory(StackV2Factory stackFactory) {
     this.stackFactory = stackFactory;
   }

@@ -538,6 +538,9 @@ CREATE TABLE hostgroup_component (
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
+  service_group VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  type VARCHAR(255) NOT NULL,
   provision_action VARCHAR(255),
   CONSTRAINT PK_hostgroup_component PRIMARY KEY (blueprint_name, hostgroup_name, name),
   CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup (blueprint_name, name));
@@ -754,6 +757,18 @@ CREATE TABLE topology_request (
   provision_action VARCHAR(255),
   CONSTRAINT PK_topology_request PRIMARY KEY (id),
   CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
+
+CREATE TABLE topology_configurations (
+  id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  service_group_name VARCHAR(100) NOT NULL,
+  service_name VARCHAR(100) NOT NULL,
+  component_name VARCHAR(100),
+  host_group_name VARCHAR(100),
+  cluster_properties TEXT,
+  cluster_attributes TEXT,
+  CONSTRAINT PK_topology_configurations PRIMARY KEY (id),
+  CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id));
 
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,

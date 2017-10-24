@@ -87,6 +87,7 @@
     <class>org.apache.ambari.server.orm.entities.WidgetLayoutEntity</class>
     <class>org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity</class>
     <class>org.apache.ambari.server.orm.entities.TopologyRequestEntity</class>
+    <class>org.apache.ambari.server.orm.entities.TopologyConfigurationsEntity</class>
     <class>org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity</class>
     <class>org.apache.ambari.server.orm.entities.TopologyHostRequestEntity</class>
     <class>org.apache.ambari.server.orm.entities.TopologyHostGroupEntity</class>

@@ -80,6 +80,18 @@ public interface BlueprintV2 {
    */
   Collection<ServiceId> getAllServiceIds();
 
+  /**
+   * Get service by Id
+   * @param serviceId
+   * @return
+   */
+  Service getServiceById(ServiceId serviceId);
+
+  /**
+   * Get all of the services represented in the blueprint.
+   *
+   * @return collection of all represented service names
+   */
   Collection<Service> getAllServices();
 
   /**

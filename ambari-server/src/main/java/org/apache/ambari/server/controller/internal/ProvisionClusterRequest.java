@@ -91,6 +91,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String CONFIGURATIONS_PROPERTY = "configurations";
 
   /**
+   * services property name
+   */
+  public static final String SERVICES_PROPERTY = "services";
+
+  /**
    * default password property name
    */
   public static final String DEFAULT_PASSWORD_PROPERTY = "default_password";
@@ -184,6 +189,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     this.securityConfiguration = securityConfiguration;
 
+    //TODO parse service configs and mereg with BP service configs
+//    Collection<Map<String, String>> services = properties.get(SERVICES_PROPERTY);
 //    Configuration configuration = configurationFactory.getConfiguration(
 //      (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
 //    configuration.setParentConfiguration(blueprint.getConfiguration());
