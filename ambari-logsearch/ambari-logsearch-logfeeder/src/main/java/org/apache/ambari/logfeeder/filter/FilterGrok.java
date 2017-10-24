@@ -185,6 +185,7 @@ public class FilterGrok extends Filter {
         if (strBuff != null) {
           Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
           try {
+            LogFeederUtil.fillMapWithFieldDefaults(jsonObj, inputMarker, false);
             applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
           } finally {
             strBuff = null;
@@ -204,6 +205,7 @@ public class FilterGrok extends Filter {
     } else {
       savedInputMarker = inputMarker;
       Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
+      LogFeederUtil.fillMapWithFieldDefaults(jsonObj, inputMarker, false);
       applyMessage(inputStr, jsonObj, null);
     }
   }
@@ -212,6 +214,7 @@ public class FilterGrok extends Filter {
   public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
     if (sourceField != null) {
       savedInputMarker = inputMarker;
+      LogFeederUtil.fillMapWithFieldDefaults(jsonObj, inputMarker, false);
       applyMessage((String) jsonObj.get(sourceField), jsonObj, null);
       if (removeSourceField) {
         jsonObj.remove(sourceField);

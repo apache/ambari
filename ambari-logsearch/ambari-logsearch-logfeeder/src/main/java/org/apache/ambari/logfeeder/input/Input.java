@@ -83,6 +83,8 @@ public abstract class Input extends ConfigBlock implements Runnable, Cloneable {
   private boolean multiFolder = false;
   private Map<String, List<File>> folderMap;
   private Map<String, InputFile> inputChildMap = new HashMap<>(); // TODO: weird it has this relationship
+  private boolean initDefaultFields = false;
+
 
   protected MetricData readBytesMetric = new MetricData(getReadBytesMetricName(), false);
   protected String getReadBytesMetricName() {
@@ -96,6 +98,7 @@ public abstract class Input extends ConfigBlock implements Runnable, Cloneable {
     detachIntervalMin = getIntValue("detach_interval_min", DEFAULT_DETACH_INTERVAL_MIN * 60);
     detachTimeMin = getIntValue("detach_time_min", DEFAULT_DETACH_TIME_MIN * 60);
     pathUpdateIntervalMin = getIntValue("path_update_interval_min", DEFAULT_LOG_PATH_UPDATE_INTERVAL_MIN * 60);
+    initDefaultFields = getBooleanValue("init_default_fields", false);
     if (typeValue != null) {
       // Explicitly add type and value to field list
       contextFields.put("type", typeValue);
@@ -439,5 +442,9 @@ public abstract class Input extends ConfigBlock implements Runnable, Cloneable {
 
   public void setThread(Thread thread) {
     this.thread = thread;
+  }
+
+  public boolean isInitDefaultFields() {
+    return initDefaultFields;
   }
 }

@@ -33,6 +33,8 @@ import java.util.Properties;
 
 import org.apache.ambari.logfeeder.LogFeeder;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logfeeder.input.Input;
+import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -338,5 +340,25 @@ public class LogFeederUtil {
       logfeederTempDir = PlaceholderUtil.replaceVariables(tempDirValue, contextParam);
     }
     return logfeederTempDir;
+  }
+
+  public static void fillMapWithFieldDefaults(Map<String, Object> jsonObj, InputMarker inputMarker, boolean force) {
+    if (inputMarker != null && inputMarker.input != null && (force || inputMarker.input.isInitDefaultFields())) {
+      if (jsonObj.get("type") == null) {
+        jsonObj.put("type", inputMarker.input.getStringValue("type"));
+      }
+      if (jsonObj.get("path") == null && inputMarker.input.getFilePath() != null) {
+        jsonObj.put("path", inputMarker.input.getFilePath());
+      }
+      if (jsonObj.get("path") == null && inputMarker.input.getStringValue("path") != null) {
+        jsonObj.put("path", inputMarker.input.getStringValue("path"));
+      }
+      if (jsonObj.get("host") == null && LogFeederUtil.hostName != null) {
+        jsonObj.put("host", LogFeederUtil.hostName);
+      }
+      if (jsonObj.get("ip") == null && LogFeederUtil.ipAddress != null) {
+        jsonObj.put("ip", LogFeederUtil.ipAddress);
+      }
+    }
   }
 }
