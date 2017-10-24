@@ -1443,6 +1443,14 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS, hostsOrder);
     upgradeResourceProvider.createResources(request);
+
+
+    // make sure that the desired versions are updated
+    Cluster cluster = clusters.getCluster("c1");
+    assertNotNull(cluster);
+
+    Service service = cluster.getService("ZOOKEEPER");
+    assertEquals(repoVersionEntity2200, service.getDesiredRepositoryVersion());
   }
 
   /**
