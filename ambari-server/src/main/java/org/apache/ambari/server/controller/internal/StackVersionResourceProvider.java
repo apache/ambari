@@ -45,9 +45,6 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 
 import com.google.inject.Inject;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
 @StaticallyInject
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String RESPONSE_KEY = "Versions";
@@ -69,7 +66,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
   @Inject
   protected static StackDAO stackDAO;
-
 
   private static Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID, MPACK_ID}));
@@ -103,6 +99,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
   StackVersionResourceProvider(AmbariManagementController controller) {
     super(Resource.Type.StackVersion, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+
   }
 
 
