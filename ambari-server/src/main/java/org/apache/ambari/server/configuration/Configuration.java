@@ -2183,6 +2183,13 @@ public class Configuration {
       "api.heartbeat.interval", 10000);
 
   /**
+   * The maximum size of a stomp text message. Default is 2 MB.
+   */
+  @Markdown(description = "The maximum size of a stomp text message. Default is 2 MB.")
+  public static final ConfigurationProperty<Integer> STOMP_MAX_MESSAGE_SIZE = new ConfigurationProperty<>(
+      "stomp.max.message.size", 2*1024*1024);
+
+  /**
    * The maximum number of threads used to extract Ambari Views when Ambari
    * Server is starting up.
    */
@@ -4916,6 +4923,13 @@ public class Configuration {
    */
   public int getAPIHeartbeatInterval() {
     return Integer.parseInt(getProperty(API_HEARTBEAT_INTERVAL));
+  }
+
+  /**
+   * @return the maximum size of a stomp text message. Default is 2 MB.
+   */
+  public int getStompMaxMessageSize() {
+    return Integer.parseInt(getProperty(STOMP_MAX_MESSAGE_SIZE));
   }
 
   /**
