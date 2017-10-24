@@ -53,7 +53,7 @@ public interface BlueprintV2 {
    * Get the hot groups contained in the blueprint.
    * @return map of host group name to host group
    */
-  Map<String, HostGroupV2> getHostGroups();
+  Map<String, ? extends HostGroupV2> getHostGroups();
 
   /**
    * Get  stacks associated with the blueprint.
@@ -71,6 +71,8 @@ public interface BlueprintV2 {
 
   Collection<ServiceGroup> getServiceGroups();
 
+  ServiceGroup getServiceGroup(String name);
+
   /**
    * Get all of the services represented in the blueprint.
    *
@@ -78,7 +80,7 @@ public interface BlueprintV2 {
    */
   Collection<ServiceId> getAllServiceIds();
 
-  ;Collection<Service> getAllServices();
+  Collection<Service> getAllServices();
 
   /**
    * Get the names of all the services represented in the blueprint.
@@ -103,6 +105,8 @@ public interface BlueprintV2 {
    * @return collection of all represented services represented in the blueprint with a given type.
    */
   Collection<Service> getServicesByType(String serviceType);
+
+  Service getService(ServiceId serviceId);
 
   /**
    * Get services by type from a service group.

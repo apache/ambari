@@ -23,6 +23,8 @@ public class ServiceId {
   private String serviceGroup;
   private String name;
 
+  public ServiceId() { }
+
   public static ServiceId of(String name, String serviceGroup) {
     ServiceId id = new ServiceId();
     id.name = name;
@@ -65,5 +67,13 @@ public class ServiceId {
     int result = serviceGroup != null ? serviceGroup.hashCode() : 0;
     result = 31 * result + (name != null ? name.hashCode() : 0);
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "ServiceId{" +
+      "serviceGroup='" + serviceGroup + '\'' +
+      ", name='" + name + '\'' +
+      '}';
   }
 }

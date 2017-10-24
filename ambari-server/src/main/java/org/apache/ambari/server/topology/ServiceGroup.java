@@ -18,17 +18,22 @@
 
 package org.apache.ambari.server.topology;
 
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 
 public class ServiceGroup {
 
   private String name = null;
 
-  private Collection<Service> services = new ArrayList<>();
+  private Map<String, Service> servicesByName;
+  private ListMultimap<String, Service> servicesByType;
 
   private Configuration configuration = null;
 
@@ -46,7 +51,15 @@ public class ServiceGroup {
   }
 
   public Collection<Service> getServices() {
-    return services;
+    return servicesByName.values();
+  }
+
+  public Service getServiceByName(String name) {
+    return servicesByName.get(name);
+  }
+
+  public List<Service> getServiceByType(String name) {
+    return servicesByType.get(name);
   }
 
   public Configuration getConfiguration() {
@@ -57,14 +70,15 @@ public class ServiceGroup {
     return dependencies;
   }
 
-
   public void setName(String name) {
     this.name = name;
   }
 
   public void setServices(Collection<Service> services) {
-    this.services = services;
-    services.forEach(s -> s.setServiceGroup(this.name));
+    services.forEach(s -> s.setServiceGroup(this));
+    this.servicesByName = services.stream().collect(Collectors.toMap(Service::getName, s -> s));
+    this.servicesByType = Multimaps.index(services, Service::getType);
+    services.forEach(s -> s.setServiceGroup(this));
   }
 
   public void setConfiguration(Configuration configuration) {

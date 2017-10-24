@@ -19,13 +19,16 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -33,7 +36,6 @@ import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,14 +48,13 @@ public class BlueprintImplV2 implements BlueprintV2 {
   private String name;
   private SecurityConfiguration securityConfiguration;
   private Collection<RepositoryVersion> repositoryVersions;
-  private Collection<ServiceGroup> serviceGroups;
-  private Collection<? extends HostGroupV2> hostGroups;
+  private Map<String, ServiceGroup> serviceGroups;
   private Setting setting;
+  private Configuration configuration;
 
   // Transient fields
   @JsonIgnore
-  private Map<String, HostGroupV2> hostGroupMap = new HashMap<>();
-
+  private Map<String, HostGroupV2Impl> hostGroupMap = new HashMap<>();
 
   @JsonIgnore
   private Map<StackId, StackV2> stacks;
@@ -61,8 +62,12 @@ public class BlueprintImplV2 implements BlueprintV2 {
   @JsonIgnore
   private List<RepositorySetting> repoSettings;
 
+  @JsonIgnore
+  private Map<ServiceId, Service> services = new HashMap<>();
+
   public void setStacks(Map<StackId, StackV2> stacks) {
     this.stacks = stacks;
+    getAllServices().stream().forEach(s -> s.setStackFromBlueprint(this));
   }
 
   @JsonProperty("Blueprints")
@@ -86,13 +91,12 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
   @JsonProperty("service_groups")
   public void setServiceGroups(Collection<ServiceGroup> serviceGroups) {
-    this.serviceGroups = serviceGroups;
+    this.serviceGroups = serviceGroups.stream().collect(toMap( sg -> sg.getName(), sg -> sg ));
   }
 
   @JsonProperty("host_groups")
   public void setHostGroups(Collection<HostGroupV2Impl> hostGroups) {
-    this.hostGroups = hostGroups;
-    this.hostGroupMap = hostGroups.stream().collect(Collectors.toMap(
+    this.hostGroupMap = hostGroups.stream().collect(toMap(
       hg -> hg.getName(),
       hg -> hg
     ));
@@ -114,7 +118,8 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
-  public Map<String, HostGroupV2> getHostGroups() {
+  @JsonProperty("host_groups")
+  public Map<String, ? extends HostGroupV2> getHostGroups() {
     return hostGroupMap;
   }
 
@@ -125,18 +130,23 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
   @Override
   public Collection<String> getStackIds() {
-    return repositoryVersions.stream().map(rv -> rv.getStackId()).collect(Collectors.toList());
+    return repositoryVersions.stream().map(rv -> rv.getStackId()).collect(toList());
   }
 
   @Override
   public Collection<ServiceGroup> getServiceGroups() {
-    return serviceGroups;
+    return serviceGroups.values();
+  }
+
+  @Override
+  public ServiceGroup getServiceGroup(String name) {
+    return serviceGroups.get(name);
   }
 
   @Override
   @JsonIgnore
   public Collection<ServiceId> getAllServiceIds() {
-    return hostGroups.stream().flatMap(hg -> hg.getServiceIds().stream()).collect(Collectors.toSet());
+    return getHostGroups().values().stream().flatMap(hg -> hg.getServiceIds().stream()).collect(toSet());
   }
 
   @Override
@@ -146,70 +156,90 @@ public class BlueprintImplV2 implements BlueprintV2 {
       return serviceGroup.getServices();
     } else {
       return serviceGroup.getServices().stream().filter(
-              service -> service.getType().equalsIgnoreCase(serviceType)).collect(Collectors.toList());
+              service -> service.getType().equalsIgnoreCase(serviceType)).collect(toList());
     }
   }
 
   @Override
   @JsonIgnore
   public StackV2 getStackById(String stackId) {
-    return null;
+    return stacks.get(new StackId(stackId));
   }
 
   @Override
   @JsonIgnore
   public Collection<Service> getAllServices() {
-    return null;
+    return services.values();
+  }
+
+  @Override
+  @JsonIgnore
+  public Service getService(ServiceId serviceId) {
+    return services.get(serviceId);
   }
 
   @Override
   @JsonIgnore
   public Collection<String> getAllServiceTypes() {
-    return null;
+    return getServiceGroups().stream().flatMap(sg -> sg.getServices().stream()).map(s -> s.getType()).collect(toSet());
   }
 
   @Override
   @JsonIgnore
   public Collection<Service> getServicesByType(String serviceType) {
-    return null;
-//    getAllServices().stream().filter(
-//            service -> service.getType().equalsIgnoreCase(serviceType)).collect(Collectors.toList());
+    return serviceGroups.values().stream().flatMap(sg -> sg.getServiceByType(serviceType).stream()).collect(toList());
   }
 
   @Override
   @JsonIgnore
   public Collection<ComponentV2> getComponents(Service service) {
-    return null;
+    return getHostGroupsForService(service.getId()).stream().flatMap(
+      hg -> hg.getComponents().stream()).
+      collect(toList());
   }
 
   @Override
   @JsonIgnore
   public Collection<ComponentV2> getComponentsByType(Service service, String componentType) {
     return getComponents(service).stream().filter(
-            compnoent -> compnoent.getType().equalsIgnoreCase(componentType)).collect(Collectors.toList());
+            compnoent -> compnoent.getType().equalsIgnoreCase(componentType)).collect(toList());
   }
 
   @Override
   @JsonIgnore
   public Collection<ComponentV2> getComponents(ServiceId serviceId) {
-    return getHostGroupsForService(serviceId).stream().flatMap(hg -> hg.getComponents().stream()).collect(Collectors.toSet());
+    return getHostGroupsForService(serviceId).stream().flatMap(hg -> hg.getComponents().stream()).collect(toSet());
   }
 
   @Override
   @JsonIgnore
   public Collection<HostGroupV2> getHostGroupsForService(ServiceId serviceId) {
-    return hostGroups.stream().filter(hg -> !hg.getComponentsByServiceId(serviceId).isEmpty()).collect(Collectors.toList());
+    return getHostGroups().values().stream().filter(hg -> !hg.getComponentsByServiceId(serviceId).isEmpty()).collect(toList());
   }
 
   @Override
   @JsonIgnore
   public Collection<HostGroupV2> getHostGroupsForComponent(ComponentV2 component) {
-    return hostGroups.stream().filter(hg -> hg.getComponents().contains(component)).collect(Collectors.toList());
+    return hostGroupMap.values().stream().filter(hg -> hg.getComponents().contains(component)).collect(toList());
   }
 
   @Override
+  @JsonIgnore
   public Configuration getConfiguration() {
-    return null;
+    if (null == configuration) {
+      configuration = new Configuration(new HashMap<>(), new HashMap<>());
+      getServiceGroups().stream().forEach( sg -> addChildConfiguration(configuration, sg.getConfiguration()) );
+      getHostGroups().values().stream().forEach(
+        hg -> hg.getComponents().stream().forEach(
+          c -> addChildConfiguration(configuration, c.getConfiguration())));
+    }
+    return configuration;
+  }
+
+  private void addChildConfiguration(Configuration parent, Configuration child) {
+    child.setParentConfiguration(parent);
+    parent.getProperties().putAll(child.getProperties());
+    parent.getAttributes().putAll(child.getAttributes());
   }
 
   @Override
@@ -217,86 +247,54 @@ public class BlueprintImplV2 implements BlueprintV2 {
     return this.setting;
   }
 
-
-
   @Nonnull
   @Override
   @JsonIgnore
   public Collection<String> getAllServiceNames() {
-    return getAllServices().stream().map(s -> s.getName()).collect(Collectors.toList());
+    return getAllServices().stream().map(s -> s.getName()).collect(toList());
   }
 
   @Nonnull
   @Override
   public Collection<String> getComponentNames(ServiceId serviceId) {
-    return getComponents(serviceId).stream().map(c -> c.getName()).collect(Collectors.toList());
+    return getComponents(serviceId).stream().map(c -> c.getName()).collect(toList());
   }
 
   @Override
   public String getRecoveryEnabled(ComponentV2 component) {
-    return null;
+    Optional<String> value =
+      setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS, Setting.SETTING_NAME_RECOVERY_ENABLED);
+    // TODO: handle service and component level settings
+    return value.orElse(null);
   }
 
-  public String getRecoveryEnabled(String serviceName, String componentName) {
-    // If component name was specified in the list of "component_settings",
-    // determine if recovery_enabled is true or false and return it.
-    Optional<String> recoveryEnabled = getSettingValue(Setting.SETTING_NAME_COMPONENT_SETTINGS,
-      Setting.SETTING_NAME_RECOVERY_ENABLED,
-      Optional.of(componentName));
-    if (recoveryEnabled.isPresent()) {
-      return recoveryEnabled.get();
-    }
-
-    // If component name was specified in the list of "component_settings",
-    // determine if recovery_enabled is true or false and return it.
-    recoveryEnabled = getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS,
-      Setting.SETTING_NAME_RECOVERY_ENABLED,
-      Optional.of(serviceName));
-    if (recoveryEnabled.isPresent()) {
-      return recoveryEnabled.get();
-    }
-
-    // If service name is not specified, look up the cluster setting.
-    recoveryEnabled = getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS,
-      Setting.SETTING_NAME_RECOVERY_ENABLED,
-      Optional.empty());
-    if (recoveryEnabled.isPresent()) {
-      return recoveryEnabled.get();
-    }
-
-    return null;
-  }
-
-  private Optional<String> getSettingValue(String settingCategory, String settingName, Optional<String> nameFilter) {
-    if (this.setting != null) {
-      Set<HashMap<String, String>> settingValue = this.setting.getSettingValue(settingCategory);
-      for (Map<String, String> setting : settingValue) {
-        String name = setting.get(Setting.SETTING_NAME_NAME);
-        if (!nameFilter.isPresent() || StringUtils.equals(name, nameFilter.get())) {
-          String value = setting.get(settingName);
-          if (!StringUtils.isEmpty(value)) {
-            return Optional.of(value);
-          }
-        }
-      }
-    }
-    return Optional.empty();
-  }
+//  private Optional<String> getSettingValue(String settingCategory, String settingName, Optional<String> nameFilter) {
+//    if (this.setting != null) {
+//      Set<HashMap<String, String>> settingValue = this.setting.getSettingValue(settingCategory);
+//      for (Map<String, String> setting : settingValue) {
+//        String name = setting.get(Setting.SETTING_NAME_NAME);
+//        if (!nameFilter.isPresent() || StringUtils.equals(name, nameFilter.get())) {
+//          String value = setting.get(settingName);
+//          if (!StringUtils.isEmpty(value)) {
+//            return Optional.of(value);
+//          }
+//        }
+//      }
+//    }
+//    return Optional.empty();
+//  }
 
   @Override
   public String getCredentialStoreEnabled(String serviceName) {
-    // Look up the service and return the credential_store_enabled value.
-    Optional<String> credentialStoreEnabled = getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS,
-      Setting.SETTING_NAME_CREDENTIAL_STORE_ENABLED,
-      Optional.of(serviceName));
-    return  credentialStoreEnabled.isPresent() ? credentialStoreEnabled.get() : null;
+    // TODO: this is a service level level setting, handle appropriately
+    return null;
   }
 
   @Override
   public boolean shouldSkipFailure() {
-    Optional<String> shouldSkipFailure = getSettingValue(Setting.SETTING_NAME_DEPLOYMENT_SETTINGS,
-      Setting.SETTING_NAME_SKIP_FAILURE,
-      Optional.empty());
+    Optional<String> shouldSkipFailure = setting.getSettingValue(
+      Setting.SETTING_NAME_DEPLOYMENT_SETTINGS,
+      Setting.SETTING_NAME_SKIP_FAILURE);
     return shouldSkipFailure.isPresent() ? shouldSkipFailure.get().equalsIgnoreCase("true") : false;
   }
 
@@ -312,7 +310,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
       return true;
     }
     final Set<String> serviceNames =
-      getAllServices().stream().map(s -> s.getName()).collect(Collectors.toSet());
+      getAllServices().stream().map(s -> s.getName()).collect(toSet());
     return getStacks().stream().anyMatch(
       stack -> {
         String service = stack.getServiceForConfigType(configType);
@@ -321,9 +319,46 @@ public class BlueprintImplV2 implements BlueprintV2 {
     );
   }
 
+  public void postDeserialization() {
+    // Maintain a ServiceId -> Service map
+    this.services = getAllServiceIds().stream().collect(toMap(
+      serviceId -> serviceId,
+      serviceId -> {
+        ServiceGroup sg = getServiceGroup(serviceId.getServiceGroup());
+        Service service = null != sg ? sg.getServiceByName(serviceId.getName()) : null;
+        if (null == service) {
+          throw new IllegalStateException("Cannot find service for service id: " + serviceId);
+        }
+        return service;
+      }
+    ));
+
+    // Set Service -> ServiceGroup references and Service -> Service dependencies
+    getAllServices().stream().forEach( s -> {
+      s.setServiceGroup(serviceGroups.get(s.getServiceGroupId()));
+      Map<ServiceId, Service> dependencies = s.getDependentServiceIds().stream().collect(toMap(
+        serviceId -> serviceId,
+        serviceId -> getService(serviceId)
+      ));
+      s.setDependencyMap(dependencies);
+    });
+
+
+    // Set HostGroup -> Services and Component -> Service references
+    for (HostGroupV2Impl hg: hostGroupMap.values()) {
+      hg.setServiceMap(hg.getServiceIds().stream().collect(toMap(
+        serviceId -> serviceId,
+        serviceId -> this.services.get(serviceId)
+      )));
+      for (ComponentV2 comp: hg.getComponents()) {
+        comp.setService(hg.getService(comp.getServiceId()));
+      }
+    }
+  }
+
   @Override
   public BlueprintEntity toEntity() {
-    throw new UnsupportedOperationException("This is not supported here and will be removed. Pls. use BlueprintConverter");
+    throw new UnsupportedOperationException("This is not supported here and will be removed. Pls. use BlueprintV2Factory");
   }
 
   @Override

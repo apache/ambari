@@ -104,9 +104,11 @@ public interface HostGroupV2 {
   Collection<ServiceId> getServiceIds();
 
   /**
-   * @return collection of service ids associated with the host group components.
+   * @return collection of services associated with the host group components.
    */
   Collection<Service> getServices();
+
+  Service getService(ServiceId serviceId);
 
   /**
    * @return collection of service names associated with the host group components.
@@ -122,11 +124,6 @@ public interface HostGroupV2 {
    */
   @Deprecated
   Configuration getConfiguration();
-
-  /**
-   * List of services
-   */
-  Collection<Service> getServiceConfigs();
 
   /**
    * Get the cardinality value that was specified for the host group.

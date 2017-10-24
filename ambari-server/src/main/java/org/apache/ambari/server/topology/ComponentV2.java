@@ -38,6 +38,9 @@ public class ComponentV2 implements Configurable {
 
   private boolean masterComponent = false;
 
+  @JsonIgnore
+  private Service service;
+
   public ComponentV2() { }
 
 
@@ -69,9 +72,8 @@ public class ComponentV2 implements Configurable {
     return serviceId;
   }
 
-  //TODO
   public Service getService() {
-    return null;
+    return service;
   }
 
   //TODO
@@ -130,4 +132,7 @@ public class ComponentV2 implements Configurable {
     this.masterComponent = stack.isMasterComponent(this.type);
   }
 
+  public void setService(Service service) {
+    this.service = service;
+  }
 }

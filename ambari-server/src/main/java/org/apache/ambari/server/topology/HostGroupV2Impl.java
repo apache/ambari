@@ -19,6 +19,7 @@ package org.apache.ambari.server.topology;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -27,9 +28,11 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class HostGroupV2Impl implements HostGroupV2, Configurable {
@@ -37,10 +40,12 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   private String name;
   private String blueprintName;
   private List<ComponentV2> components;
-  private List<ServiceId> services;
+  private List<ServiceId> serviceIds;
   private Configuration configuration;
   private String cardinality;
   private boolean containsMasterComponent;
+  @JsonIgnore
+  private Map<ServiceId, Service> serviceMap;
 
   public HostGroupV2Impl() { }
 
@@ -84,8 +89,8 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
-  public Collection<ComponentV2> getComponents(Service serviceId) {
-    return null;
+  public Collection<ComponentV2> getComponents(Service service) {
+    return getComponentsByServiceId(service.getId());
   }
 
   @Override
@@ -100,29 +105,37 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
 
   @Override
   public Collection<ServiceId> getServiceIds() {
-    return services;
+    return serviceIds;
   }
 
   @Override
   @JsonIgnore
   public Collection<Service> getServices() {
-    return null;
+    return serviceMap.values();
+  }
+
+  @Override
+  @JsonIgnore
+  public Service getService(ServiceId serviceId) {
+    return serviceMap.get(serviceId);
   }
 
   @Override
   @JsonIgnore
   public Collection<String> getServiceNames() {
-    return services.stream().map(s -> s.getName()).collect(Collectors.toList());
+    return serviceMap.values().stream().map(s -> s.getName()).collect(Collectors.toList());
+  }
+
+  @JsonIgnore
+  public void setServiceMap(Map<ServiceId, Service> serviceMap) {
+    Preconditions.checkArgument(serviceMap.keySet().equals(ImmutableSet.copyOf(this.serviceIds)),
+      "Maitained list of service ids doesn't match with received service map: %s vs %s", serviceIds, serviceMap.keySet());
+    this.serviceMap = serviceMap;
   }
 
   @Override
   public Configuration getConfiguration() {
     return configuration;
-  }
-
-  @Override
-  public Collection<Service> getServiceConfigs() {
-    return null;
   }
 
   @Override
@@ -141,7 +154,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   public void setComponents(List<ComponentV2> components) {
     this.components = components;
     this.containsMasterComponent = components.stream().anyMatch(c -> c.isMasterComponent());
-    this.services = components.stream().map(c -> c.getServiceId()).collect(Collectors.toList());
+    this.serviceIds = components.stream().map(c -> c.getServiceId()).collect(Collectors.toList());
   }
 
   public void setConfiguration(Configuration configuration) {

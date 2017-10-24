@@ -20,6 +20,8 @@ package org.apache.ambari.server.topology.validators;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.StackV2;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.BlueprintImplV2;
 import org.apache.ambari.server.topology.HostGroupV2;
 import org.apache.ambari.server.topology.HostGroupV2Impl;
@@ -32,6 +34,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
 public class BlueprintImplV2Test {
@@ -53,6 +56,14 @@ public class BlueprintImplV2Test {
     mapper.registerModule(module);
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
     BlueprintImplV2 bp = mapper.readValue(BLUEPRINT_V2_JSON, BlueprintImplV2.class);
+    bp.postDeserialization();
+    // -- add stack --
+    StackV2 hdpCore = new StackV2("HDPCORE", "3.0.0", "3.0.0.0-1", new HashMap<>(), new HashMap<>(), new HashMap<>(),
+      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    StackV2 analytics = new StackV2("ANALYTICS", "1.0.0", "1.0.0.0-1", new HashMap<>(), new HashMap<>(), new HashMap<>(),
+      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+    bp.setStacks(ImmutableMap.of(new StackId("HDPCORE", "3.0.0"), hdpCore, new StackId("ANALYTICS", "1.0.0"), analytics));
+    // ---------------
     String bpJson = mapper.writeValueAsString(bp);
     System.out.println(bpJson);
     System.out.println("\n\n====================================================================================\n\n");

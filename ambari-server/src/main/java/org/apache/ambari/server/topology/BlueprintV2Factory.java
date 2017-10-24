@@ -87,6 +87,7 @@ public class BlueprintV2Factory {
 
   public BlueprintV2 convertFromEntity(BlueprintV2Entity blueprintEntity) throws NoSuchStackException, IOException {
     BlueprintImplV2 blueprintV2 = createObjectMapper().readValue(blueprintEntity.getContent(), BlueprintImplV2.class);
+    blueprintV2.postDeserialization();
     Map<StackId, StackV2> stacks = new HashMap<>();
     for (String stackIdString: blueprintV2.getStackIds()) {
       StackId stackId = new StackId(stackIdString);
@@ -126,6 +127,7 @@ public class BlueprintV2Factory {
     ObjectMapper om = createObjectMapper();
     String json = om.writeValueAsString(properties);
     BlueprintImplV2 blueprint = om.readValue(json, BlueprintImplV2.class);
+    blueprint.postDeserialization();
     Map<String, StackV2> stacks = new HashMap<>();
     for (String stackId: blueprint.getStackIds()) {
       stacks.put(stackId, stackFactory.create(stackId));
