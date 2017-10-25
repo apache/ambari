@@ -196,7 +196,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // move host versions from CURRENT to INSTALLED if their repos are no
       // longer used
-      finalizeHostRepositoryVersions(cluster);
+      finalizeHostVersionsNotDesired(cluster);
 
       if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
         outSB.append(String.format("Finalizing the version for cluster %s.\n", cluster.getClusterName()));
@@ -276,38 +276,36 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         throw new AmbariException(messageBuff.toString());
       }
 
+      finalizeHostVersionsNotDesired(cluster);
 
-      if (upgradeContext.isPatchRevert()) {
-        finalizeHostRepositoryVersions(cluster);
-      } else {
-        // for every repository being downgraded to, ensure the host versions are correct
-        Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
-        Set<RepositoryVersionEntity> targetRepositoryVersions = new HashSet<>();
-        for (String service : targetVersionsByService.keySet()) {
-          targetRepositoryVersions.add(targetVersionsByService.get(service));
-        }
+      // for every repository being downgraded to, ensure the host versions are correct
+      Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
+      Set<RepositoryVersionEntity> targetRepositoryVersions = new HashSet<>();
+      for (String service : targetVersionsByService.keySet()) {
+        targetRepositoryVersions.add(targetVersionsByService.get(service));
+      }
 
-        for (RepositoryVersionEntity targetRepositoryVersion : targetRepositoryVersions) {
-          // find host versions
-          List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
-              cluster.getClusterId(), targetRepositoryVersion);
+      // move host versions in the downgrade back to CURRENT if they are not
+      for (RepositoryVersionEntity targetRepositoryVersion : targetRepositoryVersions) {
+        // find host versions
+        List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
+            cluster.getClusterId(), targetRepositoryVersion);
 
-          outSB.append(String.format("Finalizing %d host(s) back to %s", hostVersions.size(),
-              targetRepositoryVersion.getVersion())).append(System.lineSeparator());
+        outSB.append(String.format("Finalizing %d host(s) back to %s", hostVersions.size(),
+            targetRepositoryVersion.getVersion())).append(System.lineSeparator());
 
-          for (HostVersionEntity hostVersion : hostVersions) {
-            if (hostVersion.getState() != RepositoryVersionState.CURRENT) {
-              hostVersion.setState(RepositoryVersionState.CURRENT);
-              hostVersionDAO.merge(hostVersion);
-            }
+        for (HostVersionEntity hostVersion : hostVersions) {
+          if (hostVersion.getState() != RepositoryVersionState.CURRENT) {
+            hostVersion.setState(RepositoryVersionState.CURRENT);
+            hostVersionDAO.merge(hostVersion);
+          }
 
-            List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(
-                hostVersion.getHostName());
+          List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(
+              hostVersion.getHostName());
 
-            for (HostComponentStateEntity hostComponentState : hostComponentStates) {
-              hostComponentState.setUpgradeState(UpgradeState.NONE);
-              hostComponentStateDAO.merge(hostComponentState);
-            }
+          for (HostComponentStateEntity hostComponentState : hostComponentStates) {
+            hostComponentState.setUpgradeState(UpgradeState.NONE);
+            hostComponentStateDAO.merge(hostComponentState);
           }
         }
       }
@@ -402,7 +400,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
    * @param cluster
    * @throws AmbariException
    */
-  private void finalizeHostRepositoryVersions(Cluster cluster) throws AmbariException {
+  private void finalizeHostVersionsNotDesired(Cluster cluster) throws AmbariException {
     // create a set of all of the repos that the services are on
     Set<RepositoryVersionEntity> desiredRepoVersions = new HashSet<>();
     Set<String> serviceNames = cluster.getServices().keySet();

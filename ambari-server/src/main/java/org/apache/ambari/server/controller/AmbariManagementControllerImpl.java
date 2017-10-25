@@ -908,9 +908,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackId stackId = null;
     if (null != service) {
-      Service svc = cluster.getService(service);
-      stackId = svc.getDesiredStackId();
-    } else {
+      try {
+        Service svc = cluster.getService(service);
+        stackId = svc.getDesiredStackId();
+      } catch (AmbariException ambariException) {
+        LOG.warn("Adding configurations for {} even though its parent service {} is not installed",
+            configType, service);
+      }
+    }
+
+    if (null == stackId) {
       stackId = cluster.getDesiredStackVersion();
     }
 
