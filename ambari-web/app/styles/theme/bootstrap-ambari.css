@@ -479,11 +479,12 @@ h2.table-title {
 }
 .nav.nav-tabs li a .badge.badge-important {
   display: inline;
+  vertical-align: baseline;
 }
 .nav.nav-tabs li.active a {
   color: #333;
   border-bottom: 3px solid #3FAE2A;
-  padding-bottom: 1px;
+  padding-bottom: 2px;
 }
 .nav-tabs-left li,
 .nav-tabs-right li {
@@ -536,10 +537,19 @@ h2.table-title {
 }
 .wizard .wizard-body .wizard-content {
   background: #ebecf1;
-  padding-top: 25px;
+  padding-top: 15px;
   float: left;
   margin-bottom: -99999px;
   padding-bottom: 99999px;
+}
+.wizard .wizard-body .wizard-content .step-header {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  color: #666;
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1;
+  margin-bottom: 5px;
 }
 .wizard .wizard-body .wizard-content .step-title {
   font-family: 'Roboto', sans-serif;
@@ -547,9 +557,7 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  font-weight: bold;
-  font-size: 18px;
-  color: #666;
+  font-size: 16px;
 }
 .wizard .wizard-body .wizard-content .step-description {
   font-family: 'Roboto', sans-serif;
@@ -557,7 +565,7 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.4;
   color: #999;
 }
@@ -567,7 +575,7 @@ h2.table-title {
   margin-top: 20px;
 }
 .wizard .wizard-body .wizard-content .panel.panel-default .panel-body {
-  padding: 30px 20px;
+  padding: 10px 20px;
 }
 .wizard .wizard-body .wizard-nav {
   min-height: 550px;
@@ -1027,7 +1035,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container ul.nav.side-nav-menu .more-actions,
 .navigation-bar-container ul.nav.side-nav-footer .more-actions {
-  display: none;
+  display: block;
   position: absolute;
   top: 14px;
   right: 33px;

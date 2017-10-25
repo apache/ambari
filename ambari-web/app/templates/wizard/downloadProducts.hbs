@@ -17,7 +17,7 @@
 }}
 
 <div id="download-step-content" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
-  <h4 class="step-title">{{t installer.downloadProducts.header}}</h4>
+  <h4 class="step-header">{{t installer.downloadProducts.header}}</h4>
 
   <div class="panel panel-default">
     <div class="panel-body">
@@ -34,18 +34,18 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th class="col-sm-4">{{t common.mpack}}</th>
+                  <th class="col-sm-5">{{t common.mpack}}</th>
                   <th class="col-sm-4">{{t common.status}}</th>
-                  <th class="col-sm-3">{{t common.actions}}</th>
+                  <th class="col-sm-2">{{t common.actions}}</th>
                 </tr>
               </thead>
               <tbody>
                 {{#each mpack in mpacks}}
                   <tr>
-                    <td class="col-sm-4">{{mpack.displayName}}</td>
+                    <td class="col-sm-5">{{mpack.displayName}}&nbsp;{{mpack.version}}</td>
                     <td class="download-status col-sm-4">
                       {{#if mpack.inProgress}}
-                        <div class="progress-wrapper col-sm-9">
+                        <div class="progress-wrapper col-sm-8">
                           <div class="progress">
                             <div class="active progress-bar-striped progress-bar"}}></div>
                           </div>
@@ -60,7 +60,7 @@
                         {{/if}}
                       {{/if}}
                     </td>
-                    <td class="col-sm-3">
+                    <td class="col-sm-2">
                       {{#if mpack.failed}}
                         <button type="button" class="btn btn-default btn-xs" {{action retryDownload mpack target="controller"}}>
                           <i class="icon icon-repeat"></i>
