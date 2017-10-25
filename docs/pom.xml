@@ -538,7 +538,19 @@
             </roles>
             <organization>
             </organization>            
-        </developer>          
+        </developer>
+        <developer>
+            <id>ishanbha</id>
+            <name>Ishan Bhatt</name>
+            <email>ishanbha@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>
             <id>jagane</id>
             <name>Jagane Sundar</name>
