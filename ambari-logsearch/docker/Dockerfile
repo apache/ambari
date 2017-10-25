@@ -60,7 +60,7 @@ RUN npm install -g npm@2.1.11
 RUN npm install -g brunch@1.7.20
 
 # Install Solr
-ENV SOLR_VERSION 6.6.0
+ENV SOLR_VERSION 6.6.2
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 ADD bin/start.sh /root/start.sh
