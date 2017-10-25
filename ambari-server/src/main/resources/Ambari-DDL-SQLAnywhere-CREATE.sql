@@ -38,6 +38,7 @@ CREATE TABLE stack (
   stack_id NUMERIC(19) NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
+  repo_version VARCHAR(255) NOT NULL,
   current_mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
   CONSTRAINT FK_mpacks FOREIGN KEY (current_mpack_id) REFERENCES mpacks(id),
@@ -523,6 +524,16 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name),
   CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+
+CREATE TABLE blueprintv2 (
+  blueprint_name VARCHAR(255) NOT NULL,
+  security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
+  security_descriptor_reference VARCHAR(255),
+  stack_id NUMERIC(19) NOT NULL,
+  content TEXT NOT NULL,
+  CONSTRAINT PK_blueprintv2 PRIMARY KEY (blueprint_name),
+  CONSTRAINT FK_blueprintv2_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,
