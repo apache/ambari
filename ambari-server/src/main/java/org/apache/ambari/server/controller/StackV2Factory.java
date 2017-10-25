@@ -18,20 +18,29 @@
 
 package org.apache.ambari.server.controller;
 
+import static java.util.AbstractMap.SimpleImmutableEntry;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.StackId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StackV2Factory {
+  private final static Logger LOG = LoggerFactory.getLogger(StackV2Factory.class);
+
 
   private AmbariManagementController controller;
 
@@ -64,9 +73,30 @@ public class StackV2Factory {
     //todo: already done for each service
     parseStackConfigurations(stackData);
 
+    getComponentInfos(stackData);
+
     return new StackV2(name, version, stackData.repoVersion /* TODO */, stackData.serviceComponents, stackData.dependencies,
       stackData.dbDependencyInfo, stackData.componentAutoDeployInfo, stackData.serviceConfigurations,
-      stackData.requiredServiceConfigurations, stackData.stackConfigurations, stackData.excludedConfigurationTypes);
+      stackData.requiredServiceConfigurations, stackData.stackConfigurations, stackData.excludedConfigurationTypes,
+      stackData.componentInfos);
+  }
+
+  private void getComponentInfos(StackData stackData) {
+    List<Map.Entry<String, String>> componentServices = stackData.serviceComponents.entrySet().stream().
+      flatMap(e -> e.getValue().stream().map( v -> new SimpleImmutableEntry<>(e.getKey(), v))).
+      collect(Collectors.toList());
+    componentServices.stream().forEach( componentService -> {
+      try {
+        ComponentInfo componentInfo = controller.getAmbariMetaInfo().getComponent(stackData.stackName,
+          stackData.stackVersion, componentService.getKey(), componentService.getValue());
+        if (null != componentInfo) {
+          stackData.componentInfos.put(componentService.getKey(), componentInfo);
+        }
+      } catch (AmbariException e) {
+        LOG.debug("No component info for service: {}, component: {}, stack name: {}, stack version: {}, Exception: {}",
+          componentService.getKey(), componentService.getValue(), stackData.stackName, stackData.stackVersion, e);
+      }
+    });
   }
 
   /**
@@ -172,6 +202,7 @@ public class StackV2Factory {
         stackData.masterComponents.add(componentName);
       }
     }
+
     stackData.serviceComponents.put(service, componentSet);
   }
 
@@ -215,5 +246,6 @@ public class StackV2Factory {
     final Map<String, String> dbDependencyInfo = new HashMap<>();
     final Map<String, Set<String>> excludedConfigurationTypes = new HashMap<>();
     final Map<String, Map<String, StackV2.ConfigProperty>> stackConfigurations = new HashMap<>();
+    final Map<String, ComponentInfo> componentInfos = new HashMap<>();
   }
 }

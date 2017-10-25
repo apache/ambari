@@ -91,6 +91,8 @@ public class StackV2 {
   /** Map of service to set of excluded config types */
   private final Map<String, Set<String>> excludedConfigurationTypes;
 
+  private final Map<String, ComponentInfo> componentInfos;
+
   public StackV2(String name,
            String version,
            String repoVersion,
@@ -101,7 +103,8 @@ public class StackV2 {
            Map<String, Map<String, Map<String, ConfigProperty>>> serviceConfigurations,
            Map<String, Map<String, Map<String, ConfigProperty>>> requiredServiceConfigurations,
            Map<String, Map<String, ConfigProperty>> stackConfigurations,
-           Map<String, Set<String>> excludedConfigurationTypes) {
+           Map<String, Set<String>> excludedConfigurationTypes,
+           Map<String, ComponentInfo> componentInfos) {
     this.name = name;
     this.version = version;
     this.repoVersion = repoVersion;
@@ -128,6 +131,7 @@ public class StackV2 {
     this.requiredServiceConfigurations = requiredServiceConfigurations;
     this.stackConfigurations = stackConfigurations;
     this.excludedConfigurationTypes = excludedConfigurationTypes;
+    this.componentInfos = componentInfos;
   }
 
   /** @return stack name */
@@ -181,17 +185,7 @@ public class StackV2 {
      */
     @Deprecated
     public ComponentInfo getComponentInfo(String component) {
-    ComponentInfo componentInfo = null;
-//    String service = getServiceForComponent(component);
-//    if (service != null) {
-//      try {
-//      componentInfo = controller.getAmbariMetaInfo().getComponent(
-//        getName(), getVersion(), service, component);
-//      } catch (AmbariException e) {
-//      // just return null if component doesn't exist
-//      }
-//    }
-    return componentInfo;
+      return componentInfos.get(component);
     }
 
   /**
