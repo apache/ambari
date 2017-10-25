@@ -225,7 +225,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       connectOutlets: function (router, context) {
         App.loadTimer.start('Hosts Page');
         router.get('mainController').connectOutlet('mainHost');
-        router.get('mainHostController').connectOutlet('mainHostComboSearchBox');
       }
     }),
 
@@ -375,7 +374,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       route: '/',
       connectOutlets: function (router, context) {
         router.get('mainController').connectOutlet('mainAlertDefinitions');
-        router.get('mainAlertDefinitionsController').connectOutlet('MainAlertDefinitionSearchBox');
       }
     }),
 
