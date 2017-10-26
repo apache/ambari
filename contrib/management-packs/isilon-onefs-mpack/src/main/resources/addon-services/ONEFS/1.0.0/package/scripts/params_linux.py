@@ -30,7 +30,7 @@ from resource_management.libraries.functions import stack_select
 config = Script.get_config()
 
 hostname = config["hostname"]
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
 hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']

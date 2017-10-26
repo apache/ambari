@@ -1,35 +1,204 @@
 {
   "layouts": [
     {
-      "layout_name": "default_onefs_layout",
+      "layout_name": "default_onefs_dashboard",
       "display_name": "Standard ONEFS Dashboard",
       "section_name": "ONEFS_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "OneFS metrics demo",
-          "description": "Test widget",
-          "default_section_name": "ONEFS_SUMMARY",
+          "widget_name": "NameNode GC count",
+          "description": "Count of total garbage collections and count of major type garbage collections of the JVM.",
           "widget_type": "GRAPH",
           "is_visible": true,
-          "scope" : "SERVICE",
           "metrics": [
             {
-              "name": "counter",
-              "metric_path": "metrics/onefs/demo/counter",
+              "name": "jvm.JvmMetrics.GcCount._rate",
+              "metric_path": "metrics/jvm/gcCount._rate",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLUSTER"
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate",
+              "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep._rate",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             }
           ],
           "values": [
             {
-              "name": "demo value",
-              "values" : "${counter}"
+              "name": "GC total count",
+              "value": "${jvm.JvmMetrics.GcCount._rate}"
+            },
+            {
+              "name": "GC count of type major collection",
+              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "NameNode GC time",
+          "description": "Total time taken by major type garbage collections in milliseconds.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate",
+              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep._rate",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "GC time in major collection",
+              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "NameNode Heap",
+          "description": "Heap memory committed and Heap memory used with respect to time.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.MemHeapCommittedM",
+              "metric_path": "metrics/jvm/memHeapCommittedM",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "jvm.JvmMetrics.MemHeapUsedM",
+              "metric_path": "metrics/jvm/memHeapUsedM",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "JVM heap committed",
+              "value": "${jvm.JvmMetrics.MemHeapCommittedM}"
+            },
+            {
+              "name": "JVM heap used",
+              "value": "${jvm.JvmMetrics.MemHeapUsedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "NameNode Host Load",
+          "description": "Percentage of CPU and Memory resources being consumed on NameNode host.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "cpu_system",
+              "metric_path": "metrics/cpu/cpu_system",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_user",
+              "metric_path": "metrics/cpu/cpu_user",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_nice",
+              "metric_path": "metrics/cpu/cpu_nice",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_idle",
+              "metric_path": "metrics/cpu/cpu_idle",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_wio",
+              "metric_path": "metrics/cpu/cpu_wio",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "mem_total",
+              "metric_path": "metrics/memory/mem_total",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "mem_free",
+              "metric_path": "metrics/memory/mem_free",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "CPU utilization",
+              "value": "${((cpu_system + cpu_user + cpu_nice)/(cpu_system + cpu_user + cpu_nice + cpu_idle + cpu_wio)) * 100}"
+            },
+            {
+              "name": "Memory utilization",
+              "value": "${((mem_total - mem_free)/mem_total) * 100}"
             }
           ],
           "properties": {
             "graph_type": "LINE",
             "time_range": "1",
             "display_unit": "%"
+          }
+        },
+        {
+          "widget_name": "Under Replicated Blocks",
+          "description": "Number represents file blocks that does not meet the replication factor criteria. Its indicative of ONEFS bad health.",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
+              "metric_path": "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
+              "service_name": "ONEFS",
+              "component_name": "ONEFS_CLIENT",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "Under Replicated Blocks",
+              "value": "${Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks}"
+            }
+          ],
+          "properties": {
+            "warning_threshold": "0",
+            "error_threshold": "50"
           }
         }
       ]

@@ -17,9 +17,8 @@
  */
 package org.apache.ambari.server.state.alert;
 
-import static org.apache.ambari.server.state.alert.Reporting.ReportingType.PERCENT;
-
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.alerts.Threshold;
@@ -208,7 +207,7 @@ public class Reporting {
   }
 
   public AlertState state(double value) {
-    return getThreshold().state(PERCENT == getType() ? value * 100 : value);
+    return getThreshold().state(value);
   }
 
   private Threshold getThreshold() {
@@ -216,7 +215,9 @@ public class Reporting {
   }
 
   public String formatMessage(double value, List<Object> args) {
-    return MessageFormat.format(message(value), args.toArray());
+    List<Object> copy = new ArrayList<>(args);
+    copy.add(value);
+    return MessageFormat.format(message(value), copy.toArray());
   }
 
   private String message(double value) {

@@ -42,6 +42,13 @@ public class JMXMetricHolderTest {
       new HashMap<String, Object>() {{
         put("name", "bean2");
         put("value", "val2");
+      }},
+      new HashMap<String, Object>() {{
+        put("name", "nested");
+        put("value", new HashMap<String, Object>() {{
+          put("key1", "nested-val1");
+          put("key2", "nested-val2");
+        }});
       }}
     ));
   }
@@ -57,5 +64,12 @@ public class JMXMetricHolderTest {
   public void testFindMultipleBeansByName() throws Exception {
     List<Object> result = metrics.findAll(asList("bean1/value", "bean2/value", "bean3/notfound"));
     assertThat(result, hasItems("val1", "val2"));
+  }
+
+
+  @Test
+  public void testFindNestedBean() throws Exception {
+    List<Object> result = metrics.findAll(asList("nested/value[key1]", "nested/value[key2]"));
+    assertThat(result, hasItems("nested-val1", "nested-val2"));
   }
 }

@@ -27,6 +27,7 @@
       <components>
        <component>
           <name>ONEFS_CLIENT</name>
+          <timelineAppid>NAMENODE</timelineAppid>
           <displayName>OneFS Client</displayName>
           <category>CLIENT</category>
           <componentType>HCFS_CLIENT</componentType>
