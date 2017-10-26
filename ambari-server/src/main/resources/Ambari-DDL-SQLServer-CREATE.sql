@@ -782,6 +782,18 @@ CREATE TABLE topology_request (
   CONSTRAINT PK_topology_request PRIMARY KEY CLUSTERED (id),
   CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
 
+CREATE TABLE topology_configurations (
+  id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  service_group_name VARCHAR(100) NOT NULL,
+  service_name VARCHAR(100) NOT NULL,
+  component_name VARCHAR(100),
+  host_group_name VARCHAR(100),
+  cluster_properties TEXT,
+  cluster_attributes TEXT,
+  CONSTRAINT PK_topology_configurations PRIMARY KEY CLUSTERED(id),
+  CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id));
+
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL,

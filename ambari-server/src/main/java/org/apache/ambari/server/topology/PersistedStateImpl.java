@@ -414,11 +414,12 @@ public class PersistedStateImpl implements PersistedState {
                 && topologyConfigurationsEntity.getHostGroupName() == null))
               .forEach(topologyConfigurationsEntity -> {
 
-        ServiceId serviceId = ServiceId.of(topologyConfigurationsEntity.getServiceGroupName(),
-                topologyConfigurationsEntity.getServiceName());
+        ServiceId serviceId = ServiceId.of(topologyConfigurationsEntity.getServiceName(),
+                topologyConfigurationsEntity.getServiceGroupName());
         Service service = blueprint.getServiceById(serviceId);
         Configuration configuration = createConfiguration(topologyConfigurationsEntity.getConfigProperties(),
                 topologyConfigurationsEntity.getConfigAttributes());
+        service.getConfiguration().setParentConfiguration(service.getStack().getConfiguration());
         configuration.setParentConfiguration(service.getConfiguration());
 
         service.setConfiguration(configuration);
