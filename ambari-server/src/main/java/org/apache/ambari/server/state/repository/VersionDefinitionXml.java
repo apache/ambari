@@ -320,10 +320,14 @@ public class VersionDefinitionXml {
 
       summary.setVersions(manifest.version, summaryReleaseVersion);
 
-      // !!! installed service already meets the release version, then nothing to upgrade
-      // !!! TODO should this be using the release compatible-with field?
-      if (VersionUtils.compareVersionsWithBuild(versionToCompare, serviceVersion, 4) > 0) {
+      if (RepositoryType.STANDARD == release.repositoryType) {
         summary.setUpgrade(true);
+      } else {
+        // !!! installed service already meets the release version, then nothing to upgrade
+        // !!! TODO should this be using the release compatible-with field?
+        if (VersionUtils.compareVersionsWithBuild(versionToCompare, serviceVersion, 4) > 0) {
+          summary.setUpgrade(true);
+        }
       }
     }
 
