@@ -119,9 +119,11 @@ class ExecuteUpgradeTasks(Script):
 
           if service_package_folder and hooks_folder:
             command_paths = {
-              "commandParams": {
+              "serviceLevelParams": {
                 "service_package_folder": service_package_folder,
-                "hooks_folder": hooks_folder
+              },
+              "clusterLevelParams": {
+                   "hooks_folder": hooks_folder
               }
             } 
 
