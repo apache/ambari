@@ -22,6 +22,7 @@ import static org.apache.ambari.server.events.AlertDefinitionsUpdateEvent.EventT
 import static org.apache.ambari.server.events.AlertDefinitionsUpdateEvent.EventType.UPDATE;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.AlertDefinitionsUpdateEvent;
+import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
@@ -140,6 +142,18 @@ public class AlertDefinitionsHolder extends AgentHostDataHolder<AlertDefinitions
   @Subscribe
   public void onAlertDefinitionDeleted(AlertDefinitionDeleteEvent event) throws AmbariException {
     handleSingleDefinitionChange(DELETE, event.getDefinition());
+  }
+
+  @Subscribe
+  public void onHostToClusterAssign(HostsAddedEvent hostsAddedEvent) throws AmbariException {
+    Long clusterId = hostsAddedEvent.getClusterId();
+    for (String hostName : hostsAddedEvent.getHostNames()) {
+      Long hostId = clusters.get().getHost(hostName).getHostId();
+      Map<Long, AlertCluster> existingClusters = getData(hostId).getClusters();
+      if (!existingClusters.containsKey(clusterId)) {
+        existingClusters.put(clusterId, new AlertCluster(new HashMap<>(), hostName));
+      }
+    }
   }
 
   @Subscribe

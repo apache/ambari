@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.events;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -47,7 +47,7 @@ public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implement
   public AlertDefinitionsUpdateEvent(EventType eventType, Map<Long, AlertCluster> clusters, String hostName, Long hostId) {
     super(Type.ALERT_DEFINITIONS);
     this.eventType = eventType;
-    this.clusters = clusters != null ? Collections.unmodifiableMap(clusters) : null;
+    this.clusters = clusters != null ? new HashMap<>(clusters) : null;
     this.hostName = hostName;
     this.hostId = hostId;
   }
