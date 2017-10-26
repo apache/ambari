@@ -177,7 +177,7 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 #hosts
 hostname = config['agentLevelParams']['hostname']
 rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
-public_hostname = config["public_hostname"]
+public_hostname = config["agentLevelParams"]["public_hostname"]
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_hosts", [])
 hive_server_host =  default("/clusterHostInfo/hive_server_hosts", [])
