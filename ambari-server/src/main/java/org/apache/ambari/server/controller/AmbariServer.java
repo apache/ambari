@@ -64,6 +64,7 @@ import org.apache.ambari.server.controller.internal.AbstractControllerResourcePr
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
+import org.apache.ambari.server.controller.internal.BlueprintV2ResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
@@ -82,6 +83,7 @@ import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.BlueprintV2DAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -921,6 +923,9 @@ public class AmbariServer {
     BlueprintResourceProvider.init(injector.getInstance(BlueprintFactory.class),
         injector.getInstance(BlueprintDAO.class), injector.getInstance(SecurityConfigurationFactory.class),
         injector.getInstance(Gson.class), ambariMetaInfo);
+    BlueprintV2ResourceProvider.init(injector.getInstance(BlueprintV2Factory.class),
+      injector.getInstance(BlueprintV2DAO.class), injector.getInstance(SecurityConfigurationFactory.class),
+      ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(TopologyManager.class),
         injector.getInstance(TopologyRequestFactoryImpl.class), injector.getInstance(SecurityConfigurationFactory
