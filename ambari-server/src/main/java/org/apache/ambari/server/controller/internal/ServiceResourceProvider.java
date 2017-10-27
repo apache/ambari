@@ -435,7 +435,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (repositoryVersion.getType() != RepositoryType.STANDARD
           && cluster.getProvisioningState() == State.INIT) {
         throw new AmbariException(String.format(
-            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: $s",
+            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: %s",
             request.getServiceName(), cluster.getClusterName(), RepositoryType.STANDARD,
             repositoryVersion));
       }
