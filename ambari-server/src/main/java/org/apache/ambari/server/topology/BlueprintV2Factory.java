@@ -23,10 +23,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -37,6 +37,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
@@ -88,28 +89,48 @@ public class BlueprintV2Factory {
     return convertFromEntity(entity);
   }
 
-  public BlueprintV2 convertFromEntity(BlueprintV2Entity blueprintEntity) throws NoSuchStackException, IOException {
-    BlueprintImplV2 blueprintV2 = createObjectMapper().readValue(blueprintEntity.getContent(), BlueprintImplV2.class);
+  public BlueprintV2 convertFromJson(String json) throws IOException {
+    BlueprintImplV2 blueprintV2 = createObjectMapper().readValue(json, BlueprintImplV2.class);
     blueprintV2.postDeserialization();
-    Map<StackId, StackV2> stacks = new HashMap<>();
-    for (String stackIdString: blueprintV2.getStackIds()) {
-      StackId stackId = new StackId(stackIdString);
-      stacks.put(stackId, parseStack(stackDao.find(stackId)));
-    }
-    blueprintV2.setStacks(stacks);
+    blueprintV2.setStacks(
+      blueprintV2.getStackIds().stream().collect(Collectors.toMap(
+        stackId -> new StackId(stackId),
+        stackId -> parseStack(new StackId(stackId))
+      ))
+    );
     return blueprintV2;
   }
 
+  public BlueprintV2 convertFromEntity(BlueprintV2Entity blueprintEntity) throws IOException {
+    return convertFromJson(blueprintEntity.getContent());
+  }
 
-  private StackV2 parseStack(StackEntity stackEntity) throws NoSuchStackException {
+  public Map<String, Object> convertToMap(BlueprintV2Entity entity) throws IOException {
+    return createObjectMapper().readValue(entity.getContent(), HashMap.class);
+  }
+
+  private StackV2 parseStack(StackId stackId) {
     try {
-      return stackFactory.create(stackEntity.getStackName(), stackEntity.getStackVersion());
-    } catch (StackAccessException e) {
-      throw new NoSuchStackException(stackEntity.getStackName(), stackEntity.getStackVersion());
+      return stackFactory.create(stackId.getStackName(), stackId.getStackVersion());
     } catch (AmbariException e) {
-      //todo:
-      throw new RuntimeException("An error occurred parsing the stack information.", e);
+      throw new IllegalArgumentException(
+        String.format("Unable to parse stack. name=%s, version=%s", stackId.getStackName(), stackId.getStackVersion()),
+        e);
     }
+  }
+
+  private StackV2 parseStack(StackEntity stackEntity) {
+    return parseStack(new StackId(stackEntity.getStackName(), stackEntity.getStackVersion()));
+  }
+
+  public BlueprintV2Entity convertToEntity(BlueprintV2 blueprint) throws JsonProcessingException {
+    BlueprintV2Entity entity = new BlueprintV2Entity();
+    String content = createObjectMapper().writeValueAsString(blueprint);
+    entity.setContent(content);
+    entity.setBlueprintName(blueprint.getName());
+    entity.setSecurityType(blueprint.getSecurity().getType());
+    entity.setSecurityDescriptorReference(blueprint.getSecurity().getDescriptorReference());
+    return entity;
   }
 
   /**

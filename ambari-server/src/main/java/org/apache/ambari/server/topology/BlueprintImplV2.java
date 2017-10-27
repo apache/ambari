@@ -308,6 +308,16 @@ public class BlueprintImplV2 implements BlueprintV2 {
     return this.securityConfiguration;
   }
 
+  @Override
+  public void validateRequiredProperties() throws InvalidTopologyException {
+    // TODO implement
+  }
+
+  @Override
+  public void validateTopology() throws InvalidTopologyException {
+    // TODO implement
+  }
+
 
   @Override
   public boolean isValidConfigType(String configType) {

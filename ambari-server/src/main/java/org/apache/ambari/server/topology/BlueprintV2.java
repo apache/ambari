@@ -228,6 +228,9 @@ public interface BlueprintV2 {
 
   SecurityConfiguration getSecurity();
 
+  void validateRequiredProperties() throws InvalidTopologyException;
+
+  void validateTopology() throws InvalidTopologyException;
 
   /**
    *

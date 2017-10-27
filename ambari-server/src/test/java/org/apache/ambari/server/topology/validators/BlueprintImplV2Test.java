@@ -59,9 +59,9 @@ public class BlueprintImplV2Test {
     bp.postDeserialization();
     // -- add stack --
     StackV2 hdpCore = new StackV2("HDPCORE", "3.0.0", "3.0.0.0-1", new HashMap<>(), new HashMap<>(), new HashMap<>(),
-      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     StackV2 analytics = new StackV2("ANALYTICS", "1.0.0", "1.0.0.0-1", new HashMap<>(), new HashMap<>(), new HashMap<>(),
-      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     bp.setStacks(ImmutableMap.of(new StackId("HDPCORE", "3.0.0"), hdpCore, new StackId("ANALYTICS", "1.0.0"), analytics));
     // ---------------
     String bpJson = mapper.writeValueAsString(bp);
@@ -76,5 +76,4 @@ public class BlueprintImplV2Test {
     BlueprintImplV2 bp2 = mapper.readValue(bpJson2, BlueprintImplV2.class);
     System.out.println(bp2);
   }
-
 }

@@ -1065,10 +1065,10 @@ public class AmbariServer {
 
   public static void main(String[] args) throws Exception {
     logStartup();
-    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
 
     AmbariServer server = null;
     try {
+      Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
       LOG.info("Getting the controller");
 
       // check if this instance is the active instance

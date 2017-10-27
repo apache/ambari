@@ -24,9 +24,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.apache.ambari.server.state.SecurityType;
@@ -57,33 +55,6 @@ public class BlueprintV2Entity {
   @Basic
   @Column(name = "content", nullable = false, insertable = true, updatable = true)
   private String content;
-
-  /**
-   * Unidirectional one-to-one association to {@link StackEntity}
-   */
-  @OneToOne
-  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = false)
-  private StackEntity stack;
-
-  /**
-   * Gets the blueprint's stack.
-   *
-   * @return the stack.
-   */
-  public StackEntity getStack() {
-    return stack;
-  }
-
-  /**
-   * Sets the blueprint's stack.
-   *
-   * @param stack
-   *          the stack to set for the blueprint (not {@code null}).
-   */
-  public void setStack(StackEntity stack) {
-    this.stack = stack;
-  }
-
 
   public String getBlueprintName() {
     return blueprintName;
