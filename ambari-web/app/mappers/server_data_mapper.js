@@ -179,9 +179,11 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
    * @param item
    */
   deleteRecord: function (item) {
-    item.deleteRecord();
-    App.store.fastCommit();
-    item.get('stateManager').transitionTo('loading');
+    if (item.get('isLoaded')) {
+      item.deleteRecord();
+      App.store.fastCommit();
+      item.get('stateManager').transitionTo('loading');
+    }
   },
   /**
    * check mutable fields whether they have been changed and if positive

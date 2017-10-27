@@ -71,7 +71,6 @@ describe('App.UpdateController', function () {
       expect(App.updater.run.called).to.equal(false);
       expect(App.StompClient.unsubscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/alerts')).to.be.true;
-      expect(App.StompClient.unsubscribe.calledWith('/events/topologies')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/configs')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/services')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/hosts')).to.be.true;
@@ -82,7 +81,7 @@ describe('App.UpdateController', function () {
       expect(App.updater.run.callCount).to.equal(10);
       expect(App.StompClient.subscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alerts')).to.be.true;
-      expect(App.StompClient.subscribe.calledWith('/events/topologies')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/ui_topologies')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/configs')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/services')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/hosts')).to.be.true;

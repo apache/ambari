@@ -189,7 +189,7 @@ App.UpdateController = Em.Controller.extend({
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
       App.StompClient.subscribe('/events/hostcomponents', App.hostComponentStatusMapper.map.bind(App.hostComponentStatusMapper));
       App.StompClient.subscribe('/events/alerts', App.alertSummaryMapper.map.bind(App.alertSummaryMapper));
-      App.StompClient.subscribe('/events/topologies', App.topologyMapper.map.bind(App.topologyMapper));
+      App.StompClient.subscribe('/events/ui_topologies', App.topologyMapper.map.bind(App.topologyMapper));
       App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
       App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
       App.StompClient.subscribe('/events/hosts', App.hostStateMapper.map.bind(App.hostStateMapper));
@@ -210,7 +210,7 @@ App.UpdateController = Em.Controller.extend({
     } else {
       App.StompClient.unsubscribe('/events/hostcomponents');
       App.StompClient.unsubscribe('/events/alerts');
-      App.StompClient.unsubscribe('/events/topologies');
+      // "/events/ui_topologies" topic should listen to topology changes when wizard running
       App.StompClient.unsubscribe('/events/configs');
       App.StompClient.unsubscribe('/events/services');
       App.StompClient.unsubscribe('/events/hosts');

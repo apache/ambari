@@ -41,9 +41,17 @@ describe('App.topologyMapper', function () {
       mapper.map({clusters: {1: {components: []}}, eventType: 'UPDATE'});
       expect(mapper.applyComponentTopologyChanges.calledWith([], 'UPDATE')).to.be.true;
     });
-    it('updateHost should be called', function () {
-      mapper.map({clusters: {1: {hosts: []}}, eventType: 'UPDATE'});
+    it('updateHost should be called on UPDATE event', function () {
+      App.set('allHostNames', []);
+      mapper.map({clusters: {1: {hosts: [{hostName: 'host1'}]}}, eventType: 'UPDATE'});
       expect(mockCtrl.updateHost.calledWith(Em.K, null, true)).to.be.true;
+      expect(JSON.stringify(App.get('allHostNames'))).to.be.equal(JSON.stringify(['host1']));
+    });
+    it('updateHost should be called on DELETE event', function () {
+      App.set('allHostNames', ['host2']);
+      mapper.map({clusters: {1: {hosts: [{hostName: 'host2'}]}}, eventType: 'DELETE'});
+      expect(mockCtrl.updateHost.calledWith(Em.K, null, true)).to.be.true;
+      expect(App.get('allHostNames')).to.be.empty;
     });
   });
 

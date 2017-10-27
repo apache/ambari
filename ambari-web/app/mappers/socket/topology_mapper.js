@@ -25,11 +25,22 @@ App.topologyMapper = App.QuickDataMapper.create({
    * @param {object} event
    */
   map: function(event) {
+    const hosts = event.clusters[App.get('clusterId')].hosts;
+
     if (event.clusters[App.get('clusterId')].components) {
       this.applyComponentTopologyChanges(event.clusters[App.get('clusterId')].components, event.eventType);
     }
-    if (event.clusters[App.get('clusterId')].hosts) {
-      //TODO test hosts add/remove when hosts registration will be fixed
+    if (hosts) {
+      const hostNames = hosts.filterProperty('hostName').mapProperty('hostName');
+      if (event.eventType === 'DELETE') {
+        App.get('allHostNames').removeObjects(hostNames);
+      } else if (event.eventType === 'UPDATE') {
+        App.get('allHostNames').pushObjects(hostNames);
+      }
+      /**
+       * Since event message doesn't contain entire data of host and UI model doesn't contain all hosts of cluster,
+       * App.Host model should be updated only through <code>updateHost</code> request.
+       */
       App.router.get('updateController').updateHost(Em.K, null, true);
     }
   },
@@ -107,10 +118,9 @@ App.topologyMapper = App.QuickDataMapper.create({
    */
   createHostComponent: function(component, hostName, publicHostName) {
     const id = App.HostComponent.getId(component.componentName, hostName);
-    if (!App.Host.find(hostName).get('isLoaded')) {
-      //App.Host does not contain all hosts of cluster
-      return;
-    }
+    const host = App.Host.find(hostName);
+    const service = App.Service.find(component.serviceName);
+
     App.store.safeLoad(App.HostComponent, {
       id: id,
       host_id: hostName,
@@ -122,10 +132,10 @@ App.topologyMapper = App.QuickDataMapper.create({
       public_host_name: publicHostName,
       component_name: component.componentName
     });
-    const host = App.Host.find(hostName);
-    this.updateHostComponentsOfHost(host, host.get('hostComponents').mapProperty('id').concat(id));
 
-    const service = App.Service.find(component.serviceName);
+    if (host.get('isLoaded')) {
+      this.updateHostComponentsOfHost(host, host.get('hostComponents').mapProperty('id').concat(id));
+    }
     this.updateHostComponentsOfService(service, service.get('hostComponents').mapProperty('id').concat(id));
   },
 
