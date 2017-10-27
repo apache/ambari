@@ -17,34 +17,26 @@
  */
 
 var App = require('app');
+require('controllers/wizard/selectMpacks_controller');
+var wizardSelectMpacksController;
 
-require('views/installer');
+describe('App.WizardSelectMpacksController', function () {
 
-var view;
-var steps;
-
-describe('App.InstallerView', function () {
-
-  beforeEach(function () {
-    view = App.InstallerView.create({
-      controller: App.InstallerController.create()
-    });
-
-    steps = view.get('controller.steps');
-
-    for (var i = 0; i < steps.length; i++ ) {
-      const stepName = steps[i].charAt(0).toUpperCase() + steps[i].slice(1);
-      properties.push('is' + stepName + 'Disabled');
-    }
+  before(function () {
+    wizardSelectMpacksController = App.WizardSelectMpacksController.create();
   });
 
-  properties.forEach(function (item, index) {
-    describe(item, function () {
-      it('should take value from isStepDisabled', function () {
-        var result = view.get('controller.isStepDisabled').findProperty('step', index);
-        expect(view.get(item)).to.equal(result.get('value'));
-      });
+  describe('#getMPacks', function () {
+    before(function () {
+
     });
+
+    after(function () {
+    });
+
+    it('loads mpacks from registry', function () {
+    })
+
   });
 
 });

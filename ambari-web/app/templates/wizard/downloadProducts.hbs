@@ -88,7 +88,7 @@
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}
   </button>
-  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}} {{QAAttr "wizard-next"}}>
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
     {{#if App.router.nextBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}

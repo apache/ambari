@@ -42,9 +42,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step2",
     "step3",
     "configureDownload",
+	  "selectMpacks",
     "downloadProducts",
-    "step1",
-    "step4",
+    //"step1",
+    //"step4",
     "step5",
     "step6",
     "step7",
@@ -78,7 +79,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
      * (uses for host groups validation and to load recommended configs)
      */
     recommendationsHostGroups: null,
-    controllerName: 'installerController'
+    controllerName: 'installerController',
+    mpacks: [],
+    mpackVersions: [],
+    mpackServices: []
   }),
 
   /**
@@ -109,7 +113,11 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     'recommendationsConfigs',
     'componentsFromConfigs',
     'operatingSystems',
-    'repositories'
+    'repositories',
+    'selectedMpacks',
+    'selectedServices',
+    'selectedStack',
+    'downloadConfig'
   ],
 
   init: function () {
@@ -174,6 +182,74 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       dfd.resolve();
     }
     return dfd.promise();
+  },
+
+  /**
+   * Load data for stacks from selected mpacks. This just tells the server to populate the version_definitions endpoint for the mpack that was registered.
+   *
+   * @param  {string} stackName
+   * @param  {string} stackVersion
+   * @param  {string} serviceName
+   */
+  createMpackStackVersion: function (stackName, stackVersion) {
+    return App.ajax.send({
+      name: 'mpack.create_version_definition',
+      sender: this,
+      data: {
+        name: stackName,
+        version: stackVersion
+      }
+    })
+  },
+
+  /**
+   * Loads stack version data (including supported OSes and repos) from the version_definitions endpoint
+   */
+  getMpackStackVersions: function () {
+    return App.ajax.send({
+      name: 'mpack.get_version_definitions',
+      sender: this
+    })
+  },
+
+  loadMpackStackInfoSuccess: function (versionDefinition) {
+    App.stackMapper.map(versionDefinition);
+  },
+
+  //TODO: report error in UI
+  loadMpackStackInfoError: function(request, status, error) {
+    console.log(`Failed to load stack info. ${status} - ${error}`);
+  },
+
+  /**
+   * Load data for services selected from mpacks. Will be used at <code>Download Mpacks</code> step submit action.
+   *
+   * @param  {string} stackName
+   * @param  {string} stackVersion
+   * @param  {string} serviceName
+   */
+  loadMpackServiceInfo: function (stackName, stackVersion, serviceName) {
+    return App.ajax.send({
+      name: 'wizard.mpack_service_components',
+      sender: this,
+      data: {
+        stackName: stackName || "HDP", //TODO: mpacks - Remove default when this value is provided API
+        stackVersion: stackVersion,
+        serviceName: serviceName
+      },
+      success: 'loadMpackServiceInfoSuccess',
+      error: 'loadMpackServiceInfoError'
+    })
+  },
+
+  loadMpackServiceInfoSuccess: function (serviceInfo) {
+    serviceInfo.StackServices.is_selected = true;
+    App.MpackServiceMapper.map(serviceInfo);
+  },
+
+  //TODO: report error in UI
+  loadMpackServiceInfoError: function(request, status, error) {
+    console.log(`Failed to load mpack service info. ${status} - ${error}`);
   },
 
   /**
@@ -972,87 +1048,55 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           return dfd.promise();
         }
       },
-      {
-        type: 'async',
-        callback: function (stacksLoaded) {
-          var dfd = $.Deferred();
-
-          if (!stacksLoaded) {
-            $.when.apply(this, this.loadStacksVersions()).done(function () {
-              dfd.resolve(true);
-            });
-          } else {
-            dfd.resolve(stacksLoaded);
-          }
-
-          return dfd.promise();
-        }
-      }
+      // {
+      //   type: 'async',
+      //   callback: function (stacksLoaded) {
+      //     var dfd = $.Deferred();
+      //
+      //     if (!stacksLoaded) {
+      //       $.when.apply(this, this.loadStacksVersions()).done(function () {
+      //         dfd.resolve(true);
+      //       });
+      //     } else {
+      //       dfd.resolve(stacksLoaded);
+      //     }
+      //
+      //     return dfd.promise();
+      //   }
+      // }
     ],
-    'downloadProducts': [
-      {
-        type: 'async',
-        callback: function () {
-          var dfd = $.Deferred();
-
-          this.loadStacks().done(function(stacksLoaded) {
-            App.router.get('clusterController').loadAmbariProperties().always(function() {
-              dfd.resolve(stacksLoaded);
-            });
-          });
-
-          return dfd.promise();
-        }
-      },
-      {
-        type: 'async',
-        callback: function (stacksLoaded) {
-          var dfd = $.Deferred();
-
-          if (!stacksLoaded) {
-            $.when.apply(this, this.loadStacksVersions()).done(function () {
-              dfd.resolve(true);
-            });
-          } else {
-            dfd.resolve(stacksLoaded);
-          }
-
-          return dfd.promise();
-        }
-      }
-    ],
-    'step1': [
-      {
-        type: 'async',
-        callback: function () {
-          var dfd = $.Deferred();
-
-          this.loadStacks().done(function(stacksLoaded) {
-            App.router.get('clusterController').loadAmbariProperties().always(function() {
-              dfd.resolve(stacksLoaded);
-            });
-          });
-
-          return dfd.promise();
-        }
-      },
-      {
-        type: 'async',
-        callback: function (stacksLoaded) {
-          var dfd = $.Deferred();
-
-          if (!stacksLoaded) {
-            $.when.apply(this, this.loadStacksVersions()).done(function () {
-              dfd.resolve(true);
-            });
-          } else {
-            dfd.resolve(stacksLoaded);
-          }
-
-          return dfd.promise();
-        }
-      }
-    ],
+    // 'step1': [
+    //   {
+    //     type: 'async',
+    //     callback: function () {
+    //       var dfd = $.Deferred();
+    //
+    //       this.loadStacks().done(function(stacksLoaded) {
+    //         App.router.get('clusterController').loadAmbariProperties().always(function() {
+    //           dfd.resolve(stacksLoaded);
+    //         });
+    //       });
+    //
+    //       return dfd.promise();
+    //     }
+    //   },
+    //   {
+    //     type: 'async',
+    //     callback: function (stacksLoaded) {
+    //       var dfd = $.Deferred();
+    //
+    //       if (!stacksLoaded) {
+    //         $.when.apply(this, this.loadStacksVersions()).done(function () {
+    //           dfd.resolve(true);
+    //         });
+    //       } else {
+    //         dfd.resolve(stacksLoaded);
+    //       }
+    //
+    //       return dfd.promise();
+    //     }
+    //   }
+    // ],
     'step3': [
       {
         type: 'sync',
@@ -1061,20 +1105,19 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
-
-    'step4': [
-      {
-        type: 'async',
-        callback: function () {
-          return this.loadServices();
-        }
-      }
-    ],
+    // 'step4': [
+    //   {
+    //     type: 'async',
+    //     callback: function () {
+    //       return this.loadServices();
+    //     }
+    //   }
+    // ],
     'step5': [
       {
         type: 'sync',
         callback: function () {
-          this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected'), 6);
+          this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected'), 6); //TODO: something needs to be changed here
           this.loadMasterComponentHosts();
           this.loadConfirmedHosts();
           this.loadComponentsFromConfigs();
@@ -1178,6 +1221,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
   gotoDownloadProducts: function () {
     this.gotoStep('downloadProducts');
+  },
+
+  gotoSelectMpacks: function () {
+    this.gotoStep('selectMpacks');
   },
 
   isStep0: function () {

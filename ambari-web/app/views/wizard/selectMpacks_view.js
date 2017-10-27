@@ -16,35 +16,13 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-require('views/installer');
+App.WizardSelectMpacksView = Em.View.extend({
+  templateName: require('templates/wizard/selectMpacks'),
 
-var view;
-var steps;
-
-describe('App.InstallerView', function () {
-
-  beforeEach(function () {
-    view = App.InstallerView.create({
-      controller: App.InstallerController.create()
-    });
-
-    steps = view.get('controller.steps');
-
-    for (var i = 0; i < steps.length; i++ ) {
-      const stepName = steps[i].charAt(0).toUpperCase() + steps[i].slice(1);
-      properties.push('is' + stepName + 'Disabled');
-    }
-  });
-
-  properties.forEach(function (item, index) {
-    describe(item, function () {
-      it('should take value from isStepDisabled', function () {
-        var result = view.get('controller.isStepDisabled').findProperty('step', index);
-        expect(view.get(item)).to.equal(result.get('value'));
-      });
-    });
-  });
-
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
 });

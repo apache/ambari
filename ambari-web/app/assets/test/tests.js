@@ -135,6 +135,7 @@ var files = [
   'test/controllers/login_controller_test',
   'test/controllers/experimental_test',
   'test/controllers/wizard_test',
+  'test/controllers/wizard/selectMpacks_test',
   'test/controllers/wizard/step0_test',
   'test/controllers/wizard/step1_test',
   'test/controllers/wizard/step2_test',

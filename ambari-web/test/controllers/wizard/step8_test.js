@@ -116,12 +116,50 @@ var services = Em.A([
         })
 ]);
 
+var getStacks = function () {
+  return Em.A([
+    Em.Object.create({isSelected: false, hostName: 'h1'}),
+    Em.Object.create({
+      isSelected: true,
+      hostName: 'h2',
+      operatingSystems: Em.A([Em.Object.create({
+        name:'windows',
+        isSelected: true,
+        repositories: Em.A([Em.Object.create({
+          baseUrl: "url",
+          osType: "2",
+          repoId: "3"
+        })])
+      })])
+    }),
+    Em.Object.create({isSelected: false, hostName: 'h3'})
+  ]);
+};
+
+var getStack = function () {
+  return Em.Object.create({
+    isSelected: true,
+    hostName: 'h2',
+    operatingSystems: Em.A([Em.Object.create({
+      name:'windows',
+      isSelected: true,
+      repositories: Em.A([Em.Object.create({
+        baseUrl: "url",
+        osType: "2",
+        repoId: "3"
+      })])
+    })])
+  })
+};
+
 function getController() {
   return App.WizardStep8Controller.create({
     configs: configs,
-    content: {controllerName: ''}
+    content: {controllerName: ''},
+    getSelectedStack: getStack,
+    downloadConfig: { useRedhatSatellite: false }
   });
-}
+};
 
 describe('App.WizardStep8Controller', function () {
 
@@ -158,9 +196,11 @@ describe('App.WizardStep8Controller', function () {
           return Em.Object.create({isSelected: true, isInstalled: false, serviceName: serviceName});
         });
         installerStep8Controller = App.WizardStep8Controller.create({
-          content: {controllerName: 'addServiceController', services: mappedServices},
+          content: {controllerName: 'addServiceController'},
+          selectedServices: mappedServices,
           configs: configs
         });
+
         var serviceData = installerStep8Controller.createSelectedServicesData();
         expect(serviceData.mapProperty('ServiceInfo.service_name')).to.eql(test.selectedServices.toArray());
         installerStep8Controller.clearStep();
@@ -530,25 +570,7 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#loadClusterInfo', function () {
     beforeEach(function () {
-      sinon.stub(App.Stack, 'find', function(){
-        return Em.A([
-          Em.Object.create({isSelected: false, hostName: 'h1'}),
-          Em.Object.create({
-            isSelected: true,
-            hostName: 'h2',
-            operatingSystems: Em.A([Em.Object.create({
-              name:'windows',
-              isSelected: true,
-              repositories: Em.A([Em.Object.create({
-                baseUrl: "url",
-                osType: "2",
-                repoId: "3"
-              })])
-            })])
-          }),
-          Em.Object.create({isSelected: false, hostName: 'h3'})
-        ]);
-      });
+      sinon.stub(App.Stack, 'find', getStacks);
     });
     afterEach(function () {
       App.Stack.find.restore();
@@ -1163,7 +1185,17 @@ describe('App.WizardStep8Controller', function () {
 
       it('App.currentStackVersion should be changed if localRepo selected', function() {
         App.set('currentStackVersion', 'HDP-2.3');
-        installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: true}}});
+        installerStep8Controller.reopen({
+          content: {controllerName: 'installerController', installOptions: { localRepo: true }},
+          getSelectedStack: function () {
+            return Em.Object.create({
+              id: "HDP-2.3-2.3.4.4-1234",
+              isSelected: true,
+              repositoryVersion: "2.3.4.4-1234",
+              stackNameVersion: "HDPLocal-2.3"
+            });
+          }
+        });
         var data = {
           data: JSON.stringify({ "Clusters": {"version": 'HDPLocal-2.3'}})
         };
@@ -1173,7 +1205,17 @@ describe('App.WizardStep8Controller', function () {
 
       it('App.currentStackVersion shouldn\'t be changed if localRepo ins\'t selected', function() {
         App.set('currentStackVersion', 'HDP-2.3');
-        installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: false}}});
+        installerStep8Controller.reopen({
+          content: {controllerName: 'installerController', installOptions: { localRepo: false }},
+          getSelectedStack: function () {
+            return Em.Object.create({
+              id: "HDP-2.3-2.3.4.4-1234",
+              isSelected: true,
+              repositoryVersion: "2.3.4.4-1234",
+              stackNameVersion: "HDP-2.3"
+            });
+          }
+        });
         var data = {
           data: JSON.stringify({ "Clusters": {"version": 'HDP-2.3'}})
         };

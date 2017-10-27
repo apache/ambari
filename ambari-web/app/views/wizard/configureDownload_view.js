@@ -23,13 +23,17 @@ App.WizardConfigureDownloadView = Em.View.extend({
 
   templateName: require('templates/wizard/configureDownload'),
 
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
+
   /**
    * Radio button for use Public repo
    *
    * @type {App.RadioButtonView}
    */
   usePublicRepoRadioButton: App.RadioButtonView.extend({
-    checked: Em.computed.alias('controller.selectedStack.usePublicRepo'),
+    checked: Em.computed.alias('controller.content.downloadConfig.usePublicRepo'),
     change: function () {
       this.get('controller').usePublicRepo();
     }
@@ -41,7 +45,7 @@ App.WizardConfigureDownloadView = Em.View.extend({
    * @type {App.RadioButtonView}
    */
   useLocalRepoRadioButton: App.RadioButtonView.extend({
-    checked: Em.computed.alias('controller.selectedStack.useLocalRepo'),
+    checked: Em.computed.alias('controller.content.downloadConfig.useLocalRepo'),
     disabled: true,
     change: function () {
       this.get('controller').useLocalRepo();

@@ -323,7 +323,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),
         onPrimary: function () {
-          App.router.send('gotoStep' + step);
+          App.router.send('goto' + stepName.capitalize());
           this.hide();
         },
         body: "If you proceed to go back to Step " + step + ", you will lose any changes you have made beyond this step"
@@ -377,14 +377,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   gotoStep10: function () {
     this.gotoStep(10);
-  },
-
-  gotoConfigureDownload: function () {
-    this.gotoStep("configureDownload");
-  },
-
-  gotoDownloadProducts: function () {
-    this.gotoStep("downloadProducts");
   },
 
   /**
@@ -629,6 +621,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.' + name, result);
   },
 
+
+  /**
+   * Save value from content to database. Converts Ember objects to plain objects first.
+   *
+   * @param  {type} name
+   */
   save: function (name) {
     var convertedValue = this.toJSInstance(this.get('content.' + name));
     this.setDBProperty(name, convertedValue);
@@ -1572,6 +1570,20 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.setDBProperty('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
     this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
   },
+
+  getStack: function (name, version) {
+    const stacks = App.Stack.find();
+
+    for (let i = 0, length = stacks.get('length'); i < length; i++) {
+      const stack = stacks.objectAt(i);
+      if (stack.get('stackName') === name && stack.get('stackVersion') === version) {
+        return stack;
+      }
+    }
+
+    return null;
+  },
+
   /**
    * reset stored wizard data and reload App
    * @param {App.WizardController} controller - wizard controller

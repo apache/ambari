@@ -481,60 +481,6 @@ describe('App.InstallerController', function () {
       });
     });
 
-    describe('Should load stacks', function() {
-      var loadStacks = false;
-      var checker = {
-        loadStacks: function() {
-          return {
-            done: function(callback) {
-              callback(true);
-            }
-          };
-        }
-      };
-
-      beforeEach(function () {
-        sinon.spy(checker, 'loadStacks');
-        installerController.loadMap['step1'][0].callback.call(checker);
-      });
-
-      afterEach(function() {
-        checker.loadStacks.restore();
-      });
-
-      it('should call loadStacks, stack info not loaded', function () {
-        expect(checker.loadStacks.calledOnce).to.be.true;
-      });
-    });
-
-    describe('Should load stacks async', function() {
-      var checker = {
-        loadStacksVersions: Em.K
-      };
-
-      beforeEach(function () {
-        sinon.spy(checker, 'loadStacksVersions');
-      });
-
-      afterEach(function() {
-        checker.loadStacksVersions.restore();
-      });
-
-      it('stack versions are loaded', function () {
-        installerController.loadMap['step1'][1].callback.call(checker, true).then(function(data){
-          expect(data).to.be.true;
-        });
-        expect(checker.loadStacksVersions.called).to.be.false;
-      });
-
-      it('should call loadStacksVersions, stack versions not loaded', function () {
-        installerController.loadMap['step1'][1].callback.call(checker, false).then(function(data){
-          expect(data).to.be.true;
-        });
-        expect(checker.loadStacksVersions.calledOnce).to.be.true;
-      });
-    });
-
     describe('Should load installOptions', function() {
       var installOptions = false;
       var checker = {
@@ -566,23 +512,6 @@ describe('App.InstallerController', function () {
 
       it('confirmed hosts are loaded', function () {
         expect(loadConfirmedHosts).to.be.true;
-      });
-    });
-
-    describe('Should load loadServices', function() {
-      var loadServices = false;
-      var checker = {
-        loadServices: function() {
-          loadServices = true;
-        }
-      };
-
-      beforeEach(function () {
-        installerController.loadMap['step4'][0].callback.call(checker);
-      });
-
-      it('services are loaded', function () {
-        expect(loadServices).to.be.true;
       });
     });
 

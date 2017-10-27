@@ -17,37 +17,10 @@
  */
 
 var App = require('app');
-var arrayUtils = require('utils/array_utils');
-
-/**
- * @typedef {Em.Object} StackType
- * @property {string} stackName
- * @property {App.Stack[]} stacks
- * @property {boolean} isSelected
- */
-
-/**
- * @type {Em.Object}
- */
-var StackType = Em.Object.extend({
-  stackName: '',
-  stacks: [],
-  isSelected: Em.computed.someBy('stacks', 'isSelected', true)
-});
 
 App.WizardConfigureDownloadController = Em.Controller.extend({
 
   name: 'wizardConfigureDownloadController',
-
-  /**
-   * @type {App.Stack}
-   */
-  selectedStack: Em.computed.findBy('content.stacks', 'isSelected', true),
-
-  /**
-   * @type {App.ServiceSimple[]}
-   */
-  servicesForSelectedStack: Em.computed.filterBy('selectedStack.stackServices', 'isHidden', false),
 
   optionsToSelect: {
     'usePublicRepo': {
@@ -75,55 +48,50 @@ App.WizardConfigureDownloadController = Em.Controller.extend({
     }
   },
 
+  loadStep: function () {
+    if (!this.get('content.downloadConfig')) {
+      let downloadConfig = this.get('wizardController').getDBProperty('downloadConfig');
+
+      if (!downloadConfig) {
+        downloadConfig = {
+          useRedhatSatellite: false,
+          usePublicRepo: true
+        };
+      }
+
+      this.set('content.downloadConfig', downloadConfig);
+    }
+  },
+
   /**
    * Restore base urls for selected stack when user select to use public repository
    */
   usePublicRepo: function () {
-    var selectedStack = this.get('selectedStack');
-    if (selectedStack) {
-      selectedStack.setProperties({
-        useRedhatSatellite: false,
-        usePublicRepo: true,
-        useLocalRepo: false
-      });
-      selectedStack.restoreReposBaseUrls();
-    }
+    this.set('content.downloadConfig', {
+      useRedhatSatellite: false,
+      usePublicRepo: true
+    });
+  },
+
+  useLocalRepo: function () {
+    this.set('content.downloadConfig', {
+      useRedhatSatellite: false,
+      usePublicRepo: false
+    });
   },
 
   /**
-   * Clean base urls for selected stack when user select to use local repository
+   * Onclick handler for <code>Next</code> button.
+   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
+   * @method submit
    */
-  useLocalRepo: function () {
-    var selectedStack = this.get('selectedStack');
-    if (selectedStack) {
-      selectedStack.setProperties({
-        usePublicRepo: false,
-        useLocalRepo: true
-      });
-      selectedStack.cleanReposBaseUrls();
+  submit: function () {
+    if (App.get('router.nextBtnClickInProgress')) {
+      return;
     }
-  },
 
-    /**
-     * List of stacks grouped by <code>stackNameVersion</code>
-     *
-     * @type {StackType[]}
-     */
-    availableStackTypes: function () {
-      var stacks = this.get('content.stacks');
-      return stacks ? stacks.mapProperty('stackNameVersion').uniq().sort().reverse().map(function (stackName) {
-        return StackType.create({
-          stackName: stackName,
-          stacks: stacks.filterProperty('stackNameVersion', stackName).sort(arrayUtils.sortByIdAsVersion).reverse()
-        })
-      }) : [];
-    }.property('content.stacks.@each.stackNameVersion'),
+    this.get('wizardController').setDBProperty('downloadConfig', this.get('content.downloadConfig'));
 
-    /**
-     * @type {StackType}
-     */
-    selectedStackType: Em.computed.findBy('availableStackTypes', 'isSelected', true),
-
-    isLoadingComplete: Em.computed.equal('wizardController.loadStacksRequestsCounter', 0)
-
+    App.router.send('next');
+  }
 });

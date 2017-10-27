@@ -119,66 +119,66 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }
   }),
 
-  step1: Em.Route.extend({
-    route: '/step1',
-    connectOutlets: function (router) {
-      console.time('step1 connectOutlets');
-      var self = this;
-      var controller = router.get('installerController');
-      var wizardStep1Controller = router.get('wizardStep1Controller');
-      wizardStep1Controller.set('skipValidationChecked', false);
-      wizardStep1Controller.set('optionsToSelect', {
-        'usePublicRepo': {
-          index: 0,
-          isSelected: true
-        },
-        'useLocalRepo': {
-          index: 1,
-          isSelected: false,
-          'uploadFile': {
-            index: 0,
-            name: 'uploadFile',
-            file: '',
-            hasError: false,
-            isSelected: true
-          },
-          'enterUrl': {
-            index: 1,
-            name: 'enterUrl',
-            url: '',
-            placeholder: Em.I18n.t('installer.step1.useLocalRepo.enterUrl.placeholder'),
-            hasError: false,
-            isSelected: false
-          }
-        }
-      });
-      controller.setCurrentStep('step1');
-      controller.loadAllPriorSteps().done(function () {
-        wizardStep1Controller.set('wizardController', controller);
-        controller.connectOutlet('wizardStep1', controller.get('content'));
-        self.scrollTop();
-        console.timeEnd('step1 connectOutlets');
-      });
-    },
-    back: Em.Router.transitionTo('downloadProducts'),
-    next: function (router) {
-      console.time('step1 next');
-      if(router.get('btnClickInProgress')) {
-        return;
-      }
-      var wizardStep1Controller = router.get('wizardStep1Controller');
-      var installerController = router.get('installerController');
-      installerController.validateJDKVersion(function() {
-        installerController.checkRepoURL(wizardStep1Controller).done(function () {
-          App.set('router.nextBtnClickInProgress', true);
-          installerController.setDBProperty('service', undefined);
-          installerController.setStacks();
-          router.transitionTo('step4');
-          console.timeEnd('step1 next');
-        });
-      }, function() {});
-    }
-  }),
+  // step1: Em.Route.extend({
+  //   route: '/step1',
+  //   connectOutlets: function (router) {
+  //     console.time('step1 connectOutlets');
+  //     var self = this;
+  //     var controller = router.get('installerController');
+  //     var wizardStep1Controller = router.get('wizardStep1Controller');
+  //     wizardStep1Controller.set('skipValidationChecked', false);
+  //     wizardStep1Controller.set('optionsToSelect', {
+  //       'usePublicRepo': {
+  //         index: 0,
+  //         isSelected: true
+  //       },
+  //       'useLocalRepo': {
+  //         index: 1,
+  //         isSelected: false,
+  //         'uploadFile': {
+  //           index: 0,
+  //           name: 'uploadFile',
+  //           file: '',
+  //           hasError: false,
+  //           isSelected: true
+  //         },
+  //         'enterUrl': {
+  //           index: 1,
+  //           name: 'enterUrl',
+  //           url: '',
+  //           placeholder: Em.I18n.t('installer.step1.useLocalRepo.enterUrl.placeholder'),
+  //           hasError: false,
+  //           isSelected: false
+  //         }
+  //       }
+  //     });
+  //     controller.setCurrentStep('step1');
+  //     controller.loadAllPriorSteps().done(function () {
+  //       wizardStep1Controller.set('wizardController', controller);
+  //       controller.connectOutlet('wizardStep1', controller.get('content'));
+  //       self.scrollTop();
+  //       console.timeEnd('step1 connectOutlets');
+  //     });
+  //   },
+  //   back: Em.Router.transitionTo('selectMpacks'),
+  //   next: function (router) {
+  //     console.time('step1 next');
+  //     if(router.get('btnClickInProgress')) {
+  //       return;
+  //     }
+  //     var wizardStep1Controller = router.get('wizardStep1Controller');
+  //     var installerController = router.get('installerController');
+  //     installerController.validateJDKVersion(function() {
+  //       installerController.checkRepoURL(wizardStep1Controller).done(function () {
+  //         App.set('router.nextBtnClickInProgress', true);
+  //         installerController.setDBProperty('service', undefined);
+  //         installerController.setStacks();
+  //         router.transitionTo('step4');
+  //         console.timeEnd('step1 next');
+  //       });
+  //     }, function() {});
+  //   }
+  // }),
 
   step2: Em.Route.extend({
     route: '/step2',
@@ -262,7 +262,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }
   }),
 
-
   configureDownload: Em.Route.extend({
     route: '/configureDownload',
     connectOutlets: function (router) {
@@ -272,31 +271,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var configureDownloadController = router.get('wizardConfigureDownloadController');
       var newStepIndex = controller.getStepIndex('configureDownload');
       router.setNavigationFlow(newStepIndex);
-      configureDownloadController.set('optionsToSelect', {
-        'usePublicRepo': {
-          index: 0,
-          isSelected: true
-        },
-        'useLocalRepo': {
-          index: 1,
-          isSelected: false,
-          'uploadFile': {
-            index: 0,
-            name: 'uploadFile',
-            file: '',
-            hasError: false,
-            isSelected: true
-          },
-          'enterUrl': {
-            index: 1,
-            name: 'enterUrl',
-            url: '',
-            placeholder: Em.I18n.t('installer.step1.useLocalRepo.enterUrl.placeholder'),
-            hasError: false,
-            isSelected: false
-          }
-        }
-      });
       controller.setCurrentStep('configureDownload');
       controller.loadAllPriorSteps().done(function () {
         configureDownloadController.set('wizardController', controller);
@@ -312,9 +286,42 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         return;
       }
       App.set('router.nextBtnClickInProgress', true);
-      router.transitionTo('downloadProducts');
+      var installerController = router.get('installerController');
+      installerController.setDBProperty('service', undefined);
+      router.transitionTo('selectMpacks');
       console.timeEnd('configureDownload next');
     }
+  }),
+
+  selectMpacks: App.StepRoute.extend({
+    route: '/selectMpacks',
+    breadcrumbs: { label: Em.I18n.translations['installer.selectMpacks.header'] },
+    connectOutlets: function (router) {
+      console.time('selectMpacks connectOutlets');
+      var self = this;
+      var controller = router.get('installerController');
+      controller.setCurrentStep('selectMpacks');
+      controller.loadAllPriorSteps().done(function () {
+        var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
+        wizardSelectMpacksController.set('wizardController', controller);
+        controller.connectOutlet('wizardSelectMpacks', controller.get('content'));
+        self.scrollTop();
+        console.timeEnd('selectMpacks connectOutlets');
+      });
+    },
+
+    backTransition: function (router) {
+      router.transitionTo('configureDownload');
+    },
+
+    next: function (router, context) {
+      console.time('selectMpacks next');
+      if (!router.get('btnClickInProgress')) {
+        App.set('router.nextBtnClickInProgress', true);
+        router.transitionTo('downloadProducts');
+        console.timeEnd('selectMpacks next');
+      }
+    },
   }),
 
   downloadProducts: App.StepRoute.extend({
@@ -336,7 +343,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function (router) {
-      router.transitionTo('configureDownload');
+      router.transitionTo('selectMpacks');
     },
 
     next: function (router) {
@@ -345,7 +352,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         return;
       }
       App.set('router.nextBtnClickInProgress', true);
-      router.transitionTo('step1');
+      router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation before step 5
+      var controller = router.get('installerController');
+      controller.setDBProperties({
+        recommendations: undefined,
+        masterComponentHosts: undefined
+      });
+      controller.clearEnhancedConfigs();
+      router.transitionTo('step5');
       console.timeEnd('downloadProducts next');
     }
   }),
@@ -414,7 +428,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
     },
     backTransition: function(router) {
-      router.transitionTo('step4');
+      router.transitionTo('downloadProducts');
     },
     next: function (router) {
       console.time('step5 next');
@@ -695,6 +709,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   gotoStep10: Em.Router.transitionTo('step10'),
 
-  gotoConfigureDownload: Em.Router.transitionTo('configureDownload')
+  gotoConfigureDownload: Em.Router.transitionTo('configureDownload'),
+
+  gotoSelectMpacks: Em.Router.transitionTo('selectMpacks'),
+
+  gotoDownloadProducts: Em.Router.transitionTo('downloadProducts')
 
 });

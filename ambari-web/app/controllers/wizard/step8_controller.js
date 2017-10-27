@@ -137,19 +137,34 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   configGroups: [],
 
-  /**
-   * List of selected but not installed services
-   * @type {Object[]}
-   */
   selectedServices: function () {
-    return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
-  }.property('content.services.@each.isSelected','content.services.@each.isInstalled').cacheable(),
+    const services = App.StackService.find().map(service => service);
+    return services;
+  }.property(),
 
-  /**
-   * List of installed services
-   * @type {Object[]}
-   */
-  installedServices: Em.computed.filterBy('content.services', 'isInstalled', true),
+  selectedMpacks: function() {
+    return this.get('content.selectedMpacks') || this.get('wizardController').getDBProperty('selectedMpacks');
+  }.property(),
+
+  downloadConfig: function() {
+    return this.get('content.downloadConfig') || this.get('wizardController').getDBProperty('downloadConfig');
+  }.property(),
+
+  getSelectedStack: function() {
+    let selectedStack = this.get('content.selectedStack');
+
+    if (!selectedStack) {
+      const stack = this.get('wizardController').getDBProperty('selectedStack');
+      selectedStack = this.get('wizardController').getStack(stack.stack_name, stack.stack_version);
+    }
+
+    return selectedStack;
+  },
+
+  installedServices: function() {
+    const services = App.StackService.find().filter(service => service.get('isInstalled') === true);
+    return services;
+  }.property(),
 
   /**
    * Current cluster name
@@ -301,7 +316,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }
     } else {
       // from install wizard
-      var selectedStack = App.Stack.find().findProperty('isSelected');
+      var downloadConfig = this.get('downloadConfig');
+      var selectedStack = this.getSelectedStack();
       var allRepos = [];
       if (selectedStack && selectedStack.get('operatingSystems')) {
         selectedStack.get('operatingSystems').forEach(function (os) {
@@ -317,7 +333,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         }, this);
       }
       allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
-      this.get('clusterInfo').set('useRedhatSatellite', selectedStack.get('useRedhatSatellite'));
+      this.get('clusterInfo').set('useRedhatSatellite', downloadConfig.useRedhatSatellite);
       this.get('clusterInfo').set('repoInfo', allRepos);
     }
   },
@@ -635,7 +651,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         self.set('isBackBtnDisabled', false);
         wizardController.setStepsEnable();
         if (self.get('isAddService')) {
-          wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3);
+          wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3); //TODO: something
         }
       });
     } else {
@@ -687,14 +703,16 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    this.getExistingClusterNames().complete(function () {
-      var clusterNames = self.get('clusterNames');
-      if (self.get('isInstaller') && !App.get('testMode') && clusterNames.length) {
-        self.deleteClusters(clusterNames);
-      } else {
-        self.getExistingVersions();
-      }
-    });
+    // this.getExistingClusterNames().complete(function () {
+    //   var clusterNames = self.get('clusterNames');
+    //   if (self.get('isInstaller') && !App.get('testMode') && clusterNames.length) {
+    //     self.deleteClusters(clusterNames);
+    //   } else {
+    //     self.getExistingVersions();
+    //   }
+    // });
+
+    this.startDeploy();
   },
 
   /**
@@ -902,28 +920,17 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * To Start deploy process
    * @method startDeploy
    */
+   //TODO: mpacks
   startDeploy: function () {
+    const self = this;
+
     if (!this.get('isInstaller')) {
       this._startDeploy();
     } else {
-      var installerController = App.router.get('installerController');
-      var versionData = installerController.getSelectedRepoVersionData();
-      if (versionData) {
-        var self = this;
-        installerController.postVersionDefinitionFileStep8(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
-          if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
-            var selectedStack = App.Stack.find().findProperty('isSelected', true);
-            if (selectedStack) {
-              selectedStack.set('versionInfoId', versionInfo.id);
-            }
-            installerController.updateRepoOSInfo(versionInfo, selectedStack).done(function() {
-              self._startDeploy();
-            });
-          }
-        });
-      } else {
-        this._startDeploy();
-      }
+      const selectedStack = this.getSelectedStack();
+      this.get('wizardController').updateRepoOSInfo({ id: selectedStack.get('id'), stackName: selectedStack.get('stackName'), stackVersion: selectedStack.get('stackVersion') }, selectedStack).done(function() {
+        self._startDeploy();
+      });
     }
   },
 
@@ -975,13 +982,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * Queued request
    * @method createCluster
    */
+   //TODO: mpacks
   createCluster: function () {
     if (!this.get('isInstaller')) return;
-    var stackVersion = this.get('content.installOptions.localRepo') ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
+    const selectedStack = this.getSelectedStack()
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion}})
+        data: JSON.stringify({ "Clusters": {"version": selectedStack.get('stackNameVersion')}})
       },
       success: 'createClusterSuccess'
     });
@@ -1028,13 +1036,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @returns {Object[]}
    * @method createSelectedServicesData
    */
+   //TODO: mpacks
   createSelectedServicesData: function () {
     var selectedStack;
     if (this.get('isInstaller')) {
-      selectedStack = App.Stack.find().findProperty('isSelected', true);
+      selectedStack = this.getSelectedStack();
     }
     return this.get('selectedServices').map(service => selectedStack ?
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), "desired_repository_version_id": selectedStack.get('versionInfoId') }} :
+      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), "desired_repository_version_id": selectedStack.get('id') }} :
       {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), }});
   },
 
@@ -2017,7 +2026,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }, this);
     }, this);
 
-    var selectedStack = App.Stack.find().findProperty('isSelected', true);
+    var selectedStack = this.getSelectedStack();
     blueprint = {
         'configurations': totalConf,
         'host_groups': host_groups.filter(function (item) { return item.cardinality > 0; }),

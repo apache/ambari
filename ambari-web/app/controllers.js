@@ -160,6 +160,7 @@ require('controllers/wizard/step7/pre_install_checks_controller');
 require('controllers/wizard/step8_controller');
 require('controllers/wizard/step9_controller');
 require('controllers/wizard/step10_controller');
+require('controllers/wizard/selectMpacks_controller');
 require('controllers/global/cluster_controller');
 require('controllers/global/update_controller');
 require('controllers/global/configuration_controller');

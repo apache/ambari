@@ -34,7 +34,13 @@ App.WizardMenuMixin = Em.Mixin.create({
 
   isStepDisabled: function (stepName) {
     let index = this.get('controller').getStepIndex(stepName);
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
+    let step = this.get('controller.isStepDisabled').findProperty('step', index);
+
+    if (step) {
+      return step.get('value');
+    }
+
+    return false;
   },
 
   isStepCompleted(stepName) {
@@ -48,6 +54,7 @@ App.WizardMenuMixin = Em.Mixin.create({
   isStep3Disabled: isStepDisabled("step3"),
   isConfigureDownloadDisabled: isStepDisabled("configureDownload"),
   isDownloadProductsDisabled: isStepDisabled("downloadProducts"),
+  isSelectMpacksDisabled: isStepDisabled("selectMpacks"),
   isStep4Disabled: isStepDisabled("step4"),
   isStep5Disabled: isStepDisabled("step5"),
   isStep6Disabled: isStepDisabled("step6"),
@@ -62,6 +69,7 @@ App.WizardMenuMixin = Em.Mixin.create({
   isStep3Completed: isStepCompleted("step3"),
   isConfigureDownloadCompleted: isStepCompleted("configureDownload"),
   isDownloadProductsCompleted: isStepCompleted("downloadProducts"),
+  isSelectMpacksCompleted: isStepCompleted("selectMpacks"),
   isStep4Completed: isStepCompleted("step4"),
   isStep5Completed: isStepCompleted("step5"),
   isStep6Completed: isStepCompleted("step6"),

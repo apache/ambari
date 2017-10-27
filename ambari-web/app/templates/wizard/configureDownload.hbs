@@ -20,43 +20,36 @@
 
   <div class="panel panel-default">
     <div class="panel-body">
-      {{#if isLoadingComplete}}
-      {{! left tabs }}
-
-        {{#if App.router.nextBtnClickInProgress}}
-          {{view App.SpinnerView}}
-        {{else}}
-          <form id="repoVersionInfoForm" class="form-horizontal" role="form" name="localVersionInfoForm" novalidate>
-
-            <div class="panel panel-default repos-panel">
-              <div class="step-title">
-                <p>{{t installer.configureDownload.body.title}}</p>
-              </div>
-              <p class="step-description">{{t installer.configureDownload.body.description}}</p>
-              <div class="panel-body version-contents-body">
-                <div class="row radio-group">
-                  {{! Public Repository radio }}
-                  <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text"}} {{action usePublicRepo target="controller"}}>
-                    {{view view.usePublicRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-public-repo"}}
-                    <p>{{t installer.configureDownload.publicRepo.hoverDesc}}</p>
-                    <i class="icon icon-cloud-download"></i>
-                    <div class="repo-group">{{t installer.configureDownload.publicRepo}}</div>
-                  </div>
-                  {{!--Local repo radio--}}
-                  {{!--Not allowing any action on Local Repository for the first iteration. Will use action useLocalRepo later when this option is allowed--}}
-                  <div {{bindAttr class=":col-sm-4 :radio :big-radio :local-radio :wizard-plain-text"}}>
-                    {{view view.useLocalRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-local-repo"}}
-                    <p>{{t installer.configureDownload.localRepo.hoverDesc}}</p>
-                    <i class="icon icon-tasks"></i>
-                    <div class="repo-group">{{t installer.configureDownload.localRepo}}</div>
-                  </div>
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView}}
+      {{else}}
+        <form id="repoVersionInfoForm" class="form-horizontal" role="form" name="localVersionInfoForm" novalidate>
+          <div class="panel panel-default repos-panel">
+            <div class="step-title">
+              <p>{{t installer.configureDownload.body.title}}</p>
+            </div>
+            <p class="step-description">{{t installer.configureDownload.body.description}}</p>
+            <div class="panel-body version-contents-body">
+              <div class="row radio-group">
+                {{! Public Repository radio }}
+                <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text"}} {{action usePublicRepo target="controller"}}>
+                  {{view view.usePublicRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-public-repo"}}
+                  <p>{{t installer.configureDownload.publicRepo.hoverDesc}}</p>
+                  <i class="icon icon-cloud-download"></i>
+                  <div class="repo-group">{{t installer.configureDownload.publicRepo}}</div>
+                </div>
+                {{!--Local repo radio--}}
+                {{!--Not allowing any action on Local Repository for the first iteration. Will use action useLocalRepo later when this option is allowed--}}
+                <div {{bindAttr class=":col-sm-4 :radio :big-radio :local-radio :wizard-plain-text"}}>
+                  {{view view.useLocalRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-local-repo"}}
+                  <p>{{t installer.configureDownload.localRepo.hoverDesc}}</p>
+                  <i class="icon icon-tasks"></i>
+                  <div class="repo-group">{{t installer.configureDownload.localRepo}}</div>
                 </div>
               </div>
             </div>
-          </form>
-        {{/if}}
-      {{else}}
-        {{view App.SpinnerView}}
+          </div>
+        </form>
       {{/if}}
     </div>
   </div>
@@ -68,7 +61,7 @@
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}
   </button>
-  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}} {{QAAttr "wizard-next"}}>
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
     {{#if App.router.nextBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}

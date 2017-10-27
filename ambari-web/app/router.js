@@ -45,7 +45,9 @@ App.WizardRoute = Em.Route.extend({
 
   gotoConfigureDownload: Em.Router.transitionTo('configureDownload'),
 
-  gotoDownloadProducts: Em.Router.transitionTo('configureDownload'),
+  gotoSelectMpacks: Em.Router.transitionTo('selectMpacks'),
+  
+  gotoDownloadProducts: Em.Router.transitionTo('downloadProducts'),
 
   isRoutable: function() {
     return typeof this.get('route') === 'string' && App.router.get('loggedIn');
@@ -208,7 +210,7 @@ App.Router = Em.Router.extend({
     } else {
       newStep = step;
     }
-    
+
     var previousStep = parseInt(this.getInstallerCurrentStep(), 10);
     this.set('isFwdNavigation', newStep >= previousStep);
   },

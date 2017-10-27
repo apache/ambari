@@ -379,6 +379,9 @@ require('views/wizard/step8_view');
 require('views/wizard/step9_view');
 require('views/wizard/step9/hostLogPopupBody_view');
 require('views/wizard/step10_view');
+require('views/wizard/selectMpacks_view');
+require('views/wizard/selectMpacks/mpack_view');
+require('views/wizard/selectMpacks/selectedMpackVersion_view');
 require('views/loading');
 
 require('views/experimental');

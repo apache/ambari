@@ -597,6 +597,12 @@ Em.I18n.translations = {
   'installer.controls.serviceConfigMasterHosts.header':'{0} Hosts',
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
+  'installer.selectMpacks.loadSelectionFailed': 'Could not load Management Packs. The software registry may not be available.',
+  'installer.selectMpacks.header': 'Select Management Packs',
+  'installer.selectMpacks.body.header': 'Select Management Packs',
+  'installer.selectMpacks.noMpacksAvailable': 'No management packs are available.',
+  'installer.selectMpacks.noMpacksSelected': 'Select from the list of available products.',
+
   'installer.step0.header':'Get Started',
   'installer.step0.body.header':'Get Started',
   'installer.step0.body':'This wizard will walk you through the cluster installation process.  First, start by naming your new cluster.',
