@@ -25,7 +25,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.BlueprintV2Entity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -79,7 +78,6 @@ public class BlueprintV2DAO {
    */
   @Transactional
   public void refresh(BlueprintV2Entity blueprintEntity) {
-    ensureStackIdSet(blueprintEntity);
     entityManagerProvider.get().refresh(blueprintEntity);
   }
 
@@ -90,7 +88,6 @@ public class BlueprintV2DAO {
    */
   @Transactional
   public void create(BlueprintV2Entity blueprintEntity) {
-    ensureStackIdSet(blueprintEntity);
     entityManagerProvider.get().persist(blueprintEntity);
   }
 
@@ -102,7 +99,6 @@ public class BlueprintV2DAO {
    */
   @Transactional
   public BlueprintV2Entity merge(BlueprintV2Entity blueprintEntity) {
-    ensureStackIdSet(blueprintEntity);
     return entityManagerProvider.get().merge(blueprintEntity);
   }
 
@@ -113,7 +109,6 @@ public class BlueprintV2DAO {
    */
   @Transactional
   public void remove(BlueprintV2Entity blueprintEntity) {
-    ensureStackIdSet(blueprintEntity);
     entityManagerProvider.get().remove(merge(blueprintEntity));
   }
 
@@ -124,13 +119,6 @@ public class BlueprintV2DAO {
   @Transactional
   public void removeByName(String blueprint_name) {
     entityManagerProvider.get().remove(findByName(blueprint_name));
-  }
-
-  private void ensureStackIdSet(BlueprintV2Entity entity) {
-    StackEntity stack = entity.getStack();
-    if (stack != null && stack.getStackId() == null) {
-      entity.setStack(stackDAO.find(stack.getStackName(), stack.getStackVersion()));
-    }
   }
 
 }
