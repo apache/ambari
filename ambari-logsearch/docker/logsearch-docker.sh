@@ -56,20 +56,11 @@ function get_docker_ip() {
 }
 
 function start_logsearch_container() {
+  setup_env
   setup_profile
-  source $sdir/Profile
-  pushd $sdir/../../
-  local AMBARI_LOCATION=$(pwd)
-  popd
-  : ${MAVEN_REPOSITORY_LOCATION:?"Please set the MAVEN_REPOSITORY_LOCATION in Profile"}
   kill_logsearch_container
-  local docker_ip=$(get_docker_ip)
   echo "Run Log Search container"
-  docker run -d --name logsearch --hostname logsearch.apache.org -e DISPLAY=$docker_ip:0 \
-    -v $AMBARI_LOCATION:/root/ambari -v $MAVEN_REPOSITORY_LOCATION:/root/.m2 $LOGSEARCH_EXPOSED_PORTS $LOGSEARCH_ENV_OPTS $LOGSEARCH_EXTRA_OPTS $LOGSEARCH_VOLUME_OPTS -p 9983:9983 -p 4444:4444 -p 5910:5910 \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-logfeeder/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes/org:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/org \
-    ambari-logsearch:v1.0
+  docker-compose -f all.yml up -d
   ip_address=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' logsearch)
   echo "Log Search container started on $ip_address (for Mac OSX route to boot2docker/docker-machine VM address, e.g.: 'sudo route add -net 172.17.0.0/16 192.168.59.103')"
   echo "You can follow Log Search logs with 'docker logs -f logsearch' command"
@@ -80,20 +71,45 @@ function setup_profile() {
   then
     echo "Profile file exists"
   else
-    echo "Profile does not exist, Creating a new one..."
+    echo "Profile file does not exist, Creating a new one..."
     pushd $sdir/../../
     local AMBARI_LOCATION=$(pwd)
     popd
     cat << EOF > $sdir/Profile
-MAVEN_REPOSITORY_LOCATION=$HOME/.m2
-LOGSEARCH_EXPOSED_PORTS="-p 8886:8886 -p 61888:61888 -p 5005:5005 -p 5006:5006"
-LOGSEARCH_ENV_OPTS="-e LOGFEEDER_DEBUG_SUSPEND=n -e LOGSEARCH_DEBUG_SUSPEND=n -e COMPONENT_LOG=logsearch -e LOGSEARCH_HTTPS_ENABLED=false -e LOGSEARCH_SOLR_SSL_ENABLED=false -e GENERATE_KEYSTORE_AT_START=false"
-
-LOGSEARCH_VOLUME_OPTS="-v $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs -v $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config"
-
-LOGSEARCH_EXTRA_OPTS=""
+COMPONENT=ALL
+COMPONENT_LOG=logsearch
+LOGFEEDER_DEBUG_SUSPEND=n
+LOGSEARCH_DEBUG_SUSPEND=n
+LOGSEARCH_HTTPS_ENABLED=false
+LOGSEARCH_SOLR_SSL_ENABLED=false
+GENERATE_KEYSTORE_AT_START=false
 EOF
-    echo "Profile has been created. Check it out before starting Log Search. ($sdir/Profile)"
+    echo "'Profile' file has been created. Check it out before starting Log Search. ($sdir/Profile)"
+    exit
+  fi;
+}
+
+function setup_env() {
+  if [ -f "$sdir/.env" ];
+  then
+    echo ".env file exists"
+  else
+    echo ".env file does not exist, Creating a new one..."
+    pushd $sdir/../../
+    local AMBARI_LOCATION=$(pwd)
+    popd
+    local docker_ip=$(get_docker_ip)
+    cat << EOF > $sdir/.env
+DOCKERIP=$docker_ip
+MAVEN_REPOSITORY_LOCATION=$HOME/.m2
+AMBARI_LOCATION=$AMBARI_LOCATION
+
+ZOOKEEPER_VERSION=3.4.10
+ZOOKEEPER_CONNECTION_STRING=zookeeper:2181
+
+SOLR_VERSION=6.6.2
+EOF
+    echo ".env file has been created. Check it out before starting Log Search. ($sdir/.env)"
     exit
   fi;
 }

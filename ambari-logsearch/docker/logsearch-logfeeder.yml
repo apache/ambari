@@ -14,24 +14,22 @@
 # limitations under the License
 version: '3.3'
 services:
-  solr:
-    image: solr:6.6.2
-    restart: always
-    hostname: solr
-    env_file:
-      - Profile
-    ports:
-      - "8886:8983"
-    networks:
-      - logsearch-network
-    entrypoint:
-      - docker-entrypoint.sh
-      - solr
-      - start
-      - "-f"
-      - "-c"
-      - "-z"
-      - "zoo1:2181,zoo2:2181,zoo3:2181"
+    logfeeder:
+        image: ambari-logsearch:v1.0
+        restart: always
+        networks:
+          - logsearch-network
+        env_file:
+          - Profile
+        environment:
+          COMPONENT: logfeeder
+          COMPONENT_LOG: logfeeder
+          ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
+        volumes:
+          - $AMBARI_LOCATION:/root/ambari
+          - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
+          - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
+          - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-logfeeder/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes
 networks:
-   logsearch-network:
-      driver: bridge
+     logsearch-network:
+        driver: bridge

@@ -14,21 +14,22 @@
 # limitations under the License
 version: '3.3'
 services:
-  solr:
-    image: solr:${SOLR_VERSION:-6.6.2}
-    restart: always
-    networks:
-      - logsearch-network
-    env_file:
-      - Profile
-    entrypoint:
-      - docker-entrypoint.sh
-      - solr
-      - start
-      - "-f"
-      - "-c"
-      - "-z"
-      - ${ZOOKEEPER_CONNECTION_STRING}
+    logsearch:
+        image: ambari-logsearch:v1.0
+        restart: always
+        networks:
+          - logsearch-network
+        env_file:
+          - Profile
+        environment:
+          COMPONENT: logsearch
+          COMPONENT_LOG: logsearch
+          ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
+        volumes:
+          - $AMBARI_LOCATION:/root/ambari
+          - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
+          - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
+          - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes/org:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/org
 networks:
-   logsearch-network:
-      driver: bridge
+     logsearch-network:
+        driver: bridge

@@ -34,11 +34,11 @@ RUN wget --no-check-certificate -O /root/selenium-server-standalone.jar http://s
 #Install Maven
 RUN mkdir -p /opt/maven
 WORKDIR /opt/maven
-RUN wget http://archive.apache.org/dist/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz
-RUN tar -xvzf /opt/maven/apache-maven-3.0.5-bin.tar.gz
-RUN rm -rf /opt/maven/apache-maven-3.0.5-bin.tar.gz
+RUN wget http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+RUN tar -xvzf /opt/maven/apache-maven-3.3.9-bin.tar.gz
+RUN rm -rf /opt/maven/apache-maven-3.3.9-bin.tar.gz
 
-ENV M2_HOME /opt/maven/apache-maven-3.0.5
+ENV M2_HOME /opt/maven/apache-maven-3.3.9
 ENV MAVEN_OPTS -Xmx2048m
 ENV PATH $PATH:$JAVA_HOME/bin:$M2_HOME/bin
 
@@ -83,6 +83,9 @@ RUN mkdir -p /var/run/ambari-logsearch-solr /var/log/ambari-logsearch-solr /var/
 
 RUN cp /root/test-config/solr/solr.xml /root/logsearch_solr_index/data
 RUN cp /root/test-config/solr/zoo.cfg /root/logsearch_solr_index/data
+
+RUN mkdir -p /root/config
+RUN chmod -R 777 /root/config
 
 WORKDIR /root
 CMD /root/start.sh

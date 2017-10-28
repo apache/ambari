@@ -171,6 +171,7 @@
             <exclude>**/src/vendor/**</exclude>
             <exclude>**/yarn.lock</exclude>
             <exclude>**/docker/Profile</exclude>
+            <exclude>**/docker/.env</exclude>
             <exclude>**/node_modules/**</exclude>
             <exclude>**/dist/**</exclude>
           </excludes>
