@@ -18,39 +18,37 @@
 <div id="select-mpacks" class="wizard-content col-md-9">
   <h4 class="step-title">{{t installer.selectMpacks.body.header}}</h4>
 
-  <div class="panel panel-default">
+  <div class="display-flex">
+  <div class="panel panel-default col-md-8">
+    <div class="panel-heading">
+      <p>{{t installer.selectMpacks.body.options.header}}</p>
+    </div>
     <div class="panel-body">
       <!-- Registry -->
-      <div class="col-md-6">
-        <div class="panel panel-default">
-          <div class="panel-body">
-            {{#if controller.content.mpacks}}
-              {{#each mpack in controller.content.mpacks}}
-                {{view App.WizardMpackView mpackBinding="mpack"}}
-              {{/each}}
-            {{else}}
-              {{t installer.selectMpacks.noMpacksAvailable}}
-            {{/if}}
-          </div>
-        </div>
+      <div class="options-list">
+        {{#if controller.content.mpacks}}
+          {{#each mpack in controller.content.mpacks}}
+            {{view App.WizardMpackView mpackBinding="mpack"}}
+          {{/each}}
+        {{else}}
+          {{t installer.selectMpacks.noMpacksAvailable}}
+        {{/if}}
       </div>
-
-      <!-- Selection -->
-      <div class="col-md-6">
-        <div class="panel panel-default">
-          <div class="panel-body">
-            {{#if controller.hasSelectedMpackVersions}}
-              {{#each mpackVersion in controller.selectedMpackVersions}}
-                {{view App.WizardSelectedMpackVersionView mpackVersionBinding="mpackVersion"}}
-              {{/each}}
-            {{else}}
-              {{t installer.selectMpacks.noMpacksSelected}}
-            {{/if}}
-          </div>
-        </div>
-      </div>
-
     </div>
+  </div>
+  <!-- Selection -->
+  <div class="panel panel-default col-md-4 selected-list">
+    <div class="panel-heading">
+      <p>{{t installer.selectMpacks.body.selected.header}}&nbsp;({{controller.selectedMpackVersions.length}})</p>
+    </div>
+    {{#if controller.hasSelectedMpackVersions}}
+      {{#each mpackVersion in controller.selectedMpackVersions}}
+        {{view App.WizardSelectedMpackVersionView mpackVersionBinding="mpackVersion"}}
+      {{/each}}
+    {{else}}
+      <div class="empty-selection">{{t installer.selectMpacks.noMpacksSelected}}</div>
+    {{/if}}
+  </div>
   </div>
 </div>
 

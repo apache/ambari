@@ -15,15 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="panel panel-default">
-  <div class="panel-heading" role="tab" id="headingOne">
-    <h4 class="panel-title">{{mpack.name}} {{view.version}}</h4>
-    <p>{{mpack.description}}</p>
+<div class="mpack-body">
+  <div class="mpack-title" role="tab" id="headingOne">
+    <p>{{mpack.name}} {{view.version}}</p>
   </div>
   <div>
   {{#each service in view.services}}
-    <button {{bindAttr id="service.name"}} class="btn-service" {{action "selectService" service.id target="controller"}}>
-      {{service.name}}
+    <button {{bindAttr id="service.name"}} class="capsule" {{action "selectService" service.id target="controller"}}>
+      {{service.name}}&nbsp;<i class="icon icon-plus"></i>
       <span {{bindAttr class="selected:service-remove:service-add"}} {{bindAttr title="service.version"}}></span>
     </button>
   {{/each}}

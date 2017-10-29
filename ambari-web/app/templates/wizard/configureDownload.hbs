@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 <div id="select-stack" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
-  <h4 class="step-title">{{t installer.configureDownload.header}}</h4>
+  <h4 class="step-header">{{t installer.configureDownload.header}}</h4>
 
   <div class="panel panel-default">
     <div class="panel-body">
@@ -32,7 +32,7 @@
             <div class="panel-body version-contents-body">
               <div class="row radio-group">
                 {{! Public Repository radio }}
-                <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text"}} {{action usePublicRepo target="controller"}}>
+                <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text controller.content.downloadConfig.usePublicRepo:repo-selected:repo-not-selected"}} {{action usePublicRepo target="controller"}}>
                   {{view view.usePublicRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-public-repo"}}
                   <p>{{t installer.configureDownload.publicRepo.hoverDesc}}</p>
                   <i class="icon icon-cloud-download"></i>
@@ -40,7 +40,7 @@
                 </div>
                 {{!--Local repo radio--}}
                 {{!--Not allowing any action on Local Repository for the first iteration. Will use action useLocalRepo later when this option is allowed--}}
-                <div {{bindAttr class=":col-sm-4 :radio :big-radio :local-radio :wizard-plain-text"}}>
+                <div {{bindAttr class=":col-sm-4 :radio :big-radio :local-radio :wizard-plain-text controller.content.downloadConfig.usePublicRepo:repo-not-selected:repo-selected"}}>
                   {{view view.useLocalRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-local-repo"}}
                   <p>{{t installer.configureDownload.localRepo.hoverDesc}}</p>
                   <i class="icon icon-tasks"></i>

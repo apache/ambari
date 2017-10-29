@@ -601,7 +601,9 @@ Em.I18n.translations = {
   'installer.selectMpacks.header': 'Select Management Packs',
   'installer.selectMpacks.body.header': 'Select Management Packs',
   'installer.selectMpacks.noMpacksAvailable': 'No management packs are available.',
-  'installer.selectMpacks.noMpacksSelected': 'Select from the list of available products.',
+  'installer.selectMpacks.noMpacksSelected': 'No Management Packs selected',
+  'installer.selectMpacks.body.options.header': 'Management Packs',
+  'installer.selectMpacks.body.selected.header': 'Selected Management Packs',
 
   'installer.step0.header':'Get Started',
   'installer.step0.body.header':'Get Started',
@@ -625,6 +627,8 @@ Em.I18n.translations = {
   'installer.downloadProducts.header': 'Download Products',
   'installer.downloadProducts.body.title': 'Downloading and validating Management Packs',
   'installer.downloadProducts.body.description': 'Ambari is downloading the Management Packs and validating its contents',
+
+
 
   'installer.step1.header':'Select Version',
   'installer.step1.body':'Select the software version and method of delivery for your cluster.',
