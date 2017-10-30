@@ -83,6 +83,7 @@ LOGSEARCH_DEBUG_SUSPEND=n
 LOGSEARCH_HTTPS_ENABLED=false
 LOGSEARCH_SOLR_SSL_ENABLED=false
 GENERATE_KEYSTORE_AT_START=false
+SOLR_HOST=solr
 EOF
     echo "'Profile' file has been created. Check it out before starting Log Search. ($sdir/Profile)"
     exit
