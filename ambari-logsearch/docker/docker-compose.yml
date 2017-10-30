@@ -17,7 +17,7 @@ services:
   zookeeper:
     image: zookeeper:${ZOOKEEPER_VERSION:-3.4.10}
     restart: always
-    hostname: zoo1
+    hostname: zookeeper
     networks:
       - logsearch-network
     ports:
