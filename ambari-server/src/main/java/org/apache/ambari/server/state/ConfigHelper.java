@@ -1123,7 +1123,7 @@ public class ConfigHelper {
 
       if (null != baseConfig) {
         try {
-          String service = cluster.getServiceForConfigTypes(Collections.singleton(type));
+          String service = cluster.getServiceByConfigType(type);
           if (!serviceMapped.containsKey(service)) {
             serviceMapped.put(service, new HashSet<>());
           }
