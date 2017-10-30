@@ -1,0 +1,12 @@
+{
+    "PERF-2.0":{
+        "latest":{
+            "centos6":"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.2.0/"
+        },
+        "manifests":{
+            "2.0.2.0":{
+                "centos6":"../vdf.xml"
+            }
+        }
+    }
+}
