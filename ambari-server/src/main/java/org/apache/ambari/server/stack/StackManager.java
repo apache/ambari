@@ -81,7 +81,7 @@ public class StackManager {
   /**
    * Prefix used for common stack hooks parent path string
    */
-  public static final String DEFAULT_HOOKS_FOLDER = "stack-hooks";
+  public static final String DEFAULT_HOOKS_FOLDER = "stacks/PERF/1.0/hooks";
 
   /**
    * Prefix used for extension services parent path string
