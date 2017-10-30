@@ -3031,6 +3031,25 @@ public class Configuration {
   }
 
   /**
+   * Get the property value for the given key. If the value is not
+   * found then reload the properties and get the property value
+   * for the given key.
+   *
+   * @return the property value
+   */
+  public String getPropertyForced(String key) {
+    String returnValue = properties.getProperty(key);
+    if (returnValue == null) {
+      Properties properties = readConfigFile();
+      returnValue = properties.getProperty(key);
+      if (returnValue != null) {
+        this.properties = properties;
+      }
+    }
+    return returnValue;
+  }
+
+  /**
    * Gets a copy of all of the configuration properties that back this
    * {@link Configuration} instance.
    *

@@ -300,6 +300,25 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testGetPropertyForced() throws Exception {
+    final Properties ambariProperties = new Properties();
+    ambariProperties.setProperty("name", "value");
+    final Configuration conf = new Configuration();
+
+    mockStatic(Configuration.class);
+    Method[] methods = MemberMatcher.methods(Configuration.class, "readConfigFile");
+    PowerMock.expectPrivate(Configuration.class, methods[0]).andReturn(ambariProperties);
+    replayAll();
+
+    String returnValue = conf.getPropertyForced("name");
+    verifyAll();
+    Assert.assertEquals("value", returnValue);
+
+    Properties configProps = conf.getProperties();
+    Assert.assertEquals("value", configProps.getProperty("name"));
+  }
+
+  @Test
   public void testGetAmbariBlacklistFile() {
     Properties ambariProperties = new Properties();
     Configuration conf = new Configuration(ambariProperties);
