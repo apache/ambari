@@ -118,6 +118,23 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
+CREATE TABLE configuration_base (
+  id BIGINT NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  version BIGINT NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  data VARCHAR(MAX) NOT NULL,
+  attributes VARCHAR(MAX),
+  create_timestamp BIGINT NOT NULL,
+  CONSTRAINT PK_configuration_base PRIMARY KEY (id)
+);
+
+CREATE TABLE ambari_configuration (
+  id BIGINT NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (id),
+  CONSTRAINT FK_ambari_conf_conf_base FOREIGN KEY (id) REFERENCES configuration_base (id)
+);
+
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
@@ -200,6 +217,7 @@ CREATE TABLE repo_version (
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved BIT NOT NULL DEFAULT 0,
+  legacy BIT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml VARCHAR(MAX),
   version_xsd VARCHAR(512),
@@ -1174,6 +1192,7 @@ BEGIN TRANSACTION
     ('remote_cluster_id_seq', 0),
     ('remote_cluster_service_id_seq', 0),
     ('servicecomponent_version_id_seq', 0),
+    ('configuration_id_seq', 0),
     ('hostcomponentdesiredstate_id_seq', 0);
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
@@ -1262,6 +1281,7 @@ BEGIN TRANSACTION
     SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' UNION ALL
     SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' UNION ALL
     SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage settings' UNION ALL
+    SELECT 'AMBARI.MANAGE_CONFIGURATION', 'Manage ambari configuration' UNION ALL
     SELECT 'AMBARI.MANAGE_USERS', 'Manage users' UNION ALL
     SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' UNION ALL
     SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' UNION ALL
@@ -1467,6 +1487,7 @@ BEGIN TRANSACTION
     SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+    SELECT permission_id, 'AMBARI.MANAGE_CONFIGURATION' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

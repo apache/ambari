@@ -192,8 +192,7 @@ class Master(Script):
       notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + \
                            params.config['configurations']['zeppelin-config']['zeppelin.notebook.dir']
 
-
-    if self.is_path_exists_in_HDFS(notebook_directory, params.zeppelin_user):
+    if not self.is_directory_exists_in_HDFS(notebook_directory, params.zeppelin_user):
       # hdfs dfs -mkdir {notebook_directory}
       params.HdfsResource(format("{notebook_directory}"),
                           type="directory",
@@ -231,17 +230,28 @@ class Master(Script):
     Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"),
              os.path.join(params.zeppelin_dir, "notebook")), sudo=True)
 
+    if params.security_enabled:
+      zeppelin_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
+      Execute(zeppelin_kinit_cmd, user=params.zeppelin_user)
+
     if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
         and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
       self.check_and_copy_notebook_in_hdfs(params)
 
-    if params.security_enabled:
-        zeppelin_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
-        Execute(zeppelin_kinit_cmd, user=params.zeppelin_user)
-
     zeppelin_spark_dependencies = self.get_zeppelin_spark_dependencies()
     if zeppelin_spark_dependencies and os.path.exists(zeppelin_spark_dependencies[0]):
       self.create_zeppelin_dir(params)
+
+    if params.conf_stored_in_hdfs:
+      if not self.is_directory_exists_in_HDFS(self.get_zeppelin_conf_FS_directory(params), params.zeppelin_user):
+        # hdfs dfs -mkdir {zeppelin's conf directory}
+        params.HdfsResource(self.get_zeppelin_conf_FS_directory(params),
+                            type="directory",
+                            action="create_on_execute",
+                            owner=params.zeppelin_user,
+                            recursive_chown=True,
+                            recursive_chmod=True
+                            )
 
     # if first_setup:
     if not glob.glob(params.conf_dir + "/interpreter.json") and \
@@ -292,23 +302,29 @@ class Master(Script):
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
       stack_select.select_packages(params.version)
 
-  def getZeppelinConfFS(self, params):
-    hdfs_interpreter_config = params.config['configurations']['zeppelin-config']['zeppelin.config.fs.dir'] + "/interpreter.json"
+  def get_zeppelin_conf_FS_directory(self, params):
+    hdfs_interpreter_config = params.config['configurations']['zeppelin-config']['zeppelin.config.fs.dir']
 
-    if not hdfs_interpreter_config.startswith("/"):
+    # if it doesn't start from "/" or doesn't contains "://" as in hdfs://, file://, etc then make it a absolute path
+    if not (hdfs_interpreter_config.startswith("/") or '://' in hdfs_interpreter_config):
       hdfs_interpreter_config = "/user/" + format("{zeppelin_user}") + "/" + hdfs_interpreter_config
 
     return hdfs_interpreter_config
 
-  def is_path_exists_in_HDFS(self, path, as_user):
+  def get_zeppelin_conf_FS(self, params):
+    return self.get_zeppelin_conf_FS_directory(params) + "/interpreter.json"
+
+  def is_directory_exists_in_HDFS(self, path, as_user):
     kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
     kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
-    path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -e {path};echo $?"),
+
+    #-d: if the path is a directory, return 0.
+    path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -d {path};echo $?"),
                              user=as_user)[1]
 
     # if there is no kerberos setup then the string will contain "-bash: kinit: command not found"
     if "\n" in path_exists:
-      path_exists = path_exists.split("\n")[1]
+      path_exists = path_exists.split("\n").pop()
 
     # '1' means it does not exists
     if path_exists == '0':
@@ -316,28 +332,46 @@ class Master(Script):
     else:
       return False
 
+  def is_file_exists_in_HDFS(self, path, as_user):
+    kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+    kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
+
+    #-f: if the path is a file, return 0.
+    path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -f {path};echo $?"),
+                             user=as_user)[1]
+
+    # if there is no kerberos setup then the string will contain "-bash: kinit: command not found"
+    if "\n" in path_exists:
+      path_exists = path_exists.split("\n").pop()
+
+    # '1' means it does not exists
+    if path_exists == '0':
+      #-z: if the file is zero length, return 0.
+      path_exists = shell.call(format("{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -z {path};echo $?"),
+                               user=as_user)[1]
+
+      if "\n" in path_exists:
+        path_exists = path_exists.split("\n").pop()
+      if path_exists != '0':
+        return True
+
+    return False
+
   def get_interpreter_settings(self):
     import params
     import json
 
     interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
-    if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
-      and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
+    if params.conf_stored_in_hdfs:
+      zeppelin_conf_fs = self.get_zeppelin_conf_FS(params)
 
-      if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
-        zeppelin_conf_fs = self.getZeppelinConfFS(params)
-
-        if self.is_path_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
-          # copy from hdfs to /etc/zeppelin/conf/interpreter.json
-          params.HdfsResource(interpreter_config,
-                              type="file",
-                              action="download_on_execute",
-                              source=zeppelin_conf_fs,
-                              user=params.zeppelin_user,
-                              group=params.zeppelin_group,
-                              owner=params.zeppelin_user)
-        else:
-          Logger.info(format("{zeppelin_conf_fs} does not exist. Skipping upload of DFS."))
+      if self.is_file_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
+        # copy from hdfs to /etc/zeppelin/conf/interpreter.json
+        kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths',None))
+        kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
+        shell.call(format("rm {interpreter_config};"
+                          "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -get {zeppelin_conf_fs} {interpreter_config}"),
+                   user=params.zeppelin_user)
 
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
@@ -351,20 +385,18 @@ class Master(Script):
     File(interpreter_config,
          group=params.zeppelin_group,
          owner=params.zeppelin_user,
+         mode=0644,
          content=json.dumps(config_data, indent=2))
 
-    if 'zeppelin.notebook.storage' in params.config['configurations']['zeppelin-config'] \
-      and params.config['configurations']['zeppelin-config']['zeppelin.notebook.storage'] == 'org.apache.zeppelin.notebook.repo.FileSystemNotebookRepo':
-
-      if 'zeppelin.config.fs.dir' in params.config['configurations']['zeppelin-config']:
-        params.HdfsResource(self.getZeppelinConfFS(params),
-                            type="file",
-                            action="create_on_execute",
-                            source=interpreter_config,
-                            user=params.zeppelin_user,
-                            group=params.zeppelin_group,
-                            owner=params.zeppelin_user,
-                            replace_existing_files=True)
+    if params.conf_stored_in_hdfs:
+      params.HdfsResource(self.get_zeppelin_conf_FS(params),
+                          type="file",
+                          action="create_on_execute",
+                          source=interpreter_config,
+                          owner=params.zeppelin_user,
+                          recursive_chown=True,
+                          recursive_chmod=True,
+                          replace_existing_files=True)
 
   def update_kerberos_properties(self):
     import params
@@ -441,7 +473,7 @@ class Master(Script):
     hive_interactive_properties_key = 'hive_interactive'
     for setting_key in interpreter_settings.keys():
       interpreter = interpreter_settings[setting_key]
-      if interpreter['group'] == 'jdbc':
+      if interpreter['group'] == 'jdbc' and interpreter['name'] == 'jdbc':
         interpreter['dependencies'] = []
 
         if not params.hive_server_host and params.hive_server_interactive_hosts:
@@ -488,8 +520,10 @@ class Master(Script):
           interpreter['properties']['spark.proxy.user.property'] = 'hive.server2.proxy.user'
           interpreter['properties']['spark.url'] = 'jdbc:hive2://' + \
               params.spark_thrift_server_hosts + ':' + params.spark_hive_thrift_port + '/'
-          if params.spark_hive_principal:
-            interpreter['properties']['spark.url'] += ';principal=' + params.spark_hive_principal
+          if params.hive_principal:
+            interpreter['properties']['spark.url'] += ';principal=' + params.hive_principal
+          if params.hive_transport_mode:
+            interpreter['properties']['spark.url'] += ';transportMode=' + params.hive_transport_mode
           if 'spark.splitQueries' not in interpreter['properties']:
             interpreter['properties']['spark.splitQueries'] = "true"
 
@@ -500,8 +534,10 @@ class Master(Script):
           interpreter['properties']['spark2.proxy.user.property'] = 'hive.server2.proxy.user'
           interpreter['properties']['spark2.url'] = 'jdbc:hive2://' + \
               params.spark2_thrift_server_hosts + ':' + params.spark2_hive_thrift_port + '/'
-          if params.spark_hive_principal:
-            interpreter['properties']['spark2.url'] += ';principal=' + params.spark2_hive_principal
+          if params.hive_principal:
+            interpreter['properties']['spark2.url'] += ';principal=' + params.hive_principal
+          if params.hive_transport_mode:
+            interpreter['properties']['spark2.url'] += ';transportMode=' + params.hive_transport_mode
           if 'spark2.splitQueries' not in interpreter['properties']:
             interpreter['properties']['spark2.splitQueries'] = "true"
 
@@ -520,14 +556,16 @@ class Master(Script):
 
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy':
         if params.livy_livyserver_host:
-          interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host + \
+          interpreter['properties']['zeppelin.livy.url'] = params.livy_livyserver_protocol + \
+                                                           "://" + params.livy_livyserver_host + \
                                                            ":" + params.livy_livyserver_port
         else:
           del interpreter_settings[setting_key]
 
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy2':
         if params.livy2_livyserver_host:
-          interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy2_livyserver_host + \
+          interpreter['properties']['zeppelin.livy.url'] = params.livy2_livyserver_protocol + \
+                                                           "://" + params.livy2_livyserver_host + \
                                                            ":" + params.livy2_livyserver_port
         else:
           del interpreter_settings[setting_key]

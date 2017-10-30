@@ -69,7 +69,7 @@ class PackageProvider(Provider):
   def get_available_packages_in_repos(self, repositories):
     """
     Gets all (both installed and available) packages that are available at given repositories.
-    :param repositories: from command configs like config['repositoryFile']['repositories']
+    :type repositories resource_management.libraries.functions.repository_util.CommandRepository
     :return: installed and available packages from these repositories
     """
     raise NotImplementedError()

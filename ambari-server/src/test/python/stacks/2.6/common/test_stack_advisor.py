@@ -985,7 +985,7 @@ class TestHDP26StackAdvisor(TestCase):
           "href": "/api/v1/hosts/c6402.ambari.apache.org",
           "Hosts": {
             "cpu_count": 1,
-            "total_mem": 1922680,
+            "total_mem": 622680,
             "disk_info": [
               {"mountpoint": "/"},
               {"mountpoint": "/dev/shm"},
@@ -1091,12 +1091,12 @@ class TestHDP26StackAdvisor(TestCase):
                         'properties': {'druid.processing.numThreads': '2',
                                        'druid.server.http.numThreads': '40',
                                        'druid.processing.numMergeBuffers': '2',
-                                       'druid.processing.buffer.sizeBytes': '536870912'}},
+                                       'druid.processing.buffer.sizeBytes': '134217728'}},
                         'druid-broker': {
                           'properties': {'druid.processing.numThreads': '1',
                                          'druid.server.http.numThreads': '40',
                                          'druid.processing.numMergeBuffers': '2',
-                                         'druid.processing.buffer.sizeBytes': '268435456'}},
+                                         'druid.processing.buffer.sizeBytes': '67108864'}},
                         'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                         'druid.metadata.storage.connector.port': '1527',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
@@ -1108,7 +1108,7 @@ class TestHDP26StackAdvisor(TestCase):
                                                               'druid.middlemanager.jvm.heap.memory': {
                                                                 'maximum': '49152'},
                                                               'druid.historical.jvm.heap.memory': {'maximum': '3755'},
-                                                              'druid.broker.jvm.heap.memory': {'maximum': '1877'}}}}
+                                                              'druid.broker.jvm.heap.memory': {'maximum': '1024'}}}}
                       )
 
   def test_recommendDruidConfigurations_low_mem_hosts(self):
@@ -1240,12 +1240,12 @@ class TestHDP26StackAdvisor(TestCase):
                       'properties': {'druid.processing.numThreads': '5',
                                      'druid.server.http.numThreads': '40',
                                      'druid.processing.numMergeBuffers': '2',
-                                     'druid.processing.buffer.sizeBytes': '67108864'}},
+                                     'druid.processing.buffer.sizeBytes': '14680064'}},
                       'druid-broker': {
                         'properties': {'druid.processing.numThreads': '3',
                                        'druid.server.http.numThreads': '40',
                                        'druid.processing.numMergeBuffers': '2',
-                                       'druid.processing.buffer.sizeBytes': '67108864'}},
+                                       'druid.processing.buffer.sizeBytes': '41943040'}},
                       'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                       'druid.metadata.storage.connector.port': '1527',
                                                       'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
@@ -1303,7 +1303,8 @@ class TestHDP26StackAdvisor(TestCase):
           "atlas.graph.storage.hostname": "",
           "atlas.kafka.bootstrap.servers": "",
           "atlas.kafka.zookeeper.connect": "",
-          "atlas.authorizer.impl": "simple"
+          "atlas.authorizer.impl": "simple",
+          'atlas.proxyusers': 'knox'
         }
       },
       "infra-solr-env": {
@@ -1835,12 +1836,7 @@ class TestHDP26StackAdvisor(TestCase):
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.optimize.sort.dynamic.partition': 'false',
-          'hive.server2.enable.doAs': 'false',
-          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
-          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
-          'hive.druid.metadata.db.type': 'mysql',
-          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
-          'hive.druid.metadata.username': 'druid',
+          'hive.server2.enable.doAs': 'false'
         },
         'property_attributes': {
           'hive.tez.container.size': {
@@ -1885,7 +1881,13 @@ class TestHDP26StackAdvisor(TestCase):
         }
       },
       'hive-interactive-site': {
-        'properties': {}
+        'properties': {
+          'hive.druid.broker.address.default': 'c6401.ambari.apache.org:8082',
+          'hive.druid.coordinator.address.default': 'c6401.ambari.apache.org:8081',
+          'hive.druid.metadata.db.type': 'mysql',
+          'hive.druid.metadata.uri': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
+          'hive.druid.metadata.username': 'druid'
+        }
       },
       'yarn-site': {
         'properties': {
@@ -1941,7 +1943,7 @@ class TestHDP26StackAdvisor(TestCase):
     services['configurations']['druid-router'] = {}
     services['configurations']['druid-router']['properties'] = {}
     services['configurations']['druid-router']['properties']['druid.port'] = 8083
-    expected['hive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
+    expected['hive-interactive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
 
     recommendedConfigurations = {}
     self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)

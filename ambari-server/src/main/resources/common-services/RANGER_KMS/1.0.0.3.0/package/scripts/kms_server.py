@@ -27,9 +27,10 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from resource_management.libraries.functions.default import default
-from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin, setup_kms_jce
 from kms_service import kms_service
 import upgrade
+
+import kms
 
 class KmsServer(Script):
 
@@ -38,9 +39,9 @@ class KmsServer(Script):
     import params
     env.set_params(params)
 
-    setup_kms_db()
+    kms.setup_kms_db()
     self.configure(env)
-    setup_java_patch()
+    kms.setup_java_patch()
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -57,8 +58,8 @@ class KmsServer(Script):
 
     env.set_params(params)
     self.configure(env)
-    enable_kms_plugin()
-    setup_kms_jce()
+    kms.enable_kms_plugin()
+    kms.setup_kms_jce()
     kms_service(action = 'start', upgrade_type=upgrade_type)
 
   def status(self, env):
@@ -80,15 +81,15 @@ class KmsServer(Script):
     import params
 
     env.set_params(params)
-    kms()
+    kms.kms()
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
     upgrade.prestart(env)
-    kms(upgrade_type=upgrade_type)
-    setup_java_patch()
+    kms.kms(upgrade_type=upgrade_type)
+    kms.setup_java_patch()
 
   def setup_ranger_kms_database(self, env):
     import params
@@ -100,7 +101,7 @@ class KmsServer(Script):
 
     stack_version = upgrade_stack[1]
     Logger.info(format('Setting Ranger KMS database schema, using version {stack_version}'))
-    setup_kms_db(stack_version=stack_version)
+    kms.setup_kms_db(stack_version=stack_version)
 
   def get_log_folder(self):
     import params

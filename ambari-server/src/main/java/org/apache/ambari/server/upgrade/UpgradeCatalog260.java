@@ -81,12 +81,14 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String DESIRED_REPO_VERSION_ID_COLUMN = "desired_repo_version_id";
   public static final String REPO_STATE_COLUMN = "repo_state";
   public static final String FK_SCDS_DESIRED_STACK_ID = "FK_scds_desired_stack_id";
+  public static final String FK_SERVICECOMPONENTDESIREDSTATE_DESIRED_STACK_ID = "FK_servicecomponentdesiredstate_desired_stack_id";
   public static final String FK_SCDS_DESIRED_REPO_ID = "FK_scds_desired_repo_id";
 
   public static final String REPO_VERSION_TABLE = "repo_version";
   public static final String REPO_VERSION_ID_COLUMN = "repo_version_id";
   public static final String REPO_VERSION_RESOLVED_COLUMN = "resolved";
   public static final String REPO_VERSION_HIDDEN_COLUMN = "hidden";
+  public static final String REPO_VERSION_LEGACY_COLUMN = "legacy";
 
   public static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
   public static final String FK_HCDS_DESIRED_STACK_ID = "FK_hcds_desired_stack_id";
@@ -152,6 +154,11 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String STALE_POSTGRESS_USERS_LDAP_USER_KEY = "users_ldap_user_key";
   public static final String SHORT_URL_COLUMN = "short_url";
   public static final String FK_INSTANCE_URL_ID = "FK_instance_url_id";
+  public static final String FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID = "FK_servicedesiredstate_desired_stack_id";
+  public static final String FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID = "FK_hostcomponentdesiredstate_desired_stack_id";
+  public static final String FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID = "FK_hostcomponentstate_current_stack_id";
+  public static final String FK_UPGRADE_FROM_REPO_VERSION_ID = "FK_upgrade_from_repo_version_id";
+  public static final String FK_UPGRADE_TO_REPO_VERSION_ID = "FK_upgrade_to_repo_version_id";
 
 
   /**
@@ -187,6 +194,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     int currentVersionID = getCurrentVersionID();
+    dropBrokenFK();
     updateServiceComponentDesiredStateTable(currentVersionID);
     updateServiceDesiredStateTable(currentVersionID);
     addSelectedCollumsToClusterconfigTable();
@@ -197,9 +205,28 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     createUpgradeHistoryTable();
     updateRepositoryVersionTable();
     renameServiceDeletedColumn();
+    addLegacyColumn();
     expandUpgradeItemItemTextColumn();
     addViewUrlPKConstraint();
     removeStaleConstraints();
+  }
+
+  /**
+   * Drop broken FK
+   * {@value #FK_SERVICECOMPONENTDESIREDSTATE_DESIRED_STACK_ID}
+   * {@value #FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID}
+   * {@value #FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID}
+   * {@value #FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID}
+   * {@value #FK_UPGRADE_FROM_REPO_VERSION_ID}
+   * {@value #FK_UPGRADE_TO_REPO_VERSION_ID}
+   */
+  private void dropBrokenFK() throws SQLException {
+    dbAccessor.dropFKConstraint(UPGRADE_TABLE, FK_UPGRADE_FROM_REPO_VERSION_ID);
+    dbAccessor.dropFKConstraint(UPGRADE_TABLE, FK_UPGRADE_TO_REPO_VERSION_ID);
+    dbAccessor.dropFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, FK_SERVICECOMPONENTDESIREDSTATE_DESIRED_STACK_ID);
+    dbAccessor.dropFKConstraint(SERVICE_DESIRED_STATE_TABLE, FK_SERVICEDESIREDSTATE_DESIRED_STACK_ID);
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, FK_HOSTCOMPONENTDESIREDSTATE_DESIRED_STACK_ID);
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, FK_HOSTCOMPONENTSTATE_CURRENT_STACK_ID);
   }
 
 
@@ -228,6 +255,17 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   private void expandUpgradeItemItemTextColumn() throws SQLException {
     dbAccessor.changeColumnType(UPGRADE_ITEM_TABLE, UPGRADE_ITEM_ITEM_TEXT,
       String.class, char[].class);
+  }
+
+  private void addLegacyColumn() throws AmbariException, SQLException {
+    Boolean isLegacyColumnExists = dbAccessor.tableHasColumn(REPO_VERSION_TABLE, REPO_VERSION_LEGACY_COLUMN);
+    if (!isLegacyColumnExists) {
+      DBAccessor.DBColumnInfo legacyColumn = new DBAccessor.DBColumnInfo(REPO_VERSION_LEGACY_COLUMN, Short.class, null, 1, false);
+      dbAccessor.addColumn(REPO_VERSION_TABLE, legacyColumn);
+
+      legacyColumn.setDefaultValue(0);
+      dbAccessor.alterColumn(REPO_VERSION_TABLE, legacyColumn);
+    }
   }
 
   private void renameServiceDeletedColumn() throws AmbariException, SQLException {

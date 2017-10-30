@@ -488,6 +488,10 @@
         <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Applying Atlas proxy-user configurations.">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.AtlasProxyUserConfigCalculation"/>
+      </execute-stage>
+
       <!--KAFKA-->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">
         <task xsi:type="configure" id="kafka_log4j_parameterize">
@@ -521,6 +525,9 @@
         <task xsi:type="configure" id="storm_cluster_log4j_parameterize">
           <summary>Updating the Storm cluster Log4J properties to include parameterizations</summary>
         </task>
+      </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
+        <task xsi:type="configure" id="storm_remove_jmxetric"/>
       </execute-stage>
 
       <!-- PIG -->

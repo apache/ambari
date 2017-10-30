@@ -79,6 +79,7 @@ import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvid
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -1070,10 +1071,10 @@ public class AmbariServer {
 
   public static void main(String[] args) throws Exception {
     logStartup();
+    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule(), new LdapModule());
 
     AmbariServer server = null;
     try {
-      Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
       LOG.info("Getting the controller");
 
       // check if this instance is the active instance

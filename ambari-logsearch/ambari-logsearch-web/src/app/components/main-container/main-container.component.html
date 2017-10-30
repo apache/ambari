@@ -20,12 +20,4 @@
   <span class="fa fa-spinner fa-spin"></span>
 </div>
 <login-form *ngIf="!isInitialLoading && !isAuthorized"></login-form>
-
-<!-- TODO implement tabs: Service Logs/Audit Logs/active file -->
-<div *ngIf="isServiceLogsFileView" class="col-md-12 logs-header">
-  {{activeLogHostName}} &gt;&gt; {{activeLogComponentName}}
-  <span class="fa fa-times close-icon" (click)="closeLog()"></span>
-</div>
-
-<filters-panel *ngIf="isAuthorized" class="row"></filters-panel>
-<logs-container *ngIf="isAuthorized" logsType="serviceLogs"></logs-container>
+<logs-container *ngIf="isAuthorized" class="col-md-12"></logs-container>

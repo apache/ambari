@@ -897,11 +897,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("Falcon Broker URL property not properly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), falconStartupProperties.get("*.broker.url"));
 
-    assertEquals("Falcon Kerberos Principal property not properly exported",
-      "falcon/" + "%HOSTGROUP::" + expectedHostGroupName + "%" + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
-
-    assertEquals("Falcon Kerberos HTTP Principal property not properly exported",
-      "HTTP/" + "%HOSTGROUP::" + expectedHostGroupName + "%" + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.http.authentication.kerberos.principal"));
   }
 
   @Test
@@ -1598,8 +1593,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("hive property not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
       webHCatSiteProperties.get("templeton.hive.properties"));
-    assertEquals("hive property not properly exported",
-      createExportedHostName(expectedHostGroupName), webHCatSiteProperties.get("templeton.kerberos.principal"));
 
     assertEquals("hive property not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hive.hosts"));
@@ -1695,8 +1688,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("hive property not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
       webHCatSiteProperties.get("templeton.hive.properties"));
-    assertEquals("hive property not properly exported",
-      createExportedHostName(expectedHostGroupName), webHCatSiteProperties.get("templeton.kerberos.principal"));
 
     assertEquals("hive property not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hive.hosts"));
@@ -1790,10 +1781,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     assertEquals("oozie property not exported correctly",
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.base.url"));
-    assertEquals("oozie property not exported correctly",
-      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
-    assertEquals("oozie property not exported correctly",
-      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
     assertEquals("oozie property not exported correctly",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
 
@@ -3302,10 +3289,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName, expectedPortNum), oozieSiteProperties.get("oozie.base.url"));
     assertEquals("oozie property not updated correctly",
-      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
-    assertEquals("oozie property not updated correctly",
-      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
-    assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
     assertEquals("oozie property not updated correctly",
       createExportedAddress("2181", expectedHostGroupName) + "," + createExportedAddress("2181", expectedHostGroupNameTwo), oozieSiteProperties.get("oozie.zookeeper.connection.string"));
@@ -4477,11 +4460,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("Falcon Broker URL property not properly exported",
       expectedHostName + ":" + expectedPortNum, falconStartupProperties.get("*.broker.url"));
 
-    assertEquals("Falcon Kerberos Principal property not properly exported",
-      "falcon/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
-
-    assertEquals("Falcon Kerberos HTTP Principal property not properly exported",
-      "HTTP/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.http.authentication.kerberos.principal"));
   }
 
   @Test
@@ -4523,12 +4501,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     assertEquals("Falcon Broker URL property not properly exported",
       expectedHostName + ":" + expectedPortNum, falconStartupProperties.get("*.broker.url"));
-
-    assertEquals("Falcon Kerberos Principal property not properly exported",
-      "falcon/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
-
-    assertEquals("Falcon Kerberos HTTP Principal property not properly exported",
-      "HTTP/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.http.authentication.kerberos.principal"));
   }
 
   @Test

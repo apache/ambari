@@ -53,6 +53,7 @@ import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
+import {TabsService} from '@app/services/storage/tabs.service';
 import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
@@ -65,6 +66,7 @@ import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dr
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
+import {CollapsiblePanelComponent} from '@app/components/collapsible-panel/collapsible-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
@@ -79,6 +81,7 @@ import {TimeRangePickerComponent} from '@app/components/time-range-picker/time-r
 import {DatePickerComponent} from '@app/components/date-picker/date-picker.component';
 import {LogContextComponent} from '@app/components/log-context/log-context.component';
 import {LogFileEntryComponent} from '@app/components/log-file-entry/log-file-entry.component';
+import {TabsComponent} from '@app/components/tabs/tabs.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -115,6 +118,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FilterDropdownComponent,
     FilterButtonComponent,
     AccordionPanelComponent,
+    CollapsiblePanelComponent,
     LogsListComponent,
     DropdownButtonComponent,
     PaginationComponent,
@@ -129,6 +133,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     DatePickerComponent,
     LogContextComponent,
     LogFileEntryComponent,
+    TabsComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -171,6 +176,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ComponentsService,
     ServiceLogsFieldsService,
     AuditLogsFieldsService,
+    TabsService,
     {
       provide: XHRBackend,
       useFactory: getXHRBackend,

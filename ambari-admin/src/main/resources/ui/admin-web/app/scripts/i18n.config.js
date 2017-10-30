@@ -344,7 +344,7 @@ angular.module('ambariAdminConsole')
     'users.alerts.usersEffectivePrivilege': '{{user_name}}\'s effective privilege through its Group(s) is higher than your selected privilege.',
 
     'versions.current': 'Current',
-    'versions.addVersion': 'Add Version or Hotfix',
+    'versions.addVersion': 'Add Version',
     'versions.defaultVersion': '(Default Version Definition)',
     'versions.inUse': 'In Use',
     'versions.installed': 'Installed',

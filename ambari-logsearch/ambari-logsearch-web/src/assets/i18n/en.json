@@ -1,5 +1,9 @@
 {
   "common.title": "Log Search",
+  "common.hide": "Hide",
+  "common.show": "Show",
+  "common.serviceLogs": "Service Logs",
+  "common.auditLogs": "Audit Logs",
 
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
@@ -146,5 +150,10 @@
   "logs.copy": "Copy",
   "logs.open": "Open Log",
   "logs.context": "Context",
-  "logs.loadMore": "Load more"
+  "logs.loadMore": "Load more",
+  "logs.oneEventFound": "1 event found",
+  "logs.totalEventFound": "{{totalCount}} events found",
+  "logs.noEventFound": "No event found",
+  "logs.hideGraph": "Hide Graph",
+  "logs.showGraph": "Show Graph"
 }

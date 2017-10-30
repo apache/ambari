@@ -34,6 +34,6 @@ public class GetShardsCommand extends AbstractRetryCommand<Collection<Slice>> {
   public Collection<Slice> createAndProcessRequest(AmbariSolrCloudClient solrCloudClient) throws Exception {
     ZkStateReader zkReader = new ZkStateReader(solrCloudClient.getSolrZkClient());
     zkReader.createClusterStateWatchersAndUpdate();
-    return zkReader.getClusterState().getSlices(solrCloudClient.getCollection());
+    return zkReader.getClusterState().getCollection(solrCloudClient.getCollection()).getSlices();
   }
 }

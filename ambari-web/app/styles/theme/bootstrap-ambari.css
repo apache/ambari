@@ -479,11 +479,12 @@ h2.table-title {
 }
 .nav.nav-tabs li a .badge.badge-important {
   display: inline;
+  vertical-align: baseline;
 }
 .nav.nav-tabs li.active a {
   color: #333;
   border-bottom: 3px solid #3FAE2A;
-  padding-bottom: 1px;
+  padding-bottom: 2px;
 }
 .nav-tabs-left li,
 .nav-tabs-right li {
@@ -1027,7 +1028,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container ul.nav.side-nav-menu .more-actions,
 .navigation-bar-container ul.nav.side-nav-footer .more-actions {
-  display: none;
+  display: block;
   position: absolute;
   top: 14px;
   right: 33px;

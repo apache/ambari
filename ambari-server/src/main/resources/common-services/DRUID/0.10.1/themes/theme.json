@@ -7,24 +7,24 @@
         "name": "default",
         "tabs": [
           {
-            "name": "metadata_storage",
-            "display-name": "META DATA STORAGE CONFIG",
+            "name": "druid_metadata_storage",
+            "display-name": "DRUID META DATA STORAGE CONFIG",
             "layout": {
-              "tab-columns": "",
+              "tab-columns": "1",
               "tab-rows": "1",
               "sections": [
                 {
-                  "name": "section-metadata-storage",
+                  "name": "section-druid-metadata-storage",
                   "display-name": "",
                   "row-index": "0",
                   "column-index": "0",
-                  "row-span": "2",
+                  "row-span": "1",
                   "column-span": "1",
                   "section-columns": "1",
                   "section-rows": "1",
                   "subsections": [
                     {
-                      "name": "subsection-metadata-storage-row1-col1",
+                      "name": "subsection-druid-metadata-storage-row1-col1",
                       "display-name": "DRUID META DATA STORAGE",
                       "row-index": "0",
                       "column-index": "0",
@@ -44,31 +44,31 @@
       "configs": [
         {
           "config": "druid-common/database_name",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-druid-metadata-storage-row1-col1"
         },
         {
           "config": "druid-common/druid.metadata.storage.type",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-druid-metadata-storage-row1-col1"
         },
         {
           "config": "druid-common/druid.metadata.storage.connector.user",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-druid-metadata-storage-row1-col1"
         },
         {
           "config": "druid-common/druid.metadata.storage.connector.password",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-druid-metadata-storage-row1-col1"
         },
         {
           "config": "druid-common/metastore_hostname",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-druid-metadata-storage-row1-col1"
         },
         {
           "config": "druid-common/druid.metadata.storage.connector.port",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-druid-metadata-storage-row1-col1"
         },
         {
           "config": "druid-common/druid.metadata.storage.connector.connectURI",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-druid-metadata-storage-row1-col1"
         }
       ]
     },

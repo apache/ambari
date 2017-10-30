@@ -17,7 +17,7 @@
  */
 
 import {Injectable, Input} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormGroup} from '@angular/forms';
 import {Response} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
@@ -25,17 +25,22 @@ import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/takeUntil';
 import * as moment from 'moment-timezone';
 import {ListItem} from '@app/classes/list-item';
+import {FilterCondition, filters} from '@app/classes/filtering';
 import {Node} from '@app/classes/models/node';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {HostsService} from '@app/services/storage/hosts.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
 import {HttpClientService} from '@app/services/http-client.service';
 
 @Injectable()
 export class FilteringService {
 
-  constructor(private httpClient: HttpClientService, private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private hostsStorage: HostsService) {
+  constructor(private httpClient: HttpClientService, private appSettings: AppSettingsService, private clustersStorage: ClustersService, private componentsStorage: ComponentsService, private hostsStorage: HostsService, private appState: AppStateService) {
+    this.loadClusters();
+    this.loadComponents();
+    this.loadHosts();
     appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value || this.defaultTimeZone);
     clustersStorage.getAll().subscribe((clusters: string[]): void => {
       this.filters.clusters.options = [...this.filters.clusters.options, ...clusters.map(this.getListItemFromString)];
@@ -46,6 +51,7 @@ export class FilteringService {
     hostsStorage.getAll().subscribe((hosts: Node[]): void => {
       this.filters.hosts.options = [...this.filters.hosts.options, ...hosts.map(this.getListItemFromNode)];
     });
+    appState.getParameter('activeFiltersForm').subscribe((form: FormGroup) => this.activeFiltersForm = form);
   }
 
   /**
@@ -62,7 +68,7 @@ export class FilteringService {
 
   /**
    * Get instance for dropdown list from Node object
-   * @param name {Node}
+   * @param node {Node}
    * @returns {ListItem}
    */
   private getListItemFromNode(node: Node): ListItem {
@@ -74,8 +80,6 @@ export class FilteringService {
 
   private readonly defaultTimeZone = moment.tz.guess();
 
-  private readonly paginationOptions = ['10', '25', '50', '100'];
-
   timeZone: string = this.defaultTimeZone;
 
   /**
@@ -86,326 +90,9 @@ export class FilteringService {
   @Input()
   maximumCaptureTimeLimit: number = 600000;
 
-  filters = {
-    clusters: {
-      label: 'filter.clusters',
-      options: [],
-      defaultValue: ''
-    },
-    timeRange: {
-      options: [
-        [
-          {
-            label: 'filter.timeRange.7d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 7
-            }
-          },
-          {
-            label: 'filter.timeRange.30d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 30
-            }
-          },
-          {
-            label: 'filter.timeRange.60d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 60
-            }
-          },
-          {
-            label: 'filter.timeRange.90d',
-            value: {
-              type: 'LAST',
-              unit: 'd',
-              interval: 90
-            }
-          },
-          {
-            label: 'filter.timeRange.6m',
-            value: {
-              type: 'LAST',
-              unit: 'M',
-              interval: 6
-            }
-          },
-          {
-            label: 'filter.timeRange.1y',
-            value: {
-              type: 'LAST',
-              unit: 'Y',
-              interval: 1
-            }
-          },
-          {
-            label: 'filter.timeRange.2y',
-            value: {
-              type: 'LAST',
-              unit: 'Y',
-              interval: 2
-            }
-          },
-          {
-            label: 'filter.timeRange.5y',
-            value: {
-              type: 'LAST',
-              unit: 'Y',
-              interval: 5
-            }
-          }
-        ],
-        [
-          {
-            label: 'filter.timeRange.yesterday',
-            value: {
-              type: 'PAST',
-              unit: 'd'
-            }
-          },
-          // TODO implement time range calculation
-          /*
-          {
-            label: 'filter.timeRange.beforeYesterday',
-            value: {
-              type: 'PAST',
-              unit: 'd'
-            }
-          },
-          {
-            label: 'filter.timeRange.thisDayLastWeek',
-            value: {
-              type: 'PAST',
-              unit: 'd'
-            }
-          },
-          */
-          {
-            label: 'filter.timeRange.previousWeek',
-            value: {
-              type: 'PAST',
-              unit: 'w'
-            }
-          },
-          {
-            label: 'filter.timeRange.previousMonth',
-            value: {
-              type: 'PAST',
-              unit: 'M'
-            }
-          },
-          {
-            label: 'filter.timeRange.previousYear',
-            value: {
-              type: 'PAST',
-              unit: 'Y'
-            }
-          }
-        ],
-        [
-          {
-            label: 'filter.timeRange.today',
-            value: {
-              type: 'CURRENT',
-              unit: 'd'
-            }
-          },
-          {
-            label: 'filter.timeRange.thisWeek',
-            value: {
-              type: 'CURRENT',
-              unit: 'w'
-            }
-          },
-          {
-            label: 'filter.timeRange.thisMonth',
-            value: {
-              type: 'CURRENT',
-              unit: 'M'
-            }
-          },
-          {
-            label: 'filter.timeRange.thisYear',
-            value: {
-              type: 'CURRENT',
-              unit: 'Y'
-            }
-          }
-        ],
-        [
-          {
-            label: 'filter.timeRange.5min',
-            value: {
-              type: 'LAST',
-              unit: 'm',
-              interval: 5
-            }
-          },
-          {
-            label: 'filter.timeRange.15min',
-            value: {
-              type: 'LAST',
-              unit: 'm',
-              interval: 15
-            }
-          },
-          {
-            label: 'filter.timeRange.30min',
-            value: {
-              type: 'LAST',
-              unit: 'm',
-              interval: 30
-            }
-          },
-          {
-            label: 'filter.timeRange.1hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 1
-            }
-          },
-          {
-            label: 'filter.timeRange.3hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 3
-            }
-          },
-          {
-            label: 'filter.timeRange.6hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 6
-            }
-          },
-          {
-            label: 'filter.timeRange.12hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 12
-            }
-          },
-          {
-            label: 'filter.timeRange.24hr',
-            value: {
-              type: 'LAST',
-              unit: 'h',
-              interval: 24
-            }
-          },
-        ]
-      ],
-      defaultValue: {
-        type: 'LAST',
-        unit: 'h',
-        interval: 1
-      },
-      defaultLabel: 'filter.timeRange.1hr'
-    },
-    components: {
-      label: 'filter.components',
-      iconClass: 'fa fa-cubes',
-      options: [],
-      defaultValue: ''
-    },
-    levels: {
-      label: 'filter.levels',
-      iconClass: 'fa fa-sort-amount-asc',
-      options: [
-        {
-          label: 'levels.fatal',
-          value: 'FATAL'
-        },
-        {
-          label: 'levels.error',
-          value: 'ERROR'
-        },
-        {
-          label: 'levels.warn',
-          value: 'WARN'
-        },
-        {
-          label: 'levels.info',
-          value: 'INFO'
-        },
-        {
-          label: 'levels.debug',
-          value: 'DEBUG'
-        },
-        {
-          label: 'levels.trace',
-          value: 'TRACE'
-        },
-        {
-          label: 'levels.unknown',
-          value: 'UNKNOWN'
-        }
-      ],
-      defaultValue: ''
-    },
-    hosts: {
-      label: 'filter.hosts',
-      iconClass: 'fa fa-server',
-      options: [],
-      defaultValue: ''
-    },
-    sorting: {
-      label: 'sorting.title',
-      options: [
-        {
-          label: 'sorting.time.asc',
-          value: {
-            key: 'logtime',
-            type: 'asc'
-          }
-        },
-        {
-          label: 'sorting.time.desc',
-          value: {
-            key: 'logtime',
-            type: 'desc'
-          }
-        }
-      ],
-      defaultValue: '',
-      defaultLabel: ''
-    },
-    pageSize: {
-      label: 'pagination.title',
-      options: this.paginationOptions.map(option => {
-        return {
-          label: option,
-          value: option
-        }
-      }),
-      defaultValue: '10',
-      defaultLabel: '10'
-    },
-    page: {
-      defaultValue: 0
-    },
-    query: {}
-  };
+  filters: {[key: string]: FilterCondition} = Object.assign({}, filters);
 
-  private filtersFormItems = Object.keys(this.filters).reduce((currentObject, key) => {
-    let formControl = new FormControl(),
-      item = {
-        [key]: formControl
-      };
-    formControl.setValue(this.filters[key].defaultValue);
-    return Object.assign(currentObject, item);
-  }, {});
-
-  filtersForm = new FormGroup(this.filtersFormItems);
+  activeFiltersForm: FormGroup;
 
   queryParameterNameChange: Subject<any> = new Subject();
 
@@ -428,7 +115,7 @@ export class FilteringService {
   startCaptureTimer(): void {
     this.startCaptureTime = new Date().valueOf();
     const maxCaptureTimeInSeconds = this.maximumCaptureTimeLimit / 1000;
-    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe(seconds => {
+    Observable.timer(0, 1000).takeUntil(this.stopTimer).subscribe((seconds: number): void => {
       this.captureSeconds = seconds;
       if (this.captureSeconds >= maxCaptureTimeInSeconds) {
         this.stopCaptureTimer();
@@ -442,7 +129,7 @@ export class FilteringService {
     this.captureSeconds = 0;
     this.stopTimer.next();
     this.setCustomTimeRange(this.startCaptureTime, this.stopCaptureTime);
-    Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe(seconds => {
+    Observable.timer(0, 1000).takeUntil(this.stopAutoRefreshCountdown).subscribe((seconds: number): void => {
       this.autoRefreshRemainingSeconds = autoRefreshIntervalSeconds - seconds;
       if (!this.autoRefreshRemainingSeconds) {
         this.stopAutoRefreshCountdown.next();
@@ -485,7 +172,7 @@ export class FilteringService {
   }
 
   setCustomTimeRange(startTime: number, endTime: number): void {
-    this.filtersForm.controls.timeRange.setValue({
+    this.activeFiltersForm.controls.timeRange.setValue({
       type: 'CUSTOM',
       start: moment(startTime),
       end: moment(endTime)

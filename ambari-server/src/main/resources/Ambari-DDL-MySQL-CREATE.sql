@@ -124,6 +124,23 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
+CREATE TABLE configuration_base (
+  id BIGINT NOT NULL,
+  version_tag VARCHAR(100) NOT NULL,
+  version BIGINT NOT NULL,
+  type VARCHAR(100) NOT NULL,
+  data LONGTEXT NOT NULL,
+  attributes LONGTEXT,
+  create_timestamp BIGINT NOT NULL,
+  CONSTRAINT PK_configuration_base PRIMARY KEY (id)
+);
+
+CREATE TABLE ambari_configuration (
+  id BIGINT NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (id),
+  CONSTRAINT FK_ambari_conf_conf_base FOREIGN KEY (id) REFERENCES configuration_base (id)
+);
+
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
@@ -206,6 +223,7 @@ CREATE TABLE repo_version (
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved TINYINT(1) NOT NULL DEFAULT 0,
+  legacy TINYINT(1) NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml MEDIUMTEXT,
   version_xsd VARCHAR(512),
@@ -1169,6 +1187,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('remote_cluster_id_seq', 0),
   ('remote_cluster_service_id_seq', 0),
   ('servicecomponent_version_id_seq', 0),
+  ('configuration_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0);
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name) VALUES
@@ -1253,6 +1272,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' UNION ALL
   SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' UNION ALL
   SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage administrative settings' UNION ALL
+  SELECT 'AMBARI.MANAGE_CONFIGURATION', 'Manage ambari configuration' UNION ALL
   SELECT 'AMBARI.MANAGE_USERS', 'Manage users' UNION ALL
   SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' UNION ALL
   SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' UNION ALL
@@ -1458,6 +1478,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_CONFIGURATION' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

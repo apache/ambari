@@ -35,8 +35,9 @@ describe('App.AlertGroup', function() {
   describe('#displayName', function () {
 
     [
-      {name: 'abc', default: true, e: 'abc Default'},
-      {name: 'abc', default: false, e: 'abc'},
+      {name: 'abc', default: true, e: 'Abc Default'},
+      {name: 'abc', default: false, e: 'Abc'},
+      {name: 'ABC', default: false, e: 'Abc'},
       {name: '12345678901234567890', default: true, e: '123456789...234567890 Default'},
       {name: '12345678901234567890', default: false, e: '123456789...234567890'},
     ].forEach(function (test) {

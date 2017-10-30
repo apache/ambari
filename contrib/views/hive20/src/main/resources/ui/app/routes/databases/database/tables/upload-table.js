@@ -35,6 +35,16 @@ export default NewTable.extend(UILoggerMixin, {
   init: function () {
     this._super();
   },
+
+  afterModel(){
+    return this.store.findAll('setting').then((data) => {
+      let localStr = '';
+      data.forEach(x => {
+        localStr = localStr + 'set '+ x.get('key')+ '='+ x.get('value') + ';\n';
+      });
+      this.set('globalSettings', localStr);
+    });
+  },
   setupController(controller, model) {
     this._super(controller, model);
     this.controller.set("showUploadTableModal", false);
@@ -421,6 +431,7 @@ export default NewTable.extend(UILoggerMixin, {
   insertIntoTable : function(tableData){
     console.log("insertIntoTable");
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.startingToInsertRows'));
+    let globalSettings = this.get('globalSettings');
 
     let partitionedColumns = tableData.get("tableMeta").columns.filter(function(column){
       return column.isPartitioned;
@@ -445,6 +456,7 @@ export default NewTable.extend(UILoggerMixin, {
       "toTable": tableData.get("tableMeta").name,
       "partitionedColumns": partitionedColumns,
       "normalColumns": normalColumns,
+      "globalSettings": globalSettings,
       "unhexInsert": tableData.fileFormatInfo.containsEndlines
     });
   },

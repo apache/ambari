@@ -27,6 +27,7 @@ import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-log
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
@@ -56,6 +57,14 @@ describe('FilterDropdownComponent', () => {
   };
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [FilterDropdownComponent],
       imports: [
@@ -67,7 +76,8 @@ describe('FilterDropdownComponent', () => {
           serviceLogs,
           serviceLogsFields,
           serviceLogsHistogramData,
-          serviceLogsTruncated
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
@@ -80,6 +90,7 @@ describe('FilterDropdownComponent', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
+        TabsService,
         {
           provide: FilteringService,
           useValue: filtering
@@ -87,7 +98,10 @@ describe('FilterDropdownComponent', () => {
         UtilsService,
         ComponentActionsService,
         LogsContainerService,
-        HttpClientService
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

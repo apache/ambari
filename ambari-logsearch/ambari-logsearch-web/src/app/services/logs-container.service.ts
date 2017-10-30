@@ -17,6 +17,7 @@
  */
 
 import {Injectable} from '@angular/core';
+import {Response} from '@angular/http';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
@@ -26,22 +27,28 @@ import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-field
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import {TabsService} from '@app/services/storage/tabs.service';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
+import {Tab} from '@app/classes/models/tab';
+import {AuditLogField} from '@app/classes/models/audit-log-field';
+import {ServiceLogField} from '@app/classes/models/service-log-field';
+import {BarGraph} from '@app/classes/models/bar-graph';
 
 @Injectable()
 export class LogsContainerService {
 
-  constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appState: AppStateService, private filtering: FilteringService) {
+  constructor(private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService, private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appState: AppStateService, private tabsStorage: TabsService, private filtering: FilteringService) {
     appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => this.activeLog = value);
     appState.getParameter('isServiceLogsFileView').subscribe((value: boolean): void => {
       const activeLog = this.activeLog,
-        filtersForm = this.filtering.filtersForm;
+        filtersForm = this.filtering.activeFiltersForm;
       if (value && activeLog) {
         filtersForm.controls.hosts.setValue(activeLog.host_name);
         filtersForm.controls.components.setValue(activeLog.component_name);
       }
       this.isServiceLogsFileView = value;
     });
+    appState.getParameter('activeLogsType').subscribe((value: string) => this.activeLogsType = value);
   }
 
   readonly colors = {
@@ -78,13 +85,11 @@ export class LogsContainerService {
   readonly logsTypeMap = {
     auditLogs: {
       logsModel: this.auditLogsStorage,
-      fieldsModel: this.auditLogsFieldsStorage,
-      isSetFlag: 'isAuditLogsSet'
+      fieldsModel: this.auditLogsFieldsStorage
     },
     serviceLogs: {
       logsModel: this.serviceLogsStorage,
-      fieldsModel: this.serviceLogsFieldsStorage,
-      isSetFlag: 'isServiceLogsSet'
+      fieldsModel: this.serviceLogsFieldsStorage
     }
   };
 
@@ -94,8 +99,10 @@ export class LogsContainerService {
 
   activeLog: ActiveServiceLogEntry | null = null;
 
-  loadLogs(logsType: string): void {
-    this.httpClient.get(logsType, this.getParams('listFilters')).subscribe(response => {
+  activeLogsType: string;
+
+  loadLogs = (logsType: string = this.activeLogsType): void => {
+    this.httpClient.get(logsType, this.getParams('listFilters')).subscribe((response: Response): void => {
       const jsonResponse = response.json(),
         model = this.logsTypeMap[logsType].logsModel;
       model.clear();
@@ -110,7 +117,7 @@ export class LogsContainerService {
     });
     if (logsType === 'serviceLogs') {
       // TODO rewrite to implement conditional data loading for service logs histogram or audit logs graph
-      this.httpClient.get('serviceLogsHistogram', this.getParams('histogramFilters')).subscribe(response => {
+      this.httpClient.get('serviceLogsHistogram', this.getParams('histogramFilters')).subscribe((response: Response): void => {
         const jsonResponse = response.json();
         this.serviceLogsHistogramStorage.clear();
         if (jsonResponse) {
@@ -130,7 +137,7 @@ export class LogsContainerService {
       component_name: componentName,
       scrollType: scrollType
     };
-    this.httpClient.get('serviceLogsTruncated', params).subscribe(response => {
+    this.httpClient.get('serviceLogsTruncated', params).subscribe((response: Response): void => {
       const jsonResponse = response.json();
       if (!scrollType) {
         this.serviceLogsTruncatedStorage.clear();
@@ -156,8 +163,8 @@ export class LogsContainerService {
 
   private getParams(filtersMapName: string): any {
     let params = {};
-    Object.keys(this[filtersMapName]).forEach(key => {
-      const inputValue = this.filtering.filtersForm.getRawValue()[key],
+    Object.keys(this[filtersMapName]).forEach((key: string): void => {
+      const inputValue = this.filtering.activeFiltersForm.getRawValue()[key],
         paramNames = this[filtersMapName][key];
       paramNames.forEach(paramName => {
         let value;
@@ -179,7 +186,7 @@ export class LogsContainerService {
     return params;
   }
 
-  getHistogramData(data: any[]): any {
+  getHistogramData(data: BarGraph[]): {[key: string]: number} {
     let histogramData = {};
     data.forEach(type => {
       const name = type.name;
@@ -194,6 +201,33 @@ export class LogsContainerService {
       });
     });
     return histogramData;
+  }
+
+  loadColumnsNames(): void {
+    this.httpClient.get('serviceLogsFields').subscribe((response: Response): void => {
+      const jsonResponse = response.json();
+      if (jsonResponse) {
+        this.serviceLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, ServiceLogField));
+      }
+    });
+    this.httpClient.get('auditLogsFields').subscribe((response: Response): void => {
+      const jsonResponse = response.json();
+      if (jsonResponse) {
+        this.auditLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, AuditLogField));
+      }
+    });
+  }
+
+  private getColumnsArray(keysObject: any, fieldClass: any): any[] {
+    return Object.keys(keysObject).map((key: string): {fieldClass} => new fieldClass(key));
+  }
+
+  switchTab(activeTab: Tab): void {
+    this.appState.setParameters(activeTab.appState);
+    this.tabsStorage.mapCollection((tab: Tab): Tab => Object.assign({}, tab, {
+      isActive: tab.id === activeTab.id
+    }));
+    this.loadLogs();
   }
 
 }

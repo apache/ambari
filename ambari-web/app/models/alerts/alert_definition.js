@@ -254,16 +254,16 @@ App.AlertDefinition = DS.Model.extend({
    * Sort on load definitions by this severity order
    */
   severityOrder: ['CRITICAL', 'WARNING', 'OK', 'UNKNOWN', 'PENDING'],
-  order: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
-
-  shortState: {
-    'CRITICAL': 'CRIT',
-    'WARNING': 'WARN',
-    'OK': 'OK',
-    'UNKNOWN': 'UNKWN',
-    'PENDING': 'NONE'
-  }
+  order: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']
 });
+
+App.AlertDefinition.shortState = {
+  'CRITICAL': 'CRIT',
+  'WARNING': 'WARN',
+  'OK': 'OK',
+  'UNKNOWN': 'UNKWN',
+  'PENDING': 'NONE'
+};
 
 App.AlertDefinition.reopenClass({
 

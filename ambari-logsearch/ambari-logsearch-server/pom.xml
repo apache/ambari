@@ -380,6 +380,10 @@
           <artifactId>guava</artifactId>
           <groupId>com.google.guava</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>jdk.tools</groupId>
+          <artifactId>jdk.tools</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

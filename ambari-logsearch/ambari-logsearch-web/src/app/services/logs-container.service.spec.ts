@@ -29,6 +29,7 @@ import {ClustersService, clusters} from '@app/services/storage/clusters.service'
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {FilteringService} from '@app/services/filtering.service';
 
@@ -57,7 +58,8 @@ describe('LogsContainerService', () => {
           clusters,
           components,
           hosts,
-          serviceLogsTruncated
+          serviceLogsTruncated,
+          tabs
         })
       ],
       providers: [
@@ -72,6 +74,7 @@ describe('LogsContainerService', () => {
         ComponentsService,
         HostsService,
         ServiceLogsTruncatedService,
+        TabsService,
         LogsContainerService,
         {
           provide: HttpClientService,

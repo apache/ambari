@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-<form class="col-md-12" [formGroup]="filtersForm">
+<form [formGroup]="filtersForm">
   <div class="form-inline filter-input-container col-md-8">
     <filter-dropdown [label]="filters.clusters.label" formControlName="clusters" [options]="filters.clusters.options"
                      [defaultLabel]="filters.clusters.defaultLabel" [isMultipleChoice]="true"
@@ -30,18 +30,19 @@
       <span class="fa fa-search"></span>
     </button-->
   </div>
-  <div class="default-flex col-md-4">
+  <div class="filter-buttons col-md-4">
     <dropdown-button [options]="searchBoxItems" iconClass="fa fa-search-minus" label="filter.excluded"
                      [hideCaret]="true" [showSelectedValue]="false" action="proceedWithExclude"></dropdown-button>
-    <filter-button formControlName="hosts" label="{{filters.hosts.label | translate}}"
-                   [iconClass]="filters.hosts.iconClass" [subItems]="filters.hosts.options"
-                   [isMultipleChoice]="true" [isRightAlign]="true"
+    <filter-button *ngIf="isFilterConditionDisplayed('hosts')" formControlName="hosts"
+                   label="{{filters.hosts.label | translate}}" [iconClass]="filters.hosts.iconClass"
+                   [subItems]="filters.hosts.options" [isMultipleChoice]="true" [isRightAlign]="true"
                    additionalLabelComponentSetter="getDataForHostsNodeBar"></filter-button>
-    <filter-button formControlName="components" label="{{filters.components.label | translate}}"
-                   [iconClass]="filters.components.iconClass" [subItems]="filters.components.options"
-                   [isMultipleChoice]="true" [isRightAlign]="true"
+    <filter-button *ngIf="isFilterConditionDisplayed('components')" formControlName="components"
+                   label="{{filters.components.label | translate}}" [iconClass]="filters.components.iconClass"
+                   [subItems]="filters.components.options" [isMultipleChoice]="true" [isRightAlign]="true"
                    additionalLabelComponentSetter="getDataForComponentsNodeBar"></filter-button>
-    <filter-button formControlName="levels" label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
+    <filter-button *ngIf="isFilterConditionDisplayed('levels')" formControlName="levels"
+                   label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
                    [subItems]="filters.levels.options" [isMultipleChoice]="true" [isRightAlign]="true"></filter-button>
     <menu-button *ngIf="!captureSeconds" label="{{'filter.capture' | translate}}" iconClass="fa fa-caret-right"
                  action="startCapture"></menu-button>

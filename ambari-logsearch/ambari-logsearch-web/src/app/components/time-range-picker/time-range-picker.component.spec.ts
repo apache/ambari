@@ -35,6 +35,14 @@ describe('TimeRangePickerComponent', () => {
   let fixture: ComponentFixture<TimeRangePickerComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [TimeRangePickerComponent],
       imports: [
@@ -48,7 +56,10 @@ describe('TimeRangePickerComponent', () => {
         ...TranslationModules
       ],
       providers: [
-        HttpClientService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
         FilteringService,
         AppSettingsService,
         AppStateService,
