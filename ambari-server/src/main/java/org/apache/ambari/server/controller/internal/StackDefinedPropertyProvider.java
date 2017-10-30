@@ -174,7 +174,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         StackId stack = service.getDesiredStackId();
 
         List<MetricDefinition> defs = metaInfo.getMetrics(
-            stack.getStackName(), stack.getStackVersion(), service.getName(), componentName, type.name());
+            stack.getStackName(), stack.getStackVersion(), service.getServiceType(), componentName, type.name());
 
         if (null == defs || 0 == defs.size()) {
           continue;

@@ -168,7 +168,7 @@ public class AmbariActionExecutionHelper {
         ServiceInfo serviceInfo;
         try {
           serviceInfo = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(),
-            targetService);
+            service.getServiceType());
         } catch (StackAccessException se) {
           serviceInfo = null;
         }
@@ -204,7 +204,7 @@ public class AmbariActionExecutionHelper {
         ComponentInfo compInfo;
         try {
           compInfo = ambariMetaInfo.getComponent(stackId.getStackName(), stackId.getStackVersion(),
-            targetService, targetComponent);
+            service.getServiceType(), targetComponent);
         } catch (StackAccessException se) {
           compInfo = null;
         }
@@ -300,7 +300,7 @@ public class AmbariActionExecutionHelper {
 
           try {
             componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-                stackId.getStackVersion(), serviceName, componentName);
+                stackId.getStackVersion(), service.getServiceType(), componentName);
           } catch (ObjectNotFoundException e) {
             // do nothing, componentId is checked for null later
             LOG.error("Did not find service {} and component {} in stack {}.", serviceName, componentName, stackId.getStackName());

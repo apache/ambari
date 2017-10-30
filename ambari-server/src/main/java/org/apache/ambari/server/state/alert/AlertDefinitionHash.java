@@ -399,7 +399,7 @@ public class AlertDefinitionHash {
 
       // if a host has a matching service/component, invalidate it
       for (ServiceComponentHost component : hostComponents) {
-        String serviceName = component.getServiceName();
+        String serviceName = component.getServiceType();
         String componentName = component.getServiceComponentName();
         if (serviceName.equals(definitionServiceName)
             && componentName.equals(definitionComponentName)) {
@@ -645,7 +645,7 @@ public class AlertDefinitionHash {
       List<ServiceComponentHost> serviceComponents = cluster.getServiceComponentHosts(hostName);
       if (null == serviceComponents || !serviceComponents.isEmpty()) {
         for (ServiceComponentHost serviceComponent : serviceComponents) {
-          String serviceName = serviceComponent.getServiceName();
+          String serviceName = serviceComponent.getServiceType();
           String componentName = serviceComponent.getServiceComponentName();
 
           // add all alerts for this service/component pair

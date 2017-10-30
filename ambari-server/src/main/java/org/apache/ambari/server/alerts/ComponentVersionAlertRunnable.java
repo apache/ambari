@@ -119,7 +119,7 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
         final ComponentInfo componentInfo;
         try {
           componentInfo = m_metaInfo.getComponent(desiredStackId.getStackName(),
-              desiredStackId.getStackVersion(), hostComponent.getServiceName(),
+              desiredStackId.getStackVersion(), hostComponent.getServiceType(),
               hostComponent.getServiceComponentName());
         } catch (AmbariException ambariException) {
           // throw an UNKNOWN response if we can't load component info

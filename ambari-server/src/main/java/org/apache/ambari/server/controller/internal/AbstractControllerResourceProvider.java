@@ -196,6 +196,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RegistryMpackVersionResourceProvider(managementController);
       case Mpack:
         return new MpackResourceProvider(managementController);
+      case RootClusterSetting:
+        return new RootClusterSettingsResourceProvider(managementController);
       case StackVersion:
         return new StackVersionResourceProvider(managementController);
       case ClusterStackVersion:
@@ -231,7 +233,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case HostComponentProcess:
         return new HostComponentProcessResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Blueprint:
-        return new BlueprintResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new BlueprintV2ResourceProvider(propertyIds, keyPropertyIds, managementController);
       case KerberosDescriptor:
         return resourceProviderFactory.getKerberosDescriptorResourceProvider(managementController, propertyIds, keyPropertyIds);
       case Recommendation:

@@ -64,6 +64,7 @@ import org.apache.ambari.server.controller.internal.AbstractControllerResourcePr
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
+import org.apache.ambari.server.controller.internal.BlueprintV2ResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
@@ -82,6 +83,7 @@ import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.BlueprintV2DAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -115,6 +117,7 @@ import org.apache.ambari.server.stack.UpdateActiveRepoVersionOnStartup;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactoryImpl;
@@ -920,13 +923,16 @@ public class AmbariServer {
     BlueprintResourceProvider.init(injector.getInstance(BlueprintFactory.class),
         injector.getInstance(BlueprintDAO.class), injector.getInstance(SecurityConfigurationFactory.class),
         injector.getInstance(Gson.class), ambariMetaInfo);
+    BlueprintV2ResourceProvider.init(injector.getInstance(BlueprintV2Factory.class),
+      injector.getInstance(BlueprintV2DAO.class), injector.getInstance(SecurityConfigurationFactory.class),
+      ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(TopologyManager.class),
         injector.getInstance(TopologyRequestFactoryImpl.class), injector.getInstance(SecurityConfigurationFactory
             .class), injector.getInstance(Gson.class));
     HostResourceProvider.setTopologyManager(injector.getInstance(TopologyManager.class));
     BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
-    BaseClusterRequest.init(injector.getInstance(BlueprintFactory.class));
+    BaseClusterRequest.init(injector.getInstance(BlueprintV2Factory.class));
     AmbariContext.init(injector.getInstance(HostRoleCommandFactory.class));
 
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
@@ -1064,10 +1070,10 @@ public class AmbariServer {
 
   public static void main(String[] args) throws Exception {
     logStartup();
-    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
 
     AmbariServer server = null;
     try {
+      Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
       LOG.info("Getting the controller");
 
       // check if this instance is the active instance

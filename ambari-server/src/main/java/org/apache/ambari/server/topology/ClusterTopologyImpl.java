@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ConfigurationContext;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.slf4j.Logger;
@@ -42,13 +43,16 @@ import org.slf4j.LoggerFactory;
  */
 public class ClusterTopologyImpl implements ClusterTopology {
 
+  private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
+
   private Long clusterId;
 
   //todo: currently topology is only associated with a single bp
   //todo: this will need to change to allow usage of multiple bp's for the same cluster
   //todo: for example: provision using bp1 and scale using bp2
-  private Blueprint blueprint;
+  private BlueprintV2 blueprint;
   private Configuration configuration;
+  private Collection<Service> serviceConfigs;
   private ConfigRecommendationStrategy configRecommendationStrategy;
   private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
   private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
@@ -56,16 +60,13 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private final AmbariContext ambariContext;
   private final String defaultPassword;
 
-  private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
-
-
   //todo: will need to convert all usages of hostgroup name to use fully qualified name (BP/HG)
   //todo: for now, restrict scaling to the same BP
   public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
     this.clusterId = topologyRequest.getClusterId();
     // provision cluster currently requires that all hostgroups have same BP so it is ok to use root level BP here
     this.blueprint = topologyRequest.getBlueprint();
-    this.configuration = topologyRequest.getConfiguration();
+    this.serviceConfigs = topologyRequest.getServiceConfigs();
     if (topologyRequest instanceof ProvisionClusterRequest) {
       this.defaultPassword = ((ProvisionClusterRequest) topologyRequest).getDefaultPassword();
     } else {
@@ -73,6 +74,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
     }
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
+
+    // merge service configs into global cluster configs
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
+    serviceConfigs.forEach(service -> {
+      properties.putAll(service.getConfiguration().getProperties());
+      attributes.putAll(service.getConfiguration().getAttributes());
+    });
+    configuration = new Configuration(properties, attributes);
 
     // todo extract validation to specialized service
     validateTopology();
@@ -95,13 +105,18 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public Blueprint getBlueprint() {
+  public BlueprintV2 getBlueprint() {
     return blueprint;
   }
 
   @Override
+  @Deprecated
   public Configuration getConfiguration() {
     return configuration;
+  }
+
+  public Collection<Service> getServiceConfigs() {
+    return serviceConfigs;
   }
 
   @Override
@@ -113,7 +128,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Collection<String> getHostGroupsForComponent(String component) {
     Collection<String> resultGroups = new ArrayList<>();
-    for (HostGroup group : getBlueprint().getHostGroups().values() ) {
+    for (HostGroupV2 group : getBlueprint().getHostGroups().values() ) {
       if (group.getComponentNames().contains(component)) {
         resultGroups.add(group.getName());
       }
@@ -178,49 +193,48 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public boolean isNameNodeHAEnabled() {
-    return isNameNodeHAEnabled(configuration.getFullProperties());
-  }
-
-  public static boolean isNameNodeHAEnabled(Map<String, Map<String, String>> configurationProperties) {
-    return configurationProperties.containsKey("hdfs-site") &&
-           (configurationProperties.get("hdfs-site").containsKey("dfs.nameservices") ||
-            configurationProperties.get("hdfs-site").containsKey("dfs.internal.nameservices"));
-  }
-
-  @Override
-  public boolean isYarnResourceManagerHAEnabled() {
-    return isYarnResourceManagerHAEnabled(configuration.getFullProperties());
+  public boolean isNameNodeHAEnabled(ConfigurationContext configurationContext) {
+    return configurationContext.isNameNodeHAEnabled();
   }
 
   /**
    * Static convenience function to determine if Yarn ResourceManager HA is enabled
-   * @param configProperties configuration properties for this cluster
+   * @param configurationContext configuration context
    * @return true if Yarn ResourceManager HA is enabled
    *         false if Yarn ResourceManager HA is not enabled
    */
-  static boolean isYarnResourceManagerHAEnabled(Map<String, Map<String, String>> configProperties) {
-    return configProperties.containsKey("yarn-site") && configProperties.get("yarn-site").containsKey("yarn.resourcemanager.ha.enabled")
-      && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
+  @Override
+  public boolean isYarnResourceManagerHAEnabled(ConfigurationContext configurationContext) {
+    return configurationContext.isYarnResourceManagerHAEnabled();
   }
 
   private void validateTopology()
       throws InvalidTopologyException {
 
-    if(isNameNodeHAEnabled()){
+    Collection<Service> hdfsServices = getBlueprint().getServicesByType("HDFS");
+    for (Service hdfsService : hdfsServices) {
+      ConfigurationContext configContext = new ConfigurationContext(hdfsService.getStack(), hdfsService.getConfiguration());
+      if(isNameNodeHAEnabled(configContext)) {
+
         Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
         if (nnHosts.size() != 2) {
-            throw new InvalidTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
-                nnHosts.size() + " Hosts: " + nnHosts);
+          throw new InvalidTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
+            nnHosts.size() + " Hosts: " + nnHosts);
         }
-        Map<String, String> hadoopEnvConfig = configuration.getFullProperties().get("hadoop-env");
+
+        Map<String, String> hadoopEnvConfig = hdfsService.getConfiguration().getProperties().get("hadoop-env");
         if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
-           if((!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")))
-             || (!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")))){
-              throw new IllegalArgumentException("NAMENODE HA hosts mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected hosts are: " + nnHosts);
+          if((!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")))
+            || (!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")))){
+            throw new IllegalArgumentException("NAMENODE HA hosts mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected hosts are: " + nnHosts);
+          }
         }
-        }
+
+      }
+
     }
+
+
   }
 
   @Override
@@ -232,7 +246,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   public RequestStatusResponse installHost(String hostName, boolean skipInstallTaskCreate, boolean skipFailure) {
     try {
       String hostGroupName = getHostGroupForHost(hostName);
-      HostGroup hostGroup = this.blueprint.getHostGroup(hostGroupName);
+      HostGroupV2 hostGroup = this.blueprint.getHostGroup(hostGroupName);
 
       Collection<String> skipInstallForComponents = new ArrayList<>();
       if (skipInstallTaskCreate) {
@@ -257,7 +271,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   public RequestStatusResponse startHost(String hostName, boolean skipFailure) {
     try {
       String hostGroupName = getHostGroupForHost(hostName);
-      HostGroup hostGroup = this.blueprint.getHostGroup(hostGroupName);
+      HostGroupV2 hostGroup = this.blueprint.getHostGroup(hostGroupName);
 
       // get the set of components that are marked as INSTALL_ONLY
       // for this hostgroup
@@ -321,7 +335,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
       String hostGroupName = requestedHostGroupInfo.getHostGroupName();
 
       //todo: doesn't support using a different blueprint for update (scaling)
-      HostGroup baseHostGroup = getBlueprint().getHostGroup(hostGroupName);
+      HostGroupV2 baseHostGroup = getBlueprint().getHostGroup(hostGroupName);
 
       if (baseHostGroup == null) {
         throw new IllegalArgumentException("Invalid host_group specified: " + hostGroupName +

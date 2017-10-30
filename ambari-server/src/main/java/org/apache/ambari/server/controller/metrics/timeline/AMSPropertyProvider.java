@@ -318,7 +318,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             String stackName = stackId.getStackName();
             String version = stackId.getStackVersion();
             AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
-            String serviceName = service.getName();
+            String serviceName = service.getServiceType();
             String timeLineAppId = ambariMetaInfo.getComponent(stackName, version, serviceName, componentName).getTimelineAppid();
             if (timeLineAppId != null){
               timelineAppIdCache.put(componentName, timeLineAppId);

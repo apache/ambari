@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.validators.UnitValidatedProperty;
 
@@ -48,8 +49,9 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
   public String updateForClusterCreate(String propertyName,
                                        String origValue,
                                        Map<String, Map<String, String>> properties,
-                                       ClusterTopology topology) {
-      PropertyUnit stackUnit = PropertyUnit.of(topology.getBlueprint().getStack(), serviceName, configType, propertyName);
+                                       ClusterTopology topology,
+                                       ConfigurationContext configurationContext) {
+      PropertyUnit stackUnit = PropertyUnit.of(configurationContext.getStack(), serviceName, configType, propertyName);
       PropertyValue value = PropertyValue.of(propertyName, origValue);
       if (value.hasUnit(stackUnit)) {
         return value.toString();
@@ -61,7 +63,8 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
   }
 
   @Override
-  public Collection<String> getRequiredHostGroups(String propertyName, String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
+  public Collection<String> getRequiredHostGroups(String propertyName, String origValue, Map<String, Map<String, String>> properties,
+                                                  ClusterTopology topology, ConfigurationContext configurationContext) {
     return Collections.emptySet();
   }
 
@@ -69,18 +72,18 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
     private static final String DEFAULT_UNIT = "m";
     private final String unit;
 
-    public static PropertyUnit of(Stack stack, UnitValidatedProperty property) {
+    public static PropertyUnit of(StackV2 stack, UnitValidatedProperty property) {
       return PropertyUnit.of(stack, property.getServiceName(), property.getConfigType(), property.getPropertyName());
     }
 
-    public static PropertyUnit of(Stack stack, String serviceName, String configType, String propertyName) {
+    public static PropertyUnit of(StackV2 stack, String serviceName, String configType, String propertyName) {
       return new PropertyUnit(
         stackUnit(stack, serviceName, configType, propertyName)
           .map(PropertyUnit::toJvmUnit)
           .orElse(DEFAULT_UNIT));
     }
 
-    private static Optional<String> stackUnit(Stack stack, String serviceName, String configType, String propertyName) {
+    private static Optional<String> stackUnit(StackV2 stack, String serviceName, String configType, String propertyName) {
       try {
         return Optional.ofNullable(
           stack.getConfigurationPropertiesWithMetadata(serviceName, configType)

@@ -219,8 +219,6 @@ public class UpgradeHelper {
    *          {@code Direction} of the upgrade
    * @param upgradeType
    *          The {@code UpgradeType}
-   * @param targetStackName
-   *          The destination target stack name.
    * @param preferredUpgradePackName
    *          For unit test, need to prefer an upgrade pack since multiple
    *          matches can be found.
@@ -805,18 +803,19 @@ public class UpgradeHelper {
   /**
    * Helper to set service and component display names on the context
    * @param context   the context to update
-   * @param service   the service name
+   * @param serviceName   the service name
    * @param component the component name
    */
-  private void setDisplayNames(UpgradeContext context, String service, String component) {
-    StackId stackId = context.getCluster().getDesiredStackVersion();
+  private void setDisplayNames(UpgradeContext context, String serviceName, String component) {
+    Cluster c = context.getCluster();
+
     try {
-      ServiceInfo serviceInfo = m_ambariMetaInfoProvider.get().getService(stackId.getStackName(),
-          stackId.getStackVersion(), service);
-      context.setServiceDisplay(service, serviceInfo.getDisplayName());
+      Service service = c.getService(serviceName);
+      ServiceInfo serviceInfo = m_ambariMetaInfoProvider.get().getService(service);
+      context.setServiceDisplay(serviceName, serviceInfo.getDisplayName());
 
       ComponentInfo compInfo = serviceInfo.getComponentByName(component);
-      context.setComponentDisplay(service, component, compInfo.getDisplayName());
+      context.setComponentDisplay(serviceName, component, compInfo.getDisplayName());
 
     } catch (AmbariException e) {
       LOG.debug("Could not get service detail", e);
@@ -878,7 +877,7 @@ public class UpgradeHelper {
         boolean versionAdvertised = false;
         try {
           ComponentInfo ci = m_ambariMetaInfoProvider.get().getComponent(targetStack.getStackName(),
-              targetStack.getStackVersion(), serviceComponent.getServiceName(),
+              targetStack.getStackVersion(), serviceComponent.getServiceType(),
               serviceComponent.getName());
 
           versionAdvertised = ci.isVersionAdvertised();

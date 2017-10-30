@@ -38,6 +38,18 @@ public class HostGroupComponentEntityPK {
   @Column(name = "name", nullable = false, insertable = true, updatable = false, length = 100)
   private String name;
 
+  @Id
+  @Column(name = "service_group", nullable = true, insertable = true, updatable = false)
+  private String serviceGroup;
+
+  @Id
+  @Column(name = "service_name", nullable = true, insertable = true, updatable = false)
+  private String serviceName;
+
+  @Id
+  @Column(name = "type", nullable = false, insertable = true, updatable = false)
+  private String type;
+
   /**
    * Get the name of the associated host group.
    *
@@ -90,6 +102,30 @@ public class HostGroupComponentEntityPK {
    */
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getServiceGroup() {
+    return serviceGroup;
+  }
+
+  public void setServiceGroup(String serviceGroup) {
+    this.serviceGroup = serviceGroup;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 
   @Override

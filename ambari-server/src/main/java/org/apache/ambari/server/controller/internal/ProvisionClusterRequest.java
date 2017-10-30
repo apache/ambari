@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,6 +38,9 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
+import org.apache.ambari.server.topology.Service;
+import org.apache.ambari.server.topology.ServiceId;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +95,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String CONFIGURATIONS_PROPERTY = "configurations";
 
   /**
+   * services property name
+   */
+  public static final String SERVICES_PROPERTY = "services";
+
+  /**
    * default password property name
    */
   public static final String DEFAULT_PASSWORD_PROPERTY = "default_password";
@@ -118,6 +128,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * The service and component level quick link filters property
    */
   public static final String QUICKLINKS_PROFILE_SERVICES_PROPERTY = "quicklinks_profile/services";
+  public static final String SERVICE_GROUP_NAME_PROPERETY = "service_group";
+  public static final String SERVICE_NAME_PROPERTY = "name";
 
 
   /**
@@ -183,15 +195,34 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     this.securityConfiguration = securityConfiguration;
 
-    Configuration configuration = configurationFactory.getConfiguration(
-      (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
-    configuration.setParentConfiguration(blueprint.getConfiguration());
-    setConfiguration(configuration);
+    // parse service configs and merge with BP service configs
+    serviceConfigs = new ArrayList<>();
+    Collection<Map> services = (Collection<Map>) properties.get(SERVICES_PROPERTY);
+    for (Map serviceMap : services) {
+      String serviceName = (String) serviceMap.get(SERVICE_NAME_PROPERTY);
+      if (StringUtils.isEmpty(serviceName)) {
+        throw new InvalidTopologyTemplateException("Service name must be specified.");
+      }
+      String serviceGroupName = (String) serviceMap.get(SERVICE_GROUP_NAME_PROPERETY);
+      if (StringUtils.isEmpty(serviceGroupName)) {
+        throw new InvalidTopologyTemplateException("Service group name must be specified for service: " + serviceName);
+      }
+      Configuration configuration = configurationFactory.getConfiguration((Collection<Map<String, String>>)
+              serviceMap.get(CONFIGURATIONS_PROPERTY));
+      ServiceId serviceId = ServiceId.of(serviceName, serviceGroupName);
+      Service service = blueprint.getServiceById(serviceId);
+      if (service == null) {
+        throw new InvalidTopologyTemplateException("Service: " + serviceName + " in service group: "
+                + serviceGroupName + " not found.");
+      }
+      service.getConfiguration().setParentConfiguration(service.getStack().getConfiguration());
+      configuration.setParentConfiguration(service.getConfiguration());
+      service.setConfiguration(configuration);
+      serviceConfigs.add(service);
+    }
 
     parseHostGroupInfo(properties);
-
     this.credentialsMap = parseCredentials(properties);
-
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
 
     setProvisionAction(parseProvisionAction(properties));
@@ -291,7 +322,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   private void parseBlueprint(Map<String, Object> properties) throws NoSuchStackException, NoSuchBlueprintException {
     String blueprintName = String.valueOf(properties.get(ClusterResourceProvider.BLUEPRINT));
     // set blueprint field
-    setBlueprint(getBlueprintFactory().getBlueprint(blueprintName));
+    try {
+      setBlueprint(getBlueprintFactory().getBlueprint(blueprintName));
+    } catch (IOException e) {
+      throw new NoSuchBlueprintException(blueprintName);
+    }
 
     if (blueprint == null) {
       throw new NoSuchBlueprintException(blueprintName);

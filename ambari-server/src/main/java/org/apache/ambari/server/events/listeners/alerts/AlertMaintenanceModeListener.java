@@ -139,7 +139,7 @@ public class AlertMaintenanceModeListener {
         } else if( null != serviceComponentHost ){
           // component level maintenance
           String hostName = serviceComponentHost.getHostName();
-          String serviceName = serviceComponentHost.getServiceName();
+          String serviceName = serviceComponentHost.getServiceType();
           String componentName = serviceComponentHost.getServiceComponentName();
 
           // match on all 3 for a service component

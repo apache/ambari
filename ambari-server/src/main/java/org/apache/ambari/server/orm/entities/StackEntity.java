@@ -60,10 +60,11 @@ public class StackEntity {
   @Column(name = "stack_version", length = 255, nullable = false)
   private String stackVersion;
 
+  @Column(name = "repo_version", length = 255, nullable = false)
+  private String repoVersion;
 
   @Column(name = "current_mpack_id")
   private Long currentMpackId;
-
 
   public Long getCurrentMpackId() {
     return currentMpackId;
@@ -125,6 +126,14 @@ public class StackEntity {
    */
   public void setStackVersion(String stackVersion) {
     this.stackVersion = stackVersion;
+  }
+
+  public String getRepoVersion() {
+    return repoVersion;
+  }
+
+  public void setRepoVersion(String repoVersion) {
+    this.repoVersion = repoVersion;
   }
 
   /**

@@ -222,10 +222,10 @@ public class ComponentService extends BaseService {
    * @return a component resource instance
    */
   ResourceInstance createComponentResource(String componentName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
-    mapIds.put(Resource.Type.Cluster, m_clusterName == null? null : m_clusterName.toString());
-    mapIds.put(Resource.Type.ServiceGroup, m_serviceGroupName == null? null : m_serviceGroupName.toString());
-    mapIds.put(Resource.Type.Service, m_serviceName == null? null : m_serviceName.toString());
+    Map<Resource.Type,String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.Cluster, m_clusterName);
+    mapIds.put(Resource.Type.ServiceGroup, m_serviceGroupName);
+    mapIds.put(Resource.Type.Service, m_serviceName);
     mapIds.put(Resource.Type.Component, componentName);
 
     return createResource(Resource.Type.Component, mapIds);

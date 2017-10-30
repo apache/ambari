@@ -37,9 +37,9 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.ComponentDependencyResponse;
 import org.apache.ambari.server.controller.ExtensionLinkResponse;
 import org.apache.ambari.server.controller.QuickLinksResponse;
+import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
 import org.apache.ambari.server.controller.StackArtifactResponse;
 import org.apache.ambari.server.controller.StackConfigurationDependencyResponse;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.controller.StackResponse;
 import org.apache.ambari.server.controller.StackServiceArtifactResponse;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
@@ -223,7 +223,7 @@ public class StacksService extends BaseService {
   @ApiOperation(value = "Get all configurations for a stack version",
       nickname = "StacksService#getStackLevelConfigurations",
       notes = "Returns all configurations for a stack version.",
-      response = StackConfigurationResponse.StackConfigurationResponseSwagger.class,
+      response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class,
       responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
       @ApiImplicitParam(name = QUERY_FIELDS, value = "Filter returned attributes",
@@ -261,7 +261,7 @@ public class StacksService extends BaseService {
   @ApiOperation(value = "Get configuration details for a given property",
       nickname = "StacksService#getStackLevelConfiguration",
       notes = "Returns the configuration details for a given property.",
-      response = StackConfigurationResponse.StackConfigurationResponseSwagger.class)
+      response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class)
   @ApiImplicitParams({
       @ApiImplicitParam(name = QUERY_FIELDS, value = "Filter returned attributes",
           defaultValue = "StackLevelConfigurations/*",
@@ -611,7 +611,7 @@ public class StacksService extends BaseService {
   @ApiOperation(value = "Get all configurations for a stack service",
       nickname = "StacksService#getStackConfigurations",
       notes = "Returns all configurations for a stack service.",
-      response = StackConfigurationResponse.StackConfigurationResponseSwagger.class,
+      response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class,
       responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
       @ApiImplicitParam(name = QUERY_FIELDS, value = "Filter returned attributes",
@@ -653,7 +653,7 @@ public class StacksService extends BaseService {
   @ApiOperation(value = "Get stack service configuration details",
       nickname = "StacksService#getStackConfiguration",
       notes = "Returns the details of a stack service configuration.",
-      response = StackConfigurationResponse.StackConfigurationResponseSwagger.class)
+      response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class)
   @ApiImplicitParams({
       @ApiImplicitParam(name = QUERY_FIELDS, value = "Filter returned attributes",
           defaultValue = "StackConfigurations/*",

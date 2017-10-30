@@ -29,18 +29,19 @@ import org.apache.ambari.server.state.ValueAttributesInfo;
 import io.swagger.annotations.ApiModelProperty;
 
 
-public class StackConfigurationResponse {
+public class ReadOnlyConfigurationResponse {
 
   /**
-   * Stack configuration response.
-   * @param propertyName Property Key
-   * @param propertyValue Property Value
+   * Configuration response.
+   *
+   * @param propertyName        Property Key
+   * @param propertyValue       Property Value
    * @param propertyDescription Property Description
-   * @param type Configuration type
-   * @param propertyAttributes Attributes map
+   * @param type                Configuration type
+   * @param propertyAttributes  Attributes map
    */
-  public StackConfigurationResponse(String propertyName, String propertyValue, String propertyDescription,
-                                    String type, Map<String, String> propertyAttributes) {
+  public ReadOnlyConfigurationResponse(String propertyName, String propertyValue, String propertyDescription,
+                                       String type, Map<String, String> propertyAttributes) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
@@ -49,24 +50,25 @@ public class StackConfigurationResponse {
   }
 
   /**
-   * Stack configuration response with all properties.
-   * @param propertyName Property Key
-   * @param propertyValue Property Value
-   * @param propertyDescription Property Description
-   * @param type Configuration type
-   * @param isRequired Is required to be set
-   * @param propertyTypes Property Types
-   * @param propertyAttributes Attributes map
+   * Configuration response with all properties.
+   *
+   * @param propertyName            Property Key
+   * @param propertyValue           Property Value
+   * @param propertyDescription     Property Description
+   * @param type                    Configuration type
+   * @param isRequired              Is required to be set
+   * @param propertyTypes           Property Types
+   * @param propertyAttributes      Attributes map
    * @param propertyValueAttributes Value Attributes
-   * @param dependsOnProperties depends on properties set
+   * @param dependsOnProperties     depends on properties set
    */
-  public StackConfigurationResponse(String propertyName, String propertyValue,
-                                    String propertyDescription, String propertyDisplayName, String type,
-                                    Boolean isRequired,
-                                    Set<PropertyType> propertyTypes,
-                                    Map<String, String> propertyAttributes,
-                                    ValueAttributesInfo propertyValueAttributes,
-                                    Set<PropertyDependencyInfo> dependsOnProperties) {
+  public ReadOnlyConfigurationResponse(String propertyName, String propertyValue,
+                                       String propertyDescription, String propertyDisplayName, String type,
+                                       Boolean isRequired,
+                                       Set<PropertyType> propertyTypes,
+                                       Map<String, String> propertyAttributes,
+                                       ValueAttributesInfo propertyValueAttributes,
+                                       Set<PropertyDependencyInfo> dependsOnProperties) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
@@ -158,6 +160,7 @@ public class StackConfigurationResponse {
 
   /**
    * Configuration type
+   *
    * @return Configuration type (*-site.xml)
    */
   public String getType() {
@@ -228,6 +231,7 @@ public class StackConfigurationResponse {
 
   /**
    * Is property a isRequired property
+   *
    * @return True/False
    */
   @ApiModelProperty(hidden = true)
@@ -237,6 +241,7 @@ public class StackConfigurationResponse {
 
   /**
    * Set required attribute on this property.
+   *
    * @param required True/False.
    */
   public void setRequired(Boolean required) {
@@ -245,6 +250,7 @@ public class StackConfigurationResponse {
 
   /**
    * Get type of property as set in the stack definition.
+   *
    * @return Property type.
    */
   @ApiModelProperty(name = "property_type")
@@ -259,8 +265,8 @@ public class StackConfigurationResponse {
   /**
    * Interface to help correct Swagger documentation generation
    */
-  public interface StackConfigurationResponseSwagger extends ApiModel {
-    @ApiModelProperty(name = "StackConfigurations")
-    public StackConfigurationResponse getStackConfigurationResponse();
+  public interface ReadOnlyConfigurationResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "ReadOnlyConfigurations")
+    public ReadOnlyConfigurationResponse getStackConfigurationResponse();
   }
 }

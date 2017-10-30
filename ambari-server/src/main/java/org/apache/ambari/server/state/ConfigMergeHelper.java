@@ -53,13 +53,15 @@ public class ConfigMergeHelper {
   @SuppressWarnings("unchecked")
   public Map<String, Map<String, ThreeWayValue>> getConflicts(String clusterName, StackId targetStack) throws AmbariException {
     Cluster cluster = m_clusters.get().getCluster(clusterName);
-    StackId oldStack = cluster.getCurrentStackVersion();
+    StackId oldStack = null;
 
     Map<String, Map<String, String>> oldMap = new HashMap<>();
     Map<String, Map<String, String>> newMap = new HashMap<>();
 
     // Collect service-level properties for old and new stack
     for (String serviceName : cluster.getServices().keySet()) {
+      Service service = cluster.getService(serviceName);
+      oldStack = service.getDesiredStackId();
       Set<PropertyInfo> oldStackProperties = m_ambariMetaInfo.get().getServiceProperties(
           oldStack.getStackName(), oldStack.getStackVersion(), serviceName);
       addToMap(oldMap, oldStackProperties);

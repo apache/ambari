@@ -468,9 +468,11 @@ public class ServiceInfo implements Validable, Cloneable {
     clone.serviceOsSpecifics =  serviceOsSpecifics;
     clone.configDir = configDir;
     clone.themesDir = themesDir;
-    clone.setThemes(themes);
+    clone.setThemes(getThemes());
+    clone.setThemesMap(themesMap);
     clone.setQuickLinksConfigurationsDir(quickLinksConfigurationsDir);
-    clone.setQuickLinksConfigurations(quickLinksConfigurations);
+    clone.setQuickLinksConfigurations(getQuickLinksConfigurations());
+    clone.setQuickLinksConfigurationsMap(quickLinksConfigurationsMap);
     clone.setCommandScript(commandScript);
     clone.setRequiredServices(requiredServices);
     return clone;
@@ -1029,8 +1031,17 @@ public class ServiceInfo implements Validable, Cloneable {
     this.themesDir = themesDir;
   }
 
+  /*
+  * This method will return data from themesMap if themes are not available.
+  * ThemesMap contain merged themes from all previous stacks.
+  * TODO we should think and fix it for HDP 3.0 because there we don't need merged data.
+  * */
   public List<ThemeInfo> getThemes() {
-    return themes;
+    List<ThemeInfo> themeList = themes;
+    if (themes == null & themesMap != null) {
+      themeList = new ArrayList<>(themesMap.values());
+    }
+    return themeList;
   }
 
   public void setThemes(List<ThemeInfo> themes) {
@@ -1063,8 +1074,17 @@ public class ServiceInfo implements Validable, Cloneable {
     this.quickLinksConfigurationsDir = quickLinksConfigurationsDir;
   }
 
+  /*
+  * This method will return data from quickLinksConfigurationsMap if quickLinksConfigurations are not available.
+  * quickLinksConfigurationsMap contain merged quickLinksConfigurations from all previous stacks.
+  * TODO we should think and fix it for HDP 3.0 because there we don't need merged data.
+  * */
   public List<QuickLinksConfigurationInfo> getQuickLinksConfigurations() {
-    return quickLinksConfigurations;
+    List<QuickLinksConfigurationInfo> quickLinksConigurationList = quickLinksConfigurations;
+    if (quickLinksConfigurations == null && quickLinksConfigurationsMap != null) {
+      quickLinksConigurationList = new ArrayList<>(quickLinksConfigurationsMap.values());
+    }
+    return quickLinksConigurationList;
   }
 
   public void setQuickLinksConfigurations(List<QuickLinksConfigurationInfo> quickLinksConfigurations) {

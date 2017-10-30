@@ -1194,7 +1194,7 @@ public class HostImpl implements Host {
       Service s = cluster.getService(hostComponentState.getServiceId());
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           desiredRepositoryVersion.getStackName(), desiredRepositoryVersion.getStackVersion(),
-          s.getName(), hostComponentState.getComponentName());
+          s.getServiceType(), hostComponentState.getComponentName());
 
       // skip components which don't advertise a version
       if (!componentInfo.isVersionAdvertised()) {

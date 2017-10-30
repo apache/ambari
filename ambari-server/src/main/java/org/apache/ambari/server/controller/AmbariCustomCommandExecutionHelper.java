@@ -205,7 +205,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
         stackId.getStackName(), stackId.getStackVersion(),
-        serviceName, componentName);
+        service.getServiceType(), componentName);
 
     return !(!componentInfo.isCustomCommand(commandName) &&
       !actionMetadata.isDefaultHostComponentCommand(commandName));
@@ -452,7 +452,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(),
-          serviceName, componentName);
+          service.getServiceType(), componentName);
 
       if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
         // Service check command is not custom command
@@ -723,7 +723,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName);
+        stackId.getStackVersion(), service.getServiceType());
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
@@ -1445,7 +1445,7 @@ public class AmbariCustomCommandExecutionHelper {
 
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(
                 stackId.getStackName(), stackId.getStackVersion(),
-                serviceName, componentName);
+                service.getServiceType(), componentName);
         List<String> clientsToUpdateConfigsList = componentInfo.getClientsToUpdateConfigs();
         if (clientsToUpdateConfigsList == null) {
           clientsToUpdateConfigsList = new ArrayList<>();
@@ -1544,7 +1544,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       if (stackId == null) {
-        stackId = cluster.getDesiredStackVersion();
+        throw new AmbariException("StackId should not be null. Service " + serviceName + " should have a desiredStackId");
       }
 
       AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();

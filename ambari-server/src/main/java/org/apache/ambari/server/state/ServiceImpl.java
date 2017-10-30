@@ -201,7 +201,7 @@ public class ServiceImpl implements Service {
 
     StackId stackId = getDesiredStackId();
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), getName());
+        stackId.getStackVersion(), getServiceType());
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
@@ -279,6 +279,7 @@ public class ServiceImpl implements Service {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
+          + ", serviceType=" + getServiceType()
           + ", serviceName=" + getName()
           + ", serviceComponentName=" + component.getName());
     }

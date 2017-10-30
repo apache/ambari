@@ -97,6 +97,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
@@ -431,13 +432,17 @@ public class ClusterImpl implements Cluster {
     }
 
     for (ClusterServiceEntity serviceEntity : clusterEntity.getClusterServiceEntities()) {
-      StackId stackId = getCurrentStackVersion();
+      ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
+      StackEntity stackEntity = serviceDesiredStateEntity.getDesiredStack();
+      StackId stackId = new StackId(stackEntity);
       try {
         if (ambariMetaInfo.getService(stackId.getStackName(),
-          stackId.getStackVersion(), serviceEntity.getServiceName()) != null) {
+          stackId.getStackVersion(), serviceEntity.getServiceType()) != null) {
           services.put(serviceEntity.getServiceName(),
             serviceFactory.createExisting(this, getServiceGroup(serviceEntity.getServiceGroupId()), serviceEntity));
+           stackId = getService(serviceEntity.getServiceName()).getDesiredStackId();
         }
+
       } catch (AmbariException e) {
         LOG.error(String.format(
           "Can not get service info: stackName=%s, stackVersion=%s, serviceName=%s",

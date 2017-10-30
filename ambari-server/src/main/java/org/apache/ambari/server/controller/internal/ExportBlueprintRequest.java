@@ -38,14 +38,14 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostConfig;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.BlueprintImpl;
+import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +60,12 @@ public class ExportBlueprintRequest implements TopologyRequest {
 
   private String clusterName;
   private Long clusterId;
-  private Blueprint blueprint;
-  private Configuration configuration;
+  private BlueprintV2 blueprint;
+  /**
+   * List of services
+   */
+  protected Collection<Service> services;
+
   //todo: Should this map be represented by a new class?
   private Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
 
@@ -98,13 +102,18 @@ public class ExportBlueprintRequest implements TopologyRequest {
   }
 
   @Override
-  public Blueprint getBlueprint() {
+  public BlueprintV2 getBlueprint() {
     return blueprint;
   }
 
   @Override
+  public Collection<Service> getServiceConfigs() {
+    return services;
+  }
+
+  @Override
   public Configuration getConfiguration() {
-    return configuration;
+    return null;
   }
 
   @Override
@@ -135,7 +144,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
       hostGroups.add(new HostGroupImpl(exportedHostGroup.getName(), bpName, stack, componentList,
           exportedHostGroup.getConfiguration(), String.valueOf(exportedHostGroup.getCardinality())));
     }
-    blueprint = new BlueprintImpl(bpName, hostGroups, stack, configuration, null);
+    //blueprint = new BlueprintImplV2(bpName, hostGroups, stack, configuration, null);
   }
 
   private void createHostGroupInfo(Collection<ExportedHostGroup> exportedHostGroups) {
@@ -183,11 +192,12 @@ public class ExportBlueprintRequest implements TopologyRequest {
         attributes.put(configuration.getType(), configuration.getPropertyAttributes());
       }
     }
-    configuration = new Configuration(properties, attributes);
-    // empty parent configuration when exporting as all properties are included in this configuration
-    configuration.setParentConfiguration(new Configuration(
-        Collections.emptyMap(),
-        Collections.emptyMap()));
+//    configuration = new Configuration(properties, attributes);
+//    // empty parent configuration when exporting as all properties are included in this configuration
+//    configuration.setParentConfiguration(new Configuration(
+//        Collections.emptyMap(),
+//        Collections.emptyMap()));
+
   }
 
   /**

@@ -75,7 +75,6 @@ public class BlueprintEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
   private Collection<BlueprintSettingEntity> settings;
 
-
   /**
    * Get the blueprint name.
    *

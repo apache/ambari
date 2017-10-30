@@ -1,0 +1,146 @@
+{
+  "Blueprints": {
+    "blueprint_name": "blueprint-def",
+    "security": {
+      "type": "NONE"
+    }
+  },
+  "cluster-settings": {
+    "deployment_settings": [
+      {"skip_failure":"true"}
+    ],
+    "recovery_settings":[
+      {"recovery_enabled":"true"}
+    ]
+  },
+  "repository_versions": [
+    {
+      "stack_id": "HDPCORE-3.0.0",
+      "repository_version": "3.0.0.0-1"
+    },
+    {
+      "stack_id": "ANALYTICS-1.0.0",
+      "repository_version": "1.0.0.0-12"
+    }
+  ],
+  "service_groups": [
+    {
+      "name": "CoreSG",
+      "dependencies": [],
+      "services": [
+        {
+          "type": "ZOOKEEPER",
+          "name": "ZK1",
+          "stack_id": "HDPCORE-3.0.0",
+          "configurations": [
+            {
+              "zoo.cfg" : {
+                "properties" : {
+                  "dataDir" : "/zookeeper1"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "ZOOKEEPER",
+          "name": "ZK2",
+          "stack_id": "HDPCORE-3.0.0",
+          "configurations": [
+            {
+              "zoo.cfg" : {
+                "properties" : {
+                  "dataDir" : "/zookeeper2"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "HDFS",
+          "stack_id": "HDPCORE-3.0.0"
+        },
+        {
+          "type": "YARN",
+          "stack_id": "HDPCORE-3.0.0"
+        },
+        {
+          "type": "HBASE",
+          "stack_id": "HDPCORE-3.0.0"
+        }
+      ]
+    },
+    {
+      "name": "StreamSG",
+      "services": [
+        {
+          "type": "KAFKA",
+          "stack_id": "HDPCORE-3.0.0",
+          "dependencies": [
+            {
+              "service_group" : "CoreSG",
+              "service_name" : "ZK2"
+            }
+          ]
+        },
+        {
+          "type": "NIFI",
+          "stack_id": "HDPCORE-3.0.0"
+        }
+      ],
+      "dependencies": ["CoreSG"]
+    }
+  ],
+  "host_groups": [
+    {
+      "cardinality": "1",
+      "name": "host_group_1",
+      "configurations": [],
+      "components": [
+        {
+          "type": "NAMENODE",
+          "service_name": "HDFS",
+          "service_group": "CoreSG",
+          "configurations": [],
+          "provision_action": "INSTALL_AND_START"
+        },
+        {
+          "type": "ZOOKEEPER_SERVER",
+          "service_name": "ZK1",
+          "service_group": "CoreSG",
+          "configurations": []
+        },
+        {
+          "type": "ZOOKEEPER_SERVER",
+          "service_name": "ZK2",
+          "service_group": "CoreSG",
+          "configurations": []
+        },
+        {
+          "type": "RESOURCEMANAGER",
+          "service_name": "YARN",
+          "service_group": "CoreSG",
+          "configurations": []
+        },
+        {
+          "type": "HBASE_MASTER",
+          "service_name": "HBASE",
+          "service_group": "CoreSG",
+          "configurations": []
+        },
+        {
+          "type": "KAFKA_MASTER",
+          "service_name": "KAFKA",
+          "service_group": "StreamSG",
+          "configurations": []
+        },
+        {
+          "type": "NIFI_MASTER",
+          "service_name": "NIFI",
+          "service_group": "StreamSG",
+          "configurations": []
+        }
+      ]
+    }
+  ]
+}

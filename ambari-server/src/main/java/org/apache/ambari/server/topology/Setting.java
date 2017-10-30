@@ -20,8 +20,14 @@ package org.apache.ambari.server.topology;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Preconditions;
 
 public class Setting {
   /**
@@ -95,7 +101,17 @@ public class Setting {
     if (properties.containsKey(settingName)) {
       return properties.get(settingName);
     }
-
     return Collections.emptySet();
+  }
+
+  public Optional<String> getSettingValue(String settingCategory, String propertyName) {
+    List<String> values = getSettingValue(settingCategory).stream().
+      flatMap(sv -> sv.entrySet().stream()).
+      filter(entry -> Objects.equals(entry.getKey(), propertyName)).
+      map(entry -> entry.getValue()).
+      collect(Collectors.toList());
+    Preconditions.checkState(values.size() < 2, "Ambigous settings (%s) for category %s, property %s",
+      values.size(), settingCategory, settingCategory);
+    return values.isEmpty() ? Optional.empty() : Optional.of(values.get(0));
   }
 }

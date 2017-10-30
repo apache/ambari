@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ConfigurationContext;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 /**
@@ -49,7 +50,7 @@ public interface ClusterTopology {
    *
    * @return assocaited blueprint
    */
-  Blueprint getBlueprint();
+  BlueprintV2 getBlueprint();
 
   /**
    * Get the cluster scoped configuration for the cluster.
@@ -58,7 +59,11 @@ public interface ClusterTopology {
    *
    * @return cluster scoped configuration
    */
+  @Deprecated
   Configuration getConfiguration();
+
+
+  Collection<Service> getServiceConfigs();
 
   /**
    * Get host group information.
@@ -118,18 +123,18 @@ public interface ClusterTopology {
   void addHostToTopology(String hostGroupName, String host) throws InvalidTopologyException, NoSuchHostGroupException;
 
   /**
-   * Determine if NameNode HA is enabled.
+   * Determine if NameNode HA is enabled within ConfigurationContext.
    *
    * @return true if NameNode HA is enabled; false otherwise
    */
-  boolean isNameNodeHAEnabled();
+  boolean isNameNodeHAEnabled(ConfigurationContext configuration);
 
   /**
-   * Determine if Yarn ResourceManager HA is enabled.
+   * Determine if Yarn ResourceManager HA is enabled within ConfigurationContext.
    *
    * @return true if Yarn ResourceManager HA is enabled; false otherwise
    */
-  boolean isYarnResourceManagerHAEnabled();
+  boolean isYarnResourceManagerHAEnabled(ConfigurationContext configuration);
 
   /**
    * Determine if the cluster is kerberos enabled.

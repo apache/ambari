@@ -108,7 +108,7 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
           for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
             try {
               ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-                stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                stackId.getStackVersion(), hostComponentResponse.getServiceType(),
                 hostComponentResponse.getComponentName());
 
               State state = getHostComponentState(hostComponentResponse);

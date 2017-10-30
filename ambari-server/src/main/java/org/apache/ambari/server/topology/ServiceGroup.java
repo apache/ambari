@@ -18,30 +18,28 @@
 
 package org.apache.ambari.server.topology;
 
-
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 
 public class ServiceGroup {
 
-  private final String name;
+  private String name = null;
 
-  private final Collection<Service> services;
+  private Map<String, Service> servicesByName;
+  private ListMultimap<String, Service> servicesByType;
 
-  private final Configuration configuration;
+  private Configuration configuration = null;
 
-  private final Set<ServiceGroup> dependencies;
+  private Set<String> dependencies = new HashSet<>();
 
-  public ServiceGroup(String name, Collection<Service> services) {
-    this(name, services, null, null);
-  }
-
-  public ServiceGroup(String name, Collection<Service> services, Configuration configuration, Set<ServiceGroup> dependencies) {
-    this.name = name;
-    this.services = services;
-    this.configuration = configuration;
-    this.dependencies = dependencies;
-  }
+  public ServiceGroup() { }
 
   /**
    * Gets the name of this service group
@@ -52,16 +50,43 @@ public class ServiceGroup {
     return this.name;
   }
 
-
   public Collection<Service> getServices() {
-    return services;
+    return servicesByName.values();
+  }
+
+  public Service getServiceByName(String name) {
+    return servicesByName.get(name);
+  }
+
+  public List<Service> getServiceByType(String name) {
+    return servicesByType.get(name);
   }
 
   public Configuration getConfiguration() {
     return configuration;
   }
 
-  public Set<ServiceGroup> getDependencies() {
+  public Set<String> getDependencies() {
     return dependencies;
   }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setServices(Collection<Service> services) {
+    services.forEach(s -> s.setServiceGroup(this));
+    this.servicesByName = services.stream().collect(Collectors.toMap(Service::getName, s -> s));
+    this.servicesByType = Multimaps.index(services, Service::getType);
+    services.forEach(s -> s.setServiceGroup(this));
+  }
+
+  public void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
+  }
+
+  public void setDependencies(Set<String> dependencies) {
+    this.dependencies = dependencies;
+  }
+
 }

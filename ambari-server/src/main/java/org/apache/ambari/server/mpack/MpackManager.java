@@ -117,7 +117,7 @@ public class MpackManager {
           }
         }
       }
-    } catch (IOException e) {
+    } catch (NullPointerException|IOException e) {
       e.printStackTrace();
     }
   }

@@ -121,7 +121,7 @@ public class StackVersionListener {
 
       AmbariMetaInfo ambariMetaInfo = ambariMetaInfoProvider.get();
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(desiredStackId.getStackName(),
-          desiredStackId.getStackVersion(), sch.getServiceName(), sch.getServiceComponentName());
+          desiredStackId.getStackVersion(), sch.getServiceType(), sch.getServiceComponentName());
 
       // not advertising a version, do nothing
       if (!componentInfo.isVersionAdvertised()) {

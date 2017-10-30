@@ -150,7 +150,6 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
         resource.setProperty(MPACK_NAME, response.getMpackName());
         resource.setProperty(MPACK_VERSION, response.getMpackVersion());
         resource.setProperty(MPACK_URI, response.getMpackUri());
-
         associatedResources.add(resource);
         return getRequestStatus(null, associatedResources);
       }
@@ -290,7 +289,6 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
           resource.setProperty(MPACK_VERSION, entity.getMpackVersion());
           resource.setProperty(MPACK_URI, entity.getMpackUri());
           resource.setProperty(REGISTRY_ID, entity.getRegistryId());
-
           List<Packlet> packlets = getManagementController().getPacklets(entity.getMpackId());
           resource.setProperty(PACKLETS, packlets);
           results.add(resource);

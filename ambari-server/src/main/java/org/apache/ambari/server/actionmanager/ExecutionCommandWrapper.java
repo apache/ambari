@@ -237,11 +237,13 @@ public class ExecutionCommandWrapper {
     // set the repository version for the component this command is for -
     // always use the current desired version
     String serviceName = executionCommand.getServiceName();
+    String serviceType = null;
     try {
       RepositoryVersionEntity repositoryVersion = null;
       if (!StringUtils.isEmpty(serviceName)) {
         Service service = cluster.getService(serviceName);
         if (null != service) {
+          serviceType = service.getServiceType();
           repositoryVersion = service.getDesiredRepositoryVersion();
 
           String componentName = executionCommand.getComponentName();
@@ -273,9 +275,9 @@ public class ExecutionCommandWrapper {
         }
 
         if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
-          if (!StringUtils.isEmpty(serviceName)) {
+          if (!StringUtils.isEmpty(serviceType)) {
             ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-              stackId.getStackVersion(), serviceName);
+              stackId.getStackVersion(), serviceType);
 
             commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
           }

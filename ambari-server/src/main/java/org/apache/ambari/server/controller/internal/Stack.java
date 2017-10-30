@@ -27,8 +27,8 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
@@ -668,14 +668,14 @@ public class Stack {
     serviceConfigurations.put(service, mapServiceConfig);
     requiredServiceConfigurations.put(service, mapRequiredServiceConfig);
 
-    Set<StackConfigurationResponse> serviceConfigs = controller.getStackConfigurations(
+    Set<ReadOnlyConfigurationResponse> serviceConfigs = controller.getStackConfigurations(
         Collections.singleton(new StackConfigurationRequest(name, version, service, null)));
-    Set<StackConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
+    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
         Collections.singleton(new StackLevelConfigurationRequest(name, version, null)));
     serviceConfigs.addAll(stackLevelConfigs);
 
     // shouldn't have any required properties in stack level configuration
-    for (StackConfigurationResponse config : serviceConfigs) {
+    for (ReadOnlyConfigurationResponse config : serviceConfigs) {
       ConfigProperty configProperty = new ConfigProperty(config);
       String type = configProperty.getType();
 
@@ -709,10 +709,10 @@ public class Stack {
 
   private void parseStackConfigurations () throws AmbariException {
 
-    Set<StackConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
+    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
         Collections.singleton(new StackLevelConfigurationRequest(name, version, null)));
 
-    for (StackConfigurationResponse config : stackLevelConfigs) {
+    for (ReadOnlyConfigurationResponse config : stackLevelConfigs) {
       ConfigProperty configProperty = new ConfigProperty(config);
       String type = configProperty.getType();
 
@@ -757,7 +757,7 @@ public class Stack {
     private Set<PropertyDependencyInfo> dependsOnProperties =
       Collections.emptySet();
 
-    public ConfigProperty(StackConfigurationResponse config) {
+    public ConfigProperty(ReadOnlyConfigurationResponse config) {
       this.name = config.getPropertyName();
       this.value = config.getPropertyValue();
       this.attributes = config.getPropertyAttributes();

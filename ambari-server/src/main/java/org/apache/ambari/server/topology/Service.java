@@ -19,44 +19,38 @@
 package org.apache.ambari.server.topology;
 
 
+import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.StackV2;
 
-public class Service {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
-  private final String type;
 
-  private final String name;
+public class Service implements Configurable {
 
-  private final Stack stack;
+  private String type;
 
-  private final Configuration configuration;
+  private ServiceId id = new ServiceId();
 
-  private final Set<Service> dependentServices;
+  private String stackId;
 
-  public Service(String type, Stack stack) {
-    this(type, null, stack, null, null);
-  }
+  private Configuration configuration;
 
-  /**
-   * In case there's no name specified name will be set to type.
-   * @param type
-   * @param name
-   * @param stack
-   * @param configuration
-   */
-  public Service(String type, String name, Stack stack, Configuration configuration, Set<Service> dependentServices) {
-    this.type = type;
-    if (name == null) {
-      this.name = type;
-    } else {
-      this.name = name;
-    }
-    this.stack = stack;
-    this.configuration = configuration;
-    this.dependentServices = dependentServices;
-  }
+  private Set<ServiceId> dependencies = ImmutableSet.of();
+
+  @JsonIgnore
+  private Map<ServiceId, Service> dependencyMap = ImmutableMap.of();
+
+  @JsonIgnore
+  private ServiceGroup serviceGroup;
+
+  @JsonIgnore
+  private StackV2 stack;
 
   /**
    * Gets the name of this service
@@ -64,18 +58,95 @@ public class Service {
    * @return component name
    */
   public String getName() {
-    return this.name;
+    return this.id.getName();
+  }
+
+  public String getServiceGroupId() {
+    return this.id.getServiceGroup();
+  }
+
+  public ServiceGroup getServiceGroup() {
+    return serviceGroup;
   }
 
   public String getType() {
     return type;
   }
 
-  public Stack getStack() {
+  public String getStackId() {
+    return stackId;
+  }
+
+  public StackV2 getStack() {
     return stack;
+  }
+
+  public Set<ServiceId> getDependentServiceIds() {
+    return dependencies;
+  }
+
+  public Set<Service> getDependencies() {
+    return ImmutableSet.copyOf(dependencyMap.values());
   }
 
   public Configuration getConfiguration() {
     return configuration;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+    if (null == this.getName()) {
+      setName(type);
+    }
+  }
+
+  public void setName(String name) {
+    this.id.setName(name);
+  }
+
+  public void setServiceGroup(ServiceGroup serviceGroup) {
+    this.serviceGroup = serviceGroup;
+    this.id.setServiceGroup(serviceGroup.getName());
+  }
+
+  @JsonProperty("stack_id")
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
+  }
+
+  public void setStackFromBlueprint(BlueprintV2 blueprint) {
+    this.stack = blueprint.getStackById(this.stackId);
+  }
+
+  public void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
+  }
+
+  public void setDependencies(Set<ServiceId> dependencies) {
+    this.dependencies = dependencies;
+  }
+
+  /**
+   * Called during post-deserialization
+   * @param dependencyMap
+   */
+  void setDependencyMap(Map<ServiceId, Service> dependencyMap) {
+    Preconditions.checkArgument(dependencyMap.keySet().equals(dependencies),
+      "Received dependency map is not consisted with persisted dependency references: %s vs. %s",
+      dependencyMap.keySet(), dependencies);
+    this.dependencyMap = dependencyMap;
+  }
+
+  public ServiceId getId() {
+    return id;
+  }
+
+  @Override
+  public String toString() {
+    return "Service{" +
+      "type='" + type + '\'' +
+      ", id=" + id +
+      ", stackId='" + stackId + '\'' +
+      '}';
   }
 }

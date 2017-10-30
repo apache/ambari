@@ -109,6 +109,7 @@ import org.apache.ambari.server.registry.RegistryFactory;
 import org.apache.ambari.server.registry.RegistryFactoryImpl;
 import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.registry.RegistryManagerImpl;
+import org.apache.ambari.server.resources.ResourceLevelClusterSettingManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -511,6 +512,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
     install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
     install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
+    install(new FactoryModuleBuilder().build(ResourceLevelClusterSettingManagerFactory.class));
 
     bind(RegistryFactory.class).to(RegistryFactoryImpl.class);
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);

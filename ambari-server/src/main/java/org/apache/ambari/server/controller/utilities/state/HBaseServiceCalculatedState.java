@@ -61,7 +61,7 @@ public final class HBaseServiceCalculatedState extends DefaultServiceCalculatedS
         for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
           try {
             ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
-              stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+              stackId.getStackVersion(), hostComponentResponse.getServiceType(),
               hostComponentResponse.getComponentName());
 
             if (componentInfo.isMaster()) {

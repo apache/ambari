@@ -74,20 +74,21 @@ public class ComponentsExistInRepoCheck extends AbstractCheckDescriptor {
     Set<String> servicesInUpgrade = getServicesInUpgrade(request);
     for (String serviceName : servicesInUpgrade) {
       try {
+        Service service = cluster.getService(serviceName);
+        String serviceType = service.getServiceType();
         ServiceInfo serviceInfo = ambariMetaInfo.get().getService(targetStack.getStackName(),
-            targetStack.getStackVersion(), serviceName);
+            targetStack.getStackVersion(), serviceType);
 
         if (serviceInfo.isDeleted() || !serviceInfo.isValid()) {
           failedServices.add(serviceName);
           continue;
         }
 
-        Service service = cluster.getService(serviceName);
         Map<String, ServiceComponent> componentsInUpgrade = service.getServiceComponents();
         for (String componentName : componentsInUpgrade.keySet()) {
           try {
             ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(
-                targetStack.getStackName(), targetStack.getStackVersion(), serviceName,
+                targetStack.getStackName(), targetStack.getStackVersion(), serviceType,
                 componentName);
 
             // if this component isn't included in the upgrade, then skip it

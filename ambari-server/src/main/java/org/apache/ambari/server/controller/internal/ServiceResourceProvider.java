@@ -920,7 +920,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           StackId sid = service.getDesiredStackId();
 
           if ( ambariMetaInfo.getComponent(
-              sid.getStackName(), sid.getStackVersion(), sc.getServiceName(),
+              sid.getStackName(), sid.getStackVersion(), sc.getServiceType(),
               sch.getServiceComponentName()).isMaster()) {
             throw new IllegalArgumentException(error);
           } else {

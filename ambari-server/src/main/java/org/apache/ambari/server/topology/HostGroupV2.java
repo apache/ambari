@@ -83,11 +83,13 @@ public interface HostGroupV2 {
   /**
    * Get the host group components which belong to the specified service.
    *
-   * @param service  service name
+   * @param serviceId  service id
    *
    * @return collection of component names for the specified service; will not return null
    */
-  Collection<ComponentV2> getComponents(Service service);
+  Collection<ComponentV2> getComponentsByServiceId(ServiceId serviceId);
+
+  Collection<ComponentV2> getComponents(Service serviceId);
 
   /**
    * Determine if the host group contains a master component.
@@ -97,11 +99,21 @@ public interface HostGroupV2 {
   boolean containsMasterComponent();
 
   /**
-   * Get all of the services associated with the host group components.
-   *
-   * @return collection of service names
+   * @return collection of service ids associated with the host group components.
+   */
+  Collection<ServiceId> getServiceIds();
+
+  /**
+   * @return collection of services associated with the host group components.
    */
   Collection<Service> getServices();
+
+  Service getService(ServiceId serviceId);
+
+  /**
+   * @return collection of service names associated with the host group components.
+   */
+  Collection<String> getServiceNames();
 
   /**
    * Get the configuration associated with the host group.
@@ -110,6 +122,7 @@ public interface HostGroupV2 {
    *
    * @return host group configuration
    */
+  @Deprecated
   Configuration getConfiguration();
 
   /**
