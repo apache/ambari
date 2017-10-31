@@ -39,9 +39,6 @@ limitations under the License.
 """
 
 from ambari_agent.ClusterCache import ClusterCache
-import logging
-
-logger = logging.getLogger(__name__)
 
 class ClusterAlertDefinitionsCache(ClusterCache):
   """
@@ -73,11 +70,6 @@ class ClusterAlertDefinitionsCache(ClusterCache):
     mutable_dict = self._get_mutable_copy()
 
     for cluster_id in cache_update:
-      # adding a new cluster via UPDATE
-      if not cluster_id in mutable_dict:
-        mutable_dict[cluster_id] = cache_update[cluster_id]
-        continue
-
       for alert_definition in cache_update[cluster_id]['alertDefinitions']:
         id_to_update = alert_definition['definitionId']
         index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
@@ -90,20 +82,9 @@ class ClusterAlertDefinitionsCache(ClusterCache):
 
   def cache_delete(self, cache_update, cache_hash):
     mutable_dict = self._get_mutable_copy()
-    clusters_ids_to_delete = []
 
     for cluster_id in cache_update:
-      if not cluster_id in mutable_dict:
-        logger.error("Cannot do alert_definitions delete for cluster cluster_id={0}, because do not have information about the cluster".format(cluster_id))
-        continue
-
-      # deleting whole cluster
-      if cache_update[cluster_id] == {}:
-        clusters_ids_to_delete.append(cluster_id)
-        continue
-
       for alert_definition in cache_update[cluster_id]['alertDefinitions']:
-
         id_to_update = alert_definition['definitionId']
         index_of_alert = self.get_alert_definition_index_by_id(mutable_dict, cluster_id, id_to_update)
 
@@ -111,9 +92,6 @@ class ClusterAlertDefinitionsCache(ClusterCache):
           raise Exception("Cannot delete an alert with id={0}".format(id_to_update))
 
         del mutable_dict[cluster_id]['alertDefinitions'][index_of_alert]
-
-    for cluster_id in clusters_ids_to_delete:
-      del mutable_dict[cluster_id]
 
     self.rewrite_cache(mutable_dict, cache_hash)
 

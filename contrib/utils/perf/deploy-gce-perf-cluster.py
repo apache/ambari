@@ -28,12 +28,12 @@ import re
 import socket
 
 cluster_prefix = "perf"
-ambari_repo_file_url = "http://10.240.0.30/ambari.repo"
+ambari_repo_file_url = "http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos6/2.x/updates/2.5.0.0/ambaribn.repo"
 
 public_hostname_script = "foo"
 hostname_script = "foo"
 
-NUMBER_OF_AGENTS_ON_HOST = 70
+NUMBER_OF_AGENTS_ON_HOST = 50
 
 
 class SSH:
@@ -330,7 +330,10 @@ def create_server_script(server_host_name):
 
   contents = "#!/bin/bash\n" + \
   "wget -O /etc/yum.repos.d/ambari.repo {0}\n".format(ambari_repo_file_url) + \
-  "yum clean all; yum install ambari-server -y\n" + \
+  "yum clean all; yum install git ambari-server -y\n" + \
+  "mkdir /home ; cd /home ; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
+  "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-server/resources/stacks/PERF\n" + \
+  "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
   "sed -i -f /home/ambari/ambari-server/src/main/resources/stacks/PERF/install_packages.sed /var/lib/ambari-server/resources/custom_actions/scripts/install_packages.py\n" + \
   "sed -i -f /home/ambari/ambari-server/src/main/resources/stacks/PERF/install_packages.sed /var/lib/ambari-agent/cache/custom_actions/scripts/install_packages.py\n" + \
   "\n" + \
@@ -396,11 +399,13 @@ def create_agent_script(server_host_name):
   # TODO, instead of cloning Ambari repo on each VM, do it on the server once and distribute to all of the agents.
   contents = "#!/bin/bash\n" + \
   "wget -O /etc/yum.repos.d/ambari.repo {0}\n".format(ambari_repo_file_url) + \
-  "yum clean all; yum install krb5-workstation ambari-agent -y\n" + \
+  "yum clean all; yum install krb5-workstation git ambari-agent -y\n" + \
+  "mkdir /home ; cd /home; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
+  "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
   "sed -i -f /var/lib/ambari-agent/cache/stacks/PERF/PythonExecutor.sed /usr/lib/python2.6/site-packages/ambari_agent/PythonExecutor.py\n" + \
   "sed -i -e 's/hostname=localhost/hostname={0}/g' /etc/ambari-agent/conf/ambari-agent.ini\n".format(server_host_name) + \
   "sed -i -e 's/agent]/agent]\\nhostname_script={0}\\npublic_hostname_script={1}\\n/1' /etc/ambari-agent/conf/ambari-agent.ini\n".format(hostname_script, public_hostname_script) + \
-  "wget http://10.240.0.30/agent-multiplier.py ; python agent-multiplier.py start\n" + \
+  "python /home/ambari/ambari-agent/conf/unix/agent-multiplier.py start\n" + \
   "exit 0"
 
   with open("agent.sh", "w") as f:
@@ -424,7 +429,6 @@ def execute_command(args, ip, cmd, fail_message, custom_option='', login='root')
   if status_code != 0:
     raise Exception(ssh_result["errormsg"])
 
-  print ssh_result
   return ssh_result["log"][0]
 
 
