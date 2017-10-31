@@ -116,6 +116,7 @@ class CheckHost(Script):
     self.pkg_provider = get_provider("Package")
 
   def actionexecute(self, env):
+    raise Exception("Skip")
     Logger.info("Host checks started.")
     config = Script.get_config()
     tmp_dir = Script.get_tmp_dir()

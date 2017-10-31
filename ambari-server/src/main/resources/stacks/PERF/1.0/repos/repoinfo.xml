@@ -16,6 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
+  <latest>/var/lib/ambari-server/resources/stacks/PERF/1.0/hdp_urlinfo.json</latest>
   <os family="redhat6">
     <repo>
       <baseurl>http://foo-1.0.1.0-1</baseurl>
