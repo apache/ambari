@@ -2605,6 +2605,7 @@ Em.I18n.translations = {
 
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
+  'hosts.bulkOperation.confirmation.delete.hosts':'Are you sure you want to delete the following {0} hosts?',
   'hosts.bulkOperation.confirmation.hostComponents':'Are you sure you want to <strong>{0} {1}</strong> on the following {2} hosts?',
   'hosts.bulkOperation.passiveState.nothingToDo.body':'All hosts that you selected are already in Maintenance Mode.',
   'hosts.bulkOperation.warningInfo.body':'Components on these hosts are stopped so decommission will be skipped.',
