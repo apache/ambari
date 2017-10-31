@@ -25,6 +25,8 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.BlueprintV2Entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -36,6 +38,8 @@ import com.google.inject.persist.Transactional;
  */
 @Singleton
 public class BlueprintV2DAO {
+
+  protected final static Logger LOG = LoggerFactory.getLogger(BlueprintV2DAO.class);
 
   /**
    * JPA entity manager
@@ -114,11 +118,12 @@ public class BlueprintV2DAO {
 
   /**
    * Remove entity instance by primary key
-   * @param blueprint_name Primary key: blueprint name
+   * @param blueprintName Primary key: blueprint name
    */
   @Transactional
-  public void removeByName(String blueprint_name) {
-    entityManagerProvider.get().remove(findByName(blueprint_name));
+  public void removeByName(String blueprintName) {
+    LOG.debug("Removing blueprintv2: {}", blueprintName);
+    entityManagerProvider.get().remove(findByName(blueprintName));
   }
 
 }

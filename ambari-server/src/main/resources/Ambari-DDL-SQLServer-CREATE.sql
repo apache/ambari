@@ -556,7 +556,6 @@ CREATE TABLE blueprintv2 (
   blueprint_name VARCHAR(255) NOT NULL,
   security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_descriptor_reference VARCHAR(255),
-  stack_id BIGINT NOT NULL,
   content VARCHAR(MAX) NOT NULL,
   CONSTRAINT PK_blueprintv2 PRIMARY KEY (blueprint_name),
   CONSTRAINT FK_blueprintv2_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
@@ -565,8 +564,7 @@ CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,
   NAME VARCHAR(255) NOT NULL,
   cardinality VARCHAR(255) NOT NULL,
-  CONSTRAINT PK_hostgroup PRIMARY KEY CLUSTERED (blueprint_name, NAME),
-  CONSTRAINT FK_hg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
+  CONSTRAINT PK_hostgroup PRIMARY KEY CLUSTERED (blueprint_name, NAME));
 
 CREATE TABLE hostgroup_component (
   blueprint_name VARCHAR(255) NOT NULL,

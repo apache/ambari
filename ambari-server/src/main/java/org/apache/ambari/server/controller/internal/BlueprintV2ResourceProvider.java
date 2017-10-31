@@ -139,6 +139,7 @@ public class BlueprintV2ResourceProvider extends AbstractControllerResourceProvi
                             AmbariManagementController controller) {
 
     super(propertyIds, keyPropertyIds, controller);
+    blueprintFactory = BlueprintV2Factory.create(controller);
   }
 
   /**
@@ -286,6 +287,12 @@ public class BlueprintV2ResourceProvider extends AbstractControllerResourceProvi
         applySelectFilters(requestedIds, blueprintAsMap, filteredMap);
         blueprintAsMap = filteredMap;
       }
+      // flatten the Blueprint property category
+      Map<String, Object> blueprintPc = (Map<String, Object>)blueprintAsMap.remove(BLUEPRINTS_PROPERTY_ID);
+      for (Map.Entry<String, Object> entry: blueprintPc.entrySet()) {
+        blueprintAsMap.put(BLUEPRINTS_PROPERTY_ID + "/" + entry.getKey(), entry.getValue());
+      }
+      // set resources
       blueprintAsMap.entrySet().forEach( entry -> resource.setProperty(entry.getKey(), entry.getValue()) );
       return resource;
     }

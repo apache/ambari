@@ -5,7 +5,7 @@
       "type": "NONE"
     }
   },
-  "cluster-settings": {
+  "cluster_settings": {
     "deployment_settings": [
       {"skip_failure":"true"}
     ],

@@ -375,9 +375,10 @@
         "host_groups",
         "host_groups/components",
         "host_groups/cardinality",
-        "configurations",
+        "service_groups",
+        "repository_versions",
         "validate_topology",
-        "settings"
+        "cluster_settings"
     ],
     "Recommendation":[
         "Recommendation/id",

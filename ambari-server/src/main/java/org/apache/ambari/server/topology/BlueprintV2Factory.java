@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -37,6 +38,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -81,6 +83,10 @@ public class BlueprintV2Factory {
   }
   protected BlueprintV2Factory(StackV2Factory stackFactory) {
     this.stackFactory = stackFactory;
+  }
+
+  public static BlueprintV2Factory create(AmbariManagementController controller) {
+    return new BlueprintV2Factory(new StackV2Factory(controller));
   }
 
   public BlueprintV2 getBlueprint(String blueprintName) throws NoSuchStackException, NoSuchBlueprintException, IOException {
@@ -181,6 +187,7 @@ public class BlueprintV2Factory {
     resolver.addMapping(HostGroupV2.class, HostGroupV2Impl.class);
     module.setAbstractTypes(resolver);
     mapper.registerModule(module);
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     return mapper;
   }
 

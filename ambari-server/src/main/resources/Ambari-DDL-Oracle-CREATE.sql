@@ -551,10 +551,8 @@ CREATE TABLE blueprintv2 (
   blueprint_name VARCHAR2(255) NOT NULL,
   security_type VARCHAR2(32) NOT NULL DEFAULT 'NONE',
   security_descriptor_reference VARCHAR2(255),
-  stack_id NUMBER(19) NOT NULL,
   content CLOB NOT NULL,
-  CONSTRAINT PK_blueprintv2 PRIMARY KEY (blueprint_name),
-  CONSTRAINT FK_blueprintv2_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  CONSTRAINT PK_blueprintv2 PRIMARY KEY (blueprint_name));
 
 
 CREATE TABLE hostgroup (

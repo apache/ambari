@@ -76,6 +76,15 @@ public class BlueprintImplV2 implements BlueprintV2 {
     this.securityConfiguration = blueprints.securityConfiguration;
   }
 
+  @JsonProperty("Blueprints")
+  public Blueprints getBlueprints() {
+    Blueprints blueprints = new Blueprints();
+    blueprints.name = this.name;
+    blueprints.securityConfiguration = this.securityConfiguration;
+    return blueprints;
+  }
+
+
   public void setName(String name) {
     this.name = name;
   }
@@ -102,12 +111,13 @@ public class BlueprintImplV2 implements BlueprintV2 {
     ));
   }
 
-  @JsonProperty("cluster-settings")
+  @JsonProperty("cluster_settings")
   public void setClusterSettings(Map<String, Set<HashMap<String, String>>> properties) {
     this.setting = new Setting(properties);
   }
 
   @Override
+  @JsonIgnore
   public String getName() {
     return name;
   }
@@ -248,6 +258,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
+  @JsonProperty("cluster_settings")
   public Setting getSetting() {
     return this.setting;
   }
@@ -304,6 +315,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
+  @JsonIgnore
   public SecurityConfiguration getSecurity() {
     return this.securityConfiguration;
   }
