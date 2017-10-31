@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -51,8 +52,6 @@ import org.apache.log4j.Logger;
  * Configuration class that reads properties from ams-site.xml. All values
  * for time or intervals are given in seconds.
  */
-@InterfaceAudience.Public
-@InterfaceStability.Evolving
 public class TimelineMetricConfiguration {
   private static final Log LOG = LogFactory.getLog(TimelineMetricConfiguration.class);
 
@@ -340,14 +339,22 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_COLLECTOR_IGNITE_BACKUPS = "timeline.metrics.collector.ignite.nodes.backups";
 
   public static final String INTERNAL_CACHE_HEAP_PERCENT =
-    "timeline.metrics.service.cache.%s.heap.percent";
+    "timeline.metrics.internal.cache.%s.heap.percent";
 
   public static final String EXTERNAL_SINK_INTERVAL =
-    "timeline.metrics.service.external.sink.%s.interval";
+    "timeline.metrics.external.sink.%s.%s.interval";
 
   public static final String DEFAULT_EXTERNAL_SINK_DIR =
-    "timeline.metrics.service.external.sink.dir";
+    "timeline.metrics.external.sink.dir";
 
+  public static final String KAFKA_SERVERS = "timeline.metrics.external.sink.kafka.bootstrap.servers";
+  public static final String KAFKA_ACKS = "timeline.metrics.external.sink.kafka.acks";
+  public static final String KAFKA_RETRIES = "timeline.metrics.external.sink.kafka.bootstrap.retries";
+  public static final String KAFKA_BATCH_SIZE = "timeline.metrics.external.sink.kafka.batch.size";
+  public static final String KAFKA_LINGER_MS = "timeline.metrics.external.sink.kafka.linger.ms";
+  public static final String KAFKA_BUFFER_MEM = "timeline.metrics.external.sink.kafka.buffer.memory";
+  public static final String KAFKA_SINK_TIMEOUT_SECONDS = "timeline.metrics.external.sink.kafka.timeout.seconds";
+  
   private Configuration hbaseConf;
   private Configuration metricsConf;
   private Configuration metricsSslConf;
@@ -583,8 +590,24 @@ public class TimelineMetricConfiguration {
     return whitelist;
   }
 
-  public int getExternalSinkInterval(SOURCE_NAME sourceName) {
-    return Integer.parseInt(metricsConf.get(String.format(EXTERNAL_SINK_INTERVAL, sourceName), "-1"));
+  /**
+   * Get the sink interval for a metrics source.
+   * Determines how often the metrics will be written to the sink.
+   * This determines whether any caching will be needed on the collector
+   * side, default interval disables caching by writing at the same time as
+   * we get data.
+   *
+   * @param sinkProviderClassName Simple name of your implementation of {@link ExternalSinkProvider}
+   * @param sourceName {@link SOURCE_NAME}
+   * @return seconds
+   */
+  public int getExternalSinkInterval(String sinkProviderClassName,
+                                     SOURCE_NAME sourceName) {
+    String sinkProviderSimpleClassName = sinkProviderClassName.substring(
+      sinkProviderClassName.lastIndexOf(".") + 1);
+
+    return Integer.parseInt(metricsConf.get(
+      String.format(EXTERNAL_SINK_INTERVAL, sinkProviderSimpleClassName, sourceName), "-1"));
   }
 
   public InternalSourceProvider getInternalSourceProvider() {
@@ -594,12 +617,18 @@ public class TimelineMetricConfiguration {
     return ReflectionUtils.newInstance(providerClass, metricsConf);
   }
 
-  public ExternalSinkProvider getExternalSinkProvider() {
-    Class<?> providerClass = metricsConf.getClassByNameOrNull(TIMELINE_METRICS_SINK_PROVIDER_CLASS);
-    if (providerClass != null) {
-      return (ExternalSinkProvider) ReflectionUtils.newInstance(providerClass, metricsConf);
+  /**
+   * List of external sink provider classes. Comma-separated.
+   */
+  public List<ExternalSinkProvider> getExternalSinkProviderList() {
+    Class<?>[] providerClasses = metricsConf.getClasses(TIMELINE_METRICS_SINK_PROVIDER_CLASS);
+    List<ExternalSinkProvider> providerList = new ArrayList<>();
+    if (providerClasses != null) {
+      for (Class<?> providerClass : providerClasses) {
+        providerList.add((ExternalSinkProvider) ReflectionUtils.newInstance(providerClass, metricsConf));
+      }
     }
-    return null;
+    return providerList;
   }
 
   public String getInternalCacheHeapPercent(String instanceName) {

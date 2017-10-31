@@ -92,7 +92,7 @@ public class HttpSinkProvider implements ExternalSinkProvider {
 
   @Override
   public ExternalMetricsSink getExternalMetricsSink(InternalSourceProvider.SOURCE_NAME sourceName) {
-    return null;
+    return new DefaultHttpMetricsSink();
   }
 
   protected HttpURLConnection getConnection(String spec) throws IOException {
@@ -147,7 +147,7 @@ public class HttpSinkProvider implements ExternalSinkProvider {
     @Override
     public int getSinkTimeOutSeconds() {
       try {
-        return conf.getMetricsConf().getInt("timeline.metrics.service.external.http.sink.timeout.seconds", 10);
+        return conf.getMetricsConf().getInt("timeline.metrics.external.sink.http.timeout.seconds", 10);
       } catch (Exception e) {
         return 10;
       }

@@ -1,8 +1,3 @@
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.sink;
-
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider.SOURCE_NAME;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,9 +16,14 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
  * limitations under the License.
  */
 
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.sink;
+
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider.SOURCE_NAME;
+
+
 /**
  * Configurable provider for sink classes that match the metrics sources.
- * Provider can return same sink of different sinks for each source.
+ * Provider can return same sink or different sinks for each source.
  */
 public interface ExternalSinkProvider {
 

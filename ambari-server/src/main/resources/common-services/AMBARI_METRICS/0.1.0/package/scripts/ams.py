@@ -507,6 +507,41 @@ def ams(name=None, action=None):
 
     pass
 
+  elif name == 'admanager':
+    ams_ad_directories = [
+      params.ams_ad_conf_dir,
+      params.ams_ad_log_dir,
+      params.ams_ad_data_dir,
+      params.ams_ad_pid_dir
+    ]
+
+    for ams_ad_dir in ams_ad_directories:
+      Directory(ams_ad_dir,
+                owner=params.ams_user,
+                group=params.user_group,
+                mode=0755,
+                create_parents=True,
+                recursive_ownership=True
+                )
+
+    File(format("{ams_ad_conf_dir}/ams-admanager-env.sh"),
+         owner=params.ams_user,
+         group=params.user_group,
+         content=InlineTemplate(params.ams_grafana_env_sh_template)
+         )
+
+    File(format("{conf_dir}/config.yaml"),
+         content=Template("config.yaml.j2"),
+         owner=params.ams_user,
+         group=params.user_group
+         )
+
+    if action != 'stop':
+      for dir in ams_ad_directories:
+        Execute(('chown', '-R', params.ams_user, dir),
+                sudo=True
+                )
+
 def is_spnego_enabled(params):
   if 'core-site' in params.config['configurations'] \
       and 'hadoop.http.authentication.type' in params.config['configurations']['core-site'] \

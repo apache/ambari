@@ -63,21 +63,14 @@ public class RawMetricsSource implements InternalMetricsSource {
   }
 
   private void initializeFixedRateScheduler() {
-    executorService.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        rawMetricsSink.sinkMetricData(cache.evictAll());
-      }
-    }, rawMetricsSink.getFlushSeconds(), rawMetricsSink.getFlushSeconds(), TimeUnit.SECONDS);
+    executorService.scheduleAtFixedRate(() -> rawMetricsSink.sinkMetricData(cache.evictAll()),
+      rawMetricsSink.getFlushSeconds(), rawMetricsSink.getFlushSeconds(), TimeUnit.SECONDS);
   }
 
   private void submitDataWithTimeout(final Collection<TimelineMetrics> metrics) {
-    Future f = executorService.submit(new Callable<Object>() {
-      @Override
-      public Object call() throws Exception {
-        rawMetricsSink.sinkMetricData(metrics);
-        return null;
-      }
+    Future f = executorService.submit(() -> {
+      rawMetricsSink.sinkMetricData(metrics);
+      return null;
     });
     try {
       f.get(rawMetricsSink.getSinkTimeOutSeconds(), TimeUnit.SECONDS);

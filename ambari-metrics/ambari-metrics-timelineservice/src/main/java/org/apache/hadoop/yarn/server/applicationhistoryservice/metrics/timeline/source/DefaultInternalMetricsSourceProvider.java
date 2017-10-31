@@ -24,7 +24,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 public class DefaultInternalMetricsSourceProvider implements InternalSourceProvider {
   private static final Log LOG = LogFactory.getLog(DefaultInternalMetricsSourceProvider.class);
 
-  // TODO: Implement read based sources for higher level data
+  // TODO: Implement read based sources for higher order data
   @Override
   public InternalMetricsSource getInternalMetricsSource(SOURCE_NAME sourceName, int sinkIntervalSeconds, ExternalMetricsSink sink) {
     if (sink == null) {
