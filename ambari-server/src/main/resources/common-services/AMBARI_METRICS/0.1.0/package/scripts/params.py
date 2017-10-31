@@ -187,6 +187,15 @@ ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
 ams_hbase_init_check_enabled = default("/configurations/ams-site/timeline.metrics.hbase.init.check.enabled", True)
 
+# AD Manager settings
+ams_ad_conf_dir = '/etc/ambari-metrics-anomaly-detection/conf'
+ams_ad_log_dir = default("/configurations/ams-ad-env/ams_admanager_log_dir", 'var/log/ambari-metrics-anomaly-detection')
+ams_ad_pid_dir = status_params.ams_admanager_pid_dir
+ams_ad_data_dir = default("/configurations/ams-ad-env/ams_admanager_data_dir", '/var/lib/ambari-metrics-anomaly-detection')
+
+ams_admanager_script = "/usr/sbin/ambari-metrics-admanager"
+ams_admanager_port = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.application.port']
+
 #hadoop params
 
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
