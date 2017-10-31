@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>ams_admanager_log_dir</name>
+    <value>/var/log/ambari-metrics-anomaly-detection</value>
+    <display-name>Anomaly Detection Manager log dir</display-name>
+    <description>AMS Anomaly Detection Manager log directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ams_admanager_pid_dir</name>
+    <value>/var/run/ambari-metrics-anomaly-detection</value>
+    <display-name>Anomaly Detection Manager pid dir</display-name>
+    <description>AMS Anomaly Detection Manager pid directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ams_admanager_data_dir</name>
+    <value>/var/lib/ambari-metrics-anomaly-detection</value>
+    <display-name>Anomaly Detection Manager data dir</display-name>
+    <description>AMS Anomaly Detection Manager data directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ams_admanager_heapsize</name>
+    <value>1024</value>
+    <description>Anomaly Detection Manager Heap Size</description>
+    <display-name>Anomaly Detection Manager Heap Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <minimum>512</minimum>
+      <maximum>16384</maximum>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>ams-ad-env template</display-name>
+    <value>
+      # Set environment variables here.
+
+      # The java implementation to use. Java 1.8 required.
+      export JAVA_HOME={{java64_home}}
+
+      #  Anomaly Detection Manager Log directory for log4j
+      export AMS_AD_LOG_DIR={{ams_admanager_log_dir}}
+
+      # Anomaly Detection Manager pid directory
+      export AMS_AD_PID_DIR={{ams_admanager_pid_dir}}
+
+      # Anomaly Detection Manager heapsize
+      export AMS_AD_HEAPSIZE={{ams_admanager_heapsize}}
+
+      # Anomaly Detection Manager data dir
+      export AMS_AD_DATA_DIR={{ams_admanager_data_dir}}
+
+      # Anomaly Detection Manager options
+      export AMS_AD_OPTS="
+      {% if security_enabled %}
+      export AMS_AD_OPTS="$AMS_AD_OPTS -Djava.security.auth.login.config={{ams_ad_jaas_config_file}}"
+      {% endif %}
+
+      # Anomaly Detection Manager GC options
+      export AMS_AD_GC_OPTS="-XX:+UseConcMarkSweepGC -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{ams_admanager_log_dir}}/admanager-gc.log-`date +'%Y%m%d%H%M'`"
+      export AMS_AD_OPTS="$AMS_AD_OPTS $AMS_AD_GC_OPTS"
+
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+</configuration>
