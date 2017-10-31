@@ -120,7 +120,6 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
-import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
@@ -211,7 +210,7 @@ public class PhoenixHBaseAccessor {
   private HashMap<String, String> tableTTL = new HashMap<>();
 
   private final TimelineMetricConfiguration configuration;
-  private InternalMetricsSource rawMetricsSource;
+  private List<InternalMetricsSource> rawMetricsSources;
 
   public PhoenixHBaseAccessor(PhoenixConnectionProvider dataSource) {
     this(TimelineMetricConfiguration.getInstance(), dataSource);
@@ -278,15 +277,17 @@ public class PhoenixHBaseAccessor {
       LOG.info("Initialized aggregator sink class " + metricSinkClass);
     }
 
-    ExternalSinkProvider externalSinkProvider = configuration.getExternalSinkProvider();
+    List<ExternalSinkProvider> externalSinkProviderList = configuration.getExternalSinkProviderList();
     InternalSourceProvider internalSourceProvider = configuration.getInternalSourceProvider();
-    if (externalSinkProvider != null) {
-      ExternalMetricsSink rawMetricsSink = externalSinkProvider.getExternalMetricsSink(RAW_METRICS);
-      int interval = configuration.getExternalSinkInterval(RAW_METRICS);
-      if (interval == -1){
-        interval = cacheCommitInterval;
+    if (!externalSinkProviderList.isEmpty()) {
+      for (ExternalSinkProvider externalSinkProvider : externalSinkProviderList) {
+        ExternalMetricsSink rawMetricsSink = externalSinkProvider.getExternalMetricsSink(RAW_METRICS);
+        int interval = configuration.getExternalSinkInterval(externalSinkProvider.getClass().getSimpleName(), RAW_METRICS);
+        if (interval == -1) {
+          interval = cacheCommitInterval;
+        }
+        rawMetricsSources.add(internalSourceProvider.getInternalMetricsSource(RAW_METRICS, interval, rawMetricsSink));
       }
-      rawMetricsSource = internalSourceProvider.getInternalMetricsSource(RAW_METRICS, interval, rawMetricsSink);
     }
     TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper(this.metadataManagerInstance);
   }
@@ -303,8 +304,10 @@ public class PhoenixHBaseAccessor {
     }
     if (metricsList.size() > 0) {
       commitMetrics(metricsList);
-      if (rawMetricsSource != null) {
-        rawMetricsSource.publishTimelineMetrics(metricsList);
+      if (!rawMetricsSources.isEmpty()) {
+        for (InternalMetricsSource rawMetricsSource : rawMetricsSources) {
+          rawMetricsSource.publishTimelineMetrics(metricsList);
+        }
       }
     }
   }
@@ -316,10 +319,8 @@ public class PhoenixHBaseAccessor {
   private void commitAnomalyMetric(Connection conn, TimelineMetric metric) {
     PreparedStatement metricRecordStmt = null;
     try {
-
       Map<String, String> metricMetadata = metric.getMetadata();
-
-
+      
       byte[] uuid = metadataManagerInstance.getUuid(metric);
       if (uuid == null) {
         LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
