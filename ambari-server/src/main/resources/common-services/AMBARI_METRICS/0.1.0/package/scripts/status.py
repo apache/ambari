@@ -43,6 +43,8 @@ def check_service_status(env, name):
     check_process_status(status_params.monitor_pid_file)
   elif name == 'grafana':
     check_process_status(status_params.grafana_pid_file)
+  elif name == 'admanager':
+    check_process_status(status_params.ams_ad_pid_file)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def check_service_status(name):
