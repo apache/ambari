@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -32,7 +33,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class HostGroupV2Impl implements HostGroupV2, Configurable {
@@ -40,7 +40,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   private String name;
   private String blueprintName;
   private List<ComponentV2> components;
-  private List<ServiceId> serviceIds;
+  private Set<ServiceId> serviceIds;
   private Configuration configuration;
   private String cardinality;
   private boolean containsMasterComponent;
@@ -128,7 +128,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
 
   @JsonIgnore
   public void setServiceMap(Map<ServiceId, Service> serviceMap) {
-    Preconditions.checkArgument(serviceMap.keySet().equals(ImmutableSet.copyOf(this.serviceIds)),
+    Preconditions.checkArgument(serviceMap.keySet().equals(this.serviceIds),
       "Maitained list of service ids doesn't match with received service map: %s vs %s", serviceIds, serviceMap.keySet());
     this.serviceMap = serviceMap;
   }
@@ -154,7 +154,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   public void setComponents(List<ComponentV2> components) {
     this.components = components;
     this.containsMasterComponent = components.stream().anyMatch(c -> c.isMasterComponent());
-    this.serviceIds = components.stream().map(c -> c.getServiceId()).collect(Collectors.toList());
+    this.serviceIds = components.stream().map(c -> c.getServiceId()).collect(Collectors.toSet());
   }
 
   public void setConfiguration(Configuration configuration) {
