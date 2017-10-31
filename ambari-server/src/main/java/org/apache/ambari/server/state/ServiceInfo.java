@@ -87,7 +87,7 @@ public class ServiceInfo implements Validable{
     JAVA
   }
   @XmlElement(name="service_advisor_type")
-  private ServiceAdvisorType serviceAdvisorType = ServiceAdvisorType.PYTHON;
+  private ServiceAdvisorType serviceAdvisorType = null;
 
   @XmlTransient
   private List<PropertyInfo> properties;
