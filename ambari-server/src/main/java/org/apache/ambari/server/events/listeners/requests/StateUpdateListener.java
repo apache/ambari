@@ -18,31 +18,27 @@
 
 package org.apache.ambari.server.events.listeners.requests;
 
-import org.apache.ambari.server.HostNotRegisteredException;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
-import org.apache.ambari.server.events.AmbariHostUpdateEvent;
+import org.apache.ambari.server.events.AlertDefinitionsMessageEmitter;
+import org.apache.ambari.server.events.AlertDefinitionsUpdateEvent;
 import org.apache.ambari.server.events.AmbariUpdateEvent;
+import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessageType;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
 
 public class StateUpdateListener {
-
-  private final static Logger LOG = LoggerFactory.getLogger(StateUpdateListener.class);
-
   private final AgentSessionManager agentSessionManager;
 
   @Autowired
-  SimpMessagingTemplate simpMessagingTemplate;
+  private DefaultMessageEmitter defaultMessageEmitter;
+
+  @Autowired
+  private AlertDefinitionsMessageEmitter alertDefinitionsMessageEmitter;
 
   public StateUpdateListener(Injector injector) {
     StateUpdateEventPublisher stateUpdateEventPublisher =
@@ -53,25 +49,10 @@ public class StateUpdateListener {
 
   @Subscribe
   @AllowConcurrentEvents
-  public void onUpdateEvent(AmbariUpdateEvent event) throws HostNotRegisteredException {
-    String destination = event.getDestination();
-    if (event instanceof AmbariHostUpdateEvent) {
-      AmbariHostUpdateEvent hostUpdateEvent = (AmbariHostUpdateEvent) event;
-      Long hostId = hostUpdateEvent.getHostId();
-      String sessionId = agentSessionManager.getSessionId(hostId);
-      LOG.debug("Received status update event {} for host {} registered with session ID {}", hostUpdateEvent, hostId, sessionId);
-      MessageHeaders headers = createHeaders(sessionId);
-      simpMessagingTemplate.convertAndSendToUser(sessionId, destination, event, headers);
-    } else {
-      LOG.debug("Received status update event {}", event);
-      simpMessagingTemplate.convertAndSend(destination, event);
+  public void onUpdateEvent(AmbariUpdateEvent event) throws AmbariException {
+    if (event instanceof AlertDefinitionsUpdateEvent) {
+      alertDefinitionsMessageEmitter.emitMessage(event);
     }
-  }
-
-  private MessageHeaders createHeaders(String sessionId) {
-    SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-    headerAccessor.setSessionId(sessionId);
-    headerAccessor.setLeaveMutable(true);
-    return headerAccessor.getMessageHeaders();
+    defaultMessageEmitter.emitMessage(event);
   }
 }

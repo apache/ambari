@@ -36,7 +36,6 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.events.NamedHostRoleCommandUpdateEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
@@ -155,20 +154,6 @@ public class TaskStatusListener {
               activeRequestMap.get(hostRoleCommand.getRequestId()).getStatus(), hostRoleCommands));
         }
       }
-    }
-
-    for (HostRoleCommand hostRoleCommand : hostRoleCommandWithReceivedStatus) {
-      NamedHostRoleCommandUpdateEvent namedHostRoleCommandUpdateEvent = new NamedHostRoleCommandUpdateEvent(hostRoleCommand.getTaskId(),
-          hostRoleCommand.getRequestId(),
-          hostRoleCommand.getHostName(),
-          hostRoleCommand.getEndTime(),
-          hostRoleCommand.getStatus(),
-          hostRoleCommand.getErrorLog(),
-          hostRoleCommand.getOutputLog(),
-          hostRoleCommand.getStderr(),
-          hostRoleCommand.getStdout()
-      );
-      stateUpdateEventPublisher.publish(namedHostRoleCommandUpdateEvent);
     }
     updateActiveTasksMap(hostRoleCommandWithReceivedStatus);
     Boolean didAnyStageStatusUpdated = updateActiveStagesStatus(stagesWithReceivedTaskStatus, hostRoleCommandListAll);

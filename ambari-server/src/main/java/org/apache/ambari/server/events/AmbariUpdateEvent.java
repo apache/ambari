@@ -39,48 +39,33 @@ public abstract class AmbariUpdateEvent {
   }
 
   @Transient
-  public String getDestination() {
-    return type.getDestination();
-  }
-
-  @Transient
   public String getMetricName() {
     return type.getMetricName();
   }
 
   public enum Type {
-    ALERT("/events/alerts", "events.alerts"),
-    METADATA("/events/metadata", "events.metadata"),
-    HOSTLEVELPARAMS("/host_level_params", "events.hostlevelparams"),
-    UI_TOPOLOGY("/events/ui_topologies", "events.topology_update"),
-    AGENT_TOPOLOGY("/events/topologies", "events.topology_update"),
-    AGENT_CONFIGS("/configs", "events.agent.configs"),
-    CONFIGS("/events/configs", "events.configs"),
-    HOSTCOMPONENT("/events/hostcomponents", "events.hostcomponents"),
-    NAMEDHOSTCOMPONENT("/events/tasks/", "events.hostrolecommands.named"),
-    REQUEST("/events/requests", "events.requests"),
-    SERVICE("/events/services", "events.services"),
-    HOST("/events/hosts", "events.hosts"),
-    ALERT_DEFINITIONS("/alert_definitions", "events.alert_definitions"),
-    COMMAND("/commands", "events.commands");
-
-    /**
-     * Destination is used for delivery message to recipients.
-     */
-    private String destination;
+    ALERT("events.alerts"),
+    METADATA("events.metadata"),
+    HOSTLEVELPARAMS("events.hostlevelparams"),
+    UI_TOPOLOGY("events.topology_update"),
+    AGENT_TOPOLOGY("events.topology_update"),
+    AGENT_CONFIGS("events.agent.configs"),
+    CONFIGS("events.configs"),
+    HOSTCOMPONENT("events.hostcomponents"),
+    NAMEDHOSTCOMPONENT("events.hostrolecommands.named"),
+    REQUEST("events.requests"),
+    SERVICE("events.services"),
+    HOST("events.hosts"),
+    ALERT_DEFINITIONS("events.alert_definitions"),
+    COMMAND("events.commands");
 
     /**
      * Is used to collect info about event appearing frequency.
      */
     private String metricName;
 
-    Type(String destination, String metricName) {
-      this.destination = destination;
+    Type(String metricName) {
       this.metricName = metricName;
-    }
-
-    public String getDestination() {
-      return destination;
     }
 
     public String getMetricName() {
