@@ -18,23 +18,6 @@
 
 package org.apache.ambari.metrics.adservice.prototype.testing.utilities;
 
-import org.apache.ambari.metrics.adservice.prototype.common.DataSeries;
-import org.apache.ambari.metrics.adservice.prototype.common.ResultSet;
-import org.apache.ambari.metrics.adservice.prototype.core.MetricsCollectorInterface;
-import org.apache.ambari.metrics.adservice.prototype.core.RFunctionInvoker;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
  * Class which was originally used to send test series from AMS to Spark through Kafka.
  */
