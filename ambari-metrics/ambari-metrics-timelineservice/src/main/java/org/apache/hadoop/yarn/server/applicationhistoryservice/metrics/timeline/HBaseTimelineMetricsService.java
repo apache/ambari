@@ -39,6 +39,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -50,6 +52,7 @@ import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricKey;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricWithAggregatedValues;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -438,11 +441,17 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   }
 
   @Override
-  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String query) throws SQLException, IOException {
+  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String appId, String metricPattern,
+                                                                             boolean includeBlacklistedMetrics) throws SQLException, IOException {
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata =
       metricMetadataManager.getMetadataCache();
 
-    boolean includeBlacklistedMetrics = StringUtils.isNotEmpty(query) && "all".equalsIgnoreCase(query);
+    boolean filterByAppId = StringUtils.isNotEmpty(appId);
+    boolean filterByMetricName = StringUtils.isNotEmpty(metricPattern);
+    Pattern metricFilterPattern = null;
+    if (filterByMetricName) {
+      metricFilterPattern = Pattern.compile(metricPattern);
+    }
 
     // Group Metadata by AppId
     Map<String, List<TimelineMetricMetadata>> metadataByAppId = new HashMap<>();
@@ -451,10 +460,23 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       if (!includeBlacklistedMetrics && !metricMetadata.isWhitelisted()) {
         continue;
       }
-      List<TimelineMetricMetadata> metadataList = metadataByAppId.get(metricMetadata.getAppId());
+
+      String currentAppId = metricMetadata.getAppId();
+      if (filterByAppId && !currentAppId.equals(appId)) {
+        continue;
+      }
+
+      if (filterByMetricName) {
+        Matcher m = metricFilterPattern.matcher(metricMetadata.getMetricName());
+        if (!m.find()) {
+          continue;
+        }
+      }
+
+      List<TimelineMetricMetadata> metadataList = metadataByAppId.get(currentAppId);
       if (metadataList == null) {
         metadataList = new ArrayList<>();
-        metadataByAppId.put(metricMetadata.getAppId(), metadataList);
+        metadataByAppId.put(currentAppId, metadataList);
       }
 
       metadataList.add(metricMetadata);
@@ -464,8 +486,42 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   }
 
   @Override
-  public Map<String, TimelineMetricMetadataKey> getUuids() throws SQLException, IOException {
-    return metricMetadataManager.getUuidKeyMap();
+  public byte[] getUuid(String metricName, String appId, String instanceId, String hostname) throws SQLException, IOException {
+    return metricMetadataManager.getUuid(metricName, appId, instanceId, hostname);
+  }
+
+  /**
+   * Given a metricName, appId, instanceId and optional hostname parameter, return a set of TimelineMetricKey objects
+   * that will have all the unique metric instances for the above parameter filter.
+   *
+   * @param metricName
+   * @param appId
+   * @param instanceId
+   * @param hostname
+   * @return
+   * @throws SQLException
+   * @throws IOException
+   */
+  @Override
+  public Set<TimelineMetricKey> getTimelineMetricKey(String metricName, String appId, String instanceId, String hostname) throws SQLException, IOException {
+
+    if (StringUtils.isEmpty(hostname)) {
+      Set<String> hosts = new HashSet<>();
+      for (String host : metricMetadataManager.getHostedAppsCache().keySet()) {
+        if (metricMetadataManager.getHostedAppsCache().get(host).getHostedApps().contains(appId)) {
+          hosts.add(host);
+        }
+      }
+      Set<TimelineMetricKey> timelineMetricKeys = new HashSet<>();
+      for (String host : hosts) {
+        byte[] uuid = metricMetadataManager.getUuid(metricName, appId, instanceId, host);
+        timelineMetricKeys.add(new TimelineMetricKey(metricName, appId, instanceId, host, uuid));
+      }
+      return timelineMetricKeys;
+    } else {
+      byte[] uuid = metricMetadataManager.getUuid(metricName, appId, instanceId, hostname);
+      return Collections.singleton(new TimelineMetricKey(metricName, appId, instanceId, hostname, uuid));
+    }
   }
 
   @Override

@@ -27,6 +27,7 @@ import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricKey;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
@@ -50,6 +51,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -434,18 +436,24 @@ public class TimelineWebServices {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
+
   @GET
   @Path("/metrics/metadata")
   @Produces({ MediaType.APPLICATION_JSON })
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(
     @Context HttpServletRequest req,
     @Context HttpServletResponse res,
-    @QueryParam("query") String query
+    @QueryParam("appId") String appId,
+    @QueryParam("metricName") String metricPattern,
+    @QueryParam("includeAll") String includeBlacklistedMetrics
     ) {
     init(res);
 
     try {
-      return timelineMetricStore.getTimelineMetricMetadata(query);
+      return timelineMetricStore.getTimelineMetricMetadata(
+        parseStr(appId),
+        parseStr(metricPattern),
+        parseBoolean(includeBlacklistedMetrics));
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
@@ -486,16 +494,40 @@ public class TimelineWebServices {
   }
 
   @GET
-  @Path("/metrics/uuids")
+  @Path("/metrics/uuid")
   @Produces({ MediaType.APPLICATION_JSON })
-  public Map<String, TimelineMetricMetadataKey> getUuids(
+  public byte[] getUuid(
     @Context HttpServletRequest req,
-    @Context HttpServletResponse res
+    @Context HttpServletResponse res,
+    @QueryParam("metricName") String metricName,
+    @QueryParam("appId") String appId,
+    @QueryParam("instanceId") String instanceId,
+    @QueryParam("hostname") String hostname
+    ) {
+    init(res);
+
+    try {
+      return timelineMetricStore.getUuid(metricName, appId, instanceId, hostname);
+    } catch (Exception e) {
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GET
+  @Path("/metrics/metadata/key")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public Set<TimelineMetricKey> getTimelineMetricKey(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res,
+    @QueryParam("metricName") String metricName,
+    @QueryParam("appId") String appId,
+    @QueryParam("instanceId") String instanceId,
+    @QueryParam("hostname") String hostname
   ) {
     init(res);
 
     try {
-      return timelineMetricStore.getUuids();
+      return timelineMetricStore.getTimelineMetricKey(metricName, appId, instanceId, hostname);
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }

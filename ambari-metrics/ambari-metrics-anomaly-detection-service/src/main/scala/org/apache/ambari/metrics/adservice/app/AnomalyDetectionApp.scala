@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+
 import io.dropwizard.Application
 import io.dropwizard.setup.Environment
 

@@ -21,8 +21,8 @@ import javax.ws.rs.client.Client
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import org.apache.ambari.metrics.adservice.app.DropwizardAppRuleHelper.withAppRunning
-import org.glassfish.jersey.client.{ClientConfig, JerseyClientBuilder}
 import org.glassfish.jersey.client.ClientProperties.{CONNECT_TIMEOUT, READ_TIMEOUT}
+import org.glassfish.jersey.client.{ClientConfig, JerseyClientBuilder}
 import org.glassfish.jersey.filter.LoggingFilter
 import org.glassfish.jersey.jaxb.internal.XmlJaxbElementProvider
 import org.joda.time.DateTime

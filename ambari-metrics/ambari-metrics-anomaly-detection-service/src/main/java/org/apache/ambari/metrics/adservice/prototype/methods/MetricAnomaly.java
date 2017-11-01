@@ -18,8 +18,6 @@
 package org.apache.ambari.metrics.adservice.prototype.methods;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MetricAnomaly implements Serializable{
 

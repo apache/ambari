@@ -16,22 +16,6 @@
  */
 package org.apache.ambari.metrics.adservice.spark.prototype
 
-import java.io.{FileInputStream, IOException, InputStream}
-import java.util
-import java.util.Properties
-import java.util.logging.LogManager
-
-import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.ambari.metrics.adservice.prototype.core.MetricsCollectorInterface
-import org.apache.spark.SparkConf
-import org.apache.spark.streaming._
-import org.apache.spark.streaming.kafka._
-import org.apache.ambari.metrics.adservice.prototype.methods.{AnomalyDetectionTechnique, MetricAnomaly}
-import org.apache.ambari.metrics.adservice.prototype.methods.ema.{EmaModelLoader, EmaTechnique}
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics
-import org.apache.log4j.Logger
-import org.apache.spark.storage.StorageLevel
-
 object MetricAnomalyDetector {
 
   /*
