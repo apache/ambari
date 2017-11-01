@@ -438,6 +438,16 @@ public class TimelineMetricMetadataManager {
     return ArrayUtils.addAll(metricUuid, hostUuid);
   }
 
+  public byte[] getUuid(String metricName, String appId, String instanceId, String hostname) {
+
+    byte[] metricUuid = getUuid(new TimelineClusterMetric(metricName, appId, instanceId, -1l));
+    if (StringUtils.isNotEmpty(hostname)) {
+      byte[] hostUuid = getUuidForHostname(hostname);
+      return ArrayUtils.addAll(metricUuid, hostUuid);
+    }
+    return metricUuid;
+  }
+
   public String getMetricNameFromUuid(byte[]  uuid) {
 
     byte[] metricUuid = uuid;

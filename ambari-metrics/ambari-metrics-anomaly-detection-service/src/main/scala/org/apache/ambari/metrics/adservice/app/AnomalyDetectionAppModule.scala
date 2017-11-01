@@ -23,6 +23,7 @@ import org.apache.ambari.metrics.adservice.service.{ADQueryService, ADQueryServi
 import com.codahale.metrics.health.HealthCheck
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
+
 import io.dropwizard.setup.Environment
 
 class AnomalyDetectionAppModule(config: AnomalyDetectionAppConfig, env: Environment) extends AbstractModule {

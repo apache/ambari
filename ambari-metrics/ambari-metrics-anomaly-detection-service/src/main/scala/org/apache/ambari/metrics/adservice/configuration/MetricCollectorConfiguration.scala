@@ -15,26 +15,38 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-package org.apache.ambari.metrics.adservice.common
 
-import org.scalatest.FlatSpec
+package org.apache.ambari.metrics.adservice.configuration
 
-import scala.collection.mutable
+import javax.validation.constraints.NotNull
 
-class ADServiceConfigurationTest extends FlatSpec {
+import com.fasterxml.jackson.annotation.JsonProperty
 
-  "A Stack" should "pop values in last-in-first-out order" in {
-    val stack = new mutable.Stack[Int]
-    stack.push(1)
-    stack.push(2)
-    assert(stack.pop() === 2)
-    assert(stack.pop() === 1)
+/**
+  * Class to capture the Metrics Collector related configuration.
+  */
+class MetricCollectorConfiguration {
+
+  @NotNull
+  private var hostPortList: String = _
+
+  @NotNull
+  private var metadataEndpoint: String = _
+
+  @JsonProperty
+  def getHostPortList: String = hostPortList
+
+  @JsonProperty
+  def getMetadataEndpoint: String = metadataEndpoint
+
+  @JsonProperty
+  def setHostPortList(hostPortList: String): Unit = {
+    this.hostPortList = hostPortList
   }
 
-  it should "throw NoSuchElementException if an empty stack is popped" in {
-    val emptyStack = new mutable.Stack[String]
-    assertThrows[NoSuchElementException] {
-      emptyStack.pop()
-    }
+  @JsonProperty
+  def setMetadataEndpoint(metadataEndpoint: String): Unit = {
+    this.metadataEndpoint = metadataEndpoint
   }
+
 }
