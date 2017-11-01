@@ -18,10 +18,7 @@
 package org.apache.ambari.metrics.adservice.prototype.common;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 
 public class StatisticUtils {
 

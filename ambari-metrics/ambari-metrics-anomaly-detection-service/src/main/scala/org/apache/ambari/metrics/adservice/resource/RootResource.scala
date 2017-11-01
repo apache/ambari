@@ -17,9 +17,9 @@
   */
 package org.apache.ambari.metrics.adservice.resource
 
-import javax.ws.rs.{GET, Path, Produces}
-import javax.ws.rs.core.Response
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
+import javax.ws.rs.{GET, Path, Produces}
 
 import org.joda.time.DateTime
 

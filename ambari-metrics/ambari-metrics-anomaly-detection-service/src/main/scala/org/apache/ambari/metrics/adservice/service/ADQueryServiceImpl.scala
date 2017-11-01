@@ -16,7 +16,22 @@
   * limitations under the License.
   */
 package org.apache.ambari.metrics.adservice.service
+import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
+import org.apache.ambari.metrics.adservice.model.SingleMetricAnomalyInstance
 
 class ADQueryServiceImpl extends ADQueryService {
 
+  /**
+    * Implementation to return list of anomalies satisfying a set of conditions from the anomaly store.
+    *
+    * @param anomalyType Type of the anomaly (Point In Time / Trend)
+    * @param startTime   Start of time range
+    * @param endTime     End of time range
+    * @param limit       Maximim number of anomaly metrics that need to be returned based on anomaly score.
+    * @return
+    */
+  override def getTopNAnomaliesByType(anomalyType: AnomalyType, startTime: Long, endTime: Long, limit: Int): List[SingleMetricAnomalyInstance] = {
+    val anomalies = List.empty[SingleMetricAnomalyInstance]
+    anomalies
+  }
 }

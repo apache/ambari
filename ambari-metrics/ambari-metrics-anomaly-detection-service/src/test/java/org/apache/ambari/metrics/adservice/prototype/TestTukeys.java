@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.metrics.adservice.prototype;
 
-import org.apache.ambari.metrics.adservice.prototype.methods.MetricAnomaly;
 import org.apache.ambari.metrics.adservice.prototype.core.MetricsCollectorInterface;
 import org.apache.ambari.metrics.adservice.prototype.core.RFunctionInvoker;
+import org.apache.ambari.metrics.adservice.prototype.methods.MetricAnomaly;
 import org.apache.ambari.metrics.adservice.prototype.methods.ema.EmaTechnique;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;

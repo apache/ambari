@@ -17,11 +17,6 @@
 
 package org.apache.ambari.metrics.adservice.spark.prototype
 
-import org.apache.ambari.metrics.adservice.prototype.methods.ema.EmaTechnique
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.{SparkConf, SparkContext}
-
 object SparkPhoenixReader {
 
   def main(args: Array[String]) {

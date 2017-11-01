@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.metrics.adservice.prototype.core;
 
-import org.apache.ambari.metrics.adservice.prototype.common.ResultSet;
 import org.apache.ambari.metrics.adservice.prototype.common.DataSeries;
+import org.apache.ambari.metrics.adservice.prototype.common.ResultSet;
 import org.apache.ambari.metrics.adservice.prototype.methods.ema.EmaModel;
 import org.apache.ambari.metrics.adservice.prototype.methods.ema.EmaTechnique;
 import org.apache.commons.logging.Log;
