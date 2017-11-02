@@ -42,18 +42,23 @@ public class TopologyHost {
     this.ipv4 = ipv4;
   }
 
-  public void updateHost(TopologyHost hostToUpdate) {
+  public boolean updateHost(TopologyHost hostToUpdate) {
+    boolean changed = false;
     if (hostToUpdate.getHostId().equals(getHostId())) {
-      if (StringUtils.isNotEmpty(hostToUpdate.getHostName())) {
+      if (StringUtils.isNotEmpty(hostToUpdate.getHostName()) && !hostToUpdate.getHostName().equals(getHostName())) {
         setHostName(hostToUpdate.getHostName());
+        changed = true;
       }
-      if (StringUtils.isNotEmpty(hostToUpdate.getRackName())) {
+      if (StringUtils.isNotEmpty(hostToUpdate.getRackName()) && !hostToUpdate.getRackName().equals(getRackName())) {
         setRackName(hostToUpdate.getRackName());
+        changed = true;
       }
-      if (StringUtils.isNotEmpty(hostToUpdate.getIpv4())) {
+      if (StringUtils.isNotEmpty(hostToUpdate.getIpv4()) && !hostToUpdate.getIpv4().equals(getIpv4())) {
         setIpv4(hostToUpdate.getIpv4());
+        changed = true;
       }
     }
+    return changed;
   }
 
   public TopologyHost deepCopy() {

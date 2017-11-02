@@ -19,6 +19,7 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -102,57 +103,77 @@ public class TopologyComponent {
     }
   }
 
-  public void updateComponent(TopologyComponent componentToUpdate) {
+  public boolean updateComponent(TopologyComponent componentToUpdate) {
+    boolean changed = false;
     //TODO will be a need to change to multi-instance usage
     if (componentToUpdate.getComponentName().equals(getComponentName())) {
-      if (StringUtils.isNotEmpty(componentToUpdate.getVersion())) {
+      if (StringUtils.isNotEmpty(componentToUpdate.getVersion()) && !componentToUpdate.getVersion().equals(getVersion())) {
         setVersion(componentToUpdate.getVersion());
+        changed = true;
       }
       if (CollectionUtils.isNotEmpty(componentToUpdate.getHostIds())) {
         if (hostIds == null) {
           hostIds = new HashSet<>();
         }
-        hostIds.addAll(componentToUpdate.getHostIds());
+        changed |= hostIds.addAll(componentToUpdate.getHostIds());
       }
       if (CollectionUtils.isNotEmpty(componentToUpdate.getHostNames())) {
         if (hostNames == null) {
           hostNames = new HashSet<>();
         }
-        hostNames.addAll(componentToUpdate.getHostNames());
+        changed |= hostNames.addAll(componentToUpdate.getHostNames());
       }
       if (CollectionUtils.isNotEmpty(componentToUpdate.getPublicHostNames())) {
         if (publicHostNames == null) {
           publicHostNames = new HashSet<>();
         }
-        publicHostNames.addAll(componentToUpdate.getPublicHostNames());
+        changed |= publicHostNames.addAll(componentToUpdate.getPublicHostNames());
       }
-      if (MapUtils.isNotEmpty(componentToUpdate.getComponentLevelParams())) {
-        componentLevelParams.putAll(componentToUpdate.getComponentLevelParams());
-      }
-      if (MapUtils.isNotEmpty(componentToUpdate.getCommandParams())) {
-        commandParams.putAll(componentToUpdate.getCommandParams());
-      }
+      changed |= mergeParams(componentLevelParams, componentToUpdate.getComponentLevelParams());
+      changed |= mergeParams(commandParams, componentToUpdate.getCommandParams());
     }
+    return changed;
   }
 
-  public void removeComponent(TopologyComponent componentToRemove) {
+  private boolean mergeParams(TreeMap<String, String> currentParams, TreeMap<String, String> updateParams) {
+    boolean changed = false;
+    if (MapUtils.isNotEmpty(updateParams)) {
+      for (Map.Entry<String, String> updateParam : updateParams.entrySet()) {
+        String updateParamName = updateParam.getKey();
+        String updateParamValue = updateParam.getValue();
+        if (!currentParams.containsKey(updateParamName) ||
+            !StringUtils.equals(currentParams.get(updateParamName), updateParamValue)) {
+          currentParams.put(updateParamName, updateParamValue);
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  public boolean removeComponent(TopologyComponent componentToRemove) {
+    boolean changed = false;
     if (componentToRemove.getComponentName().equals(getComponentName())) {
       if (CollectionUtils.isNotEmpty(componentToRemove.getHostIds())) {
         if (hostIds != null) {
           hostIds.removeAll(componentToRemove.getHostIds());
+          changed = true;
         }
       }
       if (CollectionUtils.isNotEmpty(componentToRemove.getHostNames())) {
         if (hostNames != null) {
           hostNames.removeAll(componentToRemove.getHostNames());
+          changed = true;
         }
       }
       if (CollectionUtils.isNotEmpty(componentToRemove.getPublicHostNames())) {
         if (publicHostNames != null) {
           publicHostNames.removeAll(componentToRemove.getPublicHostNames());
+          changed = true;
         }
       }
     }
+    return changed;
   }
 
   public  TopologyComponent deepCopy() {

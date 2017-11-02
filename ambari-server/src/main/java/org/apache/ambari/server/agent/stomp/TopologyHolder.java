@@ -143,9 +143,12 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
           getData().getClusters().remove(clusterId);
           changed = true;
         } else {
-          getData().getClusters().get(clusterId).update(update.getClusters().get(clusterId).getTopologyComponents(),
-              update.getClusters().get(clusterId).getTopologyHosts(), eventType);
-          changed = true; // TODO check if really changed
+          if (getData().getClusters().get(clusterId).update(
+              update.getClusters().get(clusterId).getTopologyComponents(),
+              update.getClusters().get(clusterId).getTopologyHosts(),
+              eventType)) {
+            changed = true;
+          }
         }
       } else {
         if (eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {

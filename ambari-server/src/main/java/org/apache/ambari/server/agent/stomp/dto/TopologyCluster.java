@@ -43,46 +43,52 @@ public class TopologyCluster {
     this.topologyHosts = topologyHosts;
   }
 
-  public void update(Set<TopologyComponent> componentsToUpdate, Set<TopologyHost> hostsToUpdate,
+  public boolean update(Set<TopologyComponent> componentsToUpdate, Set<TopologyHost> hostsToUpdate,
                      TopologyUpdateEvent.EventType eventType) {
+    boolean changed = false;
     for (TopologyComponent componentToUpdate : componentsToUpdate) {
-      boolean updated = false;
-      for (Iterator<TopologyComponent> iter = getTopologyComponents().iterator(); iter.hasNext() && !updated; ) {
+      boolean isPresent = false;
+      for (Iterator<TopologyComponent> iter = getTopologyComponents().iterator(); iter.hasNext() && !isPresent; ) {
         TopologyComponent existsComponent = iter.next();
         if (existsComponent.equals(componentToUpdate)) {
           if (eventType.equals(TopologyUpdateEvent.EventType.DELETE)) {
             if (SetUtils.isEqualSet(existsComponent.getHostIds(), componentToUpdate.getHostIds())) {
               iter.remove();
+              changed = true;
             } else {
-              existsComponent.removeComponent(componentToUpdate);
+              changed |= existsComponent.removeComponent(componentToUpdate);
             }
           } else {
-            existsComponent.updateComponent(componentToUpdate);
+            changed |= existsComponent.updateComponent(componentToUpdate);
           }
-          updated = true;
+          isPresent = true;
         }
       }
-      if (!updated && eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
+      if (!isPresent && eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
         getTopologyComponents().add(componentToUpdate);
+        changed = true;
       }
     }
     for (TopologyHost hostToUpdate : hostsToUpdate) {
-      boolean updated = false;
-      for (Iterator<TopologyHost> iter = getTopologyHosts().iterator(); iter.hasNext() && !updated; ) {
+      boolean isPresent = false;
+      for (Iterator<TopologyHost> iter = getTopologyHosts().iterator(); iter.hasNext() && !isPresent; ) {
         TopologyHost existsHost = iter.next();
         if (existsHost.equals(hostToUpdate)) {
           if (eventType.equals(TopologyUpdateEvent.EventType.DELETE)) {
             iter.remove();
+            changed = true;
           } else {
-            existsHost.updateHost(hostToUpdate);
+            changed |= existsHost.updateHost(hostToUpdate);
           }
-          updated = true;
+          isPresent = true;
         }
       }
-      if (!updated && eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
+      if (!isPresent && eventType.equals(TopologyUpdateEvent.EventType.UPDATE)) {
         getTopologyHosts().add(hostToUpdate);
+        changed = true;
       }
     }
+    return changed;
   }
 
   public Set<TopologyComponent> getTopologyComponents() {
