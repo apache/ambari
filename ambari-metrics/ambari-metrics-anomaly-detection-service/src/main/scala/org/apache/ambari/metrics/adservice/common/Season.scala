@@ -112,11 +112,11 @@ object Season {
     validSeasons.toList
   }
 
-  def serialize(season: Season) : String = {
+  def toJson(season: Season) : String = {
     mapper.writeValueAsString(season)
   }
 
-  def deserialize(seasonString: String) : Season = {
+  def fromJson(seasonString: String) : Season = {
     mapper.readValue[Season](seasonString)
   }
 }

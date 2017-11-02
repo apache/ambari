@@ -18,9 +18,12 @@
 
 package org.apache.ambari.metrics.adservice.metadata
 
+import org.apache.commons.lang3.StringUtils
 /*
    {
        "metric-name": "mem_free",
+       "appId" : "HOST",
+       "hosts" : ["h1","h2"],
        "metric-description" : "Free memory on a Host.",
        "troubleshooting-info" : "Sudden drop / hike in free memory on a host.",
        "static-threshold" : 10,
@@ -28,12 +31,33 @@ package org.apache.ambari.metrics.adservice.metadata
 }
  */
 
-case class MetricDefinition (metricName: String,
-                             appId: String,
-                             hosts: List[String],
-                             metricDescription: String,
-                             troubleshootingInfo: String,
-                             staticThreshold: Double)  {
+@SerialVersionUID(1002L)
+class MetricDefinition extends Serializable {
+
+  var metricName: String = _
+  var appId: String = _
+  var hosts: List[String] = List.empty[String]
+  var metricDescription: String = ""
+  var troubleshootingInfo: String = ""
+  var staticThreshold: Double = _
+
+  //A Metric definition is valid if we can resolve a metricName and appId (defined or inherited) at runtime)
+  private var valid : Boolean = true
+
+  def this(metricName: String,
+           appId: String,
+           hosts: List[String],
+           metricDescription: String,
+           troubleshootingInfo: String,
+           staticThreshold: Double) = {
+    this
+    this.metricName = metricName
+    this.appId = appId
+    this.hosts = hosts
+    this.metricDescription = metricDescription
+    this.troubleshootingInfo = troubleshootingInfo
+    this.staticThreshold = staticThreshold
+  }
 
   @Override
   override def equals(obj: scala.Any): Boolean = {
@@ -46,10 +70,20 @@ case class MetricDefinition (metricName: String,
     if (!(metricName == that.metricName))
       return false
 
-    if (!(appId == that.appId))
-      return false
+    if (StringUtils.isNotEmpty(appId)) {
+      appId == that.appId
+    }
+    else {
+      StringUtils.isEmpty(that.appId)
+    }
+  }
 
-    true
+  def isValid: Boolean = {
+    valid
+  }
+
+  def makeInvalid() : Unit = {
+    valid = false
   }
 }
 

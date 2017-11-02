@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
   * Class to capture the Metric Definition Service configuration.
   */
-class MetricManagerServiceConfiguration {
+class MetricDefinitionServiceConfiguration {
 
   @NotNull
   private val inputDefinitionDirectory: String = ""
