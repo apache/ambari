@@ -81,7 +81,7 @@ public class VersionUtils {
     }
 
     //String pattern = "^([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+).*";
-    String pattern = "([0-9]+).([0-9]+).([0-9]+).([0-9]+)?.*";
+    String pattern = "([0-9]+).([0-9]+).([0-9]+).?([0-9]+)?.*";
     String[] version1Parts = version1.replaceAll(pattern, "$1.$2.$3.$4").split("\\.");
     String[] version2Parts = version2.replaceAll(pattern, "$1.$2.$3.$4").split("\\.");
 

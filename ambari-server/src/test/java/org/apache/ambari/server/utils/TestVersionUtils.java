@@ -118,6 +118,7 @@ public class TestVersionUtils {
     //Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.4_MYAMBARI_000000"));
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.4_MYAMBARI_000000", "1.2.3_MYAMBARI_000000"));
     Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000"));
+    Assert.assertEquals(0, VersionUtils.compareVersions("2.99.99.0", "2.99.99"));
 
     Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.4_MYAMBARI_000000", 3));
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.4_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", 3));
