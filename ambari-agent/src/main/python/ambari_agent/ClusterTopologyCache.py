@@ -59,6 +59,7 @@ class ClusterTopologyCache(ClusterCache):
     components_by_key = defaultdict(lambda:{})
 
     for cluster_id, cluster_topology in self.iteritems():
+      self.current_host_ids_to_cluster[cluster_id] = None
       if 'hosts' in cluster_topology:
         for host_dict in cluster_topology.hosts:
           hosts_to_id[cluster_id][host_dict.hostId] = host_dict
@@ -72,8 +73,12 @@ class ClusterTopologyCache(ClusterCache):
           components_by_key[cluster_id][key] = component_dict
 
     for cluster_id, cluster_topology in self.iteritems():
-      current_host_id = self.current_host_ids_to_cluster[cluster_id]
       self.cluster_local_components[cluster_id] = []
+
+      if not cluster_id in self.current_host_ids_to_cluster:
+        continue
+
+      current_host_id = self.current_host_ids_to_cluster[cluster_id]
       for component_dict in self[cluster_id].components:
         if current_host_id in component_dict.hostIds:
           self.cluster_local_components[cluster_id].append(component_dict.componentName)
