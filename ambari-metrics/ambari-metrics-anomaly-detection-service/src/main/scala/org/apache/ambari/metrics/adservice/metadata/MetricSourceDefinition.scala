@@ -22,10 +22,6 @@ import javax.xml.bind.annotation.XmlRootElement
 import org.apache.ambari.metrics.adservice.metadata.MetricSourceDefinitionType.MetricSourceDefinitionType
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-
 /*
 {
  "definition-name": "host-memory",
@@ -45,27 +41,10 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 }
 */
 
-/*
 
-On Startup
-Read input definitions directory, parse the JSONs
-Create / Update the metric definitions in DB
-Convert metric definitions to Map<MetricKey, MetricDefinition>
-
-What to do want to have in memory?
-Map of Metric Key -> List<Component Definitions>
-
-What do we use metric definitions for?
-Anomaly GET - Associate definition information as well.
-Definition CRUD - Get definition given definition name
-Get set of metrics that are being tracked
-Return definition information for a metric key
-Given a metric definition name, return set of metrics.
-
-*/
-
+@SerialVersionUID(10001L)
 @XmlRootElement
-class MetricSourceDefinition {
+class MetricSourceDefinition extends Serializable{
 
   var definitionName: String = _
   var appId: String = _
@@ -102,18 +81,5 @@ class MetricSourceDefinition {
     }
     val that = obj.asInstanceOf[MetricSourceDefinition]
     definitionName.equals(that.definitionName)
-  }
-}
-
-object MetricSourceDefinition {
-  val mapper = new ObjectMapper() with ScalaObjectMapper
-  mapper.registerModule(DefaultScalaModule)
-
-  def serialize(definition: MetricSourceDefinition) : String = {
-    mapper.writeValueAsString(definition)
-  }
-
-  def deserialize(definitionString: String) : MetricSourceDefinition = {
-    mapper.readValue[MetricSourceDefinition](definitionString)
   }
 }

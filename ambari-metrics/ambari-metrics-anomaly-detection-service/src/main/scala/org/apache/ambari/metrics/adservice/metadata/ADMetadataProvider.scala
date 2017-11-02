@@ -56,11 +56,13 @@ class ADMetadataProvider extends MetricMetadataProvider {
     val metricKeySet: scala.collection.mutable.Set[MetricKey] = scala.collection.mutable.Set.empty[MetricKey]
 
     for (metricDef <- metricSourceDefinition.metricDefinitions) {
-      for (hostPort <- metricCollectorHostPorts) {
-        val metricKeys: Set[MetricKey] = getKeysFromMetricsCollector(hostPort + metricMetadataPath, metricDef)
-        if (metricKeys != null) {
-          keysMap += (metricDef -> metricKeys)
-          metricKeySet.++(metricKeys)
+      if (metricDef.isValid) { //Skip requesting metric keys for invalid definitions.
+        for (hostPort <- metricCollectorHostPorts) {
+          val metricKeys: Set[MetricKey] = getKeysFromMetricsCollector(hostPort + metricMetadataPath, metricDef)
+          if (metricKeys != null) {
+            keysMap += (metricDef -> metricKeys)
+            metricKeySet.++(metricKeys)
+          }
         }
       }
     }

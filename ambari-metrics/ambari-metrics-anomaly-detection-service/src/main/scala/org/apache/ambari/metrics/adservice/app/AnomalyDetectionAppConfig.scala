@@ -20,7 +20,7 @@ package org.apache.ambari.metrics.adservice.app
 
 import javax.validation.Valid
 
-import org.apache.ambari.metrics.adservice.configuration.{AdServiceConfiguration, HBaseConfiguration, MetricCollectorConfiguration, MetricManagerServiceConfiguration}
+import org.apache.ambari.metrics.adservice.configuration.{AdServiceConfiguration, HBaseConfiguration, MetricCollectorConfiguration, MetricDefinitionServiceConfiguration}
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
@@ -35,7 +35,7 @@ class AnomalyDetectionAppConfig extends Configuration {
    Metric Definition Service configuration
     */
   @Valid
-  private val metricManagerServiceConfiguration = new MetricManagerServiceConfiguration
+  private val metricDefinitionServiceConfiguration = new MetricDefinitionServiceConfiguration
 
   @Valid
   private val metricCollectorConfiguration = new MetricCollectorConfiguration
@@ -53,9 +53,9 @@ class AnomalyDetectionAppConfig extends Configuration {
     HBaseConfiguration.getHBaseConf
   }
 
-  @JsonProperty("metricManagerService")
-  def getMetricManagerServiceConfiguration: MetricManagerServiceConfiguration = {
-    metricManagerServiceConfiguration
+  @JsonProperty("metricDefinitionService")
+  def getMetricDefinitionServiceConfiguration: MetricDefinitionServiceConfiguration = {
+    metricDefinitionServiceConfiguration
   }
 
   @JsonProperty("adQueryService")
