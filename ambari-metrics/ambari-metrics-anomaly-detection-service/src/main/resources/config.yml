@@ -20,8 +20,8 @@ server:
 logging:
   type: external
 
-metricManagerService:
-  inputDefinitionDirectory: /etc/adservice/conf/input-definitions-directory
+metricDefinitionService:
+  inputDefinitionDirectory: /etc/ambari-metrics-anomaly-detection/conf
 
 metricsCollector:
   hostPortList: host1:6188,host2:6188

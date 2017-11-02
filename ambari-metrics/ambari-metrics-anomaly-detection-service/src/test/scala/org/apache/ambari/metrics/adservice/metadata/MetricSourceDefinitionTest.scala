@@ -17,6 +17,7 @@
 
 package org.apache.ambari.metrics.adservice.metadata
 
+import org.apache.commons.lang.SerializationUtils
 import org.scalatest.FunSuite
 
 class MetricSourceDefinitionTest extends FunSuite {
@@ -46,6 +47,10 @@ class MetricSourceDefinitionTest extends FunSuite {
     val msd1 : MetricSourceDefinition = new MetricSourceDefinition("testDefinition", "testAppId", MetricSourceDefinitionType.API)
     val msd2 : MetricSourceDefinition = new MetricSourceDefinition("testDefinition", "testAppId2", MetricSourceDefinitionType.API)
     assert(msd1 == msd2)
+
+    val msd3 : MetricSourceDefinition = new MetricSourceDefinition("testDefinition1", "testAppId", MetricSourceDefinitionType.API)
+    val msd4 : MetricSourceDefinition = new MetricSourceDefinition("testDefinition2", "testAppId2", MetricSourceDefinitionType.API)
+    assert(msd3 != msd4)
   }
 
   test("testRemoveMetricDefinition") {
@@ -61,10 +66,10 @@ class MetricSourceDefinitionTest extends FunSuite {
 
   test("serializeDeserialize") {
     val msd : MetricSourceDefinition = new MetricSourceDefinition("testDefinition", "testAppId", MetricSourceDefinitionType.API)
-    val msdString: String = MetricSourceDefinition.serialize(msd)
-    assert(msdString.nonEmpty)
+    val msdByteArray: Array[Byte] = SerializationUtils.serialize(msd)
+    assert(msdByteArray.nonEmpty)
 
-    val msd2: MetricSourceDefinition = MetricSourceDefinition.deserialize(msdString)
+    val msd2: MetricSourceDefinition = SerializationUtils.deserialize(msdByteArray).asInstanceOf[MetricSourceDefinition]
     assert(msd2 != null)
     assert(msd == msd2)
 

@@ -23,7 +23,7 @@ import org.apache.ambari.metrics.adservice.db.AdMetadataStoreAccessor
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class MetricManagerServiceImpl extends MetricManagerService {
+class MetricDefinitionServiceImpl extends MetricDefinitionService {
 
   @Inject
   var adMetadataStoreAccessor: AdMetadataStoreAccessor = _
@@ -66,15 +66,21 @@ class MetricManagerServiceImpl extends MetricManagerService {
 
     //Load definitions from metadata store
     val definitionsFromStore: List[MetricSourceDefinition] = adMetadataStoreAccessor.getSavedInputDefinitions
+    for (definition <- definitionsFromStore) {
+      validateAndSanitizeMetricSourceDefinition(definition)
+    }
 
     //Load definitions from configs
     val definitionsFromConfig: List[MetricSourceDefinition] = getInputDefinitionsFromConfig
+    for (definition <- definitionsFromConfig) {
+      validateAndSanitizeMetricSourceDefinition(definition)
+    }
 
     //Union the 2 sources, with DB taking precedence.
     //Save new definition list to DB.
     metricSourceDefinitionMap = metricSourceDefinitionMap.++(combineDefinitionSources(definitionsFromConfig, definitionsFromStore))
 
-      //Reach out to AMS Metadata and get Metric Keys. Pass in List<CD> and get back Map<MD,Set<MK>>
+    //Reach out to AMS Metadata and get Metric Keys. Pass in List<CD> and get back (Map<MD,Set<MK>>, Set<MK>)
     for (definition <- metricSourceDefinitionMap.values) {
       val (definitionKeyMap: Map[MetricDefinition, Set[MetricKey]], keys: Set[MetricKey])= metricMetadataProvider.getMetricKeysForDefinitions(definition)
       metricDefinitionMetricKeyMap = metricDefinitionMetricKeyMap.++(definitionKeyMap)
@@ -173,11 +179,33 @@ class MetricManagerServiceImpl extends MetricManagerService {
   }
 
   def getInputDefinitionsFromConfig: List[MetricSourceDefinition] = {
-    val configDirectory = configuration.getMetricManagerServiceConfiguration.getInputDefinitionDirectory
+    val configDirectory = configuration.getMetricDefinitionServiceConfiguration.getInputDefinitionDirectory
     InputMetricDefinitionParser.parseInputDefinitionsFromDirectory(configDirectory)
   }
 
   def setAdMetadataStoreAccessor (adMetadataStoreAccessor: AdMetadataStoreAccessor) : Unit = {
     this.adMetadataStoreAccessor = adMetadataStoreAccessor
   }
+
+  def validateAndSanitizeMetricSourceDefinition(metricSourceDefinition: MetricSourceDefinition): Unit = {
+    val sourceLevelAppId: String = metricSourceDefinition.appId
+    val sourceLevelHostList: List[String] = metricSourceDefinition.hosts
+
+    for (metricDef <- metricSourceDefinition.metricDefinitions.toList) {
+      if (metricDef.appId == null) {
+        if (sourceLevelAppId == null || sourceLevelAppId.isEmpty) {
+          metricDef.makeInvalid()
+        } else {
+          metricDef.appId = sourceLevelAppId
+        }
+      }
+
+      if (metricDef.isValid && metricDef.hosts.isEmpty) {
+        if (sourceLevelHostList != null && sourceLevelHostList.nonEmpty) {
+          metricDef.hosts = sourceLevelHostList
+        }
+      }
+    }
+  }
+
 }

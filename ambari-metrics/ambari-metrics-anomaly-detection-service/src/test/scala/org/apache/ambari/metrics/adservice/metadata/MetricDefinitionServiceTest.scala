@@ -24,7 +24,7 @@ import org.easymock.EasyMock.{anyObject, expect, expectLastCall, replay}
 import org.scalatest.FunSuite
 import org.scalatest.easymock.EasyMockSugar
 
-class MetricManagerServiceTest extends FunSuite {
+class MetricDefinitionServiceTest extends FunSuite {
 
   test("testAddDefinition") {
 
@@ -42,14 +42,14 @@ class MetricManagerServiceTest extends FunSuite {
     expect(adMetadataStoreAccessor.saveInputDefinition(newDef)).andReturn(true).once()
     replay(adMetadataStoreAccessor)
 
-    val metricManagerService: MetricManagerServiceImpl = new MetricManagerServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
+    val metricDefinitionService: MetricDefinitionServiceImpl = new MetricDefinitionServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
 
-    metricManagerService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
+    metricDefinitionService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
 
-    metricManagerService.addDefinition(newDef)
+    metricDefinitionService.addDefinition(newDef)
 
-    assert(metricManagerService.metricSourceDefinitionMap.size == 4)
-    assert(metricManagerService.metricSourceDefinitionMap.get("testDefinition") != null)
+    assert(metricDefinitionService.metricSourceDefinitionMap.size == 4)
+    assert(metricDefinitionService.metricSourceDefinitionMap.get("testDefinition") != null)
   }
 
   test("testGetDefinitionByName") {
@@ -64,11 +64,11 @@ class MetricManagerServiceTest extends FunSuite {
     expect(adMetadataStoreAccessor.getSavedInputDefinitions).andReturn(definitions.toList).once()
     replay(adMetadataStoreAccessor)
 
-    val metricManagerService: MetricManagerServiceImpl = new MetricManagerServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
+    val metricDefinitionService: MetricDefinitionServiceImpl = new MetricDefinitionServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
 
-    metricManagerService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
+    metricDefinitionService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
     for (i <- 1 to 3) {
-      val definition: MetricSourceDefinition = metricManagerService.getDefinitionByName("TestDefinition" + i)
+      val definition: MetricSourceDefinition = metricDefinitionService.getDefinitionByName("TestDefinition" + i)
       assert(definition != null)
     }
   }
@@ -90,10 +90,10 @@ class MetricManagerServiceTest extends FunSuite {
     expect(adMetadataStoreAccessor.getSavedInputDefinitions).andReturn(definitions.toList).once()
     replay(adMetadataStoreAccessor)
 
-    val metricManagerService: MetricManagerServiceImpl = new MetricManagerServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
+    val metricDefinitionService: MetricDefinitionServiceImpl = new MetricDefinitionServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
 
-    metricManagerService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
-    val definitionsByAppId: List[MetricSourceDefinition] = metricManagerService.getDefinitionByAppId("testAppId")
+    metricDefinitionService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
+    val definitionsByAppId: List[MetricSourceDefinition] = metricDefinitionService.getDefinitionByAppId("testAppId")
     assert(definitionsByAppId.size == 2)
   }
 
@@ -115,15 +115,15 @@ class MetricManagerServiceTest extends FunSuite {
     expect(adMetadataStoreAccessor.removeInputDefinition(anyObject[String])).andReturn(true).times(2)
     replay(adMetadataStoreAccessor)
 
-    val metricManagerService: MetricManagerServiceImpl = new MetricManagerServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
+    val metricDefinitionService: MetricDefinitionServiceImpl = new MetricDefinitionServiceImpl(new AnomalyDetectionAppConfig, adMetadataStoreAccessor)
 
-    metricManagerService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
+    metricDefinitionService.setAdMetadataStoreAccessor(adMetadataStoreAccessor)
 
-    var success: Boolean = metricManagerService.deleteDefinitionByName("TestDefinition1")
+    var success: Boolean = metricDefinitionService.deleteDefinitionByName("TestDefinition1")
     assert(success)
-    success = metricManagerService.deleteDefinitionByName("TestDefinition2")
+    success = metricDefinitionService.deleteDefinitionByName("TestDefinition2")
     assert(!success)
-    success = metricManagerService.deleteDefinitionByName("TestDefinition3")
+    success = metricDefinitionService.deleteDefinitionByName("TestDefinition3")
     assert(success)
   }
 
