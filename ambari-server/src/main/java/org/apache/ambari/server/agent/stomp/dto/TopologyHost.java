@@ -31,8 +31,9 @@ public class TopologyHost {
   public TopologyHost() {
   }
 
-  public TopologyHost(Long hostId) {
+  public TopologyHost(Long hostId, String hostName) {
     this.hostId = hostId;
+    this.hostName = hostName;
   }
 
   public TopologyHost(Long hostId, String hostName, String rackName, String ipv4) {

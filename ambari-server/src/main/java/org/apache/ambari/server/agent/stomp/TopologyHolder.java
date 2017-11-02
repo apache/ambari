@@ -169,6 +169,11 @@ public class TopologyHolder extends AgentClusterDataHolder<TopologyUpdateEvent> 
           topologyComponent.setHostNames(new HashSet<>());
           topologyComponent.setPublicHostNames(new HashSet<>());
         }
+        if (topologyUpdateEvent.getEventType().equals(TopologyUpdateEvent.EventType.DELETE)) {
+          for (TopologyHost topologyHost : topologyCluster.getTopologyHosts()) {
+            topologyHost.setHostName(null);
+          }
+        }
       }
     }
   }

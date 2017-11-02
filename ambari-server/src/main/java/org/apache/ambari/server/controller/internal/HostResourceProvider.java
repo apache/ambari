@@ -1051,7 +1051,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           if (!topologyUpdates.containsKey(clusterId)) {
             topologyUpdates.put(clusterId, new TopologyCluster());
           }
-          topologyUpdates.get(clusterId).getTopologyHosts().add(new TopologyHost(hostId));
+          topologyUpdates.get(clusterId).getTopologyHosts().add(new TopologyHost(hostId, hostname));
         }
         deleteStatusMetaData.addDeletedKey(hostname);
       } catch (Exception ex) {
