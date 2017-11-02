@@ -78,6 +78,7 @@ public interface Resource {
     RootClusterSetting,
     Service,
     ServiceGroup,
+    ServiceGroupDependency,
     Setting,
     Host,
     Component,
@@ -208,6 +209,7 @@ public interface Resource {
     public static final Type Cluster = InternalType.Cluster.getType();
     public static final Type RootClusterSetting = InternalType.RootClusterSetting.getType();
     public static final Type ServiceGroup = InternalType.ServiceGroup.getType();
+    public static final Type ServiceGroupDependency = InternalType.ServiceGroupDependency.getType();
     public static final Type Service = InternalType.Service.getType();
     public static final Type Setting = InternalType.Setting.getType();
     public static final Type Host = InternalType.Host.getType();

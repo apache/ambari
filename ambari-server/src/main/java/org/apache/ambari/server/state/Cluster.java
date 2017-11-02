@@ -90,6 +90,8 @@ public interface Cluster {
    */
   ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException;
 
+  ServiceGroup addServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException;
+
   /**
    * Get a service
    *
@@ -509,6 +511,8 @@ public interface Cluster {
    * @throws AmbariException
    */
   void deleteServiceGroup(String serviceGroupName) throws AmbariException;
+
+  void deleteServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException;
 
   /**
    * Gets if the cluster can be deleted

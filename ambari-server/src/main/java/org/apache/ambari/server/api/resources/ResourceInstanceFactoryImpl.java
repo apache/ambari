@@ -112,6 +112,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ServiceGroupResourceDefinition();
         break;
 
+      case ServiceGroupDependency:
+        resourceDefinition = new ServiceGroupDependencyResourceDefinition();
+        break;
+
       case Service:
         resourceDefinition = new ServiceResourceDefinition();
         break;

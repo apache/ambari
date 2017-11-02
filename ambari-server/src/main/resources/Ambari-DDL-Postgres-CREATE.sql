@@ -178,6 +178,15 @@ CREATE TABLE servicegroups (
   CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
+CREATE TABLE servicegroupdependencies (
+  service_group_id BIGINT NOT NULL,
+  service_group_cluster_id BIGINT NOT NULL,
+  dependent_service_group_id BIGINT NOT NULL,
+  dependent_service_group_cluster_id BIGINT NOT NULL,
+  CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
+  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT FK_servicegroupdependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,

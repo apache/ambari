@@ -18,7 +18,15 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.ServiceGroupKey;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ServiceGroupDependencyResponse;
 import org.apache.ambari.server.controller.ServiceGroupResponse;
 import org.apache.ambari.server.events.ServiceGroupInstalledEvent;
 import org.apache.ambari.server.events.ServiceGroupRemovedEvent;
@@ -50,13 +58,16 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   private Long serviceGroupId;
   private String serviceGroupName;
+  private Set<ServiceGroupKey> serviceGroupDependencies = new HashSet<>();
 
   @AssistedInject
   public ServiceGroupImpl(@Assisted Cluster cluster,
                           @Assisted("serviceGroupName") String serviceGroupName,
+                          @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies,
                           ClusterDAO clusterDAO,
                           ServiceGroupDAO serviceGroupDAO,
-                          AmbariEventPublisher eventPublisher) throws AmbariException {
+                          AmbariEventPublisher eventPublisher,
+                          AmbariManagementController controller) throws AmbariException {
 
     this.cluster = cluster;
     this.clusterDAO = clusterDAO;
@@ -69,6 +80,27 @@ public class ServiceGroupImpl implements ServiceGroup {
     serviceGroupEntity.setClusterId(cluster.getClusterId());
     serviceGroupEntity.setServiceGroupId(serviceGroupId);
     serviceGroupEntity.setServiceGroupName(serviceGroupName);
+
+    List<ServiceGroupEntity> serviceGroupEntities = new ArrayList<>();
+    if (serviceGroupDependencies != null) {
+      this.serviceGroupDependencies = serviceGroupDependencies;
+      for (ServiceGroupKey serviceGroupKey : serviceGroupDependencies) {
+        Clusters clusters = controller.getClusters();
+        Cluster dependencyCluster = serviceGroupKey.getClusterName() == null ? cluster :
+                clusters.getCluster(serviceGroupKey.getClusterName());
+        serviceGroupKey.setClusterName(dependencyCluster.getClusterName());
+        ServiceGroup dependencyServiceGroup = dependencyCluster.getServiceGroup(serviceGroupKey.getServiceGroupName());
+
+        ServiceGroupEntityPK serviceGroupEntityPK = new ServiceGroupEntityPK();
+        serviceGroupEntityPK.setServiceGroupId(dependencyServiceGroup.getServiceGroupId());
+        serviceGroupEntityPK.setClusterId(dependencyServiceGroup.getClusterId());
+        ServiceGroupEntity dependentServiceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
+        serviceGroupEntities.add(dependentServiceGroupEntity);
+      }
+    } else {
+      this.serviceGroupDependencies = new HashSet<>();
+    }
+    serviceGroupEntity.setServiceGroupDependencies(serviceGroupEntities);
 
     this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
     persist(serviceGroupEntity);
@@ -87,6 +119,7 @@ public class ServiceGroupImpl implements ServiceGroup {
 
     this.serviceGroupId = serviceGroupEntity.getServiceGroupId();
     this.serviceGroupName = serviceGroupEntity.getServiceGroupName();
+    this.serviceGroupDependencies = getServiceGroupDependencies(serviceGroupEntity.getServiceGroupDependencies());
 
     this.serviceGroupEntityPK = getServiceGroupEntityPK(serviceGroupEntity);
   }
@@ -115,10 +148,75 @@ public class ServiceGroupImpl implements ServiceGroup {
   }
 
   @Override
+  public Set<ServiceGroupKey> getServiceGroupDependencies() {
+    return serviceGroupDependencies;
+  }
+
+  @Override
+  public void setServiceGroupDependencies(Set<ServiceGroupKey> serviceGroupDependencies) {
+    this.serviceGroupDependencies = serviceGroupDependencies;
+  }
+
+  @Override
   public ServiceGroupResponse convertToResponse() {
     ServiceGroupResponse r = new ServiceGroupResponse(cluster.getClusterId(),
       cluster.getClusterName(), getServiceGroupId(), getServiceGroupName());
     return r;
+  }
+
+  @Override
+  public Set<ServiceGroupDependencyResponse> getServiceGroupDependencyResponses() {
+    Set<ServiceGroupDependencyResponse> responses = new HashSet<>();
+    if (getServiceGroupDependencies() != null) {
+      for (ServiceGroupKey sgk : getServiceGroupDependencies()) {
+        responses.add(new ServiceGroupDependencyResponse(cluster.getClusterId(), cluster.getClusterName(),
+                serviceGroupId, serviceGroupName, sgk.getClusterId(), sgk.getClusterName(), sgk.getServiceGroupId(), sgk.getServiceGroupName()));
+      }
+    }
+    return responses;
+  }
+
+  public Set<ServiceGroupKey> getServiceGroupDependencies(List<ServiceGroupEntity> serviceGroupDependencies) {
+    Set<ServiceGroupKey> serviceGroupDependenciesList = new HashSet<>();
+    if (serviceGroupDependencies != null) {
+      for (ServiceGroupEntity sge : serviceGroupDependencies) {
+        ServiceGroupKey serviceGroupKey = new ServiceGroupKey();
+        String clusterName = "";
+        Long clusterId = null;
+        if (sge.getClusterId() == cluster.getClusterId()) {
+          clusterName = cluster.getClusterName();
+          clusterId = cluster.getClusterId();
+        } else {
+          ClusterEntity clusterEntity = clusterDAO.findById(sge.getClusterId());
+          if (clusterEntity != null) {
+            clusterName = clusterEntity.getClusterName();
+            clusterId = clusterEntity.getClusterId();
+          } else {
+            LOG.error("Unable to get cluster id for service group " + sge.getServiceGroupName());
+          }
+        }
+
+        ServiceGroupEntityPK serviceGroupEntityPK = new ServiceGroupEntityPK();
+        serviceGroupEntityPK.setClusterId(sge.getClusterId());
+        serviceGroupEntityPK.setServiceGroupId(sge.getServiceGroupId());
+        ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
+        String serviceGroupDependencyName = "";
+        Long serviceGroupDependencId = null;
+        if (serviceGroupEntity != null) {
+          serviceGroupDependencyName = serviceGroupEntity.getServiceGroupName();
+          serviceGroupDependencId = serviceGroupEntity.getServiceGroupId();
+        } else {
+          LOG.error("Unable to get service group entity for service group " + sge.getServiceGroupName());
+        }
+
+        serviceGroupKey.setServiceGroupName(serviceGroupDependencyName);
+        serviceGroupKey.setServiceGroupId(serviceGroupDependencId);
+        serviceGroupKey.setClusterName(clusterName);
+        serviceGroupKey.setClusterId(clusterId);
+        serviceGroupDependenciesList.add(serviceGroupKey);
+      }
+    }
+    return serviceGroupDependenciesList;
   }
 
   @Override
@@ -188,6 +286,25 @@ public class ServiceGroupImpl implements ServiceGroup {
     // publish the service removed event
     ServiceGroupRemovedEvent event = new ServiceGroupRemovedEvent(getClusterId(), getServiceGroupName());
     eventPublisher.publish(event);
+  }
+
+  @Override
+  @Transactional
+  public ServiceGroupEntity deleteDependency(String dependencyServiceGroupName) throws AmbariException {
+    ServiceGroupEntityPK pk = new ServiceGroupEntityPK();
+    pk.setClusterId(getClusterId());
+    pk.setServiceGroupId(getServiceGroupId());
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(pk);
+    ServiceGroupEntity dependencyToRemove = null;
+    for (ServiceGroupEntity dependency : serviceGroupEntity.getServiceGroupDependencies()) {
+      if (dependency.getServiceGroupName().equals(dependencyServiceGroupName)) {
+        dependencyToRemove = dependency;
+        break;
+      }
+    }
+    serviceGroupEntity.getServiceGroupDependencies().remove(dependencyToRemove);
+    serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
+    return serviceGroupEntity;
   }
 
   @Transactional

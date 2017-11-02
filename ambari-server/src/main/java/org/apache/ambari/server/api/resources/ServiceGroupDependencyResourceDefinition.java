@@ -15,41 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.api.resources;
 
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-/**
- * Service group resource definition.
- */
-public class ServiceGroupResourceDefinition extends BaseResourceDefinition {
+public class ServiceGroupDependencyResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
    */
-  public ServiceGroupResourceDefinition() {
-    super(Resource.Type.ServiceGroup);
+  public ServiceGroupDependencyResourceDefinition() {
+    super(Resource.Type.ServiceGroupDependency);
   }
 
   @Override
   public String getPluralName() {
-    return "servicegroups";
+    return "dependencies";
   }
 
   @Override
   public String getSingularName() {
-    return "servicegroup";
-  }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
-    subs.add(new SubResourceDefinition(Resource.Type.Service));
-    subs.add(new SubResourceDefinition(Resource.Type.ServiceGroupDependency));
-    return subs;
+    return "dependency";
   }
 }

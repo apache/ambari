@@ -18,8 +18,13 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.ServiceGroupKey;
+import org.apache.ambari.server.controller.ServiceGroupDependencyResponse;
 import org.apache.ambari.server.controller.ServiceGroupResponse;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 
 public interface ServiceGroup {
 
@@ -33,7 +38,13 @@ public interface ServiceGroup {
 
   Cluster getCluster();
 
+  Set<ServiceGroupKey> getServiceGroupDependencies();
+
+  void setServiceGroupDependencies(Set<ServiceGroupKey> serviceGroupDependencies);
+
   ServiceGroupResponse convertToResponse();
+
+  Set<ServiceGroupDependencyResponse> getServiceGroupDependencyResponses();
 
   void debugDump(StringBuilder sb);
 
@@ -47,4 +58,6 @@ public interface ServiceGroup {
   boolean canBeRemoved();
 
   void delete() throws AmbariException;
+
+  ServiceGroupEntity deleteDependency(String dependencyServiceGroupName) throws AmbariException;
 }

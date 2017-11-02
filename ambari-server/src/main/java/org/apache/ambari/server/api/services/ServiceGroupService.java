@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.ServiceGroupDependencyResponse;
 import org.apache.ambari.server.controller.ServiceGroupResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.http.HttpStatus;
@@ -47,13 +48,14 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 
-
 /**
  * Service responsible for servicegroups resource requests.
  */
 @Api(value = "Service Groups", description = "Endpoint for servicegroup specific operations")
 public class ServiceGroupService extends BaseService {
   private static final String SERVICE_GROUP_REQUEST_TYPE = "org.apache.ambari.server.controller.ServiceGroupRequestSwagger";
+  private static final String SERVICE_GROUP_DEPENDENCY_REQUEST_TYPE = "org.apache.ambari.server.controller.ServiceGroupDependencyRequestSwagger";
+
 
   /**
    * Parent cluster Name.
@@ -279,6 +281,143 @@ public class ServiceGroupService extends BaseService {
   }
 
   /**
+   * Handles URL: /clusters/{clusterName}/servicegroups/{serviceGroupName}/dependencies
+   * Get all servicegroupdependencies for a cluster.
+   *
+   * @param headers http headers
+   * @param ui      uri info
+   * @return service group dependencies collection resource representation
+   */
+  @GET
+  @Path("{serviceGroupName}/dependencies")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all servicegroupdependencies",
+          nickname = "ServiceGroupService#getServiceGroupDependencies",
+          notes = "Returns all servicegroupdependencies.",
+          response = ServiceGroupDependencyResponse.ServiceGroupDependencyResponseSwagger.class,
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
+                  defaultValue = "ServiceGroupInfo/service_group_name, ServiceGroupInfo/cluster_name",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
+                  defaultValue = "ServiceGroupInfo/service_group_name.asc, ServiceGroupInfo/cluster_name.asc",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
+  public Response getServiceGroupDependencies(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                  @PathParam("serviceGroupName") String serviceGroupName) {
+
+    return handleRequest(headers, body, ui, Request.Type.GET,
+            createServiceGroupDependencyResource(m_clusterName, serviceGroupName, null));
+  }
+
+  /**
+   * Handles URL: /clusters/{clusterName}/servicegroups/{serviceGroupName}/dependencies/{serviceGroupDependency}
+   * Get a specific servicegroupdependency.
+   *
+   * @param headers                 http headers
+   * @param ui                      uri info
+   * @param serviceGroupName        service group name
+   * @param serviceGroupDependency  service group dependency name
+   * @return servicegroupdependency    resource representation
+   */
+  @GET
+  @Path("{serviceGroupName}/dependencies/{serviceGroupDependency}")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get the details of a servicegroupdependency",
+          nickname = "ServiceGroupService#getServiceGroupDependency",
+          notes = "Returns the details of a servicegroupdependency",
+          response = ServiceGroupResponse.ServiceGroupResponseSwagger.class,
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "ServiceGroupInfo/*",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
+  public Response getServiceGroupDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                              @PathParam("serviceGroupName") String serviceGroupName,
+                                              @PathParam("serviceGroupDependency") String serviceGroupDependency) {
+
+    return handleRequest(headers, body, ui, Request.Type.GET,
+            createServiceGroupDependencyResource(m_clusterName, serviceGroupName, serviceGroupDependency));
+  }
+
+  /**
+   * Handles: POST /clusters/{clusterName}/servicegroups/{serviceGroupName}/dependencies
+   * Create multiple servicegroupdependencies.
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created servicegroupdependencies
+   */
+  @POST
+  @Path("{serviceGroupName}/dependencies")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Creates a servicegroupdependency",
+          nickname = "ServiceGroupService#addServiceGroupDependency"
+  )
+  @ApiImplicitParams({
+          @ApiImplicitParam(dataType = SERVICE_GROUP_DEPENDENCY_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+          @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response addServiceGroupDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                              @PathParam("serviceGroupName") String serviceGroupName) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+            createServiceGroupDependencyResource(m_clusterName, serviceGroupName, null));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterName}/servicegroups/{serviceGroupName}/dependencies/{serviceGroupDependency}
+   * Delete a specific servicegroupdependency.
+
+   * @param headers                 http headers
+   * @param ui                      uri info
+   * @param serviceGroupName        service group name
+   * @param serviceGroupDependency  service group dependency name
+   * @return information regarding the deleted servicegroupdependency
+   */
+  @DELETE
+  @Path("{serviceGroupName}/dependencies/{serviceGroupDependency}")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes a servicegroupdependency",
+          nickname = "ServiceGroupService#deleteServiceGroupDependency"
+  )
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response deleteServiceGroupDependency(@Context HttpHeaders headers, @Context UriInfo ui,
+                                     @PathParam("serviceGroupName") String serviceGroupName,
+                                     @PathParam("serviceGroupDependency") String serviceGroupDependency) {
+
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceGroupDependencyResource(m_clusterName, serviceGroupName, serviceGroupDependency));
+  }
+  /**
    * Create a service resource instance.
    *
    * @param clusterName  cluster Name
@@ -293,5 +432,15 @@ public class ServiceGroupService extends BaseService {
 
 
     return createResource(Resource.Type.ServiceGroup, mapIds);
+  }
+
+  ResourceInstance createServiceGroupDependencyResource(String clusterName, String serviceGroupName, String serviceGroupDependency) {
+    Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
+    mapIds.put(Resource.Type.ServiceGroupDependency, serviceGroupDependency);
+
+
+    return createResource(Resource.Type.ServiceGroupDependency, mapIds);
   }
 }

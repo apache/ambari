@@ -156,6 +156,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return resourceProviderFactory.getServiceResourceProvider(managementController);
       case ServiceGroup:
         return resourceProviderFactory.getServiceGroupResourceProvider(managementController);
+      case ServiceGroupDependency:
+        return resourceProviderFactory.getServiceGroupDependencyResourceProvider(managementController);
       case Component:
         return resourceProviderFactory.getComponentResourceProvider(managementController);
       case Host:
