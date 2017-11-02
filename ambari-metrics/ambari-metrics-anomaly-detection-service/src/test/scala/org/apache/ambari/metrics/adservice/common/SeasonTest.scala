@@ -78,9 +78,9 @@ class SeasonTest extends FunSuite {
   test("testSerialize") {
     val season1 : Season = Season(Range(Calendar.MONDAY,Calendar.FRIDAY), Range(9,17))
 
-    val seasonString = Season.serialize(season1)
+    val seasonString = Season.toJson(season1)
 
-    val season2 : Season = Season.deserialize(seasonString)
+    val season2 : Season = Season.fromJson(seasonString)
     assert(season1 == season2)
 
     val season3 : Season = Season(Range(Calendar.MONDAY,Calendar.THURSDAY), Range(9,17))

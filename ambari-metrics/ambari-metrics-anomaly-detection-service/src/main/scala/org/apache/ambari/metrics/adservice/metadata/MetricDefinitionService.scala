@@ -17,7 +17,7 @@
 
 package org.apache.ambari.metrics.adservice.metadata
 
-trait MetricManagerService {
+trait MetricDefinitionService {
 
   /**
     * Given a 'UUID', return the metric key associated with it.
