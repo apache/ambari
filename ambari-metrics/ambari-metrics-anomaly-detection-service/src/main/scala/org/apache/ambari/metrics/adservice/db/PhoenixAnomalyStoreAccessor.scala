@@ -94,11 +94,11 @@ object PhoenixAnomalyStoreAccessor  {
           val timestamp: Long = rs.getLong("ANOMALY_TIMESTAMP")
           val metricValue: Double = rs.getDouble("METRIC_VALUE")
           val methodType: AnomalyDetectionMethod = AnomalyDetectionMethod.withName(rs.getString("METHOD_NAME"))
-          val season: Season = Season.deserialize(rs.getString("SEASONAL_INFO"))
+          val season: Season = Season.fromJson(rs.getString("SEASONAL_INFO"))
           val anomalyScore: Double = rs.getDouble("ANOMALY_SCORE")
           val modelSnapshot: String = rs.getString("MODEL_PARAMETERS")
 
-          val metricKey: MetricKey = null //MetricManager.getMetricKeyFromUuid(uuid)
+          val metricKey: MetricKey = null //MetricManager.getMetricKeyFromUuid(uuid) //TODO
           val anomalyInstance: SingleMetricAnomalyInstance = new PointInTimeAnomalyInstance(metricKey, timestamp,
             metricValue, methodType, anomalyScore, season, modelSnapshot)
           anomalies.+=(anomalyInstance)
@@ -111,11 +111,11 @@ object PhoenixAnomalyStoreAccessor  {
           val referenceStart: Long = rs.getLong("TEST_PERIOD_START")
           val referenceEnd: Long = rs.getLong("TEST_PERIOD_END")
           val methodType: AnomalyDetectionMethod = AnomalyDetectionMethod.withName(rs.getString("METHOD_NAME"))
-          val season: Season = Season.deserialize(rs.getString("SEASONAL_INFO"))
+          val season: Season = Season.fromJson(rs.getString("SEASONAL_INFO"))
           val anomalyScore: Double = rs.getDouble("ANOMALY_SCORE")
           val modelSnapshot: String = rs.getString("MODEL_PARAMETERS")
 
-          val metricKey: MetricKey = null //MetricManager.getMetricKeyFromUuid(uuid)
+          val metricKey: MetricKey = null //MetricManager.getMetricKeyFromUuid(uuid) //TODO
           val anomalyInstance: SingleMetricAnomalyInstance = TrendAnomalyInstance(metricKey,
             TimeRange(anomalyStart, anomalyEnd),
             TimeRange(referenceStart, referenceEnd),

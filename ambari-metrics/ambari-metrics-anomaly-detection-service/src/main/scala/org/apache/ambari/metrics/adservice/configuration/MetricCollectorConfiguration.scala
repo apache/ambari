@@ -39,14 +39,4 @@ class MetricCollectorConfiguration {
   @JsonProperty
   def getMetadataEndpoint: String = metadataEndpoint
 
-  @JsonProperty
-  def setHostPortList(hostPortList: String): Unit = {
-    this.hostPortList = hostPortList
-  }
-
-  @JsonProperty
-  def setMetadataEndpoint(metadataEndpoint: String): Unit = {
-    this.metadataEndpoint = metadataEndpoint
-  }
-
 }
