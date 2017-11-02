@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,6 +150,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     showHcatDeletedUserMessage();
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
+    updateKerberosConfigurations();
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -265,7 +267,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
                 "logsearch-common-properties", Collections.emptyMap(), "ambari-upgrade",
                 String.format("Updated logsearch-common-properties during Ambari Upgrade from %s to %s",
                     getSourceVersion(), getTargetVersion()));
-            
+
             String defaultLogLevels = logSearchProperties.getProperties().get("logsearch.logfeeder.include.default.level");
 
             Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
@@ -324,7 +326,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
               updateConfigurationPropertiesForCluster(cluster, "logsearch-audit_logs-solrconfig", Collections.singletonMap("content", content), true, true);
             }
           }
-          
+
           Config logFeederOutputConfig = cluster.getDesiredConfigByType("logfeeder-output-config");
           if (logFeederOutputConfig != null) {
             String content = logFeederOutputConfig.getProperties().get("content");
@@ -341,6 +343,30 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
                 "      \"type\": \"audit\",\n");
 
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-output-config", Collections.singletonMap("content", content), true, true);
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateKerberosConfigurations() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (!MapUtils.isEmpty(clusterMap)) {
+        for (Cluster cluster : clusterMap.values()) {
+          Config config = cluster.getDesiredConfigByType("kerberos-env");
+
+          if (config != null) {
+            Map<String, String> properties = config.getProperties();
+            if (properties.containsKey("group")) {
+              // Covert kerberos-env/group to kerberos-env/ipa_user_group
+              updateConfigurationPropertiesForCluster(cluster, "kerberos-env",
+                  Collections.singletonMap("ipa_user_group", properties.get("group")), Collections.singleton("group"),
+                  true, false);
+            }
           }
         }
       }

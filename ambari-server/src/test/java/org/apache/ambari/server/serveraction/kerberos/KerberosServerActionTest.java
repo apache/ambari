@@ -18,15 +18,13 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,7 +43,7 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,11 +51,10 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 
 import junit.framework.Assert;
 
-public class KerberosServerActionTest {
+public class KerberosServerActionTest extends EasyMockSupport {
 
   Map<String, String> commandParams = new HashMap<>();
   File temporaryDirectory;
@@ -66,49 +63,53 @@ public class KerberosServerActionTest {
 
   @Before
   public void setUp() throws Exception {
-    final Cluster cluster = mock(Cluster.class);
+    Cluster cluster = createMock(Cluster.class);
 
-    final Clusters clusters = mock(Clusters.class);
-    when(clusters.getCluster(anyString())).thenReturn(cluster);
+    Clusters clusters = createMock(Clusters.class);
+    expect(clusters.getCluster(anyString())).andReturn(cluster).anyTimes();
 
-    final ExecutionCommand mockExecutionCommand = mock(ExecutionCommand.class);
-    final HostRoleCommand mockHostRoleCommand = mock(HostRoleCommand.class);
+    ExecutionCommand mockExecutionCommand = createMock(ExecutionCommand.class);
+    HostRoleCommand mockHostRoleCommand = createMock(HostRoleCommand.class);
+
+    action = new KerberosServerAction() {
+
+      @Override
+      protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
+                                              KerberosOperationHandler operationHandler,
+                                              Map<String, String> kerberosConfiguration,
+                                              Map<String, Object> requestSharedDataContext)
+          throws AmbariException {
+        Assert.assertNotNull(requestSharedDataContext);
+
+        if (requestSharedDataContext.get("FAIL") != null) {
+          return createCommandReport(1, HostRoleStatus.FAILED, "{}", "ERROR", "ERROR");
+        } else {
+          requestSharedDataContext.put(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL), evaluatedPrincipal);
+          return null;
+        }
+      }
+
+      @Override
+      public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
+          throws AmbariException, InterruptedException {
+        return processIdentities(requestSharedDataContext);
+      }
+    };
+    action.setExecutionCommand(mockExecutionCommand);
+    action.setHostRoleCommand(mockHostRoleCommand);
 
     injector = Guice.createInjector(new AbstractModule() {
 
       @Override
       protected void configure() {
-        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
-        Provider<EntityManager> entityManagerProvider =  createNiceMock(Provider.class);
-        bind(EntityManager.class).toProvider(entityManagerProvider);
-        bind(KerberosServerAction.class).toInstance(new KerberosServerAction() {
-
-          @Override
-          protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
-                                                  KerberosOperationHandler operationHandler,
-                                                  Map<String, String> kerberosConfiguration,
-                                                  Map<String, Object> requestSharedDataContext)
-              throws AmbariException {
-            Assert.assertNotNull(requestSharedDataContext);
-
-            if (requestSharedDataContext.get("FAIL") != null) {
-              return createCommandReport(1, HostRoleStatus.FAILED, "{}", "ERROR", "ERROR");
-            } else {
-              requestSharedDataContext.put(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL), evaluatedPrincipal);
-              return null;
-            }
-          }
-
-          @Override
-          public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
-              throws AmbariException, InterruptedException {
-            return processIdentities(requestSharedDataContext);
-          }
-        });
+        bind(KerberosHelper.class).toInstance(createMock(KerberosHelper.class));
+        bind(KerberosServerAction.class).toInstance(action);
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
 
         bind(Clusters.class).toInstance(clusters);
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
+        bind(KerberosOperationHandlerFactory.class).toInstance(createMock(KerberosOperationHandlerFactory.class));
       }
     });
 
@@ -133,13 +134,17 @@ public class KerberosServerActionTest {
     commandParams.put(KerberosServerAction.DEFAULT_REALM, "REALM.COM");
     commandParams.put(KerberosServerAction.KDC_TYPE, KDCType.MIT_KDC.toString());
 
-    when(mockExecutionCommand.getCommandParams()).thenReturn(commandParams);
-    when(mockExecutionCommand.getClusterName()).thenReturn("c1");
+    expect(mockExecutionCommand.getCommandParams()).andReturn(commandParams).anyTimes();
+    expect(mockExecutionCommand.getClusterName()).andReturn("c1").anyTimes();
+    expect(mockExecutionCommand.getConfigurations()).andReturn(Collections.emptyMap()).anyTimes();
+    expect(mockExecutionCommand.getRoleCommand()).andReturn(null).anyTimes();
+    expect(mockExecutionCommand.getConfigurationTags()).andReturn(null).anyTimes();
+    expect(mockExecutionCommand.getRole()).andReturn(null).anyTimes();
+    expect(mockExecutionCommand.getServiceName()).andReturn(null).anyTimes();
+    expect(mockExecutionCommand.getTaskId()).andReturn(1L).anyTimes();
 
-    action = injector.getInstance(KerberosServerAction.class);
-
-    action.setExecutionCommand(mockExecutionCommand);
-    action.setHostRoleCommand(mockHostRoleCommand);
+    expect(mockHostRoleCommand.getRequestId()).andReturn(1L).anyTimes();
+    expect(mockHostRoleCommand.getStageId()).andReturn(1L).anyTimes();
   }
 
   @After
@@ -189,17 +194,28 @@ public class KerberosServerActionTest {
 
   @Test
   public void testGetDataDirectoryPath() throws Exception {
+    replayAll();
     Assert.assertEquals(temporaryDirectory.getAbsolutePath(), action.getDataDirectoryPath());
+    verifyAll();
   }
 
   @Test
   public void testProcessIdentitiesSuccess() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
-    expect(kerberosHelper.getKDCAdministratorCredentials(EasyMock.anyObject(String.class)))
+    expect(kerberosHelper.getKDCAdministratorCredentials(anyObject(String.class)))
         .andReturn(new PrincipalKeyCredential("principal", "password"))
         .anyTimes();
 
-    replay(kerberosHelper);
+    KerberosOperationHandler kerberosOperationHandler = createMock(KerberosOperationHandler.class);
+    kerberosOperationHandler.open(anyObject(PrincipalKeyCredential.class), anyString(), anyObject(Map.class));
+    expectLastCall().atLeastOnce();
+    kerberosOperationHandler.close();
+    expectLastCall().atLeastOnce();
+
+    KerberosOperationHandlerFactory factory = injector.getInstance(KerberosOperationHandlerFactory.class);
+    expect(factory.getKerberosOperationHandler(KDCType.MIT_KDC)).andReturn(kerberosOperationHandler).once();
+
+    replayAll();
 
     ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<>();
     CommandReport report = action.processIdentities(sharedMap);
@@ -210,17 +226,26 @@ public class KerberosServerActionTest {
       Assert.assertEquals(entry.getValue(), entry.getKey());
     }
 
-    verify(kerberosHelper);
+    verifyAll();
   }
 
   @Test
   public void testProcessIdentitiesFail() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
-    expect(kerberosHelper.getKDCAdministratorCredentials(EasyMock.anyObject(String.class)))
+    expect(kerberosHelper.getKDCAdministratorCredentials(anyObject(String.class)))
         .andReturn(new PrincipalKeyCredential("principal", "password"))
         .anyTimes();
 
-    replay(kerberosHelper);
+    KerberosOperationHandler kerberosOperationHandler = createMock(KerberosOperationHandler.class);
+    kerberosOperationHandler.open(anyObject(PrincipalKeyCredential.class), anyString(), anyObject(Map.class));
+    expectLastCall().atLeastOnce();
+    kerberosOperationHandler.close();
+    expectLastCall().atLeastOnce();
+
+    KerberosOperationHandlerFactory factory = injector.getInstance(KerberosOperationHandlerFactory.class);
+    expect(factory.getKerberosOperationHandler(KDCType.MIT_KDC)).andReturn(kerberosOperationHandler).once();
+
+    replayAll();
 
     ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<>();
     sharedMap.put("FAIL", "true");
@@ -229,6 +254,6 @@ public class KerberosServerActionTest {
     Assert.assertNotNull(report);
     Assert.assertEquals(HostRoleStatus.FAILED.toString(), report.getStatus());
 
-    verify(kerberosHelper);
+    verifyAll();
   }
 }

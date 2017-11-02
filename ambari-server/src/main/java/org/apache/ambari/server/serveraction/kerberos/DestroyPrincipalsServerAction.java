@@ -114,7 +114,8 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
 
       try {
         try {
-          operationHandler.removePrincipal(evaluatedPrincipal);
+          boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
+          operationHandler.removePrincipal(evaluatedPrincipal, servicePrincipal);
         } catch (KerberosOperationException e) {
           message = String.format("Failed to remove identity for %s from the KDC - %s", evaluatedPrincipal, e.getMessage());
           LOG.warn(message);

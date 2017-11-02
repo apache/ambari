@@ -46,7 +46,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
       type: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc')
     },
     'ipa': {
-      configNames: ['group', 'set_password_expiry', 'password_chat_timeout'],
+      configNames: ['ipa_user_group'],
       type: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa')
     }
   },

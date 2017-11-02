@@ -188,7 +188,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
 
           @Override
-          public boolean principalExists(String principal) throws KerberosOperationException {
+          public boolean principalExists(String principal, boolean service) throws KerberosOperationException {
             return "principal".equals(principal);
           }
 
@@ -198,12 +198,12 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
 
           @Override
-          public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
+          public Integer setPrincipalPassword(String principal, String password, boolean service) throws KerberosOperationException {
             return null;
           }
 
           @Override
-          public boolean removePrincipal(String principal) throws KerberosOperationException {
+          public boolean removePrincipal(String principal, boolean service) throws KerberosOperationException {
             return false;
           }
 

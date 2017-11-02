@@ -253,7 +253,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
 
         if (regenerateKeytabs) {
           try {
-            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
+            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password, isServicePrincipal);
             created = false;
           } catch (KerberosPrincipalDoesNotExistException e) {
             message = String.format("Principal, %s, does not exist, creating new principal", principal);
@@ -276,7 +276,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
               actionLog.writeStdOut(message);
             }
 
-            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
+            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password, isServicePrincipal);
             created = false;
           }
         }
