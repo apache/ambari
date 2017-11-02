@@ -39,7 +39,7 @@ describe('Utility Service', function () {
       });
       scope = $rootScope.$new();
       scope.$apply();
-      ctrl = $controller('MainCtrl', {
+      ctrl = $controller('AppCtrl', {
         $scope: scope
       });
       httpBackend.whenGET(/\/persist\/user-pref-.*/).respond(200, {});
@@ -54,6 +54,7 @@ describe('Utility Service', function () {
       httpBackend.whenGET(/\/api\/v1\/views.+/).respond(200, {
         items: []
       });
+      httpBackend.whenGET("views/main.html").respond(200, {});
     });
   });
 

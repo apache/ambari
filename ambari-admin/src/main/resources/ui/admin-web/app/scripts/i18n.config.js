@@ -39,6 +39,7 @@ angular.module('ambariAdminConsole')
     'common.versions': 'Versions',
     'common.stack': 'Stack',
     'common.details': 'Details',
+    'common.dashboard': 'Dashboard',
     'common.goToDashboard': 'Go to Dashboard',
     'common.exportBlueprint': 'Export Blueprint',
     'common.blueprint': 'Blueprint',
@@ -70,7 +71,6 @@ angular.module('ambariAdminConsole')
     'common.renameCluster': 'Rename Cluster',
     'common.renameClusterTip': 'Only alpha-numeric characters, up to 80 characters',
     'common.clusterCreationInProgress': 'Cluster creation in progress...',
-    'common.userGroupManagement': 'User + Group Management',
     'common.all': 'All',
     'common.group': 'Group',
     'common.user': 'User',
@@ -96,6 +96,10 @@ angular.module('ambariAdminConsole')
     'common.undo': 'Undo',
     'common.fromGroupMark': '(from group)',
     'common.copy': '_Copy',
+    'common.clusterInformation': 'Cluster Information',
+    'common.clusterManagement': 'Cluster Management',
+    'common.userManagement': 'User Management',
+    'common.admin': 'Admin',
 
     'common.clusterNameChangeConfirmation.title': 'Confirm Cluster Name Change',
     'common.clusterNameChangeConfirmation.message': 'Are you sure you want to change the cluster name to {{clusterName}}?',
@@ -277,7 +281,7 @@ angular.module('ambariAdminConsole')
 
     'clusters.alerts.cannotLoadClusterData': 'Cannot load cluster data',
 
-    'groups.createLocal': 'Create Local Group',
+    'groups.createLocal': 'Add Groups',
     'groups.name': 'Group name',
     'groups.members': 'Members',
     'groups.membersPlural': '{{n}} member{{n == 1 ? "" : "s"}}',
@@ -298,7 +302,7 @@ angular.module('ambariAdminConsole')
     'users.yourPassword': 'Your Password',
     'users.newPassword': 'New User Password',
     'users.newPasswordConfirmation': 'New User Password Confirmation',
-    'users.create': 'Create Local User',
+    'users.create': 'Add Users',
     'users.active': 'Active',
     'users.inactive': 'Inactive',
     'users.status': 'Status',
@@ -369,6 +373,7 @@ angular.module('ambariAdminConsole')
     'versions.installOn': 'Install on...',
 
     'versions.register.title': 'Register Version',
+    'versions.add.title': 'Add Version',
 
     'versions.register.error.header': 'Unable to Register',
     'versions.register.error.body': 'You are attempting to register a version with a Base URL that is already in use with an existing registered version. You *must* review your Base URLs and confirm they are unique for the version you are trying to register.',

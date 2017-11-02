@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 
-describe('#MainCtrl', function () {
+describe('#AppCtrl', function () {
 
   var scope, ctrl, $httpBackend, $window, clusterService, deferred;
 
   beforeEach(function () {
     module('ambariAdminConsole', function ($provide) {
+      $provide.value('$route', {
+        current: null
+      });
       $provide.value('$window', {
         location: {
           pathname: 'http://c6401.ambari.apache.org:8080/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'
@@ -116,7 +119,7 @@ describe('#MainCtrl', function () {
       });
       scope = $rootScope.$new();
       scope.$apply();
-      ctrl = $controller('MainCtrl', {
+      ctrl = $controller('AppCtrl', {
         $scope: scope
       });
     });
@@ -156,13 +159,6 @@ describe('#MainCtrl', function () {
       chai.expect(data.app.loginName).to.equal(undefined);
       chai.expect(data.app.user).to.equal(undefined);
       $httpBackend.flush();
-    });
-
-    it('should get visible view instances and show them in top nav menu', function() {
-      $httpBackend.flush();
-
-      chai.expect(scope.viewInstances.length).to.equal(1);
-      chai.expect(scope.viewInstances[0].instance_name).to.equal('VisibleInstance');
     });
   });
 
