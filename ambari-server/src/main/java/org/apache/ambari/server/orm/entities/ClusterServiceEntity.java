@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -29,6 +30,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -94,6 +97,21 @@ public class ClusterServiceEntity {
   @OneToMany(mappedBy = "clusterServiceEntity")
   private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
 
+  @ManyToMany
+  @JoinTable(
+    name = "servicedependencies",
+    joinColumns = {@JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false, insertable = true, updatable = true),
+            @JoinColumn(name = "service_cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+            @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false, insertable = false, updatable = false)},
+    inverseJoinColumns = {@JoinColumn(name = "dependent_service_id", referencedColumnName = "id", nullable = false, insertable = true, updatable = true),
+            @JoinColumn(name = "dependent_service_cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+            @JoinColumn(name = "dependent_service_group_id", referencedColumnName = "service_group_id", nullable = false, insertable = false, updatable = false)}
+  )
+  private List<ClusterServiceEntity> serviceDependencies;
+
+  @ManyToMany(mappedBy="serviceDependencies")
+  private List<ClusterServiceEntity> dependencies;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -140,6 +158,22 @@ public class ClusterServiceEntity {
 
   public void setServiceEnabled(int serviceEnabled) {
     this.serviceEnabled = serviceEnabled;
+  }
+
+  public List<ClusterServiceEntity> getDependencies() {
+    return dependencies;
+  }
+
+  public void setDependencies(List<ClusterServiceEntity> dependencies) {
+    this.dependencies = dependencies;
+  }
+
+  public List<ClusterServiceEntity> getServiceDependencies() {
+    return serviceDependencies;
+  }
+
+  public void setServiceDependencies(List<ClusterServiceEntity> serviceDependencies) {
+    this.serviceDependencies = serviceDependencies;
   }
 
   @Override

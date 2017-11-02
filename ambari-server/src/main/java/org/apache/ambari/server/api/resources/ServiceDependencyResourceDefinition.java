@@ -18,43 +18,28 @@
 
 package org.apache.ambari.server.api.resources;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service resource definition.
  */
-public class ServiceResourceDefinition extends BaseResourceDefinition {
+public class ServiceDependencyResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
    *
    */
-  public ServiceResourceDefinition() {
-    super(Resource.Type.Service);
+  public ServiceDependencyResourceDefinition() {
+    super(Resource.Type.ServiceDependency);
   }
 
   @Override
   public String getPluralName() {
-    return "services";
+    return "dependencies";
   }
 
   @Override
   public String getSingularName() {
-    return "service";
-  }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<>();
-    subs.add(new SubResourceDefinition(Resource.Type.Component));
-    subs.add(new SubResourceDefinition(Resource.Type.ServiceDependency));
-    subs.add(new SubResourceDefinition(Resource.Type.Alert));
-    //todo: dynamic sub-resource definition
-    subs.add(new SubResourceDefinition(Resource.Type.Artifact));
-
-    return subs;
+    return "dependency";
   }
 }

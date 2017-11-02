@@ -21,8 +21,10 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -32,6 +34,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.ServiceKey;
+import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -74,6 +78,7 @@ public class ServiceImpl implements Service {
   private final Cluster cluster;
   private final ServiceGroup serviceGroup;
   private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
+  private List<ServiceKey> serviceDependencies = new ArrayList<>();
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
@@ -111,6 +116,7 @@ public class ServiceImpl implements Service {
 
   @AssistedInject
   ServiceImpl(@Assisted Cluster cluster, @Assisted ServiceGroup serviceGroup,
+              @Assisted List<ServiceKey> serviceDependencies,
               @Assisted("serviceName") String serviceName, @Assisted("serviceType") String serviceType,
               @Assisted RepositoryVersionEntity desiredRepositoryVersion,
               ClusterDAO clusterDAO, ServiceGroupDAO serviceGroupDAO,
@@ -129,11 +135,30 @@ public class ServiceImpl implements Service {
     this.serviceType = serviceType;
     this.ambariMetaInfo = ambariMetaInfo;
 
+
     ClusterServiceEntity serviceEntity = new ClusterServiceEntity();
     serviceEntity.setClusterId(cluster.getClusterId());
     serviceEntity.setServiceGroupId(serviceGroup.getServiceGroupId());
     serviceEntity.setServiceName(serviceName);
     serviceEntity.setServiceType(serviceType);
+
+    if (serviceDependencies != null) {
+      for (ServiceKey serviceKey : serviceDependencies) {
+        Cluster dependencyCluster = cluster;
+        ServiceGroup dependencyServiceGroup = dependencyCluster.getServiceGroup(serviceKey.getServiceGroupName());
+        ServiceGroupEntity dependencyServiceGroupEntity = serviceGroupDAO.findByClusterAndServiceGroupIds(dependencyCluster.getClusterId(),
+                dependencyServiceGroup.getServiceGroupId());
+
+        for (Service service : dependencyCluster.getServices().values()) {
+          if (service.getName().equals(serviceName) && service.getServiceGroupId() == dependencyServiceGroup.getServiceGroupId()) {
+            serviceEntity.getServiceDependencies().add(clusterServiceDAO.findById(dependencyCluster.getClusterId(),
+                    dependencyServiceGroup.getServiceGroupId(), service.getServiceId()));
+            break;
+          }
+        }
+
+      }
+    }
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
     serviceDesiredStateEntity.setClusterId(cluster.getClusterId());
@@ -177,6 +202,7 @@ public class ServiceImpl implements Service {
     this.serviceName = serviceEntity.getServiceName();
     this.serviceType = serviceEntity.getServiceType();
     this.ambariMetaInfo = ambariMetaInfo;
+    this.serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
@@ -274,6 +300,15 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  public List<ServiceKey> getServiceDependencies() {
+    return serviceDependencies;
+  }
+
+  public void setServiceDependencies(List<ServiceKey> serviceDependencies) {
+    this.serviceDependencies = serviceDependencies;
+  }
+
+  @Override
   public void addServiceComponent(ServiceComponent component) throws AmbariException {
     if (components.containsKey(component.getName())) {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
@@ -305,6 +340,58 @@ public class ServiceImpl implements Service {
     }
 
     return serviceComponent;
+  }
+
+  @Override
+  public Set<ServiceDependencyResponse> getServiceDependencyResponses() {
+    Set<ServiceDependencyResponse> responses = new HashSet<>();
+    if (getServiceDependencies() != null) {
+      for (ServiceKey sk : getServiceDependencies()) {
+        responses.add(new ServiceDependencyResponse(cluster.getClusterId(), cluster.getClusterName(),
+                 sk.getClusterId(), sk.getClusterName(), sk.getServiceGroupId(), sk.getServiceGroupName(),
+                 sk.getServiceId(), sk.getServiceName(), getServiceGroupId(), getServiceGroupName(),
+                 getServiceId(), getName()));
+      }
+    }
+    return responses;
+  }
+
+  public List<ServiceKey> getServiceDependencies(List<ClusterServiceEntity> clusterServiceEntities) throws AmbariException {
+    List<ServiceKey> serviceDependenciesList = new ArrayList<>();
+
+    if (clusterServiceEntities != null) {
+      for (ClusterServiceEntity cse : clusterServiceEntities) {
+        ServiceKey serviceKey = new ServiceKey();
+        String clusterName = "";
+        Long clusterId = null;
+        if (cse.getClusterId() == cluster.getClusterId()) {
+          clusterName = cluster.getClusterName();
+          clusterId = cluster.getClusterId();
+        } else {
+          ClusterEntity clusterEntity = clusterDAO.findById(cse.getClusterId());
+          if (clusterEntity != null) {
+            clusterName = clusterEntity.getClusterName();
+            clusterId = clusterEntity.getClusterId();
+          } else {
+            LOG.error("Unable to get cluster id for service " + cse.getServiceName());
+          }
+        }
+
+
+        Cluster dependencyCluster = cluster;
+        ServiceGroup dependencyServiceGroup = dependencyCluster.getServiceGroup(cse.getServiceGroupId());
+
+
+        serviceKey.setServiceGroupName(dependencyServiceGroup.getServiceGroupName());
+        serviceKey.setServiceGroupId(dependencyServiceGroup.getServiceGroupId());
+        serviceKey.setClusterName(clusterName);
+        serviceKey.setClusterId(clusterId);
+        serviceKey.setServiceName(cse.getServiceName());
+        serviceKey.setServiceId(cse.getServiceId());
+        serviceDependenciesList.add(serviceKey);
+      }
+    }
+    return serviceDependenciesList;
   }
 
   @Override

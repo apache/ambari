@@ -73,6 +73,7 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.KerberosDescriptorResourceProvider;
 import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
+import org.apache.ambari.server.controller.internal.ServiceDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
@@ -478,6 +479,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("hostComponent"), HostComponentResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("service"), ServiceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("servicegroup"), ServiceGroupResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("servicedependency"), ServiceDependencyResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("servicegroupdependency"), ServiceGroupDependencyResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("component"), ComponentResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)

@@ -197,6 +197,17 @@ CREATE TABLE clusterservices (
   CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
   CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
 
+CREATE TABLE servicedependencies (
+  service_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_cluster_id NUMBER(19) NOT NULL,
+  dependent_service_id NUMBER(19) NOT NULL,
+  dependent_service_group_id NUMBER(19) NOT NULL,
+  dependent_service_cluster_id NUMBER(19) NOT NULL,
+  CONSTRAINT PK_servicedependencies PRIMARY KEY (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
+  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id));
+  CONSTRAINT FK_servicedependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+
 CREATE TABLE clusterstate (
   cluster_id NUMBER(19) NOT NULL,
   current_cluster_state VARCHAR2(255) NULL,

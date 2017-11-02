@@ -61,6 +61,7 @@ import org.apache.ambari.server.controller.internal.HostComponentResourceProvide
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.internal.ServiceDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
@@ -129,6 +130,7 @@ public class AmbariContext {
   private static HostRoleCommandFactory hostRoleCommandFactory;
   private static HostResourceProvider hostResourceProvider;
   private static ServiceGroupResourceProvider serviceGroupResourceProvider;
+  private static ServiceDependencyResourceProvider serviceDependencyResourceProvider;
   private static ServiceGroupDependencyResourceProvider serviceGroupDependencyResourceProvider;
   private static ServiceResourceProvider serviceResourceProvider;
   private static ComponentResourceProvider componentResourceProvider;
@@ -779,6 +781,14 @@ public class AmbariContext {
               getClusterController().ensureResourceProvider(Resource.Type.ServiceGroupDependency);
     }
     return serviceGroupDependencyResourceProvider;
+  }
+
+  private synchronized ServiceDependencyResourceProvider getServiceDependencyResourceProvider() {
+    if (serviceDependencyResourceProvider == null) {
+      serviceDependencyResourceProvider = (ServiceDependencyResourceProvider) ClusterControllerHelper.
+              getClusterController().ensureResourceProvider(Resource.Type.ServiceGroup);
+    }
+    return serviceDependencyResourceProvider;
   }
 
   private synchronized ServiceResourceProvider getServiceResourceProvider() {

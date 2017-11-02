@@ -305,6 +305,106 @@ public class ServiceService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceResource(m_clusterName, m_serviceGroupName, serviceName));
   }
 
+
+  @GET
+  @Path("{serviceName}/dependencies")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all service dependencies",
+          nickname = "ServiceService#getServiceDependencies",
+          notes = "Returns all service dependencies.",
+          response = ServiceResponse.ServiceResponseSwagger.class,
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
+                  defaultValue = "ServiceInfo/service_group_name, ServiceInfo/service_name, ServiceInfo/cluster_name",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
+                  defaultValue = "ServiceInfo/service_group_name.asc, ServiceInfo/service_name.asc, ServiceInfo/cluster_name.asc",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
+  public Response getServiceDependencies(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                              @PathParam("serviceName") String serviceName) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
+            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, null));
+  }
+
+  @GET
+  @Path("{serviceName}/dependencies/{dependencyServiceName}")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get the details of a service dependency",
+          nickname = "ServiceService#getServiceDependency",
+          notes = "Returns the details of a service dependency.",
+          response = ServiceResponse.ServiceResponseSwagger.class,
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "ServiceInfo/*",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
+  public Response getServiceDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                              @PathParam("serviceName") String serviceName,
+                                              @PathParam("dependencyServiceName") String dependencyServiceName) {
+    return handleRequest(headers, body, ui, Request.Type.GET,
+            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, dependencyServiceName));
+  }
+
+
+  @POST
+  @Path("{serviceName}/dependencies")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Creates a service dependency",
+          nickname = "ServiceService#createServiceDependency"
+  )
+  @ApiImplicitParams({
+          @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+          @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response createServiceDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                              @PathParam("serviceName") String serviceName) {
+    return handleRequest(headers, body, ui, Request.Type.POST,
+            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, null));
+  }
+
+  @DELETE
+  @Path("{serviceName}/dependencies")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes a service dependency",
+          nickname = "ServiceService#deleteServiceDependency"
+  )
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response deleteServiceDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                              @PathParam("serviceName") String serviceName,
+                                              @PathParam("dependencyServiceName") String dependencyServiceName) {
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
+            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, dependencyServiceName));
+  }
+
   /**
    * Get the components sub-resource.
    *
@@ -651,5 +751,16 @@ public class ServiceService extends BaseService {
     mapIds.put(Resource.Type.Artifact, artifactName);
 
     return createResource(Resource.Type.Artifact, mapIds);
+  }
+
+  ResourceInstance createServiceDependencyResource(String clusterName, String serviceGroupName, String serviceName, String serviceDependencyName) {
+    Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
+    mapIds.put(Resource.Type.Service, serviceName);
+    mapIds.put(Resource.Type.ServiceDependency, serviceDependencyName);
+
+
+    return createResource(Resource.Type.ServiceDependency, mapIds);
   }
 }
