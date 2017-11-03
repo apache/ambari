@@ -972,7 +972,8 @@ public class UpgradeHelper {
 
       // downgrade is easy - just remove the new and make the old current
       if (direction == Direction.DOWNGRADE) {
-        cluster.applyLatestConfigurations(targetStackId, serviceName);
+        //TODO pass serviceGroupName
+        cluster.applyLatestConfigurations(targetStackId, cluster.getService(null, serviceName).getServiceId());
         continue;
       }
 
@@ -1001,8 +1002,10 @@ public class UpgradeHelper {
 
       // find the current, existing configurations for the service
       List<Config> existingServiceConfigs = new ArrayList<>();
+
       List<ServiceConfigEntity> latestServiceConfigs = m_serviceConfigDAO.getLastServiceConfigsForService(
-          cluster.getClusterId(), serviceName);
+          //TODO pass serviceGroupName
+          cluster.getClusterId(), cluster.getService(null, serviceName).getServiceId());
 
       for (ServiceConfigEntity serviceConfig : latestServiceConfigs) {
         List<ClusterConfigEntity> existingConfigurations = serviceConfig.getClusterConfigEntities();

@@ -328,8 +328,14 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
           for (Collection<ServiceConfigVersionResponse> scvCollection : serviceConfigVersions.values()) {
             for (ServiceConfigVersionResponse serviceConfigVersionResponse : scvCollection) {
               Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID,
+                serviceConfigVersionResponse.getServiceGroupName());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_ID_PROPERTY_ID,
+                  serviceConfigVersionResponse.getServiceGroupId());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
                 serviceConfigVersionResponse.getServiceName());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_ID_PROPERTY_ID,
+                serviceConfigVersionResponse.getServiceId());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
                 serviceConfigVersionResponse.getVersion());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,

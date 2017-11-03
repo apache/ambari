@@ -512,6 +512,15 @@ public class ServiceImpl implements Service {
     return isCredentialStoreRequired;
   }
 
+  @Override
+  public String toString() {
+    return "ServiceImpl{" +
+        "serviceId=" + serviceId +
+        ", serviceName='" + serviceName + '\'' +
+        ", displayName='" + displayName + '\'' +
+        ", serviceType='" + serviceType + '\'' +
+        '}';
+  }
 
   /**
    * Get a true or false value specifying whether
@@ -635,7 +644,7 @@ public class ServiceImpl implements Service {
   @Transactional
   void deleteAllServiceConfigs() throws AmbariException {
     long clusterId = getClusterId();
-    ServiceConfigEntity lastServiceConfigEntity = serviceConfigDAO.findMaxVersion(clusterId, getName());
+    ServiceConfigEntity lastServiceConfigEntity = serviceConfigDAO.findMaxVersion(clusterId, getServiceId());
     // de-select every configuration from the service
     if (lastServiceConfigEntity != null) {
       for (ClusterConfigEntity serviceConfigEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
@@ -649,7 +658,7 @@ public class ServiceImpl implements Service {
     LOG.info("Deleting all configuration associations for {} on cluster {}", getName(), cluster.getClusterName());
 
     List<ServiceConfigEntity> serviceConfigEntities =
-      serviceConfigDAO.findByService(cluster.getClusterId(), getName());
+      serviceConfigDAO.findByService(cluster.getClusterId(), getServiceId());
 
     for (ServiceConfigEntity serviceConfigEntity : serviceConfigEntities) {
       // Only delete the historical version information and not original

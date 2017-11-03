@@ -21,6 +21,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -40,7 +43,7 @@ import javax.persistence.Table;
 public class HostConfigMappingEntity {
 
   @Id
-  @Column(name = "cluster_id", insertable = true, updatable = false, nullable = false)
+  @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
   private Long clusterId;
 
   @Id
@@ -58,8 +61,20 @@ public class HostConfigMappingEntity {
   @Column(name = "version_tag", insertable = true, updatable = false, nullable = false)
   private String versionTag;
 
-  @Column(name = "service_name", insertable = true, updatable = true)
-  private String serviceName;
+  @Column(name = "service_id", insertable = false, updatable = false, nullable = false)
+  private Long serviceId;
+
+  @Column(name = "service_group_id", insertable = false, updatable = false, nullable = false)
+  private Long serviceGroupId;
+
+  @ManyToOne
+  @JoinColumns(
+      {
+          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
+          @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+      })
+  private ClusterServiceEntity clusterServiceEntity;
 
   @Column(name = "selected", insertable = true, updatable = true, nullable = false)
   private int selected = 0;
@@ -115,14 +130,6 @@ public class HostConfigMappingEntity {
     this.selected = selected;
   }
 
-  public String getServiceName() {
-    return serviceName;
-  }
-
-  public void setServiceName(String name) {
-    serviceName = name;
-  }
-  
   /**
    * @return the user
    */
@@ -149,7 +156,8 @@ public class HostConfigMappingEntity {
     if (createTimestamp != null ? !createTimestamp.equals(that.createTimestamp) : that.createTimestamp != null)
       return false;
     if (hostId != null ? !hostId.equals(that.hostId) : that.hostId != null) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) return false;
+    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) return false;
     if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (user != null ? !user.equals(that.user) : that.user != null) return false;
     if (versionTag != null ? !versionTag.equals(that.versionTag) : that.versionTag != null) return false;
@@ -164,9 +172,34 @@ public class HostConfigMappingEntity {
     result = 31 * result + (type != null ? type.hashCode() : 0);
     result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
     result = 31 * result + (versionTag != null ? versionTag.hashCode() : 0);
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
     result = 31 * result + selected;
     result = 31 * result + (user != null ? user.hashCode() : 0);
     return result;
+  }
+
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
+  }
+
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
+  public ClusterServiceEntity getClusterServiceEntity() {
+    return clusterServiceEntity;
+  }
+
+  public void setClusterServiceEntity(ClusterServiceEntity clusterServiceEntity) {
+    this.clusterServiceEntity = clusterServiceEntity;
   }
 }

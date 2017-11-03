@@ -462,7 +462,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
       for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
         String configType = entry.getKey();
 
-        String service = cluster.getServiceByConfigType(configType);
+        String service = cluster.getServiceByConfigType(configType).getName();
         Set<String> allowedProperties = propertyFilter.get(configType);
 
         // Update properties for services that are installed and not filtered out

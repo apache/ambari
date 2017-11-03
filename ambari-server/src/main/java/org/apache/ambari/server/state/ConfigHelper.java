@@ -1117,7 +1117,7 @@ public class ConfigHelper {
       AmbariManagementController controller, Map<String, Map<String, String>> batchProperties,
       String authenticatedUserName, String serviceVersionNote) throws AmbariException {
 
-    Map<String, Set<Config>> serviceMapped = new HashMap<>();
+    Map<Long, Set<Config>> serviceMapped = new HashMap<>();
 
     for (Map.Entry<String, Map<String, String>> entry : batchProperties.entrySet()) {
       String type = entry.getKey();
@@ -1128,7 +1128,7 @@ public class ConfigHelper {
 
       if (null != baseConfig) {
         try {
-          String service = cluster.getServiceForConfigTypes(Collections.singleton(type));
+          Long service = cluster.getServiceForConfigTypes(Collections.singleton(type));
           if (!serviceMapped.containsKey(service)) {
             serviceMapped.put(service, new HashSet<>());
           }

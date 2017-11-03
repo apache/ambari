@@ -325,8 +325,8 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
           outSB.append(
               String.format("Removing %s configurations for %s", sourceStackId,
                   serviceName)).append(System.lineSeparator());
-
-          cluster.removeConfigurations(sourceStackId, serviceName);
+          //TODO pass serviceGroupName
+          cluster.removeConfigurations(sourceStackId, cluster.getService(null, serviceName).getServiceId());
         }
       }
 

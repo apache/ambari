@@ -555,7 +555,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
 
         Multimap<ConfigUpdateType, Entry<String, String>> propertiesToLog = ArrayListMultimap.create();
-        String serviceName = cluster.getServiceByConfigType(configType);
+        String serviceName = cluster.getServiceByConfigType(configType).getName();
 
         Map<String, String> mergedProperties =
           mergeProperties(oldConfigProperties, properties, updateIfExists, propertiesToLog);

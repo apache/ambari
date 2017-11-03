@@ -712,7 +712,7 @@ public class AmbariContext {
       });
 
       ConfigGroupRequest request = new ConfigGroupRequest(null, clusterName,
-        absoluteGroupName, service.getName(), service.getName(), "Host Group Configuration",
+        absoluteGroupName, service.getName(), service.getServiceGroupName(), service.getName(), "Host Group Configuration",
         Sets.newHashSet(filteredGroupHosts), serviceConfigs);
 
       // get the config group provider and create config group resource

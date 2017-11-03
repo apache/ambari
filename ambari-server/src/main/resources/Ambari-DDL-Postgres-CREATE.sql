@@ -123,20 +123,6 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
-CREATE TABLE serviceconfig (
-  service_config_id BIGINT NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
-  version BIGINT NOT NULL,
-  create_timestamp BIGINT NOT NULL,
-  stack_id BIGINT NOT NULL,
-  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
-  group_id BIGINT,
-  note TEXT,
-  CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
-  CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version));
-
 CREATE TABLE hosts (
   host_id BIGINT NOT NULL,
   host_name VARCHAR(255) NOT NULL,
@@ -156,20 +142,6 @@ CREATE TABLE hosts (
   total_mem BIGINT NOT NULL,
   CONSTRAINT PK_hosts PRIMARY KEY (host_id),
   CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));
-
-CREATE TABLE serviceconfighosts (
-  service_config_id BIGINT NOT NULL,
-  host_id BIGINT NOT NULL,
-  CONSTRAINT PK_serviceconfighosts PRIMARY KEY (service_config_id, host_id),
-  CONSTRAINT FK_scvhosts_host_id FOREIGN KEY (host_id) REFERENCES hosts(host_id),
-  CONSTRAINT FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
-
-CREATE TABLE serviceconfigmapping (
-  service_config_id BIGINT NOT NULL,
-  config_id BIGINT NOT NULL,
-  CONSTRAINT PK_serviceconfigmapping PRIMARY KEY (service_config_id, config_id),
-  CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id),
-  CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
 
 CREATE TABLE servicegroups (
   id BIGINT NOT NULL,
@@ -207,6 +179,36 @@ CREATE TABLE servicedependencies (
   CONSTRAINT PK_servicedependencies PRIMARY KEY (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
   CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id));
   CONSTRAINT FK_servicedependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+
+CREATE TABLE serviceconfig (
+  service_config_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  service_group_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
+  version BIGINT NOT NULL,
+  create_timestamp BIGINT NOT NULL,
+  stack_id BIGINT NOT NULL,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  group_id BIGINT,
+  note TEXT,
+  CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
+  CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_serviceconfig_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version ));
+
+CREATE TABLE serviceconfighosts (
+  service_config_id BIGINT NOT NULL,
+  host_id BIGINT NOT NULL,
+  CONSTRAINT PK_serviceconfighosts PRIMARY KEY (service_config_id, host_id),
+  CONSTRAINT FK_scvhosts_host_id FOREIGN KEY (host_id) REFERENCES hosts(host_id),
+  CONSTRAINT FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
+
+CREATE TABLE serviceconfigmapping (
+  service_config_id BIGINT NOT NULL,
+  config_id BIGINT NOT NULL,
+  CONSTRAINT PK_serviceconfigmapping PRIMARY KEY (service_config_id, config_id),
+  CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id),
+  CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
 
 CREATE TABLE clusterstate (
   cluster_id BIGINT NOT NULL,
@@ -499,12 +501,14 @@ CREATE TABLE hostconfigmapping (
   host_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   version_tag VARCHAR(255) NOT NULL,
-  service_name VARCHAR(255),
+  service_group_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
   create_timestamp BIGINT NOT NULL,
   selected INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
   CONSTRAINT PK_hostconfigmapping PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp),
   CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
+  CONSTRAINT FK_hostconfmapping_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
 CREATE TABLE metainfo (
@@ -524,8 +528,10 @@ CREATE TABLE configgroup (
   tag VARCHAR(1024) NOT NULL,
   description VARCHAR(1024),
   create_timestamp BIGINT NOT NULL,
-  service_name VARCHAR(255),
+  service_group_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
   CONSTRAINT PK_configgroup PRIMARY KEY (group_id),
+  CONSTRAINT FK_configgroup_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE confgroupclusterconfigmapping (

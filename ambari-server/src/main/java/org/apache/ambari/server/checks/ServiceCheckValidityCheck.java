@@ -106,7 +106,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
         LOG.info(String.format("%s in %s version %s does not have customizable configurations. Skip checking service configuration history.", service.getName(), stackId.getStackName(), stackId.getStackVersion()));
       } else {
         LOG.info(String.format("%s in %s version %s has customizable configurations. Check service configuration history.", service.getName(), stackId.getStackName(), stackId.getStackVersion()));
-        ServiceConfigEntity lastServiceConfig = serviceConfigDAO.getLastServiceConfig(clusterId, service.getName());
+        ServiceConfigEntity lastServiceConfig = serviceConfigDAO.getLastServiceConfig(clusterId, service.getServiceId());
         lastServiceConfigUpdates.put(service.getName(), lastServiceConfig.getCreateTimestamp());
       }
     }

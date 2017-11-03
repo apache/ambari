@@ -26,6 +26,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -73,8 +74,20 @@ public class ConfigGroupEntity {
   @Column(name = "create_timestamp", nullable=false, insertable=true, updatable=false)
   private long timestamp;
 
-  @Column(name = "service_name")
-  private String serviceName;
+  @Column(name = "service_id", nullable = false, insertable = false, updatable = false)
+  private Long serviceId;
+
+  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false)
+  private Long serviceGroupId;
+
+  @ManyToOne
+  @JoinColumns(
+      {
+          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
+          @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+      })
+  private ClusterServiceEntity clusterServiceEntity;
 
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
@@ -182,11 +195,27 @@ public class ConfigGroupEntity {
     return result;
   }
 
-  public String getServiceName() {
-    return serviceName;
+  public Long getServiceId() {
+    return serviceId;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
+  }
+
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
+  public ClusterServiceEntity getClusterServiceEntity() {
+    return clusterServiceEntity;
+  }
+
+  public void setClusterServiceEntity(ClusterServiceEntity clusterServiceEntity) {
+    this.clusterServiceEntity = clusterServiceEntity;
   }
 }

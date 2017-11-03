@@ -36,12 +36,14 @@ import org.apache.ambari.server.controller.ConfigGroupResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
@@ -67,7 +69,8 @@ public class ConfigGroupImpl implements ConfigGroup {
   private ConcurrentMap<Long, Host> m_hosts;
   private ConcurrentMap<String, Config> m_configurations;
   private String configGroupName;
-  private String serviceName;
+  private Long serviceId;
+  private Long serviceGroupId;
   private long configGroupId;
 
   /**
@@ -91,17 +94,20 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   private final ClusterDAO clusterDAO;
 
+  private final ClusterServiceDAO clusterServiceDAO;
+
   private final ConfigFactory configFactory;
 
   @AssistedInject
   public ConfigGroupImpl(@Assisted("cluster") Cluster cluster,
-      @Assisted("serviceName") @Nullable String serviceName, @Assisted("name") String name,
-      @Assisted("tag") String tag, @Assisted("description") String description,
-      @Assisted("configs") Map<String, Config> configurations,
-      @Assisted("hosts") Map<Long, Host> hosts, Clusters clusters, ConfigFactory configFactory,
-      ClusterDAO clusterDAO, HostDAO hostDAO, ConfigGroupDAO configGroupDAO,
-      ConfigGroupConfigMappingDAO configGroupConfigMappingDAO,
-      ConfigGroupHostMappingDAO configGroupHostMappingDAO, LockFactory lockFactory)
+                         @Assisted("serviceGroupId") @Nullable Long serviceGroupId,
+                         @Assisted("serviceId") @Nullable Long serviceId, @Assisted("name") String name,
+                         @Assisted("tag") String tag, @Assisted("description") String description,
+                         @Assisted("configs") Map<String, Config> configurations,
+                         @Assisted("hosts") Map<Long, Host> hosts, Clusters clusters, ConfigFactory configFactory,
+                         ClusterDAO clusterDAO, HostDAO hostDAO, ConfigGroupDAO configGroupDAO,
+                         ConfigGroupConfigMappingDAO configGroupConfigMappingDAO,
+                         ConfigGroupHostMappingDAO configGroupHostMappingDAO, ClusterServiceDAO clusterServiceDAO, LockFactory lockFactory)
       throws AmbariException {
 
     this.configFactory = configFactory;
@@ -110,11 +116,13 @@ public class ConfigGroupImpl implements ConfigGroup {
     this.configGroupDAO = configGroupDAO;
     this.configGroupConfigMappingDAO = configGroupConfigMappingDAO;
     this.configGroupHostMappingDAO = configGroupHostMappingDAO;
+    this.clusterServiceDAO = clusterServiceDAO;
 
     hostLock = lockFactory.newReadWriteLock(hostLockLabel);
 
     this.cluster = cluster;
-    this.serviceName = serviceName;
+    this.serviceGroupId = serviceGroupId;
+    this.serviceId = serviceId;
     configGroupName = name;
 
     ConfigGroupEntity configGroupEntity = new ConfigGroupEntity();
@@ -122,7 +130,10 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setGroupName(name);
     configGroupEntity.setTag(tag);
     configGroupEntity.setDescription(description);
-    configGroupEntity.setServiceName(serviceName);
+    configGroupEntity.setServiceId(serviceId);
+    configGroupEntity.setServiceGroupId(serviceGroupId);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(cluster.getClusterId(), serviceGroupId, serviceId);
+    configGroupEntity.setClusterServiceEntity(clusterServiceEntity);
 
     m_hosts = hosts == null ? new ConcurrentHashMap<>()
         : new ConcurrentHashMap<>(hosts);
@@ -140,7 +151,7 @@ public class ConfigGroupImpl implements ConfigGroup {
       Clusters clusters, ConfigFactory configFactory,
       ClusterDAO clusterDAO, HostDAO hostDAO, ConfigGroupDAO configGroupDAO,
       ConfigGroupConfigMappingDAO configGroupConfigMappingDAO,
-      ConfigGroupHostMappingDAO configGroupHostMappingDAO, LockFactory lockFactory) {
+      ConfigGroupHostMappingDAO configGroupHostMappingDAO, ClusterServiceDAO clusterServiceDAO, LockFactory lockFactory) {
 
     this.configFactory = configFactory;
     this.clusterDAO = clusterDAO;
@@ -148,13 +159,15 @@ public class ConfigGroupImpl implements ConfigGroup {
     this.configGroupDAO = configGroupDAO;
     this.configGroupConfigMappingDAO = configGroupConfigMappingDAO;
     this.configGroupHostMappingDAO = configGroupHostMappingDAO;
+    this.clusterServiceDAO = clusterServiceDAO;
 
     hostLock = lockFactory.newReadWriteLock(hostLockLabel);
 
     this.cluster = cluster;
     configGroupId = configGroupEntity.getGroupId();
     configGroupName = configGroupEntity.getGroupName();
-    serviceName = configGroupEntity.getServiceName();
+    serviceId = configGroupEntity.getServiceId();
+    serviceGroupId = configGroupEntity.getServiceGroupId();
 
     m_configurations = new ConcurrentHashMap<>();
     m_hosts = new ConcurrentHashMap<>();
@@ -347,6 +360,10 @@ public class ConfigGroupImpl implements ConfigGroup {
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
     configGroupEntity.setClusterEntity(clusterEntity);
     configGroupEntity.setTimestamp(System.currentTimeMillis());
+    configGroupEntity.setServiceGroupId(serviceGroupId);
+    configGroupEntity.setServiceId(serviceId);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findById(cluster.getClusterId(), serviceGroupId, serviceId);
+    configGroupEntity.setClusterServiceEntity(clusterServiceEntity);
     configGroupDAO.create(configGroupEntity);
 
     configGroupId = configGroupEntity.getGroupId();
@@ -416,8 +433,7 @@ public class ConfigGroupImpl implements ConfigGroup {
           (cluster.getClusterId(), config.getType(), config.getTag());
 
         if (clusterConfigEntity == null) {
-          String serviceName = getServiceName();
-          Service service = cluster.getService(serviceName);
+          Service service = cluster.getService(serviceId);
 
           config = configFactory.createNew(service.getDesiredStackId(), cluster, config.getType(),
               config.getTag(), config.getProperties(), config.getPropertiesAttributes());
@@ -507,17 +523,30 @@ public class ConfigGroupImpl implements ConfigGroup {
   }
 
   @Override
-  public String getServiceName() {
-    return serviceName;
+  public Long getServiceId() {
+    return serviceId;
   }
 
   @Override
-  public void setServiceName(String serviceName) {
+  public void setServiceId(Long serviceId) {
     ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
-    configGroupEntity.setServiceName(serviceName);
+    configGroupEntity.setServiceId(serviceId);
     configGroupDAO.merge(configGroupEntity);
 
-    this.serviceName = serviceName;
+    this.serviceId = serviceId;
+  }
+  @Override
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  @Override
+  public void setServiceGroupId(Long serviceGroupId) {
+    ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
+    configGroupEntity.setServiceGroupId(serviceGroupId);
+    configGroupDAO.merge(configGroupEntity);
+
+    this.serviceId = serviceGroupId;
   }
 
   /**

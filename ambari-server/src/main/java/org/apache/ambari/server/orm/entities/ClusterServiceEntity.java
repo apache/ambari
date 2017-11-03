@@ -235,4 +235,10 @@ public class ClusterServiceEntity {
     this.serviceComponentDesiredStateEntities = serviceComponentDesiredStateEntities;
   }
 
+  public String getServiceGroupName() {
+    if (serviceGroupEntity != null) {
+      return serviceGroupEntity.getServiceGroupName();
+    }
+    return null;
+  }
 }

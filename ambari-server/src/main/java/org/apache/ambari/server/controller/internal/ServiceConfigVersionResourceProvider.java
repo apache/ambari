@@ -52,7 +52,10 @@ public class ServiceConfigVersionResourceProvider extends
 
   public static final String SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "cluster_name");
   public static final String SERVICE_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version");
+  public static final String SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_group_name");
+  public static final String SERVICE_CONFIG_VERSION_SERVICE_GROUP_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_group_id");
   public static final String SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_name");
+  public static final String SERVICE_CONFIG_VERSION_SERVICE_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_id");
   public static final String SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "createtime");
   public static final String SERVICE_CONFIG_VERSION_USER_PROPERTY_ID = PropertyHelper.getPropertyId(null, "user");
   public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version_note");
@@ -194,6 +197,7 @@ public class ServiceConfigVersionResourceProvider extends
 
     for (String propertyId : propertyIds) {
       if (!propertyId.equals("cluster_name") && !propertyId.equals("service_config_version") &&
+          !propertyId.equals("service_group_name")&&
           !propertyId.equals("service_name") && !propertyId.equals("createtime") &&
           !propertyId.equals("appliedtime") && !propertyId.equals("user") &&
           !propertyId.equals("service_config_version_note") &&
@@ -214,13 +218,14 @@ public class ServiceConfigVersionResourceProvider extends
 
   private ServiceConfigVersionRequest createRequest(Map<String, Object> properties) {
     String clusterName = (String) properties.get(SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
+    String serviceGroupName = (String) properties.get(SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID);
     String serviceName = (String) properties.get(SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
     String user = (String) properties.get(SERVICE_CONFIG_VERSION_USER_PROPERTY_ID);
     Boolean isCurrent = Boolean.valueOf((String) properties.get(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID));
     Object versionObject = properties.get(SERVICE_CONFIG_VERSION_PROPERTY_ID);
     Long version = versionObject == null ? null : Long.valueOf(versionObject.toString());
 
-    return new ServiceConfigVersionRequest(clusterName, serviceName, version, null, null, user, isCurrent);
+    return new ServiceConfigVersionRequest(clusterName, serviceGroupName, serviceName, version, null, null, user, isCurrent);
   }
 
   private List<Map<String, Object>> convertToSubResources(final String clusterName, List<ConfigurationResponse> configs) {

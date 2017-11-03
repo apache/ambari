@@ -181,7 +181,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
     // such as hdfs-site or hbase-env
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
-    String serviceName = cluster.getServiceByConfigType(configType);
+    String serviceName = cluster.getServiceByConfigType(configType).getName();
 
     // !!! we couldn't get the service based on its config type, so try the associated
     if (StringUtils.isBlank(serviceName)) {

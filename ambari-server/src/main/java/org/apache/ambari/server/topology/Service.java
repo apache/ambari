@@ -149,4 +149,11 @@ public class Service implements Configurable {
       ", stackId='" + stackId + '\'' +
       '}';
   }
+
+  public String getServiceGroupName() {
+    if (serviceGroup != null) {
+      return serviceGroup.getName();
+    }
+    return null;
+  }
 }

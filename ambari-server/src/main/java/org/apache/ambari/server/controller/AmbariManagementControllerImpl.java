@@ -883,7 +883,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-    String service = null;
+    Long service = null;
 
     try {
       service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
@@ -897,7 +897,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // recovery mode setting.
     Map<String, String[]> propertyChanges = getPropertyChanges(cluster, request);
 
-    if(StringUtils.isEmpty(service)) {
+    if(service == null) {
       // If the configuration is not attached to a specific service, it is a cluster-wide configuration
       // type. For example, cluster-env.
 
@@ -1961,6 +1961,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       ServiceConfigVersionRequest serviceConfigVersionRequest = request.getServiceConfigVersionRequest();
+      //TODO add serviceGroupName validation when the UI is updated to use them
       if (StringUtils.isEmpty(serviceConfigVersionRequest.getServiceName()) ||
           null == serviceConfigVersionRequest.getVersion()) {
         String msg = "Service name and version should be specified in service config version";
@@ -1968,7 +1969,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new IllegalArgumentException(msg);
       }
 
-      serviceConfigVersionResponse = cluster.setServiceConfigVersion(serviceConfigVersionRequest.getServiceName(),
+      serviceConfigVersionResponse = cluster.setServiceConfigVersion(
+          cluster.getService(serviceConfigVersionRequest.getServiceGroupName(), serviceConfigVersionRequest.getServiceName()).getServiceId(),
           serviceConfigVersionRequest.getVersion(), getAuthName(),
           serviceConfigVersionRequest.getNote());
     }
@@ -3985,7 +3987,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<ServiceConfigVersionResponse> serviceConfigVersionResponses =  new ArrayList<>();
 
     if (Boolean.TRUE.equals(request.getIsCurrent()) && serviceName != null) {
-      serviceConfigVersionResponses.addAll(cluster.getActiveServiceConfigVersionResponse(serviceName));
+      //TODO add serviceGroupName validation when the UI is updated to use them
+      try {
+        Long serviceId = cluster.getService(request.getServiceGroupName(), request.getServiceName()).getServiceId();
+        serviceConfigVersionResponses.addAll(cluster.getActiveServiceConfigVersionResponse(serviceId));
+      } catch (ServiceNotFoundException e) {
+        LOG.warn("Service {} not found on cluster {}", serviceName, cluster.getClusterName());
+      }
     } else {
       serviceConfigVersionResponses.addAll(cluster.getServiceConfigVersions());
     }

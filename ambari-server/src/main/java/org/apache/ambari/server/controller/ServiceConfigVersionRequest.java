@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 public class ServiceConfigVersionRequest {
   private String clusterName;
   private String serviceName;
+  private String serviceGroupName;
   private Long version;
   private Long createTime;
   private Long applyTime;
@@ -31,8 +32,9 @@ public class ServiceConfigVersionRequest {
   public ServiceConfigVersionRequest() {
   }
 
-  public ServiceConfigVersionRequest(String clusterName, String serviceName, Long version, Long createTime, Long applyTime, String userName, Boolean isCurrent) {
+  public ServiceConfigVersionRequest(String clusterName, String serviceGroupName, String serviceName, Long version, Long createTime, Long applyTime, String userName, Boolean isCurrent) {
     this.clusterName = clusterName;
+    this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
     this.version = version;
     this.createTime = createTime;
@@ -105,10 +107,20 @@ public class ServiceConfigVersionRequest {
     this.isCurrent = isCurrent;
   }
 
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public void setServiceGroupName(String serviceGroupName) {
+    this.serviceGroupName = serviceGroupName;
+  }
+
+
   @Override
   public String toString() {
     return "ServiceConfigVersionRequest{" +
         "clusterName='" + clusterName + '\'' +
+        ", serviceGroupName='" + serviceGroupName + '\'' +
         ", serviceName='" + serviceName + '\'' +
         ", version=" + version +
         ", createTime=" + createTime +
