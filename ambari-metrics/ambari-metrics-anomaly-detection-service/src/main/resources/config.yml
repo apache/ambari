@@ -30,6 +30,14 @@ metricsCollector:
 adQueryService:
   anomalyDataTtl: 604800
 
+metricDefinitionDB:
+  # force checksum verification of all data that is read from the file system on behalf of a particular read
+  verifyChecksums: true
+  # raise an error as soon as it detects an internal corruption
+  performParanoidChecks: false
+  # Path to Level DB directory
+  dbDirPath: /var/lib/ambari-metrics-anomaly-detection/
+
 #subsystemService:
 #  spark:
 #  pointInTime:
