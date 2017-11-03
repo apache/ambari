@@ -762,11 +762,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction}
     at the appropriate moment during the orchestration.
     */
-    if (pack.getType() == UpgradeType.ROLLING) {
+    if (pack.getType() == UpgradeType.ROLLING || pack.getType() == UpgradeType.HOST_ORDERED) {
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
     }
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is wrong")
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is SO VERY wrong")
     StackId configurationPackSourceStackId = upgradeContext.getSourceVersions().values().iterator().next().getStackId();
 
     // resolve or build a proper config upgrade pack - always start out with the config pack
