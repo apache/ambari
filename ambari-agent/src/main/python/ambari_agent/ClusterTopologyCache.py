@@ -75,7 +75,7 @@ class ClusterTopologyCache(ClusterCache):
     for cluster_id, cluster_topology in self.iteritems():
       self.cluster_local_components[cluster_id] = []
 
-      if not cluster_id in self.current_host_ids_to_cluster:
+      if not self.current_host_ids_to_cluster[cluster_id]:
         continue
 
       current_host_id = self.current_host_ids_to_cluster[cluster_id]
