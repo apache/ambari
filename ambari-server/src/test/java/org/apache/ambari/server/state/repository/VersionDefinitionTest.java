@@ -429,7 +429,41 @@ public class VersionDefinitionTest {
     xml = VersionDefinitionXml.load(f.toURI().toURL());
     summary = xml.getClusterSummary(cluster);
     assertEquals(1, summary.getAvailableServiceNames().size());
+  }
 
+  @Test
+  public void testAvailableBuildVersion() throws Exception {
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersion.getVersion()).andReturn("2.3.4.1-1").atLeastOnce();
+
+    Service serviceHdfs = createNiceMock(Service.class);
+    expect(serviceHdfs.getName()).andReturn("HDFS").atLeastOnce();
+    expect(serviceHdfs.getDisplayName()).andReturn("HDFS").atLeastOnce();
+    expect(serviceHdfs.getDesiredRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
+
+    Service serviceHBase = createNiceMock(Service.class);
+    expect(serviceHBase.getName()).andReturn("HBASE").atLeastOnce();
+    expect(serviceHBase.getDisplayName()).andReturn("HBase").atLeastOnce();
+    expect(serviceHBase.getDesiredRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
+
+    // !!! should never be accessed as it's not in any VDF
+    Service serviceAMS = createNiceMock(Service.class);
+
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", serviceHdfs)
+        .put("HBASE", serviceHBase)
+        .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
+
+    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase);
+
+    File f = new File("src/test/resources/version_definition_test_maint_partial.xml");
+    VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
+    xml.release.version = "2.3.4.1";
+    xml.release.build = "2";
+    ClusterVersionSummary summary = xml.getClusterSummary(cluster);
+    assertEquals(1, summary.getAvailableServiceNames().size());
   }
 
 
