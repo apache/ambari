@@ -71,8 +71,6 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 component_directory = status_params.component_directory
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
-hive_bin = '/usr/lib/hive/bin'
-hive_lib = '/usr/lib/hive/lib'
 
 #Hbase params keep hbase lib here,if not,mapreduce job doesn't work for hive.
 hbase_lib = '/usr/iop/current/hbase-client/lib'
@@ -95,6 +93,7 @@ if command_role in server_role_dir_mapping:
   hive_bin = format('/usr/iop/current/{hive_server_root}/bin')
   hive_lib = format('/usr/iop/current/{hive_server_root}/lib')
 
+hive_cmd = os.path.join(hive_bin, "hive")
 hive_specific_configs_supported = False
 hive_etc_dir_prefix = "/etc/hive"
 limits_conf_dir = "/etc/security/limits.d"
@@ -117,8 +116,6 @@ hcat_lib = '/usr/iop/current/hive-webhcat/share/hcatalog'
 webhcat_bin_dir = '/usr/iop/current/hive-webhcat/sbin'
 component_directory = status_params.component_directory
 hadoop_home = '/usr/iop/current/hadoop-client'
-hive_bin = format('/usr/iop/current/{component_directory}/bin')
-hive_lib = format('/usr/iop/current/{component_directory}/lib')
 
 # there are no client versions of these, use server versions directly
 hcat_lib = '/usr/iop/current/hive-webhcat/share/hcatalog'

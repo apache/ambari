@@ -66,8 +66,6 @@ def hive_service(name, action='start', upgrade_type=None):
       check_fs_root()
 
     daemon_cmd = cmd
-    hadoop_home = params.hadoop_home
-    hive_bin = "hive"
 
     # upgrading hiveserver2 (rolling_restart) means that there is an existing,
     # de-registering hiveserver2; the pid will still exist, but the new
@@ -75,18 +73,13 @@ def hive_service(name, action='start', upgrade_type=None):
     if upgrade_type == UPGRADE_TYPE_ROLLING:
       process_id_exists_command = None
 
-      if (params.version):
-        import os
-        hadoop_home = format("/usr/iop/{version}/hadoop")
-        hive_bin = os.path.join(params.hive_bin, hive_bin)
-
     if params.security_enabled:
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user=params.hive_user)
 
     Execute(daemon_cmd,
       user = params.hive_user,
-      environment = { 'HADOOP_HOME': hadoop_home, 'JAVA_HOME': params.java64_home, 'HIVE_BIN': hive_bin },
+      environment = { 'JAVA_HOME': params.java64_home, 'HIVE_CMD': params.hive_cmd },
       path = params.execute_path,
       not_if = process_id_exists_command)
 
