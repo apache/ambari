@@ -17,13 +17,14 @@
   */
 package org.apache.ambari.metrics.adservice.app
 
+import org.apache.ambari.metrics.adservice.db.MetadataDatasource
+import org.apache.ambari.metrics.adservice.leveldb.LevelDBDataSource
 import org.apache.ambari.metrics.adservice.resource.{AnomalyResource, RootResource}
 import org.apache.ambari.metrics.adservice.service.{ADQueryService, ADQueryServiceImpl}
 
 import com.codahale.metrics.health.HealthCheck
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
-
 import io.dropwizard.setup.Environment
 
 class AnomalyDetectionAppModule(config: AnomalyDetectionAppConfig, env: Environment) extends AbstractModule {
@@ -35,5 +36,6 @@ class AnomalyDetectionAppModule(config: AnomalyDetectionAppConfig, env: Environm
     bind(classOf[AnomalyResource])
     bind(classOf[RootResource])
     bind(classOf[ADQueryService]).to(classOf[ADQueryServiceImpl])
+    bind(classOf[MetadataDatasource]).to(classOf[LevelDBDataSource])
   }
 }
