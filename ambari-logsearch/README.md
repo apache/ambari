@@ -31,6 +31,10 @@ docker exec -it logsearch bash
 ```
 In case if you started the containers separately and if you would like to access Solr locally with through your external ZooKeeper container, then point `solr` to `localhost` in your `/etc/hosts` file.
 
+### Run applications from IDE / maven
+
+- [Start Log Search locally](ambari-logsearch-server/README.md)
+
 ## Package build process
 
 
