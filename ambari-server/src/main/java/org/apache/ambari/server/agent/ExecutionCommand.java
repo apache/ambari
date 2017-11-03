@@ -160,6 +160,9 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("upgradeSummary")
   private UpgradeSummary upgradeSummary;
 
+  @SerializedName("roleParameters")
+  private Map<String, Object> roleParameters;
+
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
   }
@@ -235,6 +238,10 @@ public class ExecutionCommand extends AgentCommand {
     return roleParams;
   }
 
+  /**
+   * Sets the roleParams for the command.  Consider instead using {@link #setRoleParameters}
+   * @param roleParams
+   */
   public void setRoleParams(Map<String, String> roleParams) {
     this.roleParams = roleParams;
   }
@@ -332,11 +339,11 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   public String getServiceType() {
-	return serviceType;
+    return serviceType;
   }
 
   public void setServiceType(String serviceType) {
-	this.serviceType = serviceType;
+    this.serviceType = serviceType;
   }
 
   /**
@@ -410,6 +417,23 @@ public class ExecutionCommand extends AgentCommand {
    */
   public void setRepositoryFile(CommandRepository repository) {
     commandRepository = repository;
+  }
+
+  /**
+   * Gets the object-based role parameters for the command.
+   */
+  public Map<String, Object> getRoleParameters() {
+    return roleParameters;
+  }
+
+  /**
+   * Sets the role parameters for the command.  This is preferred over {@link #setRoleParams(Map)},
+   * as this form will pass values as structured data, as opposed to unstructured, escaped json.
+   *
+   * @param params
+   */
+  public void setRoleParameters(Map<String, Object> params) {
+    roleParameters = params;
   }
 
   /**
@@ -519,6 +543,12 @@ public class ExecutionCommand extends AgentCommand {
         feature = ExperimentalFeature.PATCH_UPGRADES,
         comment = "This value is still around purely for backward compatibility with mpacks")
     String CURRENT_VERSION = "current_version";
+
+
+    /**
+     * When installing packages, includes what services will be included in the upgrade
+     */
+    String CLUSTER_VERSION_SUMMARY = "cluster_version_summary";
   }
 
   /**

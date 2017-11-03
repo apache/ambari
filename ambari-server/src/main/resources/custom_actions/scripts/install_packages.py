@@ -181,8 +181,18 @@ class InstallPackages(Script):
             and not sudo.path_exists("/usr/bin/conf-select") and sudo.path_exists("/usr/bin/hdfconf-select"):
       Link("/usr/bin/conf-select", to="/usr/bin/hdfconf-select")
 
+
+    restricted_packages = conf_select.get_restricted_packages()
+
+    if 0 == len(restricted_packages):
+      Logger.info("There are no restricted conf-select packages for this installation")
+    else:
+      Logger.info("Restricting conf-select packages to {0}".format(restricted_packages))
+
     for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
+      if 0 == len(restricted_packages) or package_name in restricted_packages:
+        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
+
 
   def compute_actual_version(self):
     """
