@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -424,6 +425,13 @@ public class VersionDefinitionTest {
     xml = VersionDefinitionXml.load(f.toURI().toURL());
     summary = xml.getClusterSummary(cluster);
     assertEquals(0, summary.getAvailableServiceNames().size());
+
+    f = new File("src/test/resources/version_definition_test_maint.xml");
+    xml = VersionDefinitionXml.load(f.toURI().toURL());
+    xml.release.repositoryType = RepositoryType.STANDARD;
+    xml.availableServices = Collections.emptyList();
+    summary = xml.getClusterSummary(cluster);
+    assertEquals(2, summary.getAvailableServiceNames().size());
 
     f = new File("src/test/resources/version_definition_test_maint_partial.xml");
     xml = VersionDefinitionXml.load(f.toURI().toURL());
