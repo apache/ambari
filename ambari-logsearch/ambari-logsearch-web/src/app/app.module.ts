@@ -73,6 +73,7 @@ import {PaginationComponent} from '@app/components/pagination/pagination.compone
 import {PaginationControlsComponent} from '@app/components/pagination-controls/pagination-controls.component';
 import {TimeHistogramComponent} from '@app/components/time-histogram/time-histogram.component';
 import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
+import {ActionMenuComponent} from "@app/components/action-menu/action-menu.component";
 import {ModalComponent} from '@app/components/modal/modal.component';
 import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
@@ -125,6 +126,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     PaginationControlsComponent,
     TimeHistogramComponent,
     LogsContainerComponent,
+    ActionMenuComponent,
     ModalComponent,
     TimeZonePickerComponent,
     NodeBarComponent,

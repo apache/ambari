@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-@import '../mixins';
+@import '../variables';
 
 :host {
-  .default-flex;
-  margin-right: 0;
+  display: block;
+  margin-left: auto;
+  menu-button {
+    margin: 0 1em;
+    color: @table-border-color;
+  }
 }
