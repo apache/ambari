@@ -3,12 +3,21 @@
     "Component" : [
       {
         "type" : "ganglia",
+        "properties" : {
+          "overridden_host" : "${core-site/fs.defaultFS}"
+        },
         "metrics" : {
           "default" : {
             "metrics/load/load_five" : {
               "temporal" : true,
               "pointInTime" : true,
               "metric" : "load_five",
+              "amsHostMetric" : true
+            },
+            "metrics/cpu/cpu_num": {
+              "metric": "cpu_num",
+              "pointInTime": true,
+              "temporal": true,
               "amsHostMetric" : true
             },
             "metrics/jvm/JvmMetrics/GcCountConcurrentMarkSweep" : {
@@ -77,7 +86,7 @@
             },
             "metrics/jvm/memHeapUsedM" : {
               "temporal" : true,
-              "pointInTime" : false,
+              "pointInTime" : true,
               "metric" : "jvm.JvmMetrics.MemHeapUsedM",
               "unit" : "MB"
             },
@@ -169,7 +178,7 @@
             },
             "metrics/jvm/memHeapCommittedM" : {
               "temporal" : true,
-              "pointInTime" : false,
+              "pointInTime" : true,
               "metric" : "jvm.JvmMetrics.MemHeapCommittedM"
             },
             "metrics/disk/disk_total" : {

@@ -15,15 +15,13 @@
               "name": "jvm.JvmMetrics.GcCount._rate",
               "metric_path": "metrics/jvm/gcCount._rate",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate",
               "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep._rate",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             }
           ],
           "values": [
@@ -49,10 +47,9 @@
           "metrics": [
             {
               "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate",
-              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep._rate",
+              "metric_path": "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep._rate",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             }
           ],
           "values": [
@@ -77,15 +74,13 @@
               "name": "jvm.JvmMetrics.MemHeapCommittedM",
               "metric_path": "metrics/jvm/memHeapCommittedM",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "jvm.JvmMetrics.MemHeapUsedM",
               "metric_path": "metrics/jvm/memHeapUsedM",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             }
           ],
           "values": [
@@ -114,50 +109,43 @@
               "name": "cpu_system",
               "metric_path": "metrics/cpu/cpu_system",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "cpu_user",
               "metric_path": "metrics/cpu/cpu_user",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "cpu_nice",
               "metric_path": "metrics/cpu/cpu_nice",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "cpu_idle",
               "metric_path": "metrics/cpu/cpu_idle",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "cpu_wio",
               "metric_path": "metrics/cpu/cpu_wio",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "mem_total",
               "metric_path": "metrics/memory/mem_total",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             },
             {
               "name": "mem_free",
               "metric_path": "metrics/memory/mem_free",
               "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+              "component_name": "ONEFS_CLIENT"
             }
           ],
           "values": [
@@ -174,31 +162,6 @@
             "graph_type": "LINE",
             "time_range": "1",
             "display_unit": "%"
-          }
-        },
-        {
-          "widget_name": "Under Replicated Blocks",
-          "description": "Number represents file blocks that does not meet the replication factor criteria. Its indicative of ONEFS bad health.",
-          "widget_type": "NUMBER",
-          "is_visible": true,
-          "metrics": [
-            {
-              "name": "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
-              "metric_path": "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
-              "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
-            }
-          ],
-          "values": [
-            {
-              "name": "Under Replicated Blocks",
-              "value": "${Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks}"
-            }
-          ],
-          "properties": {
-            "warning_threshold": "0",
-            "error_threshold": "50"
           }
         }
       ]
