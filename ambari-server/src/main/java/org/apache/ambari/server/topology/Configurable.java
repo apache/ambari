@@ -24,17 +24,32 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 
 public interface Configurable {
   void setConfiguration(Configuration configuration);
+  Configuration getConfiguration();
 
   @JsonProperty("configurations")
   default void setConfigs(Collection<Map<String, Map<String, Map<String, String>>>> configs) {
-    Map<String, Map<String, String>> allProps = configs.stream().collect(Collectors.toMap(
-      config -> config.keySet().iterator().next(),
-      config -> config.values().iterator().next().get("properties")
-    ));
-    setConfiguration(new Configuration(allProps, new HashMap<>()));
+    if (null != configs) {
+      Map<String, Map<String, String>> allProps = configs.stream().
+        filter( map -> map != null && !map.isEmpty() && map.values().iterator().next().get("properties ") != null).
+        collect(Collectors.toMap(
+          config -> config.keySet().iterator().next(),
+          config -> config.values().iterator().next().get("properties")
+        ));
+      setConfiguration(new Configuration(allProps, new HashMap<>()));
+    }
+  }
+
+  @JsonProperty("configurations")
+  default Collection<Map<String, Map<String, Map<String, String>>>> getConfigs() {
+    Map<String, Map<String, Map<String, String>>> configAsMap = new HashMap<>();
+    if (null != getConfiguration()) {
+      configAsMap.put("properties", getConfiguration().getProperties());
+    }
+    return Lists.newArrayList(configAsMap);
   }
 
 }

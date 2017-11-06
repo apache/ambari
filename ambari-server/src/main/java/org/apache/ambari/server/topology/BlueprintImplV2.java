@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
   private String name;
   private SecurityConfiguration securityConfiguration;
-  private Collection<RepositoryVersion> repositoryVersions;
+  private Collection<RepositoryVersion> repositoryVersions = new ArrayList<>(0);
   private Map<String, ServiceGroup> serviceGroups;
   private Setting setting;
   private Configuration configuration;
@@ -98,6 +99,11 @@ public class BlueprintImplV2 implements BlueprintV2 {
     this.repositoryVersions = repositoryVersions;
   }
 
+  @JsonProperty("repository_versions")
+  public Collection<RepositoryVersion> getRepositoryVersions() {
+    return this.repositoryVersions;
+  }
+
   @JsonProperty("service_groups")
   public void setServiceGroups(Collection<ServiceGroup> serviceGroups) {
     this.serviceGroups = serviceGroups.stream().collect(toMap( sg -> sg.getName(), sg -> sg ));
@@ -128,17 +134,24 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
-  @JsonProperty("host_groups")
+  @JsonIgnore
   public Map<String, ? extends HostGroupV2> getHostGroups() {
     return hostGroupMap;
   }
 
+  @JsonProperty("host_groups")
+  public Collection<? extends HostGroupV2> getHostGroupsForSerialization() {
+    return hostGroupMap.values();
+  }
+
   @Override
+  @JsonIgnore
   public Collection<StackV2> getStacks() {
     return stacks.values();
   }
 
   @Override
+  @JsonIgnore
   public Collection<String> getStackIds() {
     return repositoryVersions.stream().map(rv -> rv.getStackId()).collect(toList());
   }
@@ -258,9 +271,14 @@ public class BlueprintImplV2 implements BlueprintV2 {
   }
 
   @Override
-  @JsonProperty("cluster_settings")
+  @JsonIgnore
   public Setting getSetting() {
     return this.setting;
+  }
+
+  @JsonProperty("cluster_settings")
+  public Map<String, Set<HashMap<String, String>>> getSettingForSerialization() {
+    return this.setting.getProperties();
   }
 
   @Nonnull

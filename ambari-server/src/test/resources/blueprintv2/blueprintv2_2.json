@@ -1,0 +1,139 @@
+{
+  "Blueprints": {
+    "blueprint_name": "blueprint-def",
+    "security": {
+      "type": "NONE"
+    }
+  },
+  "cluster_settings": {
+    "deployment_settings": [
+      {"skip_failure":"true"}
+    ],
+    "recovery_settings":[
+      {"recovery_enabled":"true"}
+    ]
+  },
+  "repository_versions": [
+    {
+      "stack_id": "HDP-3.0.0",
+      "repository_version": "3.0.0.0-359"
+    }
+  ],
+  "service_groups": [
+    {
+      "name": "CoreSG",
+      "dependencies": [],
+      "services": [
+        {
+          "type": "ZOOKEEPER",
+          "name": "ZK1",
+          "stack_id": "HDP-3.0.0",
+          "configurations": [
+            {
+              "zoo.cfg" : {
+                "properties" : {
+                  "dataDir" : "/zookeeper1"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "HDFS",
+          "stack_id": "HDP-3.0.0"
+        },
+        {
+          "type": "YARN",
+          "stack_id": "HDP-3.0.0"
+        },
+        {
+          "type": "HBASE",
+          "stack_id": "HDP-3.0.0"
+        }
+      ]
+    }
+  ],
+  "host_groups": [
+    {
+      "cardinality": "1",
+      "name": "host_group_1",
+      "configurations": [],
+      "components": [
+        {
+          "type": "NAMENODE",
+          "service_name": "HDFS",
+          "service_group": "CoreSG",
+          "configurations": [],
+          "provision_action": "INSTALL_AND_START"
+        },
+        {
+          "type": "SECONDARY_NAMENODE",
+          "service_name": "HDFS",
+          "service_group": "CoreSG",
+          "configurations": [],
+          "provision_action": "INSTALL_AND_START"
+        },
+        {
+          "type": "DATANODE",
+          "service_name": "HDFS",
+          "service_group": "CoreSG",
+          "configurations": [],
+          "provision_action": "INSTALL_AND_START"
+        },
+        {
+          "type": "ZOOKEEPER_SERVER",
+          "service_name": "ZK1",
+          "service_group": "CoreSG",
+          "configurations": []
+        },
+        {
+          "type": "RESOURCEMANAGER",
+          "service_name": "YARN",
+          "service_group": "CoreSG",
+          "configurations": []
+        },
+        {
+          "type" : "HDFS_CLIENT",
+          "service_name": "HDFS",
+          "service_group": "CoreSG"
+        },
+        {
+          "name" : "HISTORYSERVER",
+          "service_name": "YARN",
+          "service_group": "CoreSG"
+        },
+        {
+          "name" : "APP_TIMELINE_SERVER",
+          "service_name": "YARN",
+          "service_group": "CoreSG"
+        },
+        {
+          "name" : "MAPREDUCE2_CLIENT",
+          "service_name": "YARN",
+          "service_group": "CoreSG"
+        },
+        {
+          "name" : "RESOURCEMANAGER",
+          "service_name": "YARN",
+          "service_group": "CoreSG"
+        },
+        {
+          "name" : "NODEMANAGER",
+          "service_name": "YARN",
+          "service_group": "CoreSG"
+        },
+        {
+          "name" : "YARN_CLIENT",
+          "service_name": "YARN",
+          "service_group": "CoreSG"
+        },
+        {
+          "type": "HBASE_MASTER",
+          "service_name": "HBASE",
+          "service_group": "CoreSG",
+          "configurations": []
+        }
+      ]
+    }
+  ]
+}

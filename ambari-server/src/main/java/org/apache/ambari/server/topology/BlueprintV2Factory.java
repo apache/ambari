@@ -32,7 +32,6 @@ import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintV2DAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.BlueprintV2Entity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
@@ -42,6 +41,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Inject;
@@ -72,8 +72,8 @@ public class BlueprintV2Factory {
 
   protected static final String SETTINGS_PROPERTY_ID = "settings";
 
+  private boolean prettyPrintJson = false;
   private static BlueprintV2DAO blueprintDAO;
-  private static StackDAO stackDao;
   private ConfigurationFactory configFactory = new ConfigurationFactory();
 
   private StackV2Factory stackFactory;
@@ -87,6 +87,10 @@ public class BlueprintV2Factory {
 
   public static BlueprintV2Factory create(AmbariManagementController controller) {
     return new BlueprintV2Factory(new StackV2Factory(controller));
+  }
+
+  public static BlueprintV2Factory create(StackV2Factory factory) {
+    return new BlueprintV2Factory(factory);
   }
 
   public BlueprintV2 getBlueprint(String blueprintName) throws NoSuchStackException, NoSuchBlueprintException, IOException {
@@ -106,6 +110,7 @@ public class BlueprintV2Factory {
     );
     return blueprintV2;
   }
+
 
   public BlueprintV2 convertFromEntity(BlueprintV2Entity blueprintEntity) throws IOException {
     return convertFromJson(blueprintEntity.getContent());
@@ -131,12 +136,17 @@ public class BlueprintV2Factory {
 
   public BlueprintV2Entity convertToEntity(BlueprintV2 blueprint) throws JsonProcessingException {
     BlueprintV2Entity entity = new BlueprintV2Entity();
-    String content = createObjectMapper().writeValueAsString(blueprint);
+    String content = convertToJson(blueprint);
     entity.setContent(content);
     entity.setBlueprintName(blueprint.getName());
     entity.setSecurityType(blueprint.getSecurity().getType());
     entity.setSecurityDescriptorReference(blueprint.getSecurity().getDescriptorReference());
     return entity;
+  }
+
+  public String convertToJson(BlueprintV2 blueprint) throws JsonProcessingException {
+    return createObjectMapper().writeValueAsString(blueprint);
+
   }
 
   /**
@@ -180,7 +190,15 @@ public class BlueprintV2Factory {
     }
   }
 
-  static ObjectMapper createObjectMapper() {
+  public boolean isPrettyPrintJson() {
+    return prettyPrintJson;
+  }
+
+  public void setPrettyPrintJson(boolean prettyPrintJson) {
+    this.prettyPrintJson = prettyPrintJson;
+  }
+
+  ObjectMapper createObjectMapper() {
     ObjectMapper mapper = new ObjectMapper();
     SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
     SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
@@ -188,6 +206,9 @@ public class BlueprintV2Factory {
     module.setAbstractTypes(resolver);
     mapper.registerModule(module);
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    if (prettyPrintJson) {
+      mapper.enable(SerializationFeature.INDENT_OUTPUT);
+    }
     return mapper;
   }
 

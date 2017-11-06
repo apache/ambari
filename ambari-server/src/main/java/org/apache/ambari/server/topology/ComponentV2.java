@@ -68,6 +68,7 @@ public class ComponentV2 implements Configurable {
     return this.provisionAction;
   }
 
+  @JsonIgnore
   public ServiceId getServiceId() {
     return serviceId;
   }
@@ -77,10 +78,12 @@ public class ComponentV2 implements Configurable {
   }
 
   //TODO
+  @JsonIgnore
   public ServiceGroup getServiceGroup() {
     return null;
   }
 
+  @JsonIgnore
   public Configuration getConfiguration() {
     return configuration;
   }
@@ -100,6 +103,7 @@ public class ComponentV2 implements Configurable {
     this.name = name;
   }
 
+  @JsonProperty("service_group")
   public String getServiceGroupName() {
     return serviceId.getServiceGroup();
   }
@@ -123,6 +127,7 @@ public class ComponentV2 implements Configurable {
     this.provisionAction = provisionAction;
   }
 
+  @JsonIgnore
   public void setConfiguration(Configuration configuration) {
     this.configuration = configuration;
   }

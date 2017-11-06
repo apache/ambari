@@ -60,6 +60,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
+  @JsonIgnore
   public String getFullyQualifiedName() {
     return blueprintName + ":" + name;
   }
@@ -70,6 +71,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
+  @JsonIgnore
   public Collection<String> getComponentNames() {
     return getComponentNames(components);
   }
@@ -82,6 +84,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
+  @JsonIgnore
   public Collection<String> getComponentNames(ProvisionAction provisionAction) {
     List<ComponentV2> filtered =
       ImmutableList.copyOf(Collections2.filter(components, Predicates.equalTo(provisionAction)));
@@ -99,11 +102,13 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
+  @JsonIgnore
   public boolean containsMasterComponent() {
     return containsMasterComponent;
   }
 
   @Override
+  @JsonIgnore
   public Collection<ServiceId> getServiceIds() {
     return serviceIds;
   }
@@ -134,6 +139,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
+  @JsonIgnore
   public Configuration getConfiguration() {
     return configuration;
   }
@@ -157,6 +163,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
     this.serviceIds = components.stream().map(c -> c.getServiceId()).collect(Collectors.toSet());
   }
 
+  @JsonIgnore
   public void setConfiguration(Configuration configuration) {
     this.configuration = configuration;
   }

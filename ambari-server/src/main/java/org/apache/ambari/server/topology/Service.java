@@ -21,6 +21,7 @@ package org.apache.ambari.server.topology;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.controller.StackV2;
 
@@ -39,6 +40,7 @@ public class Service implements Configurable {
 
   private String stackId;
 
+  @JsonIgnore
   private Configuration configuration;
 
   private Set<ServiceId> dependencies = ImmutableSet.of();
@@ -61,10 +63,12 @@ public class Service implements Configurable {
     return this.id.getName();
   }
 
+  @JsonIgnore
   public String getServiceGroupId() {
     return this.id.getServiceGroup();
   }
 
+  @JsonIgnore
   public ServiceGroup getServiceGroup() {
     return serviceGroup;
   }
@@ -77,18 +81,28 @@ public class Service implements Configurable {
     return stackId;
   }
 
+  @JsonIgnore
   public StackV2 getStack() {
     return stack;
   }
 
+  @JsonIgnore
   public Set<ServiceId> getDependentServiceIds() {
     return dependencies;
+  }
+
+  @JsonProperty("dependencies")
+  public Set<Map<String, String>> getDependenciesForSerialization() {
+    return dependencies.stream().map(
+      serviceId -> ImmutableMap.of("service_name", serviceId.getName(), "service_group", serviceId.getServiceGroup())).
+      collect(Collectors.toSet());
   }
 
   public Set<Service> getDependencies() {
     return ImmutableSet.copyOf(dependencyMap.values());
   }
 
+  @JsonIgnore
   public Configuration getConfiguration() {
     return configuration;
   }
@@ -137,6 +151,7 @@ public class Service implements Configurable {
     this.dependencyMap = dependencyMap;
   }
 
+  @JsonIgnore
   public ServiceId getId() {
     return id;
   }
