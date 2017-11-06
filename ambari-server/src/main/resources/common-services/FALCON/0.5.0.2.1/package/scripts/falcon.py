@@ -209,12 +209,6 @@ def falcon(type, action = None, upgrade_type=None):
           owner = params.falcon_user,
           create_parents = True)
 
-    # although Falcon's falcon-config.sh will use 'which hadoop' to figure
-    # this out, in an upgraded cluster, it's possible that 'which hadoop'
-    # still points to older binaries; it's safer to just pass in the
-    # hadoop home directory to use
-    environment_dictionary = { "HADOOP_HOME" : params.hadoop_home_dir }
-
     pid = get_user_call_output.get_user_call_output(format("cat {server_pid_file}"), user=params.falcon_user, is_checked_call=False)[1]
     process_exists = format("ls {server_pid_file} && ps -p {pid}")
 
@@ -223,7 +217,6 @@ def falcon(type, action = None, upgrade_type=None):
         Execute(format('{falcon_home}/bin/falcon-config.sh server falcon'),
           user = params.falcon_user,
           path = params.hadoop_bin_dir,
-          environment=environment_dictionary,
           not_if = process_exists,
         )
       except:
@@ -253,7 +246,6 @@ in the Falcon documentation.
         Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
           user = params.falcon_user,
           path = params.hadoop_bin_dir,
-          environment=environment_dictionary,
           not_if = process_exists,
         )
       except:
@@ -264,8 +256,7 @@ in the Falcon documentation.
       try:
         Execute(format('{falcon_home}/bin/falcon-stop'),
           user = params.falcon_user,
-          path = params.hadoop_bin_dir,
-          environment=environment_dictionary)
+          path = params.hadoop_bin_dir)
       except:
         show_logs(params.falcon_log_dir, params.falcon_user)
         raise

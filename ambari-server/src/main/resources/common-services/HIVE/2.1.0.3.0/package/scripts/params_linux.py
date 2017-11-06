@@ -36,19 +36,17 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
-from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
-from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 from resource_management.libraries.functions.get_architecture import get_architecture
 
 from resource_management.core.utils import PasswordString
-from resource_management.core.shell import checked_call
 from resource_management.core.exceptions import Fail
 from ambari_commons.credential_store_helper import get_password_from_credential_store
 
@@ -107,7 +105,8 @@ stack_supports_hive_interactive_ga = check_stack_feature(StackFeature.HIVE_INTER
 component_directory = status_params.component_directory
 component_directory_interactive = status_params.component_directory_interactive
 
-hadoop_home = format('{stack_root}/current/hadoop-client')
+hadoop_home = stack_select.get_hadoop_dir("home")
+
 hive_bin = format('{stack_root}/current/{component_directory}/bin')
 hive_cmd = os.path.join(hive_bin, "hive")
 hive_schematool_ver_bin = format('{stack_root}/{version}/hive/bin')
