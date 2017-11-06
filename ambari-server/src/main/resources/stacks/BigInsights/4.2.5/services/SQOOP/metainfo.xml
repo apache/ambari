@@ -34,11 +34,6 @@
             <package>
               <name>sqoop_4_2_5_*</name>
             </package>
-            <package>
-              <name>mysql-connector-java</name>
-              <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_mysql_connector</condition>
-            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

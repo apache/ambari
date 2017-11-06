@@ -265,10 +265,6 @@
             <!--package>
               <name>webhcat-tar-pig</name>
             </package-->
-            <package>
-              <name>mysql-connector-java</name>
-              <condition>should_install_mysql_connector</condition>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
