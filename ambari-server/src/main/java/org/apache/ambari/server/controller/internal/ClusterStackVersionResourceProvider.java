@@ -730,7 +730,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       return null;
     }
 
-
     Map<String, String> roleParams = repoVersionHelper.buildRoleParams(managementController, repoVersion,
         osFamily, servicesOnHost);
 
@@ -744,7 +743,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, repoVersion, osEntity);
+    repoVersionHelper.addCommandRepository(actionContext, cluster, repoVersion, osEntity);
 
     return actionContext;
   }
