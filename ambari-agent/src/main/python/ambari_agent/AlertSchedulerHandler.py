@@ -56,6 +56,7 @@ class AlertSchedulerHandler():
     self.common_services_dir = initializer_module.config.common_services_dir
     self.extensions_dir = initializer_module.config.extensions_dir
     self.host_scripts_dir = initializer_module.config.host_scripts_dir
+    self.configuration_builder = initializer_module.configuration_builder
 
     self._cluster_configuration = initializer_module.configurations_cache
     self.alert_definitions_cache = initializer_module.alert_definitions_cache
@@ -260,7 +261,7 @@ class AlertSchedulerHandler():
         if alert is None:
           continue
 
-        alert.set_helpers(self._collector, self._cluster_configuration)
+        alert.set_helpers(self._collector, self._cluster_configuration, self.configuration_builder)
 
         definitions.append(alert)
 
@@ -376,7 +377,7 @@ class AlertSchedulerHandler():
         logger.info("[AlertScheduler] Executing on-demand alert {0} ({1})".format(alert.get_name(),
             alert.get_uuid()))
 
-        alert.set_helpers(self._collector, self._cluster_configuration)
+        alert.set_helpers(self._collector, self._cluster_configuration, self.configuration_builder)
         alert.collect()
       except:
         logger.exception("[AlertScheduler] Unable to execute the alert outside of the job scheduler")

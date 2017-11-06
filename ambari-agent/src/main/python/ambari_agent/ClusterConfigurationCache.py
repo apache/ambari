@@ -40,25 +40,3 @@ class ClusterConfigurationCache(ClusterCache):
 
   def get_cache_name(self):
     return 'configurations'
-
-  def get_configuration_value(self, cluster_id, key):
-    """
-    Gets a value from the cluster configuration map for the given cluster and
-    key. The key is expected to be of the form 'foo-bar/baz' or
-    'foo-bar/bar-baz/foobarbaz' where every / denotes a new mapping
-    :param key:  a lookup key, like 'foo-bar/baz'
-    :return: the value, or None if not found
-    """
-    self._cache_lock.acquire()
-    try:
-      dictionary = self[str(cluster_id)]['configurations']
-      for layer_key in key.split('/'):
-        dictionary = dictionary[layer_key]
-
-      return dictionary
-
-    except KeyError:
-      logger.debug("Cache miss for configuration property {0} in cluster {1}".format(key, cluster_id))
-      return None
-    finally:
-      self._cache_lock.release()

@@ -87,9 +87,10 @@ class PortAlert(BaseAlert):
 
 
   def _collect(self):
+    configurations = self.configuration_builder.get_configuration(self.cluster_id, None, None)
     # can be parameterized or static
     # if not parameterized, this will return the static value
-    uri_value = self._get_configuration_value(self.uri)
+    uri_value = self._get_configuration_value(configurations, self.uri)
 
     host_not_specified = False
     if uri_value is None:

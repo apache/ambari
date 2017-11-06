@@ -33,6 +33,7 @@ from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.RecoveryManager import RecoveryManager
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
+from ambari_agent.ConfigurationBuilder import ConfigurationBuilder
 from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger(__name__)
@@ -58,9 +59,10 @@ class InitializerModule:
 
     self.metadata_cache = ClusterMetadataCache(self.config.cluster_cache_dir)
     self.topology_cache = ClusterTopologyCache(self.config.cluster_cache_dir, self.config)
-    self.configurations_cache = ClusterConfigurationCache(self.config.cluster_cache_dir)
     self.host_level_params_cache = ClusterHostLevelParamsCache(self.config.cluster_cache_dir)
+    self.configurations_cache = ClusterConfigurationCache(self.config.cluster_cache_dir)
     self.alert_definitions_cache = ClusterAlertDefinitionsCache(self.config.cluster_cache_dir)
+    self.configuration_builder = ConfigurationBuilder(self)
 
     self.file_cache = FileCache(self.config)
 

@@ -25,7 +25,6 @@ import sys
 from ambari_commons import shell
 import threading
 
-from FileCache import FileCache
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
 from resource_management.libraries.functions.log_process_information import log_process_information
@@ -33,7 +32,6 @@ from resource_management.core.utils import PasswordString
 from ambari_agent.Utils import Utils
 import subprocess
 import Constants
-import hostname
 
 
 logger = logging.getLogger()
@@ -78,9 +76,7 @@ class CustomServiceOrchestrator():
   CREDENTIAL_STORE_CLASS_PATH_NAME = 'credentialStoreClassPath'
 
   def __init__(self, initializer_module):
-    self.metadata_cache = initializer_module.metadata_cache
-    self.topology_cache = initializer_module.topology_cache
-    self.configurations_cache = initializer_module.configurations_cache
+    self.configuration_builder = initializer_module.configuration_builder
     self.host_level_params_cache = initializer_module.host_level_params_cache
     self.config = initializer_module.config
     self.tmp_dir = self.config.get('agent', 'prefix')
@@ -92,7 +88,6 @@ class CustomServiceOrchestrator():
                                                'status_command_stdout.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr.txt')
-    self.public_fqdn = hostname.public_hostname(self.config)
 
     # Construct the hadoop credential lib JARs path
     self.credential_shell_lib_path = os.path.join(self.config.get('security', 'credential_lib_dir',
@@ -400,7 +395,7 @@ class CustomServiceOrchestrator():
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir,
                          self.force_https_protocol, self.ca_cert_file_path]
-        
+
         if log_out_files:
           script_params.append("-o")
 
@@ -461,51 +456,12 @@ class CustomServiceOrchestrator():
     if cluster_id != '-1' and cluster_id != 'null':
       service_name = command_header['serviceName']
       component_name = command_header['role']
-
-      metadata_cache = self.metadata_cache[cluster_id]
-      configurations_cache = self.configurations_cache[cluster_id]
-      host_level_params_cache = self.host_level_params_cache[cluster_id]
-
-      command_dict = {
-        'clusterLevelParams': metadata_cache.clusterLevelParams,
-        'hostLevelParams': host_level_params_cache,
-        'clusterHostInfo': self.topology_cache.get_cluster_host_info(cluster_id),
-        'localComponents': self.topology_cache.get_cluster_local_components(cluster_id),
-        'agentLevelParams': {'hostname': self.topology_cache.get_current_host_info(cluster_id)['hostName']}
-      }
-
-      if service_name is not None and service_name != 'null':
-        command_dict['serviceLevelParams'] = metadata_cache.serviceLevelParams[service_name]
-
-      host_repos = host_level_params_cache.hostRepositories
-      if component_name in host_repos.componentRepos:
-        repo_version_id = host_repos.componentRepos[component_name]
-        command_dict['repositoryFile'] = host_repos.commandRepos[str(repo_version_id)]
-        
-      component_dict = self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name)
-      if component_dict is not None:
-        command_dict.update({
-          'componentLevelParams': component_dict.componentLevelParams,
-          'commandParams': component_dict.commandParams
-        })
-
-      command_dict.update(configurations_cache)
     else:
-      command_dict = {'agentLevelParams': {}}
+      cluster_id = None
+      service_name = None
+      component_name = None
 
-    command_dict['ambariLevelParams'] = self.metadata_cache.get_cluster_indepedent_data().clusterLevelParams
-
-    command_dict['agentLevelParams'].update({
-      'public_hostname': self.public_fqdn,
-      'agentCacheDir': self.config.get('agent', 'cache_dir'),
-    })
-    command_dict['agentLevelParams']["agentConfigParams"] = {
-      "agent": {
-        "parallel_execution": self.config.get_parallel_exec_option(),
-        "use_system_proxy_settings": self.config.use_system_proxy_setting()
-      }
-    }
-
+    command_dict = self.configuration_builder.get_configuration(cluster_id, service_name, component_name)
     command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
     return command
 

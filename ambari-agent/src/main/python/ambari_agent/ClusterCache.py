@@ -146,7 +146,7 @@ class ClusterCache(dict):
     try:
       return super(ClusterCache, self).__getitem__(key)
     except KeyError:
-      raise KeyError("{0} for cluster_id={1} are missing. Check if server sent it.".format(self.get_cache_name().title(), key))
+      raise KeyError("{0} for cluster_id={1} is missing. Check if server sent it.".format(self.get_cache_name().title(), key))
 
   def on_cache_update(self):
     """
