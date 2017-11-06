@@ -267,6 +267,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
           element.set('isButton', true);
           element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
           element.set('action', 'installRepoVersionPopup');
+          if (this.addRemoveIopSelectButton(element, isDisabled)) {
+            element.set('isButton', false);
+            element.set('isButtonGroup', true);
+          }
           break;
         default:
           var isVersionColumnView = this.get('isVersionColumnView');
