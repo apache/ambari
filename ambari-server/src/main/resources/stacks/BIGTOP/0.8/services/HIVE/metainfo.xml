@@ -233,10 +233,6 @@
             <package>
               <name>postgresql-jdbc</name>
             </package>
-            <package>
-              <name>mysql-connector-java</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
