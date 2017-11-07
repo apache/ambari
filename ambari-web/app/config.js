@@ -91,7 +91,8 @@ App.supports = {
   enabledWizardForHostOrderedUpgrade: true,
   manageJournalNode: true,
   enableToggleKerberos: true,
-  enableAddDeleteServices: true
+  enableAddDeleteServices: true,
+  enableBulkDeleteHosts: false
 };
 
 if (App.enableExperimental) {

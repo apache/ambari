@@ -306,7 +306,7 @@ App.HostTableMenuView = Em.View.extend({
           message: Em.I18n.t('hosts.host.details.setRackId').format('hosts')
         })
       }));
-      if (App.isAuthorized("HOST.ADD_DELETE_HOSTS")) {
+      if (App.get('supports.enableBulkDeleteHosts') && App.isAuthorized("HOST.ADD_DELETE_HOSTS")) {
         result = result.concat(O.create({
           label: Em.I18n.t('hosts.host.details.deleteHosts'),
           operationData: O.create({

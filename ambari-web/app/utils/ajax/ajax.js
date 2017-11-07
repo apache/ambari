@@ -303,7 +303,8 @@ var urls = {
       return {
         data: JSON.stringify({
           RequestInfo: {
-            query: data.query
+            query: data.query,
+            force_delete_components: true
           }
         })
       }
