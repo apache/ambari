@@ -476,6 +476,12 @@ limitations under the License.
       <value-attributes>
         <empty-value-valid>true</empty-value-valid>
       </value-attributes>
+      <depends-on>
+        <property>
+          <type>beacon-env</type>
+          <name>set_hive_configs</name>
+        </property>
+      </depends-on>
       <on-ambari-upgrade add="false"/>
     </property>
     <property>
@@ -485,6 +491,12 @@ limitations under the License.
       <value-attributes>
         <empty-value-valid>true</empty-value-valid>
       </value-attributes>
+      <depends-on>
+        <property>
+          <type>beacon-env</type>
+          <name>set_hive_configs</name>
+        </property>
+      </depends-on>
       <on-ambari-upgrade add="false"/>
     </property>
     <property>
@@ -494,6 +506,12 @@ limitations under the License.
       <value-attributes>
         <empty-value-valid>true</empty-value-valid>
       </value-attributes>
+      <depends-on>
+        <property>
+          <type>beacon-env</type>
+          <name>set_hive_configs</name>
+        </property>
+      </depends-on>
       <on-ambari-upgrade add="false"/>
     </property>
     <property>
@@ -503,6 +521,16 @@ limitations under the License.
       <value-attributes>
         <empty-value-valid>true</empty-value-valid>
       </value-attributes>
+      <depends-on>
+        <property>
+          <type>beacon-env</type>
+          <name>set_hive_configs</name>
+        </property>
+        <property>
+          <type>hive-site</type>
+          <name>hive.metastore.warehouse.dir</name>
+        </property>
+      </depends-on>
       <on-ambari-upgrade add="false"/>
     </property>
     <property>
@@ -512,6 +540,16 @@ limitations under the License.
       <value-attributes>
         <empty-value-valid>true</empty-value-valid>
       </value-attributes>
+      <depends-on>
+        <property>
+          <type>beacon-env</type>
+          <name>set_hive_configs</name>
+        </property>
+        <property>
+          <type>hive-site</type>
+          <name>hive.metastore.warehouse.dir</name>
+        </property>
+      </depends-on>
       <on-ambari-upgrade add="false"/>
     </property>
 </configuration>
