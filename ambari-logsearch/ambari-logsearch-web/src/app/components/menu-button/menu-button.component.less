@@ -21,14 +21,26 @@
   cursor: pointer;
   display: inline-block;
   position: relative;
-  a:hover, a:focus {
+  a {
+    text-align: center;
     text-decoration: none;
+    i {
+      color: @link-color;
+      display: inline-block;
+      position: relative;
+      &.fa-caret-down {
+        padding: 0 .25em;
+      }
+    }
+    .menu-button-label {
+      display: block;
+    }
   }
-
-  .icon {
-    padding: @icon-padding;
+  a:hover, a:focus {
+    i {
+      color: @link-hover-color;
+    }
   }
-
   .unstyled-link {
     color: inherit;
   }
