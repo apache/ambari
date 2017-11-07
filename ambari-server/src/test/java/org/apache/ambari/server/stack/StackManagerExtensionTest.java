@@ -140,6 +140,9 @@ public class StackManagerExtensionTest  {
     File checks = oozie.getChecksFolder();
     assertNotNull(checks);
     assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
+    File serverActions = oozie.getServerActionsFolder();
+    assertNotNull(serverActions);
+    assertTrue("Server actions dir is " + serverActions.getPath(), serverActions.getPath().contains("extensions/EXT/0.1/services/OOZIE2/server_actions"));
     List<ThemeInfo> themes = oozie.getThemes();
     assertNotNull(themes);
     assertTrue("Number of themes is " + themes.size(), themes.size() == 1);
@@ -158,6 +161,9 @@ public class StackManagerExtensionTest  {
     checks = oozie.getChecksFolder();
     assertNotNull(checks);
     assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
+    serverActions = oozie.getServerActionsFolder();
+    assertNotNull(serverActions);
+    assertTrue("Server actions dir is " + serverActions.getPath(), serverActions.getPath().contains("extensions/EXT/0.1/services/OOZIE2/server_actions"));
     themes = oozie.getThemes();
     assertNotNull(themes);
     assertTrue("Number of themes is " + themes.size(), themes.size() == 0);

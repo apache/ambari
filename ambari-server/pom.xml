@@ -198,6 +198,18 @@
               </target>
             </configuration>
           </execution>
+          <execution>
+            <id>generate-test-oozie2-server-actions-dir</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="target/test-classes/extensions/EXT/0.1/services/OOZIE2/server_actions/tmp"/>
+              </target>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
