@@ -367,10 +367,6 @@ a.gotoinstance{
   width: 14px;
 }
 
-.namefilter {
-  font-weight: normal;
-}
-
 .settings-edit-toggle.disabled, .properties-toggle.disabled{
   color: #999;
   cursor: not-allowed;
@@ -480,25 +476,18 @@ a.gotoinstance{
 .search-container{
   position: relative;
 }
-.search-container .close{
+.search-container .close {
   position: absolute;
   right: 10px;
-  top: 32px;
+  top: 8px;
+}
+.search-container input {
+  font-weight: normal;
 }
 .groups-pane .search-container .close{
   top: 32px;
 }
-.views-urls-table .search-container .close{
-  top: 7px;
-  right: 10px;
-  z-index: 10;
-}
 
-.views-list-table .search-container .close{
-  right: 50px;
-  top: 7px;
-  z-index: 10;
-}
 .groups-pane table thead th{
   border-top: 0;
 }
@@ -563,9 +552,7 @@ table.no-border tr td{
 .no-border{
   border: none !important;
 }
-.top-margin-4{
-  margin-top: 4px;
-}
+
 .table > thead > tr > th.vertical-top{
   vertical-align: top;
 }
@@ -647,8 +634,12 @@ button.btn.btn-xs{
   border-radius: 3px;
 }
 
-a.btn-primary {
+a.btn-primary, a.btn-primary:focus {
   color: #fff;
+}
+
+a.btn-default, a.btn-default:focus {
+  color: #666;
 }
 
 .clusterDisplayName {
@@ -684,6 +675,12 @@ a.alert-link, a.alert-link:hover, a.alert-link:visited{
 }
 .breadcrumb > .active {
   color: #666;
+}
+
+.empty-table-alert {
+  background-color: #f0f0f0;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .alert-container {
@@ -1475,10 +1472,6 @@ legend {
   text-overflow: ellipsis;
 }
 
-.pull-right {
-  float: right;
-}
-
 body {
   height: 100%;
   background-color: #f0f0f0;
@@ -1497,4 +1490,8 @@ body {
 .main-container {
   background-color: #fff;
   padding: 15px;
+}
+
+.navigation-bar-fit-height {
+  z-index: 1001;
 }

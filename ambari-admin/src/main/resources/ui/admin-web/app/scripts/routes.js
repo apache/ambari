@@ -93,14 +93,20 @@ angular.module('ambariAdminConsole')
   views: {
     list: {
       url: '/views',
-      templateUrl: 'views/ambariViews/listTable.html',
+      templateUrl: 'views/ambariViews/viewsList.html',
       controller: 'ViewsListCtrl',
       label: 'Views'
     },
-    listViewUrls: {
-      url: '/viewUrls',
-      templateUrl: 'views/ambariViews/listUrls.html',
-      controller: 'ViewsListCtrl',
+    clone: {
+      url: '/views/:viewId/versions/:version/instances/:instanceId/clone',
+      templateUrl: 'views/ambariViews/create.html',
+      controller: 'CloneViewInstanceCtrl',
+      label: 'Views'
+    },
+    edit: {
+      url: '/views/:viewId/versions/:version/instances/:instanceId/edit',
+      templateUrl: 'views/ambariViews/edit.html',
+      controller: 'ViewsEditCtrl',
       label: 'Views'
     },
     createViewUrl:{
@@ -119,24 +125,6 @@ angular.module('ambariAdminConsole')
       url: '/urls/edit/:urlName',
       templateUrl: 'views/urls/edit.html',
       controller: 'ViewUrlEditCtrl',
-      label: 'Views'
-    },
-    clone: {
-      url: '/views/:viewId/versions/:version/instances/:instanceId/clone',
-      templateUrl: 'views/ambariViews/create.html',
-      controller: 'CreateViewInstanceCtrl',
-      label: 'Views'
-    },
-    edit: {
-      url: '/views/:viewId/versions/:version/instances/:instanceId/edit',
-      templateUrl: 'views/ambariViews/edit.html',
-      controller: 'ViewsEditCtrl',
-      label: 'Views'
-    },
-    create: {
-      url: '/views/:viewId/new',
-      templateUrl: 'views/ambariViews/create.html',
-      controller: 'CreateViewInstanceCtrl',
       label: 'Views'
     }
   },
