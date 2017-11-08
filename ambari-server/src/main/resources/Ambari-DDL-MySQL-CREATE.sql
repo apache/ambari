@@ -118,9 +118,11 @@ CREATE TABLE clusterconfig (
   create_timestamp BIGINT NOT NULL,
   unmapped SMALLINT NOT NULL DEFAULT 0,
   selected_timestamp BIGINT NOT NULL DEFAULT 0,
+  service_id BIGINT,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_clusterconfig_service_id FOREIGN KEY (service_id) REFERENCES clusterservices(id),
   CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 

@@ -44,12 +44,36 @@ public class ConfigurationService extends BaseService {
   private String m_clusterName;
 
   /**
+   * Parent service group name.
+   */
+  private String m_serviceGroupName = null;
+
+  /**
+   * Parent service name.
+   */
+  private String m_serviceName = null;
+
+
+  /**
    * Constructor.
    *
-   * @param clusterName cluster id
+   * @param clusterName cluster name
    */
   public ConfigurationService(String clusterName) {
     m_clusterName = clusterName;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param clusterName cluster name
+   * @param serviceGroupName service group name
+   * @param serviceName service name
+   */
+  public ConfigurationService(String clusterName, String serviceGroupName, String serviceName) {
+    m_clusterName = clusterName;
+    m_serviceGroupName = serviceGroupName;
+    m_serviceName = serviceName;
   }
 
   @Path("service_config_versions")
@@ -68,7 +92,7 @@ public class ConfigurationService extends BaseService {
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getConfigurations(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createConfigurationResource(m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.GET, createConfigurationResource(m_clusterName, m_serviceGroupName, m_serviceName));
   }
 
   /**
@@ -97,7 +121,7 @@ public class ConfigurationService extends BaseService {
   @Produces("text/plain")
   public Response createConfigurations(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.POST, createConfigurationResource(m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createConfigurationResource(m_clusterName, m_serviceGroupName, m_serviceName));
   }
 
   /**
@@ -107,10 +131,14 @@ public class ConfigurationService extends BaseService {
    *
    * @return a service resource instance
    */
-  ResourceInstance createConfigurationResource(String clusterName) {
+  ResourceInstance createConfigurationResource(String clusterName, String serviceGroupName, String serviceName) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Configuration, null);
+    if (serviceName != null && serviceGroupName != null) {
+      mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
+      mapIds.put(Resource.Type.Service, serviceName);
+    }
 
     return createResource(Resource.Type.Configuration, mapIds);
   }

@@ -54,7 +54,7 @@ public class ServiceResourceDefinition extends BaseResourceDefinition {
     subs.add(new SubResourceDefinition(Resource.Type.Alert));
     //todo: dynamic sub-resource definition
     subs.add(new SubResourceDefinition(Resource.Type.Artifact));
-
+    subs.add(new SubResourceDefinition(Resource.Type.Configuration));
     return subs;
   }
 }

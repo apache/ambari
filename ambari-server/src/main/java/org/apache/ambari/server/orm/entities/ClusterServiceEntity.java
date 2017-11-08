@@ -48,7 +48,15 @@ import javax.persistence.TableGenerator;
       "JOIN clusterService.serviceGroupEntity serviceGroup " +
       "WHERE clusterService.serviceId=:serviceId " +
       "AND  serviceGroup.serviceGroupId=:serviceGroupId " +
-      "AND serviceGroup.clusterId=:clusterId")
+      "AND serviceGroup.clusterId=:clusterId"),
+   @NamedQuery(name = "clusterServiceByName", query =
+     "SELECT clusterService " +
+      "FROM ClusterServiceEntity clusterService " +
+       "JOIN clusterService.serviceGroupEntity serviceGroup " +
+        "JOIN clusterService.clusterEntity clusterEntity " +
+       "WHERE clusterService.serviceName=:serviceName " +
+       "AND  serviceGroup.serviceGroupName=:serviceGroupName " +
+        "AND clusterEntity.clusterName=:clusterName")
 })
 @Entity
 @TableGenerator(name = "service_id_generator",

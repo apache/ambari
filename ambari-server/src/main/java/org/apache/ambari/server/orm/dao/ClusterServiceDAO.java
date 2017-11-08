@@ -61,6 +61,22 @@ public class ClusterServiceDAO {
   }
 
   @RequiresSession
+  public ClusterServiceEntity findByName(String clusterName, String serviceGroupName, String serviceName) {
+    TypedQuery<ClusterServiceEntity> query = entityManagerProvider.get()
+            .createNamedQuery("clusterServiceByName" , ClusterServiceEntity.class);
+    query.setParameter("clusterName", clusterName);
+    query.setParameter("serviceGroupName", serviceGroupName);
+    query.setParameter("serviceName", serviceName);
+
+    try {
+      return query.getSingleResult();
+    }
+    catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  @RequiresSession
   public List<ClusterServiceEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), ClusterServiceEntity.class);
   }

@@ -325,6 +325,16 @@ public interface Cluster {
   Map<String, Config> getConfigsByType(String configType);
 
   /**
+   * Gets all configs that match the specified type.  Result is not the
+   * DESIRED configuration for a cluster.
+   *
+   * @param configType the config type to return
+   *        serviceId the serviceid for the config
+   * @return a map of configuration objects that have been set for the given type
+   */
+  Map<String, Config> getConfigsByServiceIdType(String configType, Long serviceId);
+
+  /**
    * Gets all properties types that mach the specified type.
    *
    * @param configType the config type to return
@@ -342,6 +352,18 @@ public interface Cluster {
    * and version have not been set.
    */
   Config getConfig(String configType, String versionTag);
+
+  /**
+   * Gets the specific config that matches the specified type and tag.  This not
+   * necessarily a DESIRED configuration that applies to a cluster.
+   *
+   * @param configType the config type to find
+   * @param versionTag the config version tag to find
+   * @param serviceId the service for the config
+   * @return a {@link Config} object, or <code>null</code> if the specific type
+   * and version have not been set.
+   */
+  Config getConfigByServiceId(String configType, String versionTag, Long serviceId);
 
   /**
    * Get latest (including inactive ones) configurations with any of the given types.
@@ -371,11 +393,27 @@ public interface Cluster {
   void addConfig(Config config);
 
   /**
+   * Sets a specific config.  NOTE:  This is not a DESIRED configuration that
+   * applies to a cluster.
+   *
+   * @param config the config instance to add
+   *        serviceId service id for the config
+   */
+  void addConfig(Config config, Long serviceId);
+
+  /**
    * Gets all configurations defined for a cluster.
    *
    * @return the collection of all configs that have been defined.
    */
   Collection<Config> getAllConfigs();
+
+  /**
+   * Gets all configurations defined for a cluster service.
+   *
+   * @return the collection of all configs that have been defined.
+   */
+  List<Config> getConfigsByServiceId(Long serviceId);
 
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There

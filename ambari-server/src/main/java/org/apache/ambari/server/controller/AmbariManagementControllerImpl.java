@@ -1011,22 +1011,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
-      request.getVersionTag(), propertiesAttributes);
+      request.getVersionTag(), propertiesAttributes, request.getServiceId() == null? null : request.getServiceId());
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
         request.getVersionTag(),
         request.getClusterName(),
         configType));
 
-    return new ConfigurationResponse(cluster.getClusterName(), config);
+    if(request.getServiceId() == null) {
+      return new ConfigurationResponse(cluster.getClusterName(), config);
+    }
+    else {
+      return new ConfigurationResponse(cluster.getClusterName(), config, request.getServiceId(), request.getServiceGroupId());
+    }
   }
 
   @Override
   public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
-                             String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
+                             String versionTag, Map<String, Map<String, String>> propertiesAttributes, Long serviceId) {
 
     Config config = configFactory.createNew(stackId, cluster, type, versionTag, properties,
-        propertiesAttributes);
+        propertiesAttributes, serviceId);
 
     cluster.addConfig(config);
     return config;
@@ -1470,52 +1475,101 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // !!! if only one, then we need full properties
     if (null != request.getType() && null != request.getVersionTag()) {
-      Config config = cluster.getConfig(request.getType(),
-          request.getVersionTag());
-      if (null != config) {
-        ConfigurationResponse response = new ConfigurationResponse(
-            cluster.getClusterName(), config);
-        responses.add(response);
+      ConfigurationResponse response = null;
+      Config config = null;
+      //TODO : Remove after getting rid of cluster configurations
+      if (request.getServiceId() == null) {
+        config = cluster.getConfig(request.getType(),
+                request.getVersionTag());
+        if (null != config) {
+          response = new ConfigurationResponse(
+                  cluster.getClusterName(), config);
+        }
       }
+      else {
+        config = cluster.getConfigByServiceId(request.getType(), request.getVersionTag(), request.getServiceId());
+        if (null != config) {
+          response = new ConfigurationResponse(
+                  cluster.getClusterName(), config, request.getServiceId(), request.getServiceGroupId());
+        }
+      }
+      responses.add(response);
     }
     else {
+      ConfigurationResponse response = null;
       boolean includeProps = request.includeProperties();
+      Map<String, Config> configs = null;
+      //Get by type
       if (null != request.getType()) {
-        Map<String, Config> configs = cluster.getConfigsByType(
-            request.getType());
+        //TODO : Remove after getting rid of cluster configurations
+        if (request.getServiceId() == null) {
+          configs = cluster.getConfigsByType(
+                  request.getType());
+          if (null != configs) {
+            for (Entry<String, Config> entry : configs.entrySet()) {
+              Config config = entry.getValue();
+              response = new ConfigurationResponse(
+                      cluster.getClusterName(), config.getStackId(),
+                      request.getType(),
+                      config.getTag(), entry.getValue().getVersion(),
+                      includeProps ? config.getProperties() : new HashMap<>(),
+                      includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
+                      config.getPropertiesTypes());
+              responses.add(response);
+            }
+          }
+        }
+        else {
+          configs = cluster.getConfigsByServiceIdType(
+                  request.getType(), request.getServiceId());
+          if (null != configs) {
+            for (Entry<String, Config> entry : configs.entrySet()) {
+              Config config = entry.getValue();
+              response = new ConfigurationResponse(
+                      cluster.getClusterName(), config.getStackId(),
+                      request.getType(),
+                      config.getTag(), entry.getValue().getVersion(),
+                      includeProps ? config.getProperties() : new HashMap<>(),
+                      includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
+                      config.getPropertiesTypes(), request.getServiceId(), request.getServiceGroupId());
+              responses.add(response);
+            }
+          }
+        }
 
-        if (null != configs) {
-          for (Entry<String, Config> entry : configs.entrySet()) {
-            Config config = entry.getValue();
-            ConfigurationResponse response = new ConfigurationResponse(
-                cluster.getClusterName(), config.getStackId(),
-                request.getType(),
-                config.getTag(), entry.getValue().getVersion(),
-                includeProps ? config.getProperties() : new HashMap<>(),
-                includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
-                config.getPropertiesTypes());
+      }
+      else {
+        // !!! all configuration
+        Collection<Config> all = null;
+        //TODO : Remove after getting rid of cluster configurations
+        if (request.getServiceId() == null) {
+          all = cluster.getAllConfigs();
+          for (Config config : all) {
+            response = new ConfigurationResponse(
+                    cluster.getClusterName(), config.getStackId(), config.getType(),
+                    config.getTag(), config.getVersion(),
+                    includeProps ? config.getProperties() : new HashMap<>(),
+                    includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
+                    config.getPropertiesTypes());
             responses.add(response);
           }
         }
-      } else {
-        // !!! all configuration
-        Collection<Config> all = cluster.getAllConfigs();
-
-        for (Config config : all) {
-          ConfigurationResponse response = new ConfigurationResponse(
-              cluster.getClusterName(), config.getStackId(), config.getType(),
-              config.getTag(), config.getVersion(),
-              includeProps ? config.getProperties() : new HashMap<>(),
-              includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
-              config.getPropertiesTypes());
-
-          responses.add(response);
+        else {
+          all = cluster.getConfigsByServiceId(request.getServiceId());
+          for (Config config : all) {
+            response = new ConfigurationResponse(
+                    cluster.getClusterName(), config.getStackId(), config.getType(),
+                    config.getTag(), config.getVersion(),
+                    includeProps ? config.getProperties() : new HashMap<>(),
+                    includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
+                    config.getPropertiesTypes(), request.getServiceId(), request.getServiceGroupId());
+            responses.add(response);
+          }
         }
+
       }
     }
-
     return responses;
-
   }
 
   @Override

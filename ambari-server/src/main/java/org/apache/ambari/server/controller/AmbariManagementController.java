@@ -125,7 +125,7 @@ public interface AmbariManagementController {
    * @return config created
    */
   Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
-                      String versionTag, Map<String, Map<String, String>> propertiesAttributes);
+                      String versionTag, Map<String, Map<String, String>> propertiesAttributes, Long serviceId);
 
   /**
    * Creates users.

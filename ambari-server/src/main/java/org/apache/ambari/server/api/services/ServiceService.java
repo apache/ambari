@@ -718,6 +718,19 @@ public class ServiceService extends BaseService {
   }
 
   /**
+   * Gets the configurations sub-resource.
+   *
+   * @param request      the request
+   * @param serviceName  the serviceName
+   *
+   * @return the configuration service
+   */
+  @Path("{serviceName}/configurations")
+  public ConfigurationService getConfigurationHandler (@Context javax.ws.rs.core.Request request, @PathParam("serviceName") String serviceName) {
+    return new ConfigurationService(m_clusterName, m_serviceGroupName, serviceName);
+  }
+
+  /**
    * Create a service resource instance.
    *
    * @param clusterName         cluster name

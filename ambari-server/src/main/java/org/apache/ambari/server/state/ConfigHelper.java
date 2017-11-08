@@ -1197,8 +1197,8 @@ public class ConfigHelper {
         }
       }
     }
-
-    return controller.createConfig(cluster, stackId, type, properties, tag, propertyAttributes);
+    //TODO check at the right use case
+    return controller.createConfig(cluster, stackId, type, properties, tag, propertyAttributes, null);
   }
 
   /**

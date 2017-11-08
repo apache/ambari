@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
@@ -41,12 +42,17 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+
+import com.google.inject.Inject;
 
 /**
  * Resource provider for configuration resources.
  */
+@StaticallyInject
 public class ConfigurationResourceProvider extends
     AbstractControllerResourceProvider {
 
@@ -62,11 +68,20 @@ public class ConfigurationResourceProvider extends
   public static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "type");
   public static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID = PropertyHelper.getPropertyId(null, "tag");
   public static final String CONFIGURATION_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "version");
+  public static final String CONFIGURATION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_name");
+  public static final String CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_group_name");
+  public static final String CONFIGURATION_SERVICE_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "service_id");
+  public static final String CONFIGURATION_SERVICE_GROUP_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "service_group_id");
+
 
   /**
    * The property ids for a configuration resource.
    */
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
+
+  @Inject
+  protected static ClusterServiceDAO clusterServiceDAO;
+
 
   /**
    * The key property ids for a configuration resource.
@@ -80,10 +95,16 @@ public class ConfigurationResourceProvider extends
     PROPERTY_IDS.add(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
     PROPERTY_IDS.add(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
     PROPERTY_IDS.add(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_SERVICE_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_SERVICE_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_SERVICE_GROUP_ID_PROPERTY_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Configuration,CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster,CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service,CONFIGURATION_SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup,CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID);
   }
 
   /**
@@ -92,7 +113,7 @@ public class ConfigurationResourceProvider extends
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
-      CONFIGURATION_CONFIG_TYPE_PROPERTY_ID}));
+      CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID, CONFIGURATION_SERVICE_NAME_PROPERTY_ID}));
 
 
   // ----- Constructors ------------------------------------------------------
@@ -122,10 +143,23 @@ public class ConfigurationResourceProvider extends
              ResourceAlreadyExistsException,
              NoSuchParentResourceException {
 
+    Set<Resource> associatedResources = new HashSet<>();
+
     for (Map<String, Object> map : request.getProperties()) {
       String cluster = (String) map.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
       String type = (String) map.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
-      String tag  = (String) map.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+      String tag = (String) map.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+      String serviceName = null;
+      String serviceGroupName = null;
+      Long serviceId = null;
+      Long serviceGroupId = null;
+      if (map.containsKey(CONFIGURATION_SERVICE_NAME_PROPERTY_ID) && map.containsKey(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID)) {
+        serviceName = (String) map.get(CONFIGURATION_SERVICE_NAME_PROPERTY_ID);
+        serviceGroupName = (String) map.get(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID);
+        ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByName(cluster, serviceGroupName, serviceName);
+        serviceId = clusterServiceEntity.getServiceId();
+        serviceGroupId = clusterServiceEntity.getServiceGroupId();
+      }
 
       Map<String, String> configMap = new HashMap<>();
       Map<String, Map<String, String>> configAttributesMap = null;
@@ -136,8 +170,8 @@ public class ConfigurationResourceProvider extends
           configMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
         }
         if (propertyCategory != null
-            && PROPERTIES_ATTRIBUTES_PATTERN.matcher(propertyCategory).matches()
-            && null != entry.getValue()) {
+                && PROPERTIES_ATTRIBUTES_PATTERN.matcher(propertyCategory).matches()
+                && null != entry.getValue()) {
           if (null == configAttributesMap) {
             configAttributesMap = new HashMap<>();
           }
@@ -151,18 +185,35 @@ public class ConfigurationResourceProvider extends
         }
       }
 
-      final ConfigurationRequest configRequest = new ConfigurationRequest(cluster, type, tag, configMap, configAttributesMap);
+      final ConfigurationRequest configRequest = new ConfigurationRequest(cluster, type, tag, configMap, configAttributesMap, serviceId, serviceGroupId);
 
-      createResources(new Command<Void>() {
+      ConfigurationResponse configurationResponse = createResources(new Command<ConfigurationResponse>() {
         @Override
-        public Void invoke() throws AmbariException, AuthorizationException {
-          getManagementController().createConfiguration(configRequest);
-          return null;
+        public ConfigurationResponse invoke() throws AmbariException, AuthorizationException {
+          return getManagementController().createConfiguration(configRequest);
+
         }
       });
 
+      if (configurationResponse != null) {
+        Resource resource = new ResourceImpl(Resource.Type.Configuration);
+        resource.setProperty(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, configurationResponse.getClusterName());
+        resource.setProperty(CONFIGURATION_STACK_ID_PROPERTY_ID, configurationResponse.getStackId().getStackId());
+        resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, configurationResponse.getType());
+        resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, configurationResponse.getVersionTag());
+        resource.setProperty(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID, configurationResponse.getVersion());
+        if (configurationResponse.getServiceId() != null) {
+          resource.setProperty(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID, serviceGroupName);
+          resource.setProperty(CONFIGURATION_SERVICE_NAME_PROPERTY_ID, serviceName);
+          resource.setProperty(CONFIGURATION_SERVICE_ID_PROPERTY_ID, serviceId);
+          resource.setProperty(CONFIGURATION_SERVICE_GROUP_ID_PROPERTY_ID, serviceGroupId);
+        }
+        associatedResources.add(resource);
+      }
     }
-    return getRequestStatus(null);
+        return getRequestStatus(null, associatedResources);
+
+
   }
 
   @Override
@@ -170,9 +221,16 @@ public class ConfigurationResourceProvider extends
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ConfigurationRequest> requests = new HashSet<>();
+    String serviceName = null;
+    String serviceGroupName = null;
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      requests.add(getRequest(request, propertyMap));
+      ConfigurationRequest configurationRequest = getRequest(request, propertyMap);
+      if (configurationRequest.getServiceId() != null) {
+        serviceGroupName = (String) propertyMap.get(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID);
+        serviceName = (String) propertyMap.get(CONFIGURATION_SERVICE_NAME_PROPERTY_ID);
+      }
+      requests.add(configurationRequest);
     }
 
     Set<ConfigurationResponse> responses = getResources(new Command<Set<ConfigurationResponse>>() {
@@ -193,6 +251,12 @@ public class ConfigurationResourceProvider extends
       resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, response.getType());
       resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, response.getVersionTag());
       resource.setProperty(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID, response.getVersion());
+      if (response.getServiceId() != null) {
+        resource.setProperty(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID, serviceGroupName );
+        resource.setProperty(CONFIGURATION_SERVICE_NAME_PROPERTY_ID, serviceName );
+        resource.setProperty(CONFIGURATION_SERVICE_ID_PROPERTY_ID, response.getServiceId());
+        resource.setProperty(CONFIGURATION_SERVICE_GROUP_ID_PROPERTY_ID, response.getServiceGroupId());
+      }
 
       if (null != response.getConfigs() && response.getConfigs().size() > 0) {
         Map<String, String> configs = response.getConfigs();
@@ -281,10 +345,22 @@ public class ConfigurationResourceProvider extends
   private ConfigurationRequest getRequest(Request request, Map<String, Object> properties) {
     String type = (String) properties.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
     String tag  = (String) properties.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+    String cluster  = (String) properties.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+    String serviceName = null;
+    String serviceGroupName = null;
+    Long serviceId = null;
+    Long serviceGroupId = null;
+    if (properties.containsKey(CONFIGURATION_SERVICE_NAME_PROPERTY_ID) && properties.containsKey(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID)) {
+      serviceName = (String) properties.get(CONFIGURATION_SERVICE_NAME_PROPERTY_ID);
+      serviceGroupName = (String) properties.get(CONFIGURATION_SERVICE_GROUP_NAME_PROPERTY_ID);
+      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByName(cluster, serviceGroupName, serviceName);
+      serviceId = clusterServiceEntity.getServiceId();
+      serviceGroupId = clusterServiceEntity.getServiceGroupId();
+    }
 
     ConfigurationRequest configRequest = new ConfigurationRequest(
         (String) properties.get(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID),
-        type, tag, new HashMap<>(), new HashMap<>());
+        type, tag, new HashMap<>(), new HashMap<>(), serviceId, serviceGroupId);
 
     Set<String> requestedIds = request.getPropertyIds();
     if (requestedIds.contains("properties") || requestedIds.contains("*")) {

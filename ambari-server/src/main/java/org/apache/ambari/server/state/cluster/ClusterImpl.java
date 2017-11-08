@@ -189,6 +189,11 @@ public class ClusterImpl implements Cluster {
   private final ConcurrentMap<String, ConcurrentMap<String, Config>> allConfigs = new ConcurrentHashMap<>();
 
   /**
+   * [ Service -> [ allConfigs ] ]
+   */
+  private final ConcurrentMap<Long, ConcurrentMap<String, ConcurrentMap<String, Config>>>  serviceConfigs = new ConcurrentHashMap<>();
+
+  /**
    * [ ServiceName -> [ ServiceComponentName -> [ HostName -> [ ... ] ] ] ]
    */
   private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<String, ServiceComponentHost>>> serviceComponentHosts = new ConcurrentHashMap<>();
@@ -1402,6 +1407,71 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public Config getConfigByServiceId(String configType, String versionTag, Long serviceId) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      if (!serviceConfigs.containsKey(serviceId)) {
+        return null;
+      }
+      else {
+        ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(serviceId);
+        if (!allServiceConfigs.containsKey(configType)
+                || !allServiceConfigs.get(configType).containsKey(versionTag)) {
+          return null;
+        }
+        return allServiceConfigs.get(configType).get(versionTag);
+      }
+    }
+    finally {
+        clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public List<Config> getConfigsByServiceId(Long serviceId) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      if (!serviceConfigs.containsKey(serviceId)) {
+        return null;
+      }
+      else {
+        List<Config> list = new ArrayList<>();
+        ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(serviceId);
+        for (Entry<String, ConcurrentMap<String, Config>> entry : allServiceConfigs.entrySet()) {
+          for (Config config : entry.getValue().values()) {
+            list.add(config);
+          }
+        }
+        return Collections.unmodifiableList(list);
+      }
+    }
+    finally {
+        clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public Map<String, Config> getConfigsByServiceIdType(String configType, Long serviceId) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      if (!serviceConfigs.containsKey(serviceId)) {
+        return null;
+      }
+      else {
+        List<Config> list = new ArrayList<>();
+        ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(serviceId);
+        if (!allServiceConfigs.containsKey(configType)) {
+          return null;
+        }
+        return Collections.unmodifiableMap(allServiceConfigs.get(configType));
+      }
+    }
+    finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
   public List<Config> getLatestConfigsWithTypes(Collection<String> types) {
     return clusterDAO.getLatestConfigurationsWithTypes(clusterId, getDesiredStackVersion(), types)
       .stream()
@@ -1444,6 +1514,26 @@ public class ClusterImpl implements Cluster {
       allConfigs.get(config.getType()).put(config.getTag(), config);
     } finally {
       clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public void addConfig(Config config, Long serviceId) {
+    if (config.getType() == null || config.getType().isEmpty()) {
+      throw new IllegalArgumentException("Config type cannot be empty");
+    }
+    clusterGlobalLock.writeLock().lock();
+    try {
+      if (!serviceConfigs.containsKey(serviceId)) {
+        ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = new ConcurrentHashMap<>();
+        serviceConfigs.put(serviceId, allServiceConfigs);
+      }
+      ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(serviceId);
+      allServiceConfigs.put(config.getType(), new ConcurrentHashMap<>());
+      allServiceConfigs.get(config.getType()).put(config.getTag(), config);
+      serviceConfigs.put(serviceId,allServiceConfigs);
+    } finally {
+        clusterGlobalLock.writeLock().unlock();
     }
   }
 
@@ -2855,10 +2945,30 @@ public class ClusterImpl implements Cluster {
     try {
       ClusterEntity clusterEntity = getClusterEntity();
       allConfigs.clear();
+      serviceConfigs.clear();
 
       if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
         for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
-
+          if (entity.getServiceId() != null) {
+            if(!serviceConfigs.containsKey(entity.getServiceId())) {
+              ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = new ConcurrentHashMap<>();
+              if (!allServiceConfigs.containsKey(entity.getType())) {
+                allServiceConfigs.put(entity.getType(), new ConcurrentHashMap<>());
+              }
+              Config config = configFactory.createExisting(this, entity);
+              allServiceConfigs.get(entity.getType()).put(entity.getTag(), config);
+              serviceConfigs.put(entity.getServiceId(), allServiceConfigs);
+            }
+            else {
+              ConcurrentMap<String, ConcurrentMap<String, Config>> allServiceConfigs = serviceConfigs.get(entity.getServiceId());
+              if (!allServiceConfigs.containsKey(entity.getType())) {
+                allServiceConfigs.put(entity.getType(), new ConcurrentHashMap<>());
+              }
+              Config config = configFactory.createExisting(this, entity);
+              allServiceConfigs.get(entity.getType()).put(entity.getTag(), config);
+              serviceConfigs.put(entity.getServiceId(), allServiceConfigs);
+            }
+          }
           if (!allConfigs.containsKey(entity.getType())) {
             allConfigs.put(entity.getType(), new ConcurrentHashMap<>());
           }

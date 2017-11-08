@@ -50,7 +50,7 @@ public interface ConfigFactory {
    * @return
    */
   Config createNew(StackId stackId, Cluster cluster, @Assisted("type") String type, @Assisted("tag") String tag,
-      Map<String, String> map, Map<String, Map<String, String>> mapAttributes);
+      Map<String, String> map, Map<String, Map<String, String>> mapAttributes, Long serviceId);
 
   /**
    * Creates a new {@link Config} object using provided entity
