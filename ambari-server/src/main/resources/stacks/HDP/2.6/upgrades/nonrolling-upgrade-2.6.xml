@@ -412,6 +412,15 @@
         </task>
       </execute-stage>
 
+      <!-- TEZ -->
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Updating LD Library Classpath for Tarball" >
+        <task xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library" supports-patch="true"/>
+      </execute-stage>
+      
+      <!-- MapR -->
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Updating LD Library Classpath for Tarball">
+        <task xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library" supports-patch="true"/>
+      </execute-stage>
     </group>
 
 

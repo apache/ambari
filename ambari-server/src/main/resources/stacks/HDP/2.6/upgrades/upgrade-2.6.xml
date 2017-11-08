@@ -675,6 +675,8 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
+          
+          <task xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library" supports-patch="true"/>
         </pre-upgrade>
 
         <pre-downgrade copy-upgrade="true" />
@@ -757,6 +759,8 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
             <summary>Verifying LZO codec path for Tez</summary>
           </task>
+          
+          <task xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library" supports-patch="true"/>
         </pre-upgrade>
 
         <pre-downgrade copy-upgrade="true" />
