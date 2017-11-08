@@ -33,6 +33,7 @@ public class RegistryMpackVersionResponse {
   private String mpackName;
   private String mpackVersion;
   private String mpackBuildNumber;
+  private String stackId;
   private String mpackUrl;
   private String mpackDocUrl;
   private List<? extends RegistryMpackService> mpackServices;
@@ -48,12 +49,13 @@ public class RegistryMpackVersionResponse {
    * @param mpackDocUrl       mpack documentation url
    * @param mpackServices     list of mpack services
    * @param compatibleMpacks  list of compatible mpacks
+   * @param stackId           stack id of the mpack version
    */
   public RegistryMpackVersionResponse(
     Long registryId, String mpackName, String mpackVersion, String mpackBuildNumber,
     String mpackUrl, String mpackDocUrl,
     List<? extends RegistryMpackService> mpackServices,
-    List<? extends RegistryMpackCompatiblity> compatibleMpacks) {
+    List<? extends RegistryMpackCompatiblity> compatibleMpacks, String stackId) {
     this.registryId = registryId;
     this.mpackName = mpackName;
     this.mpackVersion = mpackVersion;
@@ -62,6 +64,7 @@ public class RegistryMpackVersionResponse {
     this.mpackDocUrl = mpackDocUrl;
     this.mpackServices = mpackServices;
     this.compatibleMpacks = compatibleMpacks;
+    this.stackId = stackId;
   }
 
   public Long getRegistryId() {
@@ -94,6 +97,15 @@ public class RegistryMpackVersionResponse {
 
   public List<? extends RegistryMpackCompatiblity> getCompatibleMpacks() {
     return compatibleMpacks;
+  }
+
+
+  public String getStackId() {
+    return stackId;
+  }
+
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
   }
 
   @Override

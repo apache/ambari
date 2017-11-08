@@ -65,6 +65,10 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
   public static final String REGISTRY_MPACK_DOC_URL = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpack_doc_url";
   public static final String REGISTRY_MPACK_SERVICES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "services";
   public static final String REGISTRY_MPACK_COMPATIBLE_MPACKS = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "compatible_mpacks";
+  public static final String REGISTRY_MPACK_STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
+  public static final String REGISTRY_MPACK_STACK_VERSION_PROPERTY_ID =
+          RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
+
 
   private static Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(REGISTRY_ID, REGISTRY_MPACK_NAME));
@@ -94,6 +98,9 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
     PROPERTY_IDS.add(REGISTRY_MPACK_DOC_URL);
     PROPERTY_IDS.add(REGISTRY_MPACK_SERVICES);
     PROPERTY_IDS.add(REGISTRY_MPACK_COMPATIBLE_MPACKS);
+    PROPERTY_IDS.add(REGISTRY_MPACK_STACK_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(REGISTRY_MPACK_STACK_VERSION_PROPERTY_ID);
+
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Registry, REGISTRY_ID);
@@ -156,7 +163,9 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
       setResourceProperty(resource, REGISTRY_MPACK_URL, response.getMpackUrl(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_DOC_URL, response.getMpackDocUrl(), requestedIds);
       setResourceProperty(resource, REGISTRY_MPACK_SERVICES, response.getMpackServices(), requestedIds);
-      setResourceProperty(resource, REGISTRY_MPACK_COMPATIBLE_MPACKS, response.getCompatibleMpacks(), requestedIds);
+      String[] stackid = ((String) response.getStackId()).split("-");
+      setResourceProperty(resource, REGISTRY_MPACK_STACK_NAME_PROPERTY_ID, stackid[0], requestedIds);
+      setResourceProperty(resource, REGISTRY_MPACK_STACK_VERSION_PROPERTY_ID, stackid[1], requestedIds);
       sortedResources.add(resource);
     }
     sortedResources.sort(new Comparator<Resource>() {
@@ -241,7 +250,8 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
           registryMpackVersion.getMpackUrl(),
           registryMpackVersion.getMpackDocUrl(),
           registryMpackVersion.getMpackServices(),
-          registryMpackVersion.getCompatibleMpacks());
+          registryMpackVersion.getCompatibleMpacks(),
+          registryMpackVersion.getMpackStackId());
         responses.add(response);
       }
     } else {
@@ -255,7 +265,8 @@ public class RegistryMpackVersionResourceProvider extends AbstractControllerReso
           registryMpackVersion.getMpackUrl(),
           registryMpackVersion.getMpackDocUrl(),
           registryMpackVersion.getMpackServices(),
-          registryMpackVersion.getCompatibleMpacks());
+          registryMpackVersion.getCompatibleMpacks(),
+          registryMpackVersion.getMpackStackId());
         responses.add(response);
       }
     }
