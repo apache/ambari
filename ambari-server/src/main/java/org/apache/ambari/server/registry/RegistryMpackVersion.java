@@ -47,6 +47,13 @@ public interface RegistryMpackVersion {
    */
   public String getMpackDocUrl();
 
+
+  /**
+   * Get mpack stack id
+   * @return
+   */
+  public String getMpackStackId();
+
   /**
    * Get list of services in the mpack version
    * @return

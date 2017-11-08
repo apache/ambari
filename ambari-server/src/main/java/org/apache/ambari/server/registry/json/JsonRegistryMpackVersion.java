@@ -42,6 +42,9 @@ public class JsonRegistryMpackVersion implements RegistryMpackVersion {
   @SerializedName("docUrl")
   private String docUrl;
 
+  @SerializedName("stack-id")
+  private String stackId;
+
   @SerializedName("services")
   private ArrayList<JsonRegistryMpackService> services;
 
@@ -76,5 +79,10 @@ public class JsonRegistryMpackVersion implements RegistryMpackVersion {
   @Override
   public List<? extends RegistryMpackCompatiblity> getCompatibleMpacks() {
     return compatibleMpacks;
+  }
+
+  @Override
+  public String getMpackStackId() {
+    return stackId;
   }
 }
