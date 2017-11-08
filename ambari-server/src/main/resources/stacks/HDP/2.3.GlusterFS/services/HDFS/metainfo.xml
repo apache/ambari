@@ -36,13 +36,6 @@
               <name>snappy-devel</name>
             </package>
             <package>
-              <name>lzo</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>hadooplzo_2_3_*</name>
-            </package>
-            <package>
               <name>hadoop_2_3_*-libhdfs</name>
             </package>
           </packages>
@@ -74,9 +67,6 @@
             </package>
             <package>
               <name>libsnappy-dev</name>
-            </package>
-            <package>
-              <name>hadooplzo-2-3-.*</name>
             </package>
             <package>
               <name>libhdfs0-2-3-.*</name>

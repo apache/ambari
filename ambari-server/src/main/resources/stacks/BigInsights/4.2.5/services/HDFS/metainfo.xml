@@ -63,9 +63,6 @@
             <package>
               <name>hadoop_4_2_5_*</name>
             </package>
-            <package>
-              <name>hadoop-lzo</name>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -73,12 +70,6 @@
           <packages>
             <package>
               <name>snappy</name>
-            </package>
-            <package>
-              <name>lzo</name>
-            </package>
-            <package>
-              <name>hadoop-lzo-native</name>
             </package>
             <package>
               <name>hadoop_4_2_5_*-libhdfs</name>
@@ -102,9 +93,6 @@
             </package>
             <package>
               <name>libsnappy-dev</name>
-            </package>
-            <package>
-              <name>liblzo2-2</name>
             </package>
             <package>
               <name>hadoop-hdfs</name>

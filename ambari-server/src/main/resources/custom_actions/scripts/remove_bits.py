@@ -43,7 +43,7 @@ class RemoveBits(Script):
     Logger.info("Attempting to remove bits for HDP 2.1")
     config = Script.get_config()
 
-    packages_to_remove = ["zookeeper", "hadoop", "hadoop-lzo", "hadoop-hdfs", "hadoop-libhdfs", "hadoop-yarn", "hadoop-client", "hadoop-mapreduce", "hive", "hive-hcatalog", "hive-jdbc", "hive-webhcat", "hcatalog", "webhcat-tar-hive", "webhcat-tar-pig", "oozie", "oozie-client", "pig", "sqoop", "tez" "falcon", "storm", "flume", "hbase", "phoenix"]
+    packages_to_remove = ["zookeeper", "hadoop", "hadoop-hdfs", "hadoop-libhdfs", "hadoop-yarn", "hadoop-client", "hadoop-mapreduce", "hive", "hive-hcatalog", "hive-jdbc", "hive-webhcat", "hcatalog", "webhcat-tar-hive", "webhcat-tar-pig", "oozie", "oozie-client", "pig", "sqoop", "tez" "falcon", "storm", "flume", "hbase", "phoenix"]
     packages_to_remove.reverse()
     Logger.info("Packages to remove: {0}".format(" ".join(packages_to_remove)))
 

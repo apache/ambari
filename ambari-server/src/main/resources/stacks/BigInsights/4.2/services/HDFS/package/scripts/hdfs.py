@@ -115,9 +115,6 @@ def hdfs(name=None):
        content=Template("slaves.j2")
   )
 
-  if params.lzo_enabled and len(params.lzo_packages) > 0:
-      Package(params.lzo_packages)
-
 def install_snappy():
   import params
   Directory([params.so_target_dir_x86, params.so_target_dir_x64],
