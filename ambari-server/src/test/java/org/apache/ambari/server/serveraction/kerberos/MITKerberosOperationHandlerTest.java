@@ -275,7 +275,7 @@ public class MITKerberosOperationHandlerTest extends KDCKerberosOperationHandler
         .andReturn("Authenticating as principal admin/admin with password.")
         .anyTimes();
 
-    expect(handler.executeCommand(arrayContains(new String[]{"/usr/sbin/kadmin", "add_principal"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(arrayContains(new String[]{"kadmin", "add_principal"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andReturn(result)
         .anyTimes();
   }
@@ -292,7 +292,7 @@ public class MITKerberosOperationHandlerTest extends KDCKerberosOperationHandler
         .andReturn("Authenticating as principal admin/admin with password.")
         .anyTimes();
 
-    expect(handler.executeCommand(arrayContains(new String[]{"/usr/sbin/kadmin", "get_principal"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(arrayContains(new String[]{"kadmin", "get_principal"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andReturn(result)
         .anyTimes();
   }
@@ -329,7 +329,7 @@ public class MITKerberosOperationHandlerTest extends KDCKerberosOperationHandler
             "Policy: [none]", (service) ? "service/host" : "user"))
         .anyTimes();
 
-    expect(handler.executeCommand(arrayContains(new String[]{"/usr/sbin/kadmin", "get_principal"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(arrayContains(new String[]{"kadmin", "get_principal"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andReturn(result)
         .anyTimes();
   }

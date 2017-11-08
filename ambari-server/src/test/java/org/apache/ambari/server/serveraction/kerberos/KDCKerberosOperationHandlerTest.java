@@ -19,7 +19,9 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.getCurrentArguments;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -27,6 +29,7 @@ import java.util.Map;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.easymock.IArgumentMatcher;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,9 +40,12 @@ abstract public class KDCKerberosOperationHandlerTest extends KerberosOperationH
 
   static Method methodExecuteCommand;
 
+  static Method methodGetExecutable;
+
   @BeforeClass
   public static void beforeKDCKerberosOperationHandlerTest() throws Exception {
     methodExecuteCommand = KDCKerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class, Map.class, ShellCommandUtil.InteractiveHandler.class);
+    methodGetExecutable = KerberosOperationHandler.class.getDeclaredMethod("getExecutable", String.class);
   }
 
   @Test
@@ -66,7 +72,17 @@ abstract public class KDCKerberosOperationHandlerTest extends KerberosOperationH
 
   @Override
   protected KerberosOperationHandler createMockedHandler() throws KerberosOperationException {
-    return createMockedHandler(methodExecuteCommand);
+    KDCKerberosOperationHandler handler = createMockedHandler(methodExecuteCommand, methodGetExecutable);
+
+    expect(handler.getExecutable(anyString()))
+        .andAnswer(new IAnswer<String>() {
+          @Override
+          public String answer() throws Throwable {
+            Object[] args = getCurrentArguments();
+            return args[0].toString();
+          }
+        }).anyTimes();
+    return handler;
   }
 
   @Override
@@ -74,7 +90,7 @@ abstract public class KDCKerberosOperationHandlerTest extends KerberosOperationH
     ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
     expect(result.isSuccessful()).andReturn(true);
 
-    expect(handler.executeCommand(arrayContains("/usr/bin/kinit"), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(arrayContains("kinit"), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andReturn(result)
         .anyTimes();
   }
@@ -87,7 +103,7 @@ abstract public class KDCKerberosOperationHandlerTest extends KerberosOperationH
     expect(result.getStdout()).andReturn("STDOUT data").once();
     expect(result.getStderr()).andReturn("STDERR data").once();
 
-    expect(handler.executeCommand(arrayContains("/usr/bin/kinit"), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(arrayContains("kinit"), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andReturn(result)
         .anyTimes();
   }
