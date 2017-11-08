@@ -37,7 +37,6 @@ from resource_management.libraries.functions.copy_tarball import get_current_ver
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.core.resources.packaging import Package
 from resource_management.core.shell import as_user, as_sudo, call, checked_call
 from resource_management.core.exceptions import Fail
@@ -306,11 +305,8 @@ def oozie_server_specific(upgrade_type):
     Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
       not_if  = no_op_test)
 
+  # just copying files is ok - we're not making assumptions about installing LZO here
   if params.lzo_enabled:
-    all_lzo_packages = get_lzo_packages(params.stack_version_unformatted)
-    Package(all_lzo_packages,
-            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
-            retry_count=params.agent_stack_retry_count)
     Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
       not_if  = no_op_test,
     )
