@@ -25,8 +25,21 @@ describe('App.hostComponentStatusMapper', function () {
   describe('#map', function() {
     var hc = Em.Object.create({
       workStatus: 'INSTALLED',
+      staleConfigs: false,
+      passiveState: 'ON',
       isLoaded: true
     });
+    const event = {
+      hostComponents: [
+        {
+          componentName: 'C1',
+          hostName: 'host1',
+          currentState: 'STARTED',
+          staleConfigs: false,
+          maintenanceState: 'OFF'
+        }
+      ]
+    };
     beforeEach(function() {
       sinon.stub(App.HostComponent, 'find').returns(hc);
     });
@@ -35,17 +48,18 @@ describe('App.hostComponentStatusMapper', function () {
     });
 
     it('host-component should have STARTED status', function() {
-      const event = {
-        hostComponents: [
-          {
-            componentName: 'C1',
-            hostName: 'host1',
-            currentState: 'STARTED'
-          }
-        ]
-      };
       App.hostComponentStatusMapper.map(event);
       expect(hc.get('workStatus')).to.be.equal('STARTED');
+    });
+
+    it('host-component should have staleConfigs false', function() {
+      App.hostComponentStatusMapper.map(event);
+      expect(hc.get('staleConfigs')).to.be.false;
+    });
+
+    it('host-component should have maintenanceState OFF', function() {
+      App.hostComponentStatusMapper.map(event);
+      expect(hc.get('passiveState')).to.be.equal('OFF');
     });
   });
 });

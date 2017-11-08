@@ -19,15 +19,19 @@ var App = require('app');
 
 App.hostComponentStatusMapper = App.QuickDataMapper.create({
 
+  config: {
+    workStatus: 'currentState',
+    staleConfigs: 'staleConfigs',
+    passiveState: 'maintenanceState'
+  },
+
   /**
    * @param {object} event
    */
   map: function (event) {
     event.hostComponents.forEach((componentState) => {
       const hostComponent = App.HostComponent.find(componentState.componentName + '_' + componentState.hostName);
-      if (hostComponent.get('isLoaded')) {
-        hostComponent.set('workStatus', componentState.currentState);
-      }
+      this.updatePropertiesByConfig(hostComponent, componentState, this.config);
     });
   }
 });
