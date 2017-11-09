@@ -123,12 +123,12 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <artifactItems>*</artifactItems>
                   <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
                   <outputDirectory>${basedir}/target/libs</outputDirectory>
                   <overWriteReleases>false</overWriteReleases>
                   <overWriteSnapshots>false</overWriteSnapshots>
                   <overWriteIfNewer>true</overWriteIfNewer>
+                  <includeScope>compile</includeScope>
                 </configuration>
               </execution>
             </executions>
@@ -265,12 +265,12 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <artifactItems>*</artifactItems>
                   <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
                   <outputDirectory>${basedir}/target/libs</outputDirectory>
                   <overWriteReleases>false</overWriteReleases>
                   <overWriteSnapshots>false</overWriteSnapshots>
                   <overWriteIfNewer>true</overWriteIfNewer>
+                  <includeScope>compile</includeScope>
                 </configuration>
               </execution>
             </executions>
@@ -429,12 +429,12 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <artifactItems>*</artifactItems>
                   <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
                   <outputDirectory>${basedir}/target/libs</outputDirectory>
                   <overWriteReleases>false</overWriteReleases>
                   <overWriteSnapshots>false</overWriteSnapshots>
                   <overWriteIfNewer>true</overWriteIfNewer>
+                  <includeScope>compile</includeScope>
                 </configuration>
               </execution>
             </executions>
