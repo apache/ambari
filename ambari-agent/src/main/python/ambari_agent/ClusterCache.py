@@ -69,7 +69,12 @@ class ClusterCache(dict):
       self.hash = None
       cache_dict = {}
 
-    self.rewrite_cache(cache_dict, self.hash)
+    try:
+      self.rewrite_cache(cache_dict, self.hash)
+    except:
+      # Example: hostname change and restart causes old topology loading to fail with exception
+      logger.exception("Loading saved cache for {0} failed".format(self.__class__.__name__))
+      self.rewrite_cache({}, None)
 
   def get_cluster_indepedent_data(self):
     return self[ClusterCache.COMMON_DATA_CLUSTER]
@@ -93,10 +98,11 @@ class ClusterCache(dict):
       for cache_id_to_delete in cache_ids_to_delete:
         del self[cache_id_to_delete]
 
-    self.hash = cache_hash
-
     self.on_cache_update()
     self.persist_cache()
+
+    # if all of above are sucessful finally set the hash
+    self.hash = cache_hash
 
   def cache_update(self, update_dict, cache_hash):
     """

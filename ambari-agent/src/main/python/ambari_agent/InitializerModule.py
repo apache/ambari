@@ -46,6 +46,7 @@ class InitializerModule:
   - Provide an easier way to mock some dependencies.
   """
   def __init__(self):
+    self.stop_event = threading.Event()
     self.init()
 
   def init(self):
@@ -53,7 +54,6 @@ class InitializerModule:
     Initialize properties
     """
     self.config = AmbariConfig.get_resolved_config()
-    self.stop_event = threading.Event()
 
     self.is_registered = False
 

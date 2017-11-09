@@ -415,6 +415,9 @@ def main(initializer_module, heartbeat_stop_callback=None):
   setup_logging(apscheduler_logger_global, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
 
+  # init data, once loggers are setup to see exceptions/errors of initialization.
+  initializer_module.init()
+
   if home_dir != "":
     # When running multiple Ambari Agents on this host for simulation, each one will use a unique home directory.
     Logger.info("Agent is using Home Dir: %s" % str(home_dir))

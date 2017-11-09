@@ -56,6 +56,8 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}
 
     self.initializer_module = InitializerModule()
+    self.initializer_module.init()
+
     heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
     heartbeat_thread.start()
 
@@ -154,6 +156,8 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
 
     self.initializer_module = InitializerModule()
+    self.initializer_module.init()
+
     self.server.frames_queue.queue.clear()
 
     heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
@@ -217,6 +221,8 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
   def test_topology_update_and_delete(self):
     self.initializer_module = InitializerModule()
+    self.initializer_module.init()
+
     heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
     heartbeat_thread.start()
 
@@ -294,6 +300,8 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
   def test_alert_definitions_update_and_delete(self):
     self.initializer_module = InitializerModule()
+    self.initializer_module.init()
+
     heartbeat_thread = HeartbeatThread.HeartbeatThread(self.initializer_module)
     heartbeat_thread.start()
 
