@@ -427,6 +427,11 @@
         "name": "hadoop_custom_extensions",
         "description": "Support hadoop custom extensions",
         "min_version": "2.6.0.0"
+      },
+      {
+        "name": "sam_storage_core_in_registry",
+        "description": "Storage core module moved to registry",
+        "min_version": "2.6.0.0"
       }
     ]
   }
