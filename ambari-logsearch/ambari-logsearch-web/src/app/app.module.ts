@@ -68,6 +68,8 @@ import {FilterButtonComponent} from '@app/components/filter-button/filter-button
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
 import {CollapsiblePanelComponent} from '@app/components/collapsible-panel/collapsible-panel.component';
 import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
+import {LogMessageComponent} from '@app/components/log-message/log-message.component';
+import {LogLevelComponent} from '@app/components/log-level/log-level.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
 import {PaginationControlsComponent} from '@app/components/pagination-controls/pagination-controls.component';
@@ -121,6 +123,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     AccordionPanelComponent,
     CollapsiblePanelComponent,
     LogsListComponent,
+    LogLevelComponent,
+    LogMessageComponent,
     DropdownButtonComponent,
     PaginationComponent,
     PaginationControlsComponent,
