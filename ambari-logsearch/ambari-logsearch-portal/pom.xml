@@ -450,7 +450,7 @@
                 <phase>package</phase>
                 <configuration>
                   <target>
-                    <!-- <taskdef resource="build.properties" classpathref="maven.plugin.classpath" 
+                    <!-- <taskdef resource="build.properties" classpathref="maven.plugin.classpath"
                       /> -->
                     <ant antfile="build.xml">
                       <target name="package"/>
@@ -747,6 +747,10 @@
         <exclusion>
           <groupId>javax.ws.rs</groupId>
           <artifactId>jsr311-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>annotations</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
