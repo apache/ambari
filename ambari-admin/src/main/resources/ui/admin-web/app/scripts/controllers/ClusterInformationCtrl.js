@@ -18,17 +18,24 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ExportBlueprintCtrl', ['$scope', '$http', '$location', 'Cluster', '$routeParams', '$translate', function($scope, $http, $location, Cluster, $routeParams, $translate) {
+.controller('ClusterInformationCtrl', ['$scope', '$http', '$location', 'Cluster', '$routeParams', '$translate', '$rootScope',
+function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope) {
   var $t = $translate.instant;
-  $scope.identity = angular.identity;
-
   $scope.isDataLoaded = false;
-  $scope.clusterName = $routeParams.id;
 
-  $scope.getBlueprint = function() {
+  $scope.$watch(function() {
+    return $rootScope.cluster;
+  }, function() {
+    $scope.cluster = $rootScope.cluster;
+    if ($scope.cluster) {
+      $scope.getBlueprint();
+    }
+  }, true);
+
+  $scope.getBlueprint = function () {
     Cluster.getBlueprint({
-      clusterName: $scope.clusterName
-    }).then(function(data) {
+      clusterName: $scope.cluster.Clusters.cluster_name
+    }).then(function (data) {
       console.debug($t('exportBlueprint.dataLoaded'), data);
       $scope.isDataLoaded = true;
       var response = JSON.stringify(data, null, 4),
@@ -40,7 +47,7 @@ angular.module('ambariAdminConsole')
     });
   };
 
-  $scope.downloadBlueprint = function() {
+  $scope.downloadBlueprint = function () {
     if (window.navigator.msSaveOrOpenBlob) {
       var blob = new Blob([decodeURIComponent(encodeURI($scope.blueprint))], {
         type: "text/csv;charset=utf-8;"

@@ -15,13 +15,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope','$rootScope', function($scope, $rootScope) {
-  $scope.$watch(function() {
-    return $rootScope.cluster;
-  }, function() {
-    $scope.cluster = $rootScope.cluster;
-  }, true);
-}]);
+#cluster-information .cluster-name label {
+  font-weight: normal;
+}
+
+#cluster-information .dev-blueprint {
+  line-height: 35px;
+}
+
+#cluster-information .dev-blueprint span {
+  vertical-align: text-top;
+}
+
+#cluster-information .cluster-name label {
+  font-weight: normal;
+}
+
+#cluster-information .dev-blueprint {
+  line-height: 35px;
+}
+
+#cluster-information .dev-blueprint span {
+  vertical-align: text-top;
+}
+
+
+#cluster-information .welcome-header {
+  margin: -15px;
+  padding: 15px 15px 40px 15px;
+  background-color: #f0f0f0;
+  text-align: center;
+}
+
+#cluster-information .create-cluster-section {
+  text-align: center;
+  padding: 30px;
+}
+
+#cluster-information .fa-cloud {
+  font-size: 150px;
+  color: #f0f0f0;
+}

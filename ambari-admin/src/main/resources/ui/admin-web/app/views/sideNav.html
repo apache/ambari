@@ -33,36 +33,43 @@
       </li>
     </ul>
     <ul class="nav side-nav-menu nav-pills nav-stacked">
-      <li class="mainmenu-li active">
+      <li class="mainmenu-li active" ng-show="cluster.Clusters.provisioning_state === 'INSTALLED'">
         <a title="{{'common.dashboard' | translate}}" rel="tooltip" data-placement="right" href="{{fromSiteRoot('/#/dashboard')}}" class="gotodashboard">
           <i class="navigation-icon fa fa-tachometer" aria-hidden="true"></i>
           <span class="navigation-menu-item">{{'common.dashboard' | translate}}</span>
         </a>
       </li>
-      <li class="mainmenu-li dropdown has-sub-menu" ng-show="cluster.Clusters.provisioning_state === 'INSTALLED' ">
+      <li class="mainmenu-li dropdown has-sub-menu">
         <a title="{{'common.clusterManagement' | translate}}" data-toggle="collapse-sub-menu" rel="tooltip" data-placement="right">
           <span class="toggle-icon glyphicon glyphicon-menu-down pull-right"></span>
           <i class="navigation-icon fa fa-cloud" aria-hidden="true"></i>
           <span class="navigation-menu-item">{{'common.clusterManagement' | translate}}</span>
         </a>
         <ul class="sub-menu nav nav-pills nav-stacked">
+          <li class="submenu-li" ng-class="{active: isActive('clusters.clusterInformation')}">
+            <a href="#/clusterInformation" class="clusterInformation">
+              {{'common.clusterInformation' | translate}}
+            </a>
+          </li>
           <li class="submenu-li"  ng-class="{active: isActive('stackVersions.list')}" ng-show="cluster && totalRepos > 0">
-            <a href="#/stackVersions">{{'common.clusterInformation' | translate}}</a>
+            <a href="#/stackVersions">{{'common.versions' | translate}}</a>
           </li>
           <li class="submenu-li" ng-class="{active: isActive('remoteClusters.list')}">
             <a href="#/remoteClusters">{{'common.remoteClusters' | translate}}</a>
           </li>
         </ul>
       </li>
-      <li class="mainmenu-li dropdown has-sub-menu" ng-show="cluster.Clusters.provisioning_state === 'INSTALLED' ">
+      <li class="mainmenu-li dropdown has-sub-menu">
         <a title="{{'common.userManagement' | translate}}" rel="tooltip" data-placement="right" data-toggle="collapse-sub-menu">
           <span class="toggle-icon glyphicon glyphicon-menu-down pull-right"></span>
           <i class="navigation-icon fa fa-users" aria-hidden="true"></i>
           <span class="navigation-menu-item">{{'common.userManagement' | translate}}</span>
         </a>
         <ul class="sub-menu nav nav-pills nav-stacked">
-          <li class="submenu-li" ng-class="{active: isActive('clusters.manageAccess') || isActive('clusters.userAccessList')}">
-            <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="roles">Roles</a>
+          <li class="submenu-li"
+              ng-class="{active: isActive('clusters.manageAccess') || isActive('clusters.userAccessList')}"
+              ng-show="cluster.Clusters.provisioning_state === 'INSTALLED'">
+            <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="roles">{{'common.roles' | translate}}</a>
           </li>
           <li class="submenu-li" ng-class="{active: isActive('users.list')}">
             <link-to route="users.list" class="userslist-link">{{'common.users' | translate}}</link-to>

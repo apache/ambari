@@ -19,12 +19,6 @@
 
 angular.module('ambariAdminConsole')
 .constant('ROUTES', {
-  root: {
-    url: '/',
-    templateUrl: 'views/main.html',
-    controller: 'MainCtrl',
-    label: 'Welcome'
-  },
   authentication: {
     main: {
       url: '/authentication',
@@ -33,7 +27,7 @@ angular.module('ambariAdminConsole')
     }
   },
   loginActivities: {
-    loginMessage:{
+    loginMessage: {
       url: '/loginMessage',
       templateUrl: 'views/loginActivities/main.html',
       controller: 'LoginActivitiesMainCtrl'
@@ -109,19 +103,19 @@ angular.module('ambariAdminConsole')
       controller: 'ViewsEditCtrl',
       label: 'Views'
     },
-    createViewUrl:{
+    createViewUrl: {
       url: '/urls/new',
       templateUrl: 'views/urls/create.html',
       controller: 'ViewUrlCtrl',
       label: 'Views'
     },
-    linkViewUrl:{
+    linkViewUrl: {
       url: '/urls/link/:viewName/:viewVersion/:viewInstanceName',
       templateUrl: 'views/urls/create.html',
       controller: 'ViewUrlCtrl',
       label: 'Views'
     },
-    editViewUrl:{
+    editViewUrl: {
       url: '/urls/edit/:urlName',
       templateUrl: 'views/urls/edit.html',
       controller: 'ViewUrlEditCtrl',
@@ -133,19 +127,19 @@ angular.module('ambariAdminConsole')
       url: '/stackVersions',
       templateUrl: 'views/stackVersions/list.html',
       controller: 'StackVersionsListCtrl',
-      label: 'Cluster Information'
+      label: 'Versions'
     },
     create: {
       url: '/stackVersions/create',
       templateUrl: 'views/stackVersions/stackVersionPage.html',
       controller: 'StackVersionsCreateCtrl',
-      label: 'Cluster Information'
+      label: 'Versions'
     },
     edit: {
       url: '/stackVersions/:stackName/:versionId/edit',
       templateUrl: 'views/stackVersions/stackVersionPage.html',
       controller: 'StackVersionsEditCtrl',
-      label: 'Cluster Information'
+      label: 'Versions'
     }
   },
   remoteClusters: {
@@ -161,12 +155,12 @@ angular.module('ambariAdminConsole')
       controller: 'RemoteClustersCreateCtrl',
       label: 'Remote Clusters'
     },
-     edit: {
-     url: '/remoteClusters/:clusterName/edit',
-     templateUrl: 'views/remoteClusters/editRemoteClusterPage.html',
-     controller: 'RemoteClustersEditCtrl',
-       label: 'Remote Clusters'
-     }
+    edit: {
+      url: '/remoteClusters/:clusterName/edit',
+      templateUrl: 'views/remoteClusters/editRemoteClusterPage.html',
+      controller: 'RemoteClustersEditCtrl',
+      label: 'Remote Clusters'
+    }
   },
   clusters: {
     manageAccess: {
@@ -180,31 +174,36 @@ angular.module('ambariAdminConsole')
       templateUrl: 'views/clusters/userAccessList.html',
       controller: 'UserAccessListCtrl'
     },
-    exportBlueprint: {
-      url: '/clusters/:id/exportBlueprint',
-      templateUrl: 'views/clusters/exportBlueprint.html',
-      controller: 'ExportBlueprintCtrl'
+    clusterInformation: {
+      url: '/clusterInformation',
+      templateUrl: 'views/clusterInformation.html',
+      controller: 'ClusterInformationCtrl',
+      label: 'Cluster Information'
     }
   },
-  dashboard:{
+  dashboard: {
     url: '/dashboard',
-    controller: ['$window', function($window) {
+    controller: ['$window', function ($window) {
       $window.location.replace('/#/main/dashboard');
     }],
     template: ''
   }
 })
-.config(['$routeProvider', '$locationProvider', 'ROUTES', function($routeProvider, $locationProvider, ROUTES) {
-  var createRoute = function(routeObj) {
-    if(routeObj.url){
+.config(['$routeProvider', '$locationProvider', 'ROUTES', function ($routeProvider, $locationProvider, ROUTES) {
+  var createRoute = function (routeObj) {
+    if (routeObj.url) {
       $routeProvider.when(routeObj.url, routeObj);
     } else {
       angular.forEach(routeObj, createRoute);
     }
   };
+  var rootUrl = ROUTES['clusters']['clusterInformation'].url;
   angular.forEach(ROUTES, createRoute);
+  $routeProvider.otherwise({
+    redirectTo: rootUrl
+  });
 }])
-.run(['$rootScope', 'ROUTES', 'Settings', function($rootScope, ROUTES, Settings) {
+.run(['$rootScope', 'ROUTES', 'Settings', function ($rootScope, ROUTES, Settings) {
   // Make routes available in every template and controller
   $rootScope.ROUTES = ROUTES;
   $rootScope.$on('$locationChangeStart', function (e, nextUrl) {
@@ -226,7 +225,7 @@ angular.module('ambariAdminConsole')
    * @param {string} url
    * @returns {string}
    */
-  $rootScope.fromSiteRoot = function(url) {
+  $rootScope.fromSiteRoot = function (url) {
     var path = url[0] === '/' ? url.substring(1) : url;
     return Settings.siteRoot + path;
   };

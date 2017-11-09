@@ -31,7 +31,7 @@ angular.module('ambariAdminConsole')
     return $route.current;
   }, function (value) {
     var breadcrumbs = [$t('common.admin')];
-    if (value && value.$$route.label) {
+    if (value && value.$$route && value.$$route.label) {
       breadcrumbs.push(value.$$route.label);
     }
     $scope.breadcrumbs = breadcrumbs;

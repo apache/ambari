@@ -123,14 +123,6 @@
   transition: none;
 }
 
-.cluster-installation-progress-label{
-  display: block;
-  color: #888;
-  text-align: center;
-  padding: 10px 0;
-  cursor: default;
-}
-
 .add-item-input span{
   display: block;
   outline: none;
@@ -235,96 +227,6 @@
 
 .paginator{
   margin: 0;
-}
-.mainpage .panel-body{
-  padding: 20px;
-  height: 620px;
-}
-.mainpage h1{
-  font-size: 24px;
-  margin-top: 10px;
-}
-.mainpage .panel-body #main-operations-boxes {
-  padding: 10px;
-}
-.mainpage .panel-body #main-operations-boxes .thumbnail{
-  display: block;
-  height: 230px;
-  padding: 8px;
-  background-color: #eeeeee;
-  margin-bottom: 20px;
-  margin-left: 20px;
-  margin-right: 10px;
-  border: none;
-  border-radius: 0;
-}
-.mainpage .panel-body #main-operations-boxes .thumbnail .title,
-.mainpage .panel-body #main-operations-boxes .thumbnail .description,
-.mainpage .panel-body #main-operations-boxes .thumbnail .buttons {
-  text-align: center;
-  line-height: 1.5;
-}
-.mainpage .panel-body #main-operations-boxes .thumbnail .buttons .btn{
-  width: 200px;
-  margin: 5px;
-}
-.mainpage .panel-body #main-operations-boxes .thumbnail .buttons .btn.userslist-button,
-.mainpage .panel-body #main-operations-boxes .thumbnail .buttons .btn.groupslist-button {
-  width: 100px;
-}
-.mainpage .panel-body #main-operations-boxes .thumbnail .glyphicon {
-  font-size: 50px;
-  text-align: center;
-  display: block;
-  line-height: 1.5;
-}
-.mainpage .panel-body #main-operations-boxes .col-sm-5 {
-  width: 43.5%;
-}
-
-.views-list-table .panel{
-  border-radius: 0;
-  border: none;
-  margin-top: 0;
-}
-.views-list-table h4{
-  font-size: 14px;
-}
-.views-list-table .panel-group .panel + .panel{
-  margin-top: 0;
-}
-.views-list-table .panel-group .panel .panel-heading{
-  border-radius: 0;
-  border-top: 1px solid #ddd;
-}
-.views-list-table .panel-group .panel .panel-heading{
-  background: #f9f9f9;
-}
-.views-list-table .panel-group .panel:nth-child(even) .panel-heading{
-  background: none;
-}
-.views-list-table .panel-group .panel .panel-heading .panel-title{
-  font-size: 14px;
-  font-weight: normal;
-  cursor: pointer;
-}
-.views-list-table .panel-group .panel .panel-body{
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.views-list-table .panel-group .panel .panel-body table tr:first-child td{
-  border-top: none;
-}
-.views-list-table .glyphicon.glyphicon-chevron-right{
-  -webkit-transition: all 0.3s;
-  -o-transition: all 0.3s;
-  transition: all 0.3s;
-}
-.views-list-table .glyphicon.glyphicon-chevron-right.opened{
-  -webkit-transform: rotateZ(90deg);
-  -ms-transform: rotateZ(90deg);
-  -o-transform: rotateZ(90deg);
-  transform: rotateZ(90deg);
 }
 
 a.gotoinstance{

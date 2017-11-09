@@ -54,7 +54,7 @@ describe('Utility Service', function () {
       httpBackend.whenGET(/\/api\/v1\/views.+/).respond(200, {
         items: []
       });
-      httpBackend.whenGET("views/main.html").respond(200, {});
+      httpBackend.whenGET("views/clusterInformation.html").respond(200, {});
     });
   });
 

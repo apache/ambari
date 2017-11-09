@@ -41,7 +41,6 @@ angular.module('ambariAdminConsole')
     'common.dashboard': 'Dashboard',
     'common.goToDashboard': 'Go to Dashboard',
     'common.exportBlueprint': 'Export Blueprint',
-    'common.blueprint': 'Blueprint',
     'common.download': 'Download',
     'common.noClusters': 'No Clusters',
     'common.noViews': 'No Views',
@@ -168,22 +167,11 @@ angular.module('ambariAdminConsole')
 
     'main.title': 'Welcome to Apache Ambari',
     'main.noClusterDescription': 'Provision a cluster, manage who can access the cluster, and customize views for Ambari users.',
-    'main.hasClusterDescription': 'Monitor your cluster resources, manage who can access the cluster, and customize views for Ambari users.',
     'main.autoLogOut': 'Automatic Logout',
-
-    'main.operateCluster.title': 'Operate Your Cluster',
-    'main.operateCluster.description': 'Manage the configuration of your cluster and monitor the health of your services',
-    'main.operateCluster.manageRoles': 'Manage Roles',
 
     'main.createCluster.title': 'Create a Cluster',
     'main.createCluster.description': 'Use the Install Wizard to select services and configure your cluster',
     'main.createCluster.launchInstallWizard': 'Launch Install Wizard',
-
-    'main.manageUsersAndGroups.title': 'Manage Users + Groups',
-    'main.manageUsersAndGroups.description': 'Manage the users and groups that can access Ambari',
-
-    'main.deployViews.title': 'Deploy Views',
-    'main.deployViews.description': 'Create view instances and grant permissions',
 
     'main.controls.remainLoggedIn': 'Remain Logged In',
     'main.controls.logOut': 'Log Out Now',
@@ -284,6 +272,7 @@ angular.module('ambariAdminConsole')
     'clusters.assignRoles': 'Assign roles to these {{term}}',
 
     'clusters.alerts.cannotLoadClusterData': 'Cannot load cluster data',
+    'clusters.devBlueprint': 'Dev Blueprint',
 
     'groups.createLocal': 'Add Groups',
     'groups.name': 'Group name',
