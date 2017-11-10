@@ -86,27 +86,6 @@ CREATE TABLE clusters (
   CONSTRAINT FK_clusters_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id));
 
-CREATE TABLE clusterconfig (
-  config_id BIGINT NOT NULL,
-  version_tag VARCHAR(255) NOT NULL,
-  version BIGINT NOT NULL,
-  type_name VARCHAR(255) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  stack_id BIGINT NOT NULL,
-  selected SMALLINT NOT NULL DEFAULT 0,
-  config_data VARCHAR(3000) NOT NULL,
-  config_attributes VARCHAR(3000),
-  create_timestamp BIGINT NOT NULL,
-  unmapped SMALLINT NOT NULL DEFAULT 0,
-  selected_timestamp BIGINT NOT NULL DEFAULT 0,
-  service_id BIGINT,
-  CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
-  CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT FK_clusterconfig_service_id FOREIGN KEY (service_id) REFERENCES clusterservices(id),
-  CONSTRAINT UQ_config_type_tag UNIQUE (version_tag, type_name, cluster_id),
-  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
-
 CREATE TABLE configuration_base (
   id BIGINT NOT NULL,
   version_tag VARCHAR(255) NOT NULL,
@@ -176,7 +155,30 @@ CREATE TABLE clusterservices (
   service_group_id BIGINT NOT NULL,
   service_enabled INTEGER NOT NULL,
   CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
+  CONSTRAINT UQ_service_id UNIQUE (id),
   CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
+
+CREATE TABLE clusterconfig (
+  config_id BIGINT NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  version BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  stack_id BIGINT NOT NULL,
+  selected SMALLINT NOT NULL DEFAULT 0,
+  config_data VARCHAR(3000) NOT NULL,
+  config_attributes VARCHAR(3000),
+  create_timestamp BIGINT NOT NULL,
+  unmapped SMALLINT NOT NULL DEFAULT 0,
+  selected_timestamp BIGINT NOT NULL DEFAULT 0,
+  service_id BIGINT,
+  CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
+  CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
+  CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_clusterconfig_service_id FOREIGN KEY (service_id) REFERENCES clusterservices(id),
+  CONSTRAINT UQ_config_type_tag UNIQUE (version_tag, type_name, cluster_id),
+  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
+
 
 CREATE TABLE servicedependencies (
   service_id BIGINT NOT NULL,
