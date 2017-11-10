@@ -1432,27 +1432,23 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionExecContext  the context
    * @param cluster            the cluster for the command
+   * @param stackId            the stack id used to load service metainfo.
    *
    * @return a wrapper of the important JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
-      Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
+      Cluster cluster, StackId stackId) throws AmbariException {
 
     Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext);
     Map<String, String> hostParamsStage = new HashMap<>();
     Map<String, Set<String>> clusterHostInfo;
     String clusterHostInfoJson = "{}";
 
-    StackId stackId = null;
-    if (null != repositoryVersion) {
-      stackId = repositoryVersion.getStackId();
-    }
-
     if (null != cluster) {
       clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
 
       // Important, because this runs during Stack Uprade, it needs to use the effective Stack Id.
-      hostParamsStage = createDefaultHostParams(cluster, repositoryVersion);
+      hostParamsStage = createDefaultHostParams(cluster, stackId);
 
       String componentName = null;
       String serviceName = null;
@@ -1461,7 +1457,7 @@ public class AmbariCustomCommandExecutionHelper {
         serviceName = actionExecContext.getOperationLevel().getServiceName();
       }
 
-      if (serviceName != null && componentName != null && null != stackId) {
+      if (serviceName != null && componentName != null) {
         Service service = cluster.getService(serviceName);
         ServiceComponent component = service.getServiceComponent(componentName);
         stackId = component.getDesiredStackId();
@@ -1479,6 +1475,10 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+
+      if (null == stackId && null != cluster) {
+        stackId = cluster.getDesiredStackVersion();
+      }
 
       //Propogate HCFS service type info to command params
       if (null != stackId) {
@@ -1504,12 +1504,10 @@ public class AmbariCustomCommandExecutionHelper {
         hostParamsStageJson);
   }
 
-  Map<String, String> createDefaultHostParams(Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    StackId stackId = (null == repositoryVersion) ? cluster.getDesiredStackVersion() : repositoryVersion.getStackId();
-    return createDefaultHostParams(cluster, stackId);
-  }
-
   Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException {
+    if (null == stackId) {
+      stackId = cluster.getDesiredStackVersion();
+    }
 
     TreeMap<String, String> hostLevelParams = new TreeMap<>();
     hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
