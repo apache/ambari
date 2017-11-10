@@ -48,7 +48,8 @@ def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
             owner=params.spark_user,
             group=params.user_group,
             mode=0775,
-            create_parents = True
+            create_parents = True,
+            cd_access = 'a',
   )
   if type == 'server' and action == 'config':
     params.HdfsResource(params.spark_hdfs_user_dir,
