@@ -82,7 +82,6 @@ App.supports = {
   serviceAutoStart: true,
   logSearch: true,
   redhatSatellite: false,
-  enableIpa: false,
   addingNewRepository: false,
   kerberosStackAdvisor: true,
   logCountVizualization: false,

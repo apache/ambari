@@ -1273,7 +1273,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.option.ad.condition.5': 'The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.',
   'admin.kerberos.wizard.step1.option.ipa': 'Existing IPA',
   'admin.kerberos.wizard.step1.option.ipa.condition.1': 'Cluster hosts are joined to the IPA domain and hosts are registered in DNS',
-  'admin.kerberos.wizard.step1.option.ipa.condition.2': 'A password policy in place that sets no expiry for created principals or krbPasswordExpiry attribute is writable',
+  'admin.kerberos.wizard.step1.option.ipa.condition.2': 'A password policy in place that sets no expiry for created principals',
   'admin.kerberos.wizard.step1.option.ipa.condition.3': 'The ipa managed krb5.conf sets default_ccache_name = /tmp/krb5cc_%{uid}',
   'admin.kerberos.wizard.step1.option.ipa.condition.4': 'The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.',
   'admin.kerberos.wizard.step1.prerequisites.label': 'Following prerequisites needs to be checked to progress ahead in the wizard.',
