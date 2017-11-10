@@ -18,13 +18,13 @@
 
 import {CommonEntry} from '@app/classes/models/common-entry';
 
-export interface Node {
+export interface NodeItem {
   name: string;
   type?: string;
   value: string;
   isParent: boolean;
   isRoot: boolean;
-  childs?: Node[];
+  childs?: NodeItem[];
   logLevelCount?: CommonEntry[];
   vNodeList?: CommonEntry[];
 }

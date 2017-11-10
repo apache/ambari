@@ -34,7 +34,6 @@ import {TranslationModules} from '@app/test-config.spec';
 import {ModalComponent} from '@app/components/modal/modal.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {FilteringService} from '@app/services/filtering.service';
 
 import {LogContextComponent} from './log-context.component';
 
@@ -90,8 +89,7 @@ describe('LogContextComponent', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        },
-        FilteringService
+        }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

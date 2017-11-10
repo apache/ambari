@@ -54,7 +54,9 @@ export class PaginationControlsComponent implements ControlValueAccessor {
     if (this.isValidValue(newValue)) { // this is the last validation check
       this.currentPage = newValue;
       this.currentPageChange.emit(newValue);
-      this.onChange(newValue);
+      if (this.onChange) {
+        this.onChange(newValue);
+      }
     } else {
       throw new Error(`Invalid value ${newValue}. The currentPage should be between 0 and ${this.pagesCount}.`);
     }
@@ -121,7 +123,8 @@ export class PaginationControlsComponent implements ControlValueAccessor {
     return this.pagesCount > 0 && this.value > 0;
   }
 
-  writeValue() {
+  writeValue(value: number) {
+    this.value = value;
   }
 
   registerOnChange(callback: any): void {

@@ -16,9 +16,7 @@
  * limitations under the License.
  */
 
-import {FormGroup} from '@angular/forms';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
-import {Tab, initialTabs} from '@app/classes/models/tab';
 
 export interface AppState {
   isAuthorized: boolean;
@@ -28,7 +26,7 @@ export interface AppState {
   isServiceLogsFileView: boolean;
   isServiceLogContextView: boolean;
   activeLog: ActiveServiceLogEntry | null;
-  activeFiltersForm: FormGroup;
+  activeFilters: object;
 }
 
 export const initialState: AppState = {
@@ -39,5 +37,5 @@ export const initialState: AppState = {
   isServiceLogsFileView: false,
   isServiceLogContextView: false,
   activeLog: null,
-  activeFiltersForm: initialTabs.find((tab: Tab): boolean => tab.isActive).appState.activeFiltersForm
+  activeFilters: null
 };

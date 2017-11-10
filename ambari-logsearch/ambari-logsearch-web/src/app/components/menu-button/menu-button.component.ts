@@ -202,11 +202,11 @@ export class MenuButtonComponent {
    * @param {ListItem} options The selected item(s) from the dropdown list.
    */
   onDropdownItemChange(options: ListItem) {
-    this.updateValue(options);
+    this.updateSelection(options);
     !this.isMultipleChoice && this.closeDropdown();
   }
 
-  updateValue(options: ListItem) {
+  updateSelection(options: ListItem) {
     // TODO implement value change behaviour
   }
 
