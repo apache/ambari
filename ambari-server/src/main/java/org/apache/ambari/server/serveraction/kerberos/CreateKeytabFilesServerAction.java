@@ -218,17 +218,18 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 }
 
                 boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
+
+                KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+                String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
+
                 if (password == null) {
                   if (!regenerateKeytabs && (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
-                      .exists(evaluatedPrincipal, hostEntity.getHostId(), keytabFilePath))) {
+                      .exists(evaluatedPrincipal, hostEntity.getHostId(), keytabFilePath)) && cachedKeytabPath == null) {
                     // There is nothing to do for this since it must already exist and we don't want to
                     // regenerate the keytab
                     message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);
                     LOG.debug(message);
                   } else {
-                    KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
-                    String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
-
                     if (cachedKeytabPath == null) {
                       message = String.format("Failed to create keytab for %s, missing cached file", evaluatedPrincipal);
                       actionLog.writeStdErr(message);
