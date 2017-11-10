@@ -63,6 +63,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     Set<SubResourceDefinition> setChildren = new HashSet<>();
     setChildren.add(new SubResourceDefinition(Resource.Type.ServiceGroup));
     setChildren.add(new SubResourceDefinition(Resource.Type.Host));
+    setChildren.add(new SubResourceDefinition(Resource.Type.ClusterSetting));
     setChildren.add(new SubResourceDefinition(Resource.Type.Configuration));
     setChildren.add(new SubResourceDefinition(Resource.Type.ServiceConfigVersion));
     setChildren.add(new SubResourceDefinition(Resource.Type.Request));

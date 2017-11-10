@@ -41,7 +41,6 @@ public interface ResourceProviderFactory {
   @Named("hostComponent")
   ResourceProvider getHostComponentResourceProvider(Set<String> propertyIds, Map<Type, String> keyPropertyIds,
                                                     AmbariManagementController managementController);
-
   @Named("service")
   ResourceProvider getServiceResourceProvider(AmbariManagementController managementController);
 
@@ -53,6 +52,9 @@ public interface ResourceProviderFactory {
 
   @Named("servicegroupdependency")
   ResourceProvider getServiceGroupDependencyResourceProvider(AmbariManagementController managementController);
+
+  @Named("clustersetting")
+  ResourceProvider getClusterSettingResourceProvider(AmbariManagementController managementController);
 
   @Named("component")
   ResourceProvider getComponentResourceProvider(AmbariManagementController managementController);

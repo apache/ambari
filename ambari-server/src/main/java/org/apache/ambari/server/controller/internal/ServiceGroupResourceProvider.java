@@ -314,7 +314,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     return response;
   }
 
-  // Get services from the given request.
+  // Get services groups from the given request.
   private Set<ServiceGroupResponse> getServiceGroups(ServiceGroupRequest request)
     throws AmbariException {
     if (request.getClusterName() == null) {
@@ -349,7 +349,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   }
 
 
-  // Delete services based on the given set of requests
+  // Delete services groups based on the given set of requests
   protected void deleteServiceGroups(Set<ServiceGroupRequest> request)
     throws AmbariException, AuthorizationException {
 

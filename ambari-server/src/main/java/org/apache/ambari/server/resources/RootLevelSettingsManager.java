@@ -65,7 +65,7 @@ public class RootLevelSettingsManager {
     clusterSettingsFileName = settingsFileName;
     clusterSettingsConfigType = settingsTypeName;
     clusterSettingsFile = new File(clusterSettingsPath + File.separator + clusterSettingsFileName);
-    LOG.info("\n\n\n\n SWAP - clusterSettingsPath = "+clusterSettingsPath+" - clusterSettingsFileName = "+clusterSettingsFileName
+    LOG.debug("clusterSettingsPath = "+clusterSettingsPath+" - clusterSettingsFileName = "+clusterSettingsFileName
             +" - clusterSettingsConfigType = "+clusterSettingsFile + "clusterSettingsFile = "+clusterSettingsFile);
     populateClusterSettingsXml();
   }

@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+
+import org.apache.ambari.server.ClusterSettingNotFoundException;
 import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -98,6 +100,36 @@ public interface Cluster {
 
   ServiceGroup addServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException;
 
+
+  ClusterSetting addClusterSetting(String clusterSettingName, String clusterSettingValue) throws AmbariException;
+
+  /**
+   * Add 'cluster setting' to the cluster
+   *
+   * @param clusterSetting
+   * @return
+   * @throws AmbariException
+   */
+  void addClusterSetting(ClusterSetting clusterSetting);
+
+  /**
+   * Update 'cluster setting' in the cluster
+   *
+   * @param clusterSettingName Cluster setting name
+   * @return
+   * @throws AmbariException
+   */
+  ClusterSetting updateClusterSetting(String clusterSettingName, String clusterSettingValue) throws AmbariException;
+
+  /**
+   * Add 'cluster setting' in the cluster
+   *
+   * @param clusterSetting
+   * @return
+   * @throws AmbariException
+   */
+  void updateClusterSetting(ClusterSetting clusterSetting);
+
   //TODO remove when UI starts using service groups
   /**
    * Get a service
@@ -151,6 +183,29 @@ public interface Cluster {
    * @return
    */
   Map<String, ServiceGroup> getServiceGroups() throws AmbariException;
+
+  /**
+   * Get a cluster setting
+   *
+   * @param clusterSettingName
+   * @return
+   */
+  ClusterSetting getClusterSetting(String clusterSettingName) throws ClusterSettingNotFoundException;
+
+  /**
+   * Get a cluster setting
+   *
+   * @param clusterSettingId
+   * @return
+   */
+  ClusterSetting getClusterSetting(Long clusterSettingId) throws ClusterSettingNotFoundException;
+
+  /**
+   * Get all cluster settings
+   *
+   * @return
+   */
+  Map<String, ClusterSetting> getClusterSettings() throws AmbariException;
 
   /**
    * Get all ServiceComponentHosts on a given host
@@ -560,6 +615,21 @@ public interface Cluster {
   void deleteServiceGroup(String serviceGroupName) throws AmbariException;
 
   void deleteServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException;
+
+  /**
+   * Delete all the cluster settings associated with this cluster
+   *
+   * @throws AmbariException
+   */
+  void deleteAllClusterSettings() throws AmbariException;
+
+  /**
+   * Delete the named cluster setting associated with this cluster
+   *
+   * @param clusterSettingName
+   * @throws AmbariException
+   */
+  void deleteClusterSetting(String clusterSettingName) throws AmbariException;
 
   /**
    * Gets if the cluster can be deleted

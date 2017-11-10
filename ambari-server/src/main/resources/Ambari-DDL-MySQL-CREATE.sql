@@ -163,6 +163,14 @@ CREATE TABLE hosts (
   CONSTRAINT PK_hosts PRIMARY KEY (host_id),
   CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));
 
+CREATE TABLE clustersettings (
+  id BIGINT NOT NULL,
+  setting_name VARCHAR(255) NOT NULL,
+  setting_value VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  CONSTRAINT PK_clustersettings PRIMARY KEY (id),
+  CONSTRAINT FK_clustersettings_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
 CREATE TABLE servicegroups (
   id BIGINT NOT NULL,
   service_group_name VARCHAR(255) NOT NULL,
@@ -1158,6 +1166,7 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('cluster_id_seq', 1),
+  ('cluster_setting_id_seq', 1),
   ('service_group_id_seq', 1),
   ('service_id_seq', 1),
   ('host_id_seq', 0),

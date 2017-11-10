@@ -46,7 +46,7 @@ import com.google.inject.persist.Transactional;
 
 public class ServiceGroupImpl implements ServiceGroup {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ServiceGroupImpl.class);
 
   private ServiceGroupEntityPK serviceGroupEntityPK;
 
@@ -231,8 +231,6 @@ public class ServiceGroupImpl implements ServiceGroup {
   }
 
   /**
-   * {@inheritDoc}
-   * <p/>
    * This method uses Java locks and then delegates to internal methods which
    * perform the JPA merges inside of a transaction. Because of this, a
    * transaction is not necessary before this calling this method.

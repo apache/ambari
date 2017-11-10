@@ -44,6 +44,7 @@ import javax.persistence.RollbackException;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterSettingNotFoundException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
@@ -78,6 +79,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.ClusterSettingDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -90,6 +92,7 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterSettingEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -109,6 +112,8 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
+import org.apache.ambari.server.state.ClusterSetting;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -180,8 +185,13 @@ public class ClusterImpl implements Cluster {
   private final ConcurrentSkipListMap<String, Service> services = new ConcurrentSkipListMap<>();
   private final ConcurrentSkipListMap<Long, Service> servicesById = new ConcurrentSkipListMap<>();
 
+  // Service groups
   private Map<String, ServiceGroup> serviceGroups = new ConcurrentSkipListMap<>();
   private final Map<Long, ServiceGroup> serviceGroupsById = new ConcurrentSkipListMap<>();
+
+  // Cluster settings
+  private Map<String, ClusterSetting> clusterSettings = new ConcurrentSkipListMap<>();
+  private final Map<Long, ClusterSetting> clusterSettingsById = new ConcurrentSkipListMap<>();
 
   /**
    * [ Config Type -> [ Config Version Tag -> Config ] ]
@@ -241,6 +251,9 @@ public class ClusterImpl implements Cluster {
   private ServiceGroupFactory serviceGroupFactory;
 
   @Inject
+  private ClusterSettingFactory clusterSettingFactory;
+
+  @Inject
   private ConfigFactory configFactory;
 
   @Inject
@@ -287,6 +300,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private ClusterServiceDAO clusterServiceDAO;
+
+  @Inject
+  private ClusterSettingDAO clusterSettingDAO;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -344,6 +360,7 @@ public class ClusterImpl implements Cluster {
 
     loadStackVersion();
     loadServiceGroups();
+    loadClusterSettings();
     loadServices();
     loadServiceHostComponents();
 
@@ -475,6 +492,17 @@ public class ClusterImpl implements Cluster {
         ServiceGroup sg = serviceGroupFactory.createExisting(this, serviceGroupEntity);
         serviceGroups.put(serviceGroupEntity.getServiceGroupName(), sg);
         serviceGroupsById.put(serviceGroupEntity.getServiceGroupId(), sg);
+      }
+    }
+  }
+
+  private void loadClusterSettings() {
+    ClusterEntity clusterEntity = getClusterEntity();
+    if (!clusterEntity.getClusterSettingEntities().isEmpty()) {
+      for (ClusterSettingEntity clusterSettingEntity : clusterEntity.getClusterSettingEntities()) {
+        ClusterSetting cs = clusterSettingFactory.createExisting(this, clusterSettingEntity);
+        clusterSettings.put(clusterSettingEntity.getClusterSettingName(), cs);
+        clusterSettingsById.put(clusterSettingEntity.getClusterSettingId(), cs);
       }
     }
   }
@@ -995,8 +1023,8 @@ public class ClusterImpl implements Cluster {
   public void addServiceGroup(ServiceGroup serviceGroup) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a new service group" + ", clusterName=" + getClusterName()
-        + ", clusterId=" + getClusterId() + ", serviceGroupName="
-        + serviceGroup.getServiceGroupName());
+              + ", clusterId=" + getClusterId() + ", serviceGroupName="
+              + serviceGroup.getServiceGroupName());
     }
     serviceGroups.put(serviceGroup.getServiceGroupName(), serviceGroup);
     serviceGroupsById.put(serviceGroup.getServiceGroupId(), serviceGroup);
@@ -1006,7 +1034,7 @@ public class ClusterImpl implements Cluster {
   public ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException {
     if (serviceGroups.containsKey(serviceGroupName)) {
       throw new AmbariException("Service group already exists" + ", clusterName=" + getClusterName()
-        + ", clusterId=" + getClusterId() + ", serviceGroupName=" + serviceGroupName);
+              + ", clusterId=" + getClusterId() + ", serviceGroupName=" + serviceGroupName);
     }
 
     ServiceGroup serviceGroup = serviceGroupFactory.createNew(this, serviceGroupName, new HashSet<ServiceGroupKey>());
@@ -1048,6 +1076,55 @@ public class ClusterImpl implements Cluster {
     ServiceGroup serviceGroup = serviceGroupFactory.createExisting(this, serviceGroupEntity);
     addServiceGroup(serviceGroup);
     return serviceGroup;
+  }
+
+  @Override
+  public void addClusterSetting(ClusterSetting clusterSetting) {
+    LOG.debug("Adding a new cluster setting, clusterName= {}, clusterId : {}, " +
+            "clusterSettingName : {}", getClusterName(), getClusterId(),
+            clusterSetting.getClusterSettingName());
+
+    clusterSettings.put(clusterSetting.getClusterSettingName(), clusterSetting);
+    clusterSettingsById.put(clusterSetting.getClusterSettingId(), clusterSetting);
+  }
+
+  @Override
+  public ClusterSetting addClusterSetting(String clusterSettingName, String clusterSettingValue) throws AmbariException {
+    if (clusterSettings.containsKey(clusterSettingName)) {
+      throw new AmbariException("'Cluster Setting' already exists" + ", clusterName=" + getClusterName()
+              + ", clusterId=" + getClusterId() + ", clusterSettingName=" + clusterSettingName);
+    }
+
+    ClusterSetting clusterSetting = clusterSettingFactory.createNew(this, clusterSettingName, clusterSettingValue);
+    addClusterSetting(clusterSetting);
+    return clusterSetting;
+  }
+
+
+  @Override
+  public void updateClusterSetting(ClusterSetting clusterSetting) {
+    LOG.debug("Updating cluster setting, clusterName= {}, clusterId : {}, " +
+            "clusterSettingName : {}", getClusterName(), getClusterId(), clusterSetting.getClusterSettingName());
+
+    // Update the changed 'clusterSetting' in the below maps, to reflect object with newest changes.
+    clusterSettings.put(clusterSetting.getClusterSettingName(), clusterSetting);
+    clusterSettingsById.put(clusterSetting.getClusterSettingId(), clusterSetting);
+  }
+
+  @Override
+  public ClusterSetting updateClusterSetting(String clusterSettingName, String clusterSettingValue) throws AmbariException {
+    if (!clusterSettings.containsKey(clusterSettingName)) {
+      throw new AmbariException("'ClusterSetting' doesn't exist" + ", clusterName=" + getClusterName()
+              + ", clusterId=" + getClusterId() + ", clusterSettingName=" + clusterSettingName);
+    }
+
+    ClusterSettingEntity clusterSettingEntity = clusterSettingDAO.findByClusterIdAndSettingName(getClusterId(), clusterSettingName);
+    // Update 'cluster setting' value in 'clusterSettingEntity'.
+    clusterSettingEntity.setClusterSettingValue(clusterSettingValue);
+
+    ClusterSetting clusterSetting = clusterSettingFactory.createExisting(this, clusterSettingEntity);
+    updateClusterSetting(clusterSetting);
+    return clusterSetting;
   }
 
   @Override
@@ -1155,6 +1232,31 @@ public class ClusterImpl implements Cluster {
   @Override
   public Map<String, ServiceGroup> getServiceGroups() throws AmbariException {
     return new HashMap<String, ServiceGroup>(serviceGroups);
+  }
+
+  @Override
+  public ClusterSetting getClusterSetting(String clusterSettingName) throws ClusterSettingNotFoundException {
+
+    ClusterSetting clusterSetting = clusterSettings.get(clusterSettingName);
+    if (null == clusterSetting) {
+      throw new ClusterSettingNotFoundException(getClusterName(), clusterSettingName);
+    }
+    return clusterSetting;
+  }
+
+
+  @Override
+  public ClusterSetting getClusterSetting(Long clusterSettingId) throws ClusterSettingNotFoundException {
+    ClusterSetting clusterSetting = clusterSettingsById.get(clusterSettingId);
+    if(null == clusterSetting) {
+      throw new ClusterSettingNotFoundException(getClusterName(), clusterSettingId);
+    }
+    return clusterSetting;
+  }
+
+  @Override
+  public Map<String, ClusterSetting> getClusterSettings() throws AmbariException {
+    return new HashMap<>(clusterSettings);
   }
 
   @Override
@@ -1688,6 +1790,33 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  @Override
+  public void deleteAllClusterSettings() throws AmbariException {
+    // TODO : Evaluate if we need a bulk delete feature ?
+  }
+
+  @Override
+  public void deleteClusterSetting(String clusterSettingName) throws AmbariException {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      ClusterSetting clusterSetting = getClusterSetting(clusterSettingName);
+      LOG.info("Deleting 'cluster setting' for cluster" + ", clusterName="
+              + getClusterName() + ", clusterSettingName=" + clusterSetting.getClusterSettingName());
+      // FIXME check dependencies from meta layer
+      if (!clusterSetting.canBeRemoved()) {
+        throw new AmbariException("Could not delete 'cluster setting' from cluster"
+                + ", clusterName=" + getClusterName()
+                + ", clusterSettingName=" + clusterSetting.getClusterSettingName());
+      }
+      Long clusterSettingId = clusterSetting.getClusterSettingId();
+      deleteClusterSetting(clusterSetting);
+      clusterSettings.remove(clusterSettingName);
+      clusterSettingsById.remove(clusterSettingId);
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
   /**
    * Deletes the specified service also removes references to it from {@link this.serviceComponentHosts}
    * and references to ServiceComponentHost objects that belong to the service from {@link this.serviceComponentHostsByHost}
@@ -1726,10 +1855,22 @@ public class ClusterImpl implements Cluster {
    *
    * @param serviceGroup the service group to be deleted
    * @throws AmbariException
-   * @see ServiceComponentHost
    */
   private void deleteServiceGroup(ServiceGroup serviceGroup) throws AmbariException {
     serviceGroup.delete();
+  }
+
+  /**
+   * Deletes the specified 'cluster setting'.
+   * <p>
+   * Note: This method must be called only with write lock acquired.
+   * </p>
+   *
+   * @param clusterSetting the 'cluster setting' to be deleted
+   * @throws AmbariException
+   */
+  private void deleteClusterSetting(ClusterSetting clusterSetting) throws AmbariException {
+    clusterSetting.delete();
   }
 
   @Override

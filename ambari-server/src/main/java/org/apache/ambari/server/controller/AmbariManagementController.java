@@ -51,6 +51,7 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -580,6 +581,13 @@ public interface AmbariManagementController {
    * @return the service factory
    */
   ServiceGroupFactory getServiceGroupFactory();
+
+  /**
+   * Get the 'cluster setting' factory for this management controller.
+   *
+   * @return the 'cluster setting'
+   */
+  ClusterSettingFactory getClusterSettingFactory();
 
   /**
    * Get the service component factory for this management controller.

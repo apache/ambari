@@ -157,6 +157,7 @@ import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -269,6 +270,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private RoleCommandOrderProvider roleCommandOrderProvider;
   @Inject
   private ServiceGroupFactory serviceGroupFactory;
+  @Inject
+  private ClusterSettingFactory clusterSettingFactory;
   @Inject
   private ServiceFactory serviceFactory;
   @Inject
@@ -5275,6 +5278,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public ServiceGroupFactory getServiceGroupFactory() {
     return serviceGroupFactory;
+  }
+
+  @Override
+  public ClusterSettingFactory getClusterSettingFactory() {
+    return clusterSettingFactory;
   }
 
   @Override
