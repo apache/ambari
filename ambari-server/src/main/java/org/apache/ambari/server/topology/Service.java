@@ -165,6 +165,7 @@ public class Service implements Configurable {
       '}';
   }
 
+  @JsonIgnore
   public String getServiceGroupName() {
     if (serviceGroup != null) {
       return serviceGroup.getName();

@@ -97,6 +97,7 @@ public class BlueprintImplV2Test {
     String bpSerialized = bpFactory.convertToJson(bp);
     System.out.println(bpSerialized);
     bp = (BlueprintImplV2)bpFactory.convertFromJson(bpSerialized);
+    System.out.println(bp);
   }
 
 
