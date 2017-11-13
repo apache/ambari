@@ -17,30 +17,28 @@
  */
 package org.apache.ambari.server.topology.validators;
 
-import static org.mockito.Mockito.anyString;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.topology.BlueprintImplV2;
+import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.BlueprintV2Factory;
-import org.apache.ambari.server.topology.HostGroupV2;
-import org.apache.ambari.server.topology.HostGroupV2Impl;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
 public class BlueprintImplV2Test {
@@ -48,6 +46,7 @@ public class BlueprintImplV2Test {
   static String BLUEPRINTV2_JSON;
   static String BLUEPRINTV2_2_JSON;
 
+  BlueprintV2Factory blueprintFactory;
 
   @BeforeClass
   public static void setUpClass() throws Exception {
@@ -55,50 +54,122 @@ public class BlueprintImplV2Test {
     BLUEPRINTV2_2_JSON = Resources.toString(Resources.getResource("blueprintv2/blueprintv2_2.json"), Charsets.UTF_8);
   }
 
-  @Test
-  public void testSerialization() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-    SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
-    SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-    resolver.addMapping(HostGroupV2.class, HostGroupV2Impl.class);
-    module.setAbstractTypes(resolver);
-    mapper.registerModule(module);
-    mapper.enable(SerializationFeature.INDENT_OUTPUT);
-    BlueprintImplV2 bp = mapper.readValue(BLUEPRINTV2_JSON, BlueprintImplV2.class);
-    bp.postDeserialization();
-    // -- add stack --
-    StackV2 hdpCore = new StackV2("HDPCORE", "3.0.0", "3.0.0.0-1", new HashMap<>(), new HashMap<>(), new HashMap<>(),
-      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-    StackV2 analytics = new StackV2("ANALYTICS", "1.0.0", "1.0.0.0-1", new HashMap<>(), new HashMap<>(), new HashMap<>(),
-      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-    bp.setStacks(ImmutableMap.of(new StackId("HDPCORE", "3.0.0"), hdpCore, new StackId("ANALYTICS", "1.0.0"), analytics));
-    // ---------------
-    String bpJson = mapper.writeValueAsString(bp);
-    System.out.println(bpJson);
-    System.out.println("\n\n====================================================================================\n\n");
-    Map<String, Object> map = mapper.readValue(BLUEPRINTV2_JSON, HashMap.class);
-    System.out.println(map);
-    System.out.println("\n\n====================================================================================\n\n");
-    String bpJson2 = mapper.writeValueAsString(map);
-    System.out.println(bpJson2);
-    System.out.println("\n\n====================================================================================\n\n");
-    BlueprintImplV2 bp2 = mapper.readValue(bpJson2, BlueprintImplV2.class);
-    System.out.println(bp2);
+  @Before
+  public void setUp() throws Exception {
+    StackV2Factory stackFactory = mock(StackV2Factory.class);
+    when(stackFactory.create(any(StackId.class))).thenAnswer(invocation -> {
+      StackId stackId = invocation.getArgumentAt(0, StackId.class);
+      StackV2 stack = new StackV2(stackId.getStackName(), stackId.getStackVersion(), stackId.getStackVersion() + ".0-1",
+        new HashMap<>(), new HashMap<>(), new HashMap<>(),
+        new HashMap<>(), new HashMap<>(), new HashMap<>(),
+        new HashMap<>(), new HashMap<>(), new HashMap<>());
+      return stack;
+    });
+    blueprintFactory = BlueprintV2Factory.create(stackFactory);
+    blueprintFactory.setPrettyPrintJson(true);
   }
 
   @Test
-  public void testSerialization2() throws Exception {
-    StackV2 hdpCore = new StackV2("HDPCORE", "3.0.0", "3.0.0.0-1", new HashMap<>(), new HashMap<>(), new HashMap<>(),
-      new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());    StackV2Factory stackFactory = mock(StackV2Factory.class);
-    when(stackFactory.create(anyString(), anyString())).thenReturn(hdpCore);
-    BlueprintV2Factory bpFactory = BlueprintV2Factory.create(stackFactory);
-    bpFactory.setPrettyPrintJson(true);
-    BlueprintImplV2 bp = (BlueprintImplV2)bpFactory.convertFromJson(BLUEPRINTV2_2_JSON);
-    String bpSerialized = bpFactory.convertToJson(bp);
-    System.out.println(bpSerialized);
-    bp = (BlueprintImplV2)bpFactory.convertFromJson(bpSerialized);
-    System.out.println(bp);
+  public void testSerialization_parseJsonAsBlueprint() throws Exception {
+    BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_JSON);
+    assertEquals(new StackId("HDPCORE", "3.0.0"),
+      bp.getServiceGroups().iterator().next().getServices().iterator().next().getStack().getStackId());
+    assertEquals(2, bp.getStackIds().size());
+    assertEquals(7, bp.getAllServiceIds().size());
+    assertEquals(2, bp.getServiceGroups().size());
   }
 
+  @Test
+  public void testSerialization_parseJsonAsMap() throws Exception {
+    ObjectMapper mapper = blueprintFactory.createObjectMapper();
+    Map<String, Object> blueprintAsMap = mapper.readValue(BLUEPRINTV2_JSON, HashMap.class);
+    assertEquals(2, getAsMap(blueprintAsMap, "cluster_settings").size());
+    assertEquals(2, getAsMap(blueprintAsMap, "Blueprints").size());
+    assertEquals("blueprint-def", getByPath(blueprintAsMap,
+      ImmutableList.of("Blueprints", "blueprint_name")));
+    assertEquals(2, getAsList(blueprintAsMap, "service_groups").size());
+    assertEquals("StreamSG", getByPath(blueprintAsMap,
+      ImmutableList.of("service_groups", 1, "name")));
+    assertEquals(2, getAsList(blueprintAsMap, "repository_versions").size());
+    assertEquals(1, getAsList(blueprintAsMap, "host_groups").size());
+    assertEquals("host_group_1", getByPath(blueprintAsMap,
+      ImmutableList.of("host_groups", 0, "name")));
+    System.out.println(blueprintAsMap);
+  }
+
+  @Test
+  public void testSerialization_serializeBlueprint() throws Exception {
+    BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_JSON);
+    String serialized = blueprintFactory.convertToJson(bp);
+    // Test that serialized blueprint can be read again
+    bp = blueprintFactory.convertFromJson(serialized);
+    assertEquals(2, bp.getStackIds().size());
+    assertEquals(7, bp.getAllServiceIds().size());
+    assertEquals(2, bp.getServiceGroups().size());
+  }
+
+  @Test
+  public void testSerialization2_parseJsonAsBlueprint() throws Exception {
+    BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_2_JSON);
+    assertEquals(new StackId("HDP", "3.0.0"),
+      bp.getServiceGroups().iterator().next().getServices().iterator().next().getStack().getStackId());
+    assertEquals(1, bp.getStackIds().size());
+    assertEquals(4, bp.getAllServiceIds().size());
+    assertEquals(1, bp.getServiceGroups().size());
+  }
+
+  @Test
+  public void testSerialization2_parseJsonAsMap() throws Exception {
+    ObjectMapper mapper = blueprintFactory.createObjectMapper();
+    Map<String, Object> blueprintAsMap = mapper.readValue(BLUEPRINTV2_2_JSON, HashMap.class);
+    assertEquals(2, getAsMap(blueprintAsMap, "cluster_settings").size());
+    assertEquals(2, getAsMap(blueprintAsMap, "Blueprints").size());
+    assertEquals("blueprint-def", getByPath(blueprintAsMap,
+      ImmutableList.of("Blueprints", "blueprint_name")));
+    assertEquals(1, getAsList(blueprintAsMap, "service_groups").size());
+    assertEquals("CoreSG", getByPath(blueprintAsMap,
+      ImmutableList.of("service_groups", 0, "name")));
+    assertEquals(1, getAsList(blueprintAsMap, "repository_versions").size());
+    assertEquals(1, getAsList(blueprintAsMap, "host_groups").size());
+    assertEquals("host_group_1", getByPath(blueprintAsMap,
+      ImmutableList.of("host_groups", 0, "name")));
+    System.out.println(blueprintAsMap);
+  }
+
+  @Test
+  public void testSerialization2_serializeBlueprint() throws Exception {
+    BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_2_JSON);
+    String serialized = blueprintFactory.convertToJson(bp);
+    // Test that serialized blueprint can be read again
+    bp = blueprintFactory.convertFromJson(serialized);
+    assertEquals(1, bp.getStackIds().size());
+    assertEquals(4, bp.getAllServiceIds().size());
+    assertEquals(1, bp.getServiceGroups().size());
+  }
+
+  private static Map<String, Object> getAsMap(Map<String, Object> parentMap, String key) {
+    return (Map<String, Object>)parentMap.get(key);
+  }
+
+  private static List<Object> getAsList(Map<String, Object> parentMap, String key) {
+    return (List<Object>)parentMap.get(key);
+  }
+
+  private static Object getByPath(Map<String, Object> initialMap, List<Object> path) {
+    Object returnValue = initialMap;
+    for(Object key: path) {
+      if (key instanceof String) { // this element is a map
+        returnValue = ((Map<String, Object>)returnValue).get(key);
+        Preconditions.checkNotNull(returnValue, "No value for key: " + key);
+      }
+      else if (key instanceof Integer) { // this element is an arraylist
+        returnValue = ((List<Object>)returnValue).get((Integer)key);
+      }
+      else {
+        throw new IllegalArgumentException("Invalid path element: " + key);
+      }
+    }
+    return returnValue;
+  }
 
 }

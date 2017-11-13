@@ -198,7 +198,7 @@ public class BlueprintV2Factory {
     this.prettyPrintJson = prettyPrintJson;
   }
 
-  ObjectMapper createObjectMapper() {
+  public ObjectMapper createObjectMapper() {
     ObjectMapper mapper = new ObjectMapper();
     SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
     SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
