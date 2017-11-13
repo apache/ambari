@@ -60,6 +60,8 @@ import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.utils.SecretReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -70,6 +72,8 @@ import com.google.gson.Gson;
  * Resource Provider for Blueprint resources.
  */
 public class BlueprintResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(BlueprintResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

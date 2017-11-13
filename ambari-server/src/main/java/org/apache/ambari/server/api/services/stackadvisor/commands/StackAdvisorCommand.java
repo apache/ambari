@@ -71,7 +71,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
    */
   private Class<T> type;
 
-  protected static Logger LOG = LoggerFactory.getLogger(StackAdvisorCommand.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StackAdvisorCommand.class);
 
   private static final String GET_HOSTS_INFO_URI = "/api/v1/hosts"
       + "?fields=Hosts/*&Hosts/host_name.in(%s)";

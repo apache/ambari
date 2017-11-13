@@ -51,6 +51,8 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ManifestServiceInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -63,6 +65,8 @@ import com.google.inject.Provider;
  */
 @StaticallyInject
 public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CompatibleRepositoryVersionResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

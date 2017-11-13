@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class DefaultLdapConnectionConfigService implements LdapConnectionConfigService {
 
-  private static Logger LOG = LoggerFactory.getLogger(DefaultLdapConnectionConfigService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultLdapConnectionConfigService.class);
 
   @Inject
   public DefaultLdapConnectionConfigService() {

@@ -267,7 +267,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   private volatile boolean initialized = false;
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
       LoggerFactory.getLogger(AbstractProviderModule.class);
 
 

@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  * This implementation provides kinit functionality and keytab file caching utilities for classes.
  */
 abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
-  private static Logger LOG = LoggerFactory.getLogger(KDCKerberosOperationHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(KDCKerberosOperationHandler.class);
 
   /**
    * The FQDN of the host where KDC administration server is

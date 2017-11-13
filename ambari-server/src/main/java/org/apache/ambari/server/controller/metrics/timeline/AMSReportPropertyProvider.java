@@ -51,8 +51,11 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
+  private static final Logger LOG = LoggerFactory.getLogger(AMSReportPropertyProvider.class);
   private MetricsPaddingMethod metricsPaddingMethod;
   private final TimelineMetricCache metricCache;
   MetricsRequestHelper requestHelper;
