@@ -80,9 +80,8 @@
       <div class="form-group">
         <div class="col-sm-10 col-sm-offset-3">
           <div class="checkbox">
-            <label>
-              <input type="checkbox" ng-model='instance.visible' class="visibilityCheckbox"> {{'views.visible' | translate}}
-            </label>
+            <input type="checkbox" ng-model='instance.visible' id="visibility-checkbox" class="visibilityCheckbox">
+            <label for="visibility-checkbox">{{'views.visible' | translate}}</label>
           </div>
         </div>
       </div>
@@ -122,9 +121,8 @@
 
     <div class="panel-body property-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
       <div class="checkbox create-checkbox-cluster">
-        <label>
-          <input type="radio" ng-disabled="!clusterConfigurable || noLocalClusterAvailible" ng-model="instance.clusterType" ng-change="enableLocalCluster()" value="LOCAL_AMBARI" class="visibilityCheckbox"> {{'views.localCluster' | translate}}
-        </label>
+        <input type="radio" id="local-cluster" ng-disabled="!clusterConfigurable || noLocalClusterAvailible" ng-model="instance.clusterType" ng-change="enableLocalCluster()" value="LOCAL_AMBARI" class="visibilityCheckbox">
+        <label for="local-cluster">{{'views.localCluster' | translate}}</label>
       </div>
 
       <div class="form-horizontal property-form">
@@ -143,9 +141,8 @@
 
     <div class="panel-body property-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
       <div class="checkbox create-checkbox-cluster">
-        <label>
-          <input type="radio" ng-disabled="!clusterConfigurable || noRemoteClusterAvailible" ng-model="instance.clusterType" ng-change="enableLocalCluster()" value="REMOTE_AMBARI" class="visibilityCheckbox"> {{'views.remoteCluster' | translate}}
-        </label>
+        <input type="radio" id="remote-cluster" ng-disabled="!clusterConfigurable || noRemoteClusterAvailible" ng-model="instance.clusterType" ng-change="enableLocalCluster()" value="REMOTE_AMBARI" class="visibilityCheckbox">
+        <label for="remote-cluster">{{'views.remoteCluster' | translate}}</label>
       </div>
 
       <div class="form-horizontal property-form">
@@ -164,9 +161,8 @@
 
     <div class="panel-body property-form" ng-hide="!numberOfClusterConfigs">
       <div class="checkbox">
-        <label>
-          <input type="radio" ng-model="instance.clusterType" value="NONE" class="visibilityCheckbox"> {{'views.custom' | translate}}
-        </label>
+        <input type="radio" id="custom-view" ng-model="instance.clusterType" value="NONE" class="visibilityCheckbox">
+        <label for="custom-view">{{'views.custom' | translate}}</label>
       </div>
       <div class="alert alert-danger bottom-margin top-margin" ng-show='form.instanceCreateForm.generalValidationError'>
         {{form.instanceCreateForm.generalValidationError}}

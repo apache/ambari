@@ -119,14 +119,14 @@
   </div>
 
   <div id="upload-definition-file-panel" ng-if="createController">
-    <div class="col-sm-12 big-radio clearfix hide-soft" ng-class="{'disabled' : networkLost || useRedhatSatellite,'visible':stackRepoUpdateLinkExists}">
-      <input type="radio" ng-model="selectedOption.index" value="1" ng-change="togglePublicLocalOptionSelect()" ng-disabled="networkLost || useRedhatSatellite">
-      <span>{{'versions.usePublic' | translate}}</span>
+    <div class="checkbox col-sm-12 big-radio clearfix hide-soft" ng-class="{'disabled' : networkLost || useRedhatSatellite,'visible':stackRepoUpdateLinkExists}">
+      <input id="use-public" type="radio" ng-model="selectedOption.index" value="1" ng-change="togglePublicLocalOptionSelect()" ng-disabled="networkLost || useRedhatSatellite">
+      <label for="use-public">{{'versions.usePublic' | translate}}</label>
       <a id="public-disabled-link" href="javascript:void(0);" ng-if="networkLost" ng-click="showPublicRepoDisabledDialog()">{{'versions.networkIssues.networkLost'| translate}}</a>
     </div>
-    <div class="col-sm-12 big-radio clearfix">
-      <input type="radio" ng-model="selectedOption.index" value="2" ng-change="togglePublicLocalOptionSelect()">
-      {{'versions.useLocal' | translate}}
+    <div class="checkbox col-sm-12 big-radio clearfix">
+      <input id="use-local" type="radio" ng-model="selectedOption.index" value="2" ng-change="togglePublicLocalOptionSelect()">
+      <label for="use-local">{{'versions.useLocal' | translate}}</label>
     </div>
   </div>
 
@@ -204,22 +204,21 @@
             </div>
           </div>
           <div class="clearfix advanced-radio-buttons">
-            <div class="col-sm-9" id="skip-validation">
+            <div class="col-sm-9">
               <div class="checkbox">
-                <label>
-                  <input type="checkbox" ng-model="skipValidation" ng-change="clearErrors()"
-                         ng-disabled="useRedhatSatellite">
+                <input type="checkbox" id="skip-validation" ng-model="skipValidation" ng-change="clearErrors()" ng-disabled="useRedhatSatellite">
+                <label for="skip-validation">
                   <span ng-class="{'disabled' : useRedhatSatellite}">{{'versions.skipValidation' | translate}}</span>
                   <i class="fa fa-question-circle"
                      tooltip-html-unsafe="{{'versions.alerts.skipValidationWarning' | translate}}" aria-hidden="true"></i>
                 </label>
               </div>
             </div>
-            <div class="col-sm-9" id="use-redhat">
+            <div class="col-sm-9">
               <div class="checkbox">
-                <label>
-                  <input type="checkbox" ng-model="useRedhatSatellite" ng-change="clearErrors()"
-                         ng-disabled="isPublicRepoSelected()">
+                <input type="checkbox" id="use-redhat" ng-model="useRedhatSatellite" ng-change="clearErrors()"
+                       ng-disabled="isPublicRepoSelected()">
+                <label for="use-redhat">
                   <span ng-class="{'disabled' : isPublicRepoSelected()}"
                         tooltip="{{(isPublicRepoSelected())? ('versions.useRedhatSatellite.disabledMsg' | translate) : ''}}">{{'versions.useRedhatSatellite.title' | translate}}</span>
                   <i class="fa fa-question-circle"

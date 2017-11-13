@@ -37,6 +37,9 @@
   font-size: 16px;
 }
 
+#top-nav .container {
+  background: #fff;
+}
 
 /** Override bootstrap styles **/
 @media (min-width: 0) {
