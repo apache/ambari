@@ -10,6 +10,7 @@
   "modal.apply": "Apply",
   "modal.close": "Close",
 
+  "authorization.logout": "Logout",
   "authorization.name": "Username",
   "authorization.password": "Password",
   "authorization.signIn": "Sign In",

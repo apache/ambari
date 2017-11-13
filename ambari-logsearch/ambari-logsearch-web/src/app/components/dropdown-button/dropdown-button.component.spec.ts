@@ -36,6 +36,7 @@ import {UtilsService} from '@app/services/utils.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {DropdownButtonComponent} from './dropdown-button.component';
 
@@ -90,7 +91,8 @@ describe('DropdownButtonComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
-        LogsContainerService
+        LogsContainerService,
+        AuthService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

@@ -32,6 +32,7 @@ import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/s
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {ComponentActionsService} from './component-actions.service';
 
@@ -81,7 +82,8 @@ describe('ComponentActionsService', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
-        LogsContainerService
+        LogsContainerService,
+        AuthService
       ]
     });
   });

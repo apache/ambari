@@ -34,6 +34,7 @@ import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {ModalComponent} from '@app/components/modal/modal.component';
 
@@ -93,7 +94,8 @@ describe('TimeZonePickerComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
-        LogsContainerService
+        LogsContainerService,
+        AuthService
       ],
     })
     .compileComponents();

@@ -20,6 +20,7 @@ import * as moment from 'moment';
 
 export const mockData = {
   login: {},
+  logout: {},
   api: {
     v1: {
       audit: {

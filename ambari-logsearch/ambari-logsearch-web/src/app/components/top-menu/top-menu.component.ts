@@ -36,7 +36,8 @@ export class TopMenuComponent {
           label: 'Options'
         },
         {
-          label: 'Logout'
+          label: 'authorization.logout',
+          action: 'logout'
         }
       ]
     }

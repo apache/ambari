@@ -35,6 +35,7 @@ import {UtilsService} from '@app/services/utils.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {FilterDropdownComponent} from './filter-dropdown.component';
 
@@ -109,7 +110,8 @@ describe('FilterDropdownComponent', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        }
+        },
+        AuthService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
