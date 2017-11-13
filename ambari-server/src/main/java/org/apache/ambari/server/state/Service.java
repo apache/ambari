@@ -26,6 +26,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {
@@ -87,6 +88,10 @@ public interface Service {
       throws AmbariException;
 
   boolean isClientOnlyService();
+
+  ClusterServiceEntity removeDependencyService(Long dependencyServiceId);
+
+  ClusterServiceEntity addDependencyService(Long dependencyServiceId) throws AmbariException;
 
   void delete() throws AmbariException;
 

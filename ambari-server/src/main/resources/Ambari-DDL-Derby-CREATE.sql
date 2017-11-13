@@ -183,14 +183,16 @@ CREATE TABLE clusterconfig (
 
 
 CREATE TABLE servicedependencies (
+  id BIGINT NOT NULL,
   service_id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_cluster_id BIGINT NOT NULL,
   dependent_service_id BIGINT NOT NULL,
   dependent_service_group_id BIGINT NOT NULL,
   dependent_service_cluster_id BIGINT NOT NULL,
-  CONSTRAINT PK_servicedependencies PRIMARY KEY (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
-  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id));
+  CONSTRAINT PK_servicedependencies PRIMARY KEY (id),
+  CONSTRAINT UQ_servicedependencies UNIQUE (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
+  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
   CONSTRAINT FK_servicedependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE serviceconfig (
@@ -1161,6 +1163,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   SELECT 'service_group_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'service_group_dependency_id_seq', 1 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 'service_dependency_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'service_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL

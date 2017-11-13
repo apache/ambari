@@ -939,36 +939,27 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Service addDependencyToService(String  serviceGroupName, String serviceName, String dependencyServiceGroupName,
-                                        String dependencyServiceName) {
+  public Service addDependencyToService(String  serviceGroupName, String serviceName, Long dependencyServiceId) throws AmbariException {
     Service currentService = null;
-    Service dependentService = null;
-    for (Service service : services.values()) {
-
+    for (Service service : getServicesById().values()) {
       if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
         currentService = service;
       }
-
-      if (service.getName().equals(dependencyServiceName) && service.getServiceGroupName().equals(dependencyServiceGroupName)) {
-        dependentService = service;
-      }
     }
 
+    ClusterServiceEntity updatedServiceEntity = null;
     Service updatedService = null;
     clusterGlobalLock.writeLock().lock();
     try {
-      ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(),
-              currentService.getServiceGroupId(), currentService.getServiceId());
-      ClusterServiceEntity dependentServiceEntity = clusterServiceDAO.findById(getClusterId(),
-              dependentService.getServiceGroupId(), dependentService.getServiceId());
 
-      currentServiceEntity.getServiceDependencies().add(dependentServiceEntity);
-      ClusterServiceEntity updatedServiceEntity = clusterServiceDAO.merge(currentServiceEntity);
-      updatedService = serviceFactory.createExisting(this, getServiceGroup(currentService.getServiceGroupName()),
-                                                      updatedServiceEntity);
+      updatedServiceEntity = currentService.addDependencyService(dependencyServiceId);
+
+
+      updatedService = serviceFactory.createExisting(this, getServiceGroup(currentService.getServiceGroupName()), updatedServiceEntity);
       addService(updatedService);
     } catch (ServiceGroupNotFoundException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      LOG.error("Service group " + currentService.getServiceGroupName() + " was not found.");
+      e.printStackTrace();
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -977,40 +968,28 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Service removeDependencyFromService(String  serviceGroupName, String serviceName, String dependencyServiceGroupName,
-                                        String dependencyServiceName) {
-    Service currentService = null;
-
-    for (Service service : services.values()) {
-
-      if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
-        currentService = service;
-      }
-
-    }
-
+  public Service removeDependencyFromService(String  serviceGroupName, String serviceName, Long dependencyServiceId) {
     Service updatedService = null;
+    Service currentService = null;
     clusterGlobalLock.writeLock().lock();
     try {
-      ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(),
-              currentService.getServiceGroupId(), currentService.getServiceId());
 
+      for (Service service : getServicesById().values()) {
 
-
-      ClusterServiceEntity serviceEntityToRemove = null;
-      for (ClusterServiceEntity cse : currentServiceEntity.getServiceDependencies()) {
-        if (cse.getServiceName().equals(dependencyServiceName) /*&& cse.getClusterServiceGroupEntity().getServiceGroupName().equals(dependencyServiceGroupName)*/) {
-          serviceEntityToRemove = cse;
-          break;
+        if (service.getName().equals(serviceName) && service.getServiceGroupName().equals(serviceGroupName)) {
+          currentService = service;
         }
+
       }
-      currentServiceEntity.getServiceDependencies().remove(serviceEntityToRemove);
-      ClusterServiceEntity updatedServiceEntity = clusterServiceDAO.merge(currentServiceEntity);
+
+      ClusterServiceEntity updatedServiceEntity = currentService.removeDependencyService(dependencyServiceId);
+
       updatedService = serviceFactory.createExisting(this, getServiceGroup(currentService.getServiceGroupName()),
               updatedServiceEntity);
       addService(updatedService);
     } catch (ServiceGroupNotFoundException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      LOG.error("Service group " + currentService.getServiceGroupName() + " was not found.");
+      e.printStackTrace();
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }

@@ -181,14 +181,16 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
 CREATE TABLE servicedependencies (
-  service_id NUMERIC(19) NOT NULL,
-  service_group_id NUMERIC(19) NOT NULL,
-  service_cluster_id NUMERIC(19) NOT NULL,
-  dependent_service_id NUMERIC(19) NOT NULL,
-  dependent_service_group_id NUMERIC(19) NOT NULL,
-  dependent_service_cluster_id NUMERIC(19) NOT NULL,
-  CONSTRAINT PK_servicedependencies PRIMARY KEY (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
-  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id));
+  id NUMBER(19) NOT NULL,
+  service_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_cluster_id NUMBER(19) NOT NULL,
+  dependent_service_id NUMBER(19) NOT NULL,
+  dependent_service_group_id NUMBER(19) NOT NULL,
+  dependent_service_cluster_id NUMBER(19) NOT NULL,
+  CONSTRAINT PK_servicedependencies PRIMARY KEY (id),
+  CONSTRAINT UQ_servicedependencies UNIQUE (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
+  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
   CONSTRAINT FK_servicedependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE serviceconfig (
@@ -1150,6 +1152,7 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_setting_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_dependency_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_dependency_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_id_seq', 0);

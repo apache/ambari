@@ -53,6 +53,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.ServiceDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
@@ -83,6 +84,9 @@ public class ServiceImpl implements Service {
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
   private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  private Clusters clusters;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -144,18 +148,26 @@ public class ServiceImpl implements Service {
 
     if (serviceDependencies != null) {
       for (ServiceKey serviceKey : serviceDependencies) {
-        Cluster dependencyCluster = cluster;
-        ServiceGroup dependencyServiceGroup = dependencyCluster.getServiceGroup(serviceKey.getServiceGroupName());
-        ServiceGroupEntity dependencyServiceGroupEntity = serviceGroupDAO.findByClusterAndServiceGroupIds(dependencyCluster.getClusterId(),
-                dependencyServiceGroup.getServiceGroupId());
 
-        for (Service service : dependencyCluster.getServices().values()) {
-          if (service.getName().equals(serviceName) && service.getServiceGroupId() == dependencyServiceGroup.getServiceGroupId()) {
-            serviceEntity.getServiceDependencies().add(clusterServiceDAO.findById(dependencyCluster.getClusterId(),
-                    dependencyServiceGroup.getServiceGroupId(), service.getServiceId()));
+        Cluster dependencyCluster = null;
+
+        for (Cluster cl : clusters.getClusters().values()) {
+          if (cl.getServicesById().containsKey(serviceKey.getServiceId())) {
+            dependencyCluster = cl;
+
             break;
           }
         }
+
+
+        ClusterServiceEntity dependencyServiceEntity = clusterServiceDAO.findById(serviceKey.getClusterId(), serviceKey.getServiceGroupId(), serviceKey.getServiceId());
+        ServiceDependencyEntity serviceDependencyEntity = new ServiceDependencyEntity();
+        serviceDependencyEntity.setService(serviceEntity);
+        serviceDependencyEntity.setServiceDependency(dependencyServiceEntity);
+
+        clusterServiceDAO.createServiceDependency(serviceDependencyEntity);
+
+        serviceEntity.getServiceDependencies().add(serviceDependencyEntity);
 
       }
     }
@@ -233,6 +245,8 @@ public class ServiceImpl implements Service {
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
   }
+
+
 
 
   /***
@@ -356,38 +370,39 @@ public class ServiceImpl implements Service {
     return responses;
   }
 
-  public List<ServiceKey> getServiceDependencies(List<ClusterServiceEntity> clusterServiceEntities) throws AmbariException {
+  public List<ServiceKey> getServiceDependencies(List<ServiceDependencyEntity> serviceDependencyEntities) throws AmbariException {
     List<ServiceKey> serviceDependenciesList = new ArrayList<>();
 
-    if (clusterServiceEntities != null) {
-      for (ClusterServiceEntity cse : clusterServiceEntities) {
+    if (serviceDependencyEntities != null) {
+      for (ServiceDependencyEntity sde : serviceDependencyEntities) {
         ServiceKey serviceKey = new ServiceKey();
+        ClusterServiceEntity dependencyService = sde.getServiceDependency();
         String clusterName = "";
         Long clusterId = null;
-        if (cse.getClusterId() == cluster.getClusterId()) {
+        if (dependencyService.getClusterId() == cluster.getClusterId()) {
           clusterName = cluster.getClusterName();
           clusterId = cluster.getClusterId();
         } else {
-          ClusterEntity clusterEntity = clusterDAO.findById(cse.getClusterId());
+          ClusterEntity clusterEntity = clusterDAO.findById(dependencyService.getClusterId());
           if (clusterEntity != null) {
             clusterName = clusterEntity.getClusterName();
             clusterId = clusterEntity.getClusterId();
           } else {
-            LOG.error("Unable to get cluster id for service " + cse.getServiceName());
+            LOG.error("Unable to get cluster id for service " + dependencyService.getServiceName());
           }
         }
 
 
         Cluster dependencyCluster = cluster;
-        ServiceGroup dependencyServiceGroup = dependencyCluster.getServiceGroup(cse.getServiceGroupId());
+        ServiceGroup dependencyServiceGroup = dependencyCluster.getServiceGroup(dependencyService.getServiceGroupId());
 
 
         serviceKey.setServiceGroupName(dependencyServiceGroup.getServiceGroupName());
         serviceKey.setServiceGroupId(dependencyServiceGroup.getServiceGroupId());
         serviceKey.setClusterName(clusterName);
         serviceKey.setClusterId(clusterId);
-        serviceKey.setServiceName(cse.getServiceName());
-        serviceKey.setServiceId(cse.getServiceId());
+        serviceKey.setServiceName(dependencyService.getServiceName());
+        serviceKey.setServiceId(dependencyService.getServiceId());
         serviceDependenciesList.add(serviceKey);
       }
     }
@@ -564,6 +579,65 @@ public class ServiceImpl implements Service {
       LOG.warn("Setting a member on an entity object that may have been "
               + "previously deleted, serviceName = " + getName());
     }
+  }
+
+  @Override
+  public ClusterServiceEntity removeDependencyService(Long dependencyServiceId) {
+    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(), getServiceGroupId(), getServiceId());
+
+    ServiceDependencyEntity dependencyEntityToRemove = null;
+    if (currentServiceEntity.getServiceDependencies() != null) {
+      for (ServiceDependencyEntity sde : currentServiceEntity.getServiceDependencies()) {
+        if (sde.getServiceDependency().getServiceId() == dependencyServiceId) {
+          dependencyEntityToRemove = sde;
+          break;
+        }
+      }
+    }
+
+    currentServiceEntity.getServiceDependencies().remove(dependencyEntityToRemove);
+    ClusterServiceEntity updatedServiceEntity = removeServiceDependencyEntity(dependencyEntityToRemove, currentServiceEntity);
+    currentServiceEntity.getServiceDependencies().remove(dependencyEntityToRemove);
+
+    return updatedServiceEntity;
+  }
+
+  @Transactional
+  protected ClusterServiceEntity removeServiceDependencyEntity(ServiceDependencyEntity dependencyEntityToRemove,
+                                                               ClusterServiceEntity currentServiceEntity) {
+    clusterServiceDAO.removeServiceDependency(dependencyEntityToRemove);
+    ClusterServiceEntity updatedServiceEntity = clusterServiceDAO.merge(currentServiceEntity);
+    return updatedServiceEntity;
+  }
+
+  @Override
+  public ClusterServiceEntity addDependencyService(Long dependencyServiceId) throws AmbariException {
+    Service dependentService = null;
+    for (Cluster cl : clusters.getClusters().values()) {
+      if (cl.getServicesById().containsKey(dependencyServiceId)) {
+        dependentService = cl.getService(dependencyServiceId);
+        break;
+      }
+    }
+
+    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(), getServiceGroupId(), getServiceId());
+    ClusterServiceEntity dependentServiceEntity = clusterServiceDAO.findById(dependentService.getClusterId(),
+            dependentService.getServiceGroupId(), dependentService.getServiceId());
+
+    ServiceDependencyEntity newServiceDependency = new ServiceDependencyEntity();
+    newServiceDependency.setService(currentServiceEntity);
+    newServiceDependency.setServiceDependency(dependentServiceEntity);
+
+    return addServiceDependencyEntity(newServiceDependency, currentServiceEntity);
+  }
+
+  @Transactional
+  protected ClusterServiceEntity addServiceDependencyEntity(ServiceDependencyEntity newServiceDependency,
+                                                               ClusterServiceEntity currentServiceEntity) {
+    clusterServiceDAO.createServiceDependency(newServiceDependency);
+    currentServiceEntity.getServiceDependencies().add(newServiceDependency);
+    ClusterServiceEntity updatedServiceEntity = clusterServiceDAO.merge(currentServiceEntity);
+    return updatedServiceEntity;
   }
 
   @Override

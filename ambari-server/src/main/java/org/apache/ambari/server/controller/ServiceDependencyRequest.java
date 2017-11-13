@@ -22,16 +22,13 @@ public class ServiceDependencyRequest {
   private String clusterName;
   private String serviceName;
   private String serviceGroupName;
-  private String dependencyServiceName;
-  private String dependencyServiceGroupName;
+  private Long dependencyServiceId;
 
-  public ServiceDependencyRequest(String clusterName, String serviceName, String serviceGroupName,
-                                  String dependencyServiceName, String dependencyServiceGroupName) {
+  public ServiceDependencyRequest(String clusterName, String serviceName, String serviceGroupName, Long dependencyServiceId) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.serviceGroupName = serviceGroupName;
-    this.dependencyServiceName = dependencyServiceName;
-    this.dependencyServiceGroupName = dependencyServiceGroupName;
+    this.dependencyServiceId = dependencyServiceId;
   }
 
   public String getClusterName() {
@@ -42,12 +39,12 @@ public class ServiceDependencyRequest {
     this.clusterName = clusterName;
   }
 
-  public String getDependencyServiceName() {
-    return dependencyServiceName;
+  public Long getDependencyServiceId() {
+    return dependencyServiceId;
   }
 
-  public void setDependencyServiceName(String dependencyServiceName) {
-    this.dependencyServiceName = dependencyServiceName;
+  public void setDependencyServiceId(Long dependencyServiceId) {
+    this.dependencyServiceId = dependencyServiceId;
   }
 
   public String getServiceGroupName() {
@@ -66,22 +63,13 @@ public class ServiceDependencyRequest {
     this.serviceName = serviceName;
   }
 
-  public String getDependencyServiceGroupName() {
-    return dependencyServiceGroupName;
-  }
-
-  public void setDependencyServiceGroupName(String dependencyServiceGroupName) {
-    this.dependencyServiceGroupName = dependencyServiceGroupName;
-  }
-
   @Override
   public String toString() {
     return "ServiceDependencyRequest{" +
             "clusterName='" + clusterName + '\'' +
             ", serviceName='" + serviceName + '\'' +
             ", serviceGroupName='" + serviceGroupName + '\'' +
-            ", dependencyServiceName='" + dependencyServiceName + '\'' +
-            ", dependencyServiceGroupName='" + dependencyServiceGroupName + '\'' +
+            ", dependencyServiceId=" + dependencyServiceId +
             '}';
   }
 }

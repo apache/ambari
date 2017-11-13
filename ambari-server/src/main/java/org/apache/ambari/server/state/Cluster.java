@@ -75,10 +75,9 @@ public interface Cluster {
                      RepositoryVersionEntity repositoryVersion) throws AmbariException;
 
   Service addDependencyToService(String  serviceGroupName, String serviceName,
-                                        String dependencyServiceGroupName, String dependencyServiceName);
+                                        Long dependencyServiceId) throws AmbariException;
 
-  Service removeDependencyFromService(String  serviceGroupName, String serviceName, String dependencyServiceGroupName,
-                                      String dependencyServiceName);
+  Service removeDependencyFromService(String  serviceGroupName, String serviceName, Long dependencyServiceId);
 
   /**
    * Add service group to the cluster

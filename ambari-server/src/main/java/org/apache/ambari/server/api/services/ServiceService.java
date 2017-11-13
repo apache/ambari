@@ -316,10 +316,10 @@ public class ServiceService extends BaseService {
           responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
           @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
-                  defaultValue = "ServiceInfo/service_group_name, ServiceInfo/service_name, ServiceInfo/cluster_name",
+                  defaultValue = "ServiceDependencyInfo/dependency_service_id, ServiceInfo/service_group_name, ServiceInfo/service_name, ServiceInfo/cluster_name",
                   dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
-                  defaultValue = "ServiceInfo/service_group_name.asc, ServiceInfo/service_name.asc, ServiceInfo/cluster_name.asc",
+                  defaultValue = "ServiceDependencyInfo/dependency_service_id.asc, ServiceInfo/service_group_name.asc, ServiceInfo/service_name.asc, ServiceInfo/cluster_name.asc",
                   dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
@@ -336,7 +336,7 @@ public class ServiceService extends BaseService {
   }
 
   @GET
-  @Path("{serviceName}/dependencies/{dependencyServiceName}")
+  @Path("{serviceName}/dependencies/{dependencyServiceId}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get the details of a service dependency",
           nickname = "ServiceService#getServiceDependency",
@@ -344,7 +344,7 @@ public class ServiceService extends BaseService {
           response = ServiceResponse.ServiceResponseSwagger.class,
           responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
-          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "ServiceInfo/*",
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "ServiceDependencyInfo/*",
                   dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
   })
   @ApiResponses(value = {
@@ -354,9 +354,9 @@ public class ServiceService extends BaseService {
   })
   public Response getServiceDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                               @PathParam("serviceName") String serviceName,
-                                              @PathParam("dependencyServiceName") String dependencyServiceName) {
+                                              @PathParam("dependencyServiceId") String dependencyServiceId) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, dependencyServiceName));
+            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, dependencyServiceId));
   }
 
 
@@ -386,7 +386,7 @@ public class ServiceService extends BaseService {
   }
 
   @DELETE
-  @Path("{serviceName}/dependencies")
+  @Path("{serviceName}/dependencies/{dependencyServiceId}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Deletes a service dependency",
           nickname = "ServiceService#deleteServiceDependency"
@@ -400,9 +400,9 @@ public class ServiceService extends BaseService {
   })
   public Response deleteServiceDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                               @PathParam("serviceName") String serviceName,
-                                              @PathParam("dependencyServiceName") String dependencyServiceName) {
+                                              @PathParam("dependencyServiceId") String dependencyServiceId) {
     return handleRequest(headers, body, ui, Request.Type.DELETE,
-            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, dependencyServiceName));
+            createServiceDependencyResource(m_clusterName, m_serviceGroupName, serviceName, dependencyServiceId));
   }
 
   /**
@@ -766,12 +766,12 @@ public class ServiceService extends BaseService {
     return createResource(Resource.Type.Artifact, mapIds);
   }
 
-  ResourceInstance createServiceDependencyResource(String clusterName, String serviceGroupName, String serviceName, String serviceDependencyName) {
+  ResourceInstance createServiceDependencyResource(String clusterName, String serviceGroupName, String serviceName, String serviceDependencyId) {
     Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
     mapIds.put(Resource.Type.Service, serviceName);
-    mapIds.put(Resource.Type.ServiceDependency, serviceDependencyName);
+    mapIds.put(Resource.Type.ServiceDependency, serviceDependencyId);
 
 
     return createResource(Resource.Type.ServiceDependency, mapIds);

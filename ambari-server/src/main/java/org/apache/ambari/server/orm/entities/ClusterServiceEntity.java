@@ -30,8 +30,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -105,20 +103,11 @@ public class ClusterServiceEntity {
   @OneToMany(mappedBy = "clusterServiceEntity")
   private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
 
-  @ManyToMany
-  @JoinTable(
-    name = "servicedependencies",
-    joinColumns = {@JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false, insertable = true, updatable = true),
-            @JoinColumn(name = "service_cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
-            @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false, insertable = false, updatable = false)},
-    inverseJoinColumns = {@JoinColumn(name = "dependent_service_id", referencedColumnName = "id", nullable = false, insertable = true, updatable = true),
-            @JoinColumn(name = "dependent_service_cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
-            @JoinColumn(name = "dependent_service_group_id", referencedColumnName = "service_group_id", nullable = false, insertable = false, updatable = false)}
-  )
-  private List<ClusterServiceEntity> serviceDependencies;
+  @OneToMany(mappedBy="service")
+  private List<ServiceDependencyEntity> serviceDependencies;
 
-  @ManyToMany(mappedBy="serviceDependencies")
-  private List<ClusterServiceEntity> dependencies;
+  @OneToMany(mappedBy="serviceDependency")
+  private List<ServiceDependencyEntity> dependencies;
 
   public Long getClusterId() {
     return clusterId;
@@ -168,19 +157,19 @@ public class ClusterServiceEntity {
     this.serviceEnabled = serviceEnabled;
   }
 
-  public List<ClusterServiceEntity> getDependencies() {
+  public List<ServiceDependencyEntity> getDependencies() {
     return dependencies;
   }
 
-  public void setDependencies(List<ClusterServiceEntity> dependencies) {
+  public void setDependencies(List<ServiceDependencyEntity> dependencies) {
     this.dependencies = dependencies;
   }
 
-  public List<ClusterServiceEntity> getServiceDependencies() {
+  public List<ServiceDependencyEntity> getServiceDependencies() {
     return serviceDependencies;
   }
 
-  public void setServiceDependencies(List<ClusterServiceEntity> serviceDependencies) {
+  public void setServiceDependencies(List<ServiceDependencyEntity> serviceDependencies) {
     this.serviceDependencies = serviceDependencies;
   }
 
