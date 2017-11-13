@@ -298,10 +298,10 @@ public class ServiceGroupService extends BaseService {
           responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
           @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
-                  defaultValue = "ServiceGroupInfo/service_group_name, ServiceGroupInfo/cluster_name",
+                  defaultValue = "ServiceGroupDependencyInfo/dependency_service_group_id, ServiceGroupInfo/service_group_name, ServiceGroupInfo/cluster_name",
                   dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
-                  defaultValue = "ServiceGroupInfo/service_group_name.asc, ServiceGroupInfo/cluster_name.asc",
+                  defaultValue = "ServiceGroupDependencyInfo/dependency_service_group_id.asc, ServiceGroupInfo/service_group_name.asc, ServiceGroupInfo/cluster_name.asc",
                   dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
           @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
@@ -322,14 +322,14 @@ public class ServiceGroupService extends BaseService {
    * Handles URL: /clusters/{clusterName}/servicegroups/{serviceGroupName}/dependencies/{serviceGroupDependency}
    * Get a specific servicegroupdependency.
    *
-   * @param headers                 http headers
-   * @param ui                      uri info
-   * @param serviceGroupName        service group name
-   * @param serviceGroupDependency  service group dependency name
+   * @param headers                    http headers
+   * @param ui                         uri info
+   * @param serviceGroupName           service group name
+   * @param serviceGroupDependencyId   service group dependency id
    * @return servicegroupdependency    resource representation
    */
   @GET
-  @Path("{serviceGroupName}/dependencies/{serviceGroupDependency}")
+  @Path("{serviceGroupName}/dependencies/{serviceGroupDependencyId}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get the details of a servicegroupdependency",
           nickname = "ServiceGroupService#getServiceGroupDependency",
@@ -347,10 +347,10 @@ public class ServiceGroupService extends BaseService {
   })
   public Response getServiceGroupDependency(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                               @PathParam("serviceGroupName") String serviceGroupName,
-                                              @PathParam("serviceGroupDependency") String serviceGroupDependency) {
+                                              @PathParam("serviceGroupDependencyId") String serviceGroupDependencyId) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-            createServiceGroupDependencyResource(m_clusterName, serviceGroupName, serviceGroupDependency));
+            createServiceGroupDependencyResource(m_clusterName, serviceGroupName, serviceGroupDependencyId));
   }
 
   /**
@@ -392,14 +392,14 @@ public class ServiceGroupService extends BaseService {
    * Handles: DELETE /clusters/{clusterName}/servicegroups/{serviceGroupName}/dependencies/{serviceGroupDependency}
    * Delete a specific servicegroupdependency.
 
-   * @param headers                 http headers
-   * @param ui                      uri info
-   * @param serviceGroupName        service group name
-   * @param serviceGroupDependency  service group dependency name
+   * @param headers                   http headers
+   * @param ui                        uri info
+   * @param serviceGroupName          service group name
+   * @param serviceGroupDependencyId  service group dependency id
    * @return information regarding the deleted servicegroupdependency
    */
   @DELETE
-  @Path("{serviceGroupName}/dependencies/{serviceGroupDependency}")
+  @Path("{serviceGroupName}/dependencies/{serviceGroupDependencyId}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Deletes a servicegroupdependency",
           nickname = "ServiceGroupService#deleteServiceGroupDependency"
@@ -413,9 +413,9 @@ public class ServiceGroupService extends BaseService {
   })
   public Response deleteServiceGroupDependency(@Context HttpHeaders headers, @Context UriInfo ui,
                                      @PathParam("serviceGroupName") String serviceGroupName,
-                                     @PathParam("serviceGroupDependency") String serviceGroupDependency) {
+                                     @PathParam("serviceGroupDependencyId") String serviceGroupDependencyId) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceGroupDependencyResource(m_clusterName, serviceGroupName, serviceGroupDependency));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createServiceGroupDependencyResource(m_clusterName, serviceGroupName, serviceGroupDependencyId));
   }
   /**
    * Create a service resource instance.
@@ -434,11 +434,11 @@ public class ServiceGroupService extends BaseService {
     return createResource(Resource.Type.ServiceGroup, mapIds);
   }
 
-  ResourceInstance createServiceGroupDependencyResource(String clusterName, String serviceGroupName, String serviceGroupDependency) {
+  ResourceInstance createServiceGroupDependencyResource(String clusterName, String serviceGroupName, String serviceGroupDependencyId) {
     Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
-    mapIds.put(Resource.Type.ServiceGroupDependency, serviceGroupDependency);
+    mapIds.put(Resource.Type.ServiceGroupDependency, serviceGroupDependencyId);
 
 
     return createResource(Resource.Type.ServiceGroupDependency, mapIds);

@@ -85,7 +85,7 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
     new HashSet<String>(Arrays.asList(new String[]{
       SERVICE_GROUP_DEPENDENCY_CLUSTER_NAME_PROPERTY_ID,
       SERVICE_GROUP_DEPENDENCY_SERVICE_GROUP_NAME_PROPERTY_ID,
-      SERVICE_GROUP_DEPENDENCY_DEPENDENCY_SERVICE_GROUP_NAME_PROPERTY_ID}));
+      SERVICE_GROUP_DEPENDENCY_DEPENDENCY_SERVICE_GROUP_ID_PROPERTY_ID}));
 
   private static Gson gson = StageUtils.getGson();
 
@@ -113,7 +113,7 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_GROUP_DEPENDENCY_CLUSTER_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_GROUP_DEPENDENCY_SERVICE_GROUP_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroupDependency, SERVICE_GROUP_DEPENDENCY_DEPENDENCY_SERVICE_GROUP_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroupDependency, SERVICE_GROUP_DEPENDENCY_DEPENDENCY_SERVICE_GROUP_ID_PROPERTY_ID);
   }
 
   private Clusters clusters;
@@ -253,7 +253,7 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
     notifyDelete(Resource.Type.ServiceGroupDependency, predicate);
     for(ServiceGroupDependencyRequest svgReq : requests) {
       deleteStatusMetaData.addDeletedKey("cluster_name: " + svgReq.getClusterName() + ", " + " service_group_name: " + svgReq.getServiceGroupName()
-                                        + "dependency_service_group_name: " + svgReq.getDependencyServiceGroupName());
+                                        + " dependency_service_group_id: " + svgReq.getDependencyServiceGroupId());
     }
     return getRequestStatus(null, null, deleteStatusMetaData);
   }
@@ -288,21 +288,12 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
   private ServiceGroupDependencyRequest getRequest(Map<String, Object> properties) {
     String clusterName = (String) properties.get(SERVICE_GROUP_DEPENDENCY_CLUSTER_NAME_PROPERTY_ID);
     String serviceGroupName = (String) properties.get(SERVICE_GROUP_DEPENDENCY_SERVICE_GROUP_NAME_PROPERTY_ID);
-    String dependencyServiceGroupName = (String) properties.get(SERVICE_GROUP_DEPENDENCY_DEPENDENCY_SERVICE_GROUP_NAME_PROPERTY_ID);
-    ServiceGroupDependencyRequest svcRequest = new ServiceGroupDependencyRequest(clusterName, serviceGroupName, dependencyServiceGroupName);
+    String strdependencyServiceGroupId = (String)properties.get(SERVICE_GROUP_DEPENDENCY_DEPENDENCY_SERVICE_GROUP_ID_PROPERTY_ID);
+    Long dependencyServiceGroupId = strdependencyServiceGroupId == null ? null : Long.valueOf(strdependencyServiceGroupId);
+    ServiceGroupDependencyRequest svcRequest = new ServiceGroupDependencyRequest(clusterName, serviceGroupName, dependencyServiceGroupId);
     return svcRequest;
   }
 
-  protected Set<ServiceGroupKey> getServiceGroupDependenciesSet(Set<Map<String, String>> serviceGroupDependencies) {
-    Set<ServiceGroupKey> serviceGroupKeys = new HashSet<>();
-    if (serviceGroupDependencies != null) {
-      for (Map<String, String> dependencyProperties : serviceGroupDependencies) {
-        ServiceGroupKey serviceGroupKey = mapper.convertValue(dependencyProperties, ServiceGroupKey.class);
-        serviceGroupKeys.add(serviceGroupKey);
-      }
-    }
-    return serviceGroupKeys;
-  }
 
   // Create services from the given request.
   public synchronized Set<ServiceGroupDependencyResponse> createServiceGroupDependencies(Set<ServiceGroupDependencyRequest> requests)
@@ -323,8 +314,8 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
       // Already checked that service group does not exist
-      ServiceGroup sg = cluster.addServiceGroupDependency(request.getServiceGroupName(), request.getDependencyServiceGroupName());
-      createdServiceGroupDependencies.addAll(sg.getServiceGroupDependencyResponses());
+      cluster.addServiceGroupDependency(request.getServiceGroupName(), request.getDependencyServiceGroupId());
+      createdServiceGroupDependencies.addAll(cluster.getServiceGroup(request.getServiceGroupName()).getServiceGroupDependencyResponses());
     }
     return createdServiceGroupDependencies;
   }
@@ -381,7 +372,6 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
 
     Clusters clusters = getManagementController().getClusters();
 
-    Set<ServiceGroupDependencyRequest> removable = new HashSet<>();
 
     for (ServiceGroupDependencyRequest serviceGroupDependencyRequest : request) {
       if (null == serviceGroupDependencyRequest.getClusterName()
@@ -397,24 +387,24 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
 
         Cluster cluster = clusters.getCluster(serviceGroupDependencyRequest.getClusterName());
         ServiceGroup serviceGroup = cluster.getServiceGroup(serviceGroupDependencyRequest.getServiceGroupName());
-        Set<ServiceGroupKey> serviceGroupKeys = serviceGroup.getServiceGroupDependencies();
-        if (serviceGroupKeys == null || serviceGroupKeys.isEmpty()) {
+        Set<ServiceGroupKey> dependencyServiceGroupKeys = serviceGroup.getServiceGroupDependencies();
+        if (dependencyServiceGroupKeys == null || dependencyServiceGroupKeys.isEmpty()) {
           throw new AmbariException("Servcie group name " + serviceGroupDependencyRequest.getServiceGroupName() + " has no" +
-                  "dependencies, so nothing to remove.");
+                  " dependencies, so nothing to remove.");
         } else {
           boolean dependencyAvailable = false;
-          for (ServiceGroupKey serviceGroupKey : serviceGroupKeys) {
-            if (serviceGroupKey.getServiceGroupName().equals(serviceGroupDependencyRequest.getDependencyServiceGroupName())) {
+          for (ServiceGroupKey dependencyServiceGroupKey : dependencyServiceGroupKeys) {
+            if (dependencyServiceGroupKey.getServiceGroupId() == serviceGroupDependencyRequest.getDependencyServiceGroupId()) {
               dependencyAvailable = true;
             }
           }
           if (!dependencyAvailable) {
             throw new AmbariException("Servcie group name " + serviceGroupDependencyRequest.getServiceGroupName() + " has no" +
-                    "dependency " + serviceGroupDependencyRequest.getDependencyServiceGroupName() + ", so nothing to remove.");
+                    "dependency with id=" + serviceGroupDependencyRequest.getDependencyServiceGroupId() + ", so nothing to remove.");
           }
 
           serviceGroup.getCluster().deleteServiceGroupDependency(serviceGroupDependencyRequest.getServiceGroupName(),
-                  serviceGroupDependencyRequest.getDependencyServiceGroupName());
+                  serviceGroupDependencyRequest.getDependencyServiceGroupId());
         }
       }
     }
@@ -424,23 +414,26 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
   private void validateCreateRequests(Set<ServiceGroupDependencyRequest> requests, Clusters clusters)
     throws AuthorizationException, AmbariException {
 
-    Map<String, Set<String>> serviceGroupNames = new HashMap<>();
-    Set<String> duplicates = new HashSet<>();
     for (ServiceGroupDependencyRequest request : requests) {
       final String clusterName = request.getClusterName();
       final String serviceGroupName = request.getServiceGroupName();
-      final String dependencyServiceGroupName = request.getDependencyServiceGroupName();
+      final Long dependencyServiceGroupId = request.getDependencyServiceGroupId();
 
       Validate.notNull(clusterName, "Cluster name should be provided when creating a service group");
 
       // validating service group dependencies
-      if (StringUtils.isEmpty(dependencyServiceGroupName)) {
-        throw new AmbariException("Service group name is empty or null!");
+      if (dependencyServiceGroupId == null) {
+        throw new AmbariException("Service group name id has is null!");
       } else {
-        Cluster cluster = clusters.getCluster(clusterName);
-        //throws service group not found exception
-        ServiceGroup serviceGroup = cluster.getServiceGroup(dependencyServiceGroupName);
-
+        boolean dependencyServiceGroupAvailable = false;
+        for (Cluster cl : clusters.getClusters().values()) {
+          if (cl.getServiceGroupsById().containsKey(dependencyServiceGroupId)) {
+            dependencyServiceGroupAvailable = true;
+          }
+        }
+        if (!dependencyServiceGroupAvailable) {
+          throw new AmbariException("Service group with id=" + dependencyServiceGroupId + " is not available.");
+        }
       }
 
       Validate.notEmpty(serviceGroupName, "Service group name should be provided when adding a service group dependency");
@@ -463,14 +456,13 @@ public class ServiceGroupDependencyResourceProvider extends AbstractControllerRe
         throw new ParentObjectNotFoundException("Attempted to add a service group to a cluster which doesn't exist", e);
       }
 
-      // throws service group not found exception if theere is no such SG
       ServiceGroup sg = cluster.getServiceGroup(serviceGroupName);
       Set<ServiceGroupKey> dependencies = sg.getServiceGroupDependencies();
       if (dependencies != null) {
         for (ServiceGroupKey serviceGroupKey : dependencies) {
-          if (serviceGroupKey.getServiceGroupName().equals(dependencyServiceGroupName)) {
+          if (serviceGroupKey.getServiceGroupId() == dependencyServiceGroupId) {
             throw new AmbariException("Service group " + serviceGroupName + " already have dependency for service group "
-                    + dependencyServiceGroupName);
+                    + serviceGroupKey.getServiceGroupName());
           }
         }
       }

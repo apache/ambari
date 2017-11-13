@@ -139,12 +139,14 @@ CREATE TABLE servicegroups (
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE servicegroupdependencies (
+  id NUMBER(19) NOT NULL,
   service_group_id NUMBER(19) NOT NULL,
   service_group_cluster_id NUMBER(19) NOT NULL,
   dependent_service_group_id NUMBER(19) NOT NULL,
   dependent_service_group_cluster_id NUMBER(19) NOT NULL,
-  CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
+  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
   CONSTRAINT FK_servicegroupdependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
@@ -1149,6 +1151,7 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_setting_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_dependency_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('group_id_seq', 0);

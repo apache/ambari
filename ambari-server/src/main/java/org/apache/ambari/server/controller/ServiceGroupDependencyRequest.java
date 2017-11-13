@@ -22,12 +22,12 @@ public class ServiceGroupDependencyRequest {
 
   private String clusterName; // REF
   private String serviceGroupName; // GET/CREATE/UPDATE/DELETE
-  private String dependencyServiceGroupName;
+  private Long dependencyServiceGroupId;
 
-  public ServiceGroupDependencyRequest(String clusterName, String serviceGroupName, String dependencyServiceGroupName) {
+  public ServiceGroupDependencyRequest(String clusterName, String serviceGroupName, Long dependencyServiceGroupId) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.dependencyServiceGroupName = dependencyServiceGroupName;
+    this.dependencyServiceGroupId = dependencyServiceGroupId;
   }
 
   /**
@@ -58,12 +58,12 @@ public class ServiceGroupDependencyRequest {
     this.serviceGroupName = serviceGroupName;
   }
 
-  public String getDependencyServiceGroupName() {
-    return dependencyServiceGroupName;
+  public Long getDependencyServiceGroupId() {
+    return dependencyServiceGroupId;
   }
 
-  public void setDependencyServiceGroupName(String dependencyServiceGroupName) {
-    this.dependencyServiceGroupName = dependencyServiceGroupName;
+  public void setDependencyServiceGroupId(Long dependencyServiceGroupId) {
+    this.dependencyServiceGroupId = dependencyServiceGroupId;
   }
 
   public String toString() {

@@ -105,7 +105,6 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
-import org.apache.ambari.server.orm.entities.ServiceGroupEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -1043,39 +1042,16 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public ServiceGroup addServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException {
-    if (!serviceGroups.containsKey(serviceGroupName)) {
-      throw new AmbariException("Service group doesn't exist" + ", clusterName=" + getClusterName()
-              + ", clusterId=" + getClusterId() + ", serviceGroupName=" + serviceGroupName);
-    }
-
-    if (!serviceGroups.containsKey(dependencyServiceGroupName)) {
-      throw new AmbariException("Dependent service group doesn't exist" + ", clusterName=" + getClusterName()
-              + ", clusterId=" + getClusterId() + ", serviceGroupName=" + serviceGroupName);
-    }
-
-    ServiceGroupEntity serviceGroupEntity = null;
+  public void addServiceGroupDependency(String serviceGroupName, Long dependencyServiceGroupId) throws AmbariException {
     clusterGlobalLock.writeLock().lock();
     try {
-      ServiceGroupEntityPK serviceGroupEntityPK = new ServiceGroupEntityPK();
-      serviceGroupEntityPK.setClusterId(getClusterId());
-      serviceGroupEntityPK.setServiceGroupId(serviceGroups.get(serviceGroupName).getServiceGroupId());
-      serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
+      ServiceGroupEntity updatedServiceGroupEntity = getServiceGroup(serviceGroupName).addServiceGroupDependency(dependencyServiceGroupId);
 
-      ServiceGroupEntityPK dependencyServiceGroupEntityPK = new ServiceGroupEntityPK();
-      dependencyServiceGroupEntityPK.setClusterId(getClusterId());
-      dependencyServiceGroupEntityPK.setServiceGroupId(serviceGroups.get(dependencyServiceGroupName).getServiceGroupId());
-      ServiceGroupEntity dependencyServiceGroupEntity = serviceGroupDAO.findByPK(dependencyServiceGroupEntityPK);
-
-      serviceGroupEntity.getServiceGroupDependencies().add(dependencyServiceGroupEntity);
-      serviceGroupEntity = serviceGroupDAO.merge(serviceGroupEntity);
+      ServiceGroup serviceGroup = serviceGroupFactory.createExisting(this, updatedServiceGroupEntity);
+      addServiceGroup(serviceGroup);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
-
-    ServiceGroup serviceGroup = serviceGroupFactory.createExisting(this, serviceGroupEntity);
-    addServiceGroup(serviceGroup);
-    return serviceGroup;
   }
 
   @Override
@@ -1773,15 +1749,14 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public void deleteServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException {
+  public void deleteServiceGroupDependency(String serviceGroupName, Long dependencyServiceGroupId) throws AmbariException {
     clusterGlobalLock.writeLock().lock();
     try {
       ServiceGroup serviceGroup = getServiceGroup(serviceGroupName);
-      LOG.info("Deleting service group dependency, dependencyServiceGroupName=" + dependencyServiceGroupName + " in cluster" + ", clusterName="
+      LOG.info("Deleting service group dependency, dependencyServiceGroupId=" + dependencyServiceGroupId + " in cluster" + ", clusterName="
               + getClusterName() + ", serviceGroupName=" + serviceGroup.getServiceGroupName());
 
-      Long serviceGroupId = serviceGroup.getServiceGroupId();
-      ServiceGroupEntity serviceGroupEntity = serviceGroup.deleteDependency(dependencyServiceGroupName);
+      ServiceGroupEntity serviceGroupEntity = serviceGroup.deleteServiceGroupDependency(dependencyServiceGroupId);
       ServiceGroup updatedServiceGroup = serviceGroupFactory.createExisting(this, serviceGroupEntity);
       serviceGroups.put(updatedServiceGroup.getServiceGroupName(), updatedServiceGroup);
       serviceGroupsById.put(updatedServiceGroup.getServiceGroupId(), updatedServiceGroup);
@@ -1815,6 +1790,11 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
+  }
+
+  @Override
+  public Map<Long, ServiceGroup> getServiceGroupsById() {
+    return serviceGroupsById;
   }
 
   /**

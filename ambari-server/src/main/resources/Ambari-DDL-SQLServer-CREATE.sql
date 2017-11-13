@@ -152,12 +152,14 @@ CREATE TABLE servicegroups (
   CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE servicegroupdependencies (
+  id BIGINT NOT NULL,
   service_group_id BIGINT NOT NULL,
   service_group_cluster_id BIGINT NOT NULL,
   dependent_service_group_id BIGINT NOT NULL,
   dependent_service_group_cluster_id BIGINT NOT NULL,
-  CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
+  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
   CONSTRAINT FK_servicegroupdependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
@@ -1174,6 +1176,7 @@ BEGIN TRANSACTION
     ('cluster_id_seq', 1),
     ('cluster_setting_id_seq', 1),
     ('service_group_id_seq', 1),
+    ('service_group_dependency_id_seq', 1),
     ('service_id_seq', 1),
     ('host_id_seq', 0),
     ('user_id_seq', 2),

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -28,11 +27,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -70,18 +68,11 @@ public class ServiceGroupEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
-  @ManyToMany
-  @JoinTable(
-    name = "servicegroupdependencies",
-    joinColumns = {@JoinColumn(name = "service_group_id", referencedColumnName = "id", nullable = false),
-                   @JoinColumn(name = "service_group_cluster_id", referencedColumnName = "cluster_id", nullable = false)},
-    inverseJoinColumns = {@JoinColumn(name = "dependent_service_group_id", referencedColumnName = "id", nullable = false),
-                          @JoinColumn(name = "dependent_service_group_cluster_id", referencedColumnName = "cluster_id", nullable = false)}
-  )
-  private List<ServiceGroupEntity> serviceGroupDependencies = new ArrayList<>();
+  @OneToMany(mappedBy="serviceGroup")
+  private List<ServiceGroupDependencyEntity> serviceGroupDependencies;
 
-  @ManyToMany(mappedBy="serviceGroupDependencies")
-  private List<ServiceGroupEntity> dependencies = new ArrayList<>();
+  @OneToMany(mappedBy="serviceGroupDependency")
+  private List<ServiceGroupDependencyEntity> dependencies;
 
   public Long getClusterId() {
     return clusterId;
@@ -108,11 +99,19 @@ public class ServiceGroupEntity {
     this.serviceGroupName = serviceGroupName;
   }
 
-  public List<ServiceGroupEntity> getServiceGroupDependencies() {
+  public List<ServiceGroupDependencyEntity> getDependencies() {
+    return dependencies;
+  }
+
+  public void setDependencies(List<ServiceGroupDependencyEntity> dependencies) {
+    this.dependencies = dependencies;
+  }
+
+  public List<ServiceGroupDependencyEntity> getServiceGroupDependencies() {
     return serviceGroupDependencies;
   }
 
-  public void setServiceGroupDependencies(List<ServiceGroupEntity> serviceGroupDependencies) {
+  public void setServiceGroupDependencies(List<ServiceGroupDependencyEntity> serviceGroupDependencies) {
     this.serviceGroupDependencies = serviceGroupDependencies;
   }
 

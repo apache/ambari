@@ -59,5 +59,15 @@ public interface ServiceGroup {
 
   void delete() throws AmbariException;
 
-  ServiceGroupEntity deleteDependency(String dependencyServiceGroupName) throws AmbariException;
+  /**
+   * @param dependencyServiceGroupId dependency service group id which should be added to current
+   * @return updated service group entity
+   */
+  ServiceGroupEntity addServiceGroupDependency(Long dependencyServiceGroupId) throws AmbariException;
+
+  /**
+   * @param dependencyServiceGroupId dependency service group id which should be removed from current
+   * @return updated service group entity
+   */
+  ServiceGroupEntity deleteServiceGroupDependency(Long dependencyServiceGroupId) throws AmbariException;
 }

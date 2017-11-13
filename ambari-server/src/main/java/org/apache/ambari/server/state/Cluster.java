@@ -98,7 +98,15 @@ public interface Cluster {
    */
   ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException;
 
-  ServiceGroup addServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException;
+  /**
+   * Add service group dependency to the service group
+   *
+   * @param serviceGroupName Service group name
+   * @param dependencyServiceGroupId Dependency service group id
+   * @return
+   * @throws AmbariException
+   */
+  void addServiceGroupDependency(String serviceGroupName, Long dependencyServiceGroupId) throws AmbariException;
 
 
   ClusterSetting addClusterSetting(String clusterSettingName, String clusterSettingValue) throws AmbariException;
@@ -614,7 +622,21 @@ public interface Cluster {
    */
   void deleteServiceGroup(String serviceGroupName) throws AmbariException;
 
-  void deleteServiceGroupDependency(String serviceGroupName, String dependencyServiceGroupName) throws AmbariException;
+  /**
+   * Delete service group dependency from the service group
+   *
+   * @param serviceGroupName
+   * @param dependencyServiceGroupId
+   * @throws AmbariException
+   */
+  void deleteServiceGroupDependency(String serviceGroupName, Long dependencyServiceGroupId) throws AmbariException;
+
+  /**
+   * Get all service groups
+   *
+   * @return map of service group ids as keys and service group objects as values.
+   */
+  Map<Long, ServiceGroup> getServiceGroupsById();
 
   /**
    * Delete all the cluster settings associated with this cluster
