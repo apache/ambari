@@ -128,7 +128,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   @Override
   @JsonIgnore
   public Collection<String> getServiceNames() {
-    return serviceMap.values().stream().map(s -> s.getName()).collect(Collectors.toList());
+    return serviceMap.values().stream().map(Service::getName).collect(Collectors.toList());
   }
 
   @JsonIgnore
@@ -159,8 +159,8 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
 
   public void setComponents(List<ComponentV2> components) {
     this.components = components;
-    this.containsMasterComponent = components.stream().anyMatch(c -> c.isMasterComponent());
-    this.serviceIds = components.stream().map(c -> c.getServiceId()).collect(Collectors.toSet());
+    this.containsMasterComponent = components.stream().anyMatch(ComponentV2::isMasterComponent);
+    this.serviceIds = components.stream().map(ComponentV2::getServiceId).collect(Collectors.toSet());
   }
 
   @JsonIgnore

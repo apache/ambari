@@ -104,7 +104,7 @@ public class BlueprintV2Factory {
     blueprintV2.postDeserialization();
     blueprintV2.setStacks(
       blueprintV2.getStackIds().stream().collect(Collectors.toMap(
-        stackId -> new StackId(stackId),
+        StackId::new,
         stackId -> parseStack(new StackId(stackId))
       ))
     );

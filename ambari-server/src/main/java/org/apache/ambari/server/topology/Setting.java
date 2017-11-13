@@ -108,7 +108,7 @@ public class Setting {
     List<String> values = getSettingValue(settingCategory).stream().
       flatMap(sv -> sv.entrySet().stream()).
       filter(entry -> Objects.equals(entry.getKey(), propertyName)).
-      map(entry -> entry.getValue()).
+      map(Map.Entry::getValue).
       collect(Collectors.toList());
     Preconditions.checkState(values.size() < 2, "Ambigous settings (%s) for category %s, property %s",
       values.size(), settingCategory, settingCategory);

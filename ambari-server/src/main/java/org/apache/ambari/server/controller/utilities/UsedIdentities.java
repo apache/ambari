@@ -86,7 +86,7 @@ public class UsedIdentities {
    * @return true if there is an identity in the used list with the same keytab or principal name than the given identity
    */
   public boolean contains(KerberosIdentityDescriptor identity) {
-    return used.stream().anyMatch(each -> identity.isShared(each));
+    return used.stream().anyMatch(identity::isShared);
   }
 
   public interface ServiceExclude {

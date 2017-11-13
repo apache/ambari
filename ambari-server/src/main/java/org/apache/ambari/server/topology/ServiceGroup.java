@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ListMultimap;
@@ -76,7 +77,7 @@ public class ServiceGroup {
 
   public void setServices(Collection<Service> services) {
     services.forEach(s -> s.setServiceGroup(this));
-    this.servicesByName = services.stream().collect(Collectors.toMap(Service::getName, s -> s));
+    this.servicesByName = services.stream().collect(Collectors.toMap(Service::getName, Function.identity()));
     this.servicesByType = Multimaps.index(services, Service::getType);
     services.forEach(s -> s.setServiceGroup(this));
   }

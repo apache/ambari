@@ -85,7 +85,7 @@ public class StackV2Factory {
     List<Map.Entry<String, String>> componentServices = stackData.serviceComponents.entrySet().stream().
       flatMap(e -> e.getValue().stream().map( v -> new SimpleImmutableEntry<>(e.getKey(), v))).
       collect(Collectors.toList());
-    componentServices.stream().forEach( componentService -> {
+    componentServices.forEach( componentService -> {
       try {
         ComponentInfo componentInfo = controller.getAmbariMetaInfo().getComponent(stackData.stackName,
           stackData.stackVersion, componentService.getKey(), componentService.getValue());

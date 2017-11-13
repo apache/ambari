@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
@@ -68,7 +69,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
   public void setStacks(Map<StackId, StackV2> stacks) {
     this.stacks = stacks;
-    getAllServices().stream().forEach(s -> s.setStackFromBlueprint(this));
+    getAllServices().forEach(s -> s.setStackFromBlueprint(this));
   }
 
   @JsonProperty("Blueprints")
@@ -106,14 +107,14 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
   @JsonProperty("service_groups")
   public void setServiceGroups(Collection<ServiceGroup> serviceGroups) {
-    this.serviceGroups = serviceGroups.stream().collect(toMap( sg -> sg.getName(), sg -> sg ));
+    this.serviceGroups = serviceGroups.stream().collect(toMap(ServiceGroup::getName, Function.identity()));
   }
 
   @JsonProperty("host_groups")
   public void setHostGroups(Collection<HostGroupV2Impl> hostGroups) {
     this.hostGroupMap = hostGroups.stream().collect(toMap(
-      hg -> hg.getName(),
-      hg -> hg
+      HostGroupV2Impl::getName,
+      Function.identity()
     ));
   }
 
@@ -153,7 +154,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   @Override
   @JsonIgnore
   public Collection<String> getStackIds() {
-    return repositoryVersions.stream().map(rv -> rv.getStackId()).collect(toList());
+    return repositoryVersions.stream().map(RepositoryVersion::getStackId).collect(toList());
   }
 
   @Override
@@ -209,7 +210,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   @Override
   @JsonIgnore
   public Collection<String> getAllServiceTypes() {
-    return getServiceGroups().stream().flatMap(sg -> sg.getServices().stream()).map(s -> s.getType()).collect(toSet());
+    return getServiceGroups().stream().flatMap(sg -> sg.getServices().stream()).map(Service::getType).collect(toSet());
   }
 
   @Override
@@ -256,9 +257,9 @@ public class BlueprintImplV2 implements BlueprintV2 {
   public Configuration getConfiguration() {
     if (null == configuration) {
       configuration = new Configuration(new HashMap<>(), new HashMap<>());
-      getServiceGroups().stream().forEach( sg -> addChildConfiguration(configuration, sg.getConfiguration()) );
-      getHostGroups().values().stream().forEach(
-        hg -> hg.getComponents().stream().forEach(
+      getServiceGroups().forEach( sg -> addChildConfiguration(configuration, sg.getConfiguration()) );
+      getHostGroups().values().forEach(
+        hg -> hg.getComponents().forEach(
           c -> addChildConfiguration(configuration, c.getConfiguration())));
     }
     return configuration;
@@ -285,13 +286,13 @@ public class BlueprintImplV2 implements BlueprintV2 {
   @Override
   @JsonIgnore
   public Collection<String> getAllServiceNames() {
-    return getAllServices().stream().map(s -> s.getName()).collect(toList());
+    return getAllServices().stream().map(Service::getName).collect(toList());
   }
 
   @Nonnull
   @Override
   public Collection<String> getComponentNames(ServiceId serviceId) {
-    return getComponents(serviceId).stream().map(c -> c.getName()).collect(toList());
+    return getComponents(serviceId).stream().map(ComponentV2::getName).collect(toList());
   }
 
   @Override
@@ -355,7 +356,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
       return true;
     }
     final Set<String> serviceNames =
-      getAllServices().stream().map(s -> s.getName()).collect(toSet());
+      getAllServices().stream().map(Service::getName).collect(toSet());
     return getStacks().stream().anyMatch(
       stack -> {
         String service = stack.getServiceForConfigType(configType);
@@ -367,7 +368,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   public void postDeserialization() {
     // Maintain a ServiceId -> Service map
     this.services = getAllServiceIds().stream().collect(toMap(
-      serviceId -> serviceId,
+      Function.identity(),
       serviceId -> {
         ServiceGroup sg = getServiceGroup(serviceId.getServiceGroup());
         Service service = null != sg ? sg.getServiceByName(serviceId.getName()) : null;
@@ -379,11 +380,11 @@ public class BlueprintImplV2 implements BlueprintV2 {
     ));
 
     // Set Service -> ServiceGroup references and Service -> Service dependencies
-    getAllServices().stream().forEach( s -> {
+    getAllServices().forEach( s -> {
       s.setServiceGroup(serviceGroups.get(s.getServiceGroupId()));
       Map<ServiceId, Service> dependencies = s.getDependentServiceIds().stream().collect(toMap(
-        serviceId -> serviceId,
-        serviceId -> getService(serviceId)
+        Function.identity(),
+        this::getService
       ));
       s.setDependencyMap(dependencies);
     });
@@ -392,7 +393,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
     // Set HostGroup -> Services and Component -> Service references
     for (HostGroupV2Impl hg: hostGroupMap.values()) {
       hg.setServiceMap(hg.getServiceIds().stream().collect(toMap(
-        serviceId -> serviceId,
+        Function.identity(),
         serviceId -> this.services.get(serviceId)
       )));
       for (ComponentV2 comp: hg.getComponents()) {

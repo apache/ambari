@@ -101,7 +101,7 @@ public class RemovableIdentities {
   }
 
   private static ServiceExclude excludeService(String excludedServiceName) {
-    return serviceName -> excludedServiceName.equals(serviceName);
+    return excludedServiceName::equals;
   }
 
   private static ComponentExclude excludeComponent(String excludedServiceName, String excludedComponentName, String excludedHostName) {
@@ -116,7 +116,7 @@ public class RemovableIdentities {
 
   private static List<KerberosIdentityDescriptor> componentIdentities(List<String> componentNames, KerberosServiceDescriptor serviceDescriptor) throws AmbariException {
     return componentNames.stream()
-      .map(componentName -> serviceDescriptor.getComponent(componentName))
+      .map(serviceDescriptor::getComponent)
       .filter(Objects::nonNull)
       .flatMap(componentDescriptor -> componentDescriptor.getIdentitiesSkipReferences().stream())
       .collect(toList());
