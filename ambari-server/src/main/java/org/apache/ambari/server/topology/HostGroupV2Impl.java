@@ -17,23 +17,18 @@
  */
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
-
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 public class HostGroupV2Impl implements HostGroupV2, Configurable {
 
@@ -73,22 +68,18 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   @Override
   @JsonIgnore
   public Collection<String> getComponentNames() {
-    return getComponentNames(components);
-  }
-
-  private Collection<String> getComponentNames(List<ComponentV2> components) {
-    return Lists.transform(components,
-      new Function<ComponentV2, String>() {
-        @Override public String apply(@Nullable ComponentV2 input) { return input.getName(); }
-      });
+    return components.stream()
+      .map(ComponentV2::getName)
+      .collect(toList());
   }
 
   @Override
   @JsonIgnore
   public Collection<String> getComponentNames(ProvisionAction provisionAction) {
-    List<ComponentV2> filtered =
-      ImmutableList.copyOf(Collections2.filter(components, Predicates.equalTo(provisionAction)));
-    return getComponentNames(filtered);
+    return components.stream()
+      .filter(c -> c.getProvisionAction().equals(provisionAction))
+      .map(ComponentV2::getName)
+      .collect(toList());
   }
 
   @Override
@@ -98,7 +89,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
 
   @Override
   public Collection<ComponentV2> getComponentsByServiceId(ServiceId serviceId) {
-    return components.stream().filter(c -> c.getServiceId().equals(serviceId)).collect(Collectors.toList());
+    return components.stream().filter(c -> c.getServiceId().equals(serviceId)).collect(toList());
   }
 
   @Override
@@ -128,13 +119,13 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   @Override
   @JsonIgnore
   public Collection<String> getServiceNames() {
-    return serviceMap.values().stream().map(Service::getName).collect(Collectors.toList());
+    return serviceMap.values().stream().map(Service::getName).collect(toList());
   }
 
   @JsonIgnore
   public void setServiceMap(Map<ServiceId, Service> serviceMap) {
     Preconditions.checkArgument(serviceMap.keySet().equals(this.serviceIds),
-      "Maitained list of service ids doesn't match with received service map: %s vs %s", serviceIds, serviceMap.keySet());
+      "Maintained list of service ids doesn't match with received service map: %s vs %s", serviceIds, serviceMap.keySet());
     this.serviceMap = serviceMap;
   }
 
