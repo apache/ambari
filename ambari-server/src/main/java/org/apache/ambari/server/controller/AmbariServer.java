@@ -936,7 +936,7 @@ public class AmbariServer {
     HostResourceProvider.setTopologyManager(injector.getInstance(TopologyManager.class));
     BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
     BlueprintV2Factory.init(injector.getInstance(BlueprintV2DAO.class));
-    BaseClusterRequest.init(injector.getInstance(BlueprintV2Factory.class));
+    BaseClusterRequest.init(injector.getInstance(AmbariManagementController.class));
     AmbariContext.init(injector.getInstance(HostRoleCommandFactory.class));
 
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));

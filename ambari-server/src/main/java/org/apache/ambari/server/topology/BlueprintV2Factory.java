@@ -82,6 +82,7 @@ public class BlueprintV2Factory {
   protected BlueprintV2Factory() {
 
   }
+
   protected BlueprintV2Factory(StackV2Factory stackFactory) {
     this.stackFactory = stackFactory;
   }

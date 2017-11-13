@@ -27,6 +27,7 @@ import java.util.Set;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.predicate.Token;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
@@ -92,12 +93,8 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   private static ResourceProvider hostResourceProvider;
 
 
-  /**
-   * inject blueprint factory
-   * @param factory  blueprint factory
-   */
-  public static void init(BlueprintV2Factory factory) {
-    blueprintFactory = factory;
+  public static void init(AmbariManagementController controller) {
+    blueprintFactory = BlueprintV2Factory.create(controller);
   }
 
   @Override
