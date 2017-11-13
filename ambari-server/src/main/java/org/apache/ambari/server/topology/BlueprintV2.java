@@ -27,7 +27,6 @@ import javax.annotation.Nonnull;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 
-
 /**
  * Blueprint representation.
  */
@@ -65,7 +64,7 @@ public interface BlueprintV2 {
   /**
   * @return associated stack ids
   **/
-  public Collection<String> getStackIds();
+  Collection<String> getStackIds();
 
   StackV2 getStackById(String stackId);
 
@@ -82,8 +81,6 @@ public interface BlueprintV2 {
 
   /**
    * Get service by Id
-   * @param serviceId
-   * @return
    */
   Service getServiceById(ServiceId serviceId);
 
@@ -101,8 +98,6 @@ public interface BlueprintV2 {
    */
   @Nonnull
   Collection<String> getAllServiceNames();
-
-
 
   /**
    * Get all of the service types represented in the blueprint.
@@ -122,9 +117,6 @@ public interface BlueprintV2 {
 
   /**
    * Get services by type from a service group.
-   * @param serviceGroup
-   * @param serviceType
-   * @return
    */
   Collection<Service> getServicesFromServiceGroup(ServiceGroup serviceGroup, String serviceType);
 
@@ -149,15 +141,10 @@ public interface BlueprintV2 {
 
   Collection<ComponentV2> getComponents(Service service);
 
-
   /**
    * Get components by type from a service.
-   * @param service
-   * @param componentType
-   * @return
    */
   Collection<ComponentV2> getComponentsByType(Service service, String componentType);
-
 
   /**
    * Get the host groups which contain components for the specified service.
@@ -178,7 +165,6 @@ public interface BlueprintV2 {
    */
   Collection<HostGroupV2> getHostGroupsForComponent(ComponentV2 component);
 
-
   /**
    * Get the Blueprint cluster scoped configuration.
    * The blueprint cluster scoped configuration has the stack
@@ -190,7 +176,6 @@ public interface BlueprintV2 {
   @Deprecated
   Configuration getConfiguration();
 
-
   /**
    * Get the Blueprint cluster scoped setting.
    * The blueprint cluster scoped setting has the setting properties
@@ -199,7 +184,6 @@ public interface BlueprintV2 {
    * @return blueprint cluster scoped setting
    */
   Setting getSetting();
-
 
   /**
    * Get whether a component is enabled for auto start.
@@ -233,10 +217,7 @@ public interface BlueprintV2 {
   void validateTopology() throws InvalidTopologyException;
 
   /**
-   *
    * A config type is valid if there are services related to except cluster-env and global.
-   * @param configType
-   * @return
    */
   boolean isValidConfigType(String configType);
 
