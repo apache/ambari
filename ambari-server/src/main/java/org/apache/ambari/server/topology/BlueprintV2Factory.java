@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
@@ -102,27 +103,29 @@ public class BlueprintV2Factory {
   public BlueprintV2 convertFromJson(String json) throws IOException {
     BlueprintImplV2 blueprintV2 = createObjectMapper().readValue(json, BlueprintImplV2.class);
     blueprintV2.postDeserialization();
-    blueprintV2.setStacks(
-      blueprintV2.getStackIds().stream().collect(Collectors.toMap(
-        StackId::new,
-        stackId -> parseStack(new StackId(stackId))
-      ))
-    );
+    updateStacks(blueprintV2);
     return blueprintV2;
   }
 
+  private void updateStacks(BlueprintImplV2 blueprintV2) {
+    Map<StackId, StackV2> stacks = blueprintV2.getStackIds().stream()
+      .map(StackId::new)
+      .collect(Collectors.toMap(Function.identity(), this::parseStack));
+    blueprintV2.setStacks(stacks);
+  }
 
   public BlueprintV2 convertFromEntity(BlueprintV2Entity blueprintEntity) throws IOException {
     return convertFromJson(blueprintEntity.getContent());
   }
 
+  @SuppressWarnings("unchecked")
   public Map<String, Object> convertToMap(BlueprintV2Entity entity) throws IOException {
     return createObjectMapper().readValue(entity.getContent(), HashMap.class);
   }
 
   private StackV2 parseStack(StackId stackId) {
     try {
-      return stackFactory.create(stackId.getStackName(), stackId.getStackVersion());
+      return stackFactory.create(stackId);
     } catch (AmbariException e) {
       throw new IllegalArgumentException(
         String.format("Unable to parse stack. name=%s, version=%s", stackId.getStackName(), stackId.getStackVersion()),
@@ -156,7 +159,6 @@ public class BlueprintV2Factory {
    * @param securityConfiguration security related properties
    * @return new blueprint entity
    */
-  @SuppressWarnings("unchecked")
   public BlueprintV2 createBlueprint(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws NoSuchStackException, IOException {
     String name = String.valueOf(properties.get(BLUEPRINT_NAME_PROPERTY_ID));
     // String.valueOf() will return "null" if value is null
@@ -168,10 +170,7 @@ public class BlueprintV2Factory {
     String json = om.writeValueAsString(properties);
     BlueprintImplV2 blueprint = om.readValue(json, BlueprintImplV2.class);
     blueprint.postDeserialization();
-    Map<String, StackV2> stacks = new HashMap<>();
-    for (String stackId: blueprint.getStackIds()) {
-      stacks.put(stackId, stackFactory.create(stackId));
-    }
+    updateStacks(blueprint);
     blueprint.setSecurityConfiguration(securityConfiguration);
     return blueprint;
   }

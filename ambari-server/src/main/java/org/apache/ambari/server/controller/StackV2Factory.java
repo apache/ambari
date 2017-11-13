@@ -52,8 +52,7 @@ public class StackV2Factory {
     return create(stack.getStackName(), stack.getStackVersion());
   }
 
-  public StackV2 create(String stackId) throws AmbariException {
-    StackId id = new StackId(stackId);
+  public StackV2 create(StackId id) throws AmbariException {
     return create(id.getStackName(), id.getStackVersion());
   }
 
