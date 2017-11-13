@@ -53,12 +53,6 @@ RUN echo 'X11DisplayOffset 10\n' /etc/ssh/sshd_config
 #To allow bower install behind proxy. See https://github.com/bower/bower/issues/731
 RUN git config --global url."https://".insteadOf git://
 
-# Install python, nodejs and npm
-RUN yum -y install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-RUN yum -y install nodejs npm --enablerepo=epel
-RUN npm install -g npm@2.1.11
-RUN npm install -g brunch@1.7.20
-
 # Install Solr
 ENV SOLR_VERSION 6.6.2
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz

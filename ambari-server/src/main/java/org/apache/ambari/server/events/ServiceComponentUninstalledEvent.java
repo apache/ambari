@@ -27,6 +27,7 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
   private final String m_componentName;
   private final String m_hostName;
   private final boolean m_recoveryEnabled;
+  private final Long m_hostId;
 
   /**
    * Constructor.
@@ -40,7 +41,7 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
    */
   public ServiceComponentUninstalledEvent(long clusterId, String stackName,
       String stackVersion, String serviceName, String componentName,
-      String hostName, boolean recoveryEnabled) {
+      String hostName, boolean recoveryEnabled, Long hostId) {
     super(AmbariEventType.SERVICE_COMPONENT_UNINSTALLED_SUCCESS, clusterId,
         stackName,
         stackVersion, serviceName);
@@ -48,6 +49,7 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     m_componentName = componentName;
     m_hostName = hostName;
     m_recoveryEnabled = recoveryEnabled;
+    m_hostId = hostId;
   }
 
   /**
@@ -71,6 +73,10 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     return m_recoveryEnabled;
   }
 
+  public Long getHostId() {
+    return m_hostId;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -84,11 +90,12 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
     buffer.append(", componentName=").append(m_componentName);
     buffer.append(", hostName=").append(m_hostName);
     buffer.append(", recoveryEnabled=").append(m_recoveryEnabled);
+    buffer.append(", hostId=").append(m_hostId);
     buffer.append("}");
     return buffer.toString();
   }
 
   public Component getComponent() {
-    return new Component(getHostName(), getServiceName(), getComponentName());
+    return new Component(getHostName(), getServiceName(), getComponentName(), getHostId());
   }
 }

@@ -115,8 +115,7 @@ class TestHiveServerInteractive(RMFTestCase):
     )
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
-                              environment={'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
-                                           'HIVE_BIN': 'hive2',
+                              environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
                                            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
@@ -178,8 +177,7 @@ class TestHiveServerInteractive(RMFTestCase):
     )
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
-                              environment={'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
-                                           'HIVE_BIN': 'hive2',
+                              environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
                                            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
@@ -227,8 +225,7 @@ class TestHiveServerInteractive(RMFTestCase):
     )
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
-                              environment={'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
-                                           'HIVE_BIN': 'hive2',
+                              environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
                                            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
@@ -305,8 +302,7 @@ class TestHiveServerInteractive(RMFTestCase):
     )
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
-                              environment={'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
-                                           'HIVE_BIN': 'hive2',
+                              environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
                                            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',
@@ -364,8 +360,7 @@ class TestHiveServerInteractive(RMFTestCase):
                               )
     self.assertResourceCalled('Execute',
                               '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
-                              environment={'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
-                                           'HIVE_BIN': 'hive2',
+                              environment={'HIVE_BIN': '/usr/hdp/current/hive-server2-hive2/bin/hive2',
                                            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user='hive',

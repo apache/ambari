@@ -209,11 +209,7 @@ HdfsDirectory = functools.partial(
   bin_dir = hadoop_bin_dir
 )
 
-io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
-if not "com.hadoop.compression.lzo" in io_compression_codecs:
-  exclude_packages = ["lzo", "hadoop-lzo", "hadoop-lzo-native", "liblzo2-2"]
-else:
-  exclude_packages = []
+exclude_packages = []
 name_node_params = default("/commandParams/namenode", None)
 
 #hadoop params

@@ -18,7 +18,7 @@
 import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import 'rxjs/add/operator/map';
-import {FilteringService} from '@app/services/filtering.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 import {AuditLog} from '@app/classes/models/audit-log';
 import {ServiceLog} from '@app/classes/models/service-log';
@@ -31,7 +31,7 @@ import {LogField} from '@app/classes/models/log-field';
 })
 export class LogsListComponent implements AfterViewInit {
 
-  constructor(private filtering: FilteringService, private utils: UtilsService) {
+  constructor(private logsContainer: LogsContainerService, private utils: UtilsService) {
   }
 
   ngAfterViewInit() {
@@ -104,11 +104,11 @@ export class LogsListComponent implements AfterViewInit {
   readonly timeFormat: string = 'h:mm:ss A';
 
   get timeZone(): string {
-    return this.filtering.timeZone;
+    return this.logsContainer.timeZone;
   }
 
   get filters(): any {
-    return this.filtering.filters;
+    return this.logsContainer.filters;
   }
 
   isDifferentDates(dateA, dateB): boolean {
@@ -135,7 +135,7 @@ export class LogsListComponent implements AfterViewInit {
   }
 
   updateQuery(event: any) {
-    this.filtering.queryParameterAdd.next({
+    this.logsContainer.queryParameterAdd.next({
       name: this.messageFilterParameterName,
       value: this.selectedText,
       isExclude: event.value

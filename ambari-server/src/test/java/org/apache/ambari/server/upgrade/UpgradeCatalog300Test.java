@@ -24,7 +24,9 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_DESIRED
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -34,19 +36,23 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -130,13 +136,15 @@ public class UpgradeCatalog300Test {
     Method showHcatDeletedUserMessage = UpgradeCatalog300.class.getDeclaredMethod("showHcatDeletedUserMessage");
     Method setStatusOfStagesAndRequests = UpgradeCatalog300.class.getDeclaredMethod("setStatusOfStagesAndRequests");
     Method updateLogSearchConfigs = UpgradeCatalog300.class.getDeclaredMethod("updateLogSearchConfigs");
+    Method updateKerberosConfigurations = UpgradeCatalog300.class.getDeclaredMethod("updateKerberosConfigurations");
 
-   UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
-            .addMockedMethod(showHcatDeletedUserMessage)
-            .addMockedMethod(addNewConfigurationsFromXml)
-            .addMockedMethod(setStatusOfStagesAndRequests)
-            .addMockedMethod(updateLogSearchConfigs)
-            .createMock();
+    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
+        .addMockedMethod(showHcatDeletedUserMessage)
+        .addMockedMethod(addNewConfigurationsFromXml)
+        .addMockedMethod(setStatusOfStagesAndRequests)
+        .addMockedMethod(updateLogSearchConfigs)
+        .addMockedMethod(updateKerberosConfigurations)
+        .createMock();
 
 
     upgradeCatalog300.addNewConfigurationsFromXml();
@@ -144,6 +152,9 @@ public class UpgradeCatalog300Test {
     upgradeCatalog300.setStatusOfStagesAndRequests();
 
     upgradeCatalog300.updateLogSearchConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog300.updateKerberosConfigurations();
     expectLastCall().once();
 
     replay(upgradeCatalog300);
@@ -168,9 +179,12 @@ public class UpgradeCatalog300Test {
     Capture<DBAccessor.DBColumnInfo> hrcOpsDisplayNameColumn = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
 
-    dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
-    dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
-    dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN); expectLastCall().once();
+    dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
+    expectLastCall().once();
+    dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN);
+    expectLastCall().once();
+    dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
+    expectLastCall().once();
 
     replay(dbAccessor, configuration);
 
@@ -221,9 +235,9 @@ public class UpgradeCatalog300Test {
     Collection<Config> configs = Arrays.asList(confSomethingElse1, confLogSearchConf1, confSomethingElse2, confLogSearchConf2);
 
     expect(cluster.getAllConfigs()).andReturn(configs).atLeastOnce();
-    configHelper.removeConfigsByType(cluster,"service-1-logsearch-conf");
+    configHelper.removeConfigsByType(cluster, "service-1-logsearch-conf");
     expectLastCall().once();
-    configHelper.removeConfigsByType(cluster,"service-2-logsearch-conf");
+    configHelper.removeConfigsByType(cluster, "service-2-logsearch-conf");
     expectLastCall().once();
     configHelper.createConfigType(anyObject(Cluster.class), anyObject(StackId.class), eq(controller),
         eq("logsearch-common-properties"), eq(Collections.emptyMap()), eq("ambari-upgrade"),
@@ -307,23 +321,23 @@ public class UpgradeCatalog300Test {
     Map<String, String> oldLogFeederOutputConf = ImmutableMap.of(
         "content",
         "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
-        "      \"collection\":\"{{logsearch_solr_collection_service_logs}}\",\n" +
-        "      \"number_of_shards\": \"{{logsearch_collection_service_logs_numshards}}\",\n" +
-        "      \"splits_interval_mins\": \"{{logsearch_service_logs_split_interval_mins}}\",\n" +
-        "\n" +
-        "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
-        "      \"collection\":\"{{logsearch_solr_collection_audit_logs}}\",\n" +
-        "      \"number_of_shards\": \"{{logsearch_collection_audit_logs_numshards}}\",\n" +
-        "      \"splits_interval_mins\": \"{{logsearch_audit_logs_split_interval_mins}}\",\n"
+            "      \"collection\":\"{{logsearch_solr_collection_service_logs}}\",\n" +
+            "      \"number_of_shards\": \"{{logsearch_collection_service_logs_numshards}}\",\n" +
+            "      \"splits_interval_mins\": \"{{logsearch_service_logs_split_interval_mins}}\",\n" +
+            "\n" +
+            "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
+            "      \"collection\":\"{{logsearch_solr_collection_audit_logs}}\",\n" +
+            "      \"number_of_shards\": \"{{logsearch_collection_audit_logs_numshards}}\",\n" +
+            "      \"splits_interval_mins\": \"{{logsearch_audit_logs_split_interval_mins}}\",\n"
     );
 
     Map<String, String> expectedLogFeederOutputConf = ImmutableMap.of(
         "content",
         "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
-        "      \"type\": \"service\",\n" +
-        "\n" +
-        "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
-        "      \"type\": \"audit\",\n"
+            "      \"type\": \"service\",\n" +
+            "\n" +
+            "      \"zk_connect_string\":\"{{logsearch_solr_zk_quorum}}{{logsearch_solr_zk_znode}}\",\n" +
+            "      \"type\": \"audit\",\n"
     );
 
     Config logFeederOutputConf = easyMockSupport.createNiceMock(Config.class);
@@ -343,10 +357,10 @@ public class UpgradeCatalog300Test {
     new UpgradeCatalog300(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
-    Map<String,String> newLogFeederProperties = logFeederPropertiesCapture.getValue();
+    Map<String, String> newLogFeederProperties = logFeederPropertiesCapture.getValue();
     assertTrue(Maps.difference(expectedLogFeederProperties, newLogFeederProperties).areEqual());
 
-    Map<String,String> newLogSearchProperties = logSearchPropertiesCapture.getValue();
+    Map<String, String> newLogSearchProperties = logSearchPropertiesCapture.getValue();
     assertTrue(Maps.difference(Collections.emptyMap(), newLogSearchProperties).areEqual());
 
     Map<String, String> updatedLogFeederLog4j = logFeederLog4jCapture.getValue();
@@ -363,5 +377,91 @@ public class UpgradeCatalog300Test {
 
     Map<String, String> updatedLogFeederOutputConf = logFeederOutputConfCapture.getValue();
     assertTrue(Maps.difference(expectedLogFeederOutputConf, updatedLogFeederOutputConf).areEqual());
+  }
+
+  @Test
+  public void testUpdateKerberosConfigurations() throws AmbariException, NoSuchFieldException, IllegalAccessException {
+    StackId stackId = new StackId("HDP", "2.6.0.0");
+
+    Map<String, Cluster> clusterMap = new HashMap<>();
+
+    Map<String, String> propertiesWithGroup = new HashMap<>();
+    propertiesWithGroup.put("group", "ambari_managed_identities");
+    propertiesWithGroup.put("kdc_host", "host1.example.com");
+
+    Config newConfig = createMock(Config.class);
+    expect(newConfig.getTag()).andReturn("version2").atLeastOnce();
+    expect(newConfig.getType()).andReturn("kerberos-env").atLeastOnce();
+
+    ServiceConfigVersionResponse response = createMock(ServiceConfigVersionResponse.class);
+
+    Config configWithGroup = createMock(Config.class);
+    expect(configWithGroup.getProperties()).andReturn(propertiesWithGroup).atLeastOnce();
+    expect(configWithGroup.getPropertiesAttributes()).andReturn(Collections.emptyMap()).atLeastOnce();
+    expect(configWithGroup.getTag()).andReturn("version1").atLeastOnce();
+
+    Cluster cluster1 = createMock(Cluster.class);
+    expect(cluster1.getDesiredConfigByType("kerberos-env")).andReturn(configWithGroup).atLeastOnce();
+    expect(cluster1.getConfigsByType("kerberos-env")).andReturn(Collections.singletonMap("v1", configWithGroup)).atLeastOnce();
+    expect(cluster1.getServiceByConfigType("kerberos-env")).andReturn("KERBEROS").atLeastOnce();
+    expect(cluster1.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster1.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
+    expect(cluster1.getConfig(eq("kerberos-env"), anyString())).andReturn(newConfig).atLeastOnce();
+    expect(cluster1.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated kerberos-env during Ambari Upgrade from 2.6.0 to 3.0.0.")).andReturn(response).once();
+
+    Map<String, String> propertiesWithoutGroup = new HashMap<>();
+    propertiesWithoutGroup.put("kdc_host", "host2.example.com");
+
+    Config configWithoutGroup = createMock(Config.class);
+    expect(configWithoutGroup.getProperties()).andReturn(propertiesWithoutGroup).atLeastOnce();
+
+    Cluster cluster2 = createMock(Cluster.class);
+    expect(cluster2.getDesiredConfigByType("kerberos-env")).andReturn(configWithoutGroup).atLeastOnce();
+
+    Cluster cluster3 = createMock(Cluster.class);
+    expect(cluster3.getDesiredConfigByType("kerberos-env")).andReturn(null).atLeastOnce();
+
+    clusterMap.put("c1", cluster1);
+    clusterMap.put("c2", cluster2);
+    clusterMap.put("c3", cluster3);
+
+    Clusters clusters = createMock(Clusters.class);
+    expect(clusters.getClusters()).andReturn(clusterMap).anyTimes();
+
+    Capture<Map<String, String>> capturedProperties = newCapture();
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[]{})
+        .addMockedMethod("createConfig")
+        .createMock();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class))).andReturn(newConfig).once();
+
+
+    Injector injector = createNiceMock(Injector.class);
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+
+    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector);
+
+    Field field = AbstractUpgradeCatalog.class.getDeclaredField("configuration");
+
+    UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
+    field.set(upgradeCatalog300, configuration);
+    upgradeCatalog300.updateKerberosConfigurations();
+
+    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector);
+
+
+    Assert.assertEquals(1, capturedProperties.getValues().size());
+
+    Map<String, String> properties = capturedProperties.getValue();
+    Assert.assertEquals(2, properties.size());
+    Assert.assertEquals("ambari_managed_identities", properties.get("ipa_user_group"));
+    Assert.assertEquals("host1.example.com", properties.get("kdc_host"));
+
+    Assert.assertEquals(2, propertiesWithGroup.size());
+    Assert.assertEquals("ambari_managed_identities", propertiesWithGroup.get("group"));
+    Assert.assertEquals("host1.example.com", propertiesWithGroup.get("kdc_host"));
   }
 }

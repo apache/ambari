@@ -49,7 +49,6 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-config.sh server falcon',
       path = ['/usr/bin'],
       user = 'falcon',
-      environment = {'HADOOP_HOME': '/usr/lib/hadoop'},
       not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )
 
@@ -61,7 +60,6 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
       path = ['/usr/bin'],
       user = 'falcon',
-      environment = {'HADOOP_HOME': '/usr/lib/hadoop'},
       not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )
 
@@ -78,8 +76,7 @@ class TestFalconServer(RMFTestCase):
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-stop',
       path = ['/usr/bin'],
-      user = 'falcon',
-      environment = {'HADOOP_HOME': '/usr/lib/hadoop'})
+      user = 'falcon')
 
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
       action = ['delete'])
@@ -236,8 +233,7 @@ class TestFalconServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/falcon-server/bin/falcon-stop',
-      path = ['/usr/hdp/2.2.1.0-2135/hadoop/bin'], user='falcon',
-      environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2135/hadoop'})
+      path = ['/usr/hdp/2.2.1.0-2135/hadoop/bin'], user='falcon')
 
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
       action = ['delete'])
@@ -406,14 +402,12 @@ class TestFalconServer(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-config.sh server falcon',
-        environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2135/hadoop'},
         path = ['/usr/hdp/2.2.1.0-2135/hadoop/bin'],
         user = 'falcon',
         not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
-        environment = {'HADOOP_HOME': '/usr/hdp/2.2.1.0-2135/hadoop'},
         path = ['/usr/hdp/2.2.1.0-2135/hadoop/bin'],
         user = 'falcon',
         not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',

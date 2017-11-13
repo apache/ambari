@@ -16,15 +16,44 @@
  * limitations under the License.
  */
 
-import {CommonEntry} from '@app/classes/models/common-entry';
+#cluster-information .cluster-name label {
+  font-weight: normal;
+}
 
-export interface Node {
-  name: string;
-  type?: string;
-  value: string;
-  isParent: boolean;
-  isRoot: boolean;
-  childs?: Node[];
-  logLevelCount?: CommonEntry[];
-  vNodeList?: CommonEntry[];
+#cluster-information .dev-blueprint {
+  line-height: 35px;
+}
+
+#cluster-information .dev-blueprint span {
+  vertical-align: text-top;
+}
+
+#cluster-information .cluster-name label {
+  font-weight: normal;
+}
+
+#cluster-information .dev-blueprint {
+  line-height: 35px;
+}
+
+#cluster-information .dev-blueprint span {
+  vertical-align: text-top;
+}
+
+
+#cluster-information .welcome-header {
+  margin: -15px;
+  padding: 15px 15px 40px 15px;
+  background-color: #f0f0f0;
+  text-align: center;
+}
+
+#cluster-information .create-cluster-section {
+  text-align: center;
+  padding: 30px;
+}
+
+#cluster-information .fa-cloud {
+  font-size: 150px;
+  color: #f0f0f0;
 }

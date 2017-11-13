@@ -158,13 +158,6 @@ $(document).ready(function () {
           });
         });
       }
-      $dropdownMenu.on('click', function () {
-        // some action was triggered, should hide this icon
-        var moreIcon = $(this).parent();
-        setTimeout(function () {
-          moreIcon.hide();
-        }, 1000);
-      });
       $navigationContainer.children('.side-nav-menu').scroll(function () {
         $moreActions.removeClass('open');
       });

@@ -30,7 +30,7 @@ services:
     restart: always
     hostname: solr
     ports:
-      - "8886:8983"
+      - "8983:8983"
     networks:
       - logsearch-network
     env_file:

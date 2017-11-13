@@ -22,27 +22,56 @@ import * as moment from 'moment-timezone';
 @Injectable()
 export class UtilsService {
 
-  valueHasChanged(currentValue: any, newValue: any): boolean {
-    if (newValue == null) {
+  /**
+   * Comparison of two instances of any data type be value instead of reference
+   * @param valueA
+   * @param valueB
+   * @returns {boolean}
+   */
+  isEqual = (valueA: any, valueB: any): boolean => {
+    if (valueA === valueB) {
+      return true;
+    }
+    if (valueA instanceof Date && valueB instanceof Date) {
+      return valueA.valueOf() === valueB.valueOf();
+    }
+    if ((typeof valueA === 'function' && typeof valueB === 'function') ||
+      (valueA instanceof RegExp && valueB instanceof RegExp) ||
+      (valueA instanceof String && valueB instanceof String) ||
+      (valueA instanceof Number && valueB instanceof Number) ||
+      (valueA instanceof Boolean && valueB instanceof Boolean)) {
+      return valueA.toString() === valueB.toString();
+    }
+    if (!(valueA instanceof Object) || !(valueB instanceof Object)) {
       return false;
     }
-    if (typeof newValue === 'object') {
-      return JSON.stringify(currentValue) !== JSON.stringify(newValue);
-    } else {
-      return currentValue !== newValue;
+    if (valueA.constructor !== valueB.constructor) {
+      return false;
     }
-  }
-
-  updateMultiSelectValue(currentValue: string, value: string, isChecked: boolean): string {
-    let valuesArray = currentValue ? currentValue.split(',') : [],
-      valuePosition = valuesArray.indexOf(value);
-    if (isChecked && valuePosition === -1) {
-      valuesArray.push(value);
-    } else if (!isChecked && valuePosition > -1) {
-      valuesArray.splice(valuePosition, 1);
+    if (valueA.isPrototypeOf(valueB) || valueB.isPrototypeOf(valueA)) {
+      return false;
     }
-    return valuesArray.join(',');
-  }
+    for (const key in valueA) {
+      if (!valueA.hasOwnProperty(key)) {
+        continue;
+      }
+      if (!valueB.hasOwnProperty(key)) {
+        return false;
+      }
+      if (valueA[key] === valueB[key]) {
+        continue;
+      }
+      if (typeof valueA[key] !== 'object' || !this.isEqual(valueA[key], valueB[key])) {
+        return false;
+      }
+    }
+    for (const key in valueB) {
+      if (valueB.hasOwnProperty(key) && !valueA.hasOwnProperty(key)) {
+        return false;
+      }
+    }
+    return true;
+  };
 
   isEnterPressed(event: KeyboardEvent): boolean {
     return event.keyCode === 13;

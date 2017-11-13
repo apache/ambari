@@ -33,6 +33,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWr
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -588,15 +589,15 @@ public interface KerberosHelper {
    *                                       values
    * @param configurations                 a Map of configurations to use a replacements for variables
    *                                       in identity fields
-   * @param ignoreHeadless                 boolean value to specify if headless principals must not be processed
    * @return an integer indicating the number of identities added to the data file
    * @throws java.io.IOException if an error occurs while writing a record to the data file
    */
   int addIdentities(KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter,
                     Collection<KerberosIdentityDescriptor> identities,
-                    Collection<String> identityFilter, String hostname, String serviceName,
+                    Collection<String> identityFilter, String hostname, Long hostId, String serviceName,
                     String componentName, Map<String, Map<String, String>> kerberosConfigurations,
-                    Map<String, Map<String, String>> configurations, boolean ignoreHeadless)
+                    Map<String, Map<String, String>> configurations,
+                    Map<String, ResolvedKerberosKeytab> resolvedKeytabs, String realm)
       throws IOException;
   /**
    * Calculates the map of configurations relative to the cluster and host.
@@ -733,6 +734,20 @@ public interface KerberosHelper {
    * @throws AmbariException if an error occurs while retrieving the credentials
    */
   PrincipalKeyCredential getKDCAdministratorCredentials(String clusterName) throws AmbariException;
+
+  /**
+   * Saves underlying entities in persistent storage.
+   *
+   * @param resolvedKerberosKeytab kerberos keytab to be persisted
+   */
+  void processResolvedKeytab(ResolvedKerberosKeytab resolvedKerberosKeytab);
+
+  /**
+   * Removes existent persisted keytabs if they are not in {@code expectedKeytabs} collection.
+   *
+   * @param expectedKeytabs collection to compare existent keytabs
+   */
+  void removeStaleKeytabs(Collection<ResolvedKerberosKeytab> expectedKeytabs);
 
   /**
    * Translates a collection of configuration specifications (<code>config-type/property-name</code>)

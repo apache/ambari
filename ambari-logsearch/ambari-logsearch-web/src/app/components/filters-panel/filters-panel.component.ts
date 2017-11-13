@@ -21,10 +21,8 @@ import {FormGroup} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
 import {TranslateService} from '@ngx-translate/core';
 import {ListItem} from '@app/classes/list-item';
-import {filtersFormItemsMap} from '@app/classes/filtering';
 import {CommonEntry} from '@app/classes/models/common-entry';
 import {LogField} from '@app/classes/models/log-field';
-import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 
@@ -35,7 +33,10 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 })
 export class FiltersPanelComponent {
 
-  constructor(private translate: TranslateService, private filtering: FilteringService, private logsContainer: LogsContainerService, private appState: AppStateService) {
+  constructor(
+    private translate: TranslateService, private logsContainer: LogsContainerService,
+    private appState: AppStateService
+  ) {
     appState.getParameter('activeLogsType').subscribe(value => {
       this.logsType = value;
       logsContainer.logsTypeMap[value].fieldsModel.getAll().subscribe((fields: LogField[]): void => {
@@ -80,23 +81,24 @@ export class FiltersPanelComponent {
   searchBoxItemsTranslated: CommonEntry[] = [];
 
   get filters(): any {
-    return this.filtering.filters;
+    return this.logsContainer.filters;
   }
 
   get queryParameterNameChange(): Subject<any> {
-    return this.filtering.queryParameterNameChange;
+    return this.logsContainer.queryParameterNameChange;
   }
 
   get queryParameterAdd(): Subject<any> {
-    return this.filtering.queryParameterAdd;
+    return this.logsContainer.queryParameterAdd;
   }
 
   get captureSeconds(): number {
-    return this.filtering.captureSeconds;
+    return this.logsContainer.captureSeconds;
   }
 
   isFilterConditionDisplayed(key: string): boolean {
-    return filtersFormItemsMap[this.logsType].indexOf(key) > -1;
+    return this.logsContainer.filtersFormItemsMap[this.logsType].indexOf(key) > -1
+      && Boolean(this.filtersForm.controls[key]);
   }
 
 }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.apache.ambari.server.audit.event.kerberos.CreatePrincipalKerberosAudi
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
+import org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.commons.lang.StringUtils;
@@ -128,27 +130,24 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       seenPrincipals.add(evaluatedPrincipal);
 
       boolean processPrincipal;
+
+      // TODO add invalidate_principals option to make keytabs invalid all over the cluster.
+      KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+
       boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
 
       if (regenerateKeytabs) {
-        // do not process cached identities that can be passed as is(headless identities)
-        processPrincipal = "false".equals(identityRecord.get(KerberosIdentityDataFileReader.ONLY_KEYTAB_WRITE).toLowerCase());
+        // force recreation of principal due to keytab regeneration
+        processPrincipal = true;
+      } else if (kerberosPrincipalEntity == null) {
+        // This principal has not been processed before, process it.
+        processPrincipal = true;
+      } else if (!StringUtils.isEmpty(kerberosPrincipalEntity.getCachedKeytabPath())) {
+        // This principal has been processed and a keytab file has been cached for it... do not process it.
+        processPrincipal = false;
       } else {
-        KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
-
-        if (kerberosPrincipalEntity == null) {
-          // This principal has not been processed before, process it.
-          processPrincipal = true;
-        } else if (!StringUtils.isEmpty(kerberosPrincipalEntity.getCachedKeytabPath())) {
-          // This principal has been processed and a keytab file has been cached for it... do not process it.
-          processPrincipal = false;
-        } else if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal)) {
-          // This principal has been processed and a keytab file has been distributed... do not process it.
-          processPrincipal = false;
-        } else {
-          // This principal has been processed but a keytab file for it has not been distributed... process it.
-          processPrincipal = true;
-        }
+        // This principal has been processed but a keytab file for it has not been distributed... process it.
+        processPrincipal = true;
       }
 
       if (processPrincipal) {
@@ -159,7 +158,6 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         if (password == null) {
           boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
           CreatePrincipalResult result = createPrincipal(evaluatedPrincipal, servicePrincipal, kerberosConfiguration, operationHandler, regenerateKeytabs, actionLog);
-
           if (result == null) {
             commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
           } else {
@@ -167,6 +165,20 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
 
             principalPasswordMap.put(evaluatedPrincipal, result.getPassword());
             principalKeyNumberMap.put(evaluatedPrincipal, result.getKeyNumber());
+            // invalidate given principal for all keytabs to make them redistributed again
+            for (KerberosPrincipalHostEntity kphe: kerberosPrincipalHostDAO.findByPrincipal(evaluatedPrincipal)) {
+              kphe.setDistributed(false);
+              kerberosPrincipalHostDAO.merge(kphe);
+            }
+            // invalidate principal cache
+            KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+            try {
+              new File(principalEntity.getCachedKeytabPath()).delete();
+            } catch (Exception e) {
+              LOG.debug("Failed to delete cache file '{}'", principalEntity.getCachedKeytabPath());
+            }
+            principalEntity.setCachedKeytabPath(null);
+            kerberosPrincipalDAO.merge(principalEntity);
           }
         }
       }
@@ -241,7 +253,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
 
         if (regenerateKeytabs) {
           try {
-            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
+            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password, isServicePrincipal);
             created = false;
           } catch (KerberosPrincipalDoesNotExistException e) {
             message = String.format("Principal, %s, does not exist, creating new principal", principal);
@@ -264,7 +276,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
               actionLog.writeStdOut(message);
             }
 
-            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password);
+            keyNumber = kerberosOperationHandler.setPrincipalPassword(principal, password, isServicePrincipal);
             created = false;
           }
         }

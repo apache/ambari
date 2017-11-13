@@ -26,7 +26,6 @@ from resource_management.core.source import Template
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.libraries.resources.xml_config import XmlConfig
 
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
@@ -142,12 +141,6 @@ def hdfs(name=None):
        owner=tc_owner,
        content=Template("slaves.j2")
   )
-  
-  if params.lzo_enabled:
-    lzo_packages = get_lzo_packages(params.stack_version_unformatted)
-    Package(lzo_packages,
-            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
-            retry_count=params.agent_stack_retry_count)
       
 def install_snappy():
   import params

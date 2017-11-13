@@ -24,11 +24,14 @@ import java.util.Set;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * For a version, collects summary information for a cluster.
  */
 public class ClusterVersionSummary {
 
+  @SerializedName("services")
   @JsonProperty("services")
   private Map<String, ServiceVersionSummary> m_services;
 

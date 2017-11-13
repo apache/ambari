@@ -159,7 +159,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.isValueInput = true;
     this.currentValue = '';
     setTimeout(() => this.valueInput.focus(), 0);
-  }
+  };
 
   onParameterValueChange(event: KeyboardEvent): void {
     if (this.utils.isEnterPressed(event) && this.currentValue) {
@@ -187,7 +187,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
       isExclude: options.isExclude
     });
     this.updateValue();
-  }
+  };
 
   removeParameter(event: MouseEvent, id: number): void {
     this.parameters = this.parameters.filter(parameter => parameter.id !== id);
@@ -196,10 +196,14 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   }
 
   updateValue() {
-    this.onChange(this.parameters);
+    if (this.onChange) {
+      this.onChange(this.parameters);
+    }
   }
 
-  writeValue() {
+  writeValue(parameters: any [] = []) {
+    this.parameters = parameters;
+    this.updateValue();
   }
 
   registerOnChange(callback: any): void {

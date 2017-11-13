@@ -30,6 +30,8 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
@@ -171,6 +173,8 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   @Inject
   private KerberosHelper kerberosHelper;
 
+  @Inject
+  HostDAO hostDAO;
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
    * data.
@@ -543,21 +547,8 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
     if (record != null) {
       String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
-
       if (principal != null) {
-        String hostname = record.get(KerberosIdentityDataFileReader.HOSTNAME);
-
-        if(KerberosHelper.AMBARI_SERVER_HOST_NAME.equals(hostname)) {
-          // Replace KerberosHelper.AMBARI_SERVER_HOST_NAME with the actual hostname where the Ambari
-          // server is... this host
-          hostname = StageUtils.getHostName();
-        }
-
-        // Evaluate the principal "pattern" found in the record to generate the "evaluated principal"
-        // by replacing the _HOST and _REALM variables.
-        String evaluatedPrincipal = principal.replace("_HOST", hostname).replace("_REALM", defaultRealm);
-
-        commandReport = processIdentity(record, evaluatedPrincipal, operationHandler, kerberosConfiguration, requestSharedDataContext);
+        commandReport = processIdentity(record, principal, operationHandler, kerberosConfiguration, requestSharedDataContext);
       }
     }
 
@@ -586,6 +577,14 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         }
       }
     }
+  }
+
+  protected Long ambariServerHostID(){
+    String ambariServerHostName = StageUtils.getHostName();
+    HostEntity ambariServerHostEntity = hostDAO.findByName(ambariServerHostName);
+    return (ambariServerHostEntity == null)
+        ? null
+        : ambariServerHostEntity.getHostId();
   }
 
   /**

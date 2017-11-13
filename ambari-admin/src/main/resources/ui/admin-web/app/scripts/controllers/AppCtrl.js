@@ -18,45 +18,57 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', '$translate', '$http', 'Settings', 'Utility', '$q', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View, $translate, $http, Settings, Utility, $q) {
+.controller('AppCtrl',['$scope','$rootScope', '$route', '$window','Auth', 'Alert', '$modal', 'Cluster', '$translate', '$http', 'Settings', 'Utility', '$q', function($scope, $rootScope, $route, $window, Auth, Alert, $modal, Cluster, $translate, $http, Settings, Utility, $q) {
   var $t = $translate.instant;
-  $scope.signOut = function() {
-    Auth.signout().finally(function() {
+  $scope.signOut = function () {
+    Auth.signout().finally(function () {
       $window.location.pathname = Settings.siteRoot;
     });
   };
+
+  //todo replace with breadcrumb service
+  $scope.$watch(function () {
+    return $route.current;
+  }, function (value) {
+    var breadcrumbs = [$t('common.admin')];
+    if (value && value.$$route && value.$$route.label) {
+      breadcrumbs.push(value.$$route.label);
+    }
+    $scope.breadcrumbs = breadcrumbs;
+  });
+
 
   $scope.ambariVersion = null;
   $rootScope.supports = {};
   $rootScope.authDataLoad = $q.defer();
 
-  Utility.getUserPref('user-pref-' + Auth.getCurrentUser() + '-supports').then(function(data) {
+  Utility.getUserPref('user-pref-' + Auth.getCurrentUser() + '-supports').then(function (data) {
     $rootScope.supports = data.data ? data.data : {};
   });
 
   $http.get(Settings.baseUrl + '/users/' + Auth.getCurrentUser() + '/authorizations?fields=*')
-    .then(function(data) {
+    .then(function (data) {
       var auth = !!data.data && !!data.data.items ? data.data.items.map(function (a) {
           return a.AuthorizationInfo.authorization_id;
         }) : [],
         canPersistData = auth.indexOf('CLUSTER.MANAGE_USER_PERSISTED_DATA') > -1;
       $rootScope.authDataLoad.resolve(canPersistData);
-      if(auth.indexOf('AMBARI.RENAME_CLUSTER') == -1) {
+      if (auth.indexOf('AMBARI.RENAME_CLUSTER') == -1) {
         $window.location = $rootScope.fromSiteRoot("/#/main/dashboard");
       }
     });
 
-  $scope.about = function() {
-   var ambariVersion = $scope.ambariVersion;
-  	var modalInstance = $modal.open({
-  		templateUrl:'views/modals/AboutModal.html',
-  		controller: ['$scope', function($scope) {
-  			$scope.ok = function() {
-  				modalInstance.close();
-  			};
+  $scope.about = function () {
+    var ambariVersion = $scope.ambariVersion;
+    var modalInstance = $modal.open({
+      templateUrl: 'views/modals/AboutModal.html',
+      controller: ['$scope', function ($scope) {
+        $scope.ok = function () {
+          modalInstance.close();
+        };
         $scope.ambariVersion = ambariVersion;
-  		}]
-  	});
+      }]
+    });
   };
 
   $scope.currentUser = Auth.getCurrentUser();
@@ -65,50 +77,33 @@ angular.module('ambariAdminConsole')
   $scope.isLoaded = null;
 
   function loadAmbariVersion() {
-    Cluster.getAmbariVersion().then(function(version){
+    Cluster.getAmbariVersion().then(function (version) {
       $scope.ambariVersion = version;
     });
   }
 
-  function loadClusterData(){
-    Cluster.getStatus().then(function(cluster) {
+  function loadClusterData() {
+    Cluster.getStatus().then(function (cluster) {
+      $rootScope.cluster = cluster;
       $scope.cluster = cluster;
       $scope.isLoaded = true;
-      if(cluster && cluster.Clusters.provisioning_state === 'INIT'){
+      if (cluster && cluster.Clusters.provisioning_state === 'INIT') {
         setTimeout(loadClusterData, 1000);
       }
-    }).catch(function(data) {
+    }).catch(function (data) {
       Alert.error($t('common.alerts.cannotLoadClusterStatus'), data.statusText);
     });
   }
+
   loadClusterData();
   loadAmbariVersion();
 
-  $scope.viewInstances = [];
-
-  $scope.updateInstances = function () {
-    View.getAllVisibleInstance().then(function(instances) {
-      $scope.viewInstances = instances.map(function(i) {
-        i.viewUrl = i.view_name + '/' + i.version + '/' + i.instance_name;
-        return i;
-      });
-    });
-  };
-
-  $scope.gotoViewsDashboard =function() {
-    window.location = Settings.siteRoot + '#/main/views';
-  };
-
-  $scope.$root.$on('instancesUpdate', function (event, data) {
-    $scope.updateInstances();
-  });
-
-  $scope.startInactiveTimeoutMonitoring = function(timeout) {
+  $scope.startInactiveTimeoutMonitoring = function (timeout) {
     var TIME_OUT = timeout;
     var active = true;
     var lastActiveTime = Date.now();
 
-    var keepActive = function() {
+    var keepActive = function () {
       if (active) {
         lastActiveTime = Date.now();
       }
@@ -118,7 +113,7 @@ angular.module('ambariAdminConsole')
     $(window).bind('keypress', keepActive);
     $(window).bind('click', keepActive);
 
-    var checkActiveness = function() {
+    var checkActiveness = function () {
       var remainTime = TIME_OUT - (Date.now() - lastActiveTime);
       if (remainTime < 0) {
         active = false;
@@ -131,27 +126,27 @@ angular.module('ambariAdminConsole')
         $rootScope.timeoutModal = $modal.open({
           templateUrl: 'views/modals/TimeoutWarning.html',
           backdrop: false,
-          controller: ['$scope', 'Auth', function($scope, Auth) {
+          controller: ['$scope', 'Auth', function ($scope, Auth) {
             $scope.remainTime = 60;
             $scope.title = $t('main.autoLogOut');
             $scope.primaryText = $t('main.controls.remainLoggedIn');
             $scope.secondaryText = $t('main.controls.logOut');
-            $scope.remain = function() {
+            $scope.remain = function () {
               $rootScope.timeoutModal.close();
               delete $rootScope.timeoutModal;
             };
-            $scope.logout = function() {
+            $scope.logout = function () {
               $rootScope.timeoutModal.close();
               delete $rootScope.timeoutModal;
-              Auth.signout().finally(function() {
+              Auth.signout().finally(function () {
                 $window.location.pathname = Settings.siteRoot;
               });
             };
-            $scope.countDown = function() {
+            $scope.countDown = function () {
               $scope.remainTime--;
               $scope.$apply();
               if ($scope.remainTime == 0) {
-                Auth.signout().finally(function() {
+                Auth.signout().finally(function () {
                   $window.location.pathname = Settings.siteRoot;
                 });
               }
@@ -165,12 +160,12 @@ angular.module('ambariAdminConsole')
   };
 
   // Send noop requests every 10 seconds just to keep backend session alive
-  $scope.startNoopPolling = function() {
+  $scope.startNoopPolling = function () {
     $rootScope.noopPollingInterval = setInterval(Cluster.getAmbariTimeout, 10000);
   };
 
   if (!$rootScope.userActivityTimeoutInterval) {
-    Cluster.getAmbariTimeout().then(function(timeout) {
+    Cluster.getAmbariTimeout().then(function (timeout) {
       $rootScope.userTimeout = Number(timeout) * 1000;
       if ($rootScope.userTimeout > 0)
         $scope.startInactiveTimeoutMonitoring($rootScope.userTimeout);
@@ -179,5 +174,4 @@ angular.module('ambariAdminConsole')
   if (!$rootScope.noopPollingInterval) {
     $scope.startNoopPolling();
   }
-  $scope.updateInstances();
 }]);

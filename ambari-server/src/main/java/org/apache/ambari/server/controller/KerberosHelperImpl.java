@@ -60,8 +60,11 @@ import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -91,6 +94,7 @@ import org.apache.ambari.server.serveraction.kerberos.PrepareDisableKerberosServ
 import org.apache.ambari.server.serveraction.kerberos.PrepareEnableKerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
 import org.apache.ambari.server.serveraction.kerberos.UpdateKerberosConfigsServerAction;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -125,12 +129,14 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -201,6 +207,12 @@ public class KerberosHelperImpl implements KerberosHelper {
 
   @Inject
   private ArtifactDAO artifactDAO;
+
+  @Inject
+  private KerberosKeytabDAO kerberosKeytabDAO;
+
+  @Inject
+  KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   /**
    * The injector used to create new instances of helper classes like CreatePrincipalsServerAction
@@ -1484,9 +1496,10 @@ public class KerberosHelperImpl implements KerberosHelper {
   @Override
   public int addIdentities(KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter,
                            Collection<KerberosIdentityDescriptor> identities,
-                           Collection<String> identityFilter, String hostname, String serviceName,
+                           Collection<String> identityFilter, String hostname, Long hostId, String serviceName,
                            String componentName, Map<String, Map<String, String>> kerberosConfigurations,
-                           Map<String, Map<String, String>> configurations, boolean ignoreHeadless)
+                           Map<String, Map<String, String>> configurations,
+                           Map<String, ResolvedKerberosKeytab> resolvedKeytabs, String realm)
       throws IOException {
     int identitiesAdded = 0;
 
@@ -1514,7 +1527,6 @@ public class KerberosHelperImpl implements KerberosHelper {
             String keytabFileGroupName = null;
             String keytabFileGroupAccess = null;
             String keytabFileConfiguration = null;
-            boolean keytabIsCachable = false;
 
             if (keytabDescriptor != null) {
               keytabFilePath = variableReplacementHelper.replaceVariables(keytabDescriptor.getFile(), configurations);
@@ -1523,24 +1535,84 @@ public class KerberosHelperImpl implements KerberosHelper {
               keytabFileGroupName = variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupName(), configurations);
               keytabFileGroupAccess = variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupAccess(), configurations);
               keytabFileConfiguration = variableReplacementHelper.replaceVariables(keytabDescriptor.getConfiguration(), configurations);
-              keytabIsCachable = keytabDescriptor.isCachable();
+            }
+            // Evaluate the principal "pattern" found in the record to generate the "evaluated principal"
+            // by replacing the _HOST and _REALM variables.
+            String evaluatedPrincipal = principal.replace("_HOST", hostname).replace("_REALM", realm);
+
+            ResolvedKerberosKeytab resolvedKeytab = new ResolvedKerberosKeytab(
+                keytabFilePath,
+                keytabFileOwnerName,
+                keytabFileOwnerAccess,
+                keytabFileGroupName,
+                keytabFileGroupAccess,
+                Sets.newHashSet(Pair.of(hostId, evaluatedPrincipal)),
+                serviceName.equalsIgnoreCase("AMBARI"),
+                componentName.equalsIgnoreCase("AMBARI_SERVER_SELF")
+            );
+            if (resolvedKeytabs.containsKey(keytabFilePath)) {
+              ResolvedKerberosKeytab sameKeytab = resolvedKeytabs.get(keytabFilePath);
+              // validating owner and group
+              String warnTemplate = "Keytab '{}' on host '{}' have different {}, originally set to '{}' and '{}:{}' has '{}', using '{}'";
+              if (!resolvedKeytab.getOwnerName().equals(sameKeytab.getOwnerName())) {
+                LOG.warn(warnTemplate,
+                    keytabFilePath, hostname, "owners", sameKeytab.getOwnerName(),
+                    serviceName, componentName, resolvedKeytab.getOwnerName(),
+                    sameKeytab.getOwnerName());
+              }
+              if (!resolvedKeytab.getOwnerAccess().equals(sameKeytab.getOwnerAccess())) {
+                LOG.warn(warnTemplate,
+                    keytabFilePath, hostname, "owner access", sameKeytab.getOwnerAccess(),
+                    serviceName, componentName, resolvedKeytab.getOwnerAccess(),
+                    sameKeytab.getOwnerAccess());
+              }
+              // TODO probably fail on group difference. Some services can inject its principals to same keytab, but
+              // TODO with different owners, so make sure that keytabs are accessible through group acls
+              // TODO this includes same group name and group 'r' mode
+              if (!resolvedKeytab.getGroupName().equals(sameKeytab.getGroupName())) {
+                LOG.warn(warnTemplate,
+                    keytabFilePath, hostname, "groups", sameKeytab.getGroupName(),
+                    serviceName, componentName, resolvedKeytab.getGroupName(),
+                    sameKeytab.getGroupName());
+              }
+              if (!resolvedKeytab.getGroupAccess().equals(sameKeytab.getGroupAccess())) {
+                LOG.warn(warnTemplate,
+                    keytabFilePath, hostname, "group access", sameKeytab.getGroupAccess(),
+                    serviceName, componentName, resolvedKeytab.getGroupAccess(),
+                    sameKeytab.getGroupAccess());
+              }
+              // end validating
+              // merge principal to keytab
+              sameKeytab.getMappedPrincipals().addAll(resolvedKeytab.getMappedPrincipals());
+              // ensure that keytab file on ambari-server host creating jass file
+              if (sameKeytab.isMustWriteAmbariJaasFile() || resolvedKeytab.isMustWriteAmbariJaasFile()) {
+                sameKeytab.setMustWriteAmbariJaasFile(true);
+              }
+              // ensure that this keytab is ambari-keytab, server will distribute it manually
+              if (sameKeytab.isAmbariServerKeytab() || resolvedKeytab.isAmbariServerKeytab()) {
+                sameKeytab.setAmbariServerKeytab(true);
+              }
+            } else {
+              resolvedKeytabs.put(keytabFilePath, resolvedKeytab);
+              LOG.info("Keytab {} owner:'{}:{}', group:'{}:{}' is defined", keytabFilePath,
+                  keytabFileOwnerName, keytabFileOwnerAccess, keytabFileGroupName, keytabFileGroupAccess);
             }
 
             // Append an entry to the action data file builder...
+            // TODO obsolete, move to ResolvedKerberosKeytab
             if(kerberosIdentityDataFileWriter != null) {
               kerberosIdentityDataFileWriter.writeRecord(
                   hostname,
                   serviceName,
                   componentName,
-                  principal,
+                  evaluatedPrincipal,
                   principalType,
                   keytabFilePath,
                   keytabFileOwnerName,
                   keytabFileOwnerAccess,
                   keytabFileGroupName,
                   keytabFileGroupAccess,
-                  (keytabIsCachable) ? "true" : "false",
-                  (ignoreHeadless && principalDescriptor.getType() == KerberosPrincipalType.USER) ? "true" : "false");
+                  "true");
             }
 
             // Add the principal-related configuration to the map of configurations
@@ -1790,6 +1862,46 @@ public class KerberosHelperImpl implements KerberosHelper {
       return (PrincipalKeyCredential) credentials;
     } else {
       return null;
+    }
+  }
+
+  /**
+   * Creates and saves  underlying  {@link org.apache.ambari.server.orm.entities.KerberosPrincipalEntity},
+   * {@link org.apache.ambari.server.orm.entities.KerberosKeytabEntity} and
+   * {@link org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity} entities in JPA storage.
+   *
+   * @param resolvedKerberosKeytab kerberos keytab to be persisted
+   */
+  @Override
+  public void processResolvedKeytab(ResolvedKerberosKeytab resolvedKerberosKeytab) {
+    if (kerberosKeytabDAO.find(resolvedKerberosKeytab.getFile()) == null) {
+      kerberosKeytabDAO.create(resolvedKerberosKeytab.getFile());
+    }
+    for (Pair<Long, String> principalPair : resolvedKerberosKeytab.getMappedPrincipals()) {
+      String principal = principalPair.getRight();
+      Long hostId = principalPair.getLeft();
+      if (!kerberosPrincipalDAO.exists(principal)) {
+        kerberosPrincipalDAO.create(principal, false);
+      }
+      if (hostId != null) {
+        if(!kerberosPrincipalHostDAO.exists(principal, hostId, resolvedKerberosKeytab.getFile())) {
+          kerberosPrincipalHostDAO.create(principal, hostId, resolvedKerberosKeytab.getFile());
+        }
+      }
+    }
+  }
+
+  @Override
+  public void removeStaleKeytabs(Collection<ResolvedKerberosKeytab> expectedKeytabs) {
+    List<KerberosKeytabEntity> allKeytabs = kerberosKeytabDAO.findAll();
+    Set<KerberosKeytabEntity> staleKeytabs;
+    staleKeytabs = allKeytabs != null ? new HashSet<>(allKeytabs) : Collections.emptySet();
+    for (ResolvedKerberosKeytab keytab : expectedKeytabs) {
+      staleKeytabs.remove(new KerberosKeytabEntity(keytab.getFile()));
+    }
+    for (KerberosKeytabEntity staleKeytab: staleKeytabs) {
+      kerberosPrincipalHostDAO.removeByKeytabPath(staleKeytab.getKeytabPath());
+      kerberosKeytabDAO.remove(staleKeytab);
     }
   }
 
@@ -2181,6 +2293,17 @@ public class KerberosHelperImpl implements KerberosHelper {
             if (sch.getState() == State.INSTALLED) {
               String hostname = sch.getHostName();
 
+              if(kerberosKeytabDAO.find(keytabFilePath) == null) {
+                kerberosKeytabDAO.create(keytabFilePath);
+              }
+              // create principals
+              if (!kerberosPrincipalDAO.exists(principal)) {
+                kerberosPrincipalDAO.create(principal, false);
+              }
+              if (!kerberosPrincipalHostDAO.exists(principal, sch.getHost().getHostId(), keytabFilePath)) {
+                kerberosPrincipalHostDAO.create(principal, sch.getHost().getHostId(), keytabFilePath);
+              }
+
               kerberosIdentityDataFileWriter.writeRecord(
                   hostname,
                   Service.Type.KERBEROS.name(),
@@ -2192,7 +2315,6 @@ public class KerberosHelperImpl implements KerberosHelper {
                   keytabFileOwnerAccess,
                   keytabFileGroupName,
                   keytabFileGroupAccess,
-                  "false",
                   "false");
 
               hostsWithValidKerberosClient.add(hostname);

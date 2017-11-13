@@ -22,7 +22,6 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/takeUntil';
-import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -43,9 +42,11 @@ import {ListItem} from '@app/classes/list-item';
 })
 export class LogsContainerComponent {
 
-  constructor(private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService, private tabsStorage: TabsService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
+  constructor(
+    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService,
+    private tabsStorage: TabsService, private logsContainer: LogsContainerService
+  ) {
     this.logsContainer.loadColumnsNames();
-    this.logsTypeChange.first().subscribe(() => this.logsContainer.loadLogs());
     appState.getParameter('activeLogsType').subscribe((value: string): void => {
       this.logsType = value;
       this.logsTypeChange.next();
@@ -75,11 +76,6 @@ export class LogsContainerComponent {
         this.displayedColumns = columns.filter((column: LogField): boolean => column.isAvailable && column.isDisplayed);
       });
     });
-    appState.getParameter('activeFiltersForm').subscribe((form: FormGroup): void => {
-      this.filtersFormChange.next();
-      form.valueChanges.takeUntil(this.filtersFormChange).subscribe(() => this.logsContainer.loadLogs());
-      this.filtersForm = form;
-    });
     serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
       this.histogramData = this.logsContainer.getHistogramData(data);
     });
@@ -88,11 +84,11 @@ export class LogsContainerComponent {
 
   tabs: Observable<Tab[]> = this.tabsStorage.getAll();
 
-  filtersForm: FormGroup;
+  get filtersForm(): FormGroup {
+    return this.logsContainer.filtersForm;
+  };
 
   private logsType: string;
-
-  private filtersFormChange: Subject<any> = new Subject();
 
   private logsTypeChange: Subject<any> = new Subject();
 
@@ -117,10 +113,10 @@ export class LogsContainerComponent {
   };
 
   get autoRefreshRemainingSeconds(): number {
-    return this.filtering.autoRefreshRemainingSeconds;
+    return this.logsContainer.autoRefreshRemainingSeconds;
   }
 
-  get autoRefreshMessageParams(): any {
+  get autoRefreshMessageParams(): object {
     return {
       remainingSeconds: this.autoRefreshRemainingSeconds
     };
@@ -133,7 +129,7 @@ export class LogsContainerComponent {
   get totalEventsFoundMessageParams(): object {
     return {
       totalCount: this.totalCount
-    }
+    };
   }
 
   isServiceLogContextView: boolean = false;
@@ -147,7 +143,7 @@ export class LogsContainerComponent {
   }
 
   setCustomTimeRange(startTime: number, endTime: number): void {
-    this.filtering.setCustomTimeRange(startTime, endTime);
+    this.logsContainer.setCustomTimeRange(startTime, endTime);
   }
 
   onSwitchTab(activeTab: Tab): void {

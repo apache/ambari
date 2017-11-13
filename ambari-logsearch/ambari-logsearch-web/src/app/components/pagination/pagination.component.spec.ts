@@ -39,7 +39,14 @@ describe('PaginationComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PaginationComponent);
     component = fixture.componentInstance;
-    component.filterInstance = {};
+    component.filterInstance = {
+      defaultSelection: [
+        {
+          label: '10',
+          value: '10'
+        }
+      ]
+    };
     component.filtersForm = new FormGroup({
       pageSize: new FormControl()
     });

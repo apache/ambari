@@ -28,8 +28,13 @@ import {AppStateService, appState} from '@app/services/storage/app-state.service
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
+import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {FilteringService} from '@app/services/filtering.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 
 import {LogsListComponent} from './logs-list.component';
@@ -57,7 +62,12 @@ describe('LogsListComponent', () => {
           appState,
           clusters,
           components,
-          hosts
+          hosts,
+          auditLogsFields,
+          serviceLogsFields,
+          serviceLogsHistogramData,
+          serviceLogsTruncated,
+          tabs
         }),
         MomentModule,
         MomentTimezoneModule,
@@ -75,7 +85,12 @@ describe('LogsListComponent', () => {
         ClustersService,
         ComponentsService,
         HostsService,
-        FilteringService,
+        AuditLogsFieldsService,
+        ServiceLogsFieldsService,
+        ServiceLogsHistogramDataService,
+        ServiceLogsTruncatedService,
+        TabsService,
+        LogsContainerService,
         UtilsService
       ],
       schemas: [NO_ERRORS_SCHEMA]

@@ -1273,7 +1273,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.option.ad.condition.5': 'The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.',
   'admin.kerberos.wizard.step1.option.ipa': 'Existing IPA',
   'admin.kerberos.wizard.step1.option.ipa.condition.1': 'Cluster hosts are joined to the IPA domain and hosts are registered in DNS',
-  'admin.kerberos.wizard.step1.option.ipa.condition.2': 'A password policy in place that sets no expiry for created principals or krbPasswordExpiry attribute is writable',
+  'admin.kerberos.wizard.step1.option.ipa.condition.2': 'A password policy in place that sets no expiry for created principals',
   'admin.kerberos.wizard.step1.option.ipa.condition.3': 'The ipa managed krb5.conf sets default_ccache_name = /tmp/krb5cc_%{uid}',
   'admin.kerberos.wizard.step1.option.ipa.condition.4': 'The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.',
   'admin.kerberos.wizard.step1.prerequisites.label': 'Following prerequisites needs to be checked to progress ahead in the wizard.',
@@ -2605,6 +2605,7 @@ Em.I18n.translations = {
 
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
+  'hosts.bulkOperation.confirmation.delete.hosts':'Are you sure you want to delete the following {0} hosts?',
   'hosts.bulkOperation.confirmation.hostComponents':'Are you sure you want to <strong>{0} {1}</strong> on the following {2} hosts?',
   'hosts.bulkOperation.passiveState.nothingToDo.body':'All hosts that you selected are already in Maintenance Mode.',
   'hosts.bulkOperation.warningInfo.body':'Components on these hosts are stopped so decommission will be skipped.',

@@ -88,7 +88,6 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -258,7 +257,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       Collections.sort(entities, new Comparator<RepositoryVersionEntity>() {
         @Override
         public int compare(RepositoryVersionEntity o1, RepositoryVersionEntity o2) {
-          return compareVersions(o1.getVersion(), o2.getVersion());
+          return VersionUtils.compareVersionsWithBuild(o1.getVersion(), o2.getVersion(), 4);
         }
       });
 
@@ -502,7 +501,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           continue;
         }
 
-        int compare = compareVersions(hostRepoVersion.getVersion(), desiredRepoVersion);
+        int compare = VersionUtils.compareVersionsWithBuild(hostRepoVersion.getVersion(), desiredRepoVersion, 4);
 
         // ignore earlier versions
         if (compare <= 0) {
@@ -731,7 +730,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       return null;
     }
 
-
     Map<String, String> roleParams = repoVersionHelper.buildRoleParams(managementController, repoVersion,
         osFamily, servicesOnHost);
 
@@ -745,7 +743,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, repoVersion, osEntity);
+    repoVersionHelper.addCommandRepository(actionContext, cluster, repoVersion, osEntity);
 
     return actionContext;
   }
@@ -803,39 +801,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
-  }
-
-  /**
-   * Additional check over {@link VersionUtils#compareVersions(String, String)} that
-   * compares build numbers
-   */
-  private static int compareVersions(String version1, String version2) {
-    version1 = (null == version1) ? "0" : version1;
-    version2 = (null == version2) ? "0" : version2;
-
-    // check _exact_ equality
-    if (StringUtils.equals(version1, version2)) {
-      return 0;
-    }
-
-    int compare = VersionUtils.compareVersions(version1, version2);
-    if (0 != compare) {
-      return compare;
-    }
-
-    int v1 = 0;
-    int v2 = 0;
-    if (version1.indexOf('-') > -1) {
-      v1 = NumberUtils.toInt(version1.substring(version1.indexOf('-')), 0);
-    }
-
-    if (version2.indexOf('-') > -1) {
-      v2 = NumberUtils.toInt(version2.substring(version2.indexOf('-')), 0);
-    }
-
-    compare = v2 - v1;
-
-    return Integer.compare(compare, 0);
   }
 
   /**

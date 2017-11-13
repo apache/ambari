@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-describe('#CreateViewInstanceCtrl', function () {
+describe('#CloneViewInstanceCtrl', function () {
   var scope, ctrl, $httpBackend, View;
 
   beforeEach(module('ambariAdminConsole', function($provide){
@@ -43,7 +43,7 @@ describe('#CreateViewInstanceCtrl', function () {
     $httpBackend.whenGET('template/modal/backdrop.html').respond(200, '<div></div>');
     $httpBackend.whenGET('template/modal/window.html').respond(200, '<div></div>');
     scope = $rootScope.$new();
-    ctrl = $controller('CreateViewInstanceCtrl', {$scope: scope});
+    ctrl = $controller('CloneViewInstanceCtrl', {$scope: scope});
   }));
 
   it('it should invoke View.createInstance on save', function () {

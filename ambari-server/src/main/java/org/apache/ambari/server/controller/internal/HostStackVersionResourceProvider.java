@@ -443,7 +443,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, repoVersionEnt, osEntity);
+    repoVersionHelper.addCommandRepository(actionContext, cluster, repoVersionEnt, osEntity);
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);
