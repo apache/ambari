@@ -19,7 +19,6 @@ package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
