@@ -46,21 +46,21 @@ import io.swagger.annotations.ApiResponses;
  * Ambari configuration resources may be shared with components and services in the cluster
  * (by recommending them as default values)
  *
- * Eg. LDAP configuration is stored as ambariconfiguration.
+ * Eg. LDAP configuration is stored as AmbariConfiguration.
  * The request payload has the form:
  *
  * <pre>
  *      {
  *        "AmbariConfiguration": {
- *            "type": "ldap-configuration",
- *            "data": [
- *                {
- *                 "authentication.ldap.primaryUrl": "localhost:33389"
- *                 "authentication.ldap.secondaryUrl": "localhost:333"
- *                 "authentication.ldap.baseDn": "dc=ambari,dc=apache,dc=org"
- *                 // ......
- *         ]
- *     }
+ *          "category": "ldap-configuration",
+ *          "properties": {
+ *             "authentication.ldap.primaryUrl": "localhost:33389"
+ *             "authentication.ldap.secondaryUrl": "localhost:333"
+ *             "authentication.ldap.baseDn": "dc=ambari,dc=apache,dc=org"
+ *             // ......
+ *          }
+ *        }
+ *      }
  * </pre>
  */
 @Path("/ambariconfigs/")
@@ -96,7 +96,7 @@ public class AmbariConfigurationService extends BaseService {
   })
   public Response createAmbariConfiguration(String body, @Context HttpHeaders headers, @Context UriInfo uri) {
     return handleRequest(headers, body, uri, Request.Type.POST, createResource(Resource.Type.AmbariConfiguration,
-      Collections.EMPTY_MAP));
+      Collections.emptyMap()));
   }
 
   @GET
@@ -108,10 +108,10 @@ public class AmbariConfigurationService extends BaseService {
     responseContainer = RESPONSE_CONTAINER_LIST)
   @ApiImplicitParams({
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION,
-      defaultValue = "AmbariConfiguration/data, AmbariConfiguration/id, AmbariConfiguration/type",
+      defaultValue = "AmbariConfiguration/properties, AmbariConfiguration/category",
       dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION,
-      defaultValue = "AmbariConfiguration/id",
+      defaultValue = "AmbariConfiguration/category",
       dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
     @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
@@ -123,11 +123,11 @@ public class AmbariConfigurationService extends BaseService {
   })
   public Response getAmbariConfigurations(String body, @Context HttpHeaders headers, @Context UriInfo uri) {
     return handleRequest(headers, body, uri, Request.Type.GET, createResource(Resource.Type.AmbariConfiguration,
-      Collections.EMPTY_MAP));
+      Collections.emptyMap()));
   }
 
   @GET
-  @Path("{configurationId}")
+  @Path("{category}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Retrieve the details of an ambari configuration resource",
     nickname = "AmbariConfigurationService#getAmbariConfiguration",
@@ -142,13 +142,13 @@ public class AmbariConfigurationService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
   })
   public Response getAmbariConfiguration(String body, @Context HttpHeaders headers, @Context UriInfo uri,
-                                         @PathParam("configurationId") String configurationId) {
+                                         @PathParam("category") String category) {
     return handleRequest(headers, body, uri, Request.Type.GET, createResource(Resource.Type.AmbariConfiguration,
-      Collections.singletonMap(Resource.Type.AmbariConfiguration, configurationId)));
+      Collections.singletonMap(Resource.Type.AmbariConfiguration, category)));
   }
 
   @PUT
-  @Path("{configurationId}")
+  @Path("{category}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Updates ambari configuration resources ",
     nickname = "AmbariConfigurationService#updateAmbariConfiguration")
@@ -167,13 +167,13 @@ public class AmbariConfigurationService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response updateAmbariConfiguration(String body, @Context HttpHeaders headers, @Context UriInfo uri,
-                                            @PathParam("configurationId") String configurationId) {
+                                            @PathParam("category") String category) {
     return handleRequest(headers, body, uri, Request.Type.PUT, createResource(Resource.Type.AmbariConfiguration,
-      Collections.singletonMap(Resource.Type.AmbariConfiguration, configurationId)));
+      Collections.singletonMap(Resource.Type.AmbariConfiguration, category)));
   }
 
   @DELETE
-  @Path("{configurationId}")
+  @Path("{category}")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Deletes an ambari configuration resource",
     nickname = "AmbariConfigurationService#deleteAmbariConfiguration")
@@ -185,9 +185,9 @@ public class AmbariConfigurationService extends BaseService {
     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response deleteAmbariConfiguration(String body, @Context HttpHeaders headers, @Context UriInfo uri,
-                                            @PathParam("configurationId") String configurationId) {
+                                            @PathParam("category") String category) {
     return handleRequest(headers, body, uri, Request.Type.DELETE, createResource(Resource.Type.AmbariConfiguration,
-      Collections.singletonMap(Resource.Type.AmbariConfiguration, configurationId)));
+      Collections.singletonMap(Resource.Type.AmbariConfiguration, category)));
   }
 
 }

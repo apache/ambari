@@ -104,22 +104,11 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
-CREATE TABLE configuration_base (
-  id BIGINT NOT NULL,
-  version_tag VARCHAR(100) NOT NULL,
-  version BIGINT NOT NULL,
-  type VARCHAR(100) NOT NULL,
-  data LONGTEXT NOT NULL,
-  attributes LONGTEXT,
-  create_timestamp BIGINT NOT NULL,
-  CONSTRAINT PK_configuration_base PRIMARY KEY (id)
-);
-
 CREATE TABLE ambari_configuration (
-  id BIGINT NOT NULL,
-  CONSTRAINT PK_ambari_configuration PRIMARY KEY (id),
-  CONSTRAINT FK_ambari_conf_conf_base FOREIGN KEY (id) REFERENCES configuration_base (id)
-);
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
@@ -1137,7 +1126,6 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('remote_cluster_id_seq', 0),
   ('remote_cluster_service_id_seq', 0),
   ('servicecomponent_version_id_seq', 0),
-  ('configuration_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0);
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name) VALUES

@@ -15,23 +15,22 @@
 package org.apache.ambari.server.events;
 
 /**
- * Event signaling the creation or changing of an LDAP configuration entry.
+ * Event signaling the creation or changing of an Ambari configuration entry.
  */
-public class AmbariLdapConfigChangedEvent extends AmbariEvent {
+public class AmbariConfigurationChangedEvent extends AmbariEvent {
 
-  private Long configurationId;
+  private final String categoryName;
 
   /**
    * Constructor.
    *
-   * @param eventType the type of event (not {@code null}).
    */
-  public AmbariLdapConfigChangedEvent(AmbariEventType eventType, Long configurationId) {
-    super(eventType);
-    this.configurationId = configurationId;
+  public AmbariConfigurationChangedEvent(String categoryName) {
+    super(AmbariEventType.AMBARI_CONFIGURATION_CHANGED);
+    this.categoryName = categoryName;
   }
 
-  public Long getConfigurationId() {
-    return configurationId;
+  public String getCategoryName() {
+    return categoryName;
   }
 }

@@ -29,19 +29,9 @@ public interface AmbariConfigurationRequestSwagger extends ApiModel {
 
   interface AmbariConfigurationRequestInfo {
     @ApiModelProperty
-    Long getId();
+    String getCategoryName();
 
     @ApiModelProperty
-    Map<String, Object> getData();
-
-    @ApiModelProperty
-    String getType();
-
-    @ApiModelProperty
-    Long getVersion();
-
-    @ApiModelProperty(name = "version_tag")
-    String getVersionTag();
+    Map<String, Object> getProperties();
   }
-
 }

@@ -14,15 +14,15 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Calendar;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.inject.Inject;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -35,20 +35,18 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
-import org.apache.ambari.server.events.AmbariEvent;
-import org.apache.ambari.server.events.AmbariLdapConfigChangedEvent;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
-import org.apache.ambari.server.orm.entities.ConfigurationBaseEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.Inject;
 
 /**
  * Resource provider for AmbariConfiguration resources.
@@ -56,62 +54,24 @@ import com.google.inject.assistedinject.AssistedInject;
 public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResourceProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariConfigurationResourceProvider.class);
-  private static final String DEFAULT_VERSION_TAG = "Default version";
-  private static final Integer DEFAULT_VERSION = 1;
 
-  /**
-   * Resource property id constants.
-   */
-  public enum ResourcePropertyId {
+  static final String AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID = PropertyHelper.getPropertyId("AmbariConfiguration", "category");
+  static final String AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("AmbariConfiguration", "properties");
 
-    ID("AmbariConfiguration/id"),
-    TYPE("AmbariConfiguration/type"),
-    VERSION("AmbariConfiguration/version"),
-    VERSION_TAG("AmbariConfiguration/version_tag"),
-    DATA("AmbariConfiguration/data");
-
-    private String propertyId;
-
-    ResourcePropertyId(String propertyId) {
-      this.propertyId = propertyId;
-    }
-
-    String getPropertyId() {
-      return this.propertyId;
-    }
-
-    public static ResourcePropertyId fromString(String propertyIdStr) {
-      ResourcePropertyId propertyIdFromStr = null;
-
-      for (ResourcePropertyId id : ResourcePropertyId.values()) {
-        if (id.getPropertyId().equals(propertyIdStr)) {
-          propertyIdFromStr = id;
-          break;
-        }
-      }
-
-      if (propertyIdFromStr == null) {
-        throw new IllegalArgumentException("Unsupported property type: " + propertyIdStr);
-      }
-
-      return propertyIdFromStr;
-
-    }
-  }
-
-  private static Set<String> PROPERTIES = Sets.newHashSet(
-    ResourcePropertyId.ID.getPropertyId(),
-    ResourcePropertyId.TYPE.getPropertyId(),
-    ResourcePropertyId.VERSION.getPropertyId(),
-    ResourcePropertyId.VERSION_TAG.getPropertyId(),
-    ResourcePropertyId.DATA.getPropertyId());
-
-  private static Map<Resource.Type, String> PK_PROPERTY_MAP = Collections.unmodifiableMap(
-    new HashMap<Resource.Type, String>() {{
-      put(Resource.Type.AmbariConfiguration, ResourcePropertyId.ID.getPropertyId());
-    }}
+  private static final Set<String> PROPERTIES = Collections.unmodifiableSet(
+      new HashSet<>(Arrays.asList(
+          AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID,
+          AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID)
+      )
   );
 
+  private static final Map<Resource.Type, String> PK_PROPERTY_MAP = Collections.unmodifiableMap(
+      Collections.singletonMap(Resource.Type.AmbariConfiguration, AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID)
+  );
+
+  private static final Set<String> PK_PROPERTY_IDS = Collections.unmodifiableSet(
+      new HashSet<>(PK_PROPERTY_MAP.values())
+  );
 
   @Inject
   private AmbariConfigurationDAO ambariConfigurationDAO;
@@ -119,210 +79,224 @@ public class AmbariConfigurationResourceProvider extends AbstractAuthorizedResou
   @Inject
   private AmbariEventPublisher publisher;
 
-
-  private Gson gson;
-
-  @AssistedInject
   public AmbariConfigurationResourceProvider() {
     super(PROPERTIES, PK_PROPERTY_MAP);
-    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION));
-    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION));
 
-    gson = new GsonBuilder().create();
+    Set<RoleAuthorization> authorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION);
+    setRequiredCreateAuthorizations(authorizations);
+    setRequiredDeleteAuthorizations(authorizations);
+    setRequiredUpdateAuthorizations(authorizations);
+    setRequiredGetAuthorizations(authorizations);
   }
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return Sets.newHashSet(ResourcePropertyId.ID.getPropertyId());
+    return PK_PROPERTY_IDS;
   }
 
   @Override
-  public RequestStatus createResourcesAuthorized(Request request) throws SystemException, UnsupportedPropertyException,
-    ResourceAlreadyExistsException, NoSuchParentResourceException {
+  public RequestStatus createResourcesAuthorized(Request request)
+      throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
-    LOGGER.info("Creating new ambari configuration resource ...");
-    AmbariConfigurationEntity ambariConfigurationEntity = null;
-    try {
-      ambariConfigurationEntity = getEntityFromRequest(request);
-    } catch (AmbariException e) {
-      throw new NoSuchParentResourceException(e.getMessage());
-    }
-
-    LOGGER.info("Persisting new ambari configuration: {} ", ambariConfigurationEntity);
-
-    try {
-      ambariConfigurationDAO.create(ambariConfigurationEntity);
-    } catch (Exception e) {
-      LOGGER.error("Failed to create resource", e);
-      throw new ResourceAlreadyExistsException(e.getMessage());
-    }
-
-    // todo filter by configuration type
-    // notify subscribers about the configuration changes
-    publisher.publish(new AmbariLdapConfigChangedEvent(AmbariEvent.AmbariEventType.LDAP_CONFIG_CHANGED,
-      ambariConfigurationEntity.getId()));
+    createOrAddProperties(null, request.getProperties(), true);
 
     return getRequestStatus(null);
   }
-
 
   @Override
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws SystemException,
-    UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    Set<Resource> resources = Sets.newHashSet();
+      UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    // retrieves allconfigurations, filtering is done at a higher level
-    List<AmbariConfigurationEntity> ambariConfigurationEntities = ambariConfigurationDAO.findAll();
-    for (AmbariConfigurationEntity ambariConfigurationEntity : ambariConfigurationEntities) {
-      try {
-        resources.add(toResource(ambariConfigurationEntity, getPropertyIds()));
-      } catch (AmbariException e) {
-        LOGGER.error("Error while retrieving ambari configuration", e);
+    return getResources(new Command<Set<Resource>>() {
+      @Override
+      public Set<Resource> invoke() throws AmbariException {
+        Set<Resource> resources = new HashSet<>();
+        Set<String> requestedIds = getRequestPropertyIds(request, predicate);
+
+        if (CollectionUtils.isEmpty(requestedIds)) {
+          requestedIds = PROPERTIES;
+        }
+
+        if (predicate == null) {
+          Set<Resource> _resources = getAmbariConfigurationResources(requestedIds, null);
+          if (!CollectionUtils.isEmpty(_resources)) {
+            resources.addAll(_resources);
+          }
+        } else {
+          for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+            Set<Resource> _resources = getAmbariConfigurationResources(requestedIds, propertyMap);
+            if (!CollectionUtils.isEmpty(_resources)) {
+              resources.addAll(_resources);
+            }
+          }
+        }
+
+        return resources;
       }
-    }
-    return resources;
+    });
   }
+
 
   @Override
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate) throws SystemException,
-    UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Long idFromRequest = Long.valueOf((String) PredicateHelper.getProperties(predicate).get(ResourcePropertyId.ID.getPropertyId()));
+    String categoryName = (String) PredicateHelper.getProperties(predicate).get(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID);
 
-    if (null == idFromRequest) {
+    if (null == categoryName) {
       LOGGER.debug("No resource id provided in the request");
     } else {
-      LOGGER.debug("Deleting amari configuration with id: {}", idFromRequest);
+      LOGGER.debug("Deleting Ambari configuration with id: {}", categoryName);
       try {
-        ambariConfigurationDAO.removeByPK(idFromRequest);
+        ambariConfigurationDAO.removeByCategory(categoryName);
       } catch (IllegalStateException e) {
         throw new NoSuchResourceException(e.getMessage());
       }
-
     }
 
     // notify subscribers about the configuration changes
-    publisher.publish(new AmbariLdapConfigChangedEvent(AmbariEvent.AmbariEventType.LDAP_CONFIG_CHANGED, idFromRequest));
-
-
+    publisher.publish(new AmbariConfigurationChangedEvent(categoryName));
     return getRequestStatus(null);
-
   }
 
   @Override
-  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate) throws SystemException,
-    UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    Long idFromRequest = Long.valueOf((String) PredicateHelper.getProperties(predicate).get(ResourcePropertyId.ID.getPropertyId()));
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    AmbariConfigurationEntity persistedEntity = ambariConfigurationDAO.findByPK(idFromRequest);
-    if (persistedEntity == null) {
-      String errorMsg = String.format("Entity with primary key [ %s ] not found in the database.", idFromRequest);
-      LOGGER.error(errorMsg);
-      throw new NoSuchResourceException(errorMsg);
-    }
-
-    try {
-
-      AmbariConfigurationEntity entityFromRequest = getEntityFromRequest(request);
-      persistedEntity.getConfigurationBaseEntity().setVersionTag(entityFromRequest.getConfigurationBaseEntity().getVersionTag());
-      persistedEntity.getConfigurationBaseEntity().setVersion(entityFromRequest.getConfigurationBaseEntity().getVersion());
-      persistedEntity.getConfigurationBaseEntity().setType(entityFromRequest.getConfigurationBaseEntity().getType());
-      persistedEntity.getConfigurationBaseEntity().setConfigurationData(entityFromRequest.getConfigurationBaseEntity().getConfigurationData());
-      persistedEntity.getConfigurationBaseEntity().setConfigurationAttributes(entityFromRequest.getConfigurationBaseEntity().getConfigurationAttributes());
-
-
-      ambariConfigurationDAO.update(persistedEntity);
-    } catch (AmbariException e) {
-      throw new NoSuchParentResourceException(e.getMessage());
-    }
-
-    publisher.publish(new AmbariLdapConfigChangedEvent(AmbariEvent.AmbariEventType.LDAP_CONFIG_CHANGED,
-      persistedEntity.getId()));
-
+    String categoryName = (String) PredicateHelper.getProperties(predicate).get(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID);
+    createOrAddProperties(categoryName, request.getProperties(), false);
 
     return getRequestStatus(null);
-
   }
 
-  private Resource toResource(AmbariConfigurationEntity entity, Set<String> requestedIds) throws AmbariException {
+  /**
+   * Retrieves groups of properties from the request data and create or updates them as needed.
+   * <p>
+   * Each group of properties is expected to have a category (<code>AmbariConfiguration/category</code>)
+   * value and one or more property (<code>AmbariConfiguration/properties/property.name</code>) values.
+   * If a category cannot be determined from the propery set, the default category value (passed in)
+   * is used.  If a default category is set, it is assumed that it was parsed from the request predicate
+   * (if availabe).
+   *
+   * @param defaultCategoryName            the default category to use if needed
+   * @param requestProperties              a collection of property maps parsed from the request
+   * @param removePropertiesIfNotSpecified <code>true</code> to remove existing properties that have not been specifed in the request; <code>false</code> append or update the existing set of properties with values from the request
+   * @throws SystemException if an error occurs saving the configuration data
+   */
+  private void createOrAddProperties(String defaultCategoryName, Set<Map<String, Object>> requestProperties, boolean removePropertiesIfNotSpecified)
+      throws SystemException {
+    // set of resource properties (each entry in the set belongs to a different resource)
+    if (requestProperties != null) {
+      for (Map<String, Object> resourceProperties : requestProperties) {
+        Map<String, Map<String, String>> entityMap = parseProperties(defaultCategoryName, resourceProperties);
 
-    if (null == entity) {
-      throw new IllegalArgumentException("Null entity can't be transformed into a resource");
-    }
+        if (entityMap != null) {
+          for (Map.Entry<String, Map<String, String>> entry : entityMap.entrySet()) {
+            String categoryName = entry.getKey();
 
-    if (null == entity.getConfigurationBaseEntity()) {
-      throw new IllegalArgumentException("Invalid configuration entity can't be transformed into a resource");
+            if (ambariConfigurationDAO.reconcileCategory(categoryName, entry.getValue(), removePropertiesIfNotSpecified)) {
+              // notify subscribers about the configuration changes
+              publisher.publish(new AmbariConfigurationChangedEvent(categoryName));
+            }
+          }
+        }
+      }
     }
+  }
+
+  private Resource toResource(String categoryName, Map<String, String> properties, Set<String> requestedIds) {
     Resource resource = new ResourceImpl(Resource.Type.AmbariConfiguration);
-    Set<Map<String, String>> configurationSet = gson.fromJson(entity.getConfigurationBaseEntity().getConfigurationData(), Set.class);
-
-    setResourceProperty(resource, ResourcePropertyId.ID.getPropertyId(), entity.getId(), requestedIds);
-    setResourceProperty(resource, ResourcePropertyId.TYPE.getPropertyId(), entity.getConfigurationBaseEntity().getType(), requestedIds);
-    setResourceProperty(resource, ResourcePropertyId.DATA.getPropertyId(), configurationSet, requestedIds);
-    setResourceProperty(resource, ResourcePropertyId.VERSION.getPropertyId(), entity.getConfigurationBaseEntity().getVersion(), requestedIds);
-    setResourceProperty(resource, ResourcePropertyId.VERSION_TAG.getPropertyId(), entity.getConfigurationBaseEntity().getVersionTag(), requestedIds);
-
+    setResourceProperty(resource, AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID, categoryName, requestedIds);
+    setResourceProperty(resource, AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID, properties, requestedIds);
     return resource;
   }
 
-  private AmbariConfigurationEntity getEntityFromRequest(Request request) throws AmbariException {
+  /**
+   * Parse the property map from a request into a map of category names to maps of property names and values.
+   *
+   * @param defaultCategoryName the default category name to use if one is not found in the map of properties
+   * @param resourceProperties  a map of properties from a request item
+   * @return a map of category names to maps of name/value pairs
+   * @throws SystemException if an issue with the data is determined
+   */
+  private Map<String, Map<String, String>> parseProperties(String defaultCategoryName, Map<String, Object> resourceProperties) throws SystemException {
+    String categoryName = null;
+    Map<String, String> properties = new HashMap<>();
 
-    AmbariConfigurationEntity ambariConfigurationEntity = new AmbariConfigurationEntity();
-    ambariConfigurationEntity.setConfigurationBaseEntity(new ConfigurationBaseEntity());
+    for (Map.Entry<String, Object> entry : resourceProperties.entrySet()) {
+      String propertyName = entry.getKey();
 
-    // set of resource properties (eache entry in the set belongs to a different resource)
-    Set<Map<String, Object>> resourcePropertiesSet = request.getProperties();
-
-    if (resourcePropertiesSet.size() != 1) {
-      throw new AmbariException("There must be only one resource specified in the request");
-    }
-
-    // the configuration type must be set
-    if (getValueFromResourceProperties(ResourcePropertyId.TYPE, resourcePropertiesSet.iterator().next()) == null) {
-      throw new AmbariException("The configuration type must be set");
-    }
-
-
-    for (ResourcePropertyId resourcePropertyId : ResourcePropertyId.values()) {
-      Object requestValue = getValueFromResourceProperties(resourcePropertyId, resourcePropertiesSet.iterator().next());
-
-      switch (resourcePropertyId) {
-        case DATA:
-          if (requestValue == null) {
-            throw new IllegalArgumentException("No configuration data is provided in the request");
-          }
-          ambariConfigurationEntity.getConfigurationBaseEntity().setConfigurationData(gson.toJson(requestValue));
-          break;
-        case TYPE:
-          ambariConfigurationEntity.getConfigurationBaseEntity().setType((String) requestValue);
-          break;
-        case VERSION:
-          Integer version = (requestValue == null) ? DEFAULT_VERSION : Integer.valueOf((String) requestValue);
-          ambariConfigurationEntity.getConfigurationBaseEntity().setVersion((version));
-          break;
-        case VERSION_TAG:
-          String versionTag = requestValue == null ? DEFAULT_VERSION_TAG : (String) requestValue;
-          ambariConfigurationEntity.getConfigurationBaseEntity().setVersionTag(versionTag);
-          break;
-        default:
-          LOGGER.debug("Ignored property in the request: {}", resourcePropertyId);
-          break;
+      if (AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID.equals(propertyName)) {
+        if (entry.getValue() instanceof String) {
+          categoryName = (String) entry.getValue();
+        }
+      } else {
+        String propertyCategory = PropertyHelper.getPropertyCategory(entry.getKey());
+        if ((propertyCategory != null) && propertyCategory.equals(AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID)) {
+          String name = PropertyHelper.getPropertyName(entry.getKey());
+          Object value = entry.getValue();
+          properties.put(name, (value == null) ? null : value.toString());
+        }
       }
     }
-    ambariConfigurationEntity.getConfigurationBaseEntity().setCreateTimestamp(Calendar.getInstance().getTimeInMillis());
-    return ambariConfigurationEntity;
 
-  }
-
-  private Object getValueFromResourceProperties(ResourcePropertyId resourcePropertyIdEnum, Map<String, Object> resourceProperties) {
-    LOGGER.debug("Locating resource property [{}] in the resource properties map ...", resourcePropertyIdEnum);
-    Object requestValue = null;
-
-    if (resourceProperties.containsKey(resourcePropertyIdEnum.getPropertyId())) {
-      requestValue = resourceProperties.get(resourcePropertyIdEnum.getPropertyId());
-      LOGGER.debug("Found resource property {} in the resource properties map, value: {}", resourcePropertyIdEnum, requestValue);
+    if (categoryName == null) {
+      categoryName = defaultCategoryName;
     }
-    return requestValue;
+
+    if (StringUtils.isEmpty(categoryName)) {
+      throw new SystemException("The configuration type must be set");
+    }
+
+    if (properties.isEmpty()) {
+      throw new SystemException("The configuration properties must be set");
+    }
+
+    return Collections.singletonMap(categoryName, properties);
   }
 
+  private Set<Resource> getAmbariConfigurationResources(Set<String> requestedIds, Map<String, Object> propertyMap) {
+    Set<Resource> resources = new HashSet<>();
+
+    String categoryName = getStringProperty(propertyMap, AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID);
+
+    List<AmbariConfigurationEntity> entities = (categoryName == null)
+        ? ambariConfigurationDAO.findAll()
+        : ambariConfigurationDAO.findByCategory(categoryName);
+
+    if (entities != null) {
+      Map<String, Map<String, String>> configurations = new HashMap<>();
+
+      for (AmbariConfigurationEntity entity : entities) {
+        String category = entity.getCategoryName();
+        Map<String, String> properties = configurations.get(category);
+
+        if (properties == null) {
+          properties = new TreeMap<>();
+          configurations.put(category, properties);
+        }
+
+        properties.put(entity.getPropertyName(), entity.getPropertyValue());
+      }
+
+      for (Map.Entry<String, Map<String, String>> entry : configurations.entrySet()) {
+        resources.add(toResource(entry.getKey(), entry.getValue(), requestedIds));
+      }
+    }
+
+    return resources;
+  }
+
+  private String getStringProperty(Map<String, Object> propertyMap, String propertyId) {
+    String value = null;
+
+    if (propertyMap != null) {
+      Object o = propertyMap.get(propertyId);
+      if (o instanceof String) {
+        value = (String) o;
+      }
+    }
+
+    return value;
+  }
 }

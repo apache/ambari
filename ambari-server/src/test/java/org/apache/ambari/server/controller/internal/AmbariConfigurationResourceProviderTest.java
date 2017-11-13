@@ -14,238 +14,364 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.controller.internal.AmbariConfigurationResourceProvider.AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.AmbariConfigurationResourceProvider.AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.events.AmbariLdapConfigChangedEvent;
+import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
-import org.apache.ambari.server.orm.entities.ConfigurationBaseEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.easymock.TestSubject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.After;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
 
-  @Rule
-  public EasyMockRule mocks = new EasyMockRule(this);
+  private static final String CATEGORY_NAME_1 = "test-category-1";
+  private static final String CATEGORY_NAME_2 = "test-category-2";
 
-  @Mock
-  private Request requestMock;
-
-  @Mock
-  private AmbariConfigurationDAO ambariConfigurationDAO;
-
-  @Mock
-  private AmbariEventPublisher publisher;
-
-  private Capture<AmbariConfigurationEntity> ambariConfigurationEntityCapture;
-
-  private Gson gson;
-
-  private static final String DATA_MOCK_STR = "[\n" +
-    "      {\n" +
-    "        \"authentication.ldap.baseDn\" : \"dc=ambari,dc=apache,dc=org\",\n" +
-    "        \"authentication.ldap.primaryUrl\" : \"localhost:33389\",\n" +
-    "        \"authentication.ldap.secondaryUrl\" : \"localhost:333\"\n" +
-    "      }\n" +
-    "    ]";
-
-  private static final Long PK_LONG = Long.valueOf(1);
-  private static final String PK_STRING = String.valueOf(1);
-  private static final String VERSION_TAG = "test version";
-  private static final String VERSION = "1";
-  private static final String TYPE = "AmbariConfiguration";
-
-  @TestSubject
-  private AmbariConfigurationResourceProvider ambariConfigurationResourceProvider = new AmbariConfigurationResourceProvider();
-
-  @Before
-  public void setup() {
-    ambariConfigurationEntityCapture = Capture.newInstance();
-    gson = new GsonBuilder().create();
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
-  public void testCreateAmbariConfigurationRequestResultsInTheProperPersistenceCall() throws Exception {
+  public void testCreateResources_Administrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
 
-    // GIVEN
-    // configuration properties parsed from the request
-    Set<Map<String, Object>> resourcePropertiesSet = Sets.newHashSet(
-      new PropertiesMapBuilder()
-        .withId(PK_LONG)
-        .withVersion(VERSION)
-        .withVersionTag(VERSION_TAG)
-        .withData(DATA_MOCK_STR)
-        .withType(TYPE)
-        .build());
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResources_ClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
 
-    // mock the request to return the properties
-    EasyMock.expect(requestMock.getProperties()).andReturn(resourcePropertiesSet);
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResources_ClusterOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterOperator());
+  }
 
-    // capture the entity the DAO gets called with
-    ambariConfigurationDAO.create(EasyMock.capture(ambariConfigurationEntityCapture));
-    publisher.publish(EasyMock.anyObject(AmbariLdapConfigChangedEvent.class));
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResources_ServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResources_ServiceOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
+    Injector injector = createInjector();
+
+    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+
+    Set<Map<String, Object>> propertySets = new HashSet<>();
+
+    Map<String, String> properties1 = new HashMap<>();
+    properties1.put("property1a", "value1");
+    properties1.put("property2a", "value2");
+    propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties1));
+
+    Map<String, String> properties2 = new HashMap<>();
+    properties2.put("property1b", "value1");
+    properties2.put("property2b", "value2");
+    propertySets.add(toRequestProperties(CATEGORY_NAME_2, properties2));
+
+    Request request = createMock(Request.class);
+    expect(request.getProperties()).andReturn(propertySets).once();
+
+    Capture<Map<String, String>> capturedProperties1 = newCapture();
+    Capture<Map<String, String>> capturedProperties2 = newCapture();
+
+    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
+    expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(true)))
+        .andReturn(true)
+        .once();
+    expect(dao.reconcileCategory(eq(CATEGORY_NAME_2), capture(capturedProperties2), eq(true)))
+        .andReturn(true)
+        .once();
+
+    AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
+    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+    expectLastCall().times(2);
 
     replayAll();
 
-    // WHEN
-    ambariConfigurationResourceProvider.createResourcesAuthorized(requestMock);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    // THEN
-    AmbariConfigurationEntity capturedAmbariConfigurationEntity = ambariConfigurationEntityCapture.getValue();
-    Assert.assertNotNull(capturedAmbariConfigurationEntity);
-    Assert.assertNull("The entity identifier should be null", capturedAmbariConfigurationEntity.getId());
-    Assert.assertEquals("The entity version is not the expected", Integer.valueOf(VERSION),
-      capturedAmbariConfigurationEntity.getConfigurationBaseEntity().getVersion());
-    Assert.assertEquals("The entity version tag is not the expected", VERSION_TAG,
-      capturedAmbariConfigurationEntity.getConfigurationBaseEntity().getVersionTag());
-    Assert.assertEquals("The entity data is not the expected", DATA_MOCK_STR,
-      gson.fromJson(capturedAmbariConfigurationEntity.getConfigurationBaseEntity().getConfigurationData(), String.class));
+    resourceProvider.createResources(request);
+
+    verifyAll();
+
+    validateCapturedProperties(properties1, capturedProperties1);
+    validateCapturedProperties(properties2, capturedProperties2);
   }
 
   @Test
-  public void testRemoveAmbariConfigurationRequestResultsInTheProperPersistenceCall() throws Exception {
-    // GIVEN
-    Predicate predicate = new PredicateBuilder().property(
-      AmbariConfigurationResourceProvider.ResourcePropertyId.ID.getPropertyId()).equals("1").toPredicate();
+  public void testDeleteResources_Administrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
+  }
 
-    Capture<Long> pkCapture = Capture.newInstance();
-    ambariConfigurationDAO.removeByPK(EasyMock.capture(pkCapture));
-    publisher.publish(EasyMock.anyObject(AmbariLdapConfigChangedEvent.class));
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_ClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_ClusterOperator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_ServiceAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_ServiceOperator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception {
+    Injector injector = createInjector();
+
+    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+
+    Predicate predicate = new PredicateBuilder()
+        .property(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID)
+        .equals(CATEGORY_NAME_1)
+        .toPredicate();
+
+    Request request = createMock(Request.class);
+
+    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
+    expect(dao.removeByCategory(CATEGORY_NAME_1)).andReturn(1).once();
+
+    AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
+    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+    expectLastCall().once();
 
     replayAll();
 
-    // WHEN
-    ambariConfigurationResourceProvider.deleteResourcesAuthorized(requestMock, predicate);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    // THEN
-    Assert.assertEquals("The pk of the entity to be removed doen't match the expected id", Long.valueOf(1), pkCapture.getValue());
+    resourceProvider.deleteResources(request, predicate);
+
+    verifyAll();
   }
-
 
   @Test
-  public void testRetrieveAmbariConfigurationShouldResultsInTheProperDAOCall() throws Exception {
-    // GIVEN
-    Predicate predicate = new PredicateBuilder().property(
-      AmbariConfigurationResourceProvider.ResourcePropertyId.ID.getPropertyId()).equals("1").toPredicate();
+  public void testGetResources_Administrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createAdministrator());
+  }
 
-    EasyMock.expect(ambariConfigurationDAO.findAll()).andReturn(Lists.newArrayList(createDummyAmbariConfigurationEntity()));
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_ClusterAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_ClusterOperator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_ServiceAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_ServiceOperator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  private void testGetResources(Authentication authentication) throws Exception {
+    Injector injector = createInjector();
+
+    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+
+    Predicate predicate = new PredicateBuilder()
+        .property(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID)
+        .equals(CATEGORY_NAME_1)
+        .toPredicate();
+
+    Request request = createMock(Request.class);
+    expect(request.getPropertyIds()).andReturn(null).anyTimes();
+
+    Map<String, String> properties = new HashMap<>();
+    properties.put("property1a", "value1");
+    properties.put("property2a", "value2");
+
+    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
+    expect(dao.findByCategory(CATEGORY_NAME_1)).andReturn(createEntities(CATEGORY_NAME_1, properties)).once();
+
     replayAll();
 
-    // WHEN
-    Set<Resource> resourceSet = ambariConfigurationResourceProvider.getResourcesAuthorized(requestMock, predicate);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    // THEN
-    Assert.assertNotNull(resourceSet);
-    Assert.assertFalse(resourceSet.isEmpty());
+    Set<Resource> response = resourceProvider.getResources(request, predicate);
+
+    verifyAll();
+
+    junit.framework.Assert.assertNotNull(response);
+    junit.framework.Assert.assertEquals(1, response.size());
+
+    Resource resource = response.iterator().next();
+    junit.framework.Assert.assertEquals(Resource.Type.AmbariConfiguration, resource.getType());
+
+    Map<String, Map<String, Object>> propertiesMap = resource.getPropertiesMap();
+    junit.framework.Assert.assertEquals(2, propertiesMap.size());
+
+    junit.framework.Assert.assertEquals(CATEGORY_NAME_1, propertiesMap.get(Resource.Type.AmbariConfiguration.name()).get("category"));
+
+    Map<String, Object> retrievedProperties = propertiesMap.get(Resource.Type.AmbariConfiguration.name() + "/properties");
+    junit.framework.Assert.assertEquals(2, retrievedProperties.size());
+
+    for (Map.Entry<String, String> entry : properties.entrySet()) {
+      junit.framework.Assert.assertEquals(entry.getValue(), retrievedProperties.get(entry.getKey()));
+    }
   }
 
   @Test
-  public void testUpdateAmbariConfigurationShouldResultInTheProperDAOCalls() throws Exception {
-    // GIVEN
+  public void testUpdateResources_Administrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
+  }
 
-    Predicate predicate = new PredicateBuilder().property(
-      AmbariConfigurationResourceProvider.ResourcePropertyId.ID.getPropertyId()).equals("1").toPredicate();
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_ClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
 
-    // properteies in the request, representing the updated configuration
-    Set<Map<String, Object>> resourcePropertiesSet = Sets.newHashSet(new PropertiesMapBuilder()
-      .withId(PK_LONG)
-      .withVersion("2")
-      .withVersionTag("version-2")
-      .withData(DATA_MOCK_STR)
-      .withType(TYPE)
-      .build());
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_ClusterOperator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterOperator());
+  }
 
-    EasyMock.expect(requestMock.getProperties()).andReturn(resourcePropertiesSet);
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_ServiceAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
 
-    AmbariConfigurationEntity persistedEntity = createDummyAmbariConfigurationEntity();
-    EasyMock.expect(ambariConfigurationDAO.findByPK(PK_LONG)).andReturn(persistedEntity);
-    ambariConfigurationDAO.update(EasyMock.capture(ambariConfigurationEntityCapture));
-    publisher.publish(EasyMock.anyObject(AmbariLdapConfigChangedEvent.class));
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_ServiceOperator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  private void testUpdateResources(Authentication authentication) throws Exception {
+    Injector injector = createInjector();
+
+    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+
+    Predicate predicate = new PredicateBuilder()
+        .property(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID)
+        .equals(CATEGORY_NAME_1)
+        .toPredicate();
+
+    Set<Map<String, Object>> propertySets = new HashSet<>();
+
+    Map<String, String> properties1 = new HashMap<>();
+    properties1.put("property1a", "value1");
+    properties1.put("property2a", "value2");
+    propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties1));
+
+    Request request = createMock(Request.class);
+    expect(request.getProperties()).andReturn(propertySets).once();
+
+    Capture<Map<String, String>> capturedProperties1 = newCapture();
+
+    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
+    expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(false)))
+        .andReturn(true)
+        .once();
+
+    AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
+    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+    expectLastCall().times(1);
 
     replayAll();
 
-    // WHEN
-    ambariConfigurationResourceProvider.updateResourcesAuthorized(requestMock, predicate);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    // the captured entity should be the updated one
-    AmbariConfigurationEntity updatedEntity = ambariConfigurationEntityCapture.getValue();
+    resourceProvider.updateResources(request, predicate);
 
-    // THEN
-    Assert.assertNotNull(updatedEntity);
-    Assert.assertEquals("The updated version is wrong", Integer.valueOf(2), updatedEntity.getConfigurationBaseEntity().getVersion());
+    verifyAll();
+
+    validateCapturedProperties(properties1, capturedProperties1);
   }
 
-  private class PropertiesMapBuilder {
+  private List<AmbariConfigurationEntity> createEntities(String categoryName, Map<String, String> properties) {
+    List<AmbariConfigurationEntity> entities = new ArrayList<>();
 
-    private Map<String, Object> resourcePropertiesMap = Maps.newHashMap();
-
-    private PropertiesMapBuilder() {
+    for (Map.Entry<String, String> property : properties.entrySet()) {
+      AmbariConfigurationEntity entity = new AmbariConfigurationEntity();
+      entity.setCategoryName(categoryName);
+      entity.setPropertyName(property.getKey());
+      entity.setPropertyValue(property.getValue());
+      entities.add(entity);
     }
 
-    public PropertiesMapBuilder withId(Long id) {
-      resourcePropertiesMap.put(AmbariConfigurationResourceProvider.ResourcePropertyId.ID.getPropertyId(), id);
-      return this;
-    }
-
-    private PropertiesMapBuilder withVersion(String version) {
-      resourcePropertiesMap.put(AmbariConfigurationResourceProvider.ResourcePropertyId.VERSION.getPropertyId(), version);
-      return this;
-    }
-
-    private PropertiesMapBuilder withVersionTag(String versionTag) {
-      resourcePropertiesMap.put(AmbariConfigurationResourceProvider.ResourcePropertyId.VERSION_TAG.getPropertyId(), versionTag);
-      return this;
-    }
-
-    private PropertiesMapBuilder withData(String dataJson) {
-      resourcePropertiesMap.put(AmbariConfigurationResourceProvider.ResourcePropertyId.DATA.getPropertyId(), dataJson);
-      return this;
-    }
-
-    private PropertiesMapBuilder withType(String type) {
-      resourcePropertiesMap.put(AmbariConfigurationResourceProvider.ResourcePropertyId.TYPE.getPropertyId(), type);
-      return this;
-    }
-
-
-    public Map<String, Object> build() {
-      return this.resourcePropertiesMap;
-    }
-
+    return entities;
   }
 
-  private AmbariConfigurationEntity createDummyAmbariConfigurationEntity() {
-    AmbariConfigurationEntity acEntity = new AmbariConfigurationEntity();
-    ConfigurationBaseEntity configurationBaseEntity = new ConfigurationBaseEntity();
-    acEntity.setConfigurationBaseEntity(configurationBaseEntity);
-    acEntity.setId(PK_LONG);
-    acEntity.getConfigurationBaseEntity().setConfigurationData(DATA_MOCK_STR);
-    acEntity.getConfigurationBaseEntity().setVersion(Integer.valueOf(VERSION));
-    acEntity.getConfigurationBaseEntity().setVersionTag(VERSION_TAG);
-    acEntity.getConfigurationBaseEntity().setType("ldap-config");
-
-    return acEntity;
+  private Map<String, Object> toRequestProperties(String categoryName1, Map<String, String> properties) {
+    Map<String, Object> requestProperties = new HashMap<>();
+    requestProperties.put(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID, categoryName1);
+    for (Map.Entry<String, String> entry : properties.entrySet()) {
+      requestProperties.put(AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID + "/" + entry.getKey(), entry.getValue());
+    }
+    return requestProperties;
   }
 
+  private void validateCapturedProperties(Map<String, String> expectedProperties, Capture<Map<String, String>> capturedProperties) {
+    junit.framework.Assert.assertTrue(capturedProperties.hasCaptured());
 
+    Map<String, String> properties = capturedProperties.getValue();
+    junit.framework.Assert.assertNotNull(properties);
+
+    // Convert the Map to a TreeMap to help with comparisons
+    expectedProperties = new TreeMap<>(expectedProperties);
+    properties = new TreeMap<>(properties);
+    junit.framework.Assert.assertEquals(expectedProperties, properties);
+  }
+
+  private Injector createInjector() throws Exception {
+    return Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(AmbariConfigurationDAO.class).toInstance(createMock(AmbariConfigurationDAO.class));
+        bind(AmbariEventPublisher.class).toInstance(createMock(AmbariEventPublisher.class));
+      }
+    });
+  }
 }

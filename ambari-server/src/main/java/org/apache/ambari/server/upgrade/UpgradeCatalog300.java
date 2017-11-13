@@ -66,20 +66,20 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String STAGE_DISPLAY_STATUS_COLUMN = "display_status";
   protected static final String REQUEST_TABLE = "request";
   protected static final String REQUEST_DISPLAY_STATUS_COLUMN = "display_status";
-  protected static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
-  protected static final String CLUSTER_CONFIG_SELECTED_COLUMN = "selected";
-  protected static final String CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
-  protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
   protected static final String COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
   protected static final String COMPONENT_STATE_TABLE = "hostcomponentstate";
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
   protected static final String SECURITY_STATE_COLUMN = "security_state";
 
+  protected static final String AMBARI_CONFIGURATION_TABLE = "ambari_configuration";
+  protected static final String AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN = "category_name";
+  protected static final String AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN = "property_name";
+  protected static final String AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN = "property_value";
+
   @Inject
   DaoUtils daoUtils;
-
 
   // ----- Constructors ------------------------------------------------------
 
@@ -123,6 +123,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateStageTable();
     addOpsDisplayNameColumnToHostRoleCommand();
     removeSecurityState();
+    addAmbariConfigurationTable();
   }
 
   protected void updateStageTable() throws SQLException {
@@ -132,6 +133,16 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
     dbAccessor.addColumn(REQUEST_TABLE,
         new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+  }
+
+  protected void addAmbariConfigurationTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, String.class, 100, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, String.class, 100, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 255, null, true));
+
+    dbAccessor.createTable(AMBARI_CONFIGURATION_TABLE, columns);
+    dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
   }
 
   /**

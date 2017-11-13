@@ -14,9 +14,7 @@
 
 package org.apache.ambari.server.api.services.ldap;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Domain POJO representing generic ambari configuration data.
@@ -28,22 +26,7 @@ public class AmbariConfiguration {
    */
   private String type;
 
-  /**
-   * Version tag
-   */
-  private String versionTag;
-
-  /**
-   * Version number
-   */
-  private Integer version;
-
-  /**
-   * Created timestamp
-   */
-  private long createdTs;
-
-  private Set<Map<String, Object>> data = Collections.emptySet();
+  private Map<String, Object> properties = null;
 
   public String getType() {
     return type;
@@ -53,35 +36,11 @@ public class AmbariConfiguration {
     this.type = type;
   }
 
-  public Set<Map<String, Object>> getData() {
-    return data;
+  public Map<String, Object> getProperties() {
+    return properties;
   }
 
-  public void setData(Set<Map<String, Object>> data) {
-    this.data = data;
-  }
-
-  public String getVersionTag() {
-    return versionTag;
-  }
-
-  public void setVersionTag(String versionTag) {
-    this.versionTag = versionTag;
-  }
-
-  public Integer getVersion() {
-    return version;
-  }
-
-  public void setVersion(Integer version) {
-    this.version = version;
-  }
-
-  public long getCreatedTs() {
-    return createdTs;
-  }
-
-  public void setCreatedTs(long createdTs) {
-    this.createdTs = createdTs;
+  public void setProperties(Map<String, Object> data) {
+    this.properties = data;
   }
 }
