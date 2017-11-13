@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
 App.WizardSelectMpacksView = Em.View.extend({
@@ -24,5 +23,57 @@ App.WizardSelectMpacksView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+  }
+});
+
+/**
+ * View for each mpack in the registry
+ */
+App.WizardMpackView = Em.View.extend({
+  templateName: require('templates/wizard/selectMpacks/mpack'),
+
+  services: function () {
+    return this.get('mpack.versions').filterProperty('displayed')[0].services;
+  }.property('mpack.versions.@each.displayed'),
+
+  /**
+   * Handle mpack version changed
+   * 
+   * @param {any} event 
+   */
+  changeVersion: function (event) {
+    const versionId = event.target.value;
+    this.get('controller').displayMpackVersion(versionId);
   },
+
+  /**
+   * Handle add service button clicked
+   *
+   * @param  {type} event
+   */
+  addService: function (event) {
+    const serviceId = event.context;
+    this.get('controller').addServiceHandler(serviceId);
+  }
+});
+
+/**
+ * View for each selected mpack
+ */
+App.WizardSelectedMpackVersionView = Em.View.extend({
+  templateName: require('templates/wizard/selectMpacks/selectedMpackVersion'),
+
+  mpack: function () {
+    return this.get('mpackVersion.mpack.name');
+  }.property(),
+
+  /**
+   * Handle remove service button clicked.
+   *
+   * @param  {type} event
+   */
+  removeService: function (event) {
+    const serviceId = event.context;
+    this.get('controller').removeServiceHandler(serviceId);
+  }
 });

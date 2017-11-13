@@ -22,7 +22,7 @@
   <div>
   {{#each service in mpackVersion.services}}
     {{#if service.selected}}
-      <button {{bindAttr id="service.name"}} class="capsule" {{action "removeService" service.id target="controller"}}>
+      <button {{bindAttr id="service.name"}} class="capsule" {{action "removeService" service.id target="view"}}>
         {{service.name}}&nbsp;<i class="icon">&times;</i>
       <span {{bindAttr class="selected:service-remove:service-add" title="service.version"}}></span>
     </button>

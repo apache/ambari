@@ -675,7 +675,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
    */
   createComponentInstallationObjects: function() {
     var stackMasterComponentsMap = {},
-        masterHosts = this.get('content.masterComponentHosts') || this.get('masterComponentHosts'), //saved to local storage info
+        masterHosts = this.get('content.masterComponentHosts'),
         servicesToAdd = (this.get('content.services')|| []).filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'),
         recommendations = this.get('recommendations'),
         resultComponents = [],
@@ -955,13 +955,23 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   assignHostToMaster: function (componentName, selectedHost, serviceComponentId) {
     var flag = this.isHostNameValid(componentName, selectedHost);
     var component;
+    const stepName = this.get('stepName');
+
     this.updateIsHostNameValidFlag(componentName, serviceComponentId, flag);
+
     if (serviceComponentId) {
       component = this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("serviceComponentId", serviceComponentId);
-      if (component) component.set("selectedHost", selectedHost);
-    }
-    else {
+      if (component) {
+        component.set("selectedHost", selectedHost);
+        if (stepName) {
+          this.get('wizardController').setStepUnsaved(stepName);
+        }
+      }
+    } else {
       this.get('selectedServicesMasters').findProperty("component_name", componentName).set("selectedHost", selectedHost);
+      if (stepName) {
+        this.get('wizardController').setStepUnsaved(stepName);
+      }
     }
   },
 
@@ -1093,6 +1103,12 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       });
       this.incrementProperty('rebalanceComponentHostsCounter');
       this.toggleProperty('hostNameCheckTrigger');
+
+      const stepName = this.get('stepName');
+      if (stepName) {
+        this.get('wizardController').setStepUnsaved(stepName);
+      }
+
       return true;
     }
     return false;//if no more zookeepers can be added
@@ -1130,6 +1146,12 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     });
     this.incrementProperty('rebalanceComponentHostsCounter');
     this.toggleProperty('hostNameCheckTrigger');
+
+    const stepName = this.get('stepName');
+    if (stepName) {
+      this.get('wizardController').setStepUnsaved(stepName);
+    }
+    
     return true;
   },
 

@@ -584,7 +584,9 @@ Em.I18n.translations = {
 
   'installer.header':'Cluster Install Wizard',
   'installer.navigation.warning.header':'Navigation Warning',
-
+  'installer.navigation.warning':'If you make changes to a previous step you will lose any changes saved in subsequent steps.',
+  'installer.warning.changes.header':'Warning',
+  'installer.warning.changes':'If you make changes to this step you will lose any changes saved in subsequent steps.',
   'installer.noHostsAssigned':'No host assigned',
   'installer.slaveComponentHosts.selectHosts':'select hosts for this group',
   'installer.slaveComponentHostsPopup.header':'Select which hosts should belong to which {0} group',
@@ -597,7 +599,7 @@ Em.I18n.translations = {
   'installer.controls.serviceConfigMasterHosts.header':'{0} Hosts',
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
-  'installer.selectMpacks.loadSelectionFailed': 'Could not load Management Packs. The software registry may not be available.',
+  'installer.selectMpacks.loadRegistryFailed': 'Could not load Management Packs. The software registry may not be available.',
   'installer.selectMpacks.header': 'Select Management Packs',
   'installer.selectMpacks.body.header': 'Select Management Packs',
   'installer.selectMpacks.noMpacksAvailable': 'No management packs are available.',

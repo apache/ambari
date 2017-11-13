@@ -22,19 +22,15 @@ App.WizardSelectMpacksController = Em.Controller.extend({
 
   name: 'wizardSelectMpacksController',
 
-  //mpacks: Em.computed.alias('content.mpacks'),
-
-  getMpacks: function () {
-    App.ajax.send({
+  loadRegistry: function () {
+    return App.ajax.send({
       name: 'registry.mpacks.versions',
       showLoadingPopup: true,
-      sender: this,
-      success: 'getMpacksSucceeded',
-      error: 'getMpacksFailed'
+      sender: this
     });
   },
 
-  getMpacksSucceeded: function (data) {
+  loadRegistrySucceeded: function (data) {
     const mpacks = data.items.reduce(
       (mpacks, registry) => mpacks.concat(
         registry.mpacks.map(mpack => {
@@ -42,9 +38,10 @@ App.WizardSelectMpacksController = Em.Controller.extend({
             name: mpack.RegistryMpackInfo.mpack_name,
             description: mpack.RegistryMpackInfo.mpack_description,
             logoUrl: mpack.RegistryMpackInfo.mpack_logo_url,
-            versions: mpack.versions ? mpack.versions.map(version => {
+            versions: mpack.versions ? mpack.versions.map((version, index) => {
               return Em.Object.create({
                 selected: false,
+                displayed: index === 0 ? true : false, //by default, display first version
                 id: mpack.RegistryMpackInfo.mpack_name + version.RegistryMpackVersionInfo.mpack_version,
                 version: version.RegistryMpackVersionInfo.mpack_version,
                 docUrl: version.RegistryMpackVersionInfo.mpack_dock_url,
@@ -89,19 +86,56 @@ App.WizardSelectMpacksController = Em.Controller.extend({
     this.set('content.mpackServices', mpackServices);
   },
 
-  getMpacksFailed: function () {
+  isSaved: function () {
+    const wizardController = this.get('wizardController');
+    if (wizardController) {
+      return wizardController.getStepSavedState('selectMpacks');
+    }
+    return false;
+  }.property('wizardController.content.stepsSavedState'),
+
+  loadRegistryFailed: function () {
     this.set('content.mpacks', []);
+
+    App.showAlertPopup(
+      Em.I18n.t('common.error'), //header
+      Em.I18n.t('installer.selectMpacks.loadRegistryFailed') //body
+    );
   },
 
-  loadStep: function () {
+  getRegistry: function () {
+    const deferred = $.Deferred();
+
     const mpacks = this.get('content.mpacks');
     const mpackVersions = this.get('content.mpackVersions');
     const mpackServices = this.get('content.mpackServices');
 
     if (!mpacks || mpacks.length === 0 || !mpackVersions || mpackVersions.length === 0 || !mpackServices || mpackServices.length === 0) {
-      //this.showLoadingSpinner();
-      this.getMpacks();
+      this.loadRegistry().then(registry => {
+        this.loadRegistrySucceeded(registry);
+        deferred.resolve();
+      },
+      () => {
+        this.loadRegistryFailed();
+        deferred.reject();
+      });
+    } else {
+      deferred.resolve();
     }
+
+    return deferred.promise();
+  },
+
+  loadStep: function () {
+    this.getRegistry().then(() => {
+      //add previously selected services
+      const selectedServices = this.get('content.selectedServices');
+      if (selectedServices) {
+        selectedServices.forEach(service => {
+          this.addService(service.id);
+        });
+      }
+    });
   },
 
   isSubmitDisabled: function () {
@@ -109,37 +143,68 @@ App.WizardSelectMpacksController = Em.Controller.extend({
     return mpackServices.filterProperty('selected', true).length === 0 || App.get('router.btnClickInProgress');
   }.property('content.mpackServices.@each.selected', 'App.router.btnClickInProgress'),
 
-  loadSelectionFailed: function () {
-    App.showAlertPopup(
-      Em.I18n.t('common.error'), //header
-      Em.I18n.t('installer.selectMpacks.loadSelectionFailed') //body
-    );
-  },
-
-  /**
-   * Adds service to selection.
-   *
-   * @param  {string} serviceName
-   */
-  selectService: function (event) {
-    const serviceId = event.context;
+  getServiceById: function (serviceId) {
     const mpackServices = this.get('content.mpackServices');
     const byServiceId = service => service.id === serviceId;
-
     const service = mpackServices.find(byServiceId);
-    service.set('selected', true);
-    service.set('mpackVersion.selected', true);
+    return service;
   },
 
-  removeService: function (event) {
-    const serviceId = event.context;
-    const mpackServices = this.get('content.mpackServices');
-    const byServiceId = service => service.id === serviceId;
+  getMpackVersionById: function (versionId) {
+    const mpackVersions = this.get('content.mpackVersions');
+    const byVersionId = version => version.id === versionId;
+    const version = mpackVersions.find(byVersionId);
+    return version;
+  },
 
-    const service = mpackServices.find(byServiceId);
-    service.set('selected', false);
+  displayMpackVersion: function (versionId) {
+    const version = this.getMpackVersionById(versionId);
 
-    service.set('mpackVersion.selected', service.get('mpackVersion.services').some(s => s.get('selected') === true));
+    if (version) {
+      version.mpack.versions.forEach(mpackVersion => {
+        if (mpackVersion.get('id') === versionId) {
+          mpackVersion.set('displayed', true);
+        } else {
+          mpackVersion.set('displayed', false);
+        }
+      })
+    }
+  },
+
+  addServiceHandler: function (serviceId) {
+    if (this.addService(serviceId)) {
+      this.get('wizardController').setStepUnsaved('selectMpacks');
+    }
+  },
+
+  addService: function (serviceId) {
+    const service = this.getServiceById(serviceId);
+
+    if (service) {
+      service.set('selected', true);
+      service.set('mpackVersion.selected', true);
+      return true;
+    }
+
+    return false;
+  },
+
+  removeServiceHandler: function (serviceId) {
+    if (this.removeService(serviceId)) {
+      this.get('wizardController').setStepUnsaved('selectMpacks');
+    }
+  },
+
+  removeService: function (serviceId) {
+    const service = this.getServiceById(serviceId);
+
+    if (service) {
+      service.set('selected', false);
+      service.set('mpackVersion.selected', service.get('mpackVersion.services').some(s => s.get('selected') === true));
+      return true;
+    }
+
+    return false;
   },
 
   selectedServices: function () {
@@ -157,21 +222,32 @@ App.WizardSelectMpacksController = Em.Controller.extend({
     return versions ? versions.some(v => v.get('selected') === true) : false;
   }.property('content.mpackVersions.@each.selected', 'selectedServices'),
 
+  clearSelection: function () {
+    const mpackServices = this.get('content.mpackServices');
+    if (mpackServices) {
+      mpackServices.setEach('selected', false);
+    }
+
+    const versions = this.get('content.mpackVersions');
+    if (versions) {
+      versions.setEach('selected', false);
+    }
+  },
+
   /**
    * Onclick handler for <code>Next</code> button.
    * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @method submit
    */
   submit: function () {
-    const self = this;
-
-    if(App.get('router.nextBtnClickInProgress')) {
+    if (App.get('router.nextBtnClickInProgress')) {
       return;
     }
 
     if (!this.get('isSubmitDisabled')) {
       const selectedServices = this.get('selectedServices').map(service =>
         ({
+          id: service.id,
           name: service.name,
           mpackName: service.mpackVersion.name,
           mpackVersion: service.mpackVersion.version,
@@ -179,14 +255,12 @@ App.WizardSelectMpacksController = Em.Controller.extend({
           stackVersion: service.mpackVersion.stackVersion
         })
       );
-      self.set('content.selectedServices', selectedServices);
-      self.get('wizardController').setDBProperty('selectedServices', selectedServices);
+      this.set('content.selectedServices', selectedServices);
 
       const selectedServiceNames = selectedServices.map(service => service.name);
-      self.set('content.selectedServiceNames', selectedServiceNames);
-      self.get('wizardController').setDBProperty('selectedServiceNames', selectedServiceNames);
+      this.set('content.selectedServiceNames', selectedServiceNames);
 
-      const selectedMpacks = self.get('selectedMpackVersions').map(mpackVersion =>
+      const selectedMpacks = this.get('selectedMpackVersions').map(mpackVersion =>
         ({
           name: mpackVersion.mpack.name,
           displayName: mpackVersion.mpack.displayName,
@@ -194,8 +268,7 @@ App.WizardSelectMpacksController = Em.Controller.extend({
           version: mpackVersion.version
         })
       );
-      self.set('content.selectedMpacks', selectedMpacks);
-      self.get('wizardController').setDBProperty('selectedMpacks', selectedMpacks);
+      this.set('content.selectedMpacks', selectedMpacks);
 
       App.router.send('next');
     }

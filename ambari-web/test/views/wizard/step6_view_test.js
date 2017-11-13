@@ -24,8 +24,10 @@ require('views/wizard/step6_view');
 var view;
 
 function getView() {
+  var controller = App.WizardStep6Controller.create();
+  controller.set('wizardController', App.InstallerController.create());
   return App.WizardStep6View.create({
-    controller: App.WizardStep6Controller.create()
+    controller: controller
   });
 }
 
@@ -115,6 +117,7 @@ describe('App.WizardStep6View', function() {
     beforeEach(function() {
       sinon.stub(view.get('controller'), 'checkCallback', Em.K);
       sinon.stub(view.get('controller'), 'callValidation', Em.K);
+
       e = {
         context: {
           checked: true,

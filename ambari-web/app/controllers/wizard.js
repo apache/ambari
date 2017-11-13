@@ -319,14 +319,14 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       return false;
     }
 
-    if ((this.get('currentStep') - step) > 1 && !disableNaviWarning) {
+    if ((this.get('currentStep') - step) > 0 && !disableNaviWarning) {
       App.ModalPopup.show({
         header: Em.I18n.t('installer.navigation.warning.header'),
         onPrimary: function () {
           App.router.send('goto' + stepName.capitalize());
           this.hide();
         },
-        body: "If you proceed to go back to Step " + step + ", you will lose any changes you have made beyond this step"
+        body: Em.I18n.t('installer.navigation.warning')
       });
     } else {
       App.router.send('goto' + stepName.capitalize());
@@ -1257,7 +1257,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * Load information about hosts with clients components
    */
   loadClients: function () {
-    var clients = this.getDBProperty('clientInfo');
+    var clients = this.getDBProperty('clients');
     this.set('content.clients', clients);
   },
 
@@ -1374,7 +1374,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
-   * Determine if <code>Assign Slaves and Clients</code> step should be skipped
+   * Determine if <code>Assign Slaves and Clients</code> step ("step7") should be skipped
    * @method setSkipSlavesStep
    * @param services
    * @param step

@@ -24,7 +24,7 @@ App.WizardDownloadProductsController = Em.Controller.extend({
   mpacks: [],
 
   addMpacks: function () {
-    const selectedMpacks = this.get('content.selectedMpacks') || this.get('wizardController').getDBProperty('selectedMpacks');
+    const selectedMpacks = this.get('content.selectedMpacks');
 
     selectedMpacks.forEach(mpack => {
       this.get('mpacks').pushObject(Em.Object.create({
@@ -95,14 +95,7 @@ App.WizardDownloadProductsController = Em.Controller.extend({
     return mpacks.filterProperty('success', false).length > 0 || App.get('router.btnClickInProgress');
   }.property('mpacks.@each.success', 'App.router.btnClickInProgress'),
 
-  /**
-   * Onclick handler for <code>Next</code> button.
-   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
-   * @method submit
-   */
   submit: function () {
-    const self = this;
-
     if (App.get('router.nextBtnClickInProgress')) {
       return;
     }
@@ -121,41 +114,7 @@ App.WizardDownloadProductsController = Em.Controller.extend({
         //var versionData = installerController.getSelectedRepoVersionData(); //This would be used to post a VDF xml for a local repo (I think), but do we still need to do this when we will just be using mpacks?
         $.when(...stackVersionsRegistered).always(() => { //this uses always() because the api call made by createMpackStackVersion will return a 500 error
                                                           //if the stack version has already been registered, but we want to proceed anyway
-          self.get('wizardController').getMpackStackVersions().then(data => {
-            data.items.forEach(versionDefinition => App.stackMapper.map(versionDefinition))
-
-            //get info about services from specific stack versions and save to StackService model
-            const selectedServices = self.get('content.selectedServices') || self.get('wizardController').getDBProperty('selectedServices');
-            const servicePromises = selectedServices.map(service => self.get('wizardController').loadMpackServiceInfo(service.stackName, service.stackVersion, service.name));
-
-            $.when(...servicePromises).then(() => {
-              const serviceInfo = App.StackService.find();
-              self.set('content.services', serviceInfo);
-
-              const clients = [];
-              serviceInfo.forEach(service => {
-                const client = service.get('serviceComponents').filterProperty('isClient', true);
-                client.forEach(clientComponent => {
-                  clients.pushObject({
-                    component_name: clientComponent.get('componentName'),
-                    display_name: clientComponent.get('displayName'),
-                    isInstalled: false
-                  });
-                });
-              });
-              self.set('content.clients', clients);
-              self.get('wizardController').setDBProperty('clientInfo', clients);
-
-              // - for now, pull the stack from the single mpack that we can install
-              // - when we can support multiple mpacks, make this an array of selectedStacks (or just use the selectedServices array?) and add the repo data to it
-              const selectedService = selectedServices[0];
-              const selectedStack = self.get('wizardController').getStack(selectedService.stackName, selectedService.stackVersion);
-              self.set('content.selectedStack', selectedStack);
-              self.get('wizardController').setDBProperty('selectedStack', selectedStack);
-
-              App.router.send('next');
-            });
-          });
+          App.router.send('next');
         });
       });
     }

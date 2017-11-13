@@ -106,14 +106,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     next: function (router) {
       console.time('step0 next');
-      var installerController = router.get('installerController');
-      installerController.save('cluster');
+      var controller = router.get('installerController');
+      controller.save('cluster');
       App.db.setStacks(undefined);
       App.db.setRepos(undefined);
       App.db.setLocalRepoVDFData(undefined);
       App.Stack.find().clear();
 
-      installerController.set('content.stacks',undefined);
+      controller.set('content.stacks',undefined);
       router.transitionTo('step2');
       console.timeEnd('step0 next');
     }
@@ -188,8 +188,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       var newStepIndex = controller.getStepIndex('step2');
       router.setNavigationFlow(newStepIndex);
-      controller.clearInstallOptions();
+      //controller.clearInstallOptions();
       controller.setCurrentStep('step2');
+      var wizardStep2Controller = router.get('wizardStep2Controller');
+      wizardStep2Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
         self.scrollTop();
         controller.connectOutlet('wizardStep2', controller.get('content'));
@@ -205,6 +207,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.save('installOptions');
         //hosts was saved to content.hosts inside wizardStep2Controller
         controller.save('hosts');
+        controller.setStepSaved('step2');
         router.transitionTo('step3');
       }
       console.timeEnd('step2 next');
@@ -218,9 +221,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var self = this;
       var controller = router.get('installerController');
       controller.setCurrentStep('step3');
+      var wizardStep3Controller = router.get('wizardStep3Controller');
+      wizardStep3Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
-        var wizardStep3Controller = router.get('wizardStep3Controller');
-        wizardStep3Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep3', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step3 connectOutlets');
@@ -235,14 +238,23 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step3 next');
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
-        var installerController = router.get('installerController');
+        var controller = router.get('installerController');
         var wizardStep3Controller = router.get('wizardStep3Controller');
-        installerController.saveConfirmedHosts(wizardStep3Controller);
-        installerController.setDBProperties({
-          bootStatus: true,
-          selectedServiceNames: undefined,
-          installedServiceNames: undefined
-        });
+        controller.saveConfirmedHosts(wizardStep3Controller);
+        if (!wizardStep3Controller.get('isSaved')) {
+          App.router.get('wizardSelectMpacksController').clearSelection();
+          controller.set('content.selectedServices', undefined);
+          controller.set('content.selectedServiceNames', undefined);
+          controller.set('content.selectedMpacks', undefined);
+          controller.setDBProperties({
+            bootStatus: true,
+            selectedServices: undefined,
+            selectedServiceNames: undefined,
+            installedServiceNames: undefined,
+            selectedMpack: undefined
+          });
+        }
+        controller.setStepSaved('step3');
         router.transitionTo('configureDownload');
         console.timeEnd('step3 next');
       }
@@ -268,12 +280,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('configureDownload connectOutlets');
       var self = this;
       var controller = router.get('installerController');
-      var configureDownloadController = router.get('wizardConfigureDownloadController');
       var newStepIndex = controller.getStepIndex('configureDownload');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('configureDownload');
+      var configureDownloadController = router.get('wizardConfigureDownloadController');
+      configureDownloadController.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
-        configureDownloadController.set('wizardController', controller);
         controller.connectOutlet('wizardConfigureDownload', controller.get('content'));
         self.scrollTop();
         console.timeEnd('configureDownload connectOutlets');
@@ -286,8 +298,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         return;
       }
       App.set('router.nextBtnClickInProgress', true);
-      var installerController = router.get('installerController');
-      installerController.setDBProperty('service', undefined);
+      var controller = router.get('installerController');
+      controller.save('downloadConfig');
+      controller.setDBProperty('service', undefined);
       router.transitionTo('selectMpacks');
       console.timeEnd('configureDownload next');
     }
@@ -301,9 +314,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var self = this;
       var controller = router.get('installerController');
       controller.setCurrentStep('selectMpacks');
+      var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
+      wizardSelectMpacksController.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
-        var wizardSelectMpacksController = router.get('wizardSelectMpacksController');
-        wizardSelectMpacksController.set('wizardController', controller);
         controller.connectOutlet('wizardSelectMpacks', controller.get('content'));
         self.scrollTop();
         console.timeEnd('selectMpacks connectOutlets');
@@ -318,6 +331,22 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('selectMpacks next');
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
+        var controller = router.get('installerController');
+        controller.save('selectedServiceNames');
+        controller.save('selectedServices');
+        controller.save('selectedMpacks');
+        var wizardStep6Controller = router.get('wizardStep6Controller');
+        // Clear subsequent settings if user changed service selections
+        if (!wizardStep6Controller.get('isSaved')) {
+          router.get('wizardStep5Controller').clearRecommendations();
+          controller.setDBProperty('recommendations', undefined);
+          controller.set('content.masterComponentHosts', undefined);
+          controller.setDBProperty('masterComponentHosts', undefined);
+          controller.clearEnhancedConfigs();
+          controller.setDBProperty('slaveComponentHosts', undefined);
+          wizardStep6Controller.set('isClientsSet', false);
+        }
+        controller.setStepSaved('selectMpacks');
         router.transitionTo('downloadProducts');
         console.timeEnd('selectMpacks next');
       }
@@ -330,12 +359,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('downloadProducts connectOutlets');
       var self = this;
       var controller = router.get('installerController');
-      var configureDownloadController = router.get('wizardDownloadProductsController');
       var newStepIndex = controller.getStepIndex('downloadProducts');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('downloadProducts');
+      var downloadProductsController = router.get('wizardDownloadProductsController');
+      downloadProductsController.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
-        configureDownloadController.set('wizardController', controller);
         controller.connectOutlet('wizardDownloadProducts', controller.get('content'));
         self.scrollTop();
         console.timeEnd('downloadProducts connectOutlets');
@@ -352,13 +381,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         return;
       }
       App.set('router.nextBtnClickInProgress', true);
-      router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation before step 5
-      var controller = router.get('installerController');
-      controller.setDBProperties({
-        recommendations: undefined,
-        masterComponentHosts: undefined
-      });
-      controller.clearEnhancedConfigs();
       router.transitionTo('step5');
       console.timeEnd('downloadProducts next');
     }
@@ -373,9 +395,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('step4');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('step4');
+      var wizardStep4Controller = router.get('wizardStep4Controller');
+      wizardStep4Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
-        var wizardStep4Controller = router.get('wizardStep4Controller');
-        wizardStep4Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep4', App.StackService.find().filterProperty('isInstallable', true));
         self.scrollTop();
         console.timeEnd('step4 connectOutlets');
@@ -419,9 +441,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         servicesMasters: [],
         isInitialLayout: true
       });
+      wizardStep5Controller.set('wizardController', controller);
       controller.setCurrentStep('step5');
       controller.loadAllPriorSteps().done(function () {
-        wizardStep5Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep5', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step5 connectOutlets');
@@ -436,13 +458,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         App.set('router.nextBtnClickInProgress', true);
         var controller = router.get('installerController');
         var wizardStep5Controller = router.get('wizardStep5Controller');
-        var wizardStep6Controller = router.get('wizardStep6Controller');
         controller.saveMasterComponentHosts(wizardStep5Controller);
-        controller.setDBProperties({
-          slaveComponentHosts: undefined,
-          recommendations: wizardStep5Controller.get('content.recommendations')
-        });
-        wizardStep6Controller.set('isClientsSet', false);
+        controller.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations'));
+        // Clear subsequent steps if user made changes
+        if (!wizardStep5Controller.get('isSaved')) {
+          controller.setDBProperty('slaveComponentHosts', undefined);
+          var wizardStep6Controller = router.get('wizardStep6Controller');
+          wizardStep6Controller.set('isClientsSet', false);
+        }
+        controller.setStepSaved('step5');
         router.transitionTo('step6');
       }
       console.timeEnd('step5 next');
@@ -457,8 +481,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       var newStepIndex = controller.getStepIndex('step6');
       router.setNavigationFlow(newStepIndex);
-      router.get('wizardStep6Controller').set('hosts', []);
       controller.setCurrentStep('step6');
+      var wizardStep6Controller = router.get('wizardStep6Controller');
+      wizardStep6Controller.set('hosts', []);
+      wizardStep6Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep6', controller.get('content'));
         self.scrollTop();
@@ -480,13 +506,17 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             controller.saveSlaveComponentHosts(wizardStep6Controller);
             controller.get('content').set('serviceConfigProperties', null);
             controller.get('content').set('componentsFromConfigs', []);
-            controller.setDBProperties({
-              serviceConfigGroups: null,
-              recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
-              recommendationsConfigs: null,
-              componentsFromConfigs: []
-            });
-            controller.clearServiceConfigProperties();
+            // Clear subsequent steps if user made changes
+            if (!wizardStep6Controller.get('isSaved')) {
+              controller.setDBProperties({
+                serviceConfigGroups: null,
+                recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+                recommendationsConfigs: null,
+                componentsFromConfigs: []
+              });
+              controller.clearServiceConfigProperties();
+            }
+            controller.setStepSaved('step6');
             router.transitionTo('step7');
             console.timeEnd('step6 next');
           }
@@ -511,8 +541,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       router.get('preInstallChecksController').loadStep();
       var wizardStep7Controller = router.get('wizardStep7Controller');
+      wizardStep7Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
-        wizardStep7Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep7', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step7 connectOutlets');
@@ -563,9 +593,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       var self = this;
       controller.setCurrentStep('step8');
+      var wizardStep8Controller = router.get('wizardStep8Controller');
+      wizardStep8Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
-        var wizardStep8Controller = router.get('wizardStep8Controller');
-        wizardStep8Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep8', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step8 connectOutlets');
@@ -580,13 +610,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step8 next');
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
-        var installerController = router.get('installerController');
+        var controller = router.get('installerController');
         var wizardStep8Controller = router.get('wizardStep8Controller');
         // invoke API call to install selected services
-        installerController.installServices(false, function () {
-          installerController.setInfoForStep9();
+        controller.installServices(false, function () {
+          controller.setInfoForStep9();
           // We need to do recovery based on whether we are in Add Host or Installer wizard
-          installerController.saveClusterState('CLUSTER_INSTALLING_3');
+          controller.saveClusterState('CLUSTER_INSTALLING_3');
           wizardStep8Controller.set('servicesInstalled', true);
           router.transitionTo('step9');
           console.timeEnd('step8 next');
@@ -600,15 +630,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router, context) {
       console.time('step9 connectOutlets');
       var self = this;
-      var controller = router.get('installerController'),
-          wizardStep9Controller = router.get('wizardStep9Controller');
+      var controller = router.get('installerController');
+      var wizardStep9Controller = router.get('wizardStep9Controller');
+      wizardStep9Controller.set('wizardController', controller);
       controller.loadAllPriorSteps().done(function () {
         wizardStep9Controller.loadDoServiceChecksFlag().done(function () {
           controller.setCurrentStep('step9');
           if (!App.get('testMode')) {
             controller.setLowerStepsDisable(9);
           }
-          wizardStep9Controller.set('wizardController', controller);
           controller.connectOutlet('wizardStep9', controller.get('content'));
           self.scrollTop();
           console.timeEnd('step9 connectOutlets');
@@ -618,16 +648,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     back: Em.Router.transitionTo('step8'),
     retry: function (router) {
       console.time('step9 retry');
-      var installerController = router.get('installerController');
+      var controller = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (wizardStep9Controller.get('showRetry')) {
         if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
           var isRetry = true;
-          installerController.installServices(isRetry, function () {
-            installerController.setInfoForStep9();
+          controller.installServices(isRetry, function () {
+            controller.setInfoForStep9();
             wizardStep9Controller.resetHostsForRetry();
             // We need to do recovery based on whether we are in Add Host or Installer wizard
-            installerController.saveClusterState('CLUSTER_INSTALLING_3');
+            controller.saveClusterState('CLUSTER_INSTALLING_3');
             wizardStep9Controller.navigateStep();
           });
         } else {
@@ -649,10 +679,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.time('step9 next');
       if(!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
-        var installerController = router.get('installerController');
+        var controller = router.get('installerController');
         var wizardStep9Controller = router.get('wizardStep9Controller');
-        installerController.saveInstalledHosts(wizardStep9Controller);
-        installerController.saveClusterState('CLUSTER_INSTALLED_4');
+        controller.saveInstalledHosts(wizardStep9Controller);
+        controller.saveClusterState('CLUSTER_INSTALLED_4');
         router.transitionTo('step10');
         console.timeEnd('step9 next');
       }

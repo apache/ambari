@@ -95,6 +95,18 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
    */
   isInstallerWizard: Em.computed.equal('content.controllerName', 'installerController'),
 
+  isSaved: function () {
+    const wizardController = this.get('wizardController');
+    if (wizardController) {
+      return wizardController.getStepSavedState('step6');
+    }
+    return false;
+  }.property('wizardController.content.stepsSavedState'),
+
+  hostsChanged: function () {
+    this.get('wizardController').setStepUnsaved('step6');
+  },
+
   isAllCheckboxesEmpty: function() {
     var hosts = this.get('hosts');
     for (var i = 0; i < hosts.length; i++) {
@@ -267,6 +279,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       });
     });
     this.checkCallback(component);
+    this.hostsChanged();
   },
 
   /**
@@ -301,6 +314,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
    */
   loadStep: function () {
     this.clearStep();
+
     var parentController = App.router.get(this.get('content.controllerName'));
     if (parentController && parentController.get('content.componentsFromConfigs')) {
       parentController.clearConfigActionComponents();

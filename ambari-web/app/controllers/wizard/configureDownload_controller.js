@@ -49,8 +49,9 @@ App.WizardConfigureDownloadController = Em.Controller.extend({
   },
 
   loadStep: function () {
-    if (!this.get('content.downloadConfig')) {
-      let downloadConfig = this.get('wizardController').getDBProperty('downloadConfig');
+    let downloadConfig = this.get('content.downloadConfig');
+    //if (!this.get('content.downloadConfig')) {
+      //let downloadConfig = this.get('wizardController').getDBProperty('downloadConfig');
 
       if (!downloadConfig) {
         downloadConfig = {
@@ -60,7 +61,7 @@ App.WizardConfigureDownloadController = Em.Controller.extend({
       }
 
       this.set('content.downloadConfig', downloadConfig);
-    }
+    //}
   },
 
   /**
@@ -90,7 +91,7 @@ App.WizardConfigureDownloadController = Em.Controller.extend({
       return;
     }
 
-    this.get('wizardController').setDBProperty('downloadConfig', this.get('content.downloadConfig'));
+    //this.get('wizardController').setDBProperty('downloadConfig', this.get('content.downloadConfig'));
 
     App.router.send('next');
   }

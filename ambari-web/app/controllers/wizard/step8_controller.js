@@ -151,14 +151,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   }.property(),
 
   getSelectedStack: function() {
-    let selectedStack = this.get('content.selectedStack');
-
-    if (!selectedStack) {
-      const stack = this.get('wizardController').getDBProperty('selectedStack');
-      selectedStack = this.get('wizardController').getStack(stack.stack_name, stack.stack_version);
-    }
-
-    return selectedStack;
+    const selectedStack = this.get('content.selectedStack');
+    const stack = this.get('wizardController').getStack(selectedStack.name, selectedStack.version);
+    return stack;
   },
 
   installedServices: function() {
@@ -651,7 +646,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         self.set('isBackBtnDisabled', false);
         wizardController.setStepsEnable();
         if (self.get('isAddService')) {
-          wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3); //TODO: something
+          wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3);
         }
       });
     } else {

@@ -55,65 +55,65 @@ var configs = Em.A([
 ]);
 
 var services = Em.A([
-        Em.Object.create({
-          serviceName: 's1',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's01',
-          isClientOnlyService: false,
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isClient: true
-            })
-          ]),
-          configTypes: {
-            site1 : [],
-            site2 : []
-          },
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's2',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's02',
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isMaster: true
-            })
-          ]),
-          configTypes: {
-            site3 : []
-          },
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's3',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's03',
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isHAComponentOnly: true
-            })
-          ]),
-          configTypes: {},
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's4',
-          isSelected: true,
-          isInstalled: false,
-          displayNameOnSelectServicePage: 's03',
-          isClientOnlyService: true,
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isClient: true
-            })
-          ]),
-          configTypes: {},
-          isHiddenOnSelectServicePage: false
-        })
+  Em.Object.create({
+    serviceName: 's1',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's01',
+    isClientOnlyService: false,
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isClient: true
+      })
+    ]),
+    configTypes: {
+      site1 : [],
+      site2 : []
+    },
+    isHiddenOnSelectServicePage: false
+  }),
+  Em.Object.create({
+    serviceName: 's2',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's02',
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isMaster: true
+      })
+    ]),
+    configTypes: {
+      site3 : []
+    },
+    isHiddenOnSelectServicePage: false
+  }),
+  Em.Object.create({
+    serviceName: 's3',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's03',
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isHAComponentOnly: true
+      })
+    ]),
+    configTypes: {},
+    isHiddenOnSelectServicePage: false
+  }),
+  Em.Object.create({
+    serviceName: 's4',
+    isSelected: true,
+    isInstalled: false,
+    displayNameOnSelectServicePage: 's03',
+    isClientOnlyService: true,
+    serviceComponents: Em.A([
+      Em.Object.create({
+        isClient: true
+      })
+    ]),
+    configTypes: {},
+    isHiddenOnSelectServicePage: false
+  })
 ]);
 
 var getStacks = function () {
@@ -166,8 +166,6 @@ describe('App.WizardStep8Controller', function () {
   beforeEach(function () {
     installerStep8Controller = getController();
   });
-
-  App.TestAliases.testAsComputedFilterBy(getController(), 'installedServices', 'content.services', 'isInstalled', true);
 
   App.TestAliases.testAsComputedEqual(getController(), 'isManualKerberos', 'App.router.mainAdminKerberosController.kdc_type', 'none');
 
@@ -2423,10 +2421,15 @@ describe('App.WizardStep8Controller', function () {
        installerStep8Controller.set('content.services', services.filterProperty('isSelected'));
        installerStep8Controller.set('content.hosts', hosts);
        installerStep8Controller.set('content.configGroups', configGroups);
-       installerStep8Controller.set('selectedServices', services.filterProperty('isSelected'));
+       sinon.stub(App.StackService, 'find', function () {
+         return services.filterProperty('isSelected');
+       });
        sinon.spy(installerStep8Controller, 'getConfigurationDetailsForConfigType');
        sinon.spy(installerStep8Controller, 'hostInExistingHostGroup');
        sinon.spy(installerStep8Controller, 'hostInChildHostGroup');
+     });
+     afterEach(function () {
+       App.StackService.find.restore();
      });
      it('should call generateBlueprint', function() {
        installerStep8Controller.generateBlueprint();

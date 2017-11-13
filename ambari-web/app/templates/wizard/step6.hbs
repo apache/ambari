@@ -19,6 +19,9 @@
 <div id="step6" class="wizard-content col-md-9">
   <h4 class="step-header" {{QAAttr "step-title"}}>{{t installer.step6.header}}</h4>
   <p class="step-description">{{{view.label}}}</p>
+  {{#if isSaved}}
+  <div class="alert alert-warning" role="alert"><strong>{{t installer.warning.changes.header}}</strong> {{t installer.warning.changes}}</div>
+  {{/if}}
 
   <div class="panel panel-default">
     <div class="panel-body">

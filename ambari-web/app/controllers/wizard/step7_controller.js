@@ -477,9 +477,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (!this.get('isConfigsLoaded')) {
       return;
     }
+
     console.time('wizard loadStep: ');
     this.clearStep();
-
     var self = this;
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
 

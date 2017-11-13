@@ -75,6 +75,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
     return (this.get('isRegistrationInProgress') || !this.get('isWarningsLoaded')) && !this.get('isBootstrapFailed') || App.get('router.btnClickInProgress');
   }.property('isRegistrationInProgress', 'isWarningsLoaded', 'isBootstrapFailed'),
 
+  isSaved: function () {
+    const wizardController = this.get('wizardController');
+    if (wizardController) {
+      return wizardController.getStepSavedState('step3');
+    }
+    return false;
+  }.property('wizardController.content.stepsSavedState'),
+
   /**
    * Controller is using in Add Host Wizard
    * @return {bool}
@@ -305,6 +313,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
       if (!self.hosts.length) {
         self.set('isSubmitDisabled', true);
       }
+      self.get('wizardController').setStepUnsaved('step3');
     }, Em.I18n.t('installer.step3.hosts.remove.popup.body'));
   },
 

@@ -60,6 +60,7 @@ App.WizardStep2View = Em.View.extend({
     //todo: move them to conroller
     this.set('controller.hostsError', null);
     this.set('controller.sshKeyError', null);
+    this.get('controller').loadStep();
   },
 
   /**

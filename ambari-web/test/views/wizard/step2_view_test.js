@@ -20,14 +20,15 @@ var App = require('app');
 require('views/wizard/step2_view');
 
 var view, controller = Em.Object.create({
-  clusterNameError: ''
+  clusterNameError: '',
+  loadStep: Em.K
 });
 
 function getView() {
   return App.WizardStep2View.create({'controller': controller});
 }
 
-describe('App.WizardStep0View', function () {
+describe('App.WizardStep2View', function () {
 
   beforeEach(function() {
     view = getView();

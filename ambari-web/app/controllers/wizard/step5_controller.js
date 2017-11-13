@@ -22,6 +22,16 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignM
 
   name: "wizardStep5Controller",
 
+  stepName: 'step5',
+
+  isSaved: function () {
+    const wizardController = this.get('wizardController');
+    if (wizardController) {
+      return wizardController.getStepSavedState(this.get('stepName'));
+    }
+    return false;
+  }.property('wizardController.content.stepsSavedState'),
+
   _goNextStepIfValid: function () {
     App.set('router.nextBtnClickInProgress', false);
     if (!this.get('submitDisabled')) {

@@ -115,6 +115,14 @@ App.WizardStep2Controller = Em.Controller.extend({
    */
   hostsError: null,
 
+  isSaved: function () {
+    const wizardController = this.get('wizardController');
+    if (wizardController) {
+      return wizardController.getStepSavedState('step2');
+    }
+    return false;
+  }.property('wizardController.content.stepsSavedState'),
+
   useSSH: function () {
     return !App.get('isHadoopWindowsStack');
   }.property('App.isHadoopWindowsStack'),
@@ -168,6 +176,11 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {bool}
    */
   isSubmitDisabled: Em.computed.or('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError', 'App.router.btnClickInProgress'),
+
+  loadStep: function () {
+    //save initial hostNames value to check later if changes were made
+    this.set('initialHostNames', this.get('content.installOptions.hostNames'));
+  },
 
   installedHostNames: function () {
     var installedHostsName = [];
@@ -313,7 +326,7 @@ App.WizardStep2Controller = Em.Controller.extend({
 
   /**
    * check is there a pattern expression in host name textarea
-   * push hosts that match pattern in hostNamesArr
+   * push hosts that match pattern in hostNameArr
    * @method parseHostNamesAsPatternExpression
    */
   parseHostNamesAsPatternExpression: function () {
@@ -546,6 +559,10 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @method saveHosts
    */
   saveHosts: function () {
+    if (this.get('content.installOptions.hostNames') !== this.get('initialHostNames')) {
+        this.get('wizardController').setStepUnsaved('step2');
+    }
+
     var hosts = this.get('content.hosts');
 
     //add previously installed hosts
@@ -555,6 +572,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       }
     }
 
+    //this.set('content.installOptions.hostNames', this.get('hostNameArr'));
     this.set('content.hosts', $.extend(hosts, this.getHostInfo()));
     this.setAmbariJavaHome();
   },

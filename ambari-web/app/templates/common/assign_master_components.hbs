@@ -22,6 +22,10 @@
   <p class="step-description">
     {{{view.alertMessage}}}
   </p>
+  {{#if isSaved}}
+  <div class="alert alert-warning" role="alert"><strong>{{t installer.warning.changes.header}}</strong> {{t installer.warning.changes}}</div>
+  {{/if}}
+
   <div class="panel panel-default">
     <div class="panel-body">
       {{#each msg in controller.generalErrorMessages}}
