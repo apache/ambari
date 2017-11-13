@@ -1481,19 +1481,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ConfigurationResponse response = null;
       Config config = null;
       //TODO : Remove after getting rid of cluster configurations
-      if (request.getServiceId() == null) {
+      if (request.getServiceId() != null) {
+        config = cluster.getConfigByServiceId(request.getType(), request.getVersionTag(), request.getServiceId());
+        if (null != config) {
+          response = new ConfigurationResponse(
+                  cluster.getClusterName(), config, request.getServiceId(), request.getServiceGroupId());
+        }
+      }
+      if (response == null) {
         config = cluster.getConfig(request.getType(),
                 request.getVersionTag());
         if (null != config) {
           response = new ConfigurationResponse(
                   cluster.getClusterName(), config);
-        }
-      }
-      else {
-        config = cluster.getConfigByServiceId(request.getType(), request.getVersionTag(), request.getServiceId());
-        if (null != config) {
-          response = new ConfigurationResponse(
-                  cluster.getClusterName(), config, request.getServiceId(), request.getServiceGroupId());
         }
       }
       responses.add(response);
@@ -1505,24 +1505,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       //Get by type
       if (null != request.getType()) {
         //TODO : Remove after getting rid of cluster configurations
-        if (request.getServiceId() == null) {
-          configs = cluster.getConfigsByType(
-                  request.getType());
-          if (null != configs) {
-            for (Entry<String, Config> entry : configs.entrySet()) {
-              Config config = entry.getValue();
-              response = new ConfigurationResponse(
-                      cluster.getClusterName(), config.getStackId(),
-                      request.getType(),
-                      config.getTag(), entry.getValue().getVersion(),
-                      includeProps ? config.getProperties() : new HashMap<>(),
-                      includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
-                      config.getPropertiesTypes());
-              responses.add(response);
-            }
-          }
-        }
-        else {
+        if (request.getServiceId() != null) {
           configs = cluster.getConfigsByServiceIdType(
                   request.getType(), request.getServiceId());
           if (null != configs) {
@@ -1539,13 +1522,42 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
         }
-
-      }
-      else {
+        if (responses == null || responses.isEmpty()) {
+          configs = cluster.getConfigsByType(
+                  request.getType());
+          if (null != configs) {
+            for (Entry<String, Config> entry : configs.entrySet()) {
+              Config config = entry.getValue();
+              response = new ConfigurationResponse(
+                      cluster.getClusterName(), config.getStackId(),
+                      request.getType(),
+                      config.getTag(), entry.getValue().getVersion(),
+                      includeProps ? config.getProperties() : new HashMap<>(),
+                      includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
+                      config.getPropertiesTypes());
+              responses.add(response);
+            }
+          }
+        }
+      } else {
         // !!! all configuration
         Collection<Config> all = null;
         //TODO : Remove after getting rid of cluster configurations
-        if (request.getServiceId() == null) {
+        if (request.getServiceId() != null) {
+          all = cluster.getConfigsByServiceId(request.getServiceId());
+          if (all != null) {
+            for (Config config : all) {
+              response = new ConfigurationResponse(
+                      cluster.getClusterName(), config.getStackId(), config.getType(),
+                      config.getTag(), config.getVersion(),
+                      includeProps ? config.getProperties() : new HashMap<>(),
+                      includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
+                      config.getPropertiesTypes(), request.getServiceId(), request.getServiceGroupId());
+              responses.add(response);
+            }
+          }
+        }
+        if (responses == null || responses.isEmpty()) {
           all = cluster.getAllConfigs();
           for (Config config : all) {
             response = new ConfigurationResponse(
@@ -1557,19 +1569,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             responses.add(response);
           }
         }
-        else {
-          all = cluster.getConfigsByServiceId(request.getServiceId());
-          for (Config config : all) {
-            response = new ConfigurationResponse(
-                    cluster.getClusterName(), config.getStackId(), config.getType(),
-                    config.getTag(), config.getVersion(),
-                    includeProps ? config.getProperties() : new HashMap<>(),
-                    includeProps ? config.getPropertiesAttributes() : new HashMap<>(),
-                    config.getPropertiesTypes(), request.getServiceId(), request.getServiceGroupId());
-            responses.add(response);
-          }
-        }
-
       }
     }
     return responses;
