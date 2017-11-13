@@ -325,6 +325,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     try {
       setBlueprint(getBlueprintFactory().getBlueprint(blueprintName));
     } catch (IOException e) {
+      LOG.error("Could not parse JSON stored in DB for blueprint {}", blueprintName, e);
       throw new NoSuchBlueprintException(blueprintName);
     }
 
