@@ -22,8 +22,10 @@ import static org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDat
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -42,6 +44,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
 /**
@@ -577,6 +580,24 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         }
       }
     }
+  }
+
+
+  protected Set<String> getHostFilter() {
+    String serializedValue = getCommandParameterValue(HOST_FILTER);
+
+    if (serializedValue != null) {
+      Type type = new TypeToken<Set<String>>() {
+      }.getType();
+      return StageUtils.getGson().fromJson(serializedValue, type);
+    } else {
+      return null;
+    }
+  }
+
+  protected boolean hasHostFilters() {
+    Set<String> hostFilers = getHostFilter();
+    return hostFilers != null && hostFilers.size() > 0;
   }
 
   protected Long ambariServerHostID(){

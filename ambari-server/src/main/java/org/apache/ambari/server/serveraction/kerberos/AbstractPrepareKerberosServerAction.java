@@ -196,7 +196,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
               List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                  identityFilter, StageUtils.getHostName(), ambariServerHostID(), "AMBARI",componentName, kerberosConfigurations, currentConfigurations,
+                  identityFilter, StageUtils.getHostName(), ambariServerHostID(), "AMBARI", componentName, kerberosConfigurations, currentConfigurations,
                   resolvedKeytabs, realm);
               propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
             }
@@ -236,19 +236,9 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
   protected Map<String, ? extends Collection<String>> getServiceComponentFilter() {
     String serializedValue = getCommandParameterValue(SERVICE_COMPONENT_FILTER);
 
-    if(serializedValue != null) {
-      Type type = new TypeToken<Map<String, ? extends Collection<String>>>() {}.getType();
-      return StageUtils.getGson().fromJson(serializedValue, type);
-    } else {
-      return null;
-    }
-  }
-
-  protected Set<String> getHostFilter() {
-    String serializedValue = getCommandParameterValue(HOST_FILTER);
-
-    if(serializedValue != null) {
-      Type type = new TypeToken<Set<String>>() {}.getType();
+    if (serializedValue != null) {
+      Type type = new TypeToken<Map<String, ? extends Collection<String>>>() {
+      }.getType();
       return StageUtils.getGson().fromJson(serializedValue, type);
     } else {
       return null;
@@ -258,8 +248,9 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
   protected Collection<String> getIdentityFilter() {
     String serializedValue = getCommandParameterValue(IDENTITY_FILTER);
 
-    if(serializedValue != null) {
-      Type type = new TypeToken<Collection<String>>() {}.getType();
+    if (serializedValue != null) {
+      Type type = new TypeToken<Collection<String>>() {
+      }.getType();
       return StageUtils.getGson().fromJson(serializedValue, type);
     } else {
       return null;
