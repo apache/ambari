@@ -327,6 +327,15 @@ public class CheckDescription {
         "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
         "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
 
+  public static CheckDescription LZO_CONFIG_CHECK = new CheckDescription("LZO_CONFIG_CHECK",
+      PrereqCheckType.CLUSTER,
+      "LZO Codec Check",
+      new ImmutableMap.Builder<String, String>()
+          .put(AbstractCheckDescriptor.DEFAULT,
+              "You have LZO codec enabled in the core-site config of your cluster. LZO is no longer installed automatically. " +
+                  "If any hosts require LZO, it should be installed before starting the upgrade. " +
+                  "Consult Ambari documentation for instructions on how to do this.").build());
+
   public static CheckDescription JAVA_VERSION = new CheckDescription("JAVA_VERSION",
       PrereqCheckType.CLUSTER,
       "Verify Java version requirement",
