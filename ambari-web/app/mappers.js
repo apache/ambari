@@ -50,3 +50,4 @@ require('mappers/socket/service_state_mapper');
 require('mappers/socket/host_component_status_mapper');
 require('mappers/socket/alert_summary_mapper');
 require('mappers/socket/host_state_mapper');
+require('mappers/socket/alert_definitions_mapper_adapter');

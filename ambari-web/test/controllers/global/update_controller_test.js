@@ -74,17 +74,19 @@ describe('App.UpdateController', function () {
       expect(App.StompClient.unsubscribe.calledWith('/events/configs')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/services')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/hosts')).to.be.true;
+      expect(App.StompClient.unsubscribe.calledWith('/events/alert_definitions')).to.be.true;
     });
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(10);
+      expect(App.updater.run.callCount).to.equal(9);
       expect(App.StompClient.subscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alerts')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/ui_topologies')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/configs')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/services')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/hosts')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/alert_definitions')).to.be.true;
     });
   });
 

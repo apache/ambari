@@ -27,7 +27,7 @@ module.exports = Em.Object.extend({
   /**
    * @type {string}
    */
-  webSocketUrl: 'ws://{hostname}:8080/api/stomp/v1',
+  webSocketUrl: 'ws://{hostname}:8080/api/stomp/v1/websocket',
 
   /**
    * @type {string}

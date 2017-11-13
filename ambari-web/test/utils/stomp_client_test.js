@@ -67,7 +67,7 @@ describe('App.StompClient', function () {
 
   describe('#getSocket', function() {
     it('should return WebSocket instance', function() {
-      expect(stomp.getSocket().URL).to.be.equal('ws://:8080/api/stomp/v1');
+      expect(stomp.getSocket().URL).to.be.equal('ws://:8080/api/stomp/v1/websocket');
     });
     it('should return SockJS instance', function() {
       expect(stomp.getSocket(true).url).to.be.equal('http://:8080/api/stomp/v1');
