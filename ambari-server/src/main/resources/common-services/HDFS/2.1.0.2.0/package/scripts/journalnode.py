@@ -116,6 +116,7 @@ class JournalNodeDefault(JournalNode):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class JournalNodeWindows(JournalNode):
   def install(self, env):
+    import install_params
     self.install_packages(env)
 
   def start(self, env):

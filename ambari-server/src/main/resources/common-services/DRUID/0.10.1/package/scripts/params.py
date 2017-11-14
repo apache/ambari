@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 from ambari_commons import OSCheck
+from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -195,5 +196,5 @@ if has_metric_collector:
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
 lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-
+lzo_packages = get_lzo_packages(stack_version_unformatted)
 hadoop_lib_home = stack_root + '/' + stack_version + '/hadoop/lib'

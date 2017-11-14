@@ -18,7 +18,6 @@ limitations under the License.
 """
 from ambari_commons import OSCheck
 
-exclude_packages = []
 # These parameters are supposed to be referenced at installation time, before the Hadoop environment variables have been set
 if OSCheck.is_windows_family():
   exclude_packages = []

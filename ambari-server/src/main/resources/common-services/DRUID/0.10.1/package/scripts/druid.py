@@ -115,7 +115,8 @@ def druid(upgrade_type=None, nodeType=None):
          )
     Logger.info(format("Created druid-{node_type_lowercase} jvm.config"))
     # Handling hadoop Lzo jars if enable and node type is hadoop related eg Overlords and MMs
-    if ['middleManager', 'overlord'].__contains__(node_type_lowercase) and params.lzo_enabled:
+    if ['middleManager', 'overlord'].__contains__(node_type_lowercase) and params.lzo_enabled and len(
+            params.lzo_packages) > 0:
         try:
             Logger.info(
                 format(
