@@ -40,6 +40,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option
+from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
@@ -384,6 +385,11 @@ HdfsResource = functools.partial(
 )
 
 
+# The logic for LZO also exists in OOZIE's params.py
+io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
+lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
+lzo_packages = get_lzo_packages(stack_version_unformatted)
+  
 name_node_params = default("/commandParams/namenode", None)
 
 java_home = config['hostLevelParams']['java_home']

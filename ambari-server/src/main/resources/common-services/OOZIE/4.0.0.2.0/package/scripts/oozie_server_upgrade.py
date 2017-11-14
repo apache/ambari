@@ -61,15 +61,10 @@ class OozieUpgrade(Script):
     # <stack-selector-tool> set hadoop-client has not run yet, therefore we cannot use
     # <stack-root>/current/hadoop-client ; we must use params.version directly
     # however, this only works when upgrading beyond 2.2.0.0; don't do this
-    # for downgrade to 2.2.0.0 since hadoop-lzo will not be present.
-    #
+    # for downgrade to 2.2.0.0 since hadoop-lzo will not be present
     # This can also be called during a Downgrade.
-    #
     # When a version is Installed, it is responsible for downloading the hadoop-lzo packages
     # if lzo is enabled.
-    #
-    # This block is just copying around files - there is no assumption about installation
-    #
     if params.lzo_enabled and (params.upgrade_direction == Direction.UPGRADE or target_version_needs_compression_libraries):
       hadoop_lzo_pattern = 'hadoop-lzo*.jar'
       hadoop_client_new_lib_dir = format("{stack_root}/{version}/hadoop/lib")

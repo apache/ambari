@@ -116,6 +116,11 @@ def hdfs(name=None):
        content=Template("slaves.j2")
   )
   
+  if params.lzo_enabled and len(params.lzo_packages) > 0:
+      Package(params.lzo_packages,
+              retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+              retry_count=params.agent_stack_retry_count)
+      
 def install_snappy():
   import params
   Directory([params.so_target_dir_x86, params.so_target_dir_x64],

@@ -28,4 +28,11 @@ else:
   _config = Script.get_config()
   stack_version_unformatted = str(_config['hostLevelParams']['stack_version'])
 
+  # The logic for LZO also exists in OOZIE's params.py
+  io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
+  lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
+  lzo_packages = ["lzo", "hadoop-lzo", "hadoop-lzo-native"]
+
   exclude_packages = []
+  if not lzo_enabled:
+    exclude_packages += lzo_packages

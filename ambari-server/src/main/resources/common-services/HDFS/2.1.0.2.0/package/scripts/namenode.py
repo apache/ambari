@@ -306,6 +306,7 @@ class NameNodeDefault(NameNode):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NameNodeWindows(NameNode):
   def install(self, env):
+    import install_params
     self.install_packages(env)
     #TODO we need this for HA because of manual steps
     self.configure(env)
