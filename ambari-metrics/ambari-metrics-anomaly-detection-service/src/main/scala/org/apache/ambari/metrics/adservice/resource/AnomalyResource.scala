@@ -23,7 +23,7 @@ import javax.ws.rs.{GET, Path, Produces}
 
 import org.joda.time.DateTime
 
-@Path("/topNAnomalies")
+@Path("/anomaly")
 class AnomalyResource {
 
   @GET
