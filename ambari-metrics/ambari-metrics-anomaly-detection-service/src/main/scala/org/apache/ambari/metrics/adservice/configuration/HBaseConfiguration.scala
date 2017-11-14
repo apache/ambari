@@ -19,12 +19,14 @@ package org.apache.ambari.metrics.adservice.configuration
 import java.net.{MalformedURLException, URISyntaxException}
 
 import org.apache.hadoop.conf.Configuration
+import org.slf4j.{Logger, LoggerFactory}
 
 object HBaseConfiguration {
 
   val HBASE_SITE_CONFIGURATION_FILE: String = "hbase-site.xml"
   val hbaseConf: org.apache.hadoop.conf.Configuration = new Configuration(true)
   var isInitialized: Boolean = false
+  val LOG : Logger = LoggerFactory.getLogger("HBaseConfiguration")
 
   def initConfigs(): Unit = {
     if (!isInitialized) {

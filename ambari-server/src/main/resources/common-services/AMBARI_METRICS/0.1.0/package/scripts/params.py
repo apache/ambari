@@ -189,12 +189,21 @@ ams_hbase_init_check_enabled = default("/configurations/ams-site/timeline.metric
 
 # AD Manager settings
 ams_ad_conf_dir = '/etc/ambari-metrics-anomaly-detection/conf'
-ams_ad_log_dir = default("/configurations/ams-ad-env/ams_admanager_log_dir", 'var/log/ambari-metrics-anomaly-detection')
-ams_ad_pid_dir = status_params.ams_admanager_pid_dir
-ams_ad_data_dir = default("/configurations/ams-ad-env/ams_admanager_data_dir", '/var/lib/ambari-metrics-anomaly-detection')
+ams_ad_log_dir = default("/configurations/ams-admanager-env/ams_ad_log_dir", '/var/log/ambari-metrics-anomaly-detection')
+ams_ad_pid_dir = status_params.ams_ad_pid_dir
+ams_ad_data_dir = default("/configurations/ams-admanager-env/ams_ad_data_dir", '/var/lib/ambari-metrics-anomaly-detection')
+ams_ad_input_definition_directory = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.input.definition.directory']
 
+ams_admanager_env_sh_template = config['configurations']['ams-admanager-env']['content']
+ams_admanager_config_template = config['configurations']['ams-admanager-config']['content']
 ams_admanager_script = "/usr/sbin/ambari-metrics-admanager"
 ams_admanager_port = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.application.port']
+ams_admanager_heapsize = config['configurations']['ams-admanager-env']['ams_admanager_heapsize']
+
+if (('ams-admanager-log4j' in config['configurations']) and ('content' in config['configurations']['ams-admanager-log4j'])):
+  ams_ad_log4j_props = config['configurations']['ams-admanager-log4j']['content']
+else:
+  ams_ad_log4j_props = None
 
 #hadoop params
 

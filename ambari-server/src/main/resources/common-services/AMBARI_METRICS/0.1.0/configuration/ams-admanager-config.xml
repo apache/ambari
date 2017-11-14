@@ -57,4 +57,55 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>ambari.metrics.admanager.input.definition.directory</name>
+    <value></value>
+    <display-name>AD Manager Input definition directory</display-name>
+    <description>AMS Anomaly Detection Manager definition directory</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>ams-admanager-config template</display-name>
+    <value>
+      server:
+        applicationConnectors:
+        - type: http
+          port: {{ams_admanager_port}}
+        requestLog:
+          type: external
+
+      logging:
+        type: external
+
+      metricDefinitionService:
+        inputDefinitionDirectory: {{ams_ad_input_definition_directory}}
+
+      metricsCollector:
+        hosts: {{ams_collector_hosts}}
+        port: {{metric_collector_port}}
+        protocol: {{metric_collector_protocol}}
+        metadataEndpoint: /v1/timeline/metrics/metadata/keys
+
+      adQueryService:
+        anomalyDataTtl: 604800
+
+      metricDefinitionDB:
+        # force checksum verification of all data that is read from the file system on behalf of a particular read
+        verifyChecksums: true
+        # raise an error as soon as it detects an internal corruption
+        performParanoidChecks: false
+        # Path to Level DB directory
+        dbDirPath: {{ams_ad_data_dir}}
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

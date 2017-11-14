@@ -865,6 +865,19 @@
             "timeline.metrics.daily.aggregator.minute.interval": "86400",
             "timeline.metrics.cluster.aggregator.minute.interval": "120",
             "timeline.metrics.host.aggregator.hourly.interval": "3600"
+        },
+        "ams-admanager-env": {
+            "ams_ad_pid_dir": "/var/run/ambari-metrics-anomaly-detection",
+            "content": "\n"
+        },
+        "ams-admanager-config": {
+            "content": "",
+            "ambari.metrics.admanager.input.definition.directory": "",
+            "ambari.metrics.admanager.spark.operation.mode": "stand-alone",
+            "ambari.metrics.admanager.application.port": "9090"
+        },
+        "ams-admanager-log4j": {
+            "content": ""
         }
     },
     "configuration_attributes": {

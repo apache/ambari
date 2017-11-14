@@ -21,7 +21,7 @@
 -->
 <configuration>
   <property>
-    <name>ams_admanager_log_dir</name>
+    <name>ams_ad_log_dir</name>
     <value>/var/log/ambari-metrics-anomaly-detection</value>
     <display-name>Anomaly Detection Manager log dir</display-name>
     <description>AMS Anomaly Detection Manager log directory.</description>
@@ -31,7 +31,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>ams_admanager_pid_dir</name>
+    <name>ams_ad_pid_dir</name>
     <value>/var/run/ambari-metrics-anomaly-detection</value>
     <display-name>Anomaly Detection Manager pid dir</display-name>
     <description>AMS Anomaly Detection Manager pid directory.</description>
@@ -41,7 +41,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>ams_admanager_data_dir</name>
+    <name>ams_ad_data_dir</name>
     <value>/var/lib/ambari-metrics-anomaly-detection</value>
     <display-name>Anomaly Detection Manager data dir</display-name>
     <description>AMS Anomaly Detection Manager data directory.</description>
@@ -74,10 +74,10 @@
       export JAVA_HOME={{java64_home}}
 
       #  Anomaly Detection Manager Log directory for log4j
-      export AMS_AD_LOG_DIR={{ams_admanager_log_dir}}
+      export AMS_AD_LOG_DIR={{ams_ad_log_dir}}
 
       # Anomaly Detection Manager pid directory
-      export AMS_AD_PID_DIR={{ams_admanager_pid_dir}}
+      export AMS_AD_PID_DIR={{ams_ad_pid_dir}}
 
       # Anomaly Detection Manager heapsize
       export AMS_AD_HEAPSIZE={{ams_admanager_heapsize}}
@@ -92,7 +92,7 @@
       {% endif %}
 
       # Anomaly Detection Manager GC options
-      export AMS_AD_GC_OPTS="-XX:+UseConcMarkSweepGC -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{ams_admanager_log_dir}}/admanager-gc.log-`date +'%Y%m%d%H%M'`"
+      export AMS_AD_GC_OPTS="-XX:+UseConcMarkSweepGC -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{ams_ad_log_dir}}/admanager-gc.log-`date +'%Y%m%d%H%M'`"
       export AMS_AD_OPTS="$AMS_AD_OPTS $AMS_AD_GC_OPTS"
 
     </value>

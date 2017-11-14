@@ -33,7 +33,7 @@ hbase_user = ams_user
 ams_collector_pid_dir = config['configurations']['ams-env']['metrics_collector_pid_dir']
 ams_monitor_pid_dir = config['configurations']['ams-env']['metrics_monitor_pid_dir']
 ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
-ams_admanager_pid_dir = config['configurations']['ams-ad-env']['ams_admanager_pid_dir']
+ams_ad_pid_dir = config['configurations']['ams-admanager-env']['ams_ad_pid_dir']
 
 monitor_pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
 grafana_pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")

@@ -19,15 +19,16 @@ package org.apache.ambari.metrics.adservice.metadata
 
 import org.apache.ambari.metrics.adservice.app.AnomalyDetectionAppConfig
 import org.apache.ambari.metrics.adservice.db.AdMetadataStoreAccessor
+import org.slf4j.{Logger, LoggerFactory}
 
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
 class MetricDefinitionServiceImpl extends MetricDefinitionService {
 
-  @Inject
-  var adMetadataStoreAccessor: AdMetadataStoreAccessor = _
+  val LOG : Logger = LoggerFactory.getLogger(classOf[MetricDefinitionServiceImpl])
 
+  var adMetadataStoreAccessor: AdMetadataStoreAccessor = _
   var configuration: AnomalyDetectionAppConfig = _
   var metricMetadataProvider: MetricMetadataProvider = _
 
@@ -36,18 +37,10 @@ class MetricDefinitionServiceImpl extends MetricDefinitionService {
   var metricDefinitionMetricKeyMap: Map[MetricDefinition, Set[MetricKey]] = Map()
 
   @Inject
-  def this (anomalyDetectionAppConfig: AnomalyDetectionAppConfig) = {
+  def this (anomalyDetectionAppConfig: AnomalyDetectionAppConfig, metadataStoreAccessor: AdMetadataStoreAccessor) = {
     this ()
-    //TODO : Create AD Metadata instance here (or inject)
+    adMetadataStoreAccessor = metadataStoreAccessor
     configuration = anomalyDetectionAppConfig
-    initializeService()
-  }
-
-  def this (anomalyDetectionAppConfig: AnomalyDetectionAppConfig, adMetadataStoreAccessor: AdMetadataStoreAccessor) = {
-    this ()
-    //TODO : Create AD Metadata instance here (or inject). Pass in Schema information.
-    configuration = anomalyDetectionAppConfig
-    this.adMetadataStoreAccessor = adMetadataStoreAccessor
     initializeService()
   }
 
@@ -67,13 +60,13 @@ class MetricDefinitionServiceImpl extends MetricDefinitionService {
     //Load definitions from metadata store
     val definitionsFromStore: List[MetricSourceDefinition] = adMetadataStoreAccessor.getSavedInputDefinitions
     for (definition <- definitionsFromStore) {
-      validateAndSanitizeMetricSourceDefinition(definition)
+      sanitizeMetricSourceDefinition(definition)
     }
 
     //Load definitions from configs
     val definitionsFromConfig: List[MetricSourceDefinition] = getInputDefinitionsFromConfig
     for (definition <- definitionsFromConfig) {
-      validateAndSanitizeMetricSourceDefinition(definition)
+      sanitizeMetricSourceDefinition(definition)
     }
 
     //Union the 2 sources, with DB taking precedence.
@@ -100,6 +93,9 @@ class MetricDefinitionServiceImpl extends MetricDefinitionService {
 
   @Override
   def getDefinitionByName(name: String): MetricSourceDefinition = {
+    if (!metricSourceDefinitionMap.contains(name)) {
+      LOG.warn("Metric Source Definition with name " + name + " not found")
+    }
     metricSourceDefinitionMap.apply(name)
   }
 
@@ -187,7 +183,13 @@ class MetricDefinitionServiceImpl extends MetricDefinitionService {
     this.adMetadataStoreAccessor = adMetadataStoreAccessor
   }
 
-  def validateAndSanitizeMetricSourceDefinition(metricSourceDefinition: MetricSourceDefinition): Unit = {
+
+  /**
+    * Look into the Metric Definitions inside a Metric Source definition, and push down source level appId &
+    * hosts to Metric definition if they do not have an override.
+    * @param metricSourceDefinition Input Metric Source Definition
+    */
+  def sanitizeMetricSourceDefinition(metricSourceDefinition: MetricSourceDefinition): Unit = {
     val sourceLevelAppId: String = metricSourceDefinition.appId
     val sourceLevelHostList: List[String] = metricSourceDefinition.hosts
 

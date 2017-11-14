@@ -527,13 +527,30 @@ def ams(name=None, action=None):
     File(format("{ams_ad_conf_dir}/ams-admanager-env.sh"),
          owner=params.ams_user,
          group=params.user_group,
-         content=InlineTemplate(params.ams_grafana_env_sh_template)
+         content=InlineTemplate(params.ams_admanager_env_sh_template)
          )
 
-    File(format("{conf_dir}/config.yaml"),
-         content=Template("config.yaml.j2"),
+    File(format("{ams_ad_conf_dir}/config.yaml"),
+         content=InlineTemplate(params.ams_admanager_config_template),
          owner=params.ams_user,
          group=params.user_group
+         )
+    merged_ams_hbase_site = {}
+    merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-site'])
+    if params.security_enabled:
+      merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-security-site'])
+
+    XmlConfig( "hbase-site.xml",
+             conf_dir = params.ams_ad_conf_dir,
+             configurations = merged_ams_hbase_site,
+             configuration_attributes=params.config['configuration_attributes']['ams-hbase-site'],
+             owner = params.ams_user,
+             )
+
+    if (params.ams_ad_log4j_props != None):
+      File(os.path.join(params.ams_ad_conf_dir, "log4j.properties"),
+         owner=params.ams_user,
+         content=params.ams_ad_log4j_props
          )
 
     if action != 'stop':

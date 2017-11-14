@@ -20,6 +20,8 @@ package org.apache.ambari.metrics.adservice.leveldb
 
 import java.io.File
 
+import javax.inject.Inject
+
 import org.apache.ambari.metrics.adservice.app.AnomalyDetectionAppConfig
 import org.apache.ambari.metrics.adservice.configuration.MetricDefinitionDBConfiguration
 import org.apache.ambari.metrics.adservice.db.MetadataDatasource
@@ -29,10 +31,19 @@ import org.iq80.leveldb.impl.Iq80DBFactory
 import com.google.inject.Singleton
 
 @Singleton
-class LevelDBDataSource(appConfig: AnomalyDetectionAppConfig) extends MetadataDatasource {
+class LevelDBDataSource() extends MetadataDatasource {
 
   private var db: DB = _
   @volatile var isInitialized: Boolean = false
+
+  var appConfig: AnomalyDetectionAppConfig = _
+
+  @Inject
+  def this(appConfig: AnomalyDetectionAppConfig) = {
+    this
+    this.appConfig = appConfig
+    initialize()
+  }
 
   override def initialize(): Unit = {
     if (isInitialized) return 
@@ -41,8 +52,8 @@ class LevelDBDataSource(appConfig: AnomalyDetectionAppConfig) extends MetadataDa
 
     db = createDB(new LevelDbConfig {
       override val createIfMissing: Boolean = true
-      override val verifyChecksums: Boolean = configuration.verifyChecksums
-      override val paranoidChecks: Boolean = configuration.performParanoidChecks
+      override val verifyChecksums: Boolean = configuration.getVerifyChecksums
+      override val paranoidChecks: Boolean = configuration.getPerformParanoidChecks
       override val path: String = configuration.getDbDirPath
     })
     isInitialized = true

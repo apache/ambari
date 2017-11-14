@@ -17,14 +17,16 @@
   */
 package org.apache.ambari.metrics.adservice.app
 
-import org.apache.ambari.metrics.adservice.db.MetadataDatasource
+import org.apache.ambari.metrics.adservice.db.{AdMetadataStoreAccessor, LevelDbStoreAccessor, MetadataDatasource}
 import org.apache.ambari.metrics.adservice.leveldb.LevelDBDataSource
-import org.apache.ambari.metrics.adservice.resource.{AnomalyResource, RootResource}
+import org.apache.ambari.metrics.adservice.metadata.{MetricDefinitionService, MetricDefinitionServiceImpl}
+import org.apache.ambari.metrics.adservice.resource.{AnomalyResource, MetricDefinitionResource, RootResource}
 import org.apache.ambari.metrics.adservice.service.{ADQueryService, ADQueryServiceImpl}
 
 import com.codahale.metrics.health.HealthCheck
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
+
 import io.dropwizard.setup.Environment
 
 class AnomalyDetectionAppModule(config: AnomalyDetectionAppConfig, env: Environment) extends AbstractModule {
@@ -34,8 +36,11 @@ class AnomalyDetectionAppModule(config: AnomalyDetectionAppConfig, env: Environm
     val healthCheckBinder = Multibinder.newSetBinder(binder(), classOf[HealthCheck])
     healthCheckBinder.addBinding().to(classOf[DefaultHealthCheck])
     bind(classOf[AnomalyResource])
+    bind(classOf[MetricDefinitionResource])
     bind(classOf[RootResource])
+    bind(classOf[AdMetadataStoreAccessor]).to(classOf[LevelDbStoreAccessor])
     bind(classOf[ADQueryService]).to(classOf[ADQueryServiceImpl])
+    bind(classOf[MetricDefinitionService]).to(classOf[MetricDefinitionServiceImpl])
     bind(classOf[MetadataDatasource]).to(classOf[LevelDBDataSource])
   }
 }

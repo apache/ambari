@@ -22,3 +22,23 @@ server:
 
 logging:
   type: external
+
+metricDefinitionService:
+  inputDefinitionDirectory: {{ams_ad_input_definition_directory}}
+
+metricsCollector:
+  hosts: {{ams_collector_hosts}}
+  port: {{metric_collector_port}}
+  protocol: {{metric_collector_protocol}}
+  metadataEndpoint: /v1/timeline/metrics/metadata/keys
+
+adQueryService:
+  anomalyDataTtl: 604800
+
+metricDefinitionDB:
+  # force checksum verification of all data that is read from the file system on behalf of a particular read
+  verifyChecksums: true
+  # raise an error as soon as it detects an internal corruption
+  performParanoidChecks: false
+  # Path to Level DB directory
+  dbDirPath: {{ams_ad_data_dir}}

@@ -26,12 +26,14 @@ class MetricDefinitionDBConfiguration {
 
   @NotNull
   private var dbDirPath: String = _
+  private var verifyChecksums: Boolean = true
+  private var performParanoidChecks: Boolean = false
 
   @JsonProperty("verifyChecksums")
-  def verifyChecksums: Boolean = true
+  def getVerifyChecksums: Boolean = verifyChecksums
 
   @JsonProperty("performParanoidChecks")
-  def performParanoidChecks: Boolean = false
+  def getPerformParanoidChecks: Boolean = performParanoidChecks
 
   @JsonProperty("dbDirPath")
   def getDbDirPath: String = dbDirPath
