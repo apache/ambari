@@ -248,7 +248,7 @@ class TestFalconServer(RMFTestCase):
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
+     '-xf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
      '-C',
      u'/hadoop/falcon/'),
@@ -433,7 +433,7 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
     self.assertResourceCalled('Execute', ('tar',
-                                          '-xvf',
+                                          '-xf',
                                           '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
                                           '-C',
                                           u'/hadoop/falcon/'),
@@ -473,7 +473,7 @@ class TestFalconServer(RMFTestCase):
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
 
     self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
+     '-xf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
      '-C',
      u'/hadoop/falcon/'),
