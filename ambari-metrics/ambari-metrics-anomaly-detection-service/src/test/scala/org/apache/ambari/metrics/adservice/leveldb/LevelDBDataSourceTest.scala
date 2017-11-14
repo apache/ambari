@@ -36,8 +36,8 @@ class LevelDBDataSourceTest extends FunSuite with BeforeAndAfter with Matchers w
     val mdConfig : MetricDefinitionDBConfiguration = mock[MetricDefinitionDBConfiguration]
 
     when(appConfig.getMetricDefinitionDBConfiguration).thenReturn(mdConfig)
-    when(mdConfig.verifyChecksums).thenReturn(true)
-    when(mdConfig.performParanoidChecks).thenReturn(false)
+    when(mdConfig.getVerifyChecksums).thenReturn(true)
+    when(mdConfig.getPerformParanoidChecks).thenReturn(false)
     when(mdConfig.getDbDirPath).thenReturn(file.getAbsolutePath)
 
     db = new LevelDBDataSource(appConfig)

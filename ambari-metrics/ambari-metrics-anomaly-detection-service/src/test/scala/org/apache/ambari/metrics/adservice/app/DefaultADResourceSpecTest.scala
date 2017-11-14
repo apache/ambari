@@ -32,10 +32,10 @@ import com.google.common.io.Resources
 
 class DefaultADResourceSpecTest extends FunSpec with Matchers {
 
-  describe("/topNAnomalies") {
+  describe("/anomaly") {
     it("Must return default message") {
       withAppRunning(classOf[AnomalyDetectionApp], Resources.getResource("config.yml").getPath) { rule =>
-        val json = client.target(s"http://localhost:${rule.getLocalPort}/topNAnomalies")
+        val json = client.target(s"http://localhost:${rule.getLocalPort}/anomaly")
           .request().accept(APPLICATION_JSON).buildGet().invoke(classOf[String])
         val now = DateTime.now.toString("MM-dd-yyyy hh:mm")
         assert(json == "{\"message\":\"Anomaly Detection Service!\"," + "\"today\":\"" + now + "\"}")

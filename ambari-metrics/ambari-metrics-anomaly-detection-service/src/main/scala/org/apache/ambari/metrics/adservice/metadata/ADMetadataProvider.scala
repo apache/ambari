@@ -32,7 +32,9 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
   */
 class ADMetadataProvider extends MetricMetadataProvider {
 
-  var metricCollectorHostPorts: Array[String] = Array.empty[String]
+  var metricCollectorHosts: Array[String] = Array.empty[String]
+  var metricCollectorPort: String = _
+  var metricCollectorProtocol: String = _
   var metricMetadataPath: String = "/v1/timeline/metrics/metadata/keys"
 
   val connectTimeout: Int = 10000
@@ -42,9 +44,11 @@ class ADMetadataProvider extends MetricMetadataProvider {
 
   def this(configuration: MetricCollectorConfiguration) {
     this
-    if (StringUtils.isNotEmpty(configuration.getHostPortList)) {
-      metricCollectorHostPorts = configuration.getHostPortList.split(",")
+    if (StringUtils.isNotEmpty(configuration.getHosts)) {
+      metricCollectorHosts = configuration.getHosts.split(",")
     }
+    metricCollectorPort = configuration.getPort
+    metricCollectorProtocol = configuration.getProtocol
     metricMetadataPath = configuration.getMetadataEndpoint
   }
 
@@ -57,8 +61,8 @@ class ADMetadataProvider extends MetricMetadataProvider {
 
     for (metricDef <- metricSourceDefinition.metricDefinitions) {
       if (metricDef.isValid) { //Skip requesting metric keys for invalid definitions.
-        for (hostPort <- metricCollectorHostPorts) {
-          val metricKeys: Set[MetricKey] = getKeysFromMetricsCollector(hostPort + metricMetadataPath, metricDef)
+        for (host <- metricCollectorHosts) {
+          val metricKeys: Set[MetricKey] = getKeysFromMetricsCollector(metricCollectorProtocol, host, metricCollectorPort, metricMetadataPath, metricDef)
           if (metricKeys != null) {
             keysMap += (metricDef -> metricKeys)
             metricKeySet.++(metricKeys)
@@ -76,8 +80,9 @@ class ADMetadataProvider extends MetricMetadataProvider {
     * @param metricDefinition
     * @return
     */
-  def getKeysFromMetricsCollector(url: String, metricDefinition: MetricDefinition): Set[MetricKey] = {
+  def getKeysFromMetricsCollector(protocol: String, host: String, port: String, path: String, metricDefinition: MetricDefinition): Set[MetricKey] = {
 
+    val url: String = protocol + "://" + host + port + "/" + path
     val mapper = new ObjectMapper() with ScalaObjectMapper
     try {
       val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]

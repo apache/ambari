@@ -20,14 +20,16 @@ package org.apache.ambari.metrics.adservice.app
 
 import javax.validation.Valid
 
-import org.apache.ambari.metrics.adservice.configuration._
+import org.apache.ambari.metrics.adservice.configuration.{HBaseConfiguration, _}
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.{JsonIgnore, JsonIgnoreProperties, JsonProperty}
+
 import io.dropwizard.Configuration
 
 /**
   * Top Level AD System Manager config items.
   */
+@JsonIgnoreProperties(ignoreUnknown=true)
 class AnomalyDetectionAppConfig extends Configuration {
 
   /*
@@ -54,6 +56,7 @@ class AnomalyDetectionAppConfig extends Configuration {
   /*
    HBase Conf
     */
+  @JsonIgnore
   def getHBaseConf : org.apache.hadoop.conf.Configuration = {
     HBaseConfiguration.getHBaseConf
   }
