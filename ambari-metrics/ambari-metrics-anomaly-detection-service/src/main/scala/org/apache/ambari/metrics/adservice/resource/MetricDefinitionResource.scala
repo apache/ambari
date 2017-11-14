@@ -17,12 +17,24 @@
 
 package org.apache.ambari.metrics.adservice.resource
 
+import javax.ws.rs.{GET, Path, Produces}
+import javax.ws.rs.core.MediaType.APPLICATION_JSON
+
+import org.apache.ambari.metrics.adservice.metadata.{MetricDefinitionService, MetricSourceDefinition}
+import org.apache.commons.lang.StringUtils
+
+import com.google.inject.Inject
+
+@Path("/metric-definition")
 class MetricDefinitionResource {
 
-  /*
-    GET component definition
-    POST component definition
-    DELETE component definition
-    PUT component definition
-  */
+  @Inject
+  var metricDefinitionService: MetricDefinitionService = _
+
+  @GET
+  @Produces(Array(APPLICATION_JSON))
+  def getMetricDefinition (definitionName: String) : MetricSourceDefinition = {
+    null
+  }
+
 }

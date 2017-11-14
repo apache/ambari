@@ -44,11 +44,21 @@ class AnomalyDetectionAppConfigTest extends FunSuite {
 
     assert(config.isInstanceOf[AnomalyDetectionAppConfig])
 
-    assert(config.getMetricDefinitionServiceConfiguration.getInputDefinitionDirectory == "/etc/ambari-metrics-anomaly-detection/conf")
+    assert(config.getMetricDefinitionServiceConfiguration.getInputDefinitionDirectory ==
+      "/etc/ambari-metrics-anomaly-detection/conf/definitionDirectory")
 
-    assert(config.getMetricCollectorConfiguration.getHostPortList == "host1:6188,host2:6188")
+    assert(config.getMetricCollectorConfiguration.getHosts == "host1,host2")
+
+    assert(config.getMetricCollectorConfiguration.getPort == "6188")
 
     assert(config.getAdServiceConfiguration.getAnomalyDataTtl == 604800)
+
+    assert(config.getMetricDefinitionDBConfiguration.getDbDirPath == "/var/lib/ambari-metrics-anomaly-detection/")
+
+    assert(config.getMetricDefinitionDBConfiguration.getVerifyChecksums)
+
+    assert(!config.getMetricDefinitionDBConfiguration.getPerformParanoidChecks)
+
   }
 
 }

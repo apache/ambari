@@ -21,10 +21,12 @@ logging:
   type: external
 
 metricDefinitionService:
-  inputDefinitionDirectory: /etc/ambari-metrics-anomaly-detection/conf
+  inputDefinitionDirectory: /etc/ambari-metrics-anomaly-detection/conf/definitionDirectory
 
 metricsCollector:
-  hostPortList: host1:6188,host2:6188
+  hosts: host1,host2
+  port: 6188
+  protocol: http
   metadataEndpoint: /v1/timeline/metrics/metadata/keys
 
 adQueryService:

@@ -28,13 +28,25 @@ import com.fasterxml.jackson.annotation.JsonProperty
 class MetricCollectorConfiguration {
 
   @NotNull
-  private var hostPortList: String = _
+  private var hosts: String = _
+
+  @NotNull
+  private var port: String = _
+
+  @NotNull
+  private var protocol: String = _
 
   @NotNull
   private var metadataEndpoint: String = _
 
   @JsonProperty
-  def getHostPortList: String = hostPortList
+  def getHosts: String = hosts
+
+  @JsonProperty
+  def getPort: String = port
+
+  @JsonProperty
+  def getProtocol: String = protocol
 
   @JsonProperty
   def getMetadataEndpoint: String = metadataEndpoint
