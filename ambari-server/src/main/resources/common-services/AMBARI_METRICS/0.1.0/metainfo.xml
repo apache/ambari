@@ -137,6 +137,7 @@
             <config-type>ams-hbase-site</config-type>
             <config-type>ams-admanager-config</config-type>
             <config-type>ams-admanager-env</config-type>
+            <config-type>ams-admanager-log4j</config-type>
           </configuration-dependencies>
           <logs>
             <log>
