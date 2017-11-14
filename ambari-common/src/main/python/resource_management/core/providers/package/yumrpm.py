@@ -46,8 +46,8 @@ REMOVE_WITHOUT_DEPENDENCIES_CMD = ['rpm', '-e', '--nodeps']
 
 YUM_REPO_LOCATION = "/etc/yum.repos.d"
 REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean', 'metadata']
-ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed"]
-ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
+ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed", "--noplugins"]
+ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available", "--noplugins"]
 VERIFY_DEPENDENCY_CMD = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'dependencies']
 
 # base command output sample:
