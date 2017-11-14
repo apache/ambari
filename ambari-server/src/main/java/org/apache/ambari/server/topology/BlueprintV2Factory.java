@@ -20,7 +20,6 @@
 package org.apache.ambari.server.topology;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -41,6 +40,7 @@ import org.apache.ambari.server.state.StackId;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
@@ -119,9 +119,8 @@ public class BlueprintV2Factory {
     return convertFromJson(blueprintEntity.getContent());
   }
 
-  @SuppressWarnings("unchecked")
   public Map<String, Object> convertToMap(BlueprintV2Entity entity) throws IOException {
-    return createObjectMapper().readValue(entity.getContent(), HashMap.class);
+    return createObjectMapper().readValue(entity.getContent(), new TypeReference<Map<String, Object>>(){});
   }
 
   private StackV2 parseStack(StackId stackId) {
