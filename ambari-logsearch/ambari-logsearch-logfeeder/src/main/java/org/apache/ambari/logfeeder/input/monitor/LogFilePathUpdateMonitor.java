@@ -63,7 +63,7 @@ public class LogFilePathUpdateMonitor extends AbstractLogFileMonitor {
       } else {
         LOG.info("New log file folder found: {}, start a new thread if tail file is not too old.", entry.getKey());
         File monitoredFile = entry.getValue().get(0);
-        if (isFileTooOld(monitoredFile, getDetachTime())) {
+        if (FileUtil.isFileTooOld(monitoredFile, getDetachTime())) {
           LOG.info("'{}' file is too old. No new thread start needed.", monitoredFile.getAbsolutePath());
         } else {
           getInputFile().startNewChildInputFileThread(entry);

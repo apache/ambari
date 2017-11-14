@@ -34,6 +34,7 @@ import org.apache.ambari.logfeeder.input.monitor.LogFilePathUpdateMonitor;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.output.OutputManager;
+import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.log4j.Logger;
 
@@ -190,16 +191,20 @@ public abstract class Input extends ConfigBlock implements Runnable, Cloneable {
     String folderPath = folderFileEntry.getKey();
     String filePath = new File(getFilePath()).getName();
     String fullPathWithWildCard = String.format("%s/%s", folderPath, filePath);
-    clonedObject.setMultiFolder(false);
-    clonedObject.logFiles = folderFileEntry.getValue().toArray(new File[0]); // TODO: works only with tail
-    clonedObject.logPath = fullPathWithWildCard;
-    clonedObject.setLogFileDetacherThread(null);
-    clonedObject.setLogFilePathUpdaterThread(null);
-    clonedObject.setInputChildMap(new HashMap<String, InputFile>());
-    Thread thread = new Thread(threadGroup, clonedObject, "file=" + fullPathWithWildCard);
-    clonedObject.setThread(thread);
-    inputChildMap.put(fullPathWithWildCard, clonedObject);
-    thread.start();
+    if (clonedObject.getMaxAgeMin() != 0 && FileUtil.isFileTooOld(new File(fullPathWithWildCard), clonedObject.getMaxAgeMin().longValue())) {
+      LOG.info(String.format("File ('%s') is too old (max age min: %d), monitor thread not starting...", getFilePath(), clonedObject.getMaxAgeMin()));
+    } else {
+      clonedObject.setMultiFolder(false);
+      clonedObject.logFiles = folderFileEntry.getValue().toArray(new File[0]); // TODO: works only with tail
+      clonedObject.logPath = fullPathWithWildCard;
+      clonedObject.setLogFileDetacherThread(null);
+      clonedObject.setLogFilePathUpdaterThread(null);
+      clonedObject.setInputChildMap(new HashMap<String, InputFile>());
+      Thread thread = new Thread(threadGroup, clonedObject, "file=" + fullPathWithWildCard);
+      clonedObject.setThread(thread);
+      inputChildMap.put(fullPathWithWildCard, clonedObject);
+      thread.start();
+    }
   }
 
   public void stopChildInputFileThread(String folderPathKey) {
@@ -208,7 +213,9 @@ public abstract class Input extends ConfigBlock implements Runnable, Cloneable {
     String fullPathWithWildCard = String.format("%s/%s", folderPathKey, filePath);
     if (inputChildMap.containsKey(fullPathWithWildCard)) {
       InputFile inputFile = inputChildMap.get(fullPathWithWildCard);
-      inputFile.getThread().interrupt();
+      if (inputFile.getThread() != null && inputFile.getThread().isAlive()) {
+        inputFile.getThread().interrupt();
+      }
       inputChildMap.remove(fullPathWithWildCard);
     } else {
       LOG.warn(fullPathWithWildCard + " not found as an input child.");

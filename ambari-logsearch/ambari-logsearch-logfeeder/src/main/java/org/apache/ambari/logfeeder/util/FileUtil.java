@@ -101,22 +101,26 @@ public class FileUtil {
       return new File[]{searchFile};
     } else {
       if (searchPath.contains("*")) {
-        String folderBeforeRegex = getLogDirNameBeforeWildCard(searchPath);
-        String fileNameAfterLastFolder = searchPath.substring(folderBeforeRegex.length());
+        try {
+          String folderBeforeRegex = getLogDirNameBeforeWildCard(searchPath);
+          String fileNameAfterLastFolder = searchPath.substring(folderBeforeRegex.length());
 
-        DirectoryScanner scanner = new DirectoryScanner();
-        scanner.setIncludes(new String[]{fileNameAfterLastFolder});
-        scanner.setBasedir(folderBeforeRegex);
-        scanner.setCaseSensitive(true);
-        scanner.scan();
-        String[] fileNames = scanner.getIncludedFiles();
+          DirectoryScanner scanner = new DirectoryScanner();
+          scanner.setIncludes(new String[]{fileNameAfterLastFolder});
+          scanner.setBasedir(folderBeforeRegex);
+          scanner.setCaseSensitive(true);
+          scanner.scan();
+          String[] fileNames = scanner.getIncludedFiles();
 
-        if (fileNames != null && fileNames.length > 0) {
-          File[] files = new File[fileNames.length];
-          for (int i = 0; i < fileNames.length; i++) {
-            files[i] = new File(folderBeforeRegex + fileNames[i]);
+          if (fileNames != null && fileNames.length > 0) {
+            File[] files = new File[fileNames.length];
+            for (int i = 0; i < fileNames.length; i++) {
+              files[i] = new File(folderBeforeRegex + fileNames[i]);
+            }
+            return files;
           }
-          return files;
+        } catch (Exception e) {
+          LOG.warn("Input file not found by pattern (exception thrown); {}, message: {}", searchPath, e.getMessage());
         }
 
       } else {
@@ -163,5 +167,9 @@ public class FileUtil {
     } else {
       return beforeRegex;
     }
+  }
+
+  public static boolean isFileTooOld(File file, long diffMin) {
+    return (System.currentTimeMillis() - file.lastModified()) > diffMin * 1000 * 60;
   }
 }

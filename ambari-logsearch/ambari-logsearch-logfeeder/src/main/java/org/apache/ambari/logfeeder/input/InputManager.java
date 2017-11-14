@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.ambari.logfeeder.input.monitor.CheckpointCleanupMonitor;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
@@ -139,6 +140,10 @@ public class InputManager {
       if (isCheckPointFolderValid) {
         LOG.info("Using folder " + checkPointFolderFile + " for storing checkpoints");
       }
+      // check checkpoint cleanup every 2000 min
+      Thread checkpointCleanupThread = new Thread(new CheckpointCleanupMonitor(this, 2000),"checkpoint_cleanup");
+      checkpointCleanupThread.setDaemon(true);
+      checkpointCleanupThread.start();
     }
 
   }
@@ -269,6 +274,10 @@ public class InputManager {
 
             String logFilePath = (String) jsonCheckPoint.get("file_path");
             String logFileKey = (String) jsonCheckPoint.get("file_key");
+            Integer maxAgeMin = null;
+            if (jsonCheckPoint.containsKey("max_age_min")) {
+              maxAgeMin = Integer.parseInt(jsonCheckPoint.get("max_age_min").toString());
+            }
             if (logFilePath != null && logFileKey != null) {
               boolean deleteCheckPointFile = false;
               File logFile = new File(logFilePath);
@@ -279,6 +288,9 @@ public class InputManager {
                   deleteCheckPointFile = true;
                   LOG.info("CheckPoint clean: File key has changed. old=" + logFileKey + ", new=" + fileBase64 + ", filePath=" +
                       logFilePath + ", checkPointFile=" + checkPointFile.getAbsolutePath());
+                } else if (maxAgeMin != null && maxAgeMin != 0 && FileUtil.isFileTooOld(logFile, maxAgeMin)) {
+                  deleteCheckPointFile = true;
+                  LOG.info("Checkpoint clean: File reached max age minutes (" + maxAgeMin + "):" + logFilePath);
                 }
               } else {
                 LOG.info("CheckPoint clean: Log file doesn't exist. filePath=" + logFilePath + ", checkPointFile=" +

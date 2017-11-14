@@ -18,50 +18,31 @@
  */
 package org.apache.ambari.logfeeder.input.monitor;
 
-import org.apache.ambari.logfeeder.input.InputFile;
-import org.apache.ambari.logfeeder.util.FileUtil;
+import org.apache.ambari.logfeeder.input.InputManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+public class CheckpointCleanupMonitor implements Runnable {
 
-public abstract class AbstractLogFileMonitor implements Runnable {
+  private static final Logger LOG = LoggerFactory.getLogger(CheckpointCleanupMonitor.class);
 
-  private Logger LOG = LoggerFactory.getLogger(AbstractLogFileMonitor.class);
+  private long waitIntervalMin;
+  private InputManager inputManager;
 
-  private final InputFile inputFile;
-  private final int waitInterval;
-  private final int detachTime;
-
-  AbstractLogFileMonitor(InputFile inputFile, int waitInterval, int detachTime) {
-    this.inputFile = inputFile;
-    this.waitInterval = waitInterval;
-    this.detachTime = detachTime;
-  }
-
-  public InputFile getInputFile() {
-    return inputFile;
-  }
-
-  public int getDetachTime() {
-    return detachTime;
+  public CheckpointCleanupMonitor(InputManager inputManager, long waitIntervalMin) {
+    this.waitIntervalMin = waitIntervalMin;
+    this.inputManager = inputManager;
   }
 
   @Override
   public void run() {
-    LOG.info(getStartLog());
-
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        Thread.sleep(1000 * waitInterval);
-        monitorAndUpdate();
+        Thread.sleep(1000 * 60 * waitIntervalMin);
+        inputManager.cleanCheckPointFiles();
       } catch (Exception e) {
-        LOG.error("Monitor thread interrupted.", e);
+        LOG.error("Cleanup checkpoint files thread interrupted.", e);
       }
     }
   }
-
-  protected abstract String getStartLog();
-
-  protected abstract void monitorAndUpdate() throws Exception;
 }

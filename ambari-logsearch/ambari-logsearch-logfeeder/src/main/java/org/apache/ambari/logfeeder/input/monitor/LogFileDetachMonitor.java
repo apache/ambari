@@ -58,7 +58,7 @@ public class LogFileDetachMonitor extends AbstractLogFileMonitor {
         for (Map.Entry<String, InputFile> inputFileEntry : copiedInputFileMap.entrySet()) {
           if (inputFileEntry.getKey().startsWith(entry.getKey())) {
             File monitoredFile = entry.getValue().get(0);
-            boolean isFileTooOld = isFileTooOld(monitoredFile, getDetachTime());
+            boolean isFileTooOld = FileUtil.isFileTooOld(monitoredFile, getDetachTime());
             if (isFileTooOld) {
               LOG.info("File ('{}') in folder ('{}') is too old (reached {} minutes), detach input thread.", entry.getKey(), getDetachTime());
               getInputFile().stopChildInputFileThread(entry.getKey());
