@@ -14,8 +14,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.controller.internal.AmbariConfigurationResourceProvider.AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.AmbariConfigurationResourceProvider.AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider.CONFIGURATION_CATEGORY_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider.CONFIGURATION_COMPONENT_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider.CONFIGURATION_PROPERTIES_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider.CONFIGURATION_SERVICE_NAME_PROPERTY_ID;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -33,6 +35,9 @@ import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -55,7 +60,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
+import junit.framework.Assert;
+
+public class RootServiceComponentConfigurationResourceProviderTest extends EasyMockSupport {
 
   private static final String CATEGORY_NAME_1 = "test-category-1";
   private static final String CATEGORY_NAME_2 = "test-category-2";
@@ -93,7 +100,7 @@ public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
   private void testCreateResources(Authentication authentication) throws Exception {
     Injector injector = createInjector();
 
-    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
 
     Set<Map<String, Object>> propertySets = new HashSet<>();
 
@@ -165,12 +172,9 @@ public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
   private void testDeleteResources(Authentication authentication) throws Exception {
     Injector injector = createInjector();
 
-    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
 
-    Predicate predicate = new PredicateBuilder()
-        .property(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID)
-        .equals(CATEGORY_NAME_1)
-        .toPredicate();
+    Predicate predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1);
 
     Request request = createMock(Request.class);
 
@@ -218,12 +222,9 @@ public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
   private void testGetResources(Authentication authentication) throws Exception {
     Injector injector = createInjector();
 
-    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
 
-    Predicate predicate = new PredicateBuilder()
-        .property(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID)
-        .equals(CATEGORY_NAME_1)
-        .toPredicate();
+    Predicate predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1);
 
     Request request = createMock(Request.class);
     expect(request.getPropertyIds()).andReturn(null).anyTimes();
@@ -243,22 +244,22 @@ public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
 
     verifyAll();
 
-    junit.framework.Assert.assertNotNull(response);
-    junit.framework.Assert.assertEquals(1, response.size());
+    Assert.assertNotNull(response);
+    Assert.assertEquals(1, response.size());
 
     Resource resource = response.iterator().next();
-    junit.framework.Assert.assertEquals(Resource.Type.AmbariConfiguration, resource.getType());
+    Assert.assertEquals(Resource.Type.RootServiceComponentConfiguration, resource.getType());
 
     Map<String, Map<String, Object>> propertiesMap = resource.getPropertiesMap();
-    junit.framework.Assert.assertEquals(2, propertiesMap.size());
+    Assert.assertEquals(2, propertiesMap.size());
 
-    junit.framework.Assert.assertEquals(CATEGORY_NAME_1, propertiesMap.get(Resource.Type.AmbariConfiguration.name()).get("category"));
+    Assert.assertEquals(CATEGORY_NAME_1, propertiesMap.get(RootServiceComponentConfigurationResourceProvider.RESOURCE_KEY).get("category"));
 
-    Map<String, Object> retrievedProperties = propertiesMap.get(Resource.Type.AmbariConfiguration.name() + "/properties");
-    junit.framework.Assert.assertEquals(2, retrievedProperties.size());
+    Map<String, Object> retrievedProperties = propertiesMap.get(RootServiceComponentConfigurationResourceProvider.RESOURCE_KEY + "/properties");
+    Assert.assertEquals(2, retrievedProperties.size());
 
     for (Map.Entry<String, String> entry : properties.entrySet()) {
-      junit.framework.Assert.assertEquals(entry.getValue(), retrievedProperties.get(entry.getKey()));
+      Assert.assertEquals(entry.getValue(), retrievedProperties.get(entry.getKey()));
     }
   }
 
@@ -290,12 +291,9 @@ public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
   private void testUpdateResources(Authentication authentication) throws Exception {
     Injector injector = createInjector();
 
-    ResourceProvider resourceProvider = injector.getInstance(AmbariConfigurationResourceProvider.class);
+    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
 
-    Predicate predicate = new PredicateBuilder()
-        .property(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID)
-        .equals(CATEGORY_NAME_1)
-        .toPredicate();
+    Predicate predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1);
 
     Set<Map<String, Object>> propertySets = new HashSet<>();
 
@@ -329,6 +327,22 @@ public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
     validateCapturedProperties(properties1, capturedProperties1);
   }
 
+  private Predicate createPredicate(String serviceName, String componentName, String categoryName) {
+    Predicate predicateService = new PredicateBuilder()
+        .property(CONFIGURATION_SERVICE_NAME_PROPERTY_ID)
+        .equals(serviceName)
+        .toPredicate();
+    Predicate predicateComponent = new PredicateBuilder()
+        .property(CONFIGURATION_COMPONENT_NAME_PROPERTY_ID)
+        .equals(componentName)
+        .toPredicate();
+    Predicate predicateCategory = new PredicateBuilder()
+        .property(CONFIGURATION_CATEGORY_PROPERTY_ID)
+        .equals(categoryName)
+        .toPredicate();
+    return new AndPredicate(predicateService, predicateComponent, predicateCategory);
+  }
+
   private List<AmbariConfigurationEntity> createEntities(String categoryName, Map<String, String> properties) {
     List<AmbariConfigurationEntity> entities = new ArrayList<>();
 
@@ -345,23 +359,25 @@ public class AmbariConfigurationResourceProviderTest extends EasyMockSupport {
 
   private Map<String, Object> toRequestProperties(String categoryName1, Map<String, String> properties) {
     Map<String, Object> requestProperties = new HashMap<>();
-    requestProperties.put(AMBARI_CONFIGURATION_CATEGORY_PROPERTY_ID, categoryName1);
+    requestProperties.put(CONFIGURATION_SERVICE_NAME_PROPERTY_ID, "AMBARI");
+    requestProperties.put(CONFIGURATION_COMPONENT_NAME_PROPERTY_ID, "AMBARI_SERVER");
+    requestProperties.put(CONFIGURATION_CATEGORY_PROPERTY_ID, categoryName1);
     for (Map.Entry<String, String> entry : properties.entrySet()) {
-      requestProperties.put(AMBARI_CONFIGURATION_PROPERTIES_PROPERTY_ID + "/" + entry.getKey(), entry.getValue());
+      requestProperties.put(CONFIGURATION_PROPERTIES_PROPERTY_ID + "/" + entry.getKey(), entry.getValue());
     }
     return requestProperties;
   }
 
   private void validateCapturedProperties(Map<String, String> expectedProperties, Capture<Map<String, String>> capturedProperties) {
-    junit.framework.Assert.assertTrue(capturedProperties.hasCaptured());
+    Assert.assertTrue(capturedProperties.hasCaptured());
 
     Map<String, String> properties = capturedProperties.getValue();
-    junit.framework.Assert.assertNotNull(properties);
+    Assert.assertNotNull(properties);
 
     // Convert the Map to a TreeMap to help with comparisons
     expectedProperties = new TreeMap<>(expectedProperties);
     properties = new TreeMap<>(properties);
-    junit.framework.Assert.assertEquals(expectedProperties, properties);
+    Assert.assertEquals(expectedProperties, properties);
   }
 
   private Injector createInjector() throws Exception {

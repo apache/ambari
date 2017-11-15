@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.annotations.ApiIgnore;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.api.services.AmbariConfigurationService;
+import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
@@ -64,7 +64,7 @@ import com.google.common.collect.Sets;
  */
 @StaticallyInject
 @Path("/ldapconfigs/")
-public class LdapConfigurationService extends AmbariConfigurationService {
+public class LdapConfigurationService extends BaseService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LdapConfigurationService.class);
 
@@ -133,7 +133,7 @@ public class LdapConfigurationService extends AmbariConfigurationService {
   }
 
   private void setResult(Set<String> groups, Result result) {
-    Resource resource = new ResourceImpl(Resource.Type.AmbariConfiguration);
+    Resource resource = new ResourceImpl(Resource.Type.RootServiceComponentConfiguration);
     resource.setProperty("groups", groups);
     result.getResultTree().addChild(resource, "payload");
   }

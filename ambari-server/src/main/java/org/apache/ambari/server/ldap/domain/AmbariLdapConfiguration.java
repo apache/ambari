@@ -33,7 +33,7 @@ public class AmbariLdapConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariLdapConfiguration.class);
 
-  private final Map<String, Object> configurationMap;
+  private final Map<String, String> configurationMap;
 
   private Object configValue(AmbariLdapConfigKeys ambariLdapConfigKeys) {
     Object value = null;
@@ -45,13 +45,13 @@ public class AmbariLdapConfiguration {
     return value;
   }
 
-  public void setValueFor(AmbariLdapConfigKeys ambariLdapConfigKeys, Object value) {
+  public void setValueFor(AmbariLdapConfigKeys ambariLdapConfigKeys, String value) {
     configurationMap.put(ambariLdapConfigKeys.key(), value);
   }
 
   // intentionally package private, instances to be created through the factory
   @Inject
-  AmbariLdapConfiguration(@Assisted Map<String, Object> configuration) {
+  AmbariLdapConfiguration(@Assisted Map<String, String> configuration) {
     this.configurationMap = configuration;
   }
 

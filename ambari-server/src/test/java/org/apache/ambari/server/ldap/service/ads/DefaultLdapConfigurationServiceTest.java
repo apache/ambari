@@ -102,7 +102,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   @Test
   public void testShouldUserAttributeConfigurationCheckSucceedWhenUserDnIsFound() throws Exception {
     // GIVEN
-    Map<String, Object> configMap = Maps.newHashMap();
+    Map<String, String> configMap = Maps.newHashMap();
     configMap.put(AmbariLdapConfigKeys.USER_OBJECT_CLASS.key(), "person");
     configMap.put(AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE.key(), "uid");
 
@@ -126,7 +126,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   @Test(expected = AmbariLdapException.class)
   public void testShouldUserAttributeConfigurationCheckFailWhenNoUsersFound() throws Exception {
     // GIVEN
-    Map<String, Object> configMap = Maps.newHashMap();
+    Map<String, String> configMap = Maps.newHashMap();
     configMap.put(AmbariLdapConfigKeys.USER_OBJECT_CLASS.key(), "posixAccount");
     configMap.put(AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE.key(), "dn");
 
@@ -155,7 +155,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   public void testShouldGroupAttributeConfigurationCheckSucceedWhenGroupForUserDnIsFound() throws Exception {
     // GIVEN
 
-    Map<String, Object> configMap = groupConfigObjectMap();
+    Map<String, String> configMap = groupConfigObjectMap();
 
     SearchRequest sr = new SearchRequestImpl();
 
@@ -184,7 +184,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   public void testShouldGroupAttributeConfigurationCheckFailWhenNoGroupsForUserDnFound() throws Exception {
     // GIVEN
 
-    Map<String, Object> configMap = groupConfigObjectMap();
+    Map<String, String> configMap = groupConfigObjectMap();
 
     SearchRequest sr = new SearchRequestImpl();
 
@@ -208,8 +208,8 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
 
   }
 
-  private Map<String, Object> groupConfigObjectMap() {
-    Map<String, Object> configMap = Maps.newHashMap();
+  private Map<String, String> groupConfigObjectMap() {
+    Map<String, String> configMap = Maps.newHashMap();
     configMap.put(AmbariLdapConfigKeys.GROUP_OBJECT_CLASS.key(), "groupOfNames");
     configMap.put(AmbariLdapConfigKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
     configMap.put(AmbariLdapConfigKeys.GROUP_NAME_ATTRIBUTE.key(), "uid");

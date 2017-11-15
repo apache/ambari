@@ -26,7 +26,7 @@ public class AmbariConfiguration {
    */
   private String type;
 
-  private Map<String, Object> properties = null;
+  private Map<String, String> properties = null;
 
   public String getType() {
     return type;
@@ -36,11 +36,11 @@ public class AmbariConfiguration {
     this.type = type;
   }
 
-  public Map<String, Object> getProperties() {
+  public Map<String, String> getProperties() {
     return properties;
   }
 
-  public void setProperties(Map<String, Object> data) {
+  public void setProperties(Map<String, String> data) {
     this.properties = data;
   }
 }

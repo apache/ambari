@@ -84,7 +84,7 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
     configEntities = ambariConfigurationDAOProvider.get().findByCategory("ldap-configuration");
 
     if (configEntities != null) {
-      Map<String, Object> properties = toProperties(configEntities);
+      Map<String, String> properties = toProperties(configEntities);
       instance = ldapConfigurationFactory.createLdapConfiguration(properties);
     }
 
@@ -93,8 +93,8 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
     return instance;
   }
 
-  private Map<String, Object> toProperties(List<AmbariConfigurationEntity> configEntities) {
-    Map<String, Object> map = new HashMap<>();
+  private Map<String, String> toProperties(List<AmbariConfigurationEntity> configEntities) {
+    Map<String, String> map = new HashMap<>();
 
     for (AmbariConfigurationEntity entity : configEntities) {
       map.put(entity.getPropertyName(), entity.getPropertyValue());

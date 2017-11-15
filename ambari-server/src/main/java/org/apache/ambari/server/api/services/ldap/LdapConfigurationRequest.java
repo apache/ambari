@@ -22,7 +22,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class LdapConfigurationRequest {
 
-  @SerializedName("AmbariConfiguration")
+  @SerializedName("Configuration")
   private AmbariConfiguration ambariConfiguration;
 
   @SerializedName("RequestInfo")

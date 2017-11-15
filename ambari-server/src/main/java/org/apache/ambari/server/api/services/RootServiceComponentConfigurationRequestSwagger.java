@@ -20,18 +20,24 @@ import org.apache.ambari.server.controller.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
- * Request data model for {@link org.apache.ambari.server.api.services.AmbariConfigurationService}
+ * Request data model for {@link org.apache.ambari.server.api.services.RootServiceComponentConfigurationService}
  */
-public interface AmbariConfigurationRequestSwagger extends ApiModel {
+public interface RootServiceComponentConfigurationRequestSwagger extends ApiModel {
 
-  @ApiModelProperty(name = "AmbariConfiguration")
-  AmbariConfigurationRequestInfo getAmbariConfiguration();
+  @ApiModelProperty(name = "Configuration")
+  RootServiceComponentConfigurationRequestInfo getRootServiceComponentConfigurationRequestInfo();
 
-  interface AmbariConfigurationRequestInfo {
+  interface RootServiceComponentConfigurationRequestInfo {
+    @ApiModelProperty
+    String getServiceName();
+
+    @ApiModelProperty
+    String getComponentName();
+
     @ApiModelProperty
     String getCategoryName();
 
     @ApiModelProperty
-    Map<String, Object> getProperties();
+    Map<String, String> getProperties();
   }
 }

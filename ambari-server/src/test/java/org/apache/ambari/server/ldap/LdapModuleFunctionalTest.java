@@ -125,8 +125,8 @@ public class LdapModuleFunctionalTest {
     return ldapPropsMap;
   }
 
-  private static Map<String, Object> getADProps() {
-    Map<String, Object> ldapPropsMap = Maps.newHashMap();
+  private static Map<String, String> getADProps() {
+    Map<String, String> ldapPropsMap = Maps.newHashMap();
 
 
 
