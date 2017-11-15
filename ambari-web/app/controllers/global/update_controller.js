@@ -194,6 +194,7 @@ App.UpdateController = Em.Controller.extend({
       App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
       App.StompClient.subscribe('/events/hosts', App.hostStateMapper.map.bind(App.hostStateMapper));
       App.StompClient.subscribe('/events/alert_definitions', App.alertDefinitionsMapperAdapter.map.bind(App.alertDefinitionsMapperAdapter));
+      App.StompClient.subscribe('/events/alert_group', App.alertGroupsMapperAdapter.map.bind(App.alertGroupsMapperAdapter));
 
       App.updater.run(this, 'updateHostsMetrics', 'isWorking', App.contentUpdateInterval, '\/main\/(hosts).*');
       App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
@@ -201,7 +202,6 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       App.updater.run(this, 'updateComponentConfig', 'isWorking');
 
-      App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval, '\/main\/alerts.*');
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
@@ -215,6 +215,7 @@ App.UpdateController = Em.Controller.extend({
       App.StompClient.unsubscribe('/events/services');
       App.StompClient.unsubscribe('/events/hosts');
       App.StompClient.unsubscribe('/events/alert_definitions');
+      App.StompClient.unsubscribe('/events/alert_group');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 

@@ -173,6 +173,7 @@ var files = [
   'test/mappers/socket/service_state_mapper_test',
   'test/mappers/socket/host_state_mapper_test',
   'test/mappers/socket/alert_definitions_mapper_adapter_test',
+  'test/mappers/socket/alert_groups_mapper_adapter_test',
   'test/mixins/common/configs/enhanced_configs_test',
   'test/mixins/common/configs/config_recommendations_test',
   'test/mixins/common/configs/config_recommendation_parser_test',
