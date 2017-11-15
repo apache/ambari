@@ -16,9 +16,12 @@
  * limitations under the License.
  */
 
-import {TestBed, inject} from '@angular/core/testing';
+import {TestBed, inject, async} from '@angular/core/testing';
 import {HttpModule} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/last';
+import 'rxjs/add/operator/take';
 import {StoreModule} from '@ngrx/store';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {AuthService} from '@app/services/auth.service';
@@ -26,49 +29,37 @@ import {HttpClientService} from '@app/services/http-client.service';
 
 describe('AuthService', () => {
 
-  let successResponse = {
-    type: 'default',
-    ok: true,
-    url: '/',
-    status: 200,
-    statusText: 'OK',
-    bytesLoaded: 100,
-    totalBytes: 100,
-    headers: null
+  const successResponse = {
+      type: 'default',
+      ok: true,
+      url: '/',
+      status: 200,
+      statusText: 'OK',
+      bytesLoaded: 100,
+      totalBytes: 100,
+      headers: null
+    },
+    errorResponse = {
+      type: 'error',
+      ok: false,
+      url: '/',
+      status: 401,
+      statusText: 'ERROR',
+      bytesLoaded: 100,
+      totalBytes: 100,
+      headers: null
+    };
+
+  // Note: We add delay to help the isLoginInProgress test case.
+  let httpServiceStub = {
+    isError: false,
+    postFormData: function () {
+      const isError = this.isError;
+      return Observable.create(observer => observer.next(isError ? errorResponse : successResponse)).delay(1000);
+    }
   };
-  let errorResponse = {
-    type: 'error',
-    ok: false,
-    url: '/',
-    status: 401,
-    statusText: 'ERROR',
-    bytesLoaded: 100,
-    totalBytes: 100,
-    headers: null
-  };
-  let currentResponse = successResponse;
-  let httpServiceStub;
-  let authService: AuthService;
 
   beforeEach(() => {
-    // Note: We add delay to help the isLoginInProgress test case.
-    httpServiceStub = {
-      postFormData: function () {
-        return Observable.create(observer => {
-          observer.next(currentResponse);
-        }).delay(1000);
-      },
-      post: function () {
-        return Observable.create(observer => {
-          observer.next(currentResponse);
-        }).delay(1000);
-      },
-      get: function () {
-        return Observable.create(observer => {
-          observer.next(currentResponse);
-        }).delay(1000);
-      }
-    };
     TestBed.configureTestingModule({
       imports: [
         HttpModule,
@@ -82,51 +73,61 @@ describe('AuthService', () => {
         {provide: HttpClientService, useValue: httpServiceStub}
       ]
     });
-    authService = TestBed.get(AuthService);
   });
 
   it('should create service', inject([AuthService], (service: AuthService) => {
     expect(service).toBeTruthy();
   }));
 
-  it('should set the isAuthorized state to true in appState when the login is success', inject(
-    [AppStateService],
-    (appStateService: AppStateService) => {
-      currentResponse = successResponse;
+  it('should set the isAuthorized state to true in appState when the login is success', async(inject(
+    [AuthService, AppStateService, HttpClientService],
+    (authService: AuthService, appStateService: AppStateService, httpClientService) => {
+      httpClientService.isError = false;
       authService.login('test', 'test')
         .subscribe(() => {
-          appStateService.getParameter('isAuthorized').subscribe((value) => {
+          appStateService.getParameter('isAuthorized').subscribe((value: Boolean): void => {
             expect(value).toBe(true);
           });
-        }, (value) => {
+        }, value => {
           throw value;
         });
     }
-  ));
+  )));
 
 
-  it('should set the isAuthorized state to false in appState when the login is failed', inject(
-    [AppStateService],
-    (appStateService: AppStateService) => {
-      currentResponse = errorResponse;
+  it('should set the isAuthorized state to false in appState when the login is failed', async(inject(
+    [AuthService, AppStateService, HttpClientService],
+    (authService: AuthService, appStateService: AppStateService, httpClientService) => {
+      httpClientService.isError = true;
       authService.login('test', 'test')
         .subscribe(() => {
-          appStateService.getParameter('isAuthorized').subscribe((value) => {
+          appStateService.getParameter('isAuthorized').subscribe((value: Boolean): void => {
             expect(value).toBe(false);
           });
         });
     }
-  ));
+  )));
 
-  it('should set the isLoginInProgress state to true when the login started.', inject(
-    [AppStateService],
-    (appStateService: AppStateService) => {
-      currentResponse = successResponse;
+  it('should set the isLoginInProgress state to true when the login started', async(inject(
+    [AuthService, AppStateService, HttpClientService],
+    (authService: AuthService, appStateService: AppStateService, httpClientService) => {
+      httpClientService.isError = false;
       authService.login('test', 'test');
-      appStateService.getParameter('isLoginInProgress').subscribe((value) => {
+      appStateService.getParameter('isLoginInProgress').first().subscribe((value: Boolean): void => {
         expect(value).toBe(true);
       });
     }
-  ));
+  )));
+
+  it('should set the isLoginInProgress state to true after the login is success', async(inject(
+    [AuthService, AppStateService, HttpClientService],
+    (authService: AuthService, appStateService: AppStateService, httpClientService) => {
+      httpClientService.isError = false;
+      authService.login('test', 'test');
+      appStateService.getParameter('isLoginInProgress').take(2).last().subscribe((value: Boolean): void => {
+        expect(value).toBe(false);
+      });
+    }
+  )));
 
 });
