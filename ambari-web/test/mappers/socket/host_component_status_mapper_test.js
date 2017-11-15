@@ -42,9 +42,11 @@ describe('App.hostComponentStatusMapper', function () {
     };
     beforeEach(function() {
       sinon.stub(App.HostComponent, 'find').returns(hc);
+      sinon.stub(App.hostComponentStatusMapper, 'updateComponentsWithStaleConfigs');
     });
     afterEach(function() {
       App.HostComponent.find.restore();
+      App.hostComponentStatusMapper.updateComponentsWithStaleConfigs.restore();
     });
 
     it('host-component should have STARTED status', function() {
@@ -60,6 +62,38 @@ describe('App.hostComponentStatusMapper', function () {
     it('host-component should have maintenanceState OFF', function() {
       App.hostComponentStatusMapper.map(event);
       expect(hc.get('passiveState')).to.be.equal('OFF');
+    });
+
+    it('updateComponentsWithStaleConfigs should be called', function() {
+      App.hostComponentStatusMapper.map(event);
+      expect(App.hostComponentStatusMapper.updateComponentsWithStaleConfigs.calledWith(
+        {
+          componentName: 'C1',
+          hostName: 'host1',
+          currentState: 'STARTED',
+          staleConfigs: false,
+          maintenanceState: 'OFF'
+        }
+      )).to.be.true;
+    });
+  });
+
+  describe('#updateComponentsWithStaleConfigs', function() {
+    beforeEach(function() {
+      sinon.stub(App.componentsStateMapper, 'updateStaleConfigsHosts');
+    });
+    afterEach(function() {
+      App.componentsStateMapper.updateStaleConfigsHosts.restore();
+    });
+
+    it('updateStaleConfigsHosts should be called', function() {
+      var state = {
+        staleConfigs: true,
+        componentName: 'C1',
+        hostName: 'host1'
+      };
+      App.hostComponentStatusMapper.updateComponentsWithStaleConfigs(state);
+      expect(App.componentsStateMapper.updateStaleConfigsHosts.calledWith('C1', ['host1'])).to.be.true;
     });
   });
 });

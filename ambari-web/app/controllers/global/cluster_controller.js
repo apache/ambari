@@ -250,11 +250,28 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
             self.set('isHostComponentMetricsLoaded', true);
           });
           // components config loading doesn't affect overall progress
-          updater.updateComponentConfig(function () {
+          self.loadComponentWithStaleConfigs(function () {
             self.set('isComponentsConfigLoaded', true);
           });
         });
       });
+    });
+  },
+
+  loadComponentWithStaleConfigs: function (callback) {
+    return App.ajax.send({
+      name: 'components.get.staleConfigs',
+      sender: this,
+      success: 'loadComponentWithStaleConfigsSuccessCallback',
+      callback: callback
+    });
+  },
+
+  loadComponentWithStaleConfigsSuccessCallback: function(json) {
+    json.items.forEach((item) => {
+      const componentName = item.ServiceComponentInfo.component_name;
+      const hosts = item.host_components.mapProperty('HostRoles.host_name') || [];
+      App.componentsStateMapper.updateStaleConfigsHosts(componentName, hosts);
     });
   },
 

@@ -32,6 +32,24 @@ App.hostComponentStatusMapper = App.QuickDataMapper.create({
     event.hostComponents.forEach((componentState) => {
       const hostComponent = App.HostComponent.find(componentState.componentName + '_' + componentState.hostName);
       this.updatePropertiesByConfig(hostComponent, componentState, this.config);
+      this.updateComponentsWithStaleConfigs(componentState);
     });
+  },
+
+  /**
+   * @param {object} componentState
+   */
+  updateComponentsWithStaleConfigs: function (componentState) {
+    const staleConfigHostsMap = App.cache.staleConfigsComponentHosts;
+
+    if (!Em.isNone(componentState.staleConfigs)) {
+      const hosts = staleConfigHostsMap[componentState.componentName] || [];
+      if (componentState.staleConfigs) {
+        hosts.push(componentState.hostName);
+      } else {
+        hosts.removeObject(componentState.hostName);
+      }
+      App.componentsStateMapper.updateStaleConfigsHosts(componentState.componentName, hosts);
+    }
   }
 });

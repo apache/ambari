@@ -101,7 +101,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var stackVersions = [];
       var componentsIdMap = {};
       var cacheServices = App.cache['services'];
-      var currentServiceComponentsMap = App.get('componentConfigMapper').buildServiceComponentMap(cacheServices);
+      var currentServiceComponentsMap = this.buildServiceComponentMap(cacheServices);
       var newHostComponentsMap = {};
       var selectedHosts = App.db.getSelectedHosts();
       var clusterName = App.get('clusterName');
@@ -235,7 +235,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         App.router.set('mainHostController.filteredCount', itemTotal);
       }
       //bind host-components with service records
-      App.get('componentConfigMapper').addNewHostComponents(newHostComponentsMap, cacheServices);
+      this.addNewHostComponents(newHostComponentsMap, cacheServices);
     }
     console.timeEnd('App.hostsMapper execution time');
   },
@@ -256,5 +256,43 @@ App.hostsMapper = App.QuickDataMapper.create({
         loadOne: Em.get(hostMetrics, 'metrics.load.load_one')
       });
     }
+  },
+
+  /**
+   * build map that include loaded host-components to avoid duplicate loading
+   * @param cacheServices
+   * @return {Object}
+   */
+  buildServiceComponentMap: function (cacheServices) {
+    var loadedServiceComponentsMap = {};
+
+    cacheServices.forEach(function (cacheService) {
+      var componentsMap = {};
+
+      cacheService.host_components.forEach(function (componentId) {
+        componentsMap[componentId] = true;
+      });
+      loadedServiceComponentsMap[cacheService.ServiceInfo.service_name] = componentsMap;
+    });
+    return loadedServiceComponentsMap;
+  },
+
+  /**
+   * add only new host-components to every service
+   * to update service - host-component relations in model
+   * @param {object} newHostComponentsMap
+   * @param {Array} cacheServices
+   * @return {boolean}
+   */
+  addNewHostComponents: function (newHostComponentsMap, cacheServices) {
+    if (!newHostComponentsMap || !cacheServices) return false;
+    cacheServices.forEach(function (service) {
+      if (newHostComponentsMap[service.ServiceInfo.service_name]) {
+        newHostComponentsMap[service.ServiceInfo.service_name].forEach(function (componentId) {
+          service.host_components.push(componentId)
+        });
+      }
+    }, this);
+    return true;
   }
 });

@@ -80,7 +80,7 @@ describe('App.UpdateController', function () {
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(8);
+      expect(App.updater.run.callCount).to.equal(7);
       expect(App.StompClient.subscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alerts')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/ui_topologies')).to.be.true;
@@ -624,13 +624,6 @@ describe('App.UpdateController', function () {
   describe('#updateServices()', function() {
     it('App.HttpClient.get should be called', function() {
       c.updateServices();
-      expect(App.HttpClient.get.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#updateComponentConfig()', function() {
-    it('App.HttpClient.get should be called', function() {
-      c.updateComponentConfig();
       expect(App.HttpClient.get.calledOnce).to.be.true;
     });
   });

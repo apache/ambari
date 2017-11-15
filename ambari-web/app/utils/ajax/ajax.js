@@ -2585,6 +2585,11 @@ var urls = {
     'real': '/clusters/{clusterName}/components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/recovery_enabled,ServiceComponentInfo/total_count&minimal_response=true',
     'mock': ''
   },
+  'components.get.staleConfigs': {
+    'real': '/clusters/{clusterName}/components?host_components/HostRoles/stale_configs=true' +
+    '&fields=host_components/HostRoles/host_name&minimal_response=true',
+    'mock': ''
+  },
   'components.update': {
     'real': '/clusters/{clusterName}/components?{urlParams}',
     'mock': '',
