@@ -33,6 +33,7 @@ from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import stack_tools, stack_features, stack_select
 from resource_management.libraries.functions import tar_archive
@@ -77,7 +78,14 @@ def _prepare_tez_tarball():
 
   Execute(("cp", "-a", hadoop_lib_native_dir, tez_lib_dir), sudo = True)
 
-  tez_tarball_with_native_lib = os.path.join(os.path.dirname(tez_source_file), "tez-native.tar.gz")
+  tez_native_tarball_staging_dir = os.path.join(temp_dir, "tez-native-tarball-staging")
+  if not os.path.exists(tez_native_tarball_staging_dir):
+    Directory(tez_native_tarball_staging_dir,
+      cd_access='a',
+      create_parents = True,
+      recursive_ownership = True)
+
+  tez_tarball_with_native_lib = os.path.join(tez_native_tarball_staging_dir, "tez-native.tar.gz")
   Logger.info("Creating a new Tez tarball at {0}".format(tez_tarball_with_native_lib))
 
   # tar up Tez, making sure to specify nothing for the arcname so that it does not include an absolute path
