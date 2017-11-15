@@ -2176,6 +2176,13 @@ public class Configuration {
       "agents.reports.thread.pool.size", 10);
 
   /**
+   * Server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  @Markdown(description = "Server to API STOMP endpoint heartbeat interval in milliseconds.")
+  public static final ConfigurationProperty<Integer> API_HEARTBEAT_INTERVAL = new ConfigurationProperty<>(
+      "api.heartbeat.interval", 10000);
+
+  /**
    * The maximum number of threads used to extract Ambari Views when Ambari
    * Server is starting up.
    */
@@ -4902,6 +4909,13 @@ public class Configuration {
    */
   public int getAgentsReportThreadPoolSize() {
     return Integer.parseInt(getProperty(AGENTS_REPORT_THREAD_POOL_SIZE));
+  }
+
+  /**
+   * @return server to API STOMP endpoint heartbeat interval in milliseconds.
+   */
+  public int getAPIHeartbeatInterval() {
+    return Integer.parseInt(getProperty(API_HEARTBEAT_INTERVAL));
   }
 
   /**

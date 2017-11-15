@@ -23,6 +23,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -34,6 +36,13 @@ import com.google.inject.Injector;
 @ComponentScan(basePackageClasses = {TestController.class})
 @Import(RootStompConfig.class)
 public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
+  private final String HEARTBEAT_THREAD_NAME = "ws-heartbeat-thread-";
+  private final int HEARTBEAT_POOL_SIZE = 1;
+  private final org.apache.ambari.server.configuration.Configuration configuration;
+
+  public ApiStompConfig(Injector injector) {
+    configuration = injector.getInstance(org.apache.ambari.server.configuration.Configuration.class);
+  }
 
   @Bean
   public StateUpdateListener requestStatusListener(Injector injector) {
@@ -44,6 +53,17 @@ public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1")
       .setAllowedOrigins("*")
-      .withSockJS();
+      .withSockJS().setHeartbeatTime(configuration.getAPIHeartbeatInterval());
+  }
+
+  @Override
+  public void configureMessageBroker(MessageBrokerRegistry registry) {
+    ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+    taskScheduler.setPoolSize(HEARTBEAT_POOL_SIZE);
+    taskScheduler.setThreadNamePrefix(HEARTBEAT_THREAD_NAME);
+    taskScheduler.initialize();
+
+    registry.enableSimpleBroker("/").setTaskScheduler(taskScheduler)
+        .setHeartbeatValue(new long[]{configuration.getAPIHeartbeatInterval(), configuration.getAPIHeartbeatInterval()});
   }
 }
