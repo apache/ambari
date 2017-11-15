@@ -71,8 +71,6 @@ public class BlueprintFactory {
   protected static final String SETTINGS_PROPERTY_ID = "settings";
 
   private static BlueprintDAO blueprintDAO;
-  private ConfigurationFactory configFactory = new ConfigurationFactory();
-
   private final StackFactory stackFactory;
 
   public BlueprintFactory() {
@@ -107,7 +105,7 @@ public class BlueprintFactory {
 
     Stack stack = createStack(properties);
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
-    Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
+    Configuration configuration = ConfigurationFactory.toConfiguration((Collection<Map<String, String>>)
             properties.get(CONFIGURATION_PROPERTY_ID));
     Setting setting =  SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTINGS_PROPERTY_ID));
 
@@ -150,9 +148,9 @@ public class BlueprintFactory {
 
       Collection<Map<String, String>> configProps = (Collection<Map<String, String>>)
           hostGroupProperties.get(CONFIGURATION_PROPERTY_ID);
+      Configuration configuration = ConfigurationFactory.toConfiguration(configProps);
 
       Collection<Component> components = processHostGroupComponents(stack, hostGroupName, componentProps);
-      Configuration configuration = configFactory.getConfiguration(configProps);
       String cardinality = String.valueOf(hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
 
       HostGroup group = new HostGroupImpl(hostGroupName, bpName, stack, components, configuration, cardinality);

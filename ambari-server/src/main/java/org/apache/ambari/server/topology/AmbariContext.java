@@ -32,7 +32,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
@@ -90,8 +89,6 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
 import com.google.inject.Provider;
 
@@ -411,7 +408,7 @@ public class AmbariContext {
         createConfigGroupsAndRegisterHost(topology, groupName);
       }
     } catch (Exception e) {
-      LOG.error("Unable to register config group for host: ", e);
+      LOG.error("Unable to register config group for host {}", hostName, e);
       throw new RuntimeException("Unable to register config group for host: " + hostName);
     }
     finally {
@@ -663,13 +660,11 @@ public class AmbariContext {
    * and the hosts associated with the host group are assigned to the config group.
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
-
     Map<Service, Map<String, Config>> groupConfigs = new HashMap<>();
 
-
     // only get user provided configuration for host group per service which includes only CCT/HG and BP/HG properties
-    Collection<Service> serviceConfigurations = topology.getHostGroupInfo().get(groupName).getServiceConfigs();
-    serviceConfigurations.forEach(service -> {
+    Collection<Service> services = topology.getHostGroupInfo().get(groupName).getServiceConfigs();
+    for (Service service : services) {
       Map<String, Map<String, String>> userProvidedGroupProperties = service.getConfiguration().getProperties();
 
       // iterate over topo host group configs which were defined in
@@ -677,55 +672,39 @@ public class AmbariContext {
         String type = entry.getKey();
         Config config = configFactory.createReadOnly(type, groupName, entry.getValue(), null);
         //todo: attributes
-        Map<String, Config> serviceConfigs = groupConfigs.get(service);
-        if (serviceConfigs == null) {
-          serviceConfigs = new HashMap<>();
-          groupConfigs.put(service, serviceConfigs);
-        }
-        serviceConfigs.put(type, config);
+        groupConfigs.computeIfAbsent(service, __ -> new HashMap<>())
+          .put(type, config);
       }
-    });
+    }
 
     String bpName = topology.getBlueprint().getName();
     for (Map.Entry<Service, Map<String, Config>> entry : groupConfigs.entrySet()) {
       Service service = entry.getKey();
       Map<String, Config> serviceConfigs = entry.getValue();
       String absoluteGroupName = getConfigurationGroupName(bpName, groupName);
-      Collection<String> groupHosts;
-
-      groupHosts = topology.getHostGroupInfo().
-          get(groupName).getHostNames();
 
       // remove hosts that are not assigned to the cluster yet
-      String clusterName = null;
-      try {
-        clusterName = getClusterName(topology.getClusterId());
-      } catch (AmbariException e) {
-        LOG.error("Cannot get cluster name for clusterId = " + topology.getClusterId(), e);
-        throw new RuntimeException(e);
-      }
+      Long clusterId = topology.getClusterId();
+      String clusterName = getClusterName(clusterId);
+      Set<String> groupHosts = topology.getHostGroupInfo().get(groupName).getHostNames();
+      Set<String> clusterHosts = getController().getClusters().getHostsForCluster(clusterName).keySet();
+      groupHosts.retainAll(clusterHosts);
 
-      final Map<String, Host> clusterHosts = getController().getClusters().getHostsForCluster(clusterName);
-      Iterable<String> filteredGroupHosts = Iterables.filter(groupHosts, new com.google.common.base.Predicate<String>() {
-        @Override
-        public boolean apply(@Nullable String groupHost) {
-          return clusterHosts.containsKey(groupHost);
-        }
-      });
+      LOG.debug("Creating config group {} ");
 
       ConfigGroupRequest request = new ConfigGroupRequest(null, clusterName,
         absoluteGroupName, service.getName(), service.getServiceGroupName(), service.getName(), "Host Group Configuration",
-        Sets.newHashSet(filteredGroupHosts), serviceConfigs);
+        groupHosts, serviceConfigs);
 
-      // get the config group provider and create config group resource
       ConfigGroupResourceProvider configGroupProvider = (ConfigGroupResourceProvider)
           getClusterController().ensureResourceProvider(Resource.Type.ConfigGroup);
 
       try {
         configGroupProvider.createResources(Collections.singleton(request));
       } catch (Exception e) {
-        LOG.error("Failed to create new configuration group: " + e);
-        throw new RuntimeException("Failed to create new configuration group: " + e, e);
+        String msg = String.format("Failed to create new configuration group '%s'", absoluteGroupName);
+        LOG.error(msg, e);
+        throw new RuntimeException(msg, e);
       }
     }
   }

@@ -48,7 +48,7 @@ public interface HostGroupV2 {
 
   /**
    * Get the fully qualified host group name in the form of
-   * blueprintName:hostgroupName
+   * blueprintName:hostGroupName
    *
    * @return fully qualified host group name
    */
@@ -122,7 +122,6 @@ public interface HostGroupV2 {
    *
    * @return host group configuration
    */
-  @Deprecated
   Configuration getConfiguration();
 
   /**

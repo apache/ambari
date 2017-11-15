@@ -48,7 +48,7 @@ public interface ClusterTopology {
   /**
    * Get the blueprint associated with the cluster.
    *
-   * @return assocaited blueprint
+   * @return associated blueprint
    */
   BlueprintV2 getBlueprint();
 
@@ -147,7 +147,6 @@ public interface ClusterTopology {
    * Install the specified host.
    *
    * @param hostName  host name
-   * @param skipInstallTaskCreate
    * @return install response
    */
   RequestStatusResponse installHost(String hostName, boolean skipInstallTaskCreate, boolean skipFailure);
@@ -179,7 +178,6 @@ public interface ClusterTopology {
 
   /**
    * Removes host from stateful ClusterTopology
-   * @param hostname
    */
   void removeHost(String hostname);
 

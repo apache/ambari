@@ -33,7 +33,7 @@ public class ConfigurationFactory {
   private static final String SCHEMA_IS_NOT_SUPPORTED_MESSAGE =
       "Provided configuration format is not supported";
 
-  public Configuration getConfiguration(Collection<Map<String, String>> configProperties) {
+  public static Configuration toConfiguration(Collection<Map<String, String>> configProperties) {
     Map<String, Map<String, String>> properties = new HashMap<>();
     Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
     Configuration configuration = new Configuration(properties, attributes);
@@ -51,7 +51,7 @@ public class ConfigurationFactory {
     return configuration;
   }
 
-  private ConfigurationStrategy decidePopulationStrategy(Map<String, String> configuration) {
+  private static ConfigurationStrategy decidePopulationStrategy(Map<String, String> configuration) {
     if (configuration != null && !configuration.isEmpty()) {
       String keyEntry = configuration.keySet().iterator().next();
       String[] keyNameTokens = keyEntry.split("/");
@@ -68,6 +68,16 @@ public class ConfigurationFactory {
     } else {
       return new ConfigurationStrategyV2();
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static Collection<Map<String, Object>> toBranchMapList(Object o) {
+    return (Collection<Map<String, Object>>) o;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static Collection<Map<String, String>> toLeafMapList(Object o) {
+    return (Collection<Map<String, String>>) o;
   }
 
   /**

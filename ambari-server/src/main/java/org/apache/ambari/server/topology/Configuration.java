@@ -45,6 +45,10 @@ public class Configuration {
    */
   private Configuration parentConfiguration;
 
+  public Configuration(Configuration config, Configuration parent) {
+    this(config.getProperties(), config.getAttributes(), parent);
+  }
+
   /**
    * Constructor.
    *

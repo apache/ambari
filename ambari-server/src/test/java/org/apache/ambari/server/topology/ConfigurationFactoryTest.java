@@ -36,8 +36,7 @@ public class ConfigurationFactoryTest {
 
   @Test
   public void testOldSyntax() throws Exception {
-    ConfigurationFactory factory = new ConfigurationFactory();
-    Configuration configuration = factory.getConfiguration(getOldSyntaxConfigProps());
+    Configuration configuration = ConfigurationFactory.toConfiguration(getOldSyntaxConfigProps());
 
     assertEquals(2, configuration.getProperties().size());
 
@@ -55,8 +54,7 @@ public class ConfigurationFactoryTest {
 
   @Test
   public void testNewSyntax() throws Exception {
-    ConfigurationFactory factory = new ConfigurationFactory();
-    Configuration configuration = factory.getConfiguration(getNewSyntaxConfigProps());
+    Configuration configuration = ConfigurationFactory.toConfiguration(getNewSyntaxConfigProps());
 
     // properties
     Map<String, Map<String, String>> properties = configuration.getProperties();

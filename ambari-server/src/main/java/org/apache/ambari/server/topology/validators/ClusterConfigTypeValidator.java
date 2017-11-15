@@ -36,7 +36,7 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
     // config types in from the request / configuration is always set in the request instance
-    Set<String> topologyClusterConfigTypes = new HashSet(topology.getConfiguration().getAllConfigTypes());
+    Set<String> topologyClusterConfigTypes = new HashSet<>(topology.getConfiguration().getAllConfigTypes());
     LOGGER.debug("Cluster config types: {}", topologyClusterConfigTypes);
 
     if (topologyClusterConfigTypes.isEmpty()) {

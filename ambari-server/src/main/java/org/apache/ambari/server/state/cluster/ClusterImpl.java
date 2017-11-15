@@ -1907,14 +1907,14 @@ public class ClusterImpl implements Cluster {
       throw new NullPointerException("User must be specified.");
     }
 
+    if (configs == null) {
+      return null;
+    }
+
+    Iterator<Config> configIterator = configs.iterator();
+
     clusterGlobalLock.writeLock().lock();
     try {
-      if (configs == null) {
-        return null;
-      }
-
-      Iterator<Config> configIterator = configs.iterator();
-
       while (configIterator.hasNext()) {
         Config config = configIterator.next();
         if (config == null) {

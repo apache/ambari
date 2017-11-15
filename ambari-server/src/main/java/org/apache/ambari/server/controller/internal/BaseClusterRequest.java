@@ -52,7 +52,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   /**
    * host group info map
    */
-  protected final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
+  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
   protected ProvisionAction provisionAction;
 

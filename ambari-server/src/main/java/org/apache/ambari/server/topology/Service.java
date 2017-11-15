@@ -130,6 +130,7 @@ public class Service implements Configurable {
 
   public void setStackFromBlueprint(BlueprintV2 blueprint) {
     this.stack = blueprint.getStackById(this.stackId);
+    configuration.setParentConfiguration(stack.getConfiguration());
   }
 
   public void setConfiguration(Configuration configuration) {

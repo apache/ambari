@@ -75,8 +75,6 @@ public class BlueprintV2Factory {
   private static BlueprintV2DAO blueprintDAO;
   private static RepositoryVersionDAO repositoryVersionDAO;
 
-  private ConfigurationFactory configFactory = new ConfigurationFactory();
-
   private StackV2Factory stackFactory;
 
   protected BlueprintV2Factory() {

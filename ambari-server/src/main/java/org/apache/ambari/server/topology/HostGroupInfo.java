@@ -18,10 +18,14 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
@@ -39,7 +43,7 @@ public class HostGroupInfo {
   /**
    * predicate compiler
    */
-  private static PredicateCompiler predicateCompiler = new PredicateCompiler();
+  private static final PredicateCompiler PREDICATE_COMPILER = new PredicateCompiler();
 
   /**
    * host group name
@@ -48,7 +52,7 @@ public class HostGroupInfo {
   /**
    * hosts contained associated with the host group
    */
-  private final Collection<String> hostNames = new HashSet<>();
+  private final Set<String> hostNames = Collections.synchronizedSet(new HashSet<>());
 
   /**
    * maps host names to rack information
@@ -56,25 +60,27 @@ public class HostGroupInfo {
    */
   private final Map<String, String> hostRackInfo = new HashMap<>();
 
+  private Configuration configuration;
+
   /**
    * List of services
    */
-  protected Collection<Service> serviceConfigs;
+  private Collection<Service> serviceConfigs = Collections.emptySet();
 
   /**
    * explicitly specified host count
    */
-  private int requested_count = 0;
+  private int requestedCount;
 
   /**
    * explicitly specified host predicate string
    */
-  String predicateString;
+  private String predicateString;
 
   /**
    * compiled host predicate
    */
-  Predicate predicate;
+  private Predicate predicate;
 
 
   /**
@@ -102,9 +108,7 @@ public class HostGroupInfo {
    *
    * @return collection of user specified host names; will never be null
    */
-  public Collection<String> getHostNames() {
-    // needs to be an exclusive lock, not a read lock because collection
-    // shouldn't change while copying elements into the new set instance
+  public Set<String> getHostNames() {
     synchronized (hostNames) {
       return new HashSet<>(hostNames);
     }
@@ -112,6 +116,10 @@ public class HostGroupInfo {
 
   public Collection<Service> getServiceConfigs() {
     return serviceConfigs;
+  }
+
+  public void setServiceConfigs(Collection<Service> serviceConfigs) {
+    this.serviceConfigs = serviceConfigs;
   }
 
   /**
@@ -122,9 +130,7 @@ public class HostGroupInfo {
    * @return number of requested hosts for the group
    */
   public int getRequestedHostCount() {
-    synchronized (hostNames) {
-      return requested_count == 0 ? hostNames.size() : requested_count;
-    }
+    return requestedCount == 0 ? hostNames.size() : requestedCount;
   }
 
   /**
@@ -133,13 +139,12 @@ public class HostGroupInfo {
    * @param hostName  the host name to associate with the host group
    */
   public void addHost(String hostName) {
-    synchronized(hostNames) {
-      String lowerHostName = hostName.toLowerCase();
-      if (!hostName.equals(lowerHostName)) {
-        LOG.warn("Host name {} contains upper case letters, will be converted to lowercase!", hostName );
-      }
-      hostNames.add(lowerHostName);
+    String lowerHostName = hostName.toLowerCase();
+    if (!hostName.equals(lowerHostName)) {
+      LOG.warn("Host name {} contains upper case letters, will be converted to lowercase!", hostName );
     }
+
+    hostNames.add(lowerHostName);
   }
 
   /**
@@ -148,20 +153,20 @@ public class HostGroupInfo {
    * @param hosts  collection of host names to associate with the host group
    */
   public void addHosts(Collection<String> hosts) {
-    synchronized (hostNames) {
-      for (String host : hosts) {
-        addHost(host);
-      }
-    }
+    Collection<String> lower = hosts.stream()
+      .map(String::toLowerCase)
+      .collect(toSet());
+
+    hostNames.addAll(lower);
   }
 
   /**
    * Set the requested host count for the host group.
    *
-   * @param num  requested host count
+   * @param count requested host count
    */
-  public void setRequestedCount(int num) {
-    requested_count = num;
+  public void setRequestedCount(int count) {
+    requestedCount = count;
   }
 
   /**
@@ -170,7 +175,7 @@ public class HostGroupInfo {
    * @param configuration configuration instance
    */
   public void setConfiguration(Configuration configuration) {
-
+    this.configuration = configuration;
   }
 
   /**
@@ -179,20 +184,18 @@ public class HostGroupInfo {
    * @return associated host group scoped configuration or null if no configuration
    *         is specified for the host group
    */
-  @Deprecated
   public Configuration getConfiguration() {
-    return null;
+    return configuration;
   }
 
   /**
    * Set the host predicate for the host group.
    *
    * @param predicateString  host predicate as a string
-   *
    * @throws InvalidQueryException if compilation of the predicate fails
    */
   public void setPredicate(String predicateString) throws InvalidQueryException {
-    this.predicate = predicateCompiler.compile(predicateString);
+    this.predicate = PREDICATE_COMPILER.compile(predicateString);
     this.predicateString = predicateString;
   }
 
@@ -239,12 +242,9 @@ public class HostGroupInfo {
 
   /**
    * Removes hostname from group
-   * @param hostname
    */
   public void removeHost(String hostname) {
-    synchronized (hostNames) {
-      hostNames.remove(hostname);
-    }
+    hostNames.remove(hostname);
   }
 
 }

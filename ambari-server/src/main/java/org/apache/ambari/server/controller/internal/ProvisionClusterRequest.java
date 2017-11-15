@@ -17,13 +17,16 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.topology.ConfigurationFactory.toBranchMapList;
+import static org.apache.ambari.server.topology.ConfigurationFactory.toLeafMapList;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
@@ -45,13 +48,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 
 /**
  * Request for provisioning a cluster.
  */
-@SuppressWarnings("unchecked")
 public class ProvisionClusterRequest extends BaseClusterRequest {
   /**
    * host groups property name
@@ -131,12 +132,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String SERVICE_GROUP_NAME_PROPERETY = "service_group";
   public static final String SERVICE_NAME_PROPERTY = "name";
 
-
-  /**
-   * configuration factory
-   */
-  private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
-
   /**
    * cluster name
    */
@@ -194,33 +189,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     }
 
     this.securityConfiguration = securityConfiguration;
-
-    // parse service configs and merge with BP service configs
-    serviceConfigs = new ArrayList<>();
-    Collection<Map> services = (Collection<Map>) properties.get(SERVICES_PROPERTY);
-    for (Map serviceMap : services) {
-      String serviceName = (String) serviceMap.get(SERVICE_NAME_PROPERTY);
-      if (StringUtils.isEmpty(serviceName)) {
-        throw new InvalidTopologyTemplateException("Service name must be specified.");
-      }
-      String serviceGroupName = (String) serviceMap.get(SERVICE_GROUP_NAME_PROPERETY);
-      if (StringUtils.isEmpty(serviceGroupName)) {
-        throw new InvalidTopologyTemplateException("Service group name must be specified for service: " + serviceName);
-      }
-      Configuration configuration = configurationFactory.getConfiguration((Collection<Map<String, String>>)
-              serviceMap.get(CONFIGURATIONS_PROPERTY));
-      ServiceId serviceId = ServiceId.of(serviceName, serviceGroupName);
-      Service service = blueprint.getServiceById(serviceId);
-      if (service == null) {
-        throw new InvalidTopologyTemplateException("Service: " + serviceName + " in service group: "
-                + serviceGroupName + " not found.");
-      }
-      service.getConfiguration().setParentConfiguration(service.getStack().getConfiguration());
-      configuration.setParentConfiguration(service.getConfiguration());
-      service.setConfiguration(configuration);
-      serviceConfigs.add(service);
-    }
-
+    serviceConfigs = parseServiceConfigs(properties);
     parseHostGroupInfo(properties);
     this.credentialsMap = parseCredentials(properties);
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
@@ -234,6 +203,35 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     }
   }
 
+  private List<Service> parseServiceConfigs(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+    // parse service configs and merge with BP service configs
+    List<Service> serviceConfigs = new ArrayList<>();
+    Collection<Map<String, Object>> services = toBranchMapList(properties.get(SERVICES_PROPERTY));
+    if (services != null) {
+      for (Map<String, Object> serviceMap : services) {
+        String serviceName = (String) serviceMap.get(SERVICE_NAME_PROPERTY);
+        if (StringUtils.isEmpty(serviceName)) {
+          throw new InvalidTopologyTemplateException("Service name must be specified.");
+        }
+        String serviceGroupName = (String) serviceMap.get(SERVICE_GROUP_NAME_PROPERETY);
+        if (StringUtils.isEmpty(serviceGroupName)) {
+          throw new InvalidTopologyTemplateException("Service group name must be specified for service: " + serviceName);
+        }
+        Configuration configuration = ConfigurationFactory.toConfiguration(toLeafMapList(serviceMap.get(CONFIGURATIONS_PROPERTY)));
+        ServiceId serviceId = ServiceId.of(serviceName, serviceGroupName);
+        Service service = blueprint.getServiceById(serviceId);
+        if (service == null) {
+          throw new InvalidTopologyTemplateException("Service: " + serviceName + " in service group: "
+            + serviceGroupName + " not found.");
+        }
+        configuration.setParentConfiguration(service.getConfiguration());
+        service.setConfiguration(configuration);
+        serviceConfigs.add(service);
+      }
+    }
+    return serviceConfigs;
+  }
+
   private String processQuickLinksProfile(Map<String, Object> properties) throws QuickLinksProfileEvaluationException {
     Object globalFilters = properties.get(QUICKLINKS_PROFILE_FILTERS_PROPERTY);
     Object serviceFilters = properties.get(QUICKLINKS_PROFILE_SERVICES_PROPERTY);
@@ -245,7 +243,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
     InvalidTopologyTemplateException {
     HashMap<String, Credential> credentialHashMap = new HashMap<>();
-    Set<Map<String, String>> credentialsSet = (Set<Map<String, String>>) properties.get(ClusterResourceProvider.CREDENTIALS);
+    Collection<Map<String, String>> credentialsSet = toLeafMapList(properties.get(ClusterResourceProvider.CREDENTIALS));
     if (credentialsSet != null) {
       for (Map<String, String> credentialMap : credentialsSet) {
         String alias = Strings.emptyToNull(credentialMap.get("alias"));
@@ -267,8 +265,9 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
         CredentialStoreType type = Enums.getIfPresent(CredentialStoreType.class, typeString.toUpperCase()).orNull();
         if (type == null) {
           throw new InvalidTopologyTemplateException(
-              String.format("credential.type [%s] is invalid. acceptable values: %s", typeString.toUpperCase(),
-                  Arrays.toString(CredentialStoreType.values())));
+            String.format("credential.type [%s] is invalid. acceptable values: %s", typeString.toUpperCase(),
+              Arrays.toString(CredentialStoreType.values())
+            ));
         }
         credentialHashMap.put(alias, new Credential(alias, principal, key, type));
       }
@@ -342,8 +341,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * @throws InvalidTopologyTemplateException  if any validation checks on properties fail
    */
   private void parseHostGroupInfo(Map<String, Object> properties) throws InvalidTopologyTemplateException {
-    Collection<Map<String, Object>> hostGroups =
-      (Collection<Map<String, Object>>) properties.get(HOSTGROUPS_PROPERTY);
+    Collection<Map<String, Object>> hostGroups = toBranchMapList(properties.get(HOSTGROUPS_PROPERTY));
 
     if (hostGroups == null || hostGroups.isEmpty()) {
       throw new InvalidTopologyTemplateException("'host_groups' element must be included in cluster create body");
@@ -372,12 +370,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     getHostGroupInfo().put(name, hostGroupInfo);
 
     processHostCountAndPredicate(hostGroupProperties, hostGroupInfo);
-    processGroupHosts(name, (Collection<Map<String, String>>)
-      hostGroupProperties.get(HOSTGROUP_HOSTS_PROPERTY), hostGroupInfo);
+    processGroupHosts(name, toLeafMapList(hostGroupProperties.get(HOSTGROUP_HOSTS_PROPERTY)), hostGroupInfo);
 
     // don't set the parent configuration
-    hostGroupInfo.setConfiguration(configurationFactory.getConfiguration(
-      (Collection<Map<String, String>>) hostGroupProperties.get(CONFIGURATIONS_PROPERTY)));
+    hostGroupInfo.setConfiguration(ConfigurationFactory.toConfiguration(toLeafMapList(hostGroupProperties.get(CONFIGURATIONS_PROPERTY))));
   }
 
   /**
@@ -465,39 +461,31 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * @param properties request properties
    * @throws InvalidTopologyTemplateException specified config recommendation strategy property fail validation
    */
-  private ConfigRecommendationStrategy parseConfigRecommendationStrategy(Map<String, Object> properties)
-    throws InvalidTopologyTemplateException {
-    if (properties.containsKey(CONFIG_RECOMMENDATION_STRATEGY)) {
-      String configRecommendationStrategy = String.valueOf(properties.get(CONFIG_RECOMMENDATION_STRATEGY));
-      Optional<ConfigRecommendationStrategy> configRecommendationStrategyOpt =
-        Enums.getIfPresent(ConfigRecommendationStrategy.class, configRecommendationStrategy);
-      if (!configRecommendationStrategyOpt.isPresent()) {
-        throw new InvalidTopologyTemplateException(String.format(
-          "Config recommendation strategy is not supported: %s", configRecommendationStrategy));
-      }
-      return configRecommendationStrategyOpt.get();
-    } else {
-      // default
-      return ConfigRecommendationStrategy.NEVER_APPLY;
-    }
+  private ConfigRecommendationStrategy parseConfigRecommendationStrategy(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+    return getEnumValue(properties, CONFIG_RECOMMENDATION_STRATEGY, ConfigRecommendationStrategy.class, ConfigRecommendationStrategy.NEVER_APPLY);
   }
 
   /**
    * Parse Provision Action specified in RequestInfo properties.
    */
   private ProvisionAction parseProvisionAction(Map<String, Object> properties) throws InvalidTopologyTemplateException {
-    if (properties.containsKey(PROVISION_ACTION_PROPERTY)) {
-      String provisionActionStr = String.valueOf(properties.get(PROVISION_ACTION_PROPERTY));
-      Optional<ProvisionAction> provisionActionOptional =
-        Enums.getIfPresent(ProvisionAction.class, provisionActionStr);
+    return getEnumValue(properties, PROVISION_ACTION_PROPERTY, ProvisionAction.class, ProvisionAction.INSTALL_AND_START);
+  }
 
-      if (!provisionActionOptional.isPresent()) {
-        throw new InvalidTopologyTemplateException(String.format(
-          "Invalid provision_action specified in the template: %s", provisionActionStr));
-      }
-      return provisionActionOptional.get();
-    } else {
-      return ProvisionAction.INSTALL_AND_START;
+  private static <T extends Enum<T>> T getEnumValue(Map<String, ?> properties, String key, Class<T> enumType, T defaultValue)
+    throws InvalidTopologyTemplateException {
+
+    Object obj = properties.get(key);
+    if (obj == null) {
+      return defaultValue;
+    }
+
+    String name = String.valueOf(obj);
+    try {
+      return Enum.valueOf(enumType, name);
+    } catch (IllegalArgumentException e) {
+      String msg = String.format("Unsupported '%s' value: '%s'", key, name);
+      throw new InvalidTopologyTemplateException(msg);
     }
   }
 

@@ -19,11 +19,13 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toMap;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,6 +36,7 @@ import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationContext;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,18 +47,18 @@ import org.slf4j.LoggerFactory;
 public class ClusterTopologyImpl implements ClusterTopology {
 
   private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
+  private final Configuration configuration;
 
   private Long clusterId;
 
   //todo: currently topology is only associated with a single bp
   //todo: this will need to change to allow usage of multiple bp's for the same cluster
   //todo: for example: provision using bp1 and scale using bp2
-  private BlueprintV2 blueprint;
-  private Configuration configuration;
-  private Collection<Service> serviceConfigs;
+  private final BlueprintV2 blueprint;
+  private final Collection<Service> serviceConfigs;
   private ConfigRecommendationStrategy configRecommendationStrategy;
   private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
-  private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
+  private final Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final AmbariContext ambariContext;
   private final String defaultPassword;
@@ -66,6 +69,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.clusterId = topologyRequest.getClusterId();
     // provision cluster currently requires that all hostgroups have same BP so it is ok to use root level BP here
     this.blueprint = topologyRequest.getBlueprint();
+    this.configuration = blueprint.getConfiguration();
+    this.configuration.setParentConfiguration(new Configuration(Collections.singletonMap("cluster-env", getDefaultClusterSettings()), new HashMap<>()));
     this.serviceConfigs = topologyRequest.getServiceConfigs();
     if (topologyRequest instanceof ProvisionClusterRequest) {
       this.defaultPassword = ((ProvisionClusterRequest) topologyRequest).getDefaultPassword();
@@ -74,15 +79,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
     }
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
-
-    // merge service configs into global cluster configs
-    Map<String, Map<String, String>> properties = new HashMap<>();
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
-    serviceConfigs.forEach(service -> {
-      properties.putAll(service.getConfiguration().getProperties());
-      attributes.putAll(service.getConfiguration().getAttributes());
-    });
-    configuration = new Configuration(properties, attributes);
 
     // todo extract validation to specialized service
     validateTopology();
@@ -110,7 +106,6 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  @Deprecated
   public Configuration getConfiguration() {
     return configuration;
   }
@@ -138,13 +133,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   @Override
   public String getHostGroupForHost(String hostname) {
-    for (HostGroupInfo groupInfo : hostGroupInfoMap.values() ) {
-      if (groupInfo.getHostNames().contains(hostname)) {
-        // a host can only be associated with a single host group
-        return groupInfo.getHostGroupName();
-      }
-    }
-    return null;
+    return hostGroupInfoMap.values().stream()
+      .filter(g -> g.getHostNames().contains(hostname))
+      .findAny()
+      .map(HostGroupInfo::getHostGroupName)
+      .orElse(null);
   }
 
   //todo: host info?
@@ -327,44 +320,46 @@ public class ClusterTopologyImpl implements ClusterTopology {
     return defaultPassword;
   }
 
-  private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {
-    LOG.debug("Registering requested host group information for {} hostgroups", requestedHostGroupInfoMap.size());
-    checkForDuplicateHosts(requestedHostGroupInfoMap);
+  private void registerHostGroupInfo(Map<String, HostGroupInfo> requestHostGroups) throws InvalidTopologyException {
+    LOG.debug("Registering requested host group information for {} host groups", requestHostGroups.size());
+    checkForDuplicateHosts(requestHostGroups);
 
-    for (HostGroupInfo requestedHostGroupInfo : requestedHostGroupInfoMap.values()) {
-      String hostGroupName = requestedHostGroupInfo.getHostGroupName();
+    for (HostGroupInfo requestHostGroup : requestHostGroups.values()) {
+      String hostGroupName = requestHostGroup.getHostGroupName();
 
       //todo: doesn't support using a different blueprint for update (scaling)
-      HostGroupV2 baseHostGroup = getBlueprint().getHostGroup(hostGroupName);
-
-      if (baseHostGroup == null) {
-        throw new IllegalArgumentException("Invalid host_group specified: " + hostGroupName +
-            ".  All request host groups must have a corresponding host group in the specified blueprint");
+      HostGroupV2 bpHostGroup = getBlueprint().getHostGroup(hostGroupName);
+      if (bpHostGroup == null) {
+        String msg = String.format("The host group '%s' is not present in the blueprint '%s'", hostGroupName, blueprint.getName());
+        LOG.error(msg);
+        throw new InvalidTopologyException(msg);
       }
+
       //todo: split into two methods
       HostGroupInfo currentHostGroupInfo = hostGroupInfoMap.get(hostGroupName);
       if (currentHostGroupInfo == null) {
         // blueprint host group config
-        Configuration bpHostGroupConfig = baseHostGroup.getConfiguration();
+        Configuration bpHostGroupConfig = bpHostGroup.getConfiguration();
         // parent config is BP host group config but with parent set to topology cluster scoped config
-        Configuration parentConfiguration = new Configuration(bpHostGroupConfig.getProperties(),
-            bpHostGroupConfig.getAttributes(), getConfiguration());
+        Configuration parentConfiguration = new Configuration(bpHostGroupConfig, getConfiguration());
 
-        requestedHostGroupInfo.getConfiguration().setParentConfiguration(parentConfiguration);
-        hostGroupInfoMap.put(hostGroupName, requestedHostGroupInfo);
+        requestHostGroup.getConfiguration().setParentConfiguration(parentConfiguration);
+        requestHostGroup.setServiceConfigs(bpHostGroup.getServices());
+
+        hostGroupInfoMap.put(hostGroupName, requestHostGroup);
       } else {
         // Update.  Either add hosts or increment request count
-        if (!requestedHostGroupInfo.getHostNames().isEmpty()) {
+        if (!requestHostGroup.getHostNames().isEmpty()) {
           try {
             // this validates that hosts aren't already registered with groups
-            addHostsToTopology(requestedHostGroupInfo);
+            addHostsToTopology(requestHostGroup);
           } catch (NoSuchHostGroupException e) {
             //todo
             throw new InvalidTopologyException("Attempted to add hosts to unknown host group: " + hostGroupName);
           }
         } else {
           currentHostGroupInfo.setRequestedCount(
-              currentHostGroupInfo.getRequestedHostCount() + requestedHostGroupInfo.getRequestedHostCount());
+              currentHostGroupInfo.getRequestedHostCount() + requestHostGroup.getRequestedHostCount());
         }
         //todo: throw exception in case where request attempts to modify HG configuration in scaling operation
       }
@@ -411,4 +406,10 @@ public class ClusterTopologyImpl implements ClusterTopology {
         " Be aware that host names are converted to lowercase, case differences do not matter in Ambari deployments.");
     }
   }
+
+  private static Map<String, String> getDefaultClusterSettings() { // TODO temporary
+    return AmbariContext.getController().getAmbariMetaInfo().getClusterProperties().stream()
+      .collect(toMap(PropertyInfo::getName, PropertyInfo::getValue));
+  }
+
 }

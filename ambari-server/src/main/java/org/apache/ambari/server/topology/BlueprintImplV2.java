@@ -52,7 +52,7 @@ public class BlueprintImplV2 implements BlueprintV2 {
   private Collection<RepositoryVersion> repositoryVersions = new ArrayList<>(0);
   private Map<String, ServiceGroup> serviceGroups;
   private Setting setting;
-  private Configuration configuration;
+  private final Configuration configuration = new Configuration(new HashMap<>(), new HashMap<>());;
 
   // Transient fields
   @JsonIgnore
@@ -255,13 +255,6 @@ public class BlueprintImplV2 implements BlueprintV2 {
   @Override
   @JsonIgnore
   public Configuration getConfiguration() {
-    if (null == configuration) {
-      configuration = new Configuration(new HashMap<>(), new HashMap<>());
-      getServiceGroups().forEach( sg -> addChildConfiguration(configuration, sg.getConfiguration()) );
-      getHostGroups().values().forEach(
-        hg -> hg.getComponents().forEach(
-          c -> addChildConfiguration(configuration, c.getConfiguration())));
-    }
     return configuration;
   }
 

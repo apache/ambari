@@ -76,15 +76,14 @@ public class ClusterConfigurationRequest {
     this.ambariContext = ambariContext;
     this.clusterTopology = clusterTopology;
     BlueprintV2 blueprint = clusterTopology.getBlueprint();
-    // set initial configuration (not topology resolved)
+
     //TODO set up proper ConfigurationContext
-    ConfigurationContext configurationContext = new ConfigurationContext(blueprint.getStacks().iterator().next(), clusterTopology
-            .getConfiguration());
+    ConfigurationContext configurationContext = new ConfigurationContext(blueprint.getStacks().iterator().next(), clusterTopology.getConfiguration());
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology, configurationContext);
     this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
     removeOrphanConfigTypes();
     if (setInitial) {
-      setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.emptySet());
+      setConfigurationsOnCluster(TopologyManager.INITIAL_CONFIG_TAG, Collections.emptySet());
     }
   }
 
@@ -136,8 +135,6 @@ public class ClusterConfigurationRequest {
     // this will update the topo cluster config and all host group configs in the cluster topology
     Set<String> updatedConfigTypes = new HashSet<>();
 
-    Map<String, Map<String, String>> userProvidedConfigurations = clusterTopology.getConfiguration().getFullProperties(1);
-
     try {
       if (configureSecurity) {
         Configuration clusterConfiguration = clusterTopology.getConfiguration();
@@ -148,6 +145,7 @@ public class ClusterConfigurationRequest {
       // obtain recommended configurations before config updates
       if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(this.clusterTopology.getConfigRecommendationStrategy())) {
         // get merged properties form Blueprint & cluster template (this doesn't contains stack default values)
+        Map<String, Map<String, String>> userProvidedConfigurations = clusterTopology.getConfiguration().getFullProperties(1);
         stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
       }
 
@@ -157,7 +155,7 @@ public class ClusterConfigurationRequest {
       LOG.error("An exception occurred while doing configuration topology update: " + e, e);
     }
 
-    setConfigurationsOnCluster(clusterTopology, TopologyManager.TOPOLOGY_RESOLVED_TAG, updatedConfigTypes);
+    setConfigurationsOnCluster(TopologyManager.TOPOLOGY_RESOLVED_TAG, updatedConfigTypes);
   }
 
   private Set<String> configureKerberos(Configuration clusterConfiguration, Map<String, Map<String, String>> existingConfigurations) throws AmbariException {
@@ -345,46 +343,37 @@ public class ClusterConfigurationRequest {
 
   /**
    * Set all configurations on the cluster resource.
-   * @param clusterTopology  cluster topology
    * @param tag              config tag
    */
-  public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes)  {
+  private void setConfigurationsOnCluster(String tag, Set<String> updatedConfigTypes)  {
     //todo: also handle setting of host group scoped configuration which is updated by config processor
     List<BlueprintServiceConfigRequest> configurationRequests = new LinkedList<>();
 
     BlueprintV2 blueprint = clusterTopology.getBlueprint();
-    Configuration clusterConfiguration = clusterTopology.getConfiguration();
 
     for (Service service : blueprint.getAllServices()) {
       //todo: remove intermediate request type
       // one bp config request per service
-      BlueprintServiceConfigRequest blueprintConfigRequest = new BlueprintServiceConfigRequest(service.getType());
-      String serviceStackId = service.getStackId();
-      StackV2 serviceStack = blueprint.getStackById(serviceStackId);
-      for (String serviceConfigType : serviceStack.getAllConfigurationTypes(service.getType())) {
-        Set<String> excludedConfigTypes = serviceStack.getExcludedConfigurationTypes(service.getType());
-        if (!excludedConfigTypes.contains(serviceConfigType)) {
-          // skip handling of cluster-env here
-          if (! serviceConfigType.equals("cluster-env")) {
-            if (clusterConfiguration.getFullProperties().containsKey(serviceConfigType)) {
-              blueprintConfigRequest.addConfigElement(serviceConfigType,
-                  clusterConfiguration.getFullProperties().get(serviceConfigType),
-                  clusterConfiguration.getFullAttributes().get(serviceConfigType));
-            }
-          }
+      BlueprintServiceConfigRequest serviceConfigRequest = new BlueprintServiceConfigRequest(service.getType());
+      StackV2 serviceStack = service.getStack();
+      Map<String, Map<String, String>> serviceProperties = service.getConfiguration().getFullProperties();
+      Map<String, Map<String, Map<String, String>>> serviceAttributes = service.getConfiguration().getFullAttributes();
+
+      for (String configType : serviceStack.getConfigurationTypes(service.getType())) {
+        if (!configType.equals("cluster-env")) {
+          serviceConfigRequest.addConfigElement(configType, serviceProperties.get(configType), serviceAttributes.get(configType));
         }
       }
 
-      configurationRequests.add(blueprintConfigRequest);
+      configurationRequests.add(serviceConfigRequest);
     }
 
     // since the stack returns "cluster-env" with each service's config ensure that only one
     // ClusterRequest occurs for the global cluster-env configuration
     BlueprintServiceConfigRequest globalConfigRequest = new BlueprintServiceConfigRequest("GLOBAL-CONFIG");
-    Map<String, String> clusterEnvProps = clusterConfiguration.getFullProperties().get("cluster-env");
-    Map<String, Map<String, String>> clusterEnvAttributes = clusterConfiguration.getFullAttributes().get("cluster-env");
-
-    globalConfigRequest.addConfigElement("cluster-env", clusterEnvProps,clusterEnvAttributes);
+    Map<String, String> properties = clusterTopology.getConfiguration().getFullProperties().get("cluster-env");
+    Map<String, Map<String, String>> attributes = clusterTopology.getConfiguration().getFullAttributes().get("cluster-env");
+    globalConfigRequest.addConfigElement("cluster-env", properties, attributes);
     configurationRequests.add(globalConfigRequest);
 
     setConfigurationsOnCluster(configurationRequests, tag, updatedConfigTypes);
@@ -494,9 +483,7 @@ public class ClusterConfigurationRequest {
   private static class BlueprintServiceConfigRequest {
 
     private final String serviceName;
-
-    private List<BlueprintServiceConfigElement> configElements =
-      new LinkedList<>();
+    private final List<BlueprintServiceConfigElement> configElements = new LinkedList<>();
 
     BlueprintServiceConfigRequest(String serviceName) {
       this.serviceName = serviceName;

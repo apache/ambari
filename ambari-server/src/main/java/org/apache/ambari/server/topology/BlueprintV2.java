@@ -173,7 +173,6 @@ public interface BlueprintV2 {
    *
    * @return blueprint cluster scoped configuration
    */
-  @Deprecated
   Configuration getConfiguration();
 
   /**
