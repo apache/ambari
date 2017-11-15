@@ -1154,9 +1154,9 @@
       }
     },
     "upgrade-dependencies" : {
-      "YARN": ["TEZ"],
-      "TEZ": ["YARN"],
-      "MAHOUT": ["MAPREDUCE2"]
+      "HIVE": ["TEZ"],
+      "MAHOUT": ["MAPREDUCE2"],
+      "OOZIE": ["MAPREDUCE2"]
     }    
   }
 }
