@@ -101,6 +101,9 @@ def _prepare_tez_tarball():
   with closing(tarfile.open(tez_tarball_with_native_lib, "w:gz")) as new_tez_tarball:
     new_tez_tarball.add(tez_temp_dir, arcname=os.path.sep)
 
+  # ensure that the tarball can be read and uploaded
+  sudo.chmod(tez_tarball_with_native_lib, 0744)
+  
   # cleanup
   sudo.rmtree(mapreduce_temp_dir)
   sudo.rmtree(tez_temp_dir)
