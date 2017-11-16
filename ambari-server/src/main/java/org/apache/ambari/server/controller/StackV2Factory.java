@@ -18,16 +18,12 @@
 
 package org.apache.ambari.server.controller;
 
-import static java.util.AbstractMap.SimpleImmutableEntry;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -97,19 +93,18 @@ public class StackV2Factory {
   }
 
   private void getComponentInfos(StackData stackData) {
-    List<Map.Entry<String, String>> componentServices = stackData.serviceComponents.entrySet().stream().
-      flatMap(e -> e.getValue().stream().map( v -> new SimpleImmutableEntry<>(e.getKey(), v))).
-      collect(Collectors.toList());
-    componentServices.forEach( componentService -> {
+    stackData.componentService.forEach( (componentName, serviceName) -> {
       try {
-        ComponentInfo componentInfo = controller.getAmbariMetaInfo().getComponent(stackData.stackName,
-          stackData.stackVersion, componentService.getKey(), componentService.getValue());
+        ComponentInfo componentInfo = controller.getAmbariMetaInfo().getComponent(stackData.stackName, stackData.stackVersion, serviceName, componentName);
         if (null != componentInfo) {
-          stackData.componentInfos.put(componentService.getKey(), componentInfo);
+          stackData.componentInfos.put(componentName, componentInfo);
+        } else {
+          LOG.debug("No component info for service: {}, component: {}, stack name: {}, stack version: {}",
+            serviceName, componentName, stackData.stackName, stackData.stackVersion);
         }
       } catch (AmbariException e) {
-        LOG.debug("No component info for service: {}, component: {}, stack name: {}, stack version: {}, Exception: {}",
-          componentService.getKey(), componentService.getValue(), stackData.stackName, stackData.stackVersion, e);
+        LOG.debug("No component info for service: {}, component: {}, stack name: {}, stack version: {}",
+          serviceName, componentName, stackData.stackName, stackData.stackVersion, e);
       }
     });
   }
