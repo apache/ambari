@@ -101,11 +101,12 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
         continue;
       }
       StackId stackId = service.getDesiredStackId();
-      boolean isServiceWitNoConfigs = ambariMetaInfo.get().isServiceWithNoConfigs(stackId.getStackName(), stackId.getStackVersion(), service.getName());
+      String serviceType = service.getServiceType();
+      boolean isServiceWitNoConfigs = ambariMetaInfo.get().isServiceWithNoConfigs(stackId.getStackName(), stackId.getStackVersion(), serviceType);
       if (isServiceWitNoConfigs){
-        LOG.info(String.format("%s in %s version %s does not have customizable configurations. Skip checking service configuration history.", service.getName(), stackId.getStackName(), stackId.getStackVersion()));
+        LOG.info("{} in {} version {} does not have customizable configurations. Skip checking service configuration history.", serviceType, stackId.getStackName(), stackId.getStackVersion());
       } else {
-        LOG.info(String.format("%s in %s version %s has customizable configurations. Check service configuration history.", service.getName(), stackId.getStackName(), stackId.getStackVersion()));
+        LOG.info("{} in {} version {} has customizable configurations. Check service configuration history.", serviceType, stackId.getStackName(), stackId.getStackVersion());
         ServiceConfigEntity lastServiceConfig = serviceConfigDAO.getLastServiceConfig(clusterId, service.getServiceId());
         lastServiceConfigUpdates.put(service.getName(), lastServiceConfig.getCreateTimestamp());
       }

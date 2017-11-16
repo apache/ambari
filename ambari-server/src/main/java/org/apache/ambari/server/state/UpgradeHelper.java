@@ -971,28 +971,29 @@ public class UpgradeHelper {
       ConfigHelper configHelper = m_configHelperProvider.get();
 
       // downgrade is easy - just remove the new and make the old current
+      Service service = cluster.getService(null, serviceName);
       if (direction == Direction.DOWNGRADE) {
         //TODO pass serviceGroupName
-        cluster.applyLatestConfigurations(targetStackId, cluster.getService(null, serviceName).getServiceId());
+        cluster.applyLatestConfigurations(targetStackId, service.getServiceId());
         continue;
       }
 
       // the auto-merge must take read-only properties even if they have changed
       // - if the properties was read-only in the source stack, then we must
       // take the new stack's value
-      Map<String, Set<String>> readOnlyProperties = getReadOnlyProperties(sourceStackId, serviceName);
+      Map<String, Set<String>> readOnlyProperties = getReadOnlyProperties(sourceStackId, service.getServiceType());
 
       // upgrade is a bit harder - we have to merge new stack configurations in
 
       // populate a map of default configurations for the service on the old
       // stack (this is used when determining if a property has been
-      // customized and should be overriden with the new stack value)
+      // customized and should be overridden with the new stack value)
       Map<String, Map<String, String>> oldServiceDefaultConfigsByType = configHelper.getDefaultProperties(
-          sourceStackId, serviceName);
+          sourceStackId, service.getServiceType());
 
       // populate a map with default configurations from the new stack
       Map<String, Map<String, String>> newServiceDefaultConfigsByType = configHelper.getDefaultProperties(
-          targetStackId, serviceName);
+          targetStackId, service.getServiceType());
 
       if (null == oldServiceDefaultConfigsByType || null == newServiceDefaultConfigsByType) {
         continue;
@@ -1005,7 +1006,7 @@ public class UpgradeHelper {
 
       List<ServiceConfigEntity> latestServiceConfigs = m_serviceConfigDAO.getLastServiceConfigsForService(
           //TODO pass serviceGroupName
-          cluster.getClusterId(), cluster.getService(null, serviceName).getServiceId());
+          cluster.getClusterId(), service.getServiceId());
 
       for (ServiceConfigEntity serviceConfig : latestServiceConfigs) {
         List<ClusterConfigEntity> existingConfigurations = serviceConfig.getClusterConfigEntities();
@@ -1161,13 +1162,12 @@ public class UpgradeHelper {
    *
    * @param stackId
    *          the stack to get read-only properties for (not {@code null}).
-   * @param serviceName
-   *          the namee of the service (not {@code null}).
+   * @param stackServiceName
+   *          the name of the service (not {@code null}).
    * @return a map of configuration type to set of property names which are
    *         read-only
-   * @throws AmbariException
    */
-  private Map<String, Set<String>> getReadOnlyProperties(StackId stackId, String serviceName)
+  private Map<String, Set<String>> getReadOnlyProperties(StackId stackId, String stackServiceName)
       throws AmbariException {
     Map<String, Set<String>> readOnlyProperties = new HashMap<>();
 
@@ -1177,7 +1177,7 @@ public class UpgradeHelper {
         stackId.getStackName(), stackId.getStackVersion());
 
     Set<PropertyInfo> serviceProperties = m_ambariMetaInfoProvider.get().getServiceProperties(
-        stackId.getStackName(), stackId.getStackVersion(), serviceName);
+        stackId.getStackName(), stackId.getStackVersion(), stackServiceName);
 
     if (CollectionUtils.isNotEmpty(stackProperties)) {
       properties.addAll(stackProperties);
