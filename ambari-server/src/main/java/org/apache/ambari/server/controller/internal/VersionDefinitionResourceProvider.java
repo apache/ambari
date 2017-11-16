@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -779,6 +780,13 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             entity.getStackName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),
             entity.getStackVersion());
+
+        ArrayNode tagsNode = factory.arrayNode();
+        for (RepoTag repoTag : repo.getTags()) {
+          tagsNode.add(repoTag.toString());
+        }
+        repoElement.put(PropertyHelper.getPropertyName(
+            RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID), tagsNode);
 
         @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
           comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")

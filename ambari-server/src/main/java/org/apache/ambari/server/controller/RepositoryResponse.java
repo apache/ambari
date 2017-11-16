@@ -19,9 +19,11 @@
 package org.apache.ambari.server.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.state.stack.RepoTag;
 
 public class RepositoryResponse {
 
@@ -45,9 +47,12 @@ public class RepositoryResponse {
     comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   private List<String> applicableServices;
 
+  private Set<RepoTag> tags;
+
   public RepositoryResponse(String baseUrl, String osType, String repoId,
       String repoName, String distribution, String components,
-      String mirrorsList, String defaultBaseUrl, String latestBaseUrl, List<String> applicableServices) {
+      String mirrorsList, String defaultBaseUrl, String latestBaseUrl, List<String> applicableServices,
+      Set<RepoTag> repoTags) {
     setBaseUrl(baseUrl);
     setOsType(osType);
     setRepoId(repoId);
@@ -58,6 +63,7 @@ public class RepositoryResponse {
     setDefaultBaseUrl(defaultBaseUrl);
     setLatestBaseUrl(latestBaseUrl);
     setApplicableServices(applicableServices);
+    setTags(repoTags);
   }
 
   public String getStackName() {
@@ -203,4 +209,19 @@ public class RepositoryResponse {
   public void setApplicableServices(List<String> applicableServices) {
     this.applicableServices = applicableServices;
   }
+
+  /**
+   * @return the repo tags
+   */
+  public Set<RepoTag> getTags() {
+    return tags;
+  }
+
+  /**
+   * @param repoTags    the repo tags
+   */
+  public void setTags(Set<RepoTag> repoTags) {
+    tags = repoTags;
+  }
+
 }

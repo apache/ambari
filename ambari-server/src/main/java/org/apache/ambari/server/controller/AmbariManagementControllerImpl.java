@@ -88,7 +88,6 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -193,6 +192,7 @@ import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
@@ -4469,7 +4469,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType,
                 repository.getRepositoryId(),
                 repository.getName(), repository.getDistribution(), repository.getComponents(), "", "", "",
-                repository.getApplicableServices());
+                repository.getApplicableServices(),
+                repository.getTags());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4477,6 +4478,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
               response.setStackName(repositoryVersion.getStackName());
               response.setStackVersion(repositoryVersion.getStackVersion());
+
               responses.add(response);
             }
             break;
@@ -4498,7 +4500,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl(), repo.getLatestUri(), Collections.EMPTY_LIST);
+              repo.getBaseUrl(), repo.getLatestUri(), Collections.<String>emptyList(), Collections.<RepoTag>emptySet());
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());
