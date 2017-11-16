@@ -21,6 +21,56 @@ var stringUtils = require('utils/string_utils');
 require('utils/helper');
 require('models/configs/objects/service_config_category');
 
+var Dependency = Ember.Object.extend({
+  name: Ember.computed('service', function() {
+    return this.get('service').get('serviceName');
+  }),
+
+  displayName: Ember.computed('service', function() {
+    return this.get('service').get('displayNameOnSelectServicePage');
+  }),
+
+  compatibleServices: function(services) {
+    return services.filterProperty('serviceName', this.get('name'));
+  },
+
+  isMissing: function(selectedServices) {
+    return Em.isEmpty(this.compatibleServices(selectedServices));
+  }
+});
+
+var HcfsDependency = Dependency.extend({
+  displayName: Ember.computed('service', function() {
+    return 'a Hadoop Compatible File System';
+  }),
+
+  compatibleServices: function(services) {
+    return services.filterProperty("isDFS", true);
+  }
+});
+
+Dependency.reopenClass({
+  fromService: function(service) {
+    return service.get('isDFS')
+      ? HcfsDependency.create({service: service})
+      : Dependency.create({service: service});
+  }
+});
+
+var MissingDependency = Ember.Object.extend({
+  hasMultipleOptions: function() {
+    return this.get('compatibleServices').length > 1;
+  },
+
+  selectFirstCompatible: function() {
+    this.get('compatibleServices')[0].set('isSelected', true);
+  },
+
+  displayOptions: function() {
+    return this.get('compatibleServices').mapProperty('serviceName').join(', ');
+  }
+});
+
 /**
  * This model loads all services supported by the stack
  * The model maps to the  http://hostname:8080/api/v1/stacks/HDP/versions/${versionNumber}/services?fields=StackServices/*,serviceComponents/*
@@ -70,6 +120,38 @@ App.StackService = DS.Model.extend({
    * @type {String[]}
    */
   dependentServiceNames: DS.attr('array', {defaultValue: []}),
+
+  dependencies: function(availableServices) {
+    return this.get('requiredServices')
+      .map(function (serviceName) { return availableServices.findProperty('serviceName', serviceName)})
+      .filter(function (each) { return !!each })
+      .map(function (service) { return Dependency.fromService(service); });
+  },
+
+  /**
+   * Add dependencies which are not already included in selectedServices to the given missingDependencies collection
+  */
+  collectMissingDependencies: function(selectedServices, availableServices, missingDependencies) {
+    this._missingDependencies(selectedServices, availableServices).forEach(function (dependency) {
+      this._addMissingDependency(dependency, availableServices, missingDependencies);
+    }.bind(this));
+  },
+
+  _missingDependencies: function(selectedServices, availableServices) {
+    return this.dependencies(availableServices).filter(function(dependency) {
+      return dependency.isMissing(selectedServices);
+    });
+  },
+
+  _addMissingDependency: function(dependency, availableServices, missingDependencies) {
+    if(!missingDependencies.some(function(each) { return each.get('serviceName') == dependency.get('name'); })) {
+      missingDependencies.push(MissingDependency.create({
+         serviceName: dependency.get('name'),
+         displayName: dependency.get('displayName'),
+         compatibleServices: dependency.compatibleServices(availableServices)
+      }));
+    }
+  },
 
   // Is the service a distributed filesystem
   isDFS: function () {

@@ -32,7 +32,7 @@ describe('App.WizardStep4Controller', function () {
   beforeEach(function() {
     controller = App.WizardStep4Controller.create();
     services.forEach(function(serviceName) {
-      controller.pushObject(Ember.Object.create({
+      controller.pushObject(App.StackService.createRecord({
         'serviceName':serviceName, 'isSelected': true, 'isHiddenOnSelectServicePage': false, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
       }));
     });
@@ -43,7 +43,7 @@ describe('App.WizardStep4Controller', function () {
     modelSetup.setupStackServiceComponent();
     if (selectedServiceNames.contains('GLUSTERFS')) allServices.push('GLUSTERFS');
     allServices = allServices.map(function(serviceName) {
-      return [Ember.Object.create({
+      return [App.StackService.createRecord({
         'serviceName': serviceName,
         'isSelected': false,
         'canBeSelected': true,
@@ -51,7 +51,7 @@ describe('App.WizardStep4Controller', function () {
         isPrimaryDFS: serviceName === 'HDFS',
         isDFS: ['HDFS','GLUSTERFS'].contains(serviceName),
         isMonitoringService: ['GANGLIA'].contains(serviceName),
-        requiredServices: App.StackService.find(serviceName).get('requiredServices'),
+        requiredServices: App.StackService.find(serviceName).get('requiredServices') || [],
         displayNameOnSelectServicePage: App.format.role(serviceName, true),
         coSelectedServices: function() {
           return App.StackService.coSelected[this.get('serviceName')] || [];
@@ -167,7 +167,7 @@ describe('App.WizardStep4Controller', function () {
         beforeEach(function () {
           controller.clear();
           Object.keys(testCase.condition).forEach(function (id) {
-            controller.pushObject(Ember.Object.create({
+            controller.pushObject(App.StackService.createRecord({
               serviceName: id,
               isSelected: testCase.condition[id],
               canBeSelected: true,
@@ -1006,7 +1006,7 @@ describe('App.WizardStep4Controller', function () {
     });
 
     it('serviceValidation should not be called when service not selected', function() {
-      controller.pushObject(Em.Object.create({
+      controller.pushObject(App.StackService.createRecord({
         serviceName: 'S1',
         isSelected: false
       }));
@@ -1016,7 +1016,7 @@ describe('App.WizardStep4Controller', function () {
 
     it('serviceValidation should not be called when dependent service does not exist', function() {
       controller.pushObjects([
-        Em.Object.create({
+        App.StackService.createRecord({
           serviceName: 'S1',
           isSelected: true
         })
@@ -1027,7 +1027,7 @@ describe('App.WizardStep4Controller', function () {
 
     it('serviceValidation should not be called when dependent service is selected', function() {
       controller.pushObjects([
-        Em.Object.create({
+        App.StackService.createRecord({
           serviceName: 'S1',
           isSelected: true
         }),
@@ -1042,7 +1042,7 @@ describe('App.WizardStep4Controller', function () {
 
     it('serviceValidation should be called when dependent service is not selected', function() {
       controller.pushObjects([
-        Em.Object.create({
+        App.StackService.createRecord({
           serviceName: 'S1',
           isSelected: true
         }),
