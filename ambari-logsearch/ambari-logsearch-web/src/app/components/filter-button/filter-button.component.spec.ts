@@ -33,10 +33,10 @@ import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/se
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
-import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {FilterButtonComponent} from './filter-button.component';
 
@@ -86,13 +86,13 @@ describe('FilterButtonComponent', () => {
         ServiceLogsTruncatedService,
         TabsService,
         ComponentActionsService,
-        FilteringService,
         UtilsService,
         {
           provide: HttpClientService,
           useValue: httpClient
         },
-        LogsContainerService
+        LogsContainerService,
+        AuthService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

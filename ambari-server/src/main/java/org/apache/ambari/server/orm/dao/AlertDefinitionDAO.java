@@ -25,7 +25,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
@@ -300,10 +301,10 @@ public class AlertDefinitionDAO {
     query.setParameter("clusterId", clusterId);
 
     query.setParameter("serviceName",
-        RootServiceResponseFactory.Services.AMBARI.name());
+        RootService.AMBARI.name());
 
     query.setParameter("componentName",
-        RootServiceResponseFactory.Components.AMBARI_AGENT.name());
+        RootComponent.AMBARI_AGENT.name());
 
     return daoUtils.selectList(query);
   }

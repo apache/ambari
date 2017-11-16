@@ -93,6 +93,7 @@ import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
@@ -762,11 +763,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction}
     at the appropriate moment during the orchestration.
     */
-    if (pack.getType() == UpgradeType.ROLLING) {
+    if (pack.getType() == UpgradeType.ROLLING || pack.getType() == UpgradeType.HOST_ORDERED) {
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
     }
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is wrong")
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is SO VERY wrong")
     StackId configurationPackSourceStackId = upgradeContext.getSourceVersions().values().iterator().next().getStackId();
 
     // resolve or build a proper config upgrade pack - always start out with the config pack
@@ -1073,7 +1074,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion, null);
+        cluster, effectiveRepositoryVersion.getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1155,7 +1156,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion, null);
+        cluster, effectiveRepositoryVersion.getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1220,7 +1221,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion, null);
+        cluster, effectiveRepositoryVersion.getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1341,6 +1342,41 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         break;
       }
+      case CREATE_AND_CONFIGURE: {
+        CreateAndConfigureTask ct = (CreateAndConfigureTask) task;
+
+        // !!! would prefer to do this in the sequence generator, but there's too many
+        // places to miss
+        if (context.getOrchestrationType().isRevertable() && !ct.supportsPatch) {
+          process = false;
+        }
+
+        Map<String, String> configurationChanges =
+                ct.getConfigurationChanges(cluster, configUpgradePack);
+
+        // add all configuration changes to the command params
+        commandParams.putAll(configurationChanges);
+
+        // extract the config type to build the summary
+        String configType = configurationChanges.get(CreateAndConfigureTask.PARAMETER_CONFIG_TYPE);
+        if (null != configType) {
+          itemDetail = String.format("Updating configuration %s", configType);
+        } else {
+          itemDetail = "Skipping Configuration Task "
+              + StringUtils.defaultString(ct.id, "(missing id)");
+        }
+
+        entity.setText(itemDetail);
+
+        String configureTaskSummary = ct.getSummary(configUpgradePack);
+        if (null != configureTaskSummary) {
+          stageText = configureTaskSummary;
+        } else {
+          stageText = itemDetail;
+        }
+
+        break;
+      }
       default:
         break;
     }
@@ -1361,7 +1397,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getRepositoryVersion(), null);
+        cluster, context.getRepositoryVersion().getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getCommandParamsForStage(),

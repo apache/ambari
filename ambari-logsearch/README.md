@@ -4,21 +4,38 @@
 
 ### Prerequisites
 
-Install [docker] (https://docs.docker.com/)
-For Mac OS X use [Docker Machine] (https://docs.docker.com/machine/)
+- Install [docker](https://docs.docker.com/)
+- For Mac OS X use [Docker for Mac](https://docs.docker.com/docker-for-mac/)
+- [Docker compose](https://docs.docker.com/compose/) is also required.
 
 ### Build and start Log Search in docker container
 ```bash
 # to see available commands: run start-logsearch without arguments
 cd docker
-./logsearch-docker build-and-run
+./logsearch-docker build-and-run # build mvn project locally, build docker image, start containers
 ```
-If you run the script at first time, it will generate you a new Profile file inside docker directory, in that file you should set AMBARI_LOCATION (point to the local ambari root folder) and MAVEN_REPOSITORY_LOCATION (point to local maven repository location). These will be used as volumes for the docker container. If Profile is generated for first time use `./logsearch-docker start` command to start container without rebuild the project/container again.
+If you run the script at first time, it will generate you a new `Profile` file or an `.env` file inside docker directory (run twice if both missing and you want to generate Profile and .env as well), in .env file you should set `MAVEN_REPOSITORY_LOCATION` (point to local maven repository location, it uses `~/.m2` by default). These will be used as volumes for the docker container. Profile file holds the environment variables that are used inside the containers, the .env file is used outside of the containers
 
-After the logsearch container is started you can enter to it with following command:
+Then you can use the `logsearch-docker` script to start the containers (`start` command).
+Also you can use docker-compose manually to start/manage the containers.
 ```bash
+docker-compose up -d
+# or start all services in one container:
+docker-compose -f all.yml up -d
+```
+After the logsearch container is started you can enter to it with following commands:
+```bash
+docker exec -it docker_logsearch_1 bash
+# or if you used all.yml for starting the logsearch docker container:
 docker exec -it logsearch bash
 ```
+In case if you started the containers separately and if you would like to access Solr locally with through your external ZooKeeper container, then point `solr` to `localhost` in your `/etc/hosts` file.
+
+### Run applications from IDE / maven
+
+- [Start Log Search locally](ambari-logsearch-server/README.md)
+- [Start Log Feeder locally](ambari-logsearch-logfeeder/README.md)
+
 ## Package build process
 
 

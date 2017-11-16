@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 /**
  * Provides various utility functions to be used for version handling.
@@ -81,7 +82,7 @@ public class VersionUtils {
     }
 
     //String pattern = "^([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+).*";
-    String pattern = "([0-9]+).([0-9]+).([0-9]+).([0-9]+)?.*";
+    String pattern = "([0-9]+).([0-9]+).([0-9]+).?([0-9]+)?.*";
     String[] version1Parts = version1.replaceAll(pattern, "$1.$2.$3.$4").split("\\.");
     String[] version2Parts = version2.replaceAll(pattern, "$1.$2.$3.$4").split("\\.");
 
@@ -212,4 +213,47 @@ public class VersionUtils {
 
     return versionParts[0] + "." + versionParts[1] + "." + versionParts[2];
   }
+
+  /**
+   * Compares versions, using a build number using a dash separator, if one exists.
+   * This is is useful when comparing repository versions with one another that include
+   * build number
+   * @param version1
+   *          the first version
+   * @param version2
+   *          the second version
+   * @param places
+   *          the number of decimal-separated places to compare
+   * @return
+   */
+  public static int compareVersionsWithBuild(String version1, String version2, int places) {
+    version1 = (null == version1) ? "0" : version1;
+    version2 = (null == version2) ? "0" : version2;
+
+    // check _exact_ equality
+    if (StringUtils.equals(version1, version2)) {
+      return 0;
+    }
+
+    int compare = VersionUtils.compareVersions(version1, version2, places);
+    if (0 != compare) {
+      return compare;
+    }
+
+    int v1 = 0;
+    int v2 = 0;
+    if (version1.indexOf('-') > -1) {
+      v1 = NumberUtils.toInt(version1.substring(version1.indexOf('-')), 0);
+    }
+
+    if (version2.indexOf('-') > -1) {
+      v2 = NumberUtils.toInt(version2.substring(version2.indexOf('-')), 0);
+    }
+
+    compare = v2 - v1;
+
+    return Integer.compare(compare, 0);
+
+  }
+
 }

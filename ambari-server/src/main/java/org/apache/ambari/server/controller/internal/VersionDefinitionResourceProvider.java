@@ -71,6 +71,8 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -85,6 +87,8 @@ import com.google.inject.Provider;
  */
 @StaticallyInject
 public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VersionDefinitionResourceProvider.class);
 
   public static final String VERSION_DEF                             = "VersionDefinition";
   public static final String VERSION_DEF_BASE64_PROPERTY             = "version_base64";

@@ -20,15 +20,19 @@ import {Injectable} from '@angular/core';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {CollectionModelService} from '@app/classes/models/store';
-import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 import {ServiceLog} from '@app/classes/models/service-log';
-import {getFiltersForm} from '@app/classes/filtering';
+import {ListItem} from '@app/classes/list-item';
 
 @Injectable()
 export class ComponentActionsService {
 
-  constructor(private appSettings: AppSettingsService, private tabsStorage: TabsService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
+  constructor(
+    private appSettings: AppSettingsService, private tabsStorage: TabsService,
+    private logsContainer: LogsContainerService,
+    private authService: AuthService
+  ) {
   }
 
   //TODO implement actions
@@ -81,7 +85,6 @@ export class ComponentActionsService {
     const tab = {
       id: log.id,
       type: 'serviceLogs',
-      isActive: true,
       isCloseable: true,
       label: `${log.host} >> ${log.type}`,
       appState: {
@@ -92,7 +95,14 @@ export class ComponentActionsService {
           host_name: log.host,
           component_name: log.type
         },
-        activeFiltersForm: getFiltersForm('serviceLogs')
+        activeFilters: Object.assign(this.logsContainer.getFiltersData('serviceLogs'), {
+          components: this.logsContainer.filters.components.options.find((option: ListItem): boolean => {
+            return option.value === log.type;
+          }),
+          hosts: this.logsContainer.filters.hosts.options.find((option: ListItem): boolean => {
+            return option.value === log.host;
+          })
+        })
       }
     };
     this.tabsStorage.addInstance(tab);
@@ -104,11 +114,11 @@ export class ComponentActionsService {
   }
 
   startCapture(): void {
-    this.filtering.startCaptureTimer();
+    this.logsContainer.startCaptureTimer();
   }
 
   stopCapture(): void {
-    this.filtering.stopCaptureTimer();
+    this.logsContainer.stopCaptureTimer();
   }
 
   setTimeZone(timeZone: string): void {
@@ -121,9 +131,25 @@ export class ComponentActionsService {
     }));
   }
 
-  proceedWithExclude = (item: string): void => this.filtering.queryParameterNameChange.next({
+  proceedWithExclude = (item: string): void => this.logsContainer.queryParameterNameChange.next({
     item: item,
     isExclude: true
   });
+
+  /**
+   * Request a login action from the AuthService
+   * @param {string} username
+   * @param {string} password
+   */
+  login(username: string, password: string): void {
+    this.authService.login(username, password);
+  }
+
+  /**
+   * Request a logout action from AuthService
+   */
+  logout(): void {
+    this.authService.logout();
+  }
 
 }

@@ -24,15 +24,6 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>mysql-connector-java</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>

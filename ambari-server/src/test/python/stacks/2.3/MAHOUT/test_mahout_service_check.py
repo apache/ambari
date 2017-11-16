@@ -109,9 +109,7 @@ class TestMahoutClient(RMFTestCase):
     self.assertResourceCalled('Execute', 'mahout seqdirectory --input /user/ambari-qa/mahoutsmokeinput/'
                                          'sample-mahout-test.txt --output /user/ambari-qa/mahoutsmokeoutput/ '
                                          '--charset utf-8',
-                              environment = {'HADOOP_CONF_DIR': '/usr/hdp/2.2.1.0-2067/hadoop/conf',
-                                             'HADOOP_HOME': '/usr/hdp/2.2.1.0-2067/hadoop',
-                                             'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45',
+                              environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45',
                                              'MAHOUT_HOME': '/usr/hdp/current/mahout-client'},
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 3,

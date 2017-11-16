@@ -37,7 +37,7 @@ public class ViewDataMigrationUtility {
   /**
    * The logger.
    */
-  protected final static Logger LOG = LoggerFactory.getLogger(ViewDataMigrationUtility.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewDataMigrationUtility.class);
 
   /**
    * The View Registry.

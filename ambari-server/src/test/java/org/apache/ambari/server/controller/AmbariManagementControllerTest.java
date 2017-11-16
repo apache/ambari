@@ -8175,13 +8175,13 @@ public class AmbariManagementControllerTest {
 
     RootServiceRequest request = new RootServiceRequest(null);
     Set<RootServiceResponse> responses = controller.getRootServices(Collections.singleton(request));
-    Assert.assertEquals(RootServiceResponseFactory.Services.values().length, responses.size());
+    Assert.assertEquals(RootService.values().length, responses.size());
 
-    RootServiceRequest requestWithParams = new RootServiceRequest(RootServiceResponseFactory.Services.AMBARI.toString());
+    RootServiceRequest requestWithParams = new RootServiceRequest(RootService.AMBARI.toString());
     Set<RootServiceResponse> responsesWithParams = controller.getRootServices(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
     for (RootServiceResponse responseWithParams: responsesWithParams) {
-      Assert.assertEquals(responseWithParams.getServiceName(), RootServiceResponseFactory.Services.AMBARI.toString());
+      Assert.assertEquals(responseWithParams.getServiceName(), RootService.AMBARI.toString());
     }
 
     RootServiceRequest invalidRequest = new RootServiceRequest(NON_EXT_VALUE);
@@ -8195,18 +8195,18 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetRootServiceComponents() throws Exception {
 
-    RootServiceComponentRequest request = new RootServiceComponentRequest(RootServiceResponseFactory.Services.AMBARI.toString(), null);
+    RootServiceComponentRequest request = new RootServiceComponentRequest(RootService.AMBARI.toString(), null);
     Set<RootServiceComponentResponse> responses = controller.getRootServiceComponents(Collections.singleton(request));
-    Assert.assertEquals(RootServiceResponseFactory.Services.AMBARI.getComponents().length, responses.size());
+    Assert.assertEquals(RootService.AMBARI.getComponents().length, responses.size());
 
     RootServiceComponentRequest requestWithParams = new RootServiceComponentRequest(
-        RootServiceResponseFactory.Services.AMBARI.toString(),
-        RootServiceResponseFactory.Services.AMBARI.getComponents()[0].toString());
+        RootService.AMBARI.toString(),
+        RootService.AMBARI.getComponents()[0].toString());
 
     Set<RootServiceComponentResponse> responsesWithParams = controller.getRootServiceComponents(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
     for (RootServiceComponentResponse responseWithParams: responsesWithParams) {
-      Assert.assertEquals(responseWithParams.getComponentName(), RootServiceResponseFactory.Services.AMBARI.getComponents()[0].toString());
+      Assert.assertEquals(responseWithParams.getComponentName(), RootService.AMBARI.getComponents()[0].toString());
     }
 
     RootServiceComponentRequest invalidRequest = new RootServiceComponentRequest(NON_EXT_VALUE, NON_EXT_VALUE);

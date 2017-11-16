@@ -123,8 +123,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
     Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore,
-        hostFilter != null);
+        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
 
     kerberosHelper.applyStackAdvisorUpdates(cluster, services, configurations, kerberosConfigurations,
         propertiesToIgnore, propertiesToRemove, true);

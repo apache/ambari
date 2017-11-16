@@ -60,7 +60,6 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   _allocated: Em.computed.formatUnavailable('service.containersAllocated'),
   _pending: Em.computed.formatUnavailable('service.containersPending'),
   _reserved: Em.computed.formatUnavailable('service.containersReserved'),
-  containers: Em.computed.i18nFormat('dashboard.services.yarn.containers.msg', '_allocated', '_pending', '_reserved'),
 
   _appsSubmitted: Em.computed.formatUnavailable('service.appsSubmitted'),
   _appsRunning: Em.computed.formatUnavailable('service.appsRunning'),
@@ -68,14 +67,18 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   _appsCompleted: Em.computed.formatUnavailable('service.appsCompleted'),
   _appsKilled: Em.computed.formatUnavailable('service.appsKilled'),
   _appsFailed: Em.computed.formatUnavailable('service.appsFailed'),
-  apps: Em.computed.i18nFormat('dashboard.services.yarn.apps.msg', '_appsSubmitted', '_appsRunning', '_appsPending', '_appsCompleted', '_appsKilled', '_appsFailed'),
 
-  memory: function () {
-    return Em.I18n.t('dashboard.services.yarn.memory.msg').format(
-        numberUtils.bytesToSize(this.get('service.allocatedMemory'), 1, 'parseFloat', 1024 * 1024), 
-        numberUtils.bytesToSize(this.get('service.reservedMemory'), 1, 'parseFloat', 1024 * 1024), 
-        numberUtils.bytesToSize(this.get('service.availableMemory'), 1, 'parseFloat', 1024 * 1024));
-  }.property('service.allocatedMemory', 'service.reservedMemory', 'service.availableMemory'),
+  allocatedMemoryFormatted: function() {
+    return numberUtils.bytesToSize(this.get('service.allocatedMemory'), 1, 'parseFloat', 1024 * 1024);
+  }.property('service.allocatedMemory'),
+
+  reservedMemoryFormatted: function() {
+    return numberUtils.bytesToSize(this.get('service.reservedMemory'), 1, 'parseFloat', 1024 * 1024);
+  }.property('service.reservedMemory'),
+
+  availableMemoryFormatted: function() {
+    return numberUtils.bytesToSize(this.get('service.availableMemory'), 1, 'parseFloat', 1024 * 1024);
+  }.property('service.availableMemory'),
 
   _queuesCountFormatted: Em.computed.formatUnavailable('service.queuesCount'),
   queues: Em.computed.i18nFormat('dashboard.services.yarn.queues.msg', '_queuesCountFormatted'),

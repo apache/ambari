@@ -1197,7 +1197,7 @@ public class UpgradeContext {
       } catch (NoSuchResourceException|SystemException|UnsupportedPropertyException|NoSuchParentResourceException e) {
         throw new AmbariException(
             String.format("Unable to perform %s. Prerequisite checks could not be run",
-                direction.getText(false), e));
+                direction.getText(false)), e);
       }
 
       List<Resource> failedResources = new LinkedList<>();

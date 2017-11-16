@@ -68,6 +68,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.persistence.RollbackException;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -908,9 +910,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackId stackId = null;
     if (null != service) {
-      Service svc = cluster.getService(service);
-      stackId = svc.getDesiredStackId();
-    } else {
+      try {
+        Service svc = cluster.getService(service);
+        stackId = svc.getDesiredStackId();
+      } catch (AmbariException ambariException) {
+        LOG.warn("Adding configurations for {} even though its parent service {} is not installed",
+            configType, service);
+      }
+    }
+
+    if (null == stackId) {
       stackId = cluster.getDesiredStackVersion();
     }
 
@@ -2816,7 +2825,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (StringUtils.isBlank(stage.getHostParamsStage())) {
               RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
               stage.setHostParamsStage(StageUtils.getGson().toJson(
-                  customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion)));
+                  customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
             }
 
 
@@ -3164,7 +3173,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
 
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
-        cluster, scHost.getServiceComponent().getDesiredRepositoryVersion());
+        cluster, scHost.getServiceComponent().getDesiredStackId());
 
     Stage stage = createNewStage(0, cluster, 1, "", clusterHostInfoJson, "{}", "");
 
@@ -4000,56 +4009,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         actionManager,
         actionRequest);
 
-    RepositoryVersionEntity desiredRepositoryVersion = null;
-
-    RequestOperationLevel operationLevel = actionExecContext.getOperationLevel();
-    if (null != operationLevel && StringUtils.isNotBlank(operationLevel.getServiceName())) {
-      Service service = cluster.getService(operationLevel.getServiceName());
-      if (null != service) {
-        desiredRepositoryVersion = service.getDesiredRepositoryVersion();
-      }
-    }
-
-    if (null == desiredRepositoryVersion && CollectionUtils.isNotEmpty(actionExecContext.getResourceFilters())) {
-      Set<RepositoryVersionEntity> versions = new HashSet<>();
-
-      for (RequestResourceFilter filter : actionExecContext.getResourceFilters()) {
-        RepositoryVersionEntity repoVersion = null;
-
-        if (StringUtils.isNotBlank(filter.getServiceName())) {
-          Service service = cluster.getService(filter.getServiceName());
-
-          if (StringUtils.isNotBlank(filter.getComponentName())) {
-            ServiceComponent serviceComponent = service.getServiceComponent(filter.getComponentName());
-
-            repoVersion = serviceComponent.getDesiredRepositoryVersion();
-          }
-
-          if (null == repoVersion) {
-            repoVersion = service.getDesiredRepositoryVersion();
-          }
-        }
-
-        if (null != repoVersion) {
-          versions.add(repoVersion);
-        }
-      }
-
-      if (1 == versions.size()) {
-        desiredRepositoryVersion = versions.iterator().next();
-      } else if (versions.size() > 1) {
-        Set<String> errors = new HashSet<>();
-        for (RepositoryVersionEntity version : versions) {
-          errors.add(String.format("%s/%s", version.getStackId(), version.getVersion()));
-        }
-        throw new IllegalArgumentException(String.format("More than one repository is resolved with this Action: %s",
-            StringUtils.join(errors, ';')));
-      }
-    }
-
-
-    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext,
-        cluster, desiredRepositoryVersion, requestContext);
+    @Experimental(feature=ExperimentalFeature.MULTI_SERVICE,
+        comment = "This must change with Multi-Service since the cluster won't have a desired stack version")
+    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster,
+        null == cluster ? null : cluster.getDesiredStackVersion(), requestContext);
 
     String commandParamsForStage = jsons.getCommandParamsForStage();
 

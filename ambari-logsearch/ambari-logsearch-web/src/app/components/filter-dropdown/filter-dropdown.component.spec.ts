@@ -28,11 +28,14 @@ import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {FilteringService} from '@app/services/filtering.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {UtilsService} from '@app/services/utils.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {FilterDropdownComponent} from './filter-dropdown.component';
 
@@ -77,7 +80,10 @@ describe('FilterDropdownComponent', () => {
           serviceLogsFields,
           serviceLogsHistogramData,
           serviceLogsTruncated,
-          tabs
+          tabs,
+          clusters,
+          components,
+          hosts
         }),
         ...TranslationModules
       ],
@@ -91,8 +97,11 @@ describe('FilterDropdownComponent', () => {
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
         TabsService,
+        ClustersService,
+        ComponentsService,
+        HostsService,
         {
-          provide: FilteringService,
+          provide: LogsContainerService,
           useValue: filtering
         },
         UtilsService,
@@ -101,7 +110,8 @@ describe('FilterDropdownComponent', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        }
+        },
+        AuthService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

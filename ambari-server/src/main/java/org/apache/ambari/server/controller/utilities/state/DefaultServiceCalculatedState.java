@@ -55,7 +55,7 @@ import com.google.inject.Provider;
 @StaticallyInject
 public class DefaultServiceCalculatedState implements ServiceCalculatedState {
 
-  protected final static Logger LOG = LoggerFactory.getLogger(DefaultServiceCalculatedState.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultServiceCalculatedState.class);
 
   @Inject
   protected static Provider<Clusters> clustersProvider = null;

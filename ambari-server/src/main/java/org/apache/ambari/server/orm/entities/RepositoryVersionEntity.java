@@ -43,6 +43,8 @@ import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
@@ -152,6 +154,9 @@ public class RepositoryVersionEntity {
    */
   @Column(name = "resolved", nullable = false)
   private short resolved = 0;
+
+  @Column(name = "legacy", nullable = false)
+  private short isLegacy = 0;
 
   @ManyToOne
   @JoinColumn(name = "parent_id")
@@ -486,6 +491,28 @@ public class RepositoryVersionEntity {
    */
   public boolean isResolved() {
     return resolved == 1;
+  }
+
+  /**
+   * Gets whether this repository is legacy
+   *
+   * @return
+   */
+  @Deprecated
+  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
+  public boolean isLegacy(){
+    return isLegacy == 1;
+  }
+
+  /**
+   * Sets whether this repository is legacy. Scoped for moving from old-style repository naming to new
+   *
+   * @param isLegacy
+   */
+  @Deprecated
+  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
+  public void setLegacy(boolean isLegacy){
+    this.isLegacy = isLegacy ? (short) 1 : (short) 0;
   }
 
   /**

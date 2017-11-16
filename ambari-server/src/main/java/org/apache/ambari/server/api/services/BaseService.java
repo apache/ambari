@@ -90,10 +90,7 @@ public abstract class BaseService {
 
   public static final String FIELDS_SEPARATOR = ", ";
 
-  /**
-   * Logger instance.
-   */
-  protected final static Logger LOG = LoggerFactory.getLogger(BaseService.class);
+  private final static Logger LOG = LoggerFactory.getLogger(BaseService.class);
 
   /**
    * Factory for creating resource instances.

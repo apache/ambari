@@ -41,10 +41,14 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.ClusterVersionSummary;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -309,25 +313,52 @@ public class RepositoryVersionHelper {
   /**
    * Adds a command repository to the action context
    * @param context       the context
-   * @param osFamily      the OS family
+   * @param osEntity      the OS family
    * @param repoVersion   the repository version entity
-   * @param repos         the repository entities
    */
-  public void addCommandRepository(ActionExecutionContext context,
+  public void addCommandRepository(ActionExecutionContext context, Cluster cluster,
       RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) {
 
     final CommandRepository commandRepo = new CommandRepository();
+    boolean sysPreppedHost = configuration.get().areHostsSysPrepped().equalsIgnoreCase("true");
+
     commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
     commandRepo.setRepositoryVersionId(repoVersion.getId());
     commandRepo.setResolved(repoVersion.isResolved());
     commandRepo.setStackName(repoVersion.getStackId().getStackName());
+    commandRepo.getFeature().setPreInstalled(configuration.get().areHostsSysPrepped());
+    commandRepo.getFeature().setIsScoped(!sysPreppedHost);
 
     if (!osEntity.isAmbariManagedRepos()) {
       commandRepo.setNonManaged();
     } else {
-      commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+      if (repoVersion.isLegacy()){
+        commandRepo.setLegacyRepoFileName(repoVersion.getStackName(), repoVersion.getVersion());
+        commandRepo.setLegacyRepoId(repoVersion.getVersion());
+        commandRepo.getFeature().setIsScoped(false);
+      } else {
+        commandRepo.setRepoFileName(repoVersion.getStackName(), repoVersion.getId());
+        commandRepo.setUniqueSuffix(String.format("-repo-%s", repoVersion.getId()));
+      }
     }
+
+    if (configuration.get().arePackagesLegacyOverridden()) {
+      LOG.warn("Legacy override option is turned on, disabling CommandRepositoryFeature.scoped feature");
+      commandRepo.getFeature().setIsScoped(false);
+    }
+
+    ClusterVersionSummary summary = null;
+    if (RepositoryType.STANDARD != repoVersion.getType()) {
+      try {
+        VersionDefinitionXml xml = repoVersion.getRepositoryXml();
+        summary = xml.getClusterSummary(cluster);
+      } catch (Exception e) {
+        LOG.warn("Could not determine repository from %s/%s.  Will not pass cluster version.");
+      }
+    }
+
+    final ClusterVersionSummary clusterSummary = summary;
 
     context.addVisitor(new ExecutionCommandVisitor() {
       @Override
@@ -335,6 +366,16 @@ public class RepositoryVersionHelper {
         if (null == command.getRepositoryFile()) {
           command.setRepositoryFile(commandRepo);
         }
+
+        if (null != clusterSummary) {
+          Map<String, Object> params = command.getRoleParameters();
+          if (null == params) {
+            params = new HashMap<>();
+            command.setRoleParameters(params);
+          }
+          params.put(KeyNames.CLUSTER_VERSION_SUMMARY, clusterSummary);
+        }
+
       }
     });
   }

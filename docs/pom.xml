@@ -538,7 +538,19 @@
             </roles>
             <organization>
             </organization>            
-        </developer>          
+        </developer>
+        <developer>
+            <id>ishanbha</id>
+            <name>Ishan Bhatt</name>
+            <email>ishanbha@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>
             <id>jagane</id>
             <name>Jagane Sundar</name>
@@ -1245,6 +1257,10 @@
       </developers>
       <contributors>
         <contributor>
+          <name>Sanket Shah</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
           <name>Newton Alex</name>
           <organization>Pivotal</organization>
         </contributor>
@@ -1283,10 +1299,6 @@
         <contributor>
           <name>Bradley Childs</name>
           <organization>Red Hat</organization>
-        </contributor>
-        <contributor>
-          <name>Alexander Denissov</name>
-          <organization>Pivotal</organization>
         </contributor>
         <contributor>
           <name>Nick Dimiduk</name>

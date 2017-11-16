@@ -26,6 +26,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -51,23 +52,23 @@ import com.google.inject.Injector;
 
 @RunWith(FrameworkRunner.class)
 @CreateDS(allowAnonAccess = true,
-    name = "AmbariLdapAuthenticationProviderForDNWithSpaceTest",
-    partitions = {
-        @CreatePartition(name = "Root",
-            suffix = "dc=the apache,dc=org",
-            contextEntry = @ContextEntry(
-                entryLdif =
-                    "dn: dc=the apache,dc=org\n" +
-                        "dc: the apache\n" +
-                        "objectClass: top\n" +
-                        "objectClass: domain\n\n" +
-                        "dn: dc=ambari,dc=the apache,dc=org\n" +
-                        "dc: ambari\n" +
-                        "objectClass: top\n" +
-                        "objectClass: domain\n\n"))
-    })
+  name = "AmbariLdapAuthenticationProviderForDNWithSpaceTest",
+  partitions = {
+    @CreatePartition(name = "Root",
+      suffix = "dc=the apache,dc=org",
+      contextEntry = @ContextEntry(
+        entryLdif =
+          "dn: dc=the apache,dc=org\n" +
+            "dc: the apache\n" +
+            "objectClass: top\n" +
+            "objectClass: domain\n\n" +
+            "dn: dc=ambari,dc=the apache,dc=org\n" +
+            "dc: ambari\n" +
+            "objectClass: top\n" +
+            "objectClass: domain\n\n"))
+  })
 @CreateLdapServer(allowAnonymousAccess = true,
-    transports = {@CreateTransport(protocol = "LDAP")})
+  transports = {@CreateTransport(protocol = "LDAP")})
 @ApplyLdifFiles("users_for_dn_with_space.ldif")
 public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLdapAuthenticationProviderBaseTest {
 
@@ -85,7 +86,7 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
 
   @Before
   public void setUp() throws Exception {
-    injector = Guice.createInjector(new ControllerModule(getTestProperties()), new AuditLoggerModule());
+    injector = Guice.createInjector(new ControllerModule(getTestProperties()), new AuditLoggerModule(), new LdapModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
 

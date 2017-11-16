@@ -35,6 +35,7 @@ require('views/common/chart/pie');
 require('views/common/chart/linear');
 require('views/common/chart/linear_time');
 require('views/common/modal_popup');
+require('views/common/search_box_view');
 require('views/common/modal_popups/alert_popup');
 require('views/common/modal_popups/edit_dashboard_widget_popup');
 require('views/common/modal_popups/manage_kdc_credentials_popup');
@@ -286,6 +287,7 @@ require('views/main/dashboard/widgets/yarn_memory');
 require('views/main/dashboard/widgets/supervisor_live');
 require('views/main/dashboard/widgets/flume_agent_live');
 require('views/main/dashboard/config_history_view');
+require('views/main/dashboard/config_history_search_box');
 
 
 require('views/main/service');

@@ -41,6 +41,8 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.ChangedConfigInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -48,6 +50,8 @@ import com.google.inject.Inject;
  * Abstract superclass for recommendations and validations.
  */
 public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(StackAdvisorResourceProvider.class);
 
   protected static final String STACK_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Versions",
       "stack_name");

@@ -31,7 +31,8 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {FilteringService} from '@app/services/filtering.service';
+import {ListItem} from '@app/classes/list-item';
+import {NodeItem} from '@app/classes/models/node-item';
 
 import {LogsContainerService} from './logs-container.service';
 
@@ -79,8 +80,7 @@ describe('LogsContainerService', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        },
-        FilteringService
+        }
       ]
     });
   });
@@ -88,4 +88,29 @@ describe('LogsContainerService', () => {
   it('should create service', inject([LogsContainerService], (service: LogsContainerService) => {
     expect(service).toBeTruthy();
   }));
+
+  describe('#getListItemFromString()', () => {
+    it('should convert string to ListItem', inject([LogsContainerService], (service: LogsContainerService) => {
+      const getListItemFromString: (name: string) => ListItem = service['getListItemFromString'];
+      expect(getListItemFromString('customName')).toEqual({
+        label: 'customName',
+        value: 'customName'
+      });
+    }));
+  });
+
+  describe('#getListItemFromNode()', () => {
+    it('should convert NodeItem to ListItem', inject([LogsContainerService], (service: LogsContainerService) => {
+      const getListItemFromNode: (node: NodeItem) => ListItem = service['getListItemFromNode'];
+      expect(getListItemFromNode({
+        name: 'customName',
+        value: '1',
+        isParent: true,
+        isRoot: true
+      })).toEqual({
+        label: 'customName (1)',
+        value: 'customName'
+      });
+    }));
+  });
 });

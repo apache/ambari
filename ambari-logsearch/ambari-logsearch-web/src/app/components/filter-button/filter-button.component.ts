@@ -41,34 +41,35 @@ export class FilterButtonComponent extends MenuButtonComponent implements Contro
     super(actions);
   }
 
-  @Input()
-  defaultValue?: string;
-
-  private selectedValue: any;
+  private selectedItems: ListItem[] = [];
 
   private onChange: (fn: any) => void;
 
-  get value(): any {
-    return this.selectedValue;
+  get selection(): ListItem[] {
+    return this.selectedItems;
   }
 
-  set value(newValue: any) {
-    this.selectedValue = newValue;
-    this.onChange(newValue);
-  }
-
-  updateValue(options: ListItem): void {
-    const value = options && options.value;
-    if (this.isMultipleChoice) {
-      this.value = this.utils.updateMultiSelectValue(this.value, value, options.isChecked);
-    } else {
-      if (this.utils.valueHasChanged(this.selectedValue, value)) {
-        this.value = value;
-      }
+  set selection(items: ListItem[]) {
+    this.selectedItems = items;
+    if (this.onChange) {
+      this.onChange(items);
     }
   }
 
-  writeValue() {
+  updateSelection(item: ListItem): void {
+    if (this.isMultipleChoice) {
+      this.subItems.find((option: ListItem): boolean => {
+        return this.utils.isEqual(option.value, item.value);
+      }).isChecked = item.isChecked;
+      const checkedItems = this.subItems.filter((option: ListItem): boolean => option.isChecked);
+      this.selection = checkedItems;
+    } else if (!this.utils.isEqual(this.selection[0], item)) {
+      this.selection = [item];
+    }
+  }
+
+  writeValue(items: ListItem[]) {
+    this.selection = items;
   }
 
   registerOnChange(callback: any): void {

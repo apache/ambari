@@ -16,15 +16,13 @@
  * limitations under the License.
  */
 
-import {getFiltersForm} from '@app/classes/filtering';
-
 export interface Tab {
   id: string;
   type: string;
-  isActive: boolean;
+  isActive?: boolean;
   isCloseable?: boolean;
   label: string;
-  appState: any;
+  appState?: object;
 }
 
 export const initialTabs: Tab[] = [
@@ -35,8 +33,7 @@ export const initialTabs: Tab[] = [
     label: 'common.serviceLogs',
     appState: {
       activeLogsType: 'serviceLogs',
-      isServiceLogsFileView: false,
-      activeFiltersForm: getFiltersForm('serviceLogs')
+      isServiceLogsFileView: false
     }
   },
   {
@@ -46,8 +43,7 @@ export const initialTabs: Tab[] = [
     label: 'common.auditLogs',
     appState: {
       activeLogsType: 'auditLogs',
-      isServiceLogsFileView: false,
-      activeFiltersForm: getFiltersForm('auditLogs')
+      isServiceLogsFileView: false
     }
   }
 ];

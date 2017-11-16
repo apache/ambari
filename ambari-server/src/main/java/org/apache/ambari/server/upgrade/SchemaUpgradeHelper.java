@@ -34,6 +34,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.VersionUtils;
@@ -373,7 +374,7 @@ public class SchemaUpgradeHelper {
         System.exit(1);
       }
 
-      Injector injector = Guice.createInjector(new UpgradeHelperModule(), new AuditLoggerModule());
+      Injector injector = Guice.createInjector(new UpgradeHelperModule(), new AuditLoggerModule(), new LdapModule());
       SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
       //Fail if MySQL database has tables with MyISAM engine

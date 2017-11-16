@@ -31,56 +31,273 @@ describe('UtilsService', () => {
     expect(service).toBeTruthy();
   }));
 
-  describe('#updateMultiSelectValue()', () => {
+  describe('#isEqual()', () => {
     const cases = [
       {
-        currentValue: '',
-        value: 'v0',
-        isChecked: true,
-        result: 'v0',
-        title: 'check; no checked items before'
+        valueA: 1,
+        valueB: 1,
+        result: true,
+        title: 'same numbers'
       },
       {
-        currentValue: 'v1,v2',
-        value: 'v3',
-        isChecked: true,
-        result: 'v1,v2,v3',
-        title: 'check'
+        valueA: 1,
+        valueB: 2,
+        result: false,
+        title: 'different numbers'
       },
       {
-        currentValue: 'v4,v5',
-        value: 'v4',
-        isChecked: false,
-        result: 'v5',
-        title: 'uncheck'
+        valueA: 'a',
+        valueB: 'a',
+        result: true,
+        title: 'same strings'
       },
       {
-        currentValue: 'v6,v7',
-        value: 'v6',
-        isChecked: true,
-        result: 'v6,v7',
-        title: 'avoid repeating check action'
+        valueA: 'a',
+        valueB: 'b',
+        result: false,
+        title: 'different strings'
       },
       {
-        currentValue: 'v8,v9',
-        value: 'v10',
-        isChecked: false,
-        result: 'v8,v9',
-        title: 'avoid repeating uncheck action'
+        valueA: '1',
+        valueB: 1,
+        result: false,
+        title: 'different types'
       },
       {
-        currentValue: 'v11',
-        value: 'v11',
-        isChecked: false,
-        result: '',
-        title: 'uncheck last item'
+        valueA: true,
+        valueB: true,
+        result: true,
+        title: 'same booleans'
+      },
+      {
+        valueA: false,
+        valueB: true,
+        result: false,
+        title: 'different booleans'
+      },
+      {
+        valueA: {},
+        valueB: {},
+        result: true,
+        title: 'empty objects'
+      },
+      {
+        valueA: {
+          p0: 'v0'
+        },
+        valueB: {
+          p0: 'v0'
+        },
+        result: true,
+        title: 'same objects'
+      },
+      {
+        valueA: {
+          p0: 'v0'
+        },
+        valueB: {
+          p0: 'v1'
+        },
+        result: false,
+        title: 'different objects'
+      },
+      {
+        valueA: {
+          p0: {
+            p1: 'v1'
+          }
+        },
+        valueB: {
+          p0: {
+            p1: 'v1'
+          }
+        },
+        result: true,
+        title: 'same objects in depth'
+      },
+      {
+        valueA: {
+          p0: {
+            p1: 'v1'
+          }
+        },
+        valueB: {
+          p0: {
+            p1: 'v2'
+          }
+        },
+        result: false,
+        title: 'different objects in depth'
+      },
+      {
+        valueA: [],
+        valueB: [],
+        result: true,
+        title: 'empty arrays'
+      },
+      {
+        valueA: [1, 'a'],
+        valueB: [1, 'a'],
+        result: true,
+        title: 'same arrays'
+      },
+      {
+        valueA: [1, 'a'],
+        valueB: [1, 'b'],
+        result: false,
+        title: 'different arrays'
+      },
+      {
+        valueA: [1, 1],
+        valueB: [1, 1, 1],
+        result: false,
+        title: 'arrays of different length'
+      },
+      {
+        valueA: [{}],
+        valueB: [{}],
+        result: true,
+        title: 'arrays of empty objects'
+      },
+      {
+        valueA: [
+          {
+            p0: 'v0'
+          }
+        ],
+        valueB: [
+          {
+            p0: 'v0'
+          }
+        ],
+        result: true,
+        title: 'arrays of same objects'
+      },
+      {
+        valueA: [
+          {
+            p0: 'v0'
+          }
+        ],
+        valueB: [
+          {
+            p0: 'v1'
+          }
+        ],
+        result: false,
+        title: 'arrays of different objects'
+      },
+      {
+        valueA: function() {},
+        valueB: function() {},
+        result: true,
+        title: 'same functions'
+      },
+      {
+        valueA: function(a) {
+          return a;
+        },
+        valueB: function(b) {
+          return !b;
+        },
+        result: false,
+        title: 'different functions'
+      },
+      {
+        valueA: new Date(1),
+        valueB: new Date(1),
+        result: true,
+        title: 'same dates'
+      },
+      {
+        valueA: new Date(1),
+        valueB: new Date(2),
+        result: false,
+        title: 'different dates'
+      },
+      {
+        valueA: new RegExp('a'),
+        valueB: new RegExp('a'),
+        result: true,
+        title: 'same regexps'
+      },
+      {
+        valueA: new RegExp('a', 'i'),
+        valueB: new RegExp('a', 'g'),
+        result: false,
+        title: 'same regexps with different flags'
+      },
+      {
+        valueA: new RegExp('a'),
+        valueB: new RegExp('b'),
+        result: false,
+        title: 'different regexps'
+      },
+      {
+        valueA: new Number(1),
+        valueB: new Number(1),
+        result: true,
+        title: 'same number objects'
+      },
+      {
+        valueA: new Number(1),
+        valueB: new Number(2),
+        result: false,
+        title: 'different number objects'
+      },
+      {
+        valueA: new String('a'),
+        valueB: new String('a'),
+        result: true,
+        title: 'same string objects'
+      },
+      {
+        valueA: new String('a'),
+        valueB: new String('b'),
+        result: false,
+        title: 'different string objects'
+      },
+      {
+        valueA: new Boolean(true),
+        valueB: new Boolean(true),
+        result: true,
+        title: 'same boolean objects'
+      },
+      {
+        valueA: new Boolean(true),
+        valueB: new Boolean(false),
+        result: false,
+        title: 'different boolean objects'
+      },
+      {
+        valueA: null,
+        valueB: null,
+        result: true,
+        title: 'null values'
+      },
+      {
+        valueA: undefined,
+        valueB: undefined,
+        result: true,
+        title: 'undefined values'
+      },
+      {
+        valueA: undefined,
+        valueB: null,
+        result: false,
+        title: 'undefined vs null'
       }
     ];
 
     cases.forEach(test => {
-      it(test.title, inject([UtilsService], (service: UtilsService) => {
-        expect(service.updateMultiSelectValue(test.currentValue, test.value, test.isChecked)).toEqual(test.result);
-      }));
+      describe(test.title, () => {
+        it('equality', inject([UtilsService], (service: UtilsService) => {
+          expect(service.isEqual(test.valueA, test.valueB)).toEqual(test.result);
+        }));
+        it('symmetry', inject([UtilsService], (service: UtilsService) => {
+          expect(service.isEqual(test.valueA, test.valueB)).toEqual(service.isEqual(test.valueB, test.valueA));
+        }));
+      });
     });
   });
 });

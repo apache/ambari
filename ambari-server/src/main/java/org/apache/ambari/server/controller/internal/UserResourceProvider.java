@@ -54,6 +54,8 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -65,6 +67,8 @@ import com.google.inject.assistedinject.AssistedInject;
  * Resource provider for user resources.
  */
 public class UserResourceProvider extends AbstractControllerResourceProvider implements ResourcePredicateEvaluator {
+
+  private static final Logger LOG = LoggerFactory.getLogger(UserResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

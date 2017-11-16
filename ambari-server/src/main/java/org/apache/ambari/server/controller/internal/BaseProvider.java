@@ -61,11 +61,7 @@ public abstract class BaseProvider {
    */
   private final Map<String, Pattern> patterns;
 
-  /**
-   * The logger.
-   */
-  protected final static Logger LOG =
-      LoggerFactory.getLogger(BaseProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseProvider.class);
 
   /**
    * The regex pattern that will match on all $1, $2.method(0), and

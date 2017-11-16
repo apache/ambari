@@ -26,37 +26,10 @@ describe('App.MainAlertDefinitionDetailsView', function () {
     view = App.MainAlertDefinitionSearchBoxView.create({
       controller: Em.Object.create()
     });
+    sinon.stub(view, 'rejectUsedValues').returns([]);
   });
-
-  describe('#initVS', function() {
-    beforeEach(function() {
-      sinon.stub(VS, 'init');
-    });
-    afterEach(function() {
-      VS.init.restore();
-    });
-
-    it('VS.init should be called', function() {
-      view.initVS();
-      expect(VS.init.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#facetMatches', function() {
-    var mock = {
-      callback: Em.K
-    };
-    beforeEach(function() {
-      sinon.spy(mock, 'callback');
-    });
-    afterEach(function() {
-      mock.callback.restore();
-    });
-
-    it('callback should be called', function() {
-      view.facetMatches(mock.callback);
-      expect(mock.callback.calledOnce).to.be.true;
-    });
+  afterEach(function() {
+    view.rejectUsedValues.restore();
   });
 
   describe('#valueMatches', function() {
@@ -116,13 +89,6 @@ describe('App.MainAlertDefinitionDetailsView', function () {
   });
 
   describe('#getSummaryAvailableValues', function() {
-    beforeEach(function() {
-      sinon.stub(view, 'rejectUsedValues').returns([]);
-    });
-    afterEach(function() {
-      view.rejectUsedValues.restore();
-    });
-
     it('callback should be called', function() {
       var callback = sinon.spy();
       view.getSummaryAvailableValues('', callback);
@@ -131,13 +97,6 @@ describe('App.MainAlertDefinitionDetailsView', function () {
   });
 
   describe('#getLabelAvailableValues', function() {
-    beforeEach(function() {
-      sinon.stub(view, 'rejectUsedValues').returns([]);
-    });
-    afterEach(function() {
-      view.rejectUsedValues.restore();
-    });
-
     it('callback should be called', function() {
       var callback = sinon.spy();
       view.getLabelAvailableValues('', callback);
@@ -146,13 +105,6 @@ describe('App.MainAlertDefinitionDetailsView', function () {
   });
 
   describe('#getServiceAvailableValues', function() {
-    beforeEach(function() {
-      sinon.stub(view, 'rejectUsedValues').returns([]);
-    });
-    afterEach(function() {
-      view.rejectUsedValues.restore();
-    });
-
     it('callback should be called', function() {
       var callback = sinon.spy();
       view.getServiceAvailableValues('', callback);
@@ -161,13 +113,6 @@ describe('App.MainAlertDefinitionDetailsView', function () {
   });
 
   describe('#getTriggeredAvailableValues', function() {
-    beforeEach(function() {
-      sinon.stub(view, 'rejectUsedValues').returns([]);
-    });
-    afterEach(function() {
-      view.rejectUsedValues.restore();
-    });
-
     it('callback should be called', function() {
       var callback = sinon.spy();
       view.getTriggeredAvailableValues('', callback);
@@ -176,13 +121,6 @@ describe('App.MainAlertDefinitionDetailsView', function () {
   });
 
   describe('#getEnabledAvailableValues', function() {
-    beforeEach(function() {
-      sinon.stub(view, 'rejectUsedValues').returns([]);
-    });
-    afterEach(function() {
-      view.rejectUsedValues.restore();
-    });
-
     it('callback should be called', function() {
       var callback = sinon.spy();
       view.getEnabledAvailableValues('', callback);
@@ -192,7 +130,6 @@ describe('App.MainAlertDefinitionDetailsView', function () {
 
   describe('#getGroupsAvailableValues', function() {
     beforeEach(function() {
-      sinon.stub(view, 'rejectUsedValues').returns([]);
       sinon.stub(App.AlertGroup, 'find').returns([
         Em.Object.create({
           id: 1,
@@ -201,7 +138,6 @@ describe('App.MainAlertDefinitionDetailsView', function () {
       ]);
     });
     afterEach(function() {
-      view.rejectUsedValues.restore();
       App.AlertGroup.find.restore();
     });
 
@@ -217,12 +153,12 @@ describe('App.MainAlertDefinitionDetailsView', function () {
 
   describe('#mapLabelToValue', function() {
     it('should return value of State filter', function() {
-      expect(view.mapLabelToValue('State', Em.I18n.t('alerts.table.state.enabled'))).to.be.equal('enabled');
+      expect(view.mapLabelToValue('enabled', Em.I18n.t('alerts.table.state.enabled'))).to.be.equal('enabled');
     });
 
     it('should return value of Group filter', function() {
       view.set('groupsNameIdMap', {'l1': 1});
-      expect(view.mapLabelToValue('Group', 'l1')).to.be.equal(1);
+      expect(view.mapLabelToValue('groups', 'l1')).to.be.equal(1);
     });
 
     it('should return value of filter', function() {

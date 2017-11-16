@@ -47,6 +47,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -61,6 +63,8 @@ import com.google.inject.Inject;
 //todo: implement ExtendedResourceProvider???
 @StaticallyInject
 public class ArtifactResourceProvider extends AbstractResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ArtifactResourceProvider.class);
 
   public static final String RESPONSE_KEY = "Artifacts";
   public static final String ARTIFACT_NAME = "artifact_name";

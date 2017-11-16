@@ -30,12 +30,12 @@ import {HttpClientService} from '@app/services/http-client.service';
 export class AppComponent {
 
   constructor(private httpClient: HttpClientService, private translate: TranslateService, private appState: AppStateService) {
-    appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
+    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
     appState.setParameter('isInitialLoading', true);
-    this.httpClient.get('status').subscribe(() => this.appState.setParameters({
+    httpClient.get('status').subscribe(() => appState.setParameters({
       isAuthorized: true,
       isInitialLoading: false
-    }), () => this.appState.setParameter('isInitialLoading', false));
+    }), () => appState.setParameter('isInitialLoading', false));
     translate.setDefaultLang('en');
     translate.use('en');
   }

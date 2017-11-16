@@ -18,79 +18,51 @@
 
 var App = require('app');
 
-App.MainAlertDefinitionSearchBoxView = Em.View.extend({
-  templateName: require('templates/main/host/combo_search_box'),
-  errMsg: '',
-  classNames: ['col-sm-12'],
-
-  didInsertElement: function () {
-    this.initVS();
-    this.restoreComboFilterQuery();
-    this.showHideClearButton();
-    this.initOpenVSButton();
-  },
-
-  initOpenVSButton: function() {
-    $('.VS-open-box button').click(function() {
-      $('.VS-open-box .popup-arrow-up, .search-box-row').toggleClass('hide');
-    });
-  },
-
-  initVS: function() {
-    window.visualSearch = VS.init({
-      container: $('#combo_search_box'),
-      query: '',
-      showFacets: true,
-      delay: 500,
-      placeholder: Em.I18n.t('common.search'),
-      unquotable: [
-        'text'
-      ],
-      callbacks: {
-        search: this.search.bind(this),
-        facetMatches: this.facetMatches.bind(this),
-        valueMatches: this.valueMatches.bind(this)
-      }
-    });
-  },
+App.MainAlertDefinitionSearchBoxView = App.SearchBoxView.extend({
 
   /**
    * describe filter columns
-   * @type {object}
+   * @type {Array}
    * @const
    */
-  keyFilterMap: {
-    'Status': {
+  keyFilterMap: [
+    {
+      label: Em.I18n.t('common.status'),
       key: 'summary',
       type: 'alert_status',
       column: 2
     },
-    'Alert Definition Name': {
+    {
+      label: Em.I18n.t('alerts.table.header.definitionName'),
       key: 'label',
       type: 'string',
       column: 1
     },
-    'Service': {
+    {
+      label: Em.I18n.t('common.service'),
       key: 'serviceName',
       type: 'select',
       column: 3
     },
-    'Last Status Changed': {
+    {
+      label: Em.I18n.t('alerts.table.header.lastTriggered'),
       key: 'lastTriggered',
       type: 'date',
       column: 5
     },
-    'State': {
+    {
+      label: Em.I18n.t('alerts.table.state'),
       key: 'enabled',
       type: 'enable_disable',
       column: 6
     },
-    'Group': {
+    {
+      label: Em.I18n.t('common.group'),
       key: 'groups',
       type: 'alert_group',
       column: 7
     }
-  },
+  ],
 
   enabledDisabledMap: {
     'enabled': Em.I18n.t('alerts.table.state.enabled'),
@@ -113,32 +85,6 @@ App.MainAlertDefinitionSearchBoxView = Em.View.extend({
   groupsNameIdMap: {},
 
   /**
-   * 'search' callback for visualsearch.js
-   * @param query
-   * @param searchCollection
-   */
-  search: function (query, searchCollection) {
-    this.clearErrMsg();
-    this.showHideClearButton();
-    var invalidFacet = this.findInvalidFacet(searchCollection);
-    if (invalidFacet) {
-      this.showErrMsg(invalidFacet);
-    }
-    var tableView = this.get('parentView.parentView');
-    App.db.setComboSearchQuery(tableView.get('controller.name'), query);
-    var filterConditions = this.createFilterConditions(searchCollection);
-    tableView.updateComboFilter(filterConditions);
-  },
-
-  /**
-   * 'facetMatches' callback for visualsearch.js
-   * @param callback
-   */
-  facetMatches: function (callback) {
-    callback(Object.keys(this.get('keyFilterMap')), {preserveOrder: true});
-  },
-
-  /**
    * 'valueMatches' callback for visualsearch.js
    * @param facetValue
    * @param searchTerm
@@ -146,7 +92,7 @@ App.MainAlertDefinitionSearchBoxView = Em.View.extend({
    */
   valueMatches: function (facetValue, searchTerm, callback) {
     this.showHideClearButton();
-    switch (this.get('keyFilterMap')[facetValue].key) {
+    switch (this.get('keyFilterMap').findProperty('label', facetValue).key) {
       case 'summary':
         this.getSummaryAvailableValues(facetValue, callback);
         break;
@@ -230,75 +176,6 @@ App.MainAlertDefinitionSearchBoxView = Em.View.extend({
 
   /**
    *
-   * @param {Array} values
-   * @param {string} facetValue
-   */
-  rejectUsedValues: function(values, facetValue) {
-    return values.reject(function (item) {
-      return visualSearch.searchQuery.values(facetValue).indexOf(item) >= 0;
-    })
-  },
-
-  /**
-   *
-   * @param {object} searchCollection
-   * @returns {!object}
-   */
-  findInvalidFacet: function(searchCollection) {
-    const map = this.get('keyFilterMap');
-    return searchCollection.models.find((facet) => {
-      return !map[facet.attributes.category];
-    });
-  },
-
-  showErrMsg: function(category) {
-    this.set('errMsg', category.attributes.value + " " + Em.I18n.t('hosts.combo.search.invalidCategory'));
-  },
-
-  clearErrMsg: function() {
-    this.set('errMsg', '')
-  },
-
-  showHideClearButton: function () {
-    if (visualSearch.searchQuery.length > 0) {
-      $('.VS-cancel-search-box').removeClass('hide');
-    } else {
-      $('.VS-cancel-search-box').addClass('hide');
-    }
-  },
-
-  restoreComboFilterQuery: function() {
-    const query = App.db.getComboSearchQuery(this.get('parentView.parentView.controller.name'));
-    if (query) {
-      visualSearch.searchBox.setQuery(query);
-    }
-  },
-
-  /**
-   *
-   * @param {object} searchCollection
-   * @returns {Array}
-   */
-  createFilterConditions: function (searchCollection) {
-    const filterConditions = [];
-    const map = this.get('keyFilterMap');
-
-    searchCollection.models.forEach((model) => {
-      const filter = model.attributes;
-      if (map[filter.category]) {
-        filterConditions.push({
-          skipFilter: false,
-          iColumn: map[filter.category].column,
-          value: this.mapLabelToValue(filter.category, filter.value),
-          type: map[filter.category].type
-        });
-      }
-    });
-    return filterConditions;
-  },
-
-  /**
-   *
    * @param {string} category
    * @param {string} label
    */
@@ -307,9 +184,9 @@ App.MainAlertDefinitionSearchBoxView = Em.View.extend({
     const groupsNameIdMap = this.get('groupsNameIdMap');
 
     switch (category) {
-      case 'State':
+      case 'enabled':
         return Object.keys(enabledDisabledMap)[Object.values(enabledDisabledMap).indexOf(label)];
-      case 'Group':
+      case 'groups':
         return groupsNameIdMap[label];
       default:
         return label;
