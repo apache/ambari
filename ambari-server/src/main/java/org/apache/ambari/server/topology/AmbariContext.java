@@ -266,7 +266,7 @@ public class AmbariContext {
             repoVersion));
         }
 
-        serviceRequests.add(new ServiceRequest(clusterName, serviceGroup.getName(), service.getType(), service.getName(),
+        serviceRequests.add(new ServiceRequest(clusterName, serviceGroup.getName(), service.getName(), service.getType(),
           repoVersion.getId(), null, credentialStoreEnabled, null));
 
         for (ComponentV2 component : topology.getBlueprint().getComponents(service)) {
