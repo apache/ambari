@@ -58,8 +58,11 @@ def _prepare_tez_tarball():
 
   temp_dir = Script.get_tmp_dir()
 
+  # create the temp staging directories ensuring that non-root agents using tarfile can work with them
   mapreduce_temp_dir = tempfile.mkdtemp(prefix="mapreduce-tarball-", dir=temp_dir)
   tez_temp_dir = tempfile.mkdtemp(prefix="tez-tarball-", dir=temp_dir)
+  sudo.chmod(mapreduce_temp_dir, 0777)
+  sudo.chmod(tez_temp_dir, 0777)
 
   Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
   tar_archive.extract_archive(mapreduce_source_file, mapreduce_temp_dir)
@@ -76,11 +79,17 @@ def _prepare_tez_tarball():
   if not os.path.exists(tez_lib_dir):
     raise Fail("Unable to seed the Tez tarball with native libraries since the target Tez lib directory {0} does not exist".format(tez_lib_dir))
 
+  # ensure that the tez/lib directory is readable by non-root (which it typically is not)
+  sudo.chmod(tez_lib_dir, 0755)
+
+  # copy native libraries from hadoop to tez
   Execute(("cp", "-a", hadoop_lib_native_dir, tez_lib_dir), sudo = True)
 
+  # create the staging directory so that non-root agents can write to it
   tez_native_tarball_staging_dir = os.path.join(temp_dir, "tez-native-tarball-staging")
   if not os.path.exists(tez_native_tarball_staging_dir):
     Directory(tez_native_tarball_staging_dir,
+      mode = 0777,
       cd_access='a',
       create_parents = True,
       recursive_ownership = True)
