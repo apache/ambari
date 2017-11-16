@@ -113,7 +113,7 @@ public class BlueprintV2ResourceProvider extends AbstractControllerResourceProvi
   /**
    * Used to create Blueprint instances
    */
-  private static BlueprintV2Factory blueprintFactory;
+  private BlueprintV2Factory blueprintFactory;
 
   /**
    * Used to create SecurityConfiguration instances
@@ -135,8 +135,8 @@ public class BlueprintV2ResourceProvider extends AbstractControllerResourceProvi
    * @param controller      management controller
    */
   BlueprintV2ResourceProvider(Set<String> propertyIds,
-                            Map<Resource.Type, String> keyPropertyIds,
-                            AmbariManagementController controller) {
+                              Map<Resource.Type, String> keyPropertyIds,
+                              AmbariManagementController controller) {
 
     super(propertyIds, keyPropertyIds, controller);
     blueprintFactory = BlueprintV2Factory.create(controller);
@@ -145,14 +145,12 @@ public class BlueprintV2ResourceProvider extends AbstractControllerResourceProvi
   /**
    * Static initialization.
    *
-   * @param factory   blueprint factory
    * @param dao       blueprint data access object
    * @param securityFactory
    * @param metaInfo
    */
-  public static void init(BlueprintV2Factory factory, BlueprintV2DAO dao, SecurityConfigurationFactory
+  public static void init(BlueprintV2DAO dao, SecurityConfigurationFactory
     securityFactory, AmbariMetaInfo metaInfo) {
-    blueprintFactory = factory;
     blueprintDAO = dao;
     securityConfigurationFactory = securityFactory;
     ambariMetaInfo = metaInfo;

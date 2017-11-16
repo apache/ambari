@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.state.StackId;
@@ -39,6 +37,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 
 public class BlueprintImplV2Test {

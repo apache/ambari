@@ -22,18 +22,16 @@ package org.apache.ambari.server.topology;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintV2DAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.BlueprintV2Entity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
 
@@ -75,6 +73,8 @@ public class BlueprintV2Factory {
 
   private boolean prettyPrintJson = false;
   private static BlueprintV2DAO blueprintDAO;
+  private static RepositoryVersionDAO repositoryVersionDAO;
+
   private ConfigurationFactory configFactory = new ConfigurationFactory();
 
   private StackV2Factory stackFactory;
@@ -88,7 +88,7 @@ public class BlueprintV2Factory {
   }
 
   public static BlueprintV2Factory create(AmbariManagementController controller) {
-    return new BlueprintV2Factory(new StackV2Factory(controller));
+    return new BlueprintV2Factory(new StackV2Factory(controller, repositoryVersionDAO));
   }
 
   public static BlueprintV2Factory create(StackV2Factory factory) {
@@ -109,9 +109,10 @@ public class BlueprintV2Factory {
   }
 
   private void updateStacks(BlueprintImplV2 blueprintV2) {
-    Map<StackId, StackV2> stacks = blueprintV2.getStackIds().stream()
-      .map(StackId::new)
-      .collect(Collectors.toMap(Function.identity(), this::parseStack));
+    Map<StackId, StackV2> stacks = blueprintV2.getRepositoryVersions().stream().collect(Collectors.toMap(
+      rv -> new StackId(rv.getStackId()),
+      rv -> parseStack(new StackId(rv.getStackId()), rv.getRepositoryVersion())
+    ));
     blueprintV2.setStacks(stacks);
   }
 
@@ -123,18 +124,14 @@ public class BlueprintV2Factory {
     return createObjectMapper().readValue(entity.getContent(), new TypeReference<Map<String, Object>>(){});
   }
 
-  private StackV2 parseStack(StackId stackId) {
+  private StackV2 parseStack(StackId stackId, String repositoryVersion) {
     try {
-      return stackFactory.create(stackId);
+      return stackFactory.create(stackId, repositoryVersion);
     } catch (AmbariException e) {
       throw new IllegalArgumentException(
         String.format("Unable to parse stack. name=%s, version=%s", stackId.getStackName(), stackId.getStackVersion()),
         e);
     }
-  }
-
-  private StackV2 parseStack(StackEntity stackEntity) {
-    return parseStack(new StackId(stackEntity.getStackName(), stackEntity.getStackVersion()));
   }
 
   public BlueprintV2Entity convertToEntity(BlueprintV2 blueprint) throws JsonProcessingException {
@@ -175,20 +172,6 @@ public class BlueprintV2Factory {
     return blueprint;
   }
 
-  protected StackV2 createStack(Map<String, Object> properties) throws NoSuchStackException {
-    String stackName = String.valueOf(properties.get(STACK_NAME_PROPERTY_ID));
-    String stackVersion = String.valueOf(properties.get(STACK_VERSION_PROPERTY_ID));
-    try {
-      //todo: don't pass in controller
-      return stackFactory.create(stackName, stackVersion);
-    } catch (ObjectNotFoundException e) {
-      throw new NoSuchStackException(stackName, stackVersion);
-    } catch (AmbariException e) {
-      //todo:
-      throw new RuntimeException("An error occurred parsing the stack information.", e);
-    }
-  }
-
   public boolean isPrettyPrintJson() {
     return prettyPrintJson;
   }
@@ -214,10 +197,11 @@ public class BlueprintV2Factory {
   /**
    * Static initialization.
    *
-   * @param dao  blueprint data access object
+   * @param blueprintV2DAO  blueprint data access object
    */
   @Inject
-  public static void init(BlueprintV2DAO dao) {
-    blueprintDAO = dao;
+  public static void init(BlueprintV2DAO blueprintV2DAO, RepositoryVersionDAO repoVersionDAO) {
+    blueprintDAO = blueprintV2DAO;
+    repositoryVersionDAO = repoVersionDAO;
   }
 }

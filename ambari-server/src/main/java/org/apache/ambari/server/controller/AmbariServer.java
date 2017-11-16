@@ -91,6 +91,7 @@ import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
@@ -926,16 +927,15 @@ public class AmbariServer {
     BlueprintResourceProvider.init(injector.getInstance(BlueprintFactory.class),
         injector.getInstance(BlueprintDAO.class), injector.getInstance(SecurityConfigurationFactory.class),
         injector.getInstance(Gson.class), ambariMetaInfo);
-    BlueprintV2ResourceProvider.init(injector.getInstance(BlueprintV2Factory.class),
-      injector.getInstance(BlueprintV2DAO.class), injector.getInstance(SecurityConfigurationFactory.class),
-      ambariMetaInfo);
+    BlueprintV2ResourceProvider.init(injector.getInstance(BlueprintV2DAO.class),
+      injector.getInstance(SecurityConfigurationFactory.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(TopologyManager.class),
         injector.getInstance(TopologyRequestFactoryImpl.class), injector.getInstance(SecurityConfigurationFactory
             .class), injector.getInstance(Gson.class));
     HostResourceProvider.setTopologyManager(injector.getInstance(TopologyManager.class));
     BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
-    BlueprintV2Factory.init(injector.getInstance(BlueprintV2DAO.class));
+    BlueprintV2Factory.init(injector.getInstance(BlueprintV2DAO.class), injector.getInstance(RepositoryVersionDAO.class));
     BaseClusterRequest.init(injector.getInstance(AmbariManagementController.class));
     AmbariContext.init(injector.getInstance(HostRoleCommandFactory.class));
 

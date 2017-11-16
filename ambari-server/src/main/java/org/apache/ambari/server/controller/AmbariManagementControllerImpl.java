@@ -4595,11 +4595,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // !!! when asking for Repository responses for a versionDefinition, it is either for
     // an established repo version (a Long) OR from the in-memory generated ones (a String)
-    if (null == repositoryVersionId && null != versionDefinitionId) {
-
-      if (NumberUtils.isDigits(versionDefinitionId)) {
-        repositoryVersionId = Long.valueOf(versionDefinitionId);
-      }
+    if (null == repositoryVersionId && NumberUtils.isDigits(versionDefinitionId)) {
+      repositoryVersionId = Long.valueOf(versionDefinitionId);
     }
 
     Set<RepositoryResponse> responses = new HashSet<>();
@@ -4621,7 +4618,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
               response.setStackName(repositoryVersion.getStackName());
               response.setStackVersion(repositoryVersion.getStackVersion());
-
+              response.setRepoVersion(repositoryVersion.getVersion());
               responses.add(response);
             }
             break;

@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -38,25 +40,29 @@ import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 public class StackV2Factory {
   private final static Logger LOG = LoggerFactory.getLogger(StackV2Factory.class);
 
 
-  private AmbariManagementController controller;
+  private final AmbariManagementController controller;
+  private final RepositoryVersionDAO repositoryVersionDAO;
 
-  public StackV2Factory(AmbariManagementController controller) {
+  public StackV2Factory(AmbariManagementController controller, RepositoryVersionDAO repositoryVersionDAO) {
     this.controller = controller;
+    this.repositoryVersionDAO = repositoryVersionDAO;
   }
 
-  public StackV2 create(StackEntity stack) throws AmbariException {
-    return create(stack.getStackName(), stack.getStackVersion());
+  public StackV2 create(StackEntity stack, String repositoryVersion) throws AmbariException {
+    return create(stack.getStackName(), stack.getStackVersion(), repositoryVersion);
   }
 
-  public StackV2 create(StackId id) throws AmbariException {
-    return create(id.getStackName(), id.getStackVersion());
+  public StackV2 create(StackId id, String repositoryVersion) throws AmbariException {
+    return create(id.getStackName(), id.getStackVersion(), repositoryVersion);
   }
 
-  public StackV2 create(String name, String version) throws AmbariException {
+  public StackV2 create(String name, String version, String repositoryVersion) throws AmbariException {
     Set<StackServiceResponse> stackServices = controller.getStackServices(
       Collections.singleton(new StackServiceRequest(name, version, null)));
 
@@ -74,10 +80,20 @@ public class StackV2Factory {
 
     getComponentInfos(stackData);
 
+    stackData.repoVersion = repositoryVersion;
+    verifyRepositoryVersion(stackData);
+
     return new StackV2(name, version, stackData.repoVersion /* TODO */, stackData.serviceComponents, stackData.dependencies,
       stackData.dbDependencyInfo, stackData.componentAutoDeployInfo, stackData.serviceConfigurations,
       stackData.requiredServiceConfigurations, stackData.stackConfigurations, stackData.excludedConfigurationTypes,
       stackData.componentInfos);
+  }
+
+  private void verifyRepositoryVersion(StackData stackData) throws AmbariException {
+    StackId stackId = new StackId(stackData.stackName, stackData.stackVersion);
+    RepositoryVersionEntity entity =
+      repositoryVersionDAO.findByStackAndVersion(stackId, stackData.repoVersion);
+    Preconditions.checkNotNull(entity, "Repo version %s not found for stack %s", stackData.repoVersion, stackId);
   }
 
   private void getComponentInfos(StackData stackData) {

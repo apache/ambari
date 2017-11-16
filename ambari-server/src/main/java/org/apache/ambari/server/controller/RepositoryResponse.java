@@ -30,6 +30,16 @@ public class RepositoryResponse {
   private String osType;
   private String repoId;
   private String repoName;
+  private String repoVersion;
+
+  public String getRepoVersion() {
+    return repoVersion;
+  }
+
+  public void setRepoVersion(String repoVersion) {
+    this.repoVersion = repoVersion;
+  }
+
   private String distribution;
   private String components;
   private String mirrorsList;
