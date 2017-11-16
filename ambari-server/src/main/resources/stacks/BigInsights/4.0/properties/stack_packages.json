@@ -178,18 +178,6 @@
           "STANDARD": [
             "hadoop-hdfs-secondarynamenode"
           ]
-        },
-        "ZKFC": {
-          "STACK-SELECT-PACKAGE": "hadoop-hdfs-zkfc",
-          "INSTALL": [
-            "hadoop-hdfs-zkfc"
-          ],
-          "PATCH": [
-            "hadoop-hdfs-zkfc"
-          ],
-          "STANDARD": [
-            "hadoop-hdfs-zkfc"
-          ]
         }
       },
       "HIVE": {
