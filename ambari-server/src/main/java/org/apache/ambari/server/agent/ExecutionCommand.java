@@ -455,6 +455,7 @@ public class ExecutionCommand extends AgentCommand {
     String IGNORE_PACKAGE_DEPENDENCIES = "ignore_package_dependencies";
     String JDK_LOCATION = "jdk_location";
     String JAVA_HOME = "java_home";
+    String GPL_LICENSE_ACCEPTED = "gpl_license_accepted";
     String JAVA_VERSION = "java_version";
     String JDK_NAME = "jdk_name";
     String JCE_NAME = "jce_name";

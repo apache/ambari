@@ -409,6 +409,7 @@ def init_parser_options(parser):
   parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
   parser.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
   parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
+  parser.add_option('--accept-gpl', action="store_true", default=False, help="Automatically accepts GPL license", dest="accept_gpl")
   add_parser_options('--mpack',
       default=None,
       help="Specify the path for management pack to be installed/upgraded",
@@ -512,6 +513,7 @@ def init_parser_options(parser):
   parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
   parser.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
   parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
+  parser.add_option('--accept-gpl', action="store_true", default=False, help="Automatically accepts GPL license", dest="accept_gpl")
   parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
   parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
                     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
