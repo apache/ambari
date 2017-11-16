@@ -183,7 +183,7 @@
         <component>HBASE_MASTER</component>
       </service>
     </group>
-    
+
     <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -199,7 +199,7 @@
         <service>LOGSEARCH</service>
       </exclude>
     </group>
-    
+
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -207,7 +207,7 @@
         <component>DATANODE</component>
         <component>NFS_GATEWAY</component>
       </service>
-      
+
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
         <component>PHOENIX_QUERY_SERVER</component>
@@ -223,7 +223,7 @@
         <message>The initial batch of {{components}} hosts have been {{direction.past}}. You are advised to check the hosts and perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
       </batch>
     </group>
-    
+
     <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -458,7 +458,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -467,7 +467,7 @@
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      
+
       <execute-stage title="Confirm Finalize">
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
@@ -491,7 +491,7 @@
           <function>finalize_rolling_upgrade</function>
         </task>
       </execute-stage>
-      
+
       <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
@@ -577,7 +577,7 @@
             <function>configure_atlas_user_for_tagsync</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -668,7 +668,7 @@
         </upgrade>
       </component>
     </service>
-    
+
     <service name="SLIDER">
       <component name="SLIDER">
         <upgrade>
@@ -691,7 +691,7 @@
           </task>
           <task xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename"/>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -722,11 +722,11 @@
           <task xsi:type="configure" id="yarn_site_retained_log_count" />
           <task xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name"/>
           <task xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default"/>
-          
+
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
             <summary>Validate Root Queue Ordering Policy</summary>
           </task>
-          
+
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
@@ -785,9 +785,9 @@
           </task>
           <task xsi:type="configure" id="hdp_2_5_0_0_tez_queue_name"/>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
-        
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -865,9 +865,9 @@
           <task xsi:type="configure" id="hdp_2_6_maint_llap_config"/>
           <task xsi:type="configure" id="llap_update_tez_shuffle_ssl_enable"/>
         </pre-upgrade>
-        
+
         <pre-downgrade />
-      
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -913,9 +913,9 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs" />
           <task xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs" />
         </pre-upgrade>
-        
+
         <pre-downgrade />
-        
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -933,11 +933,19 @@
 
     <service name="SPARK2">
       <component name="SPARK2_JOBHISTORYSERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_spark2_jobhistoryserver_log4j"/>
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="SPARK2_THRIFTSERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_spark2_thriftserver_log4j"/>
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -945,6 +953,7 @@
       <component name="SPARK2_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_spark2_yarn_queue"/>
+          <task xsi:type="configure" id="hdp_2_5_0_0_spark2_client_log4j"/>
         </pre-upgrade>
         <pre-downgrade/>
         <upgrade>
