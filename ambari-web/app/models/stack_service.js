@@ -23,11 +23,11 @@ require('models/configs/objects/service_config_category');
 
 var Dependency = Ember.Object.extend({
   name: Ember.computed('service', function() {
-    return this.get('service').get('serviceName');
+    return this.get('service.serviceName');
   }),
 
   displayName: Ember.computed('service', function() {
-    return this.get('service').get('displayNameOnSelectServicePage');
+    return this.get('service.displayNameOnSelectServicePage');
   }),
 
   compatibleServices: function(services) {
@@ -40,8 +40,8 @@ var Dependency = Ember.Object.extend({
 });
 
 var HcfsDependency = Dependency.extend({
-  displayName: Ember.computed('service', function() {
-    return 'a Hadoop Compatible File System';
+  displayName: Ember.computed(function() {
+    return Em.I18n.t('installer.step4.hcfs.displayName');
   }),
 
   compatibleServices: function(services) {
@@ -58,17 +58,17 @@ Dependency.reopenClass({
 });
 
 var MissingDependency = Ember.Object.extend({
-  hasMultipleOptions: function() {
+  hasMultipleOptions: Ember.computed('compatibleServices', function() {
     return this.get('compatibleServices').length > 1;
-  },
+  }),
 
   selectFirstCompatible: function() {
     this.get('compatibleServices')[0].set('isSelected', true);
   },
 
-  displayOptions: function() {
+  displayOptions: Ember.computed('compatibleServices', function() {
     return this.get('compatibleServices').mapProperty('serviceName').join(', ');
-  }
+  })
 });
 
 /**
@@ -122,10 +122,14 @@ App.StackService = DS.Model.extend({
   dependentServiceNames: DS.attr('array', {defaultValue: []}),
 
   dependencies: function(availableServices) {
-    return this.get('requiredServices')
-      .map(function (serviceName) { return availableServices.findProperty('serviceName', serviceName)})
-      .filter(function (each) { return !!each })
-      .map(function (service) { return Dependency.fromService(service); });
+    var result = [];
+    this.get('requiredServices').forEach(function(serviceName) {
+      var service = availableServices.findProperty('serviceName', serviceName);
+      if (service) {
+        result.push(Dependency.fromService(service));
+      }
+    });
+    return result;
   },
 
   /**
@@ -144,7 +148,7 @@ App.StackService = DS.Model.extend({
   },
 
   _addMissingDependency: function(dependency, availableServices, missingDependencies) {
-    if(!missingDependencies.some(function(each) { return each.get('serviceName') == dependency.get('name'); })) {
+    if(!missingDependencies.someProperty('serviceName', dependency.get('name'))) {
       missingDependencies.push(MissingDependency.create({
          serviceName: dependency.get('name'),
          displayName: dependency.get('displayName'),

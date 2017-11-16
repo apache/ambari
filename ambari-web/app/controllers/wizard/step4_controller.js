@@ -480,11 +480,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   needToAddMissingDependency: function (missingDependency, i18nSuffix, callback, id) {
     var self = this;
     var displayName = missingDependency.get('displayName');
-    if (missingDependency.hasMultipleOptions()) {
+    if (missingDependency.get('hasMultipleOptions')) {
       return this.showDependencyPopup(
         id,
         Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header').format(displayName),
-        Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body2').format(displayName, missingDependency.displayOptions()),
+        Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body.multiOptions').format(displayName, missingDependency.get('displayOptions')),
         callback
       );
     } else {
