@@ -512,7 +512,7 @@ public class ConfigHelper {
     Set<String> result = new HashSet<>();
 
     for (Service service : clusters.getCluster(clusterName).getServices().values()) {
-      Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getServiceType());
       Set<PropertyInfo> stackLevelProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
       stackProperties.addAll(stackLevelProperties);
 
@@ -543,7 +543,7 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     Map<String, Map<String, String>> result = new HashMap<>();
     Map<String, String> passwordProperties;
-    Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+    Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getServiceType());
     for (PropertyInfo serviceProperty : serviceProperties) {
       if (serviceProperty.getPropertyTypes().contains(propertyType)) {
         if (!serviceProperty.getPropertyValueAttributes().isKeyStore()) {
@@ -846,7 +846,7 @@ public class ConfigHelper {
           stackId.getStackVersion());
 
       for (ServiceInfo serviceInfo : stack.getServices()) {
-        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getServiceType());
         Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
         serviceProperties.addAll(stackProperties);
 
@@ -922,7 +922,7 @@ public class ConfigHelper {
       StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
 
       for (ServiceInfo serviceInfo : stack.getServices()) {
-        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getServiceType());
 
         for (PropertyInfo stackProperty : serviceProperties) {
           String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
@@ -1237,13 +1237,13 @@ public class ConfigHelper {
    *
    * @param stack
    *          the stack to pull stack-values from (not {@code null})
-   * @param serviceName
+   * @param stackServiceName
    *          the service name {@code null}).
    * @return a mapping of configuration type to map of key/value pairs for the
    *         default configurations.
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, String serviceName)
+  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, String stackServiceName)
       throws AmbariException {
     Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<>();
 
@@ -1264,7 +1264,7 @@ public class ConfigHelper {
 
     // for every installed service, populate the default service properties
     Set<org.apache.ambari.server.state.PropertyInfo> serviceConfigurationProperties = ambariMetaInfo.getServiceProperties(
-        stack.getStackName(), stack.getStackVersion(), serviceName);
+        stack.getStackName(), stack.getStackVersion(), stackServiceName);
 
     // !!! use new stack as the basis
     for (PropertyInfo serviceDefaultProperty : serviceConfigurationProperties) {
