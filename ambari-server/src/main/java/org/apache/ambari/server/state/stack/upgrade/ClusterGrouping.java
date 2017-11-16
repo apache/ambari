@@ -135,6 +135,8 @@ public class ClusterGrouping extends Grouping {
     void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
       if (task.getType().equals(Task.Type.CONFIGURE) && StringUtils.isNotEmpty(service)) {
         ((ConfigureTask) task).associatedService = service;
+      } else if (task.getType().equals(Task.Type.CREATE_AND_CONFIGURE) && StringUtils.isNotEmpty(service)) {
+        ((CreateAndConfigureTask) task).associatedService = service;
       }
     }
 

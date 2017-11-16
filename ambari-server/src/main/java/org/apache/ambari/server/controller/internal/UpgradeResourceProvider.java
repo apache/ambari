@@ -93,6 +93,7 @@ import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
@@ -1323,6 +1324,41 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         // extract the config type to build the summary
         String configType = configurationChanges.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
+        if (null != configType) {
+          itemDetail = String.format("Updating configuration %s", configType);
+        } else {
+          itemDetail = "Skipping Configuration Task "
+              + StringUtils.defaultString(ct.id, "(missing id)");
+        }
+
+        entity.setText(itemDetail);
+
+        String configureTaskSummary = ct.getSummary(configUpgradePack);
+        if (null != configureTaskSummary) {
+          stageText = configureTaskSummary;
+        } else {
+          stageText = itemDetail;
+        }
+
+        break;
+      }
+      case CREATE_AND_CONFIGURE: {
+        CreateAndConfigureTask ct = (CreateAndConfigureTask) task;
+
+        // !!! would prefer to do this in the sequence generator, but there's too many
+        // places to miss
+        if (context.getOrchestrationType().isRevertable() && !ct.supportsPatch) {
+          process = false;
+        }
+
+        Map<String, String> configurationChanges =
+                ct.getConfigurationChanges(cluster, configUpgradePack);
+
+        // add all configuration changes to the command params
+        commandParams.putAll(configurationChanges);
+
+        // extract the config type to build the summary
+        String configType = configurationChanges.get(CreateAndConfigureTask.PARAMETER_CONFIG_TYPE);
         if (null != configType) {
           itemDetail = String.format("Updating configuration %s", configType);
         } else {
