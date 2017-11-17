@@ -61,6 +61,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "repository_version_id");
   public static final String REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "version_definition_id");
   public static final String REPOSITORY_UNIQUE_PROPERTY_ID                = PropertyHelper.getPropertyId("Repositories", "unique");
+  public static final String REPOSITORY_TAGS_PROPERTY_ID                  = PropertyHelper.getPropertyId("Repositories", "tags");
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -90,6 +91,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       add(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
       add(REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       add(REPOSITORY_UNIQUE_PROPERTY_ID);
+      add(REPOSITORY_TAGS_PROPERTY_ID);
     }
   };
 
@@ -166,6 +168,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_MIRRORS_LIST_PROPERTY_ID, response.getMirrorsList(), requestedIds);
         setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, response.getDefaultBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_UNIQUE_PROPERTY_ID, response.isUnique(), requestedIds);
+        setResourceProperty(resource, REPOSITORY_TAGS_PROPERTY_ID, response.getTags(), requestedIds);
         if (null != response.getClusterVersionId()) {
           setResourceProperty(resource, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID, response.getClusterVersionId(), requestedIds);
         }

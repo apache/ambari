@@ -20,6 +20,8 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,6 +56,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -191,6 +194,17 @@ public class RepositoryVersionHelper {
         if (repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID) != null) {
           repositoryEntity.setUnique(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID).getAsBoolean());
         }
+
+        if (null != repositoryJson.get(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID)) {
+          Set<RepoTag> tags = new HashSet<>();
+
+          JsonArray jsonArray = repositoryJson.get(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID).getAsJsonArray();
+          for(JsonElement je : jsonArray) {
+            tags.add(RepoTag.valueOf(je.getAsString()));
+          }
+          repositoryEntity.setTags(tags);
+        }
+
         operatingSystemEntity.getRepositories().add(repositoryEntity);
       }
       operatingSystems.add(operatingSystemEntity);
@@ -242,6 +256,11 @@ public class RepositoryVersionHelper {
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, repository.getComponents());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
+
+        // add the tags even if there are none
+        JsonArray tags = gson.toJsonTree(repository.getTags()).getAsJsonArray();
+        repositoryJson.add(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID, tags);
+
         repositoriesJson.add(repositoryJson);
         operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, repository.isAmbariManagedRepositories());
       }
