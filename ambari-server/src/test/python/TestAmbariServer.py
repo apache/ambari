@@ -4938,7 +4938,7 @@ class TestAmbariServer(TestCase):
                               ensure_can_start_under_current_user_mock, get_jdbc_mock,
                               ensure_jdbc_driver_is_installed_mock):
     java_exe_path_mock.return_value = "/usr/lib/java/bin/java"
-    run_os_command_mock.return_value = (0, None, None)
+    run_os_command_mock.return_value = (0, '{"lzo_enabled":"false"}', None)
     get_conf_dir_mock.return_value = '/etc/conf'
     command = '/usr/lib/java/bin/java -cp /etc/conf' + os.pathsep + 'test' + os.pathsep + 'path12' + \
               os.pathsep +'/path/to/jdbc.jar ' \
