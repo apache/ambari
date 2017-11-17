@@ -1149,7 +1149,7 @@ def update_ambari_env():
 
   return 0
 
-def write_gpl_license_accepted(is_silent=False):
+def write_gpl_license_accepted():
   properties = get_ambari_properties()
   if properties == -1:
     err = "Error getting ambari properties"
@@ -1159,10 +1159,7 @@ def write_gpl_license_accepted(is_silent=False):
   if GPL_LICENSE_ACCEPTED_PROPERTY in properties.keys() and properties.get_property(GPL_LICENSE_ACCEPTED_PROPERTY).lower() == "true":
     return True
 
-  if is_silent:
-    result = options.accept_gpl
-  else:
-    result = get_YN_input(GPL_LICENSE_PROMPT_TEXT, True)
+  result = get_YN_input(GPL_LICENSE_PROMPT_TEXT, True)
 
   properties.process_pair(GPL_LICENSE_ACCEPTED_PROPERTY, str(result).lower())
   update_properties(properties)
