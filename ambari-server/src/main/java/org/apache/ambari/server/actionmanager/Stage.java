@@ -443,7 +443,8 @@ public class Stage {
    * @param retryAllowed
    *          indicates whether retry after failure is allowed
    */
-  public synchronized void addServerActionCommand(String actionName, @Nullable String userName,
+  public synchronized void addServerActionCommand(String actionName,
+      @Nullable String userName,
       Role role, RoleCommand command, String clusterName,
       ServiceComponentHostServerActionEvent event, @Nullable Map<String, String> commandParams,
       @Nullable String commandDetail, @Nullable Map<String, Map<String, String>> configTags,
