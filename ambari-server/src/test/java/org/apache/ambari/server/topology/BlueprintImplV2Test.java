@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.topology.validators;
+package org.apache.ambari.server.topology;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -29,8 +29,6 @@ import java.util.Map;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.topology.BlueprintV2;
-import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -81,7 +79,7 @@ public class BlueprintImplV2Test {
 
   @Test
   public void testSerialization_parseJsonAsMap() throws Exception {
-    ObjectMapper mapper = blueprintFactory.createObjectMapper();
+    ObjectMapper mapper = blueprintFactory.getObjectMapper();
     Map<String, Object> blueprintAsMap = mapper.readValue(BLUEPRINTV2_JSON, HashMap.class);
     assertEquals(2, getAsMap(blueprintAsMap, "cluster_settings").size());
     assertEquals(2, getAsMap(blueprintAsMap, "Blueprints").size());
@@ -120,7 +118,7 @@ public class BlueprintImplV2Test {
 
   @Test
   public void testSerialization2_parseJsonAsMap() throws Exception {
-    ObjectMapper mapper = blueprintFactory.createObjectMapper();
+    ObjectMapper mapper = blueprintFactory.getObjectMapper();
     Map<String, Object> blueprintAsMap = mapper.readValue(BLUEPRINTV2_2_JSON, HashMap.class);
     assertEquals(2, getAsMap(blueprintAsMap, "cluster_settings").size());
     assertEquals(2, getAsMap(blueprintAsMap, "Blueprints").size());

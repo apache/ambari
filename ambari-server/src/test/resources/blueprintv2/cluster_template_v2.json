@@ -1,0 +1,66 @@
+{
+  "blueprint": "blueprint-name",
+  "default_password": "super-secret-password",
+  "services": [
+    {
+      "service_group": "CORE_SG",
+      "name": "ZK1",
+      "configurations": [
+        {
+          "zoo.cfg": {
+            "properties": {
+              "dataDir": "/zookeeper2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "service_group": "CORE_SG",
+      "name": "HDFS",
+      "configurations": [
+        {
+          "hdfs-site": {
+            "properties": {
+              "property-name": "property-value"
+            }
+          }
+        }
+      ]
+    }
+
+  ],
+  "host_groups": [
+    {
+      "name": "host-group-1",
+      "configurations": [
+        {
+          "yarn-site": {
+            "properties": {
+              "property-name": "property-value"
+            }
+          }
+        }
+      ],
+      "hosts": [
+        {
+          "fqdn": "host.domain.com"
+        },
+        {
+          "fqdn": "host2.domain.com"
+        }
+      ]
+    }
+  ],
+  "credentials": [
+    {
+      "alias": "kdc.admin.credential",
+      "principal": "principal",
+      "key": "key",
+      "type": "TEMPORARY"
+    }
+  ],
+  "security": {
+    "type": "NONE"
+  }
+}

@@ -56,33 +56,35 @@ public class BlueprintV2Factory {
 
   // Host Groups
   protected static final String HOST_GROUP_PROPERTY_ID = "host_groups";
-  protected static final String HOST_GROUP_NAME_PROPERTY_ID = "name";
-  protected static final String HOST_GROUP_CARDINALITY_PROPERTY_ID = "cardinality";
+//  protected static final String HOST_GROUP_NAME_PROPERTY_ID = "name";
+//  protected static final String HOST_GROUP_CARDINALITY_PROPERTY_ID = "cardinality";
 
   // Host Group Components
-  protected static final String COMPONENT_PROPERTY_ID ="components";
+//  protected static final String COMPONENT_PROPERTY_ID ="components";
   protected static final String COMPONENT_NAME_PROPERTY_ID ="name";
-  protected static final String COMPONENT_PROVISION_ACTION_PROPERTY_ID = "provision_action";
+//  protected static final String COMPONENT_PROVISION_ACTION_PROPERTY_ID = "provision_action";
 
   // Configurations
-  protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
+//  protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
   protected static final String PROPERTIES_PROPERTY_ID = "properties";
-  protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
+//  protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
 
-  protected static final String SETTINGS_PROPERTY_ID = "settings";
+//  protected static final String SETTINGS_PROPERTY_ID = "settings";
 
-  private boolean prettyPrintJson = false;
   private static BlueprintV2DAO blueprintDAO;
   private static RepositoryVersionDAO repositoryVersionDAO;
 
   private StackV2Factory stackFactory;
 
-  protected BlueprintV2Factory() {
+  private ObjectMapper objectMapper;
 
+  protected BlueprintV2Factory() {
+    createObjectMapper();
   }
 
   protected BlueprintV2Factory(StackV2Factory stackFactory) {
     this.stackFactory = stackFactory;
+    createObjectMapper();
   }
 
   public static BlueprintV2Factory create(AmbariManagementController controller) {
@@ -100,7 +102,7 @@ public class BlueprintV2Factory {
   }
 
   public BlueprintV2 convertFromJson(String json) throws IOException {
-    BlueprintImplV2 blueprintV2 = createObjectMapper().readValue(json, BlueprintImplV2.class);
+    BlueprintImplV2 blueprintV2 = getObjectMapper().readValue(json, BlueprintImplV2.class);
     blueprintV2.postDeserialization();
     updateStacks(blueprintV2);
     return blueprintV2;
@@ -119,7 +121,7 @@ public class BlueprintV2Factory {
   }
 
   public Map<String, Object> convertToMap(BlueprintV2Entity entity) throws IOException {
-    return createObjectMapper().readValue(entity.getContent(), new TypeReference<Map<String, Object>>(){});
+    return getObjectMapper().readValue(entity.getContent(), new TypeReference<Map<String, Object>>(){});
   }
 
   private StackV2 parseStack(StackId stackId, String repositoryVersion) {
@@ -143,7 +145,7 @@ public class BlueprintV2Factory {
   }
 
   public String convertToJson(BlueprintV2 blueprint) throws JsonProcessingException {
-    return createObjectMapper().writeValueAsString(blueprint);
+    return getObjectMapper().writeValueAsString(blueprint);
 
   }
 
@@ -161,7 +163,7 @@ public class BlueprintV2Factory {
       //todo: should throw a checked exception from here
       throw new IllegalArgumentException("Blueprint name must be provided");
     }
-    ObjectMapper om = createObjectMapper();
+    ObjectMapper om = getObjectMapper();
     String json = om.writeValueAsString(properties);
     BlueprintImplV2 blueprint = om.readValue(json, BlueprintImplV2.class);
     blueprint.postDeserialization();
@@ -171,25 +173,30 @@ public class BlueprintV2Factory {
   }
 
   public boolean isPrettyPrintJson() {
-    return prettyPrintJson;
+    return objectMapper.isEnabled(SerializationFeature.INDENT_OUTPUT);;
   }
 
   public void setPrettyPrintJson(boolean prettyPrintJson) {
-    this.prettyPrintJson = prettyPrintJson;
+    if (prettyPrintJson) {
+      objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    }
+    else {
+      objectMapper.disable(SerializationFeature.INDENT_OUTPUT);
+    }
   }
 
-  public ObjectMapper createObjectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
+  public ObjectMapper getObjectMapper() {
+    return objectMapper;
+  }
+
+  private void createObjectMapper() {
+    objectMapper = new ObjectMapper();
     SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
     SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
     resolver.addMapping(HostGroupV2.class, HostGroupV2Impl.class);
     module.setAbstractTypes(resolver);
-    mapper.registerModule(module);
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    if (prettyPrintJson) {
-      mapper.enable(SerializationFeature.INDENT_OUTPUT);
-    }
-    return mapper;
+    objectMapper.registerModule(module);
+    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
   }
 
   /**

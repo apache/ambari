@@ -19,6 +19,8 @@
 
 package org.apache.ambari.server.topology;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 
 /**
@@ -46,7 +48,11 @@ public class Credential {
    */
   private CredentialStoreType type;
 
-  public Credential(String alias, String principal, String key, CredentialStoreType type) {
+  @JsonCreator
+  public Credential(@JsonProperty("alias") String alias,
+                    @JsonProperty("principal") String principal,
+                    @JsonProperty("key") String key,
+                    @JsonProperty("type") CredentialStoreType type) {
     this.alias = alias;
     this.principal = principal;
     this.key = key;
