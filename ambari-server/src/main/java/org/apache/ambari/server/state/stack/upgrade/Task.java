@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 /**
  * Base class to identify the items that could possibly occur during an upgrade
  */
-@XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, StartTask.class, StopTask.class, ServerActionTask.class, ConfigureFunction.class})
+@XmlSeeAlso(value={ExecuteTask.class, CreateAndConfigureTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, StartTask.class, StopTask.class, ServerActionTask.class, ConfigureFunction.class})
 public abstract class Task {
 
   /**
@@ -95,6 +95,10 @@ public abstract class Task {
      * Task that alters a configuration.
      */
     CONFIGURE,
+    /**
+     * Task that create a config type if it does not, and alters a configuration.
+     */
+    CREATE_AND_CONFIGURE,
     /**
      * Task that sets up the configuration for subsequent task
      */

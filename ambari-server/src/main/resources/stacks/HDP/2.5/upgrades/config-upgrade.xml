@@ -158,11 +158,34 @@
     </service>
 
     <service name="SPARK2">
+      <component name="SPARK2_JOBHISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_jobhistoryserver_log4j">
+            <type>spark2-log4j-properties</type>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty=WARN" replace-with="log4j.logger.org.spark_project.jetty=WARN"/>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR" replace-with="log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR"/>
+          </definition>
+        </changes>
+      </component>
       <component name="SPARK2_CLIENT">
         <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_client_log4j">
+            <type>spark2-log4j-properties</type>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty=WARN" replace-with="log4j.logger.org.spark_project.jetty=WARN"/>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR" replace-with="log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR"/>
+          </definition>
           <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_yarn_queue">
             <type>spark2-defaults</type>
             <set key="spark.yarn.queue" value="default" if-type="spark-defaults" if-key="spark.yarn.queue" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK2_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark2_thriftserver_log4j">
+            <type>spark2-log4j-properties</type>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty=WARN" replace-with="log4j.logger.org.spark_project.jetty=WARN"/>
+            <replace key="content" find="log4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR" replace-with="log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR"/>
           </definition>
         </changes>
       </component>
