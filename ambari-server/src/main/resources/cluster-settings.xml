@@ -181,12 +181,12 @@
     <property>
         <name>repo_suse_rhel_template</name>
         <value>[{{repo_id}}]
-            name={{repo_id}}
-            {% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}
+name={{repo_id}}
+{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}
 
-            path=/
-            enabled=1
-            gpgcheck=0
+path=/
+enabled=1
+gpgcheck=0
         </value>
         <description>Template of repositories for rhel and suse.</description>
         <on-ambari-upgrade add="true"/>
