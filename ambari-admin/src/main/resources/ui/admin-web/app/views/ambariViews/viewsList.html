@@ -20,7 +20,7 @@
 
     <div class="clearfix">
         <div class="pull-right">
-            <button ng-disabled="views.length === 0" ng-click="createInstance(views[0]);" class="btn btn-default">
+            <button ng-disabled="views.length === 0" ng-click="createInstance();" class="btn btn-default">
                 {{'views.create' | translate}}
             </button>
         </div>
@@ -98,16 +98,35 @@
             <td>
                 <span>{{instance.instance_name}}</span>
             </td>
-            <td class="view-instance-actions">
-                <a href="#/views/{{instance.view_name}}/versions/{{instance.version}}/instances/{{instance.instance_name}}/edit">
-                    <i class="fa fa-pencil"></i>
-                </a>
-                <a href="#/views/{{instance.view_name}}/versions/{{instance.version}}/instances/{{instance.instance_name}}/clone">
-                    <i class="fa fa-copy"></i>
-                </a>
-                <a href ng-click="deleteInstance(instance)">
-                    <i class="fa fa-trash-o"></i>
-                </a>
+            <td class="view-instance-actions" ng-switch="instance.versionObj.status">
+                <span ng-switch-when="PENDING">
+                    <i class="viewstatus pending"></i>
+                    {{'views.pending' | translate}}
+                </span>
+                <span ng-switch-when="DEPLOYING">
+                    <div class="viewstatus deploying">
+                        <div class="rect1"></div>
+                        <div class="rect2"></div>
+                        <div class="rect3"></div>
+                    </div>
+                    {{'views.deploying' | translate}}
+                </span>
+
+                <span ng-switch-when="DEPLOYED">
+                    <a  href="#/views/{{instance.view_name}}/versions/{{instance.version}}/instances/{{instance.instance_name}}/edit">
+                        <i class="fa fa-pencil"></i>
+                    </a>
+                    <a href ng-click="cloneInstance(instance);">
+                        <i class="fa fa-copy"></i>
+                    </a>
+                    <a href ng-click="deleteInstance(instance)">
+                        <i class="fa fa-trash-o"></i>
+                    </a>
+                </span>
+                <span ng-switch-when="ERROR" class="error" tooltip="{{'views.alerts.deployError' | translate}}">
+                    <i class="fa fa-exclamation-triangle"></i>
+                    {{'common.error' | translate}}
+                </span>
             </td>
         </tr>
         </tbody>

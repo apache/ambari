@@ -91,12 +91,6 @@ angular.module('ambariAdminConsole')
       controller: 'ViewsListCtrl',
       label: 'Views'
     },
-    clone: {
-      url: '/views/:viewId/versions/:version/instances/:instanceId/clone',
-      templateUrl: 'views/ambariViews/create.html',
-      controller: 'CloneViewInstanceCtrl',
-      label: 'Views'
-    },
     edit: {
       url: '/views/:viewId/versions/:version/instances/:instanceId/edit',
       templateUrl: 'views/ambariViews/edit.html',

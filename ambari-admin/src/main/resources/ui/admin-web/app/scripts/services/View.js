@@ -286,10 +286,10 @@ angular.module('ambariAdminConsole')
         description: instanceInfo.description
       };
 
-    angular.forEach(instanceInfo.properties, function(property) {
-      if(property.clusterConfig) {
+    angular.forEach(instanceInfo.properties, function (property) {
+      if (property.clusterConfig) {
         properties[property.name] = property.value
-      }else {
+      } else {
         settings[property.name] = property.value
       }
     });
@@ -297,7 +297,7 @@ angular.module('ambariAdminConsole')
     data.properties = settings;
     data.cluster_type = instanceInfo.clusterType;
 
-    if(instanceInfo.clusterId != null) {
+    if (instanceInfo.clusterId != null) {
       data.cluster_handle = instanceInfo.clusterId;
     } else {
       angular.extend(data.properties, properties);

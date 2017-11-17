@@ -100,6 +100,7 @@ angular.module('ambariAdminConsole')
     'common.userManagement': 'User Management',
     'common.admin': 'Admin',
     'common.actions': 'Actions',
+    'common.error': 'Error',
 
     'common.clusterNameChangeConfirmation.title': 'Confirm Cluster Name Change',
     'common.clusterNameChangeConfirmation.message': 'Are you sure you want to change the cluster name to {{clusterName}}?',
@@ -180,7 +181,6 @@ angular.module('ambariAdminConsole')
     'views.viewInstance': 'View Instance',
     'views.create': 'Create Instance',
     'views.clone': 'Clone Instance',
-    'views.createViewInstance': 'Create Instance',
     'views.edit': 'Edit',
     'views.viewName': 'View Name',
     'views.instances': 'Instances',

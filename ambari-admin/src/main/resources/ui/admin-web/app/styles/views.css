@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-.view-instance-actions>a {
+.view-instance-actions a {
   color: inherit;
   font-size: 16px;
   cursor: pointer;
@@ -28,14 +28,20 @@ th.view-instance-actions {
   width: 10%;
 }
 
-.view-instance-actions>a:hover,
-.view-instance-actions>a:visited:hover,
-.view-instance-actions>a:focus:hover {
+.view-instance-actions a:hover,
+.view-instance-actions a:visited:hover,
+.view-instance-actions a:focus:hover {
   text-decoration: none;
 }
 
 #create-instance-form i {
   cursor: pointer;
+}
+
+#create-instance-form .modal-body {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #create-instance-form button.active {
@@ -46,4 +52,72 @@ th.view-instance-actions {
 
 input[type="checkbox"] + label {
   line-height: 18px;
+}
+
+.viewstatus {
+  display: inline-block;
+}
+
+.viewstatus.pending {
+  width: 12px;
+  height: 12px;
+  border: 2px solid black;
+  border-radius: 50%;
+  vertical-align: middle;
+  position: relative;
+}
+
+.viewstatus.pending:before, .viewstatus.pending:after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 3px;
+  width: 5px;
+  height: 2px;
+  background: black;
+}
+
+.viewstatus.pending:after {
+  top: -3px;
+  left: 3px;
+  width: 2px;
+  height: 2px;
+  border-radius: 100%;
+}
+
+.viewstatus.pending:before {
+  -webkit-transform-origin: 0% 50%;
+  -moz-transform-origin: 0% 50%;
+  -ms-transform-origin: 0% 50%;
+  -o-transform-origin: 0% 50%;
+  transform-origin: 0% 50%;
+
+  animation: rotate 2.0s infinite linear;
+  -webkit-animation: rotate 2.0s infinite linear;
+}
+
+.viewstatus.deploying {
+  width: 17px;
+  height: 12px;
+  text-align: center;
+  vertical-align: text-top;
+}
+
+.viewstatus.deploying > div {
+  background: black;
+  height: 100%;
+  width: 3px;
+  display: inline-block;
+  -webkit-animation: stretchdelay 1.2s infinite ease-in-out;
+  animation: stretchdelay 1.2s infinite ease-in-out;
+}
+
+.viewstatus.deploying .rect2 {
+  -webkit-animation-delay: -1.1s;
+  animation-delay: -1.1s;
+}
+
+.viewstatus.deploying .rect3 {
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
 }

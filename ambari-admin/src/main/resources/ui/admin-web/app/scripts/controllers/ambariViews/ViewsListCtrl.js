@@ -54,15 +54,15 @@ angular.module('ambariAdminConsole')
       $scope.views = views;
       $scope.instances = [];
       angular.forEach(views, function (view) {
-        // TODO uncomment if view need status update
-        // angular.forEach(view.versions, function (versionObj, versionNumber) {
-        //   if (versionNeedStatusUpdate(versionObj.status)) {
-        //     checkViewVersionStatus(view, versionObj, versionNumber);
-        //   }
-        // });
+        angular.forEach(view.versions, function (versionObj, versionNumber) {
+          if (versionNeedStatusUpdate(versionObj.status)) {
+            checkViewVersionStatus(view, versionObj, versionNumber);
+          }
+        });
         angular.forEach(view.instances, function (instance) {
           instance.ViewInstanceInfo.short_url_name = instance.ViewInstanceInfo.short_url_name || '';
           instance.ViewInstanceInfo.short_url = instance.ViewInstanceInfo.short_url || '';
+          instance.ViewInstanceInfo.versionObj = view.versions[instance.ViewInstanceInfo.version] || {};
           $scope.instances.push(instance.ViewInstanceInfo);
         });
       });
@@ -166,13 +166,20 @@ angular.module('ambariAdminConsole')
     }
   );
 
-  $scope.createInstance = function () {
+  $scope.cloneInstance = function(instanceClone) {
+    $scope.createInstance(instanceClone);
+  };
+
+  $scope.createInstance = function (instanceClone) {
     var modalInstance = $modal.open({
       templateUrl: 'views/ambariViews/modals/create.html',
       controller: 'CreateViewInstanceCtrl',
       resolve: {
         views: function() {
           return $scope.views;
+        },
+        instanceClone: function() {
+          return instanceClone;
         }
       },
       backdrop: 'static'
