@@ -516,12 +516,7 @@ public class StackV2 {
   }
 
   static <OK, IK, IV> Map<IK, IV> getWithEmptyDefault(Map<OK, Map<IK, IV>> outerMap, OK outerKey) {
-    Map<IK, IV> innerMap = outerMap.get(outerKey);
-    if (null == innerMap) {
-      innerMap = new HashMap<>();
-      outerMap.put(outerKey, innerMap);
-    }
-    return innerMap;
+    return outerMap.computeIfAbsent(outerKey, __ -> new HashMap<>());
   }
 
 

@@ -49,7 +49,7 @@ public interface Configurable {
     if (null != getConfiguration()) {
       configAsMap.put("properties", getConfiguration().getProperties());
     }
-    return Lists.newArrayList(configAsMap);
+    return Lists.newArrayList(configAsMap); // TODO replace with Collections.singletonList?
   }
 
 }
