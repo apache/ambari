@@ -25,14 +25,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandRepository;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
-import org.apache.ambari.server.controller.ActionExecutionContext.ExecutionCommandVisitor;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.OperatingSystemResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
@@ -42,13 +42,18 @@ import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -64,6 +69,7 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+
 
 /**
  * Provides helper methods to manage repository versions.
@@ -81,6 +87,51 @@ public class RepositoryVersionHelper {
 
   @Inject
   private Provider<Configuration> configuration;
+
+  @Inject
+  private Provider<OsFamily> os_family;
+
+  @Inject Provider<Clusters> clusters;
+
+
+  /**
+   * Checks repo URLs against the current version for the cluster and make
+   * adjustments to the Base URL when the current is different.
+   *
+   * @param cluster {@link Cluster} object
+   * @param component resolve {@link RepositoryVersionEntity} for the component, could be {@code null}
+   *
+   * @return {@link RepositoryVersionEntity} retrieved for component if set or cluster if not
+   */
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+  private RepositoryVersionEntity getRepositoryVersionEntity(Cluster cluster, ServiceComponent component) throws SystemException {
+
+    RepositoryVersionEntity repositoryEntity = null;
+
+    // !!! try to find the component repo first
+    if (null != component) {
+      repositoryEntity = component.getDesiredRepositoryVersion();
+    } else {
+      LOG.info("Service component not passed in, attempt to resolve the repository for cluster {}",
+        cluster.getClusterName());
+    }
+
+    if (null == repositoryEntity && null != component) {
+      try {
+        Service service = cluster.getService(component.getServiceName());
+        repositoryEntity = service.getDesiredRepositoryVersion();
+      } catch (AmbariException e) {
+        throw new SystemException("Unhandled exception", e);
+      }
+    }
+
+    if (null == repositoryEntity) {
+      LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
+      return null;
+    }
+
+    return repositoryEntity;
+  }
 
   /**
    * Parses operating systems json to a list of entities. Expects json like:
@@ -310,17 +361,46 @@ public class RepositoryVersionHelper {
     return roleParams;
   }
 
+
+  /**
+   * Return repositories available for target os version on host based on {@code repoVersion} repository definition
+   * @param host target {@link Host} for providing repositories list
+   * @param repoVersion {@link RepositoryVersionEntity} version definition with all available repositories
+   *
+   * @return {@link OperatingSystemEntity} with available repositories for host
+   * @throws SystemException if no repository available for target {@link Host}
+   */
+  public OperatingSystemEntity getOSEntityForHost(Host host, RepositoryVersionEntity repoVersion) throws SystemException {
+    String osFamily = host.getOsFamily();
+    OperatingSystemEntity osEntity = null;
+    for (OperatingSystemEntity operatingSystem : repoVersion.getOperatingSystems()) {
+      if (osFamily.equals(operatingSystem.getOsType())) {
+        osEntity = operatingSystem;
+        break;
+      }
+    }
+
+    if (null == osEntity) {
+      throw new SystemException(String.format("Operating System matching %s could not be found",
+        osFamily));
+    }
+
+    return osEntity;
+  }
+
   /**
    * Adds a command repository to the action context
-   * @param context       the context
    * @param osEntity      the OS family
-   * @param repoVersion   the repository version entity
    */
-  public void addCommandRepository(ActionExecutionContext context, Cluster cluster,
-      RepositoryVersionEntity repoVersion, OperatingSystemEntity osEntity) {
+  public CommandRepository getCommandRepository(final RepositoryVersionEntity repoVersion,
+                                                final OperatingSystemEntity osEntity) throws SystemException {
 
     final CommandRepository commandRepo = new CommandRepository();
-    boolean sysPreppedHost = configuration.get().areHostsSysPrepped().equalsIgnoreCase("true");
+    final boolean sysPreppedHost = configuration.get().areHostsSysPrepped().equalsIgnoreCase("true");
+
+    if (null == repoVersion) {
+      throw new SystemException("Repository version entity is not provided");
+    }
 
     commandRepo.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
     commandRepo.setRepositoryVersion(repoVersion.getVersion());
@@ -347,10 +427,202 @@ public class RepositoryVersionHelper {
       LOG.warn("Legacy override option is turned on, disabling CommandRepositoryFeature.scoped feature");
       commandRepo.getFeature().setIsScoped(false);
     }
+    return commandRepo;
+  }
+
+
+  /**
+   * Builds repository information for inclusion in a command.  This replaces escaping json on
+   * a command.
+   *
+   * @param cluster the cluster
+   * @param host    the host
+   * @param component {@link ServiceComponent} object, could be null to return service-related repository
+   * @return  the command repository
+   * @throws SystemException
+   */
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
+  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, final Host host)
+    throws SystemException {
+
+    RepositoryVersionEntity repoVersion = getRepositoryVersionEntity(cluster, component);
+    OperatingSystemEntity osEntity = getOSEntityForHost(host, repoVersion);
+
+    return getCommandRepository(repoVersion, osEntity);
+  }
+
+  /**
+   * This method builds and adds repo infoto hostLevelParams of action
+   *
+   * @param cluster cluster to which host level params belongs
+   * @param actionContext context of the action. Must be not {@code null}
+   * @param repositoryVersion repository version entity to use
+   * @param hostLevelParams hasgmap with host level params. Must be not {@code null}
+   * @param hostName host name to which add repo onfo
+   * @throws AmbariException
+   */
+  @Deprecated
+  public void addRepoInfoToHostLevelParams(final Cluster cluster, final ActionExecutionContext actionContext,
+                                           final RepositoryVersionEntity repositoryVersion, final Map<String, String> hostLevelParams,
+                                           final String hostName) throws AmbariException {
+
+    // if the repo is null, see if any values from the context should go on the
+    // host params and then return
+    if (null == repositoryVersion) {
+      // see if the action context has a repository set to use for the command
+      if (null != actionContext.getRepositoryVersion()) {
+        StackId stackId = actionContext.getRepositoryVersion().getStackId();
+        hostLevelParams.put(KeyNames.STACK_NAME, stackId.getStackName());
+        hostLevelParams.put(KeyNames.STACK_VERSION, stackId.getStackVersion());
+      }
+
+      return;
+    } else {
+      StackId stackId = repositoryVersion.getStackId();
+      hostLevelParams.put(KeyNames.STACK_NAME, stackId.getStackName());
+      hostLevelParams.put(KeyNames.STACK_VERSION, stackId.getStackVersion());
+    }
+
+    JsonObject rootJsonObject = new JsonObject();
+    JsonArray repositories = new JsonArray();
+
+    String hostOsFamily = cluster.getHost(hostName).getOsFamily();
+    for (OperatingSystemEntity operatingSystemEntity : repositoryVersion.getOperatingSystems()) {
+      // ostype in OperatingSystemEntity it's os family. That should be fixed
+      // in OperatingSystemEntity.
+      if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
+        for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+          JsonObject repositoryInfo = new JsonObject();
+          repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
+          repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
+          repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
+
+          repositories.add(repositoryInfo);
+        }
+        rootJsonObject.add("repositories", repositories);
+      }
+    }
+    hostLevelParams.put(KeyNames.REPO_INFO, rootJsonObject.toString());
+  }
+
+
+  /**
+   * Get repository info given a cluster and host.
+   *
+   * @param cluster  the cluster
+   * @param host     the host
+   *
+   * @return the repo info
+   *
+   * @deprecated use {@link #getCommandRepository(Cluster, ServiceComponent, Host)} instead.
+   * @throws SystemException if the repository information can not be obtained
+   */
+  @Deprecated
+  public String getRepoInfo(Cluster cluster, ServiceComponent component, Host host) throws SystemException {
+    final JsonArray jsonList = getBaseUrls(cluster, component, host);
+    final RepositoryVersionEntity rve = getRepositoryVersionEntity(cluster, component);
+
+    if (null == rve || null == jsonList) {
+      return "";
+    }
+
+    final JsonArray result = new JsonArray();
+
+    for (JsonElement e : jsonList) {
+      JsonObject obj = e.getAsJsonObject();
+
+      String repoId = obj.has("repoId") ? obj.get("repoId").getAsString() : null;
+      String repoName = obj.has("repoName") ? obj.get("repoName").getAsString() : null;
+      String baseUrl = obj.has("baseUrl") ? obj.get("baseUrl").getAsString() : null;
+      String osType = obj.has("osType") ? obj.get("osType").getAsString() : null;
+
+      if (null == repoId || null == baseUrl || null == osType || null == repoName) {
+        continue;
+      }
+
+      for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
+        if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
+          for (RepositoryEntity re : ose.getRepositories()) {
+            if (re.getName().equals(repoName) &&
+              !re.getBaseUrl().equals(baseUrl)) {
+              obj.addProperty("baseUrl", re.getBaseUrl());
+            }
+          }
+          result.add(e);
+        }
+      }
+    }
+    return result.toString();
+  }
+
+
+  /**
+   * Executed by two different representations of repos.  When we are comfortable with the new
+   * implementation, this may be removed and called inline in {@link #getCommandRepository(Cluster, ServiceComponent, Host)}
+   *
+   * @param cluster   the cluster to isolate the stack
+   * @param component the component
+   * @param host      used to resolve the family for the repositories
+   * @return JsonArray the type as defined by the supplied {@code function}.
+   * @throws SystemException
+   */
+  @Deprecated
+  private JsonArray getBaseUrls(Cluster cluster, ServiceComponent component, Host host) throws SystemException {
+
+    String hostOsType = host.getOsType();
+    String hostOsFamily = host.getOsFamily();
+    String hostName = host.getHostName();
+
+    StackId stackId = component.getDesiredStackId();
+    Map<String, List<RepositoryInfo>> repos;
+
+    try {
+      repos = ami.get().getRepository(stackId.getStackName(), stackId.getStackVersion());
+    }catch (AmbariException e) {
+      throw new SystemException("Unhandled exception", e);
+    }
+
+    String family = os_family.get().find(hostOsType);
+    if (null == family) {
+      family = hostOsFamily;
+    }
+
+    final List<RepositoryInfo> repoInfoList;
+
+    // !!! check for the most specific first
+    if (repos.containsKey(hostOsType)) {
+      repoInfoList = repos.get(hostOsType);
+    } else if (null != family && repos.containsKey(family)) {
+      repoInfoList = repos.get(family);
+    } else {
+      repoInfoList = null;
+      LOG.warn("Could not retrieve repo information for host"
+        + ", hostname=" + hostName
+        + ", clusterName=" + cluster.getClusterName()
+        + ", stackInfo=" + stackId.getStackId());
+    }
+
+    return (null == repoInfoList) ? null : (JsonArray) gson.toJsonTree(repoInfoList);
+  }
+
+
+  /**
+   * Adds a command repository to the action context
+   * @param context       the context
+   * @param osEntity      the OS family
+   */
+  public void addCommandRepositoryToContext(ActionExecutionContext context,
+                                            OperatingSystemEntity osEntity) throws SystemException {
+
+    final RepositoryVersionEntity repoVersion = context.getRepositoryVersion();
+    final CommandRepository commandRepo = getCommandRepository(repoVersion, osEntity);
 
     ClusterVersionSummary summary = null;
+
     if (RepositoryType.STANDARD != repoVersion.getType()) {
       try {
+        final Cluster cluster = clusters.get().getCluster(context.getClusterName());
+
         VersionDefinitionXml xml = repoVersion.getRepositoryXml();
         summary = xml.getClusterSummary(cluster);
       } catch (Exception e) {
@@ -360,23 +632,21 @@ public class RepositoryVersionHelper {
 
     final ClusterVersionSummary clusterSummary = summary;
 
-    context.addVisitor(new ExecutionCommandVisitor() {
-      @Override
-      public void visit(ExecutionCommand command) {
-        if (null == command.getRepositoryFile()) {
-          command.setRepositoryFile(commandRepo);
-        }
 
-        if (null != clusterSummary) {
-          Map<String, Object> params = command.getRoleParameters();
-          if (null == params) {
-            params = new HashMap<>();
-            command.setRoleParameters(params);
-          }
-          params.put(KeyNames.CLUSTER_VERSION_SUMMARY, clusterSummary);
-        }
-
+    context.addVisitor(command -> {
+      if (null == command.getRepositoryFile()) {
+        command.setRepositoryFile(commandRepo);
       }
+
+      if (null != clusterSummary) {
+        Map<String, Object> params = command.getRoleParameters();
+        if (null == params) {
+          params = new HashMap<>();
+          command.setRoleParameters(params);
+        }
+        params.put(KeyNames.CLUSTER_VERSION_SUMMARY, clusterSummary);
+      }
+
     });
   }
 

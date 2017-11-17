@@ -1913,8 +1913,53 @@ public class ClusterStackVersionResourceProviderTest {
      stackEntity.setStackName("HDP");
      stackEntity.setStackVersion("2.1.1");
 
-     File f = new File("src/test/resources/hbase_version_test.xml");
-     String xmlString = IOUtils.toString(new FileInputStream(f));
+     String hbaseVersionTestXML = "\n" +
+       "<repository-version xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+       "  xsi:noNamespaceSchemaLocation=\"version_definition.xsd\">\n" +
+       "  \n" +
+       "  <release>\n" +
+       "    <type>PATCH</type>\n" +
+       "    <stack-id>HDP-2.3</stack-id>\n" +
+       "    <version>2.3.4.0</version>\n" +
+       "    <build>3396</build>\n" +
+       "    <compatible-with>2.3.2.[0-9]</compatible-with>\n" +
+       "    <release-notes>http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/</release-notes>\n" +
+       "  </release>\n" +
+       "  \n" +
+       "  <manifest>\n" +
+       "    <service id=\"HBASE-112\" name=\"HBASE\" version=\"1.1.2\" version-id=\"2_3_4_0-3396\" />\n" +
+       "  </manifest>\n" +
+       "  \n" +
+       "  <available-services>\n" +
+       "    <service idref=\"HBASE-112\" />\n" +
+       "  </available-services>\n" +
+       "  \n" +
+       "  <repository-info>\n" +
+       "    <os family=\"redhat6\">\n" +
+       "      <package-version>2_3_4_0_3396</package-version>\n" +
+       "      <repo>\n" +
+       "        <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.4.0</baseurl>\n" +
+       "        <repoid>HDP-2.3</repoid>\n" +
+       "        <reponame>HDP</reponame>\n" +
+       "        <unique>true</unique>\n" +
+       "      </repo>\n" +
+       "      <repo>\n" +
+       "        <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6</baseurl>\n" +
+       "        <repoid>HDP-UTILS-1.1.0.20</repoid>\n" +
+       "        <reponame>HDP-UTILS</reponame>\n" +
+       "        <unique>false</unique>\n" +
+       "      </repo>\n" +
+       "    </os>\n" +
+       "  </repository-info>\n" +
+       "  \n" +
+       "  <upgrade>\n" +
+       "    <configuration type=\"hdfs-site\">\n" +
+       "      <set key=\"foo\" value=\"bar\" />\n" +
+       "    </configuration>\n" +
+       "  </upgrade>\n" +
+       "</repository-version>";
+
+     String xmlString = hbaseVersionTestXML;
      // hack to remove ZK
      xmlString = xmlString.replace("<service idref=\"ZOOKEEPER-346\" />", "");
 
@@ -2013,7 +2058,7 @@ public class ClusterStackVersionResourceProviderTest {
      expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
      .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
-     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).anyTimes();
      expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(
          hostsForCluster).anyTimes();
 
