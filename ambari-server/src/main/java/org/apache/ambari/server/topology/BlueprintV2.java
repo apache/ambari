@@ -21,6 +21,7 @@ package org.apache.ambari.server.topology;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -124,11 +125,10 @@ public interface BlueprintV2 {
    * Get the components that are included in the blueprint for the specified service.
    *
    * @param serviceId  serviceId
-   *
-   * @return collection of component names for the service.  Will not return null.
+   * @return set of component names for the service.  Will not return null.
    */
   @Nonnull
-  Collection<String> getComponentNames(ServiceId serviceId);
+  Set<String> getComponentNames(ServiceId serviceId);
 
   /**
    * Get the component names s that are included in the blueprint for the specified service.

@@ -291,8 +291,8 @@ public class BlueprintImplV2 implements BlueprintV2 {
 
   @Nonnull
   @Override
-  public Collection<String> getComponentNames(ServiceId serviceId) {
-    return getComponents(serviceId).stream().map(ComponentV2::getName).collect(toList());
+  public Set<String> getComponentNames(ServiceId serviceId) {
+    return getComponents(serviceId).stream().map(ComponentV2::getName).collect(toSet());
   }
 
   @Override

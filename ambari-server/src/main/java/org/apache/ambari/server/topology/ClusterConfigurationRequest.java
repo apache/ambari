@@ -179,7 +179,7 @@ public class ClusterConfigurationRequest {
       // generate principals & keytabs for headless identities
       AmbariContext.getController().getKerberosHelper()
         .ensureHeadlessIdentities(cluster, existingConfigurations,
-          new HashSet(blueprint.getAllServices()));
+          new HashSet<>(blueprint.getAllServiceNames()));
 
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
@@ -238,13 +238,10 @@ public class ClusterConfigurationRequest {
     Map<String, Set<String>> serviceComponents = new HashMap<>();
     Collection<Service> services = blueprint.getAllServices();
 
-    if(services != null) {
+    if (services != null) {
       for (Service service : services) {
-        Collection<ComponentV2> components = blueprint.getComponents(service);
-        serviceComponents.put(service.getType(),
-            (components == null)
-                ? Collections.emptySet()
-                : new HashSet(blueprint.getComponents(service)));
+        ServiceId serviceId = service.getId();
+        serviceComponents.put(service.getType(), blueprint.getComponentNames(serviceId));
       }
     }
 
