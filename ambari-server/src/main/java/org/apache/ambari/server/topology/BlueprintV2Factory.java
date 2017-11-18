@@ -102,13 +102,13 @@ public class BlueprintV2Factory {
   }
 
   public BlueprintV2 convertFromJson(String json) throws IOException {
-    BlueprintImplV2 blueprintV2 = getObjectMapper().readValue(json, BlueprintImplV2.class);
+    BlueprintV2Impl blueprintV2 = getObjectMapper().readValue(json, BlueprintV2Impl.class);
     blueprintV2.postDeserialization();
     updateStacks(blueprintV2);
     return blueprintV2;
   }
 
-  private void updateStacks(BlueprintImplV2 blueprintV2) {
+  private void updateStacks(BlueprintV2Impl blueprintV2) {
     Map<StackId, StackV2> stacks = blueprintV2.getRepositoryVersions().stream().collect(Collectors.toMap(
       rv -> new StackId(rv.getStackId()),
       rv -> parseStack(new StackId(rv.getStackId()), rv.getRepositoryVersion())
@@ -165,7 +165,7 @@ public class BlueprintV2Factory {
     }
     ObjectMapper om = getObjectMapper();
     String json = om.writeValueAsString(properties);
-    BlueprintImplV2 blueprint = om.readValue(json, BlueprintImplV2.class);
+    BlueprintV2Impl blueprint = om.readValue(json, BlueprintV2Impl.class);
     blueprint.postDeserialization();
     updateStacks(blueprint);
     blueprint.setSecurityConfiguration(securityConfiguration);

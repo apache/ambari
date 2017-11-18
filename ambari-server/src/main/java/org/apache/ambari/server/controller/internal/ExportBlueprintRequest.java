@@ -144,7 +144,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
       hostGroups.add(new HostGroupImpl(exportedHostGroup.getName(), bpName, stack, componentList,
           exportedHostGroup.getConfiguration(), String.valueOf(exportedHostGroup.getCardinality())));
     }
-    //blueprint = new BlueprintImplV2(bpName, hostGroups, stack, configuration, null);
+    //blueprint = new BlueprintV2Impl(bpName, hostGroups, stack, configuration, null);
   }
 
   private void createHostGroupInfo(Collection<ExportedHostGroup> exportedHostGroups) {

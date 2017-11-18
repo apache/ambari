@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Blueprint implementation.
  */
-public class BlueprintImplV2 implements BlueprintV2 {
+public class BlueprintV2Impl implements BlueprintV2 {
 
   private String name;
   private SecurityConfiguration securityConfiguration;

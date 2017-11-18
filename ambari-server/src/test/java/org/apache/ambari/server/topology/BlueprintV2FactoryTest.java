@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.anyString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -39,7 +40,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 
-public class BlueprintImplV2Test {
+public class BlueprintV2FactoryTest {
 
   static String BLUEPRINTV2_JSON;
   static String BLUEPRINTV2_2_JSON;
@@ -55,13 +56,12 @@ public class BlueprintImplV2Test {
   @Before
   public void setUp() throws Exception {
     StackV2Factory stackFactory = mock(StackV2Factory.class);
-    when(stackFactory.create(any(StackId.class))).thenAnswer(invocation -> {
+    when(stackFactory.create(any(StackId.class), anyString())).thenAnswer(invocation -> {
       StackId stackId = invocation.getArgumentAt(0, StackId.class);
-      StackV2 stack = new StackV2(stackId.getStackName(), stackId.getStackVersion(), stackId.getStackVersion() + ".0-1",
+      return new StackV2(stackId.getStackName(), stackId.getStackVersion(), invocation.getArgumentAt(1, String.class),
         new HashMap<>(), new HashMap<>(), new HashMap<>(),
         new HashMap<>(), new HashMap<>(), new HashMap<>(),
         new HashMap<>(), new HashMap<>(), new HashMap<>());
-      return stack;
     });
     blueprintFactory = BlueprintV2Factory.create(stackFactory);
     blueprintFactory.setPrettyPrintJson(true);
