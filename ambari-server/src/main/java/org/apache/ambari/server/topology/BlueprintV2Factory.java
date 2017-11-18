@@ -173,7 +173,7 @@ public class BlueprintV2Factory {
   }
 
   public boolean isPrettyPrintJson() {
-    return objectMapper.isEnabled(SerializationFeature.INDENT_OUTPUT);;
+    return objectMapper.isEnabled(SerializationFeature.INDENT_OUTPUT);
   }
 
   public void setPrettyPrintJson(boolean prettyPrintJson) {

@@ -52,7 +52,7 @@ public class BlueprintV2Impl implements BlueprintV2 {
   private Collection<RepositoryVersion> repositoryVersions = new ArrayList<>(0);
   private Map<String, ServiceGroup> serviceGroups;
   private Setting setting;
-  private final Configuration configuration = new Configuration(new HashMap<>(), new HashMap<>());;
+  private final Configuration configuration = new Configuration(new HashMap<>(), new HashMap<>());
 
   // Transient fields
   @JsonIgnore
@@ -320,10 +320,8 @@ public class BlueprintV2Impl implements BlueprintV2 {
 
   @Override
   public boolean shouldSkipFailure() {
-    Optional<String> shouldSkipFailure = setting.getSettingValue(
-      Setting.SETTING_NAME_DEPLOYMENT_SETTINGS,
-      Setting.SETTING_NAME_SKIP_FAILURE);
-    return shouldSkipFailure.isPresent() ? shouldSkipFailure.get().equalsIgnoreCase("true") : false;
+    return setting.getSettingValue(Setting.SETTING_NAME_DEPLOYMENT_SETTINGS, Setting.SETTING_NAME_SKIP_FAILURE)
+      .map(Boolean::parseBoolean).orElse(false);
   }
 
   @Override

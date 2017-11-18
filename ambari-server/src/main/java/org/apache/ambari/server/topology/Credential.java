@@ -19,9 +19,10 @@
 
 package org.apache.ambari.server.topology;
 
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.ambari.server.security.encryption.CredentialStoreType;
 
 /**
  * Holds credential info submitted in a cluster create template.
