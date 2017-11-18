@@ -19,15 +19,10 @@
 package org.apache.ambari.server.state;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.state.stack.RepoTag;
-import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
