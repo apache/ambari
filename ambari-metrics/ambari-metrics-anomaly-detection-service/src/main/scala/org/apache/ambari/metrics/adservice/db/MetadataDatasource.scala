@@ -44,6 +44,12 @@ trait MetadataDatasource {
     */
   def get(key: Key): Option[Value]
 
+  /**
+    * This function obtains all the values
+    *
+    * @return the list of values
+    */
+  def getAll: List[Value]
 
   /**
     * This function associates a key to a value, overwriting if necessary

@@ -42,7 +42,7 @@ class AnomalyDetectionAppConfig extends Configuration {
   private val metricCollectorConfiguration = new MetricCollectorConfiguration
 
   /*
-   Anomaly Service configuration
+   Anomaly Query Service configuration
     */
   @Valid
   private val adServiceConfiguration = new AdServiceConfiguration
@@ -54,7 +54,7 @@ class AnomalyDetectionAppConfig extends Configuration {
   private val metricDefinitionDBConfiguration = new MetricDefinitionDBConfiguration
 
   /*
-   HBase Conf
+   AMS HBase Conf
     */
   @JsonIgnore
   def getHBaseConf : org.apache.hadoop.conf.Configuration = {

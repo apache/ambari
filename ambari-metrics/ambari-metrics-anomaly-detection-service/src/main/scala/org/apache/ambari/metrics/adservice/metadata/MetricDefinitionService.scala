@@ -17,7 +17,9 @@
 
 package org.apache.ambari.metrics.adservice.metadata
 
-trait MetricDefinitionService {
+import org.apache.ambari.metrics.adservice.service.AbstractADService
+
+trait MetricDefinitionService extends AbstractADService{
 
   /**
     * Given a 'UUID', return the metric key associated with it.
@@ -25,6 +27,12 @@ trait MetricDefinitionService {
     * @return
     */
   def getMetricKeyFromUuid(uuid: Array[Byte]) : MetricKey
+
+  /**
+    * Return all the definitions being tracked.
+    * @return Map of Metric Source Definition name to Metric Source Definition.
+    */
+  def getDefinitions: List[MetricSourceDefinition]
 
   /**
     * Given a component definition name, return the definition associated with it.
@@ -60,5 +68,11 @@ trait MetricDefinitionService {
     * @return
     */
   def getDefinitionByAppId(appId: String) : List[MetricSourceDefinition]
+
+  /**
+    * Return the mapping between definition name to set of metric keys.
+    * @return Map of Metric Source Definition to set of metric keys associated with it.
+    */
+  def getMetricKeys:  Map[String, Set[MetricKey]]
 
 }
