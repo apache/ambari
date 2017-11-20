@@ -17,14 +17,16 @@
 
 package org.apache.ambari.metrics.adservice.metadata
 
-import java.net.{HttpURLConnection, URL}
+import javax.ws.rs.core.Response
 
 import org.apache.ambari.metrics.adservice.configuration.MetricCollectorConfiguration
 import org.apache.commons.lang.StringUtils
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricKey
+import org.slf4j.{Logger, LoggerFactory}
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
+
+import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 /**
   * Class to invoke Metrics Collector metadata API.
@@ -36,6 +38,7 @@ class ADMetadataProvider extends MetricMetadataProvider {
   var metricCollectorPort: String = _
   var metricCollectorProtocol: String = _
   var metricMetadataPath: String = "/v1/timeline/metrics/metadata/keys"
+  val LOG : Logger = LoggerFactory.getLogger(classOf[ADMetadataProvider])
 
   val connectTimeout: Int = 10000
   val readTimeout: Int = 10000
@@ -52,10 +55,8 @@ class ADMetadataProvider extends MetricMetadataProvider {
     metricMetadataPath = configuration.getMetadataEndpoint
   }
 
-  override def getMetricKeysForDefinitions(metricSourceDefinition: MetricSourceDefinition): (Map[MetricDefinition,
-    Set[MetricKey]], Set[MetricKey]) = {
+  override def getMetricKeysForDefinitions(metricSourceDefinition: MetricSourceDefinition): Set[MetricKey] = {
 
-    val keysMap = scala.collection.mutable.Map[MetricDefinition, Set[MetricKey]]()
     val numDefinitions: Int = metricSourceDefinition.metricDefinitions.size
     val metricKeySet: scala.collection.mutable.Set[MetricKey] = scala.collection.mutable.Set.empty[MetricKey]
 
@@ -64,52 +65,79 @@ class ADMetadataProvider extends MetricMetadataProvider {
         for (host <- metricCollectorHosts) {
           val metricKeys: Set[MetricKey] = getKeysFromMetricsCollector(metricCollectorProtocol, host, metricCollectorPort, metricMetadataPath, metricDef)
           if (metricKeys != null) {
-            keysMap += (metricDef -> metricKeys)
-            metricKeySet.++(metricKeys)
+            metricKeySet.++=(metricKeys)
           }
         }
       }
     }
-    (keysMap.toMap, metricKeySet.toSet)
+    metricKeySet.toSet
   }
 
   /**
-    * Make Metrics Collector REST API call to fetch keys.
     *
-    * @param url
+    * @param protocol
+    * @param host
+    * @param port
+    * @param path
     * @param metricDefinition
     * @return
     */
   def getKeysFromMetricsCollector(protocol: String, host: String, port: String, path: String, metricDefinition: MetricDefinition): Set[MetricKey] = {
 
-    val url: String = protocol + "://" + host + port + "/" + path
+    val url: String = protocol + "://" + host + ":" + port + path
     val mapper = new ObjectMapper() with ScalaObjectMapper
-    try {
-      val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
-      connection.setConnectTimeout(connectTimeout)
-      connection.setReadTimeout(readTimeout)
-      connection.setRequestMethod("GET")
-      val inputStream = connection.getInputStream
-      val content = scala.io.Source.fromInputStream(inputStream).mkString
-      if (inputStream != null) inputStream.close()
-      val metricKeySet: Set[MetricKey] = fromTimelineMetricKey(mapper.readValue[java.util.Set[TimelineMetricKey]](content))
-      return metricKeySet
-    } catch {
-      case _: java.io.IOException | _: java.net.SocketTimeoutException => // handle this
+
+    if (metricDefinition.hosts == null || metricDefinition.hosts.isEmpty) {
+      val request: HttpRequest = Http(url)
+        .param("metricName", metricDefinition.metricName)
+        .param("appId", metricDefinition.appId)
+      makeHttpGetCall(request, mapper)
+    } else {
+      val metricKeySet: scala.collection.mutable.Set[MetricKey] = scala.collection.mutable.Set.empty[MetricKey]
+
+      for (h <- metricDefinition.hosts) {
+        val request: HttpRequest = Http(url)
+          .param("metricName", metricDefinition.metricName)
+          .param("appId", metricDefinition.appId)
+          .param("hostname", h)
+
+        val metricKeys = makeHttpGetCall(request, mapper)
+        metricKeySet.++=(metricKeys)
+      }
+      metricKeySet.toSet
     }
-    null
   }
 
-  def fromTimelineMetricKey(timelineMetricKeys: java.util.Set[TimelineMetricKey]): Set[MetricKey] = {
+  private def makeHttpGetCall(request: HttpRequest, mapper: ObjectMapper): Set[MetricKey] = {
+
+    try {
+      val result: HttpResponse[String] = request.asString
+      if (result.code == Response.Status.OK.getStatusCode) {
+        LOG.info("Successfully fetched metric keys from metrics collector")
+        val metricKeySet: java.util.Set[java.util.Map[String, String]] = mapper.readValue(result.body,
+          classOf[java.util.Set[java.util.Map[String, String]]])
+        getMetricKeys(metricKeySet)
+      } else {
+        LOG.error("Got an error when trying to fetch metric key from metrics collector. Code = " + result.code + ", Message = " + result.body)
+      }
+    } catch {
+      case _: java.io.IOException | _: java.net.SocketTimeoutException => LOG.error("Unable to fetch metric keys from Metrics collector for : " + request.toString)
+    }
+    Set.empty[MetricKey]
+  }
+
+
+  def getMetricKeys(timelineMetricKeys: java.util.Set[java.util.Map[String, String]]): Set[MetricKey] = {
     val metricKeySet: scala.collection.mutable.Set[MetricKey] = scala.collection.mutable.Set.empty[MetricKey]
     val iter = timelineMetricKeys.iterator()
     while (iter.hasNext) {
-      val timelineMetricKey: TimelineMetricKey = iter.next()
-      val metricKey: MetricKey = MetricKey(timelineMetricKey.metricName,
-        timelineMetricKey.appId,
-        timelineMetricKey.instanceId,
-        timelineMetricKey.hostName,
-        timelineMetricKey.uuid)
+      val timelineMetricKey: java.util.Map[String, String] = iter.next()
+      val metricKey: MetricKey = MetricKey(
+        timelineMetricKey.get("metricName"),
+        timelineMetricKey.get("appId"),
+        timelineMetricKey.get("instanceId"),
+        timelineMetricKey.get("hostname"),
+        timelineMetricKey.get("uuid").getBytes())
 
       metricKeySet.add(metricKey)
     }

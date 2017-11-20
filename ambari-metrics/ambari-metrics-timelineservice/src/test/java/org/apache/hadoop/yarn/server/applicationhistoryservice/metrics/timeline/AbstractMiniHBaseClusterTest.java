@@ -45,7 +45,7 @@ import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
-import org.apache.hadoop.metrics2.sink.timeline.query.PhoenixConnectionProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixConnectionProvider;
 import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -215,17 +215,6 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
 
           @Override
           public Connection getConnection() {
-            Connection connection = null;
-            try {
-              connection = DriverManager.getConnection(getUrl());
-            } catch (SQLException e) {
-              LOG.warn("Unable to connect to HBase store using Phoenix.", e);
-            }
-            return connection;
-          }
-
-          @Override
-          public Connection getConnectionRetryingOnException(RetryCounterFactory retryCounterFactory) throws SQLException, InterruptedException {
             Connection connection = null;
             try {
               connection = DriverManager.getConnection(getUrl());
