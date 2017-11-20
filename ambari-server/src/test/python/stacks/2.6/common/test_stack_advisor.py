@@ -1949,6 +1949,17 @@ class TestHDP26StackAdvisor(TestCase):
     self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)
     self.assertEquals(recommendedConfigurations, expected)
 
+    # case there are not druid-common configs present
+    del services['configurations']['druid-common']
+    expected['hive-interactive-site']['properties']['hive.druid.broker.address.default'] = 'c6401.ambari.apache.org:8083'
+    expected['hive-interactive-site']['properties']['hive.druid.metadata.uri'] = ''
+    expected['hive-interactive-site']['properties']['hive.druid.metadata.username'] = ''
+    expected['hive-interactive-site']['properties']['hive.druid.metadata.db.type'] = ''
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendHIVEConfigurations(recommendedConfigurations, clusterData, services, hosts)
+    self.assertEquals(recommendedConfigurations, expected)
+
 
   def test_recommendHBASEConfigurations(self):
     configurations = {
