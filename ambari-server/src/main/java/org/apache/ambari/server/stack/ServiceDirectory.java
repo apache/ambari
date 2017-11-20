@@ -92,6 +92,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   protected File checksDir;
 
   /**
+   * server side action directory path
+   */
+  protected File serverActionsDir;
+
+  /**
    * service metainfo file object representation
    */
   private ServiceMetainfoXml metaInfoXml;
@@ -115,6 +120,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    * checks directory name
    */
   protected static final String CHECKS_FOLDER_NAME = "checks";
+
+  /**
+   * Server actions directory name
+   */
+  protected static final String SERVER_ACTIONS_FOLDER_NAME = "server_actions";
 
   /**
    * service metainfo file name
@@ -168,6 +178,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   public File getChecksDir() {
     return checksDir;
+  }
+
+  /**
+   * Obtain the server side actions directory path.
+   *
+   * @return server side actions directory path
+   */
+  public File getServerActionsDir() {
+    return serverActionsDir;
   }
 
   /**
@@ -302,6 +321,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
 	  calculatePackageDirectory(stack, service);
 	  calculateUpgradesDirectory(stack, service);
 	  calculateChecksDirectory(stack, service);
+	  calculateServerActionsDirectory(stack, service);
   }
 
   /**
@@ -374,6 +394,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   protected void calculateChecksDirectory(String stack, String service) {
     checksDir = resolveDirectory(CHECKS_FOLDER_NAME, stack, service);
+  }
+
+  /**
+   * Sets the serverActionsDir if the dir exists and is not empty
+   * @param stack
+   * @param service
+   */
+  protected void calculateServerActionsDirectory(String stack, String service) {
+    serverActionsDir = resolveDirectory(SERVER_ACTIONS_FOLDER_NAME, stack, service);
   }
 
   /**

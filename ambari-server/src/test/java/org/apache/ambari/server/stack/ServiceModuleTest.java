@@ -467,6 +467,36 @@ public class ServiceModuleTest {
   }
 
   @Test
+  public void testResolve_ServerActionDirectory() throws Exception {
+    File serverActions = new File("server_actions");
+
+    // check directory specified in child only
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    ServiceModule child = createServiceModule(info);
+    ServiceModule parent = createServiceModule(parentInfo);
+    child.getModuleInfo().setServerActionsFolder(serverActions);
+    resolveService(child, parent);
+    assertEquals(serverActions.getPath(), child.getModuleInfo().getServerActionsFolder().getPath());
+
+    // check directory specified in parent only
+    child = createServiceModule(info);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setServerActionsFolder(serverActions);
+    resolveService(child, parent);
+    assertEquals(serverActions.getPath(), child.getModuleInfo().getServerActionsFolder().getPath());
+
+    // check directory set in both
+    info.setServerActionsFolder(serverActions);
+    child = createServiceModule(info);
+    child.getModuleInfo().setServerActionsFolder(serverActions);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setServerActionsFolder(new File("other"));
+    resolveService(child, parent);
+    assertEquals(serverActions.getPath(), child.getModuleInfo().getServerActionsFolder().getPath());
+  }
+
+  @Test
   public void testResolve_CustomCommands() throws Exception {
     List<CustomCommandDefinition> customCommands = new ArrayList<CustomCommandDefinition>();
     CustomCommandDefinition cmd1 = new CustomCommandDefinition();

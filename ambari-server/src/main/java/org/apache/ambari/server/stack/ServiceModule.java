@@ -144,6 +144,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
     serviceInfo.setServiceUpgradesFolder(serviceDirectory.getUpgradesDir());
     serviceInfo.setChecksFolder(serviceDirectory.getChecksDir());
+    serviceInfo.setServerActionsFolder(serviceDirectory.getServerActionsDir());
     serviceInfo.setAdvisorFile(serviceDirectory.getAdvisorFile());
     serviceInfo.setAdvisorName(serviceDirectory.getAdvisorName(serviceInfo.getName()));
 
@@ -257,6 +258,13 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
     if (serviceInfo.getChecksFolder() == null) {
       serviceInfo.setChecksFolder(parent.getChecksFolder());
+    }
+
+    /*
+     * Use parent's server actions if the current one does not have any.
+     */
+    if (serviceInfo.getServerActionsFolder() == null) {
+      serviceInfo.setServerActionsFolder(parent.getServerActionsFolder());
     }
 
     /**
