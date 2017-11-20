@@ -18,13 +18,16 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
 
 public interface Configurable {
   void setConfiguration(Configuration configuration);
@@ -34,10 +37,10 @@ public interface Configurable {
   default void setConfigs(Collection<Map<String, Map<String, Map<String, String>>>> configs) {
     if (null != configs) {
       Map<String, Map<String, String>> allProps = configs.stream().
-        filter( map -> map != null && !map.isEmpty() && map.values().iterator().next().get("properties ") != null).
-        collect(Collectors.toMap(
+        filter(map -> map != null && !map.isEmpty() && map.values().iterator().next().get(Configuration.PROPERTIES_KEY) != null).
+        collect(toMap(
           config -> config.keySet().iterator().next(),
-          config -> config.values().iterator().next().get("properties")
+          config -> config.values().iterator().next().get(Configuration.PROPERTIES_KEY)
         ));
       setConfiguration(new Configuration(allProps, new HashMap<>()));
     }
@@ -45,11 +48,12 @@ public interface Configurable {
 
   @JsonProperty("configurations")
   default Collection<Map<String, Map<String, Map<String, String>>>> getConfigs() {
-    Map<String, Map<String, Map<String, String>>> configAsMap = new HashMap<>();
-    if (null != getConfiguration()) {
-      configAsMap.put("properties", getConfiguration().getProperties());
-    }
-    return Lists.newArrayList(configAsMap); // TODO replace with Collections.singletonList?
+    Configuration config = getConfiguration();
+    return config != null
+      ? config.getProperties().entrySet().stream()
+        .map(e -> singletonMap(e.getKey(), singletonMap(Configuration.PROPERTIES_KEY, e.getValue())))
+        .collect(toList())
+      : Collections.emptyList();
   }
 
 }

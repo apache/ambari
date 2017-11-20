@@ -34,9 +34,17 @@
           "stack_id": "HDPCORE-3.0.0",
           "configurations": [
             {
-              "zoo.cfg" : {
-                "properties" : {
-                  "dataDir" : "/zookeeper1"
+              "zoo.cfg": {
+                "properties": {
+                  "dataDir": "/zookeeper1"
+                }
+              }
+            },
+            {
+              "zookeeper-env": {
+                "properties": {
+                  "zk_user": "zkuser1",
+                  "zk_server_heapsize": "256MB"
                 }
               }
             }
@@ -48,9 +56,9 @@
           "stack_id": "HDPCORE-3.0.0",
           "configurations": [
             {
-              "zoo.cfg" : {
-                "properties" : {
-                  "dataDir" : "/zookeeper2"
+              "zoo.cfg": {
+                "properties": {
+                  "dataDir": "/zookeeper2"
                 }
               }
             }
@@ -78,8 +86,8 @@
           "stack_id": "HDPCORE-3.0.0",
           "dependencies": [
             {
-              "service_group" : "CoreSG",
-              "service_name" : "ZK2"
+              "service_group": "CoreSG",
+              "service_name": "ZK2"
             }
           ]
         },

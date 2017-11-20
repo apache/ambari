@@ -30,6 +30,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * Configuration for a topology entity such as a blueprint, hostgroup or cluster.
  */
 public class Configuration {
+
+  public static final String PROPERTIES_KEY = "properties";
+  public static final String ATTRIBUTES_KEY = "properties_attributes";
+
   /**
    * properties for this configuration instance
    */

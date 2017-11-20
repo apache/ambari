@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.topology;
 
-import static org.easymock.EasyMock.anyString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -56,7 +55,7 @@ public class BlueprintV2FactoryTest {
   @Before
   public void setUp() throws Exception {
     StackV2Factory stackFactory = mock(StackV2Factory.class);
-    when(stackFactory.create(any(StackId.class), anyString())).thenAnswer(invocation -> {
+    when(stackFactory.create(any(StackId.class), any(String.class))).thenAnswer(invocation -> {
       StackId stackId = invocation.getArgumentAt(0, StackId.class);
       return new StackV2(stackId.getStackName(), stackId.getStackVersion(), invocation.getArgumentAt(1, String.class),
         new HashMap<>(), new HashMap<>(), new HashMap<>(),
@@ -69,12 +68,26 @@ public class BlueprintV2FactoryTest {
 
   @Test
   public void testSerialization_parseJsonAsBlueprint() throws Exception {
-    BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_JSON);
+    verifyBlueprintStructure1(blueprintFactory.convertFromJson(BLUEPRINTV2_JSON));
+  }
+
+  private void verifyBlueprintStructure1(BlueprintV2 bp) { // for "blueprintv2.json"
     assertEquals(new StackId("HDPCORE", "3.0.0"),
       bp.getServiceGroups().iterator().next().getServices().iterator().next().getStack().getStackId());
     assertEquals(2, bp.getStackIds().size());
     assertEquals(7, bp.getAllServiceIds().size());
     assertEquals(2, bp.getServiceGroups().size());
+
+    Service zk1 = bp.getServiceGroup("CoreSG").getServiceByName("ZK1");
+    Map<String, Map<String, String>> expectedProperties = new HashMap<>();
+    Map<String, String> zooCfg = new HashMap<>();
+    zooCfg.put("dataDir", "/zookeeper1");
+    expectedProperties.put("zoo.cfg", zooCfg);
+    Map<String, String> zookeeperEnv = new HashMap<>();
+    zookeeperEnv.put("zk_user", "zkuser1");
+    zookeeperEnv.put("zk_server_heapsize", "256MB");
+    expectedProperties.put("zookeeper-env", zookeeperEnv);
+    assertEquals(expectedProperties, zk1.getConfiguration().getProperties());
   }
 
   @Test
@@ -92,23 +105,22 @@ public class BlueprintV2FactoryTest {
     assertEquals(1, getAsList(blueprintAsMap, "host_groups").size());
     assertEquals("host_group_1", getByPath(blueprintAsMap,
       ImmutableList.of("host_groups", 0, "name")));
-    System.out.println(blueprintAsMap);
   }
 
   @Test
   public void testSerialization_serializeBlueprint() throws Exception {
-    BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_JSON);
-    String serialized = blueprintFactory.convertToJson(bp);
+    BlueprintV2 bp1 = blueprintFactory.convertFromJson(BLUEPRINTV2_JSON);
+    String serialized = blueprintFactory.convertToJson(bp1);
     // Test that serialized blueprint can be read again
-    bp = blueprintFactory.convertFromJson(serialized);
-    assertEquals(2, bp.getStackIds().size());
-    assertEquals(7, bp.getAllServiceIds().size());
-    assertEquals(2, bp.getServiceGroups().size());
+    verifyBlueprintStructure1(blueprintFactory.convertFromJson(serialized));
   }
 
   @Test
   public void testSerialization2_parseJsonAsBlueprint() throws Exception {
-    BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_2_JSON);
+    verifyBlueprintStructure2(blueprintFactory.convertFromJson(BLUEPRINTV2_2_JSON));
+  }
+
+  private void verifyBlueprintStructure2(BlueprintV2 bp) {
     assertEquals(new StackId("HDP", "3.0.0"),
       bp.getServiceGroups().iterator().next().getServices().iterator().next().getStack().getStackId());
     assertEquals(1, bp.getStackIds().size());
@@ -131,7 +143,6 @@ public class BlueprintV2FactoryTest {
     assertEquals(1, getAsList(blueprintAsMap, "host_groups").size());
     assertEquals("host_group_1", getByPath(blueprintAsMap,
       ImmutableList.of("host_groups", 0, "name")));
-    System.out.println(blueprintAsMap);
   }
 
   @Test
@@ -139,10 +150,7 @@ public class BlueprintV2FactoryTest {
     BlueprintV2 bp = blueprintFactory.convertFromJson(BLUEPRINTV2_2_JSON);
     String serialized = blueprintFactory.convertToJson(bp);
     // Test that serialized blueprint can be read again
-    bp = blueprintFactory.convertFromJson(serialized);
-    assertEquals(1, bp.getStackIds().size());
-    assertEquals(4, bp.getAllServiceIds().size());
-    assertEquals(1, bp.getServiceGroups().size());
+    verifyBlueprintStructure2(blueprintFactory.convertFromJson(serialized));
   }
 
   private static Map<String, Object> getAsMap(Map<String, Object> parentMap, String key) {
