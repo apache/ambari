@@ -18,10 +18,13 @@
 
 package org.apache.ambari.metrics.adservice.model
 
+import javax.xml.bind.annotation.XmlRootElement
+
 import org.apache.ambari.metrics.adservice.metadata.MetricKey
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
 
-abstract class SingleMetricAnomalyInstance {
+@XmlRootElement
+abstract class MetricAnomalyInstance {
 
   val metricKey: MetricKey
   val anomalyType: AnomalyType
