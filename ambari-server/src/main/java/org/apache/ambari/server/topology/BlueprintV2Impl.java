@@ -23,8 +23,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +48,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class BlueprintV2Impl implements BlueprintV2 {
 
   private String name;
-  private SecurityConfiguration securityConfiguration;
-  private Collection<RepositoryVersion> repositoryVersions = new ArrayList<>(0);
-  private Map<String, ServiceGroup> serviceGroups;
-  private Setting setting;
-  private final Configuration configuration = new Configuration(new HashMap<>(), new HashMap<>());
+  private SecurityConfiguration securityConfiguration = SecurityConfiguration.NONE;
+  private Collection<RepositoryVersion> repositoryVersions = Collections.emptyList();
+  private Map<String, ServiceGroup> serviceGroups = Collections.emptyMap();
+  private Setting setting = new Setting(Collections.emptyMap());
+  private final Configuration configuration = Configuration.createEmpty();
 
   // Transient fields
   @JsonIgnore
@@ -410,7 +410,7 @@ public class BlueprintV2Impl implements BlueprintV2 {
     @JsonProperty("blueprint_name")
     public String name;
     @JsonProperty("security")
-    public SecurityConfiguration securityConfiguration;
+    public SecurityConfiguration securityConfiguration = SecurityConfiguration.NONE;
 
     public Blueprints() { }
   }

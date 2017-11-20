@@ -49,6 +49,10 @@ public class Configuration {
    */
   private Configuration parentConfiguration;
 
+  public static Configuration createEmpty() {
+    return new Configuration(new HashMap<>(0), new HashMap<>(0));
+  }
+
   public Configuration(Configuration config, Configuration parent) {
     this(config.getProperties(), config.getAttributes(), parent);
   }

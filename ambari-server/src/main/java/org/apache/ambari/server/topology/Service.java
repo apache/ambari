@@ -41,7 +41,7 @@ public class Service implements Configurable {
   private String stackId;
 
   @JsonIgnore
-  private Configuration configuration;
+  private Configuration configuration = Configuration.createEmpty();
 
   private Set<ServiceId> dependencies = ImmutableSet.of();
 
