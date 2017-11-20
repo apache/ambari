@@ -17,6 +17,8 @@
   */
 package org.apache.ambari.metrics.adservice.resource
 
+import java.time.LocalDateTime
+
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.{GET, Path, Produces}
@@ -29,7 +31,8 @@ class RootResource {
   @Produces(Array(APPLICATION_JSON))
   @GET
   def default: Response = {
-    Response.ok.entity(Map("name" -> "anomaly-detection-service", "today" -> DateTime.now.toString("MM-dd-yyyy hh:mm"))).build()
+    val dtf = java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+    Response.ok.entity(Map("name" -> "anomaly-detection-service", "today" -> LocalDateTime.now)).build()
   }
 
 }

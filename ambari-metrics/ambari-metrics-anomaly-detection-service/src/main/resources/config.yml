@@ -27,7 +27,7 @@ metricsCollector:
   hosts: host1,host2
   port: 6188
   protocol: http
-  metadataEndpoint: /v1/timeline/metrics/metadata/keys
+  metadataEndpoint: /ws/v1/timeline/metrics/metadata/key
 
 adQueryService:
   anomalyDataTtl: 604800

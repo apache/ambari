@@ -33,7 +33,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
-import org.apache.hadoop.metrics2.sink.timeline.query.PhoenixConnectionProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.phoenix.exception.PhoenixIOException;
 import org.easymock.EasyMock;
@@ -96,10 +96,6 @@ public class PhoenixHBaseAccessorTest {
         return null;
       }
 
-      @Override
-      public Connection getConnectionRetryingOnException(RetryCounterFactory retryCounterFactory) throws SQLException, InterruptedException {
-        return null;
-      }
       };
 
     accessor = new PhoenixHBaseAccessor(connectionProvider);
@@ -254,11 +250,6 @@ public class PhoenixHBaseAccessorTest {
 
       @Override
       public Connection getConnection() throws SQLException {
-        return connection;
-      }
-
-      @Override
-      public Connection getConnectionRetryingOnException(RetryCounterFactory retryCounterFactory) throws SQLException, InterruptedException {
         return connection;
       }
     };

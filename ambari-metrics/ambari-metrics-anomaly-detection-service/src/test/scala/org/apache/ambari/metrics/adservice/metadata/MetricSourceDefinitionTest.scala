@@ -20,6 +20,10 @@ package org.apache.ambari.metrics.adservice.metadata
 import org.apache.commons.lang.SerializationUtils
 import org.scalatest.FunSuite
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.ambari.metrics.adservice.app.ADServiceScalaModule
+
 class MetricSourceDefinitionTest extends FunSuite {
 
   test("createNewMetricSourceDefinition") {
@@ -65,13 +69,23 @@ class MetricSourceDefinitionTest extends FunSuite {
   }
 
   test("serializeDeserialize") {
-    val msd : MetricSourceDefinition = new MetricSourceDefinition("testDefinition", "testAppId", MetricSourceDefinitionType.API)
+
+    val msd : MetricSourceDefinition = new MetricSourceDefinition("testDefinition", "A1", MetricSourceDefinitionType.API)
+    msd.hosts = List("h1")
+    msd.addMetricDefinition(MetricDefinition("M1", null, List("h2")))
+    msd.addMetricDefinition(MetricDefinition("M1", "A2", null))
+
     val msdByteArray: Array[Byte] = SerializationUtils.serialize(msd)
     assert(msdByteArray.nonEmpty)
 
     val msd2: MetricSourceDefinition = SerializationUtils.deserialize(msdByteArray).asInstanceOf[MetricSourceDefinition]
     assert(msd2 != null)
     assert(msd == msd2)
+
+    val mapper : ObjectMapper = new ObjectMapper()
+    mapper.registerModule(new ADServiceScalaModule)
+
+    System.out.print(mapper.writeValueAsString(msd))
 
   }
 }

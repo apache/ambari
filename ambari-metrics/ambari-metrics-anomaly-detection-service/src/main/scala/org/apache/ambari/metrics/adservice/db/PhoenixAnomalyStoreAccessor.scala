@@ -23,48 +23,60 @@ import java.util.concurrent.TimeUnit.SECONDS
 import org.apache.ambari.metrics.adservice.app.AnomalyDetectionAppConfig
 import org.apache.ambari.metrics.adservice.common._
 import org.apache.ambari.metrics.adservice.configuration.HBaseConfiguration
-import org.apache.ambari.metrics.adservice.metadata.MetricKey
+import org.apache.ambari.metrics.adservice.metadata.{MetricDefinitionService, MetricKey}
 import org.apache.ambari.metrics.adservice.model.AnomalyDetectionMethod.AnomalyDetectionMethod
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
-import org.apache.ambari.metrics.adservice.model.{AnomalyDetectionMethod, AnomalyType, SingleMetricAnomalyInstance}
+import org.apache.ambari.metrics.adservice.model.{AnomalyDetectionMethod, AnomalyType, MetricAnomalyInstance}
 import org.apache.ambari.metrics.adservice.subsystem.pointintime.PointInTimeAnomalyInstance
 import org.apache.ambari.metrics.adservice.subsystem.trend.TrendAnomalyInstance
 import org.apache.hadoop.hbase.util.RetryCounterFactory
-import org.apache.hadoop.metrics2.sink.timeline.query.{DefaultPhoenixDataSource, PhoenixConnectionProvider}
+import org.slf4j.{Logger, LoggerFactory}
 
 import com.google.inject.Inject
 
-object PhoenixAnomalyStoreAccessor  {
+/**
+  * Phoenix query handler class.
+  */
+class PhoenixAnomalyStoreAccessor extends AdAnomalyStoreAccessor {
 
   @Inject
   var configuration: AnomalyDetectionAppConfig = _
 
+  @Inject
+  var metricDefinitionService: MetricDefinitionService = _
+
   var datasource: PhoenixConnectionProvider = _
+  val LOG : Logger = LoggerFactory.getLogger(classOf[PhoenixAnomalyStoreAccessor])
 
-  def initAnomalyMetricSchema(): Unit = {
+  @Override
+  def initialize(): Unit = {
 
-    val datasource: PhoenixConnectionProvider = new DefaultPhoenixDataSource(HBaseConfiguration.getHBaseConf)
+    datasource = new DefaultPhoenixDataSource(HBaseConfiguration.getHBaseConf)
     val retryCounterFactory = new RetryCounterFactory(10, SECONDS.toMillis(3).toInt)
 
     val ttl = configuration.getAdServiceConfiguration.getAnomalyDataTtl
     try {
-      var conn = datasource.getConnectionRetryingOnException(retryCounterFactory)
+      var conn : Connection = getConnectionRetryingOnException(retryCounterFactory)
       var stmt = conn.createStatement
 
+      //Create Method parameters table.
       val methodParametersSql = String.format(PhoenixQueryConstants.CREATE_METHOD_PARAMETERS_TABLE,
         PhoenixQueryConstants.METHOD_PARAMETERS_TABLE_NAME)
       stmt.executeUpdate(methodParametersSql)
 
+      //Create Point in Time anomaly table
       val pointInTimeAnomalySql = String.format(PhoenixQueryConstants.CREATE_PIT_ANOMALY_METRICS_TABLE_SQL,
         PhoenixQueryConstants.PIT_ANOMALY_METRICS_TABLE_NAME,
         ttl.asInstanceOf[Object])
       stmt.executeUpdate(pointInTimeAnomalySql)
 
+      //Create Trend Anomaly table
       val trendAnomalySql = String.format(PhoenixQueryConstants.CREATE_TREND_ANOMALY_METRICS_TABLE_SQL,
         PhoenixQueryConstants.TREND_ANOMALY_METRICS_TABLE_NAME,
         ttl.asInstanceOf[Object])
       stmt.executeUpdate(trendAnomalySql)
 
+      //Create model snapshot table.
       val snapshotSql = String.format(PhoenixQueryConstants.CREATE_MODEL_SNAPSHOT_TABLE,
         PhoenixQueryConstants.MODEL_SNAPSHOT)
       stmt.executeUpdate(snapshotSql)
@@ -75,11 +87,9 @@ object PhoenixAnomalyStoreAccessor  {
     }
   }
 
-  @throws[SQLException]
-  def getConnection: Connection = datasource.getConnection
-
-  def getSingleMetricAnomalies(anomalyType: AnomalyType, startTime: Long, endTime: Long, limit: Int) : scala.collection.mutable.MutableList[SingleMetricAnomalyInstance] = {
-    val anomalies = scala.collection.mutable.MutableList.empty[SingleMetricAnomalyInstance]
+  @Override
+  def getMetricAnomalies(anomalyType: AnomalyType, startTime: Long, endTime: Long, limit: Int) : List[MetricAnomalyInstance] = {
+    val anomalies = scala.collection.mutable.MutableList.empty[MetricAnomalyInstance]
     val conn : Connection = getConnection
     var stmt : PreparedStatement = null
     var rs : ResultSet = null
@@ -98,8 +108,8 @@ object PhoenixAnomalyStoreAccessor  {
           val anomalyScore: Double = rs.getDouble("ANOMALY_SCORE")
           val modelSnapshot: String = rs.getString("MODEL_PARAMETERS")
 
-          val metricKey: MetricKey = null //MetricManager.getMetricKeyFromUuid(uuid) //TODO
-          val anomalyInstance: SingleMetricAnomalyInstance = new PointInTimeAnomalyInstance(metricKey, timestamp,
+          val metricKey: MetricKey = metricDefinitionService.getMetricKeyFromUuid(uuid)
+          val anomalyInstance: MetricAnomalyInstance = new PointInTimeAnomalyInstance(metricKey, timestamp,
             metricValue, methodType, anomalyScore, season, modelSnapshot)
           anomalies.+=(anomalyInstance)
         }
@@ -115,8 +125,8 @@ object PhoenixAnomalyStoreAccessor  {
           val anomalyScore: Double = rs.getDouble("ANOMALY_SCORE")
           val modelSnapshot: String = rs.getString("MODEL_PARAMETERS")
 
-          val metricKey: MetricKey = null //MetricManager.getMetricKeyFromUuid(uuid) //TODO
-          val anomalyInstance: SingleMetricAnomalyInstance = TrendAnomalyInstance(metricKey,
+          val metricKey: MetricKey = metricDefinitionService.getMetricKeyFromUuid(uuid)
+          val anomalyInstance: MetricAnomalyInstance = TrendAnomalyInstance(metricKey,
             TimeRange(anomalyStart, anomalyEnd),
             TimeRange(referenceStart, referenceEnd),
             methodType, anomalyScore, season, modelSnapshot)
@@ -127,11 +137,11 @@ object PhoenixAnomalyStoreAccessor  {
       case e: SQLException => throw e
     }
 
-    anomalies
+    anomalies.toList
   }
 
   @throws[SQLException]
-  def prepareAnomalyMetricsGetSqlStatement(connection: Connection, anomalyType: AnomalyType, startTime: Long, endTime: Long, limit: Int): PreparedStatement = {
+  private def prepareAnomalyMetricsGetSqlStatement(connection: Connection, anomalyType: AnomalyType, startTime: Long, endTime: Long, limit: Int): PreparedStatement = {
 
     val sb = new StringBuilder
 
@@ -145,11 +155,11 @@ object PhoenixAnomalyStoreAccessor  {
     var stmt: java.sql.PreparedStatement = null
     try {
       stmt = connection.prepareStatement(sb.toString)
-      var pos = 1
 
-      pos += 1
+      var pos = 1
       stmt.setLong(pos, startTime)
 
+      pos += 1
       stmt.setLong(pos, endTime)
 
       stmt.setFetchSize(limit)
@@ -157,9 +167,32 @@ object PhoenixAnomalyStoreAccessor  {
     } catch {
       case e: SQLException =>
         if (stmt != null)
-          stmt
+          return stmt
         throw e
     }
     stmt
   }
+
+  @throws[SQLException]
+  private def getConnection: Connection = datasource.getConnection
+
+  @throws[SQLException]
+  @throws[InterruptedException]
+  private def getConnectionRetryingOnException (retryCounterFactory : RetryCounterFactory) : Connection = {
+    val retryCounter = retryCounterFactory.create
+    while(true) {
+      try
+        return getConnection
+      catch {
+        case e: SQLException =>
+          if (!retryCounter.shouldRetry) {
+            LOG.error("HBaseAccessor getConnection failed after " + retryCounter.getMaxAttempts + " attempts")
+            throw e
+          }
+      }
+      retryCounter.sleepUntilNextRetry()
+    }
+    null
+  }
+
 }

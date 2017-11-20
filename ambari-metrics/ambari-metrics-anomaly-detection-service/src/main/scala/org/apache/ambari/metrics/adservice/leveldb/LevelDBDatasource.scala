@@ -42,7 +42,6 @@ class LevelDBDataSource() extends MetadataDatasource {
   def this(appConfig: AnomalyDetectionAppConfig) = {
     this
     this.appConfig = appConfig
-    initialize()
   }
 
   override def initialize(): Unit = {
@@ -81,6 +80,22 @@ class LevelDBDataSource() extends MetadataDatasource {
     * @return the value associated with the passed key.
     */
   override def get(key: Key): Option[Value] = Option(db.get(key))
+
+  /**
+    * This function obtains all the values
+    *
+    * @return the list of values
+    */
+  def getAll: List[Value] = {
+    val values = scala.collection.mutable.MutableList.empty[Value]
+    val iterator = db.iterator()
+    iterator.seekToFirst()
+    while (iterator.hasNext) {
+      val entry: java.util.Map.Entry[Key, Value] = iterator.next()
+      values.+=(entry.getValue)
+    }
+    values.toList
+  }
 
   /**
     * This function updates the DataSource by deleting, updating and inserting new (key-value) pairs.
