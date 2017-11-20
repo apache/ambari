@@ -48,6 +48,7 @@ public class StackAdvisorRequest {
   private List<ChangedConfigInfo> changedConfigurations = new LinkedList<ChangedConfigInfo>();
   private Set<RecommendationResponse.ConfigGroup> configGroups;
   private Map<String, String> userContext = new HashMap<String, String>();
+  private Boolean gplLicenseAccepted;
 
   public String getStackName() {
     return stackName;
@@ -115,6 +116,10 @@ public class StackAdvisorRequest {
 
   public void setConfigGroups(Set<RecommendationResponse.ConfigGroup> configGroups) {
     this.configGroups = configGroups;
+  }
+
+  public Boolean getGplLicenseAccepted() {
+    return gplLicenseAccepted;
   }
 
   private StackAdvisorRequest(String stackName, String stackVersion) {
@@ -186,6 +191,12 @@ public class StackAdvisorRequest {
     public StackAdvisorRequestBuilder withConfigGroups(
       Set<RecommendationResponse.ConfigGroup> configGroups) {
       this.instance.configGroups = configGroups;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withGPLLicenseAccepted(
+        Boolean gplLicenseAccepted) {
+      this.instance.gplLicenseAccepted = gplLicenseAccepted;
       return this;
     }
 

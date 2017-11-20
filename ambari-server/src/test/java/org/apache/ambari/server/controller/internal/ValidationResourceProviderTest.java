@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -49,13 +50,14 @@ public class ValidationResourceProviderTest {
     doReturn(stackAdvisorRequest).when(provider).prepareStackAdvisorRequest(request);
 
     StackAdvisorHelper saHelper = mock(StackAdvisorHelper.class);
+    Configuration configuration = mock(Configuration.class);
 
     ValidationResponse response = mock(ValidationResponse.class);
     Version version = mock(Version.class);
     doReturn(3).when(response).getId();
     doReturn(version).when(response).getVersion();
     doReturn(response).when(saHelper).validate(any(StackAdvisorRequest.class));
-    ValidationResourceProvider.init(saHelper);
+    ValidationResourceProvider.init(saHelper, configuration);
 
     RequestStatus status = provider.createResources(request);
 

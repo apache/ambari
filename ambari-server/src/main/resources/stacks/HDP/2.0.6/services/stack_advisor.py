@@ -516,6 +516,22 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
 
+  def getLZOSupportValidationItems(self, properties, services):
+    services_list = self.get_services_list(services)
+
+    if "HDFS" in services_list:
+      lzo_allowed = services["gpl-license-accepted"]
+      property_name = "io.compression.codec.lzo.class"
+      if property_name in properties:
+        property_value = properties.get(property_name)
+        if not lzo_allowed and "com.hadoop.compression.lzo.LzoCodec" in property_value:
+          return [{"config-name": property_name, "item": self.getErrorItem(
+            "Your Ambari Server has not been configured to download LZO and install it. "
+            "LZO is GPL software and requires you to accept a license prior to use. "
+            "Please refer to this documentation to configure Ambari before proceeding.")}]
+
+    return []
+
   def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):
     # recommendations for HBase env config
 
@@ -1173,7 +1189,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def getServiceConfigurationValidators(self):
     return {
       "HDFS": { "hdfs-site": self.validateHDFSConfigurations,
-                "hadoop-env": self.validateHDFSConfigurationsEnv},
+                "hadoop-env": self.validateHDFSConfigurationsEnv,
+                "core-site": self.validateHDFSConfigurationsCoreSite},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations,
                "yarn-env": self.validateYARNEnvConfigurations},
@@ -1782,6 +1799,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
+
+  def validateHDFSConfigurationsCoreSite(self, properties, recommendedDefaults, configurations, services, hosts):
+    return self.toConfigurationValidationProblems(self.getLZOSupportValidationItems(properties, services),
+                                                  "core-site")
 
   def validatorOneDataDirPerPartition(self, properties, propertyName, services, hosts, clusterEnv):
     if not propertyName in properties:
