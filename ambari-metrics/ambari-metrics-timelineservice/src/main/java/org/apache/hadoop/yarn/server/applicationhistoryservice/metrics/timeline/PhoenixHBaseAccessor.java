@@ -120,6 +120,7 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
@@ -139,8 +140,8 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
-import org.apache.hadoop.metrics2.sink.timeline.query.DefaultPhoenixDataSource;
-import org.apache.hadoop.metrics2.sink.timeline.query.PhoenixConnectionProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultPhoenixDataSource;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.SplitByMetricNamesCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.sink.ExternalMetricsSink;
@@ -210,7 +211,7 @@ public class PhoenixHBaseAccessor {
   private HashMap<String, String> tableTTL = new HashMap<>();
 
   private final TimelineMetricConfiguration configuration;
-  private List<InternalMetricsSource> rawMetricsSources;
+  private List<InternalMetricsSource> rawMetricsSources = new ArrayList<>();
 
   public PhoenixHBaseAccessor(PhoenixConnectionProvider dataSource) {
     this(TimelineMetricConfiguration.getInstance(), dataSource);
@@ -459,6 +460,23 @@ public class PhoenixHBaseAccessor {
     return mapper.readValue(json, metricValuesTypeRef);
   }
 
+  private Connection getConnectionRetryingOnException()
+    throws SQLException, InterruptedException {
+    RetryCounter retryCounter = retryCounterFactory.create();
+    while (true) {
+      try{
+        return getConnection();
+      } catch (SQLException e) {
+        if(!retryCounter.shouldRetry()){
+          LOG.error("HBaseAccessor getConnection failed after "
+            + retryCounter.getMaxAttempts() + " attempts");
+          throw e;
+        }
+      }
+      retryCounter.sleepUntilNextRetry();
+    }
+  }
+
   /**
    * Get JDBC connection to HBase store. Assumption is that the hbase
    * configuration is present on the classpath and loaded by the caller into
@@ -491,7 +509,7 @@ public class PhoenixHBaseAccessor {
 
     try {
       LOG.info("Initializing metrics schema...");
-      conn = dataSource.getConnectionRetryingOnException(retryCounterFactory);
+      conn = getConnectionRetryingOnException();
       stmt = conn.createStatement();
 
       // Metadata

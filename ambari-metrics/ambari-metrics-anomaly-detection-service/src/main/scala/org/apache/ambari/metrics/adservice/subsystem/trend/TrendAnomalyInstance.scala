@@ -21,7 +21,7 @@ import org.apache.ambari.metrics.adservice.common.{Season, TimeRange}
 import org.apache.ambari.metrics.adservice.metadata.MetricKey
 import org.apache.ambari.metrics.adservice.model.AnomalyDetectionMethod.AnomalyDetectionMethod
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
-import org.apache.ambari.metrics.adservice.model.{AnomalyType, SingleMetricAnomalyInstance}
+import org.apache.ambari.metrics.adservice.model.{AnomalyType, MetricAnomalyInstance}
 
 case class TrendAnomalyInstance (metricKey: MetricKey,
                                  anomalousPeriod: TimeRange,
@@ -29,7 +29,7 @@ case class TrendAnomalyInstance (metricKey: MetricKey,
                                  methodType: AnomalyDetectionMethod,
                                  anomalyScore: Double,
                                  seasonInfo: Season,
-                                 modelParameters: String) extends SingleMetricAnomalyInstance {
+                                 modelParameters: String) extends MetricAnomalyInstance {
 
   override val anomalyType: AnomalyType = AnomalyType.POINT_IN_TIME
 

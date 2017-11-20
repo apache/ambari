@@ -18,6 +18,9 @@
 
 package org.apache.ambari.metrics.adservice.metadata
 
+import javax.xml.bind.annotation.XmlRootElement
+
+@XmlRootElement
 case class MetricKey (metricName: String, appId: String, instanceId: String, hostname: String, uuid: Array[Byte]) {
 
   @Override

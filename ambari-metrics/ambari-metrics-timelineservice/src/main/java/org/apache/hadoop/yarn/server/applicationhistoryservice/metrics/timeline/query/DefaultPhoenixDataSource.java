@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.metrics2.sink.timeline.query;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
 
 import org.apache.commons.logging.Log;
@@ -89,20 +89,4 @@ public class DefaultPhoenixDataSource implements PhoenixConnectionProvider {
     }
   }
 
-  public Connection getConnectionRetryingOnException(RetryCounterFactory retryCounterFactory)
-    throws SQLException, InterruptedException {
-    RetryCounter retryCounter = retryCounterFactory.create();
-    while (true) {
-      try{
-        return getConnection();
-      } catch (SQLException e) {
-        if(!retryCounter.shouldRetry()){
-          LOG.error("HBaseAccessor getConnection failed after "
-            + retryCounter.getMaxAttempts() + " attempts");
-          throw e;
-        }
-      }
-      retryCounter.sleepUntilNextRetry();
-    }
-  }
 }

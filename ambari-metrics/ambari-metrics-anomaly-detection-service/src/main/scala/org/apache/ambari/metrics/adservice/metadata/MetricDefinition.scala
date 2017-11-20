@@ -19,6 +19,8 @@
 package org.apache.ambari.metrics.adservice.metadata
 
 import org.apache.commons.lang3.StringUtils
+
+import com.fasterxml.jackson.annotation.JsonIgnore
 /*
    {
        "metric-name": "mem_free",

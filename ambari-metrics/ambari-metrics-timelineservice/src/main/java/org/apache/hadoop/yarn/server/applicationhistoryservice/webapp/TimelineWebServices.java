@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.webapp;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
@@ -27,7 +28,6 @@ import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricKey;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
@@ -69,7 +69,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -516,7 +518,7 @@ public class TimelineWebServices {
   @GET
   @Path("/metrics/metadata/key")
   @Produces({ MediaType.APPLICATION_JSON })
-  public Set<TimelineMetricKey> getTimelineMetricKey(
+  public Set<Map<String, String>> getTimelineMetricKey(
     @Context HttpServletRequest req,
     @Context HttpServletResponse res,
     @QueryParam("metricName") String metricName,
@@ -527,7 +529,11 @@ public class TimelineWebServices {
     init(res);
 
     try {
-      return timelineMetricStore.getTimelineMetricKey(metricName, appId, instanceId, hostname);
+      if (StringUtils.isEmpty(hostname)) {
+        return timelineMetricStore.getTimelineMetricKeys(metricName, appId, instanceId, Collections.EMPTY_LIST);
+      } else {
+        return timelineMetricStore.getTimelineMetricKeys(metricName, appId, instanceId, Arrays.asList(StringUtils.split(hostname, ",")));
+      }
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }

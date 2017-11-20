@@ -17,6 +17,8 @@
   */
 package org.apache.ambari.metrics.adservice.app
 
+import java.time.LocalDateTime
+
 import javax.ws.rs.client.Client
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
@@ -37,7 +39,8 @@ class DefaultADResourceSpecTest extends FunSpec with Matchers {
       withAppRunning(classOf[AnomalyDetectionApp], Resources.getResource("config.yml").getPath) { rule =>
         val json = client.target(s"http://localhost:${rule.getLocalPort}/anomaly")
           .request().accept(APPLICATION_JSON).buildGet().invoke(classOf[String])
-        val now = DateTime.now.toString("MM-dd-yyyy hh:mm")
+        val dtf = java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+        val now = LocalDateTime.now
         assert(json == "{\"message\":\"Anomaly Detection Service!\"," + "\"today\":\"" + now + "\"}")
       }
     }

@@ -28,6 +28,9 @@ object HBaseConfiguration {
   var isInitialized: Boolean = false
   val LOG : Logger = LoggerFactory.getLogger("HBaseConfiguration")
 
+  /**
+    * Initialize the hbase conf from hbase-site present in classpath.
+    */
   def initConfigs(): Unit = {
     if (!isInitialized) {
       var classLoader: ClassLoader = Thread.currentThread.getContextClassLoader

@@ -21,6 +21,9 @@ import javax.ws.rs.Path
 import javax.ws.rs.container.{ContainerRequestFilter, ContainerResponseFilter}
 
 import org.apache.ambari.metrics.adservice.app.GuiceInjector.{withInjector, wrap}
+import org.apache.ambari.metrics.adservice.db.{AdAnomalyStoreAccessor, MetadataDatasource}
+import org.apache.ambari.metrics.adservice.metadata.MetricDefinitionService
+import org.apache.ambari.metrics.adservice.service.ADQueryService
 import org.glassfish.jersey.filter.LoggingFilter
 
 import com.codahale.metrics.health.HealthCheck
@@ -45,6 +48,11 @@ class AnomalyDetectionApp extends Application[AnomalyDetectionAppConfig] {
       injector.instancesOfType(classOf[HealthCheck]).foreach { h => env.healthChecks.register(h.getClass.getName, h) }
       injector.instancesOfType(classOf[ContainerRequestFilter]).foreach { f => env.jersey().register(f) }
       injector.instancesOfType(classOf[ContainerResponseFilter]).foreach { f => env.jersey().register(f) }
+
+      //Initialize Services
+      injector.getInstance(classOf[MetadataDatasource]).initialize
+      injector.getInstance(classOf[MetricDefinitionService]).initialize
+      injector.getInstance(classOf[ADQueryService]).initialize
     }
     env.jersey.register(jacksonJaxbJsonProvider)
     env.jersey.register(new LoggingFilter)
@@ -53,7 +61,7 @@ class AnomalyDetectionApp extends Application[AnomalyDetectionAppConfig] {
   private def jacksonJaxbJsonProvider: JacksonJaxbJsonProvider = {
     val provider = new JacksonJaxbJsonProvider()
     val objectMapper = new ObjectMapper()
-    objectMapper.registerModule(DefaultScalaModule)
+    objectMapper.registerModule(new ADServiceScalaModule)
     objectMapper.registerModule(new JodaModule)
     objectMapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false)
     objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)

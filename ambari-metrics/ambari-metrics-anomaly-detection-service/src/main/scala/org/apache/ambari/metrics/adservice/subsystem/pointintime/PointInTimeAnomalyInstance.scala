@@ -23,7 +23,7 @@ import org.apache.ambari.metrics.adservice.common.Season
 import org.apache.ambari.metrics.adservice.metadata.MetricKey
 import org.apache.ambari.metrics.adservice.model.AnomalyDetectionMethod.AnomalyDetectionMethod
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
-import org.apache.ambari.metrics.adservice.model.{AnomalyType, SingleMetricAnomalyInstance}
+import org.apache.ambari.metrics.adservice.model.{AnomalyType, MetricAnomalyInstance}
 
 class PointInTimeAnomalyInstance(val metricKey: MetricKey,
                                  val timestamp: Long,
@@ -31,7 +31,7 @@ class PointInTimeAnomalyInstance(val metricKey: MetricKey,
                                  val methodType: AnomalyDetectionMethod,
                                  val anomalyScore: Double,
                                  val anomalousSeason: Season,
-                                 val modelParameters: String) extends SingleMetricAnomalyInstance {
+                                 val modelParameters: String) extends MetricAnomalyInstance {
 
   override val anomalyType: AnomalyType = AnomalyType.POINT_IN_TIME
 

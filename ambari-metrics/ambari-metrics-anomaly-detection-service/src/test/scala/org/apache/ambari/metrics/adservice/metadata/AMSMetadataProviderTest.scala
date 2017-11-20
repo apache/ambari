@@ -18,26 +18,32 @@
 
 package org.apache.ambari.metrics.adservice.metadata
 
+import java.util
+
 import org.apache.ambari.metrics.adservice.configuration.MetricCollectorConfiguration
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricKey
 import org.scalatest.FunSuite
 
 class AMSMetadataProviderTest extends FunSuite {
 
   test("testFromTimelineMetricKey") {
-    val timelineMetricKeys: java.util.Set[TimelineMetricKey] = new java.util.HashSet[TimelineMetricKey]()
+    val timelineMetricKeys: java.util.Set[java.util.Map[String, String]] = new java.util.HashSet[java.util.Map[String, String]]()
 
     val uuid: Array[Byte] = Array.empty[Byte]
 
     for (i <- 1 to 3) {
-      val key: TimelineMetricKey = new TimelineMetricKey("M" + i, "App", null, "H", uuid)
-      timelineMetricKeys.add(key)
+      val keyMap: java.util.Map[String, String] = new util.HashMap[String, String]()
+      keyMap.put("metricName", "M" + i)
+      keyMap.put("appId", "App")
+      keyMap.put("hostname", "H")
+      keyMap.put("uuid", new String(uuid))
+      timelineMetricKeys.add(keyMap)
     }
 
     val aMSMetadataProvider : ADMetadataProvider = new ADMetadataProvider(new MetricCollectorConfiguration)
 
-    val metricKeys : Set[MetricKey] = aMSMetadataProvider.fromTimelineMetricKey(timelineMetricKeys)
+    val metricKeys : Set[MetricKey] = aMSMetadataProvider.getMetricKeys(timelineMetricKeys)
     assert(metricKeys.size == 3)
   }
+
 
 }

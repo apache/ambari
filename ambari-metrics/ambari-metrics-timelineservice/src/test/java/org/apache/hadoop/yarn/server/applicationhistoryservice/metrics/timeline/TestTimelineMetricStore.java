@@ -30,7 +30,6 @@ import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricKey;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
@@ -126,7 +125,7 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   }
 
   @Override
-  public Set<TimelineMetricKey> getTimelineMetricKey(String metricName, String appId, String instanceId, String hostname) throws SQLException, IOException {
+  public Set<Map<String, String>> getTimelineMetricKeys(String metricName, String appId, String instanceId, List<String> hosts) throws SQLException, IOException {
     return Collections.emptySet();
   }
 }

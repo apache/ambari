@@ -27,5 +27,5 @@ trait MetricMetadataProvider {
     * @param metricSourceDefinition component definition
     * @return
     */
-  def getMetricKeysForDefinitions(metricSourceDefinition: MetricSourceDefinition): (Map[MetricDefinition, Set[MetricKey]], Set[MetricKey])
+  def getMetricKeysForDefinitions(metricSourceDefinition: MetricSourceDefinition): Set[MetricKey]
 }

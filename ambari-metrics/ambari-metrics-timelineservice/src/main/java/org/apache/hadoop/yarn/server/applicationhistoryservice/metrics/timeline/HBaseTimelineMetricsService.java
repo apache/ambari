@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -52,7 +53,6 @@ import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricKey;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricWithAggregatedValues;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -497,30 +497,44 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
    * @param metricName
    * @param appId
    * @param instanceId
-   * @param hostname
+   * @param hosts
    * @return
    * @throws SQLException
    * @throws IOException
    */
   @Override
-  public Set<TimelineMetricKey> getTimelineMetricKey(String metricName, String appId, String instanceId, String hostname) throws SQLException, IOException {
+  public Set<Map<String, String>> getTimelineMetricKeys(String metricName, String appId, String instanceId, List<String> hosts)
+    throws SQLException, IOException {
+    Set<Map<String, String>> timelineMetricKeys = new HashSet<>();
 
-    if (StringUtils.isEmpty(hostname)) {
-      Set<String> hosts = new HashSet<>();
+    if (CollectionUtils.isEmpty(hosts)) {
+      Set<String> hostsFromMetadata = new HashSet<>();
       for (String host : metricMetadataManager.getHostedAppsCache().keySet()) {
         if (metricMetadataManager.getHostedAppsCache().get(host).getHostedApps().contains(appId)) {
-          hosts.add(host);
+          hostsFromMetadata.add(host);
         }
       }
-      Set<TimelineMetricKey> timelineMetricKeys = new HashSet<>();
-      for (String host : hosts) {
+      for (String host : hostsFromMetadata) {
         byte[] uuid = metricMetadataManager.getUuid(metricName, appId, instanceId, host);
-        timelineMetricKeys.add(new TimelineMetricKey(metricName, appId, instanceId, host, uuid));
+        Map<String, String> keyMap = new HashMap<>();
+        keyMap.put("metricName", metricName);
+        keyMap.put("appId", appId);
+        keyMap.put("hostname", host);
+        keyMap.put("uuid", new String(uuid));
+        timelineMetricKeys.add(keyMap);
       }
       return timelineMetricKeys;
     } else {
-      byte[] uuid = metricMetadataManager.getUuid(metricName, appId, instanceId, hostname);
-      return Collections.singleton(new TimelineMetricKey(metricName, appId, instanceId, hostname, uuid));
+      for (String host : hosts) {
+        byte[] uuid = metricMetadataManager.getUuid(metricName, appId, instanceId, host);
+        Map<String, String> keyMap = new HashMap<>();
+        keyMap.put("metricName", metricName);
+        keyMap.put("appId", appId);
+        keyMap.put("hostname", host);
+        keyMap.put("uuid", new String(uuid));
+        timelineMetricKeys.add(keyMap);
+      }
+      return timelineMetricKeys;
     }
   }
 

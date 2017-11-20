@@ -19,6 +19,8 @@ package org.apache.ambari.metrics.adservice.metadata
 
 import java.io.File
 
+import org.apache.ambari.metrics.adservice.app.ADServiceScalaModule
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 
@@ -30,15 +32,19 @@ object InputMetricDefinitionParser {
       return List.empty[MetricSourceDefinition]
     }
     val mapper = new ObjectMapper() with ScalaObjectMapper
+    mapper.registerModule(new ADServiceScalaModule)
+    val metricSourceDefinitions: scala.collection.mutable.MutableList[MetricSourceDefinition] =
+      scala.collection.mutable.MutableList.empty[MetricSourceDefinition]
 
-    def metricSourceDefinitions: List[MetricSourceDefinition] =
-      for {
-        file <- getFilesInDirectory(directory)
-        definition: MetricSourceDefinition = mapper.readValue[MetricSourceDefinition](file)
-        if definition != null
-      } yield definition
-
-    metricSourceDefinitions
+    for (file <- getFilesInDirectory(directory)) {
+      val source = scala.io.Source.fromFile(file)
+      val lines = try source.mkString finally source.close()
+      val definition: MetricSourceDefinition = mapper.readValue[MetricSourceDefinition](lines)
+      if (definition != null) {
+        metricSourceDefinitions.+=(definition)
+      }
+    }
+    metricSourceDefinitions.toList
   }
 
   private def getFilesInDirectory(directory: String): List[File] = {
