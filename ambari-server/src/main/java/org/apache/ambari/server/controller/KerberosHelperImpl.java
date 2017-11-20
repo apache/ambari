@@ -467,8 +467,8 @@ public class KerberosHelperImpl implements KerberosHelper {
     // If Ambari is managing it own identities then add AMBARI to the set of installed service so
     // that its Kerberos descriptor entries will be included.
     if (createAmbariIdentities(existingConfigurations.get(KERBEROS_ENV))) {
-      installedServices = new HashMap<String, Set<String>>(installedServices);
-      installedServices.put("AMBARI", Collections.singleton("AMBARI_SERVER"));
+      installedServices = new HashMap<>(installedServices);
+      installedServices.put(RootService.AMBARI.name(), Collections.singleton(RootComponent.AMBARI_SERVER.name()));
     }
 
     // Create the context to use for filtering Kerberos Identities based on the state of the cluster
@@ -1547,7 +1547,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                 keytabFileGroupName,
                 keytabFileGroupAccess,
                 Sets.newHashSet(Pair.of(hostId, Pair.of(evaluatedPrincipal, principalType))),
-                serviceName.equalsIgnoreCase("AMBARI"),
+                serviceName.equalsIgnoreCase(RootService.AMBARI.name()),
                 componentName.equalsIgnoreCase("AMBARI_SERVER_SELF")
             );
             if (resolvedKeytabs.containsKey(keytabFilePath)) {
