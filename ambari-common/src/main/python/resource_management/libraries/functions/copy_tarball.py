@@ -28,6 +28,8 @@ from contextlib import closing
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions import component_version
+from resource_management.libraries.functions import lzo_utils
 from resource_management.libraries.functions.default import default
 from resource_management.core import shell
 from resource_management.core import sudo
@@ -45,6 +47,9 @@ STACK_VERSION_PATTERN = "{{ stack_version }}"
 def _prepare_tez_tarball():
   """
   Prepares the Tez tarball by adding the Hadoop native libraries found in the mapreduce tarball.
+  It's very important to use the version of mapreduce which matches tez here.
+  Additionally, this will also copy native LZO to the tez tarball if LZO is enabled and the
+  GPL license has been accepted.
   :return:  the full path of the newly created tez tarball to use
   """
   import tempfile
@@ -79,11 +84,30 @@ def _prepare_tez_tarball():
   if not os.path.exists(tez_lib_dir):
     raise Fail("Unable to seed the Tez tarball with native libraries since the target Tez lib directory {0} does not exist".format(tez_lib_dir))
 
-  # ensure that the tez/lib directory is readable by non-root (which it typically is not)
-  sudo.chmod(tez_lib_dir, 0755)
-
   # copy native libraries from hadoop to tez
   Execute(("cp", "-a", hadoop_lib_native_dir, tez_lib_dir), sudo = True)
+
+  # if enabled, LZO GPL libraries must be copied as well
+  if lzo_utils.should_install_lzo():
+    stack_root = Script.get_stack_root()
+    tez_version = component_version.get_component_repository_version("TEZ")
+    hadoop_lib_native_lzo_dir = os.path.join(stack_root, tez_version, "hadoop", "lib", "native")
+
+    if not sudo.path_isdir(hadoop_lib_native_lzo_dir):
+      Logger.warning("Unable to located native LZO libraries at {0}, falling back to hadoop home".format(hadoop_lib_native_lzo_dir))
+      hadoop_lib_native_lzo_dir = os.path.join(stack_root, "current", "hadoop-client", "lib", "native")
+
+    if not sudo.path_isdir(hadoop_lib_native_lzo_dir):
+      raise Fail("Unable to seed the Tez tarball with native libraries since LZO is enabled but the native LZO libraries could not be found at {0}".format(hadoop_lib_native_lzo_dir))
+
+    Execute(("cp", "-a", hadoop_lib_native_lzo_dir, tez_lib_dir), sudo = True)
+
+
+  # ensure that the tez/lib directory is readable by non-root (which it typically is not)
+  Directory(tez_lib_dir,
+    mode = 0755,
+    cd_access = 'a',
+    recursive_ownership = True)
 
   # create the staging directory so that non-root agents can write to it
   tez_native_tarball_staging_dir = os.path.join(temp_dir, "tez-native-tarball-staging")
@@ -109,6 +133,72 @@ def _prepare_tez_tarball():
   sudo.rmtree(tez_temp_dir)
 
   return tez_tarball_with_native_lib
+
+
+def _prepare_mapreduce_tarball():
+  """
+  Prepares the mapreduce tarball by including the native LZO libraries if necessary. If LZO is
+  not enabled or has not been opted-in, then this will do nothing and return the original
+  tarball to upload to HDFS.
+  :return:  the full path of the newly created mapreduce tarball to use or the original path
+  if no changes were made
+  """
+  # get the mapreduce tarball to crack open and add LZO libraries to
+  _, mapreduce_source_file, _, _ = get_tarball_paths("mapreduce")
+
+  if not lzo_utils.should_install_lzo():
+    return mapreduce_source_file
+
+  Logger.info("Preparing the mapreduce tarball with native LZO libraries...")
+
+  temp_dir = Script.get_tmp_dir()
+
+  # create the temp staging directories ensuring that non-root agents using tarfile can work with them
+  mapreduce_temp_dir = tempfile.mkdtemp(prefix="mapreduce-tarball-", dir=temp_dir)
+  sudo.chmod(mapreduce_temp_dir, 0777)
+
+  # calculate the source directory for LZO
+  hadoop_lib_native_source_dir = os.path.join(os.path.dirname(mapreduce_source_file), "lib", "native")
+  if not sudo.path_exists(hadoop_lib_native_source_dir):
+    raise Fail("Unable to seed the mapreduce tarball with native LZO libraries since the source Hadoop native lib directory {0} does not exist".format(hadoop_lib_native_source_dir))
+
+  Logger.info("Extracting {0} to {1}".format(mapreduce_source_file, mapreduce_temp_dir))
+  tar_archive.extract_archive(mapreduce_source_file, mapreduce_temp_dir)
+
+  mapreduce_lib_dir = os.path.join(mapreduce_temp_dir, "hadoop", "lib")
+
+  # copy native libraries from source hadoop to target
+  Execute(("cp", "-af", hadoop_lib_native_source_dir, mapreduce_lib_dir), sudo = True)
+
+  # ensure that the hadoop/lib/native directory is readable by non-root (which it typically is not)
+  Directory(mapreduce_lib_dir,
+    mode = 0755,
+    cd_access = 'a',
+    recursive_ownership = True)
+
+  # create the staging directory so that non-root agents can write to it
+  mapreduce_native_tarball_staging_dir = os.path.join(temp_dir, "mapreduce-native-tarball-staging")
+  if not os.path.exists(mapreduce_native_tarball_staging_dir):
+    Directory(mapreduce_native_tarball_staging_dir,
+      mode = 0777,
+      cd_access = 'a',
+      create_parents = True,
+      recursive_ownership = True)
+
+  mapreduce_tarball_with_native_lib = os.path.join(mapreduce_native_tarball_staging_dir, "mapreduce-native.tar.gz")
+  Logger.info("Creating a new mapreduce tarball at {0}".format(mapreduce_tarball_with_native_lib))
+
+  # tar up mapreduce, making sure to specify nothing for the arcname so that it does not include an absolute path
+  with closing(tarfile.open(mapreduce_tarball_with_native_lib, "w:gz")) as new_tarball:
+    new_tarball.add(mapreduce_temp_dir, arcname = os.path.sep)
+
+  # ensure that the tarball can be read and uploaded
+  sudo.chmod(mapreduce_tarball_with_native_lib, 0744)
+
+  # cleanup
+  sudo.rmtree(mapreduce_temp_dir)
+
+  return mapreduce_tarball_with_native_lib
 
 
 # TODO, in the future, each stack can define its own mapping of tarballs
@@ -163,7 +253,8 @@ TARBALL_MAP = {
   "mapreduce": {
     "dirs": ("{0}/{1}/hadoop/mapreduce.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
                 "/{0}/apps/{1}/mapreduce/mapreduce.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
-    "service": "MAPREDUCE2"
+    "service": "MAPREDUCE2",
+    "prepare_function": _prepare_mapreduce_tarball
   },
 
   "spark": {
