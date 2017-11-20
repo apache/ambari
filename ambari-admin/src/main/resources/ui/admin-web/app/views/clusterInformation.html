@@ -39,12 +39,33 @@
   </div>
 
   <div ng-show="cluster.Clusters.provisioning_state === 'INSTALLED'">
-    <div class="row">
-      <div class="form-group col-xs-3 cluster-name">
+    <form class="row" name="editClusterNameForm" ng-submit="confirmClusterNameChange()">
+      <div class="form-group col-xs-4 cluster-name"
+           ng-class="{'has-error': editClusterNameForm.clusterName.$invalid}">
         <label for="clusterName">{{'views.clusterName' | translate}}*</label>
-        <input type="text" class="form-control" id="clusterName" ng-model="cluster.Clusters.cluster_name">
+        <input type="text"
+               class="form-control"
+               id="clusterName"
+               name="clusterName"
+               ng-change="toggleSaveButton()"
+               ng-model="edit.clusterName"
+               required
+               autofocus
+               ng-pattern="/^\w*$/"
+               ng-maxlength="80"
+               tooltip="{{'common.renameClusterTip' | translate}}"
+               tooltip-trigger="focus"
+               tooltip-placement="bottom"
+               ng-class="{edited: isClusterNameEdited}">
+        <button
+          type="submit"
+          ng-class="{'disabled': editClusterNameForm.clusterName.$invalid}"
+          class="btn btn-default pull-right"
+          ng-show="isClusterNameEdited">
+          {{'common.controls.save' | translate}}
+        </button>
       </div>
-    </div>
+    </form>
     <div>
       <div class="row dev-blueprint">
         <div class="col-sm-11"><span>{{'clusters.devBlueprint' | translate}}</span></div>

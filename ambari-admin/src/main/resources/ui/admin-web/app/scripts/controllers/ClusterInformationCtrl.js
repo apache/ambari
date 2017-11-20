@@ -18,16 +18,22 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ClusterInformationCtrl', ['$scope', '$http', '$location', 'Cluster', '$routeParams', '$translate', '$rootScope',
-function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope) {
+.controller('ClusterInformationCtrl',
+['$scope', '$http', '$location', 'Cluster', '$routeParams', '$translate', '$rootScope', 'ConfirmationModal', 'Alert',
+function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope, ConfirmationModal, Alert) {
   var $t = $translate.instant;
   $scope.isDataLoaded = false;
+  $scope.edit = {
+    clusterName: null
+  };
+  $scope.isClusterNameEdited = false;
 
   $scope.$watch(function() {
     return $rootScope.cluster;
   }, function() {
     $scope.cluster = $rootScope.cluster;
     if ($scope.cluster) {
+      $scope.edit.clusterName = $scope.cluster.Clusters.cluster_name;
       $scope.getBlueprint();
     }
   }, true);
@@ -61,5 +67,40 @@ function($scope, $http, $location, Cluster, $routeParams, $translate, $rootScope
       document.body.appendChild(a);
       a.click();
     }
+  };
+
+  $scope.toggleSaveButton = function() {
+    var value = $scope.edit.clusterName;
+    $scope.isClusterNameEdited = (value !== null && $scope.cluster.Clusters.cluster_name !== value);
+  };
+
+  $scope.confirmClusterNameChange = function() {
+    ConfirmationModal.show(
+      $t('common.clusterNameChangeConfirmation.title'),
+      $t('common.clusterNameChangeConfirmation.message', {
+        clusterName: $scope.edit.clusterName
+      })
+    )
+      .then(function () {
+        $scope.saveClusterName();
+      }).catch(function () {
+      // user clicked cancel
+      $scope.edit.clusterName = $scope.cluster.Clusters.cluster_name;
+      $scope.toggleSaveButton();
+    });
+  };
+
+  $scope.saveClusterName = function() {
+    var oldClusterName = $scope.cluster.Clusters.cluster_name,
+        newClusterName = $scope.edit.clusterName;
+
+    Cluster.editName(oldClusterName, newClusterName).then(function(data) {
+      $scope.cluster.Clusters.cluster_name = newClusterName;
+      $scope.edit.clusterName = newClusterName;
+      $scope.toggleSaveButton();
+      Alert.success($t('common.alerts.clusterRenamed', {clusterName: newClusterName}));
+    }).catch(function(data) {
+      Alert.error($t('common.alerts.cannotRenameCluster', {clusterName: newClusterName}), data.data.message);
+    });
   };
 }]);
