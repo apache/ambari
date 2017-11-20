@@ -67,7 +67,6 @@ import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
 import {CollapsiblePanelComponent} from '@app/components/collapsible-panel/collapsible-panel.component';
-import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
 import {LogMessageComponent} from '@app/components/log-message/log-message.component';
 import {LogLevelComponent} from '@app/components/log-level/log-level.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
@@ -85,6 +84,8 @@ import {DatePickerComponent} from '@app/components/date-picker/date-picker.compo
 import {LogContextComponent} from '@app/components/log-context/log-context.component';
 import {LogFileEntryComponent} from '@app/components/log-file-entry/log-file-entry.component';
 import {TabsComponent} from '@app/components/tabs/tabs.component';
+import {ServiceLogsTableComponent} from '@app/components/service-logs-table/service-logs-table.component';
+import {AuditLogsTableComponent} from '@app/components/audit-logs-table/audit-logs-table.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -122,7 +123,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FilterButtonComponent,
     AccordionPanelComponent,
     CollapsiblePanelComponent,
-    LogsListComponent,
     LogLevelComponent,
     LogMessageComponent,
     DropdownButtonComponent,
@@ -140,6 +140,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     LogContextComponent,
     LogFileEntryComponent,
     TabsComponent,
+    ServiceLogsTableComponent,
+    AuditLogsTableComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],

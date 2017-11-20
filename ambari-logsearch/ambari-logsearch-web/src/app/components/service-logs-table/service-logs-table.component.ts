@@ -1,10 +1,11 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -15,23 +16,21 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
-import {FormGroup} from '@angular/forms';
-import 'rxjs/add/operator/map';
+import {Component, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
+import {ListItem} from '@app/classes/list-item';
+import {LogsTableComponent} from '@app/classes/components/logs-table-component';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
-import {AuditLog} from '@app/classes/models/audit-log';
-import {ServiceLog} from '@app/classes/models/service-log';
-import {LogField} from '@app/classes/models/log-field';
 
 @Component({
-  selector: 'logs-list',
-  templateUrl: './logs-list.component.html',
-  styleUrls: ['./logs-list.component.less']
+  selector: 'service-logs-table',
+  templateUrl: './service-logs-table.component.html',
+  styleUrls: ['./service-logs-table.component.less']
 })
-export class LogsListComponent implements AfterViewInit {
+export class ServiceLogsTableComponent extends LogsTableComponent implements AfterViewInit {
 
   constructor(private logsContainer: LogsContainerService, private utils: UtilsService) {
+    super();
   }
 
   ngAfterViewInit() {
@@ -40,46 +39,14 @@ export class LogsListComponent implements AfterViewInit {
     }
   }
 
-  @Input()
-  logs: (AuditLog| ServiceLog)[] = [];
-
-  @Input()
-  totalCount: number = 0;
-
-  @Input()
-  displayedColumns: LogField[] = [];
-
-  @Input()
-  isServiceLogsFileView: boolean = false;
-
-  @Input()
-  filtersForm: FormGroup;
-
   @ViewChild('contextmenu', {
     read: ElementRef
   })
   contextMenu: ElementRef;
 
-  private contextMenuElement: HTMLElement;
+  readonly dateFormat: string = 'dddd, MMMM Do';
 
-  private selectedText: string = '';
-
-  private readonly messageFilterParameterName = 'log_message';
-
-  readonly customStyledColumns = ['level', 'type', 'logtime', 'log_message'];
-
-  readonly contextMenuItems = [
-    {
-      label: 'logs.addToQuery',
-      iconClass: 'fa fa-search-plus',
-      value: false // 'isExclude' is false
-    },
-    {
-      label: 'logs.excludeFromQuery',
-      iconClass: 'fa fa-search-minus',
-      value: true // 'isExclude' is true
-    }
-  ];
+  readonly timeFormat: string = 'h:mm:ss A';
 
   readonly logActions = [
     {
@@ -99,9 +66,26 @@ export class LogsListComponent implements AfterViewInit {
     }
   ];
 
-  readonly dateFormat: string = 'dddd, MMMM Do';
+  readonly customStyledColumns: string[] = ['level', 'type', 'logtime', 'log_message'];
 
-  readonly timeFormat: string = 'h:mm:ss A';
+  readonly contextMenuItems: ListItem[] = [
+    {
+      label: 'logs.addToQuery',
+      iconClass: 'fa fa-search-plus',
+      value: false // 'isExclude' is false
+    },
+    {
+      label: 'logs.excludeFromQuery',
+      iconClass: 'fa fa-search-minus',
+      value: true // 'isExclude' is true
+    }
+  ];
+
+  private readonly messageFilterParameterName: string = 'log_message';
+
+  private contextMenuElement: HTMLElement;
+
+  private selectedText: string = '';
 
   get timeZone(): string {
     return this.logsContainer.timeZone;
@@ -111,12 +95,12 @@ export class LogsListComponent implements AfterViewInit {
     return this.logsContainer.filters;
   }
 
-  isDifferentDates(dateA, dateB): boolean {
-    return this.utils.isDifferentDates(dateA, dateB, this.timeZone);
+  get logsTypeMapObject(): object {
+    return this.logsContainer.logsTypeMap.serviceLogs;
   }
 
-  isColumnDisplayed(key: string): boolean {
-    return this.displayedColumns.some((column: LogField): boolean  => column.name === key);
+  isDifferentDates(dateA, dateB): boolean {
+    return this.utils.isDifferentDates(dateA, dateB, this.timeZone);
   }
 
   openMessageContextMenu(event: MouseEvent): void {
@@ -134,7 +118,7 @@ export class LogsListComponent implements AfterViewInit {
     }
   }
 
-  updateQuery(event: any) {
+  updateQuery(event: ListItem): void {
     this.logsContainer.queryParameterAdd.next({
       name: this.messageFilterParameterName,
       value: this.selectedText,
@@ -146,6 +130,6 @@ export class LogsListComponent implements AfterViewInit {
     this.selectedText = '';
     this.contextMenuElement.style.display = 'none';
     document.body.removeEventListener('click', this.dismissContextMenu);
-  }
+  };
 
 }
