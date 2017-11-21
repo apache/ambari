@@ -190,6 +190,7 @@ def get_sysprep_skip_copy_tarballs_hdfs():
     sysprep_skip_copy_tarballs_hdfs = default("/configurations/cluster-env/sysprep_skip_copy_tarballs_hdfs", False)
   return sysprep_skip_copy_tarballs_hdfs
 
+
 def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_source_file=None, custom_dest_file=None):
   """
   For a given tarball name, get the source and destination paths to use.
@@ -197,50 +198,47 @@ def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_so
   :param use_upgrading_version_during_upgrade:
   :param custom_source_file: If specified, use this source path instead of the default one from the map.
   :param custom_dest_file: If specified, use this destination path instead of the default one from the map.
-  :return: A tuple of (success status, source path, destination path, optional preparation function which is invoked to setup the tarball)
+  :return: A tuple of success status, source path, destination path, optional preparation function which is invoked to setup the tarball
   """
   stack_name = Script.get_stack_name()
 
-  if not stack_name:
-    Logger.error("Cannot copy {0} tarball to HDFS because stack name could not be determined.".format(str(name)))
-    return False, None, None
+  try:
+    if not stack_name:
+      raise ValueError("Cannot copy {0} tarball to HDFS because stack name could not be determined.".format(str(name)))
 
-  if name is None or name.lower() not in TARBALL_MAP:
-    Logger.error("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(str(name), str(stack_name)))
-    return False, None, None
+    if name is None or name.lower() not in TARBALL_MAP:
+      raise ValueError("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(str(name), str(stack_name)))
 
-  service = TARBALL_MAP[name.lower()]['service']
+    service = TARBALL_MAP[name.lower()]
+    service_name = service['service']
+    stack_version = get_current_version(service=service_name, use_upgrading_version_during_upgrade=use_upgrading_version_during_upgrade)
+    stack_root = Script.get_stack_root()
 
-  stack_version = get_current_version(service=service, use_upgrading_version_during_upgrade=use_upgrading_version_during_upgrade)
-  if not stack_version:
-    Logger.error("Cannot copy {0} tarball to HDFS because stack version could be be determined.".format(str(name)))
-    return False, None, None
+    if not stack_version or not stack_root:
+      raise ValueError("Cannot copy {0} tarball to HDFS because stack version could be be determined.".format(str(name)))
 
-  stack_root = Script.get_stack_root()
-  if not stack_root:
-    Logger.error("Cannot copy {0} tarball to HDFS because stack root could be be determined.".format(str(name)))
-    return False, None, None
+    source_file, dest_file = service['dirs']
 
-  (source_file, dest_file) = TARBALL_MAP[name.lower()]['dirs']
+    if custom_source_file is not None:
+      source_file = custom_source_file
 
-  if custom_source_file is not None:
-    source_file = custom_source_file
+    if custom_dest_file is not None:
+      dest_file = custom_dest_file
 
-  if custom_dest_file is not None:
-    dest_file = custom_dest_file
+    source_file = source_file.replace(STACK_NAME_PATTERN, stack_name.lower())
+    dest_file = dest_file.replace(STACK_NAME_PATTERN, stack_name.lower())
 
-  source_file = source_file.replace(STACK_NAME_PATTERN, stack_name.lower())
-  dest_file = dest_file.replace(STACK_NAME_PATTERN, stack_name.lower())
+    source_file = source_file.replace(STACK_ROOT_PATTERN, stack_root.lower())
+    dest_file = dest_file.replace(STACK_ROOT_PATTERN, stack_root.lower())
 
-  source_file = source_file.replace(STACK_ROOT_PATTERN, stack_root.lower())
-  dest_file = dest_file.replace(STACK_ROOT_PATTERN, stack_root.lower())
+    source_file = source_file.replace(STACK_VERSION_PATTERN, stack_version)
+    dest_file = dest_file.replace(STACK_VERSION_PATTERN, stack_version)
 
-  source_file = source_file.replace(STACK_VERSION_PATTERN, stack_version)
-  dest_file = dest_file.replace(STACK_VERSION_PATTERN, stack_version)
+    prepare_function = service['prepare_function'] if "prepare_function" in service else None
 
-  prepare_function = None
-  if "prepare_function" in TARBALL_MAP[name.lower()]:
-    prepare_function = TARBALL_MAP[name.lower()]['prepare_function']
+  except ValueError as e:
+    Logger.error(str(e))
+    return False, None, None, None
 
   return True, source_file, dest_file, prepare_function
 
@@ -339,7 +337,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   import params
 
   Logger.info("Called copy_to_hdfs tarball: {0}".format(name))
-  (success, source_file, dest_file, prepare_function) = get_tarball_paths(name, use_upgrading_version_during_upgrade,
+  success, source_file, dest_file, prepare_function = get_tarball_paths(name, use_upgrading_version_during_upgrade,
                                                                           custom_source_file, custom_dest_file)
 
   if not success:
