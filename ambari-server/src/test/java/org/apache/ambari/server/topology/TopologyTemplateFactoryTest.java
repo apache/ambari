@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 
-public class ProvisionClusterTemplateTest {
+public class TopologyTemplateFactoryTest {
 
   public static final String CLUSTER_TEMPLATE =
     getResource("blueprintv2/cluster_template_v2.json");
@@ -42,32 +42,32 @@ public class ProvisionClusterTemplateTest {
 
   @Test
   public void testProvisionClusterTemplate() throws Exception {
-    ProvisionClusterTemplateFactory factory = new ProvisionClusterTemplateFactory();
-    ProvisionClusterTemplate template = factory.convertFromJson(CLUSTER_TEMPLATE);
+    TopologyTemplateFactory factory = new TopologyTemplateFactory();
+    TopologyTemplate template = factory.convertFromJson(CLUSTER_TEMPLATE);
     verifyClusterTemplate(template);
   }
 
   @Test(expected = IllegalStateException.class)
   public void testProvisionClusterTemplateInvalidTemplate() throws Exception {
-    ProvisionClusterTemplateFactory factory = new ProvisionClusterTemplateFactory();
-    ProvisionClusterTemplate template = factory.convertFromJson(CLUSTER_TEMPLATE_INVALID);
+    TopologyTemplateFactory factory = new TopologyTemplateFactory();
+    TopologyTemplate template = factory.convertFromJson(CLUSTER_TEMPLATE_INVALID);
   }
 
 
-  private void verifyClusterTemplate(ProvisionClusterTemplate template) {
-    ProvisionClusterTemplate.Service zk1 = template.getServiceById(ServiceId.of("ZK1", "CORE_SG"));
+  private void verifyClusterTemplate(TopologyTemplate template) {
+    TopologyTemplate.Service zk1 = template.getServiceById(ServiceId.of("ZK1", "CORE_SG"));
     assertNotNull(zk1);
     Map<String, Map<String, String>> expectedZkProperties = ImmutableMap.of(
       "zoo.cfg", ImmutableMap.of("dataDir", "/zookeeper1"));
     assertEquals(expectedZkProperties, zk1.getConfiguration().getProperties());
 
-    ProvisionClusterTemplate.Service hdfs = template.getServiceById(ServiceId.of("HDFS", "CORE_SG"));
+    TopologyTemplate.Service hdfs = template.getServiceById(ServiceId.of("HDFS", "CORE_SG"));
     Map<String, Map<String, String>> expectedHdfsProperties = ImmutableMap.of(
       "hdfs-site", ImmutableMap.of("property-name", "property-value"));
     assertNotNull(hdfs);
     assertEquals(expectedHdfsProperties, hdfs.getConfiguration().getProperties());
 
-    ProvisionClusterTemplate.HostGroup hostGroup1 = template.getHostGroupByName("host-group-1");
+    TopologyTemplate.HostGroup hostGroup1 = template.getHostGroupByName("host-group-1");
     assertNotNull(hostGroup1);
     assertEquals(2, hostGroup1.getHosts().size());
     assertEquals(0, hostGroup1.getHostCount());
@@ -75,7 +75,7 @@ public class ProvisionClusterTemplateTest {
       hostGroup1.getHosts().stream().map(host -> host.getFqdn()).collect(toSet()));
     hostGroup1.getHosts().forEach(host -> assertEquals("/dc1/rack1", host.getRackInfo()));
 
-    ProvisionClusterTemplate.HostGroup hostGroup2 = template.getHostGroupByName("host-group-2");
+    TopologyTemplate.HostGroup hostGroup2 = template.getHostGroupByName("host-group-2");
     assertNotNull(hostGroup2);
     assertEquals(0, hostGroup2.getHosts().size());
     assertEquals(2, hostGroup2.getHostCount());

@@ -24,11 +24,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-public class ProvisionClusterTemplateFactory {
+public class TopologyTemplateFactory {
 
   private ObjectMapper objectMapper;
 
-  public ProvisionClusterTemplateFactory() {
+  public TopologyTemplateFactory() {
     createObjectMapper();
   }
 
@@ -54,8 +54,8 @@ public class ProvisionClusterTemplateFactory {
     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
   }
 
-  public ProvisionClusterTemplate convertFromJson(String clusterTemplateJson) throws IOException {
-    ProvisionClusterTemplate template = objectMapper.readValue(clusterTemplateJson, ProvisionClusterTemplate.class);
+  public TopologyTemplate convertFromJson(String clusterTemplateJson) throws IOException {
+    TopologyTemplate template = objectMapper.readValue(clusterTemplateJson, TopologyTemplate.class);
     template.validate();
     return template;
   }

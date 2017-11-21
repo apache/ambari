@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
-public class ProvisionClusterTemplate {
+public class TopologyTemplate {
 
   private String blueprint = null;
 
@@ -45,9 +45,9 @@ public class ProvisionClusterTemplate {
   @JsonProperty("provision_action")
   private ProvisionAction provisionAction;
 
-  private Map<ServiceId, ProvisionClusterTemplate.Service> servicesById = Collections.emptyMap();
+  private Map<ServiceId, TopologyTemplate.Service> servicesById = Collections.emptyMap();
 
-  private Map<String, ProvisionClusterTemplate.HostGroup> hostGroups = Collections.emptyMap();
+  private Map<String, TopologyTemplate.HostGroup> hostGroups = Collections.emptyMap();
 
   private Collection<Credential> credentials;
 
