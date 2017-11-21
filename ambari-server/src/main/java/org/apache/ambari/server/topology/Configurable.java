@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -26,34 +25,55 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 public interface Configurable {
   void setConfiguration(Configuration configuration);
   Configuration getConfiguration();
 
   @JsonProperty("configurations")
-  default void setConfigs(Collection<Map<String, Map<String, Map<String, String>>>> configs) {
+  default void setConfigs(Collection<Map<String, Map<String, Map<String, ? extends Object>>>> configs) {
     if (null != configs) {
       Map<String, Map<String, String>> allProps = configs.stream().
         filter(map -> map != null && !map.isEmpty() && map.values().iterator().next().get(Configuration.PROPERTIES_KEY) != null).
         collect(toMap(
           config -> config.keySet().iterator().next(),
-          config -> config.values().iterator().next().get(Configuration.PROPERTIES_KEY)
+          config -> (Map<String, String>)config.values().iterator().next().get(Configuration.PROPERTIES_KEY)
         ));
-      setConfiguration(new Configuration(allProps, new HashMap<>()));
+      Map<String, Map<String, Map<String, String>>> allAttributes = configs.stream().
+        filter(map -> map != null && !map.isEmpty() && map.values().iterator().next().get(Configuration.ATTRIBUTES_KEY) != null).
+        collect(toMap(
+          config -> config.keySet().iterator().next(),
+          config -> (Map<String, Map<String, String>>)
+            config.values().iterator().next().get(Configuration.ATTRIBUTES_KEY)
+        ));
+      setConfiguration(new Configuration(allProps, allAttributes));
     }
   }
 
   @JsonProperty("configurations")
-  default Collection<Map<String, Map<String, Map<String, String>>>> getConfigs() {
+  default Collection<Map<String, Map<String, Map<String, ? extends Object>>>> getConfigs() {
     Configuration config = getConfiguration();
-    return config != null
-      ? config.getProperties().entrySet().stream()
-        .map(e -> singletonMap(e.getKey(), singletonMap(Configuration.PROPERTIES_KEY, e.getValue())))
-        .collect(toList())
-      : Collections.emptyList();
+    if (config != null) {
+      Set<String> keys = Sets.union(config.getProperties().keySet(), config.getAttributes().keySet());
+      return keys.stream().map(key -> {
+        Map<String, Map<String, ? extends Object>> map = new HashMap<>(2);
+        if (config.getProperties().containsKey(key)) {
+          map.put(Configuration.PROPERTIES_KEY, config.getProperties().get(key));
+        }
+        if (config.getAttributes().containsKey(key)) {
+          map.put(Configuration.ATTRIBUTES_KEY, config.getAttributes().get(key));
+        }
+        return ImmutableMap.of(key, map);
+      }).collect(toList());
+    }
+    else {
+      return Collections.emptyList();
+    }
   }
 
 }
