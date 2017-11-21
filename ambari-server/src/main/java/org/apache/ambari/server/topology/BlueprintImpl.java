@@ -350,6 +350,7 @@ public class BlueprintImpl implements Blueprint {
    * Validate blueprint configuration.
    *
    * @throws InvalidTopologyException if the blueprint configuration is invalid
+   * @throws GPLLicenseNotAcceptedException ambari was configured to use gpl software, but gpl license is not accepted
    */
   @Override
   public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
