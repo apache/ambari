@@ -222,22 +222,27 @@ public class BlueprintV2Impl implements BlueprintV2 {
   @Override
   @JsonIgnore
   public Collection<ComponentV2> getComponents(Service service) {
-    return getHostGroupsForService(service.getId()).stream().flatMap(
-      hg -> hg.getComponents().stream()).
-      collect(toList());
+    return getHostGroupsForService(service.getId()).stream()
+      .flatMap(hg -> hg.getComponents().stream())
+      .filter(c -> c.getServiceId().equals(service.getId()))
+      .collect(toList());
   }
 
   @Override
   @JsonIgnore
   public Collection<ComponentV2> getComponentsByType(Service service, String componentType) {
-    return getComponents(service).stream().filter(
-            compnoent -> compnoent.getType().equalsIgnoreCase(componentType)).collect(toList());
+    return getComponents(service).stream()
+      .filter(c -> c.getType().equalsIgnoreCase(componentType))
+      .collect(toList());
   }
 
   @Override
   @JsonIgnore
   public Collection<ComponentV2> getComponents(ServiceId serviceId) {
-    return getHostGroupsForService(serviceId).stream().flatMap(hg -> hg.getComponents().stream()).collect(toSet());
+    return getHostGroupsForService(serviceId).stream()
+      .flatMap(hg -> hg.getComponents().stream())
+      .filter(c -> c.getServiceId().equals(serviceId))
+      .collect(toSet());
   }
 
   @Override
@@ -361,8 +366,7 @@ public class BlueprintV2Impl implements BlueprintV2 {
     this.services = getAllServiceIds().stream().collect(toMap(
       Function.identity(),
       serviceId -> {
-        ServiceGroup sg = getServiceGroup(serviceId.getServiceGroup());
-        Service service = null != sg ? sg.getServiceByName(serviceId.getName()) : null;
+        Service service = getServiceGroup(serviceId.getServiceGroup()).getServiceByName(serviceId.getName());
         if (null == service) {
           throw new IllegalStateException("Cannot find service for service id: " + serviceId);
         }

@@ -140,4 +140,13 @@ public class ComponentV2 implements Configurable {
   public void setService(Service service) {
     this.service = service;
   }
+
+  @Override
+  public String toString() {
+    return "Component{" +
+      "serviceGroup=" + serviceId.getServiceGroup() + " " +
+      "service=" + serviceId.getName() + " " +
+      "component=" + type +
+    "}";
+  }
 }

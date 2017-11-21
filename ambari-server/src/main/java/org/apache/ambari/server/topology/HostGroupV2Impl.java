@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,7 +33,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
 
   private String name;
   private String blueprintName;
-  private List<ComponentV2> components;
+  private Collection<ComponentV2> components;
   private Set<ServiceId> serviceIds;
   private Configuration configuration;
   private String cardinality;
@@ -148,7 +147,7 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
     this.blueprintName = blueprintName;
   }
 
-  public void setComponents(List<ComponentV2> components) {
+  public void setComponents(Collection<ComponentV2> components) {
     this.components = components;
     this.containsMasterComponent = components.stream().anyMatch(ComponentV2::isMasterComponent);
     this.serviceIds = components.stream().map(ComponentV2::getServiceId).collect(Collectors.toSet());

@@ -79,7 +79,6 @@ public class ServiceGroup {
     services.forEach(s -> s.setServiceGroup(this));
     this.servicesByName = services.stream().collect(Collectors.toMap(Service::getName, Function.identity()));
     this.servicesByType = Multimaps.index(services, Service::getType);
-    services.forEach(s -> s.setServiceGroup(this));
   }
 
   public void setConfiguration(Configuration configuration) {
