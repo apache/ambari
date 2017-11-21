@@ -17,38 +17,33 @@
  */
 package org.apache.ambari.server.topology;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ServiceId {
-  private String serviceGroup;
-  private String name;
+  private final String serviceGroup;
+  private final String name;
 
-  public ServiceId() { }
-
-  public static ServiceId of(String name, String serviceGroup) {
-    ServiceId id = new ServiceId();
-    id.name = name;
-    id.serviceGroup = serviceGroup;
-    return id;
+  @JsonCreator
+  public ServiceId(@JsonProperty("service_name") String name, @JsonProperty("service_group") String serviceGroup) {
+    this.name = name;
+    this.serviceGroup = serviceGroup;
   }
 
+  public static ServiceId of(String name, String serviceGroup) {
+    return new ServiceId(name, serviceGroup);
+  }
+
+  @JsonProperty("service_group")
   public String getServiceGroup() {
     return serviceGroup;
   }
 
-  @JsonProperty("service_group")
-  public void setServiceGroup(String serviceGroup) {
-    this.serviceGroup = serviceGroup;
-  }
-
+  @JsonProperty("service_name")
   public String getName() {
     return name;
   }
 
-  @JsonProperty("service_name")
-  public void setName(String name) {
-    this.name = name;
-  }
 
   @Override
   public boolean equals(Object o) {

@@ -51,15 +51,10 @@
           "fqdn": "host2.domain.com",
           "rack_info": "/dc1/rack1"
         }
-      ]
-    },
-    {
-      "name": "host-group-2",
-      "configurations": [],
+      ],
       "host_count": "2",
       "host_predicate": "Hosts/os_type=centos6&Hosts/cpu_count=2"
     }
-
   ],
   "credentials": [
     {

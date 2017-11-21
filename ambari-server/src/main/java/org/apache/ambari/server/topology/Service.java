@@ -36,7 +36,7 @@ public class Service implements Configurable {
 
   private String type;
 
-  private ServiceId id = new ServiceId();
+  private ServiceId id = new ServiceId(null, null);
 
   private String stackId;
 
@@ -115,12 +115,12 @@ public class Service implements Configurable {
   }
 
   public void setName(String name) {
-    this.id.setName(name);
+    this.id = new ServiceId(name, this.id.getServiceGroup());
   }
 
   public void setServiceGroup(ServiceGroup serviceGroup) {
     this.serviceGroup = serviceGroup;
-    this.id.setServiceGroup(serviceGroup.getName());
+    this.id = new ServiceId(this.id.getName(), serviceGroup.getName()) ;
   }
 
   @JsonProperty("stack_id")

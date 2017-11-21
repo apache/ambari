@@ -51,16 +51,13 @@ public class ProvisionClusterTemplateFactory {
 
   private void createObjectMapper() {
     objectMapper = new ObjectMapper();
-//    SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
-//    SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-//    resolver.addMapping(HostGroupV2.class, HostGroupV2Impl.class);
-//    module.setAbstractTypes(resolver);
-//    objectMapper.registerModule(module);
     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
   }
 
   public ProvisionClusterTemplate convertFromJson(String clusterTemplateJson) throws IOException {
-    return objectMapper.readValue(clusterTemplateJson, ProvisionClusterTemplate.class);
+    ProvisionClusterTemplate template = objectMapper.readValue(clusterTemplateJson, ProvisionClusterTemplate.class);
+    template.validate();
+    return template;
   }
 
 }

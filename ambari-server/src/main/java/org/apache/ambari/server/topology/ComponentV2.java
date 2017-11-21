@@ -30,7 +30,7 @@ public class ComponentV2 implements Configurable {
 
   private String name;
 
-  private ServiceId serviceId = new ServiceId();
+  private ServiceId serviceId = new ServiceId(null, null);
 
   private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
 
@@ -110,12 +110,12 @@ public class ComponentV2 implements Configurable {
 
   @JsonProperty("service_group")
   public void setServiceGroup(String serviceGroup) {
-    serviceId.setServiceGroup(serviceGroup);
+    this.serviceId = new ServiceId(this.serviceId.getName(), serviceGroup);
   }
 
   @JsonProperty("service_name")
   public void setServiceName(String serviceName) {
-    serviceId.setName(serviceName);
+    this.serviceId = new ServiceId(serviceName, this.serviceId.getServiceGroup());
   }
 
   public String getServiceName() {

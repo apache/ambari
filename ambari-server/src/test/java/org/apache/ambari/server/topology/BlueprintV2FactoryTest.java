@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
 public class BlueprintV2FactoryTest {
@@ -79,14 +80,11 @@ public class BlueprintV2FactoryTest {
     assertEquals(2, bp.getServiceGroups().size());
 
     Service zk1 = bp.getServiceGroup("CoreSG").getServiceByName("ZK1");
-    Map<String, Map<String, String>> expectedProperties = new HashMap<>();
-    Map<String, String> zooCfg = new HashMap<>();
-    zooCfg.put("dataDir", "/zookeeper1");
-    expectedProperties.put("zoo.cfg", zooCfg);
-    Map<String, String> zookeeperEnv = new HashMap<>();
-    zookeeperEnv.put("zk_user", "zkuser1");
-    zookeeperEnv.put("zk_server_heapsize", "256MB");
-    expectedProperties.put("zookeeper-env", zookeeperEnv);
+    Map<String, Map<String, String>> expectedProperties = ImmutableMap.of(
+      "zoo.cfg", ImmutableMap.of("dataDir", "/zookeeper1"),
+      "zookeeper-env", ImmutableMap.of(
+        "zk_user", "zkuser1",
+        "zk_server_heapsize", "256MB"));
     assertEquals(expectedProperties, zk1.getConfiguration().getProperties());
   }
 
@@ -120,7 +118,7 @@ public class BlueprintV2FactoryTest {
     verifyBlueprintStructure2(blueprintFactory.convertFromJson(BLUEPRINTV2_2_JSON));
   }
 
-  private void verifyBlueprintStructure2(BlueprintV2 bp) {
+  private void verifyBlueprintStructure2(BlueprintV2 bp) { // for "blueprintv2_2.json"
     assertEquals(new StackId("HDP", "3.0.0"),
       bp.getServiceGroups().iterator().next().getServices().iterator().next().getStack().getStackId());
     assertEquals(1, bp.getStackIds().size());

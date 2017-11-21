@@ -18,26 +18,39 @@
  */
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Preconditions;
 
 public class ProvisionClusterTemplate {
 
-  private String blueprint;
+  private String blueprint = null;
+
   @JsonProperty("default_password")
-  private String defaultPassword;
+  private String defaultPassword = null;
+
   @JsonProperty("config_recommendation_strategy")
   private ConfigRecommendationStrategy configRecommendationStrategy;
+
   @JsonProperty("provision_action")
   private ProvisionAction provisionAction;
-  private Collection<ProvisionClusterTemplate.Service> services;
-  @JsonProperty("host_groups")
-  private Collection<ProvisionClusterTemplate.HostGroup> hostGroups;
+
+  private Map<ServiceId, ProvisionClusterTemplate.Service> servicesById = Collections.emptyMap();
+
+  private Map<String, ProvisionClusterTemplate.HostGroup> hostGroups = Collections.emptyMap();
+
   private Collection<Credential> credentials;
+
   @JsonProperty("security")
   private SecurityConfiguration securityConfiguration;
 
@@ -57,12 +70,21 @@ public class ProvisionClusterTemplate {
     this.defaultPassword = defaultPassword;
   }
 
-  public Collection<Service> getServices() {
-    return services;
+  public @Nullable Service getServiceById(ServiceId serviceId) {
+    return servicesById.get(serviceId);
   }
 
+  @JsonProperty("services")
+  public Collection<Service> getServices() {
+    return servicesById.values();
+  }
+
+  @JsonProperty("services")
   public void setServices(Collection<Service> services) {
-    this.services = services;
+    this.servicesById = services.stream().collect(toMap(
+      s -> s.getId(),
+      s -> s
+    ));
   }
 
   public Collection<Credential> getCredentials() {
@@ -97,21 +119,34 @@ public class ProvisionClusterTemplate {
     this.provisionAction = provisionAction;
   }
 
+  @JsonProperty("host_groups")
   public Collection<HostGroup> getHostGroups() {
-    return hostGroups;
+    return hostGroups.values();
   }
 
+  public HostGroup getHostGroupByName(String name) {
+    return hostGroups.get(name);
+  }
+
+  @JsonProperty("host_groups")
   public void setHostGroups(Collection<HostGroup> hostGroups) {
-    this.hostGroups = hostGroups;
+    this.hostGroups = hostGroups.stream().collect(toMap(
+      hg -> hg.getName(),
+      hg -> hg
+    ));
+  }
+
+  public void validate() throws IllegalStateException {
+    getHostGroups().forEach(HostGroup::validate);
   }
 
   public static class HostGroup implements Configurable {
     private String name;
     @JsonIgnore
     private Configuration configuration;
-    private Collection<Host> hosts;
+    private Collection<Host> hosts = Collections.emptyList();
     @JsonProperty("host_count")
-    private Integer hostCount;
+    private int hostCount = 0;
     @JsonProperty("host_predicate")
     private String hostPredicate;
 
@@ -141,11 +176,11 @@ public class ProvisionClusterTemplate {
       this.hosts = hosts;
     }
 
-    public Integer getHostCount() {
+    public int getHostCount() {
       return hostCount;
     }
 
-    public void setHostCount(Integer hostCount) {
+    public void setHostCount(int hostCount) {
       this.hostCount = hostCount;
     }
 
@@ -155,6 +190,12 @@ public class ProvisionClusterTemplate {
 
     public void setHostPredicate(String hostPredicate) {
       this.hostPredicate = hostPredicate;
+    }
+
+    void validate() throws IllegalStateException {
+      Preconditions.checkState((hostCount == 0 && null == hostPredicate) || getHosts().isEmpty(),
+        "Invalid custer topology template. Host group %s must have either declatere its hosts or " +
+          "hostcount (and optionally host predicate)", name);
     }
   }
 
@@ -173,6 +214,11 @@ public class ProvisionClusterTemplate {
     @Override
     public void setConfiguration(Configuration configuration) {
       this.configuration = configuration;
+    }
+
+    @JsonIgnore
+    public ServiceId getId() {
+      return new ServiceId(name, serviceGroup);
     }
 
     public String getName() {

@@ -18,23 +18,68 @@
  */
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
+import java.util.Map;
 
 import org.junit.Test;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 
 public class ProvisionClusterTemplateTest {
 
-  public static final String CLUSTER_TEMPLATE = getResource("blueprintv2/cluster_template_v2.json");
+  public static final String CLUSTER_TEMPLATE =
+    getResource("blueprintv2/cluster_template_v2.json");
+  public static final String CLUSTER_TEMPLATE_INVALID =
+    getResource("blueprintv2/cluster_template_v2_invalid_hostgroup.json");
 
 
   @Test
   public void testProvisionClusterTemplate() throws Exception {
     ProvisionClusterTemplateFactory factory = new ProvisionClusterTemplateFactory();
     ProvisionClusterTemplate template = factory.convertFromJson(CLUSTER_TEMPLATE);
-    System.out.println(template);
+    verifyClusterTemplate(template);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testProvisionClusterTemplateInvalidTemplate() throws Exception {
+    ProvisionClusterTemplateFactory factory = new ProvisionClusterTemplateFactory();
+    ProvisionClusterTemplate template = factory.convertFromJson(CLUSTER_TEMPLATE_INVALID);
+  }
+
+
+  private void verifyClusterTemplate(ProvisionClusterTemplate template) {
+    ProvisionClusterTemplate.Service zk1 = template.getServiceById(ServiceId.of("ZK1", "CORE_SG"));
+    assertNotNull(zk1);
+    Map<String, Map<String, String>> expectedZkProperties = ImmutableMap.of(
+      "zoo.cfg", ImmutableMap.of("dataDir", "/zookeeper1"));
+    assertEquals(expectedZkProperties, zk1.getConfiguration().getProperties());
+
+    ProvisionClusterTemplate.Service hdfs = template.getServiceById(ServiceId.of("HDFS", "CORE_SG"));
+    Map<String, Map<String, String>> expectedHdfsProperties = ImmutableMap.of(
+      "hdfs-site", ImmutableMap.of("property-name", "property-value"));
+    assertNotNull(hdfs);
+    assertEquals(expectedHdfsProperties, hdfs.getConfiguration().getProperties());
+
+    ProvisionClusterTemplate.HostGroup hostGroup1 = template.getHostGroupByName("host-group-1");
+    assertNotNull(hostGroup1);
+    assertEquals(2, hostGroup1.getHosts().size());
+    assertEquals(0, hostGroup1.getHostCount());
+    assertEquals(ImmutableSet.of("host.domain.com", "host2.domain.com"),
+      hostGroup1.getHosts().stream().map(host -> host.getFqdn()).collect(toSet()));
+    hostGroup1.getHosts().forEach(host -> assertEquals("/dc1/rack1", host.getRackInfo()));
+
+    ProvisionClusterTemplate.HostGroup hostGroup2 = template.getHostGroupByName("host-group-2");
+    assertNotNull(hostGroup2);
+    assertEquals(0, hostGroup2.getHosts().size());
+    assertEquals(2, hostGroup2.getHostCount());
+    assertEquals("Hosts/os_type=centos6&Hosts/cpu_count=2", hostGroup2.getHostPredicate());
   }
 
 
