@@ -152,10 +152,6 @@
             <package>
               <name>hadoop</name>
             </package>
-            <package>
-              <name>hadoop-lzo</name>
-              <condition>should_install_lzo</condition>
-            </package>
           </packages>
         </osSpecific>
 
@@ -165,15 +161,6 @@
             <package>
               <name>snappy</name>
             </package>
-            <package>
-              <name>lzo</name>
-              <condition>should_install_lzo</condition>
-            </package>
-            <package>
-              <name>hadoop-lzo-native</name>
-              <condition>should_install_lzo</condition>
-            </package>
-            <package>
               <name>hadoop-libhdfs</name>
             </package>
             <package>
@@ -190,10 +177,6 @@
             </package>
             <package>
               <name>libsnappy-dev</name>
-            </package>
-            <package>
-              <name>liblzo2-2</name>
-              <condition>should_install_lzo</condition>
             </package>
             <package>
               <name>hadoop-hdfs</name>

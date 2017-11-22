@@ -26,6 +26,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
+from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.resources.xml_config import XmlConfig
@@ -99,6 +100,12 @@ def oozie(is_server=False):
   pass
 
   oozie_ownership()
+  
+  if params.lzo_enabled:
+    install_lzo_if_needed()
+    Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
+      not_if  = no_op_test,
+    )
 
   if is_server:
     oozie_server_specific()
@@ -227,11 +234,6 @@ def oozie_server_specific():
     Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension.jar'),
       not_if  = no_op_test,
     )
-  #if params.lzo_enabled and len(params.lzo_packages_for_current_host) > 0:
-  #  Package(params.lzo_packages_for_current_host)
-  #  Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
-  #    not_if  = no_op_test,
-  #  )
 
   prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
   prepare_war_cmd = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure}")
