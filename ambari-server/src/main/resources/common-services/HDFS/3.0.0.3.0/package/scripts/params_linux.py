@@ -373,10 +373,6 @@ HdfsResource = functools.partial(
   dfs_type = dfs_type
 )
 
-
-# The logic for LZO also exists in OOZIE's params.py
-io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
   
 name_node_params = default("/commandParams/namenode", None)
 

@@ -39,7 +39,7 @@ from resource_management.libraries.functions.version import *
 from resource_management.libraries.functions.format_jvm_option import *
 from resource_management.libraries.functions.constants import *
 from resource_management.libraries.functions.get_stack_version import *
-from resource_management.libraries.functions.get_lzo_packages import *
+from resource_management.libraries.functions.lzo_utils import *
 from resource_management.libraries.functions.setup_ranger_plugin import *
 from resource_management.libraries.functions.curl_krb_request import *
 from resource_management.libraries.functions.get_bare_principal import *
