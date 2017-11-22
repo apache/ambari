@@ -60,6 +60,9 @@ public class LZOCheckTest {
   @Mock
   private RepositoryVersionEntity m_repositoryVersion;
 
+  @Mock
+  private Configuration configuration;
+
   final Map<String, Service> m_services = new HashMap<>();
 
   @Before
@@ -70,8 +73,7 @@ public class LZOCheckTest {
         return clusters;
       }
     };
-    Configuration config = Mockito.mock(Configuration.class);
-    lZOCheck.config = config;
+    lZOCheck.config = configuration;
 
     m_services.clear();
 
@@ -99,7 +101,6 @@ public class LZOCheckTest {
   public void testPerform() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
     final Map<String, Service> services = new HashMap<>();
-    final Service service = Mockito.mock(Service.class);
 
     Mockito.when(cluster.getServices()).thenReturn(services);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
@@ -115,6 +116,7 @@ public class LZOCheckTest {
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
     final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
+    Mockito.when(configuration.getGplLicenseAccepted()).thenReturn(false);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
@@ -141,5 +143,10 @@ public class LZOCheckTest {
     check = new PrerequisiteCheck(null, null);
     lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+
+    Mockito.when(configuration.getGplLicenseAccepted()).thenReturn(true);
+    check = new PrerequisiteCheck(null, null);
+    lZOCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
 }
