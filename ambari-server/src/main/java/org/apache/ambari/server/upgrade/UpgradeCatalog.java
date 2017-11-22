@@ -18,7 +18,6 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;

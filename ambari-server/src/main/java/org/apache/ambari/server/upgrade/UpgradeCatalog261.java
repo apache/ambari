@@ -17,8 +17,9 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.SQLException;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.state.Cluster;
@@ -27,8 +28,8 @@ import org.apache.ambari.server.state.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-import java.util.Map;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * The {@link UpgradeCatalog261} upgrades Ambari from 2.6.0 to 2.6.1.
