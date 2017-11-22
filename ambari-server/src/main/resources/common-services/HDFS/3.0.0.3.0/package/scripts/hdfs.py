@@ -26,7 +26,6 @@ from resource_management.core.source import Template
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.libraries.resources.xml_config import XmlConfig
 
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format

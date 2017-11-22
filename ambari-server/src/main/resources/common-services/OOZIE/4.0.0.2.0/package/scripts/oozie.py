@@ -38,7 +38,6 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.core.resources.packaging import Package
 from resource_management.core.shell import as_user, as_sudo, call, checked_call
 from resource_management.core.exceptions import Fail
