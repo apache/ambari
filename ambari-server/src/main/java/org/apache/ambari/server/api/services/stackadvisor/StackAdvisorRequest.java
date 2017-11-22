@@ -118,6 +118,9 @@ public class StackAdvisorRequest {
     this.configGroups = configGroups;
   }
 
+  /**
+   * @return true if GPL license is accepted, false otherwise
+   */
   public Boolean getGplLicenseAccepted() {
     return gplLicenseAccepted;
   }
@@ -194,6 +197,11 @@ public class StackAdvisorRequest {
       return this;
     }
 
+    /**
+     * Set GPL license acceptance parameter to request.
+     * @param gplLicenseAccepted is GPL license accepted.
+     * @return stack advisor request builder.
+     */
     public StackAdvisorRequestBuilder withGPLLicenseAccepted(
         Boolean gplLicenseAccepted) {
       this.instance.gplLicenseAccepted = gplLicenseAccepted;
