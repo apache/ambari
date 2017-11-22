@@ -28,6 +28,7 @@ import re
 import glob
 import optparse
 import logging
+import ambari_simplejson as json
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
@@ -41,7 +42,7 @@ from ambari_server.serverConfiguration import configDefaults, get_resources_loca
   update_database_name_property, get_admin_views_dir, get_views_dir, get_views_jars, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
-  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir
+  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY, get_default_views_dir, write_gpl_license_accepted
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
@@ -72,6 +73,11 @@ SCHEMA_UPGRADE_HELPER_CMD_DEBUG = "{0} " \
 SCHEMA_UPGRADE_DEBUG = False
 
 SUSPEND_START_MODE = False
+
+INSALLED_LZO_WITHOUT_GPL_TEXT = "By saying no, Ambari will not automatically install LZO on any  new host in the cluster." + \
+"It is up to you to ensure LZO is installed and configured appropriately." + \
+"Without LZO being installed and configured data compressed with LZO will not be readable. " + \
+"Are you sure you want to proceed? [y/n] (n)?"
 
 def load_stack_values(version, filename):
   import xml.etree.ElementTree as ET
@@ -146,6 +152,10 @@ def run_schema_upgrade(args):
   environ = generate_env(args, ambari_user, current_user)
 
   (retcode, stdout, stderr) = run_os_command(command, env=environ)
+  upgrade_response = json.loads(stdout)
+
+  check_gpl_license_approved(upgrade_response)
+
   print_info_msg("Return code from schema upgrade command, retcode = {0}".format(str(retcode)), True)
   if stdout:
     print_info_msg("Console output from schema upgrade command:", True)
@@ -161,6 +171,12 @@ def run_schema_upgrade(args):
     print_info_msg('Schema upgrade completed', True)
   return retcode
 
+def check_gpl_license_approved(upgrade_response):
+  if 'lzo_enabled' not in upgrade_response or upgrade_response['lzo_enabled'].lower() != "true":
+    return
+
+  while not write_gpl_license_accepted() and not get_YN_input(INSALLED_LZO_WITHOUT_GPL_TEXT, False):
+    pass
 
 #
 # Upgrades the Ambari Server.
