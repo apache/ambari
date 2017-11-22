@@ -2093,6 +2093,7 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getServerDBName()).andReturn(SERVER_DB_NAME);
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("true");
+    expect(configuration.getGplLicenseAccepted()).andReturn(false);
     expect(configuration.getDatabaseConnectorNames()).andReturn(new HashMap<>()).anyTimes();
     expect(configuration.getPreviousDatabaseConnectorNames()).andReturn(new HashMap<>()).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
@@ -2140,7 +2141,7 @@ public class AmbariManagementControllerImplTest {
 
     Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster, repositoryVersionEntity.getStackId());
 
-    assertEquals(15, defaultHostParams.size());
+    assertEquals(16, defaultHostParams.size());
     assertEquals(MYSQL_JAR, defaultHostParams.get(DB_DRIVER_FILENAME));
     assertEquals(SOME_STACK_NAME, defaultHostParams.get(STACK_NAME));
     assertEquals(SOME_STACK_VERSION, defaultHostParams.get(STACK_VERSION));
