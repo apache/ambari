@@ -1409,6 +1409,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stage.setStageId(stageId);
     entity.setStageId(Long.valueOf(stageId));
 
+    Map<String, String> taskParameters = task.getParameters();
+    commandParams.putAll(taskParameters);
     stage.addServerActionCommand(task.getImplementationClass(),
         getManagementController().getAuthName(), Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE,
         cluster.getClusterName(),

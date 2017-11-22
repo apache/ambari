@@ -292,6 +292,15 @@
       <xs:extension base="abstract-task-type">
         <xs:sequence>
           <xs:element name="message" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="parameter" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="xs:string">
+                  <xs:attribute name="name" />
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

@@ -66,11 +66,12 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     if storm_env and storm_site and security_enabled and 'STREAMLINE' in servicesList:
       storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"] if "nimbus.impersonation.acl" in storm_site else None
       streamline_env = self.getServicesSiteProperties(services, "streamline-env")
-      _streamline_principal_name = streamline_env['streamline_principal_name'] if 'streamline_principal_name' in streamline_env else None
-      if _streamline_principal_name is not None and storm_nimbus_impersonation_acl is not None:
-        streamline_bare_principal = get_bare_principal(_streamline_principal_name)
-        storm_nimbus_impersonation_acl.replace('{{streamline_bare_principal}}', streamline_bare_principal)
-        putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+      if streamline_env:
+        _streamline_principal_name = streamline_env['streamline_principal_name'] if 'streamline_principal_name' in streamline_env else None
+        if _streamline_principal_name is not None and storm_nimbus_impersonation_acl is not None:
+          streamline_bare_principal = get_bare_principal(_streamline_principal_name)
+          storm_nimbus_impersonation_acl.replace('{{streamline_bare_principal}}', streamline_bare_principal)
+          putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
       
       storm_nimbus_autocred_plugin_classes = storm_site["nimbus.autocredential.plugins.classes"] if "nimbus.autocredential.plugins.classes" in storm_site else None
       if storm_nimbus_autocred_plugin_classes is not None:
