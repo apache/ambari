@@ -915,6 +915,27 @@ class TestHiveServerInteractive(RMFTestCase):
 
 
 
+  # Tests for function '_make_valid_json()' : will be passed in with 'llapstatus' output which will be :
+  #     (1). A string parseable as JSON, but has 2 and 3.
+  #     (2). Has extra lines in beginning (eg: from MOTD logging embedded)
+  #          AND/OR
+  #     (3). Extra lines at the end.
+
+  # Begginning and end lines need to be removed before parsed as JSON
+  def test_make_valid_json_11(self):
+      # Setting up input for fn. '_make_valid_json()'
+      input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/running_withMOTDmsg_andTrailingMsg.txt","r")
+      llap_app_info = input_file_handle.read()
+      llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+      # Set up expected output
+      expected_ouput_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/running.json","r")
+      expected_ouput_data = expected_ouput_file_handle.read()
+      expected_ouput_data_as_json = json.loads(expected_ouput_data)
+
+      # Verification
+      self.assertEqual(llap_app_info_as_json, expected_ouput_data_as_json)
+
 
   # Tests for fn : 'check_llap_app_status_in_hdp_tp()'
 
