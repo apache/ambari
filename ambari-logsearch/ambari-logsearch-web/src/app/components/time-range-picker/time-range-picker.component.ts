@@ -18,7 +18,7 @@
 
 import {Component, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Moment} from 'moment';
+import {Moment} from 'moment-timezone';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ListItem} from '@app/classes/list-item';
 import {TimeUnitListItem} from '@app/classes/filtering';
@@ -61,6 +61,8 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
     if (this.onChange) {
       this.onChange(newValue);
     }
+    this.setEndTime(this.logsContainer.getEndTimeMoment(newValue));
+    this.setStartTime(this.logsContainer.getStartTimeMoment(newValue, this.endTime));
   }
 
   setStartTime(timeObject: Moment): void {
@@ -71,11 +73,11 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
     this.endTime = timeObject;
   }
 
-  setTimeRange(value: any, label: string) {
+  setTimeRange(value: any, label: string): void {
     this.selection = {label, value};
   }
 
-  setCustomTimeRange() {
+  setCustomTimeRange(): void {
     this.selection = {
       label: 'filter.timeRange.custom',
       value: {
@@ -86,7 +88,7 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
     };
   }
 
-  writeValue(selection: TimeUnitListItem) {
+  writeValue(selection: TimeUnitListItem): void {
     this.selection = selection;
   }
 
@@ -94,7 +96,7 @@ export class TimeRangePickerComponent implements ControlValueAccessor {
     this.onChange = callback;
   }
 
-  registerOnTouched() {
+  registerOnTouched(): void {
   }
 
 }

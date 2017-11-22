@@ -728,11 +728,11 @@ export class LogsContainerService {
     return Object.keys(keysObject).map((key: string): {fieldClass} => new fieldClass(key));
   }
 
-  private getStartTime = (selection: TimeUnitListItem, current: string): string => {
+  getStartTimeMoment = (selection: TimeUnitListItem, end: moment.Moment): moment.Moment | undefined => {
     let time;
     const value = selection && selection.value;
     if (value) {
-      const endTime = moment(moment(current).valueOf());
+      const endTime = end.clone();
       switch (value.type) {
         case 'LAST':
           time = endTime.subtract(value.interval, value.unit);
@@ -750,10 +750,15 @@ export class LogsContainerService {
           break;
       }
     }
-    return time ? time.toISOString() : '';
+    return time;
   };
 
-  private getEndTime = (selection: TimeUnitListItem): string => {
+  private getStartTime = (selection: TimeUnitListItem, current: string): string => {
+    const startMoment = this.getStartTimeMoment(selection, moment(moment(current).valueOf()));
+    return startMoment ? startMoment.toISOString() : '';
+  };
+
+  getEndTimeMoment = (selection: TimeUnitListItem): moment.Moment | undefined => {
     let time;
     const value = selection && selection.value;
     if (value) {
@@ -774,7 +779,12 @@ export class LogsContainerService {
           break;
       }
     }
-    return time ? time.toISOString() : '';
+    return time;
+  };
+
+  private getEndTime = (selection: TimeUnitListItem): string => {
+    const endMoment = this.getEndTimeMoment(selection);
+    return endMoment ? endMoment.toISOString() : '';
   };
 
   private getQuery(isExclude: boolean): (value: any[]) => string {
