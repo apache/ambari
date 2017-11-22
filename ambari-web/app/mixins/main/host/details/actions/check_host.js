@@ -216,7 +216,7 @@ App.CheckHostMixin = Em.Mixin.create({
           return {
             hostName: Em.get(task, 'Tasks.host_name'),
             transparentHugePage: Em.get(task, 'Tasks.structured_out.transparentHugePage.message'),
-            installedPackages: installed_packages ? installed_packages : []
+            installedPackages: installed_packages && Array.isArray(installed_packages) ? installed_packages : []
           };
         }));
 
