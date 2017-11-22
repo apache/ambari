@@ -1503,22 +1503,22 @@ public class ConfigHelper {
   }
 
   /**
-   * Compares values as double in case they are numbers.
-   * @param actualValue
-   * @param newValue
-   * @return
+   * Checks for equality of parsed numbers if both values are numeric,
+   * otherwise using regular equality.
    */
-  private  boolean valuesAreEqual(String actualValue, String newValue) {
-    boolean actualValueIsNumber = NumberUtils.isNumber(actualValue);
-    boolean newValueIsNumber = NumberUtils.isNumber(newValue);
-    if (actualValueIsNumber && newValueIsNumber) {
-      Double ab = Double.parseDouble(actualValue);
-      Double bb = Double.parseDouble(newValue);
-      return ab.equals(bb);
-    } else if (!actualValueIsNumber && !newValueIsNumber) {
-      return actualValue.equals(newValue);
+  static boolean valuesAreEqual(String value1, String value2) { // exposed for unit test
+    if (NumberUtils.isNumber(value1) && NumberUtils.isNumber(value2)) {
+      try {
+        Number number1 = NumberUtils.createNumber(value1);
+        Number number2 = NumberUtils.createNumber(value2);
+        return Objects.equal(number1, number2) ||
+          number1.doubleValue() == number2.doubleValue();
+      } catch (NumberFormatException e) {
+        // fall back to regular equality
+      }
     }
-    return false;
+
+    return Objects.equal(value1, value2);
   }
 
   /**
