@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
@@ -81,10 +82,7 @@ public class TopologyTemplate {
 
   @JsonProperty("services")
   public void setServices(Collection<Service> services) {
-    this.servicesById = services.stream().collect(toMap(
-      s -> s.getId(),
-      s -> s
-    ));
+    servicesById = services.stream().collect(toMap(Service::getId, Function.identity()));
   }
 
   public Collection<Credential> getCredentials() {
@@ -130,10 +128,7 @@ public class TopologyTemplate {
 
   @JsonProperty("host_groups")
   public void setHostGroups(Collection<HostGroup> hostGroups) {
-    this.hostGroups = hostGroups.stream().collect(toMap(
-      hg -> hg.getName(),
-      hg -> hg
-    ));
+    this.hostGroups = hostGroups.stream().collect(toMap(HostGroup::getName, Function.identity()));
   }
 
   public void validate() throws IllegalStateException {

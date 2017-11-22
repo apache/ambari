@@ -36,7 +36,7 @@ public interface Configurable {
   Configuration getConfiguration();
 
   @JsonProperty("configurations")
-  default void setConfigs(Collection<Map<String, Map<String, Map<String, ? extends Object>>>> configs) {
+  default void setConfigs(Collection<Map<String, Map<String, Map<String, ?>>>> configs) {
     if (null != configs) {
       Map<String, Map<String, String>> allProps = configs.stream().
         filter(map -> map != null && !map.isEmpty() && map.values().iterator().next().get(Configuration.PROPERTIES_KEY) != null).
@@ -56,12 +56,12 @@ public interface Configurable {
   }
 
   @JsonProperty("configurations")
-  default Collection<Map<String, Map<String, Map<String, ? extends Object>>>> getConfigs() {
+  default Collection<Map<String, Map<String, Map<String, ?>>>> getConfigs() {
     Configuration config = getConfiguration();
     if (config != null) {
       Set<String> keys = Sets.union(config.getProperties().keySet(), config.getAttributes().keySet());
       return keys.stream().map(key -> {
-        Map<String, Map<String, ? extends Object>> map = new HashMap<>(2);
+        Map<String, Map<String, ?>> map = new HashMap<>(2);
         if (config.getProperties().containsKey(key)) {
           map.put(Configuration.PROPERTIES_KEY, config.getProperties().get(key));
         }

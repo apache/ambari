@@ -36,7 +36,7 @@ public class Service implements Configurable {
 
   private String type;
 
-  private ServiceId id = new ServiceId(null, null);
+  private ServiceId id = ServiceId.NULL;
 
   private String stackId;
 

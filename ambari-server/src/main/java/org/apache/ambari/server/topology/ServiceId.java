@@ -17,10 +17,15 @@
  */
 package org.apache.ambari.server.topology;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ServiceId {
+
+  public static final ServiceId NULL = new ServiceId(null, null);
+
   private final String serviceGroup;
   private final String name;
 
@@ -50,18 +55,15 @@ public class ServiceId {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    ServiceId serviceId = (ServiceId) o;
+    ServiceId other = (ServiceId) o;
 
-    if (serviceGroup != null ? !serviceGroup.equals(serviceId.serviceGroup) : serviceId.serviceGroup != null)
-      return false;
-    return name != null ? name.equals(serviceId.name) : serviceId.name == null;
+    return Objects.equals(serviceGroup, other.serviceGroup) &&
+      Objects.equals(name, other.name);
   }
 
   @Override
   public int hashCode() {
-    int result = serviceGroup != null ? serviceGroup.hashCode() : 0;
-    result = 31 * result + (name != null ? name.hashCode() : 0);
-    return result;
+    return Objects.hash(serviceGroup, name);
   }
 
   @Override

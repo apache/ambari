@@ -263,12 +263,6 @@ public class BlueprintV2Impl implements BlueprintV2 {
     return configuration;
   }
 
-  private void addChildConfiguration(Configuration parent, Configuration child) {
-    child.setParentConfiguration(parent);
-    parent.getProperties().putAll(child.getProperties());
-    parent.getAttributes().putAll(child.getAttributes());
-  }
-
   @Override
   @JsonIgnore
   public Setting getSetting() {
@@ -354,10 +348,7 @@ public class BlueprintV2Impl implements BlueprintV2 {
     final Set<String> serviceNames =
       getAllServices().stream().map(Service::getName).collect(toSet());
     return getStacks().stream().anyMatch(
-      stack -> {
-        String service = stack.getServiceForConfigType(configType);
-        return serviceNames.contains(service);
-      }
+      stack -> serviceNames.contains(stack.getServiceForConfigType(configType))
     );
   }
 

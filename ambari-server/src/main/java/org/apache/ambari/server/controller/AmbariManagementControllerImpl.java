@@ -1026,7 +1026,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
-      request.getVersionTag(), propertiesAttributes, request.getServiceId() == null? null : request.getServiceId());
+      request.getVersionTag(), propertiesAttributes, request.getServiceId());
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
         request.getVersionTag(),

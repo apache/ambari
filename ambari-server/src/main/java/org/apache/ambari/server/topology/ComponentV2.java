@@ -27,16 +27,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ComponentV2 implements Configurable {
 
   private String type;
-
   private String name;
-
-  private ServiceId serviceId = new ServiceId(null, null);
-
+  private ServiceId serviceId = ServiceId.NULL;
   private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
-
   private Configuration configuration;
-
-  private boolean masterComponent = false;
+  private boolean masterComponent;
 
   @JsonIgnore
   private Service service;
