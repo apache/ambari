@@ -191,7 +191,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    int currentVersionID = getCurrentVersionID();
+    Integer currentVersionID = getCurrentVersionID();
     dropBrokenFK();
     updateServiceComponentDesiredStateTable(currentVersionID);
     updateServiceDesiredStateTable(currentVersionID);
@@ -358,10 +358,13 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * Removes {@value #FK_SDS_DESIRED_STACK_ID} foreign key.
    * adds {@value #FK_REPO_VERSION_ID} foreign key.
    *
+   * @param currentRepoID id of current repo_version. Can be null if there are no cluster repo versions
+   *                      (in this case {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty)
+   *
    * @throws java.sql.SQLException
    */
-  private void updateServiceDesiredStateTable(int currentRepoID) throws SQLException {
-
+  private void updateServiceDesiredStateTable(Integer currentRepoID) throws SQLException {
+    //in case if currentRepoID is null {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty and null defaultValue is ok for non-nullable column
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
         new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, currentRepoID, false));
     dbAccessor.alterColumn(SERVICE_DESIRED_STATE_TABLE,
@@ -411,9 +414,13 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * Removes {@value #FK_SCDS_DESIRED_STACK_ID} foreign key.
    * adds {@value #FK_SCDS_DESIRED_REPO_ID} foreign key.
    *
+   * @param currentRepoID id of current repo_version. Can be null if there are no cluster repo versions
+   *                      (in this case {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty)
+   *
    * @throws java.sql.SQLException
    */
-  private void updateServiceComponentDesiredStateTable(int currentRepoID) throws SQLException {
+  private void updateServiceComponentDesiredStateTable(Integer currentRepoID) throws SQLException {
+    //in case if currentRepoID is null {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty and null defaultValue is ok for non-nullable column
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
         new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, currentRepoID, false));
     dbAccessor.alterColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
@@ -499,15 +506,20 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * where {@value #STATE_COLUMN} = {@value #CURRENT}
    * and validate it
    *
-   * @return current version ID
-   * @throws AmbariException
+   * @return current version ID or null if no cluster versions do exist
+   * @throws AmbariException if cluster versions are present, but current is not selected
    * @throws SQLException
    */
-  public int getCurrentVersionID() throws AmbariException, SQLException {
+  public Integer getCurrentVersionID() throws AmbariException, SQLException {
     List<Integer> currentVersionList = dbAccessor.getIntColumnValues(CLUSTER_VERSION_TABLE, REPO_VERSION_ID_COLUMN,
         new String[]{STATE_COLUMN}, new String[]{CURRENT}, false);
     if (currentVersionList.isEmpty()) {
-      throw new AmbariException("Unable to find any CURRENT repositories.");
+      List<Integer> allVersionList = dbAccessor.getIntColumnValues(CLUSTER_VERSION_TABLE, REPO_VERSION_ID_COLUMN, null, null,false);
+      if (allVersionList.isEmpty()){
+        return null;
+      } else {
+        throw new AmbariException("Unable to find any CURRENT repositories.");
+      }
     } else if (currentVersionList.size() != 1) {
       throw new AmbariException("The following repositories were found to be CURRENT: ".concat(StringUtils.join(currentVersionList, ",")));
     }
