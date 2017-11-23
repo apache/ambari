@@ -192,7 +192,6 @@ def oozie(is_server=False, upgrade_type=None):
   if params.lzo_enabled:
     install_lzo_if_needed()
     Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
-      not_if  = no_op_test,
     )
 
   if is_server:
