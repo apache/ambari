@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-personality_plugins "maven,asflicense,author,checkstyle,javac,unit"
+personality_plugins "jira,maven,asflicense,author,checkstyle,javac,unit"
 
 ## @description  Globals specific to this personality
 ## @audience     private
