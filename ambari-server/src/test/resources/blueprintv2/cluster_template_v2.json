@@ -1,5 +1,6 @@
 {
   "blueprint": "blueprint-name",
+  "config_recommendation_strategy": "ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES",
   "default_password": "super-secret-password",
   "services": [
     {
@@ -70,6 +71,61 @@
     }
   ],
   "security": {
-    "type": "NONE"
+    "type": "KERBEROS",
+    "kerberos_descriptor": {
+      "identities": [
+        {
+          "name": "smokeuser",
+          "principal": {
+            "value": "${cluster-env/smokeuser}@${realm}",
+            "type": "user"
+          }
+        }
+      ],
+      "services": [
+        {
+          "components": [
+            {
+              "name": "AMBARI_SERVER",
+              "identities": [
+                {
+                  "name": "ambari-server",
+                  "principal": {
+                    "value": "ambari-server@${realm}",
+                    "type": "user"
+                  }
+                }
+              ]
+            }
+          ],
+          "name": "AMBARI",
+          "identities": [
+
+          ]
+        },
+        {
+          "components": [
+            {
+              "name": "NAMENODE",
+              "identities": [
+                {
+                  "name": "hdfs",
+                  "principal": {
+                    "value": "${hadoop-env/hdfs_user}@${realm}",
+                    "type": "user"
+                  }
+                }
+              ]
+            }
+          ],
+          "name": "HDFS",
+          "identities": [
+          ]
+        }
+      ],
+      "properties": {
+        "principal_suffix": ""
+      }
+    }
   }
 }

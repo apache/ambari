@@ -21,10 +21,13 @@ package org.apache.ambari.server.topology;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.utils.ResourceUtils;
 import org.junit.Test;
 
 import com.google.common.base.Charsets;
@@ -35,9 +38,9 @@ import com.google.common.io.Resources;
 public class TopologyTemplateFactoryTest {
 
   public static final String CLUSTER_TEMPLATE =
-    getResource("blueprintv2/cluster_template_v2.json");
+    ResourceUtils.getResource("blueprintv2/cluster_template_v2.json");
   public static final String CLUSTER_TEMPLATE_INVALID =
-    getResource("blueprintv2/cluster_template_v2_invalid_hostgroup.json");
+    ResourceUtils.getResource("blueprintv2/cluster_template_v2_invalid_hostgroup.json");
 
 
   @Test
@@ -80,15 +83,10 @@ public class TopologyTemplateFactoryTest {
     assertEquals(0, hostGroup2.getHosts().size());
     assertEquals(2, hostGroup2.getHostCount());
     assertEquals("Hosts/os_type=centos6&Hosts/cpu_count=2", hostGroup2.getHostPredicate());
-  }
 
-
-  private static String getResource(String fileName) {
-    try {
-      return Resources.toString(Resources.getResource(fileName), Charsets.UTF_8);
-    }
-    catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
+    SecurityConfiguration securityConfig = template.getSecurityConfiguration();
+    assertEquals(SecurityType.KERBEROS, securityConfig.getType());
+    assertNotNull(securityConfig.getDescriptor());
+    assertNull(securityConfig.getDescriptorReference());
   }
 }

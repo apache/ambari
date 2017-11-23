@@ -19,10 +19,15 @@
 
 package org.apache.ambari.server.topology;
 
+import java.io.IOException;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.ambari.server.state.SecurityType;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Holds security related properties, the securityType and security descriptor (in case of KERBEROS
@@ -36,16 +41,19 @@ public class SecurityConfiguration {
   /**
    * Security Type
    */
+  @JsonProperty("type")
   private SecurityType type;
 
   /**
    * Holds a reference to a kerberos_descriptor resource.
    */
+  @JsonProperty("kerberos_descriptor_reference")
   private String descriptorReference;
 
   /**
    * Content of a kerberos_descriptor as String.
    */
+  @JsonProperty("kerberos_descriptor")
   private String descriptor;
 
 
@@ -64,6 +72,7 @@ public class SecurityConfiguration {
     return type;
   }
 
+  @JsonIgnore
   public String getDescriptor() {
     return descriptor;
   }
@@ -71,4 +80,19 @@ public class SecurityConfiguration {
   public String getDescriptorReference() {
     return descriptorReference;
   }
+
+  public void setDescriptorReference(String descriptorReference) {
+    this.descriptorReference = descriptorReference;
+  }
+
+  @JsonIgnore
+  public void setDescriptor(String descriptor) {
+    this.descriptor = descriptor;
+  }
+
+  @JsonProperty("kerberos_descriptor")
+  public void setKerberosDescriptorFromJson(Map<String, ?> kerberosDescriptor) throws IOException {
+    setDescriptor(new ObjectMapper().writeValueAsString(kerberosDescriptor));
+  }
+
 }
