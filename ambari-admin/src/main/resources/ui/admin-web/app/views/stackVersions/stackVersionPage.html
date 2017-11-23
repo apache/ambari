@@ -181,20 +181,22 @@
                 <div class="col-sm-9">
                   <div class="form-group repo-name-url {{repository.Repositories.repo_name}}"
                        ng-class="{'has-error': repository.hasError }" ng-repeat="repository in os.repositories">
-                    <span class="repo-name-label control-label col-sm-3">{{repository.Repositories.repo_id}}</span>
-                    <div class="col-sm-7 repo-url">
-                      <input type="text" class="form-control"
-                             placeholder="{{(repository.Repositories.repo_name.indexOf('UTILS') < 0 )?('versions.repository.placeholder' | translate) : ''}}"
-                             ng-model="repository.Repositories.base_url"
-                             ng-change="onRepoUrlChange(repository)" ng-disabled="useRedhatSatellite">
+                    <div ng-if="showRepo(repository)">
+                      <span class="repo-name-label control-label col-sm-3">{{repository.Repositories.repo_id}}</span>
+                      <div class="col-sm-7 repo-url">
+                        <input type="text" class="form-control"
+                               placeholder="{{(repository.Repositories.repo_name.indexOf('UTILS') < 0 )?('versions.repository.placeholder' | translate) : ''}}"
+                               ng-model="repository.Repositories.base_url"
+                               ng-change="onRepoUrlChange(repository)" ng-disabled="useRedhatSatellite">
+                      </div>
+                      <i class="fa fa-undo orange-icon cursor-pointer"
+                         ng-if="selectedOption.index == 1 && repository.Repositories.base_url != repository.Repositories.initial_base_url
+                         || selectedOption.index == 2 && repository.Repositories.base_url != ''
+                         || editController && repository.Repositories.base_url != repository.Repositories.initial_base_url"
+                         ng-click="undoChange(repository)"
+                         tooltip-html-unsafe="{{'common.undo' | translate}}"
+                         aria-hidden="true"></i>
                     </div>
-                    <i class="fa fa-undo orange-icon cursor-pointer"
-                       ng-if="selectedOption.index == 1 && repository.Repositories.base_url != repository.Repositories.initial_base_url
-                       || selectedOption.index == 2 && repository.Repositories.base_url != ''
-                       || editController && repository.Repositories.base_url != repository.Repositories.initial_base_url"
-                       ng-click="undoChange(repository)"
-                       tooltip-html-unsafe="{{'common.undo' | translate}}"
-                       aria-hidden="true"></i>
                   </div>
                 </div>
                 <div class="col-sm-1 remove-icon" ng-click="removeOS()" ng-class="{'disabled' : useRedhatSatellite}"><i
