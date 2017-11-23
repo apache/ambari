@@ -260,7 +260,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZK server and client on 2.1.1.0
-    Service service = cluster.addService("ZOOKEEPER", repoVersionEntity2110);
+    Service service = cluster.addService(null, "ZOOKEEPER", "", repoVersionEntity2110);
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
@@ -321,7 +321,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
@@ -382,7 +382,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(2, upgradeGroups.size());
@@ -428,7 +428,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(2, upgradeGroups.size());
@@ -682,7 +682,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(2, upgrades.size());
 
     UpgradeEntity downgrade = upgrades.get(1);
-    assertEquals(cluster.getClusterId(), downgrade.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == downgrade.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = downgrade.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
@@ -780,7 +780,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Cluster cluster = clusters.getCluster("c1");
 
     // add additional service for the test
-    Service service = cluster.addService("HIVE", repoVersionEntity2110);
+    Service service = cluster.addService(null, "HIVE", "", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -1200,7 +1200,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
     assertEquals(UpgradeType.ROLLING, entity.getUpgradeType());
 
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
@@ -1455,7 +1455,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   @Test
   public void testCreateUpgradeDowngradeCycleAdvertisingVersion() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
-    Service service = cluster.addService("STORM", repoVersionEntity2110);
+    Service service = cluster.addService(null, "STORM", "", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("DRPC_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -1638,7 +1638,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Cluster cluster = clusters.getCluster("c1");
 
     // add a single ZK server and client on 2.1.1.0
-    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    Service service = cluster.addService(null, "HBASE", "", repoVersionEntity2110);
     ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
@@ -1725,7 +1725,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Cluster cluster = clusters.getCluster("c1");
 
     // add a single ZK server and client on 2.1.1.0
-    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    Service service = cluster.addService(null, "HBASE", "", repoVersionEntity2110);
     ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");

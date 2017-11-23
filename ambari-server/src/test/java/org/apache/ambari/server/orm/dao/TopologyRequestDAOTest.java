@@ -63,8 +63,8 @@ public class TopologyRequestDAOTest {
     TopologyRequestEntity requestEntity = new TopologyRequestEntity();
     requestEntity.setAction("a1");
     requestEntity.setBlueprintName("bp1");
-    requestEntity.setClusterAttributes("attributes");
-    requestEntity.setClusterProperties("properties");
+    //requestEntity.setClusterAttributes("attributes");
+    //requestEntity.setClusterProperties("properties");
     requestEntity.setClusterId(clusterId);
     requestEntity.setDescription("description");
     TopologyHostGroupEntity hostGroupEntity = new TopologyHostGroupEntity();
@@ -88,8 +88,8 @@ public class TopologyRequestDAOTest {
     TopologyRequestEntity requestEntity = requestEntities.iterator().next();
     Assert.assertEquals("a1", requestEntity.getAction());
     Assert.assertEquals("bp1", requestEntity.getBlueprintName());
-    Assert.assertEquals("attributes", requestEntity.getClusterAttributes());
-    Assert.assertEquals("properties", requestEntity.getClusterProperties());
+    //Assert.assertEquals("attributes", requestEntity.getClusterAttributes());
+    //Assert.assertEquals("properties", requestEntity.getClusterProperties());
     Assert.assertEquals("description", requestEntity.getDescription());
     Collection<TopologyHostGroupEntity> hostGroupEntities = requestEntity.getTopologyHostGroupEntities();
     Assert.assertEquals(1, hostGroupEntities.size());

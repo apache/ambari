@@ -173,7 +173,7 @@ public class UpgradeSummaryResourceProviderTest {
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZOOKEEPER server
-    Service service = cluster.addService("ZOOKEEPER", repoVersionEntity);
+    Service service = cluster.addService(null, "ZOOKEEPER", "", repoVersionEntity);
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

@@ -598,8 +598,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     repositoryVersion = repoVersionDAO.merge(repositoryVersion);
 
     // add a repo version associated with a component
-    ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(),
-        serviceYARN.getName(), componentRM.getName());
+    ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(), serviceYARN.getServiceGroupId(),
+        serviceYARN.getServiceId(), componentRM.getName());
 
     ServiceComponentVersionEntity componentVersionEntity = new ServiceComponentVersionEntity();
     componentVersionEntity.setRepositoryVersion(repositoryVersion);
@@ -688,8 +688,9 @@ public class AmbariCustomCommandExecutionHelperTest {
   private void createService(String clusterName, String serviceName,
       RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException {
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getId(), null, "false");
+
+    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName,
+        repositoryVersion.getId(), null, null);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
@@ -705,7 +706,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<>();
@@ -719,7 +720,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
       new HashSet<>();

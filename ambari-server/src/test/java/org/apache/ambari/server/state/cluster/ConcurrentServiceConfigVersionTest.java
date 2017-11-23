@@ -28,6 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -141,7 +142,7 @@ public class ConcurrentServiceConfigVersionTest {
   @Test
   public void testConcurrentServiceConfigVersions() throws Exception {
     long nextVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        cluster.getClusterId(), "HDFS");
+        cluster.getClusterId(), 1L);
 
     Assert.assertEquals(nextVersion, 1);
 
@@ -159,7 +160,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     long maxVersion = NUMBER_OF_THREADS * NUMBER_OF_SERVICE_CONFIG_VERSIONS;
     nextVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        cluster.getClusterId(), "HDFS");
+        cluster.getClusterId(), 1L);
 
     Assert.assertEquals(maxVersion + 1, nextVersion);
   }
@@ -180,7 +181,7 @@ public class ConcurrentServiceConfigVersionTest {
       try {
         for (int i = 0; i < NUMBER_OF_SERVICE_CONFIG_VERSIONS; i++) {
           ServiceConfigVersionResponse response = cluster.createServiceConfigVersion(
-              "HDFS", null, getName() + "-serviceConfig" + i, null);
+              1L, null, getName() + "-serviceConfig" + i, null);
 
           Thread.sleep(100);
         }
@@ -219,7 +220,7 @@ public class ConcurrentServiceConfigVersionTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
       cluster.addService(service);
     }
 

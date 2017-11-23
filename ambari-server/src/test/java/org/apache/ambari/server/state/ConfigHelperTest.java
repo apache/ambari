@@ -156,9 +156,9 @@ public class ConfigHelperTest {
       cr2.setType("flume-conf");
       cr2.setVersionTag("version1");
 
-      cluster.addService("FLUME", repositoryVersion);
-      cluster.addService("OOZIE", repositoryVersion);
-      cluster.addService("HDFS", repositoryVersion);
+      cluster.addService(null, "", "FLUME", repositoryVersion);
+      cluster.addService(null, "", "OOZIE", repositoryVersion);
+      cluster.addService(null, "", "HDFS", repositoryVersion);
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -298,7 +298,10 @@ public class ConfigHelperTest {
         configMap.put(config.getType(), config);
       }
 
-      ConfigGroup configGroup = configGroupFactory.createNew(cluster, null, name,
+      long serviceGroupId = 1;
+      long serviceId = 1;
+
+      ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceGroupId, serviceId, name,
           tag, "", configMap, hostMap);
       LOG.info("Config group created with tag " + tag);
       configGroup.setTag(tag);

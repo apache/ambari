@@ -186,17 +186,17 @@ public class HostComponentResourceProviderTest {
     String repositoryVersion2 = "0.2-1234";
 
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component101", "Component 101", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component101", "Component 101", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component102", "Component 102", "Host100", "Host100",
+        1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102", "Host100", "Host100",
         State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), repositoryVersion2, null));
 
@@ -353,12 +353,12 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
         "INSTALLED", "", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
+    //expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
@@ -555,12 +555,12 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100",
+        1L, "Cluster102", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100", "Host100", "Host100",
         "INSTALLED", "", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
+    //expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();

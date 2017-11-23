@@ -248,7 +248,7 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "", 1L, serviceName, "", 1L,
         componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
         null);
 
@@ -505,7 +505,7 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "", 1L, serviceName, "", 1L,
         componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
         null);
 

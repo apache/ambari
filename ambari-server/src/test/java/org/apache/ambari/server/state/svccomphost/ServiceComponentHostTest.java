@@ -32,6 +32,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -187,7 +188,7 @@ public class ServiceComponentHostTest {
     } catch (ServiceNotFoundException e) {
       LOG.debug("Calling service create, serviceName={}", svc);
 
-      s = serviceFactory.createNew(c, svc, repositoryVersion);
+      s = serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), svc, "", repositoryVersion);
       c.addService(s);
     }
 
@@ -550,8 +551,8 @@ public class ServiceComponentHostTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    final ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS",
-      "cg1", "t1", "", new HashMap<>(), new HashMap<>());
+    final ConfigGroup configGroup = configGroupFactory.createNew(cluster, 1L, 1L, "HDFS",
+      "t1", "", new HashMap<>(), new HashMap<>());
 
     cluster.addConfigGroup(configGroup);
 
@@ -804,7 +805,7 @@ public class ServiceComponentHostTest {
       new HashMap<>());
 
     host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS", "g1",
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, 1L, 1L, "HDFS",
       "t1", "", new HashMap<String, Config>() {{ put("hdfs-site", c); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);
@@ -860,7 +861,7 @@ public class ServiceComponentHostTest {
     final Config c1 = configFactory.createNew(cluster, "core-site", "version2",
       new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }},
       new HashMap<>());
-    configGroup = configGroupFactory.createNew(cluster, "HDFS", "g2",
+    configGroup = configGroupFactory.createNew(cluster, 1L, 1L, "HDFS",
       "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);
@@ -1012,7 +1013,7 @@ public class ServiceComponentHostTest {
    * @param tag the config tag
    * @param values the values for the config
    */
-  private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) {
+  private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) throws AmbariException {
     Config config = configFactory.createNew(cluster, type, tag, values, attributes);
     cluster.addDesiredConfig("user", Collections.singleton(config));
   }
@@ -1042,7 +1043,8 @@ public class ServiceComponentHostTest {
 
     HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByIndex(
       cluster.getClusterId(),
-      sch1.getServiceName(),
+      1L,
+      1L,
       sch1.getServiceComponentName(),
       hostEntity.getHostId()
     );
@@ -1054,7 +1056,8 @@ public class ServiceComponentHostTest {
 
     entity = hostComponentDesiredStateDAO.findByIndex(
       cluster.getClusterId(),
-      sch1.getServiceName(),
+      1L,
+      1L,
       sch1.getServiceComponentName(),
       hostEntity.getHostId()
     );
@@ -1099,7 +1102,7 @@ public class ServiceComponentHostTest {
     hostEntity = hostDAO.findByName(hostName1);
     Collection<HostComponentStateEntity> hostComponentStates = hostEntity.getHostComponentStateEntities();
     for( HostComponentStateEntity hostComponentState : hostComponentStates ) {
-      if( StringUtils.equals("HDFS", hostComponentState.getServiceName() ) ) {
+      if( StringUtils.equals("HDFS", "" ) ) {
         hostComponentState.setVersion(State.UNKNOWN.name());
         hostComponentStateDAO.merge(hostComponentState);
       }
@@ -1119,7 +1122,7 @@ public class ServiceComponentHostTest {
     hostEntity = hostDAO.findByName(hostName1);
     hostComponentStates = hostEntity.getHostComponentStateEntities();
     for( HostComponentStateEntity hostComponentState : hostComponentStates ) {
-      if( StringUtils.equals("ZOOKEEPER", hostComponentState.getServiceName() ) ) {
+      if( StringUtils.equals("ZOOKEEPER", "" ) ) {
         hostComponentState.setVersion(patchRepositoryVersion.getVersion());
         hostComponentState.setUpgradeState(UpgradeState.COMPLETE);
         hostComponentStateDAO.merge(hostComponentState);

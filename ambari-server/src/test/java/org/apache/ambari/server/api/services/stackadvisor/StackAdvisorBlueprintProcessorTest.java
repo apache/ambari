@@ -75,7 +75,7 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
@@ -110,7 +110,7 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
@@ -146,7 +146,7 @@ public class StackAdvisorBlueprintProcessorTest {
     Map<String, Map<String, String>> props = createProps();
     props.get("core-site").put("dummyKey3", "stackDefaultValue");
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
@@ -180,7 +180,7 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
@@ -213,7 +213,7 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
@@ -242,7 +242,7 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();

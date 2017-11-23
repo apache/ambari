@@ -22,11 +22,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -84,7 +86,7 @@ public class ServiceTest {
 
   @Test
   public void testCanBeRemoved() throws Exception{
-    Service service = cluster.addService("HDFS", repositoryVersion);
+    Service service = cluster.addService(null, "HDFS", "", repositoryVersion);
 
     for (State state : State.values()) {
       service.setDesiredState(state);
@@ -126,7 +128,7 @@ public class ServiceTest {
   @Test
   public void testGetAndSetServiceInfo() throws AmbariException {
     String serviceName = "HDFS";
-    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
     cluster.addService(s);
 
     Service service = cluster.getService(serviceName);
@@ -152,7 +154,7 @@ public class ServiceTest {
   @Test
   public void testAddGetDeleteServiceComponents() throws AmbariException {
     String serviceName = "HDFS";
-    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
     cluster.addService(s);
 
     Service service = cluster.getService(serviceName);
@@ -234,7 +236,7 @@ public class ServiceTest {
   @Test
   public void testConvertToResponse() throws AmbariException {
     String serviceName = "HDFS";
-    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -270,14 +272,14 @@ public class ServiceTest {
   @Test
   public void testServiceMaintenance() throws Exception {
     String serviceName = "HDFS";
-    Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service s = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
     cluster.addService(s);
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
     ClusterServiceDAO dao = injector.getInstance(ClusterServiceDAO.class);
-    ClusterServiceEntity entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
+    ClusterServiceEntity entity = null;//dao.findByClusterAndServiceNames(clusterName, serviceName);
     Assert.assertNotNull(entity);
     Assert.assertEquals(MaintenanceState.OFF, entity.getServiceDesiredStateEntity().getMaintenanceState());
     Assert.assertEquals(MaintenanceState.OFF, service.getMaintenanceState());
@@ -285,7 +287,7 @@ public class ServiceTest {
     service.setMaintenanceState(MaintenanceState.ON);
     Assert.assertEquals(MaintenanceState.ON, service.getMaintenanceState());
 
-    entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
+    entity = null;//dao.findByClusterAndServiceNames(clusterName, serviceName);
     Assert.assertNotNull(entity);
     Assert.assertEquals(MaintenanceState.ON, entity.getServiceDesiredStateEntity().getMaintenanceState());
   }

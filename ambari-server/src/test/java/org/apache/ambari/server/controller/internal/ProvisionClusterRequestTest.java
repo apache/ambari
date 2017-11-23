@@ -82,7 +82,7 @@ public class ProvisionClusterRequestTest {
   @Before
   public void setUp() throws Exception {
     reset(blueprintFactory, blueprint, hostResourceProvider);
-    ProvisionClusterRequest.init(blueprintFactory);
+    ProvisionClusterRequest.init(null);
     // set host resource provider field
     Class clazz = BaseClusterRequest.class;
     Field f = clazz.getDeclaredField("hostResourceProvider");

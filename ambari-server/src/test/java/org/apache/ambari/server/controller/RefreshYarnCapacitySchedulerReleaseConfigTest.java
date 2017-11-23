@@ -102,12 +102,12 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     // Start
     ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), "c1", cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","capacity-scheduler","version2", new HashMap<>(), null)));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","capacity-scheduler","version2", new HashMap<>(), null, 1L, 1L)));
 
     controller.updateClusters(Collections.singleton(cr) , null);
 
 
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null);
     r.setStaleConfig("true");
     Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
     Assert.assertEquals(1, resps.size());
@@ -123,12 +123,12 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     // Start
     ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), "c1", cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","core-site","version2", new HashMap<>(),null)));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","core-site","version2", new HashMap<>(),null, 1L, 1L)));
 
     controller.updateClusters(Collections.singleton(cr) , null);
 
 
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null);
     r.setStaleConfig("true");
     Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
     Assert.assertEquals(4, resps.size());
@@ -213,8 +213,8 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
         new StackId("HDP-2.0.7"), "2.0.7-1234");
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getId(), dStateStr);
+    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName,
+        repositoryVersion.getId(), dStateStr, null);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
@@ -230,7 +230,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<>();
@@ -244,7 +244,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
       new HashSet<>();

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.upgrade;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -57,12 +58,14 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -582,6 +585,7 @@ public class UpgradeCatalog260Test {
     final Config zeppelinEnvConf = createMock(Config.class);
     final Config coreSiteConf = createMock(Config.class);
     final Config coreSiteConfNew = createMock(Config.class);
+    final Service hdfsMock = createNiceMock(Service.class);
     final AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
 
     Capture<? extends Map<String, String>> captureCoreSiteConfProperties = newCapture();
@@ -594,15 +598,17 @@ public class UpgradeCatalog260Test {
     expect(cluster.getDesiredConfigByType("core-site")).andReturn(coreSiteConf).atLeastOnce();
     expect(cluster.getConfigsByType("core-site")).andReturn(Collections.singletonMap("tag1", coreSiteConf)).atLeastOnce();
     expect(cluster.getConfig(eq("core-site"), anyString())).andReturn(coreSiteConfNew).atLeastOnce();
-    expect(cluster.getServiceByConfigType("core-site")).andReturn("HDFS").atLeastOnce();
+    expect(cluster.getServiceByConfigType("core-site")).andReturn(hdfsMock).atLeastOnce();
     expect(cluster.addDesiredConfig(eq("ambari-upgrade"), anyObject(Set.class), anyString())).andReturn(null).atLeastOnce();
 
     expect(zeppelinEnvConf.getProperties()).andReturn(Collections.singletonMap("zeppelin_user", "zeppelin_user")).once();
 
+    expect(hdfsMock.getName()).andReturn("HDFS").atLeastOnce();
+
     expect(coreSiteConf.getProperties()).andReturn(Collections.singletonMap("hadoop.proxyuser.zeppelin_user.hosts", "existing_value")).atLeastOnce();
     expect(coreSiteConf.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).atLeastOnce();
 
-    expect(controller.createConfig(eq(cluster), anyObject(StackId.class), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), anyObject(StackId.class), eq("core-site"), capture(captureCoreSiteConfProperties), anyString(), anyObject(Map.class), anyLong()))
         .andReturn(coreSiteConfNew)
         .once();
 
@@ -674,11 +680,12 @@ public class UpgradeCatalog260Test {
     StackId stackId = createMock(StackId.class);
 
     Cluster cluster = createMock(Cluster.class);
+    Service rangerMock = createNiceMock(Service.class);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getDesiredConfigByType("dbks-site")).andReturn(config).anyTimes();
     expect(cluster.getDesiredConfigByType("ranger-kms-audit")).andReturn(config).anyTimes();
     expect(cluster.getConfigsByType("ranger-kms-audit")).andReturn(Collections.singletonMap("version1", config)).anyTimes();
-    expect(cluster.getServiceByConfigType("ranger-kms-audit")).andReturn("RANGER").anyTimes();
+    expect(cluster.getServiceByConfigType("ranger-kms-audit")).andReturn(rangerMock).anyTimes();
     expect(cluster.getClusterName()).andReturn("cl1").anyTimes();
     expect(cluster.getConfig(eq("ranger-kms-audit"), anyString())).andReturn(newConfig).once();
     expect(cluster.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated ranger-kms-audit during Ambari Upgrade from 2.5.2 to 2.6.0.")).andReturn(response).once();
@@ -686,10 +693,12 @@ public class UpgradeCatalog260Test {
     final Clusters clusters = injector.getInstance(Clusters.class);
     expect(clusters.getCluster(2L)).andReturn(cluster).anyTimes();
 
+    expect(rangerMock.getName()).andReturn("RANGER").atLeastOnce();
+
     Capture<? extends Map<String, String>> captureProperties = newCapture();
 
     AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-    expect(controller.createConfig(eq(cluster), eq(stackId), eq("ranger-kms-audit"), capture(captureProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), eq(stackId), eq("ranger-kms-audit"), capture(captureProperties), anyString(), anyObject(Map.class), anyLong()))
         .andReturn(null)
         .once();
 
@@ -744,6 +753,7 @@ public class UpgradeCatalog260Test {
     Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
     final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
     Config mockAmsSslClient = easyMockSupport.createNiceMock(Config.class);
+    Service amsMock = createNiceMock(Service.class);
 
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
@@ -751,11 +761,14 @@ public class UpgradeCatalog260Test {
     expect(cluster.getDesiredConfigByType("ams-ssl-client")).andReturn(mockAmsSslClient).atLeastOnce();
     expect(mockAmsSslClient.getProperties()).andReturn(oldProperties).anyTimes();
 
+    expect(amsMock.getName()).andReturn("AMBARI_METRICS").atLeastOnce();
+    expect(cluster.getServiceByConfigType("ams-ssl-client")).andReturn(amsMock).atLeastOnce();
+
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
 
-    replay(injector, clusters, mockAmsSslClient, cluster);
+    replay(injector, clusters, mockAmsSslClient);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
@@ -770,9 +783,9 @@ public class UpgradeCatalog260Test {
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+      anyObject(Map.class), anyLong())).andReturn(createNiceMock(Config.class)).once();
 
-    replay(controller, injector2);
+    replay(controller, injector2, cluster, amsMock);
     new UpgradeCatalog260(injector2).updateAmsConfigs();
     easyMockSupport.verifyAll();
 
@@ -788,6 +801,8 @@ public class UpgradeCatalog260Test {
          final Gson gson = new Gson();
          final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
          final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+         final MpackManagerFactory mmf = createNiceMock(MpackManagerFactory.class);
+         final RootLevelSettingsManagerFactory rootLevelSettingsManagerFactory = createNiceMock(RootLevelSettingsManagerFactory.class);
          WidgetEntity widgetEntity = createNiceMock(WidgetEntity.class);
          StackId stackId = new StackId("HDP", "2.0.0");
          StackInfo stackInfo = createNiceMock(StackInfo.class);
@@ -826,6 +841,8 @@ public class UpgradeCatalog260Test {
                  bind(Gson.class).toInstance(gson);
                  bind(WidgetDAO.class).toInstance(widgetDAO);
                  bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+                 bind(MpackManagerFactory.class).toInstance(mmf);
+                 bind(RootLevelSettingsManagerFactory.class).toInstance(rootLevelSettingsManagerFactory);
                  bind(AmbariMetaInfo.class).toInstance(metaInfo);
                }
      });

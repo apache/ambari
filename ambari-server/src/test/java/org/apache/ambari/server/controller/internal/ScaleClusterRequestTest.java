@@ -75,7 +75,7 @@ public class ScaleClusterRequestTest {
 
   @Before
   public void setUp() throws Exception {
-    ScaleClusterRequest.init(blueprintFactory);
+    ScaleClusterRequest.init(null);
     // set host resource provider field
     Class clazz = BaseClusterRequest.class;
     Field f = clazz.getDeclaredField("hostResourceProvider");

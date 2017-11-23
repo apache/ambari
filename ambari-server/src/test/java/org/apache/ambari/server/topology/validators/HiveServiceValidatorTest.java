@@ -64,7 +64,7 @@ public class HiveServiceValidatorTest extends EasyMockSupport {
   public void testShouldValidationPassWhenHiveServiceIsNotInBlueprint() throws Exception {
 
     // GIVEN
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock);
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null);
     EasyMock.expect(blueprintMock.getServices()).andReturn(Collections.emptySet());
     replayAll();
 
@@ -80,7 +80,7 @@ public class HiveServiceValidatorTest extends EasyMockSupport {
 
     // GIVEN
     Collection<String> blueprintServices = Arrays.asList("HIVE", "OOZIE");
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock);
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null);
     EasyMock.expect(blueprintMock.getServices()).andReturn(blueprintServices);
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(configurationMock);
     EasyMock.expect(configurationMock.getAllConfigTypes()).andReturn(Collections.emptySet());
@@ -100,7 +100,7 @@ public class HiveServiceValidatorTest extends EasyMockSupport {
     // GIVEN
     Collection<String> blueprintServices = Arrays.asList("HIVE", "OOZIE");
     Collection<String> configTypes = Arrays.asList("hive-env", "core-site", "hadoop-env");
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock);
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null);
     EasyMock.expect(blueprintMock.getServices()).andReturn(blueprintServices);
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(configurationMock);
     EasyMock.expect(configurationMock.getAllConfigTypes()).andReturn(configTypes);
@@ -120,7 +120,7 @@ public class HiveServiceValidatorTest extends EasyMockSupport {
     // GIVEN
     Collection<String> blueprintServices = Arrays.asList("HIVE", "HDFS");
     Collection<String> configTypes = Arrays.asList("hive-env", "core-site", "hadoop-env");
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null).anyTimes();
     EasyMock.expect(blueprintMock.getServices()).andReturn(blueprintServices).anyTimes();
     EasyMock.expect(blueprintMock.getComponents("HIVE")).andReturn(Collections.emptyList()).anyTimes();
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(configurationMock);
@@ -143,7 +143,7 @@ public class HiveServiceValidatorTest extends EasyMockSupport {
     Collection<String> blueprintServices = Arrays.asList("HIVE", "HDFS", "MYSQL_SERVER");
     Collection<String> hiveComponents = Arrays.asList("MYSQL_SERVER");
     Collection<String> configTypes = Arrays.asList("hive-env", "core-site", "hadoop-env");
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null).anyTimes();
     EasyMock.expect(blueprintMock.getServices()).andReturn(blueprintServices).anyTimes();
     EasyMock.expect(blueprintMock.getComponents("HIVE")).andReturn(hiveComponents).anyTimes();
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(configurationMock);

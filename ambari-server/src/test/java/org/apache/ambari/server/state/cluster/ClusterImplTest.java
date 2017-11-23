@@ -233,7 +233,7 @@ public class ClusterImplTest {
 
     clusters.mapAndPublishHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
-    Service hdfs = cluster.addService("HDFS", repositoryVersion);
+    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.addServiceComponentHost(hostName1);
@@ -246,7 +246,7 @@ public class ClusterImplTest {
     hdfsClient.addServiceComponentHost(hostName1);
     hdfsClient.addServiceComponentHost(hostName2);
 
-    Service tez = cluster.addService(serviceToDelete, repositoryVersion);
+    Service tez = cluster.addService(null, serviceToDelete, "", repositoryVersion);
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);

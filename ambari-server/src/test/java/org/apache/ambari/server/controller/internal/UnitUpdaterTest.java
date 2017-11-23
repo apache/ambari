@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.StackLevelConfigurationResponse;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -89,7 +89,7 @@ public class UnitUpdaterTest extends EasyMockSupport {
   private void stackUnitIs(String name, String unit) {
     ValueAttributesInfo propertyValueAttributes = new ValueAttributesInfo();
     propertyValueAttributes.setUnit(unit);
-    stackConfigWithMetadata.put(name, new Stack.ConfigProperty(new StackConfigurationResponse(
+    stackConfigWithMetadata.put(name, new Stack.ConfigProperty(new StackLevelConfigurationResponse(
       name,
       "any",
       "any",
@@ -105,10 +105,10 @@ public class UnitUpdaterTest extends EasyMockSupport {
 
   private String updateUnit(String serviceName, String configType, String propName, String propValue) throws InvalidTopologyException, ConfigurationTopologyException {
     UnitUpdater updater = new UnitUpdater(serviceName, configType);
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(serviceName, configType)).andReturn(stackConfigWithMetadata).anyTimes();
     replayAll();
-    return updater.updateForClusterCreate(propName, propValue, Collections.emptyMap(), clusterTopology);
+    return updater.updateForClusterCreate(propName, propValue, Collections.emptyMap(), clusterTopology, null);
   }
 }

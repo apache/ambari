@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.state.alerts;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.MockEventListener;
@@ -187,7 +189,7 @@ public class InitialAlertEventTest {
 
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    Service service = m_serviceFactory.createNew(m_cluster, serviceName, m_repositoryVersion);
+    Service service = m_serviceFactory.createNew(m_cluster, null, new ArrayList<ServiceKey>(), serviceName, "", m_repositoryVersion);
     service = m_cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

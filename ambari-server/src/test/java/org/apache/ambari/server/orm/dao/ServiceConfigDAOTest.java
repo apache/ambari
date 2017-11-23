@@ -138,7 +138,7 @@ public class ServiceConfigDAOTest {
     }
 
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(serviceName);
+    //serviceConfigEntity.setServiceName(serviceName);
     serviceConfigEntity.setUser(userName);
     serviceConfigEntity.setVersion(version);
     serviceConfigEntity.setServiceConfigId(serviceConfigId);
@@ -198,7 +198,7 @@ public class ServiceConfigDAOTest {
     createServiceConfig("HDFS", "admin", 1L, 1L, 1111L, null);
 
     ServiceConfigEntity serviceConfigEntity =
-      serviceConfigDAO.findByServiceAndVersion("HDFS", 1L);
+      serviceConfigDAO.findByServiceAndVersion(1L, 1L);
 
     Long clusterId = clusterDAO.findByName("c1").getClusterId();
 
@@ -221,10 +221,10 @@ public class ServiceConfigDAOTest {
     createServiceConfig("YARN", "admin", 1L, 3L, 3333L, null);
 
     long hdfsVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        clusterDAO.findByName("c1").getClusterId(), "HDFS");
+        clusterDAO.findByName("c1").getClusterId(), 1L);
 
     long yarnVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        clusterDAO.findByName("c1").getClusterId(), "YARN");
+        clusterDAO.findByName("c1").getClusterId(), 1L);
 
     Assert.assertEquals(3, hdfsVersion);
     Assert.assertEquals(2, yarnVersion);
@@ -280,7 +280,7 @@ public class ServiceConfigDAOTest {
     configGroupEntity1.setGroupName("group1");
     configGroupEntity1.setDescription("group1_desc");
     configGroupEntity1.setTag("HDFS");
-    configGroupEntity1.setServiceName("HDFS");
+    //configGroupEntity1.setServiceName("HDFS");
     configGroupDAO.create(configGroupEntity1);
     ConfigGroupEntity group1 = configGroupDAO.findByName("group1");
     ConfigGroupEntity configGroupEntity2 = new ConfigGroupEntity();
@@ -289,7 +289,7 @@ public class ServiceConfigDAOTest {
     configGroupEntity2.setGroupName("group2");
     configGroupEntity2.setDescription("group2_desc");
     configGroupEntity2.setTag("HDFS");
-    configGroupEntity2.setServiceName("HDFS");
+    //configGroupEntity2.setServiceName("HDFS");
     configGroupDAO.create(configGroupEntity2);
     ConfigGroupEntity group2 = configGroupDAO.findByName("group2");
     createServiceConfig(serviceName, "admin", 1L, 1L, 1111L, null);
@@ -299,7 +299,7 @@ public class ServiceConfigDAOTest {
     createServiceConfigWithGroup(serviceName, "admin", 4L, 4L, 3330L, null, group2.getGroupId());
 
     List<ServiceConfigEntity> serviceConfigEntities = serviceConfigDAO
-        .getLastServiceConfigsForService(clusterDAO.findByName("c1").getClusterId(), serviceName);
+        .getLastServiceConfigsForService(clusterDAO.findByName("c1").getClusterId(), 1L);
     Assert.assertNotNull(serviceConfigEntities);
     Assert.assertEquals(3, serviceConfigEntities.size());
 
@@ -321,7 +321,7 @@ public class ServiceConfigDAOTest {
     Long clusterId = clusterDAO.findByName("c1").getClusterId();
 
     ServiceConfigEntity serviceConfigEntity =
-      serviceConfigDAO.getLastServiceConfig(clusterId, "HDFS");
+      serviceConfigDAO.getLastServiceConfig(clusterId, 1L);
 
     Assert.assertNotNull(serviceConfigEntity);
     Assert.assertEquals("c1", serviceConfigEntity.getClusterEntity().getClusterName());
@@ -391,14 +391,14 @@ public class ServiceConfigDAOTest {
     long clusterId = serviceConfigEntity.getClusterId();
 
     List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(
-        clusterId, HDP_01, "HDFS");
+        clusterId, HDP_01, 1L);
 
     Assert.assertEquals(3, serviceConfigs.size());
 
-    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_01, "YARN");
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_01, 1L);
     Assert.assertEquals(1, serviceConfigs.size());
     
-    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_02, "HDFS");
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_02, 1L);
     Assert.assertEquals(0, serviceConfigs.size());
   }
 
@@ -423,7 +423,7 @@ public class ServiceConfigDAOTest {
     configGroupEntity1.setGroupName("group1");
     configGroupEntity1.setDescription("group1_desc");
     configGroupEntity1.setTag("HDFS");
-    configGroupEntity1.setServiceName("HDFS");
+    //configGroupEntity1.setServiceName("HDFS");
     configGroupDAO.create(configGroupEntity1);
     ConfigGroupEntity group1 = configGroupDAO.findByName("group1");
     createServiceConfigWithGroup("HDFS", "admin", 3L, 8L, 2222L, null, group1.getGroupId());
@@ -606,16 +606,16 @@ public class ServiceConfigDAOTest {
     configGroupEntity1.setGroupName("toTestDeleteGroup_OOZIE");
     configGroupEntity1.setDescription("toTestDeleteGroup_OOZIE_DESC");
     configGroupEntity1.setTag("OOZIE");
-    configGroupEntity1.setServiceName("OOZIE");
+    //configGroupEntity1.setServiceName("OOZIE");
     configGroupDAO.create(configGroupEntity1);
     ConfigGroupEntity testDeleteGroup_OOZIE = configGroupDAO.findByName("toTestDeleteGroup_OOZIE");
     createServiceConfigWithGroup("OOZIE", "", 2L, 2L, System.currentTimeMillis(), null,
         testDeleteGroup_OOZIE.getGroupId());
     Collection<ServiceConfigEntity> serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(clusterId,
-        "OOZIE");
+        1L);
     Assert.assertEquals(2, serviceConfigEntityList.size());
     configGroupDAO.remove(configGroupEntity1);
-    serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(clusterId, "OOZIE");
+    serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(clusterId, 1L);
     Assert.assertEquals(1, serviceConfigEntityList.size());
   }
 

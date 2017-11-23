@@ -173,7 +173,7 @@ public class TestHeartbeatMonitor {
 
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
-    Service hdfs = cluster.addService(serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -275,7 +275,7 @@ public class TestHeartbeatMonitor {
 
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
-    Service hdfs = cluster.addService(serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
     (hostname1);
@@ -382,7 +382,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -463,7 +463,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -581,7 +581,7 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(serviceName, repositoryVersion);
+    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
 
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);

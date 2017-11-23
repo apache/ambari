@@ -39,6 +39,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -1756,7 +1757,7 @@ public class ConfigureActionTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
       cluster.addService(service);
     }
 
@@ -1847,6 +1848,6 @@ public class ConfigureActionTest {
   private Config createConfig(Cluster cluster, RepositoryVersionEntity repoVersion, String type,
       String tag, Map<String, String> properties) {
     return configFactory.createNew(repoVersion.getStackId(), cluster, type, tag, properties,
-        NO_ATTRIBUTES);
+        NO_ATTRIBUTES, 1L);
   }
 }

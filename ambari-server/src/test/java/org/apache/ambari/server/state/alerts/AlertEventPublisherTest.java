@@ -17,9 +17,11 @@
  */
 package org.apache.ambari.server.state.alerts;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
@@ -312,7 +314,7 @@ public class AlertEventPublisherTest {
         cluster.getCurrentStackVersion(), REPO_VERSION);
 
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
     service = cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

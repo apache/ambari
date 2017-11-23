@@ -139,7 +139,7 @@ public class RequiredPasswordValidatorTest extends EasyMockSupport {
     hostGroupInfo.put("group2", hostGroup2Info);
 
     expect(topology.getConfiguration()).andReturn(topoClusterConfig).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfo).anyTimes();
 
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();

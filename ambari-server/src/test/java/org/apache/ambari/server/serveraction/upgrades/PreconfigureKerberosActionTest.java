@@ -522,7 +522,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
     configTypeService.put("gateway-site", "KNOX");
 
     for (Map.Entry<String, String> entry : configTypeService.entrySet()) {
-      expect(cluster.getServiceByConfigType(entry.getKey())).andReturn(entry.getValue()).anyTimes();
+      expect(cluster.getServiceByConfigType(entry.getKey())).andReturn(null).anyTimes();
     }
 
     for (Map.Entry<String, Config> entry : clusterConfigs.entrySet()) {

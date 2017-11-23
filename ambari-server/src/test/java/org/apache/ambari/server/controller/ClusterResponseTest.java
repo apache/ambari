@@ -40,7 +40,7 @@ public class ClusterResponseTest {
         new ClusterResponse(clusterId, clusterName, provisioningState, securityType,
           hostNames, hostNames.size(), "bar", null);
     
-    Assert.assertEquals(clusterId, r1.getClusterId());
+    Assert.assertTrue(clusterId == r1.getClusterId().longValue());
     Assert.assertEquals(clusterName, r1.getClusterName());
     Assert.assertEquals(provisioningState, r1.getProvisioningState());
     Assert.assertEquals(securityType, r1.getSecurityType());

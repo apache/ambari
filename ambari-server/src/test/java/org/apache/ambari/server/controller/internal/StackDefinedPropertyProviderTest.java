@@ -139,22 +139,22 @@ public class StackDefinedPropertyProviderTest {
 
     cluster.setDesiredStackVersion(stackId);
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    Service service = cluster.addService("HDFS", repositoryVersion);
+    Service service = cluster.addService(null, "HDFS", "", repositoryVersion);
     service.addServiceComponent("NAMENODE");
     service.addServiceComponent("DATANODE");
     service.addServiceComponent("JOURNALNODE");
 
-    service = cluster.addService("YARN", repositoryVersion);
+    service = cluster.addService(null, "YARN", "", repositoryVersion);
     service.addServiceComponent("RESOURCEMANAGER");
 
-    service = cluster.addService("HBASE", repositoryVersion);
+    service = cluster.addService(null, "HBASE", "", repositoryVersion);
     service.addServiceComponent("HBASE_MASTER");
     service.addServiceComponent("HBASE_REGIONSERVER");
 
     stackId = new StackId("HDP-2.1.1");
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    service = cluster.addService("STORM", repositoryVersion);
+    service = cluster.addService(null, "STORM", "", repositoryVersion);
     service.addServiceComponent("STORM_REST_API");
 
     clusters.addHost("h1");

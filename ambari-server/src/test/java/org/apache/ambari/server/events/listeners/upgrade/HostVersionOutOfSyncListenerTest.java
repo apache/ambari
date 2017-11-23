@@ -514,7 +514,7 @@ public class HostVersionOutOfSyncListenerTest {
 
         ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
             c1.getClusterId(), clusterStackId.getStackName(), clusterStackId.getStackVersion(),
-            "HDFS", "DATANODE", sch.getHostName(), false);
+            "HDFS", "", "", "DATANODE", sch.getHostName(), false);
 
         m_eventPublisher.publish(event);
       }
@@ -548,7 +548,7 @@ public class HostVersionOutOfSyncListenerTest {
       String serviceName, RepositoryVersionEntity repositoryVersionEntity) throws AmbariException {
     StackId stackIdObj = new StackId(stackId);
     cl.setDesiredStackVersion(stackIdObj);
-    cl.addService(serviceName, repositoryVersionEntity);
+    cl.addService(null, serviceName, "", repositoryVersionEntity);
 
     for (Map.Entry<String, List<Integer>> component : topology.entrySet()) {
 
@@ -564,7 +564,7 @@ public class HostVersionOutOfSyncListenerTest {
       }
 
       ServiceInstalledEvent event = new ServiceInstalledEvent(cl.getClusterId(),
-          stackIdObj.getStackName(), stackIdObj.getStackVersion(), serviceName);
+          stackIdObj.getStackName(), stackIdObj.getStackVersion(), serviceName, "", "");
       m_eventPublisher.publish(event);
     }
   }
@@ -585,7 +585,7 @@ public class HostVersionOutOfSyncListenerTest {
           .getServiceComponent(componentName), hostName));
       ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(cl.getClusterId(),
           stackIdObj.getStackName(), stackIdObj.getStackVersion(),
-          serviceName, componentName, hostName, false /* recovery not enabled */);
+          serviceName, "", "",componentName, hostName, false /* recovery not enabled */);
       m_eventPublisher.publish(event);
     }
   }

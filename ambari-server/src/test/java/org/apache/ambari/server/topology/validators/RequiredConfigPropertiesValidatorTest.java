@@ -96,7 +96,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(topologyConfigurationMock);
     EasyMock.expect(topologyConfigurationMock.getFullProperties(1)).andReturn(topologyConfigurationMap);
 
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null).anyTimes();
 
     EasyMock.expect(blueprintMock.getHostGroups()).andReturn(hostGroups);
     EasyMock.expect(blueprintMock.getServices()).andReturn(bpServices);

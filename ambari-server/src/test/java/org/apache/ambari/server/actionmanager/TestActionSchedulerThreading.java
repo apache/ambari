@@ -108,7 +108,7 @@ public class TestActionSchedulerThreading {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(cluster);
-    Service service = cluster.addService(serviceName, repositoryVersion);
+    Service service = cluster.addService(null, serviceName, "", repositoryVersion);
     String configType = "zoo.cfg";
 
     Map<String, String> properties = new HashMap<>();
@@ -118,7 +118,7 @@ public class TestActionSchedulerThreading {
 
     // zoo-cfg for v1 on current stack
     properties.put("foo-property-1", "foo-value-1");
-    Config c1 = configFactory.createNew(stackId, cluster, configType, "version-1", properties, propertiesAttributes);
+    Config c1 = configFactory.createNew(stackId, cluster, configType, "version-1", properties, propertiesAttributes, 1L);
 
     // make v1 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
@@ -129,7 +129,7 @@ public class TestActionSchedulerThreading {
     // save v2
     // zoo-cfg for v2 on new stack
     properties.put("foo-property-2", "foo-value-2");
-    Config c2 = configFactory.createNew(newStackId, cluster, configType, "version-2", properties, propertiesAttributes);
+    Config c2 = configFactory.createNew(newStackId, cluster, configType, "version-2", properties, propertiesAttributes, 1L);
 
     // make v2 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c2), "note-2");
@@ -167,7 +167,7 @@ public class TestActionSchedulerThreading {
     threadInitialCachingSemaphore.acquire();
 
     // apply the configs for the old stack
-    cluster.applyLatestConfigurations(stackId, serviceName);
+    cluster.applyLatestConfigurations(stackId, 1L);
 
     // wake the thread up and have it verify that it can see the updated configs
     applyLatestConfigsSemaphore.release();

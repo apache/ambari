@@ -225,7 +225,7 @@ public class AmbariContextTest {
     blueprintServices.add("service2");
 
     expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.singletonMap(HOST_GROUP_1, group1Info)).anyTimes();
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
@@ -315,7 +315,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();
@@ -400,7 +400,7 @@ public class AmbariContextTest {
     components.add("component3");
     componentsMap.put("service2", components);
 
-    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
+    context.createAmbariHostResources(CLUSTER_ID, "host1", new HashMap<org.apache.ambari.server.topology.Service, Collection<ComponentV2>>());
 
     assertEquals(requestsCapture.getValue().size(), 3);
   }
@@ -430,7 +430,7 @@ public class AmbariContextTest {
     components.add("component3");
     componentsMap.put("service2", components);
 
-    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
+    context.createAmbariHostResources(CLUSTER_ID, "host1", new HashMap<org.apache.ambari.server.topology.Service, Collection<ComponentV2>>());
 
     assertEquals(requestsCapture.getValue().size(), 2);
   }
@@ -744,7 +744,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null);
   }
 
   @Test
@@ -769,7 +769,7 @@ public class AmbariContextTest {
 
     // test
     try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
+      context.createAmbariResources(topology, CLUSTER_NAME, null);
       fail("Expected failure when several versions are found");
     } catch (IllegalArgumentException e) {
       assertEquals(
@@ -792,7 +792,7 @@ public class AmbariContextTest {
 
     // test
     try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null, "xyz", null);
+      context.createAmbariResources(topology, CLUSTER_NAME, null);
       fail("Expected failure when a bad version is provided");
     } catch (IllegalArgumentException e) {
       assertEquals(

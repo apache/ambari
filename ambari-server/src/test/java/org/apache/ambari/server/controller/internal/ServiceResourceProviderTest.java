@@ -123,7 +123,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(cluster.addService(eq("Service100"),
+    expect(cluster.addService(eq(anyObject()), eq("Service100"), eq(anyObject()),
         EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -1170,7 +1170,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(cluster.addService(eq("Service200"), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
+    expect(cluster.addService(eq(anyObject()), eq("Service200"), eq(anyObject()), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -1242,7 +1242,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(cluster.addService(eq("Service200"), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
+    expect(cluster.addService(eq(anyObject()), eq("Service200"), eq(anyObject()), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 

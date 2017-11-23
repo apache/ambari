@@ -112,7 +112,7 @@ public class LogicalRequestTest extends EasyMockSupport {
     expect(clusterTopology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(clusterTopology.getClusterId()).andReturn(clusterId).anyTimes();
     expect(clusterTopology.getProvisionAction()).andReturn(ProvisionAction.INSTALL_ONLY).anyTimes();
-    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
     expect(blueprint.getName()).andReturn("blueprintDef").anyTimes();
     expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
 

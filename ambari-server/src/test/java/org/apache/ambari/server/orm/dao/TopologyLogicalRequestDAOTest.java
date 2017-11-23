@@ -72,8 +72,8 @@ public class TopologyLogicalRequestDAOTest {
     TopologyRequestEntity requestEntity = new TopologyRequestEntity();
     requestEntity.setAction("a1");
     requestEntity.setBlueprintName("bp1");
-    requestEntity.setClusterAttributes("attributes");
-    requestEntity.setClusterProperties("properties");
+    //requestEntity.setClusterAttributes("attributes");
+    //requestEntity.setClusterProperties("properties");
     requestEntity.setClusterId(clusterId);
     requestEntity.setDescription("description");
     requestDAO.create(requestEntity);

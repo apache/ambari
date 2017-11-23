@@ -276,13 +276,17 @@ public class ServicesUpCheckTest {
     allHostComponentSummaries.add(hcsMetricsCollector);
     allHostComponentSummaries.add(hcsMetricsMonitor);
 
+    long clusterId = 1;
+    long serviceGroupId = 1;
+    long serviceId = 1;
+
     // Mock the static method
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenReturn(Arrays.asList(hcsZKFC));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(clusterId, serviceGroupId, serviceId, "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(clusterId, serviceGroupId, serviceId, "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(clusterId, serviceGroupId, serviceId, "ZKFC")).thenReturn(Arrays.asList(hcsZKFC));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(clusterId, serviceGroupId, serviceId, "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(clusterId, serviceGroupId, serviceId, "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(clusterId, serviceGroupId, serviceId, "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
 
     // Case 1. Initialize with good values
     for (HostComponentSummary hcs : allHostComponentSummaries) {

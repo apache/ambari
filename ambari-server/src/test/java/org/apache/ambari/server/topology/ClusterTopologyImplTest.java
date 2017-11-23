@@ -104,21 +104,21 @@ public class ClusterTopologyImplTest {
     hostGroupMap.put("group4", group4);
 
     Set<ComponentV2> group1Components = new HashSet<>();
-    group1Components.add(new ComponentV2("component1", new Service("service1", stack)));
-    group1Components.add(new ComponentV2("component2", new Service("service1", stack)));
+    group1Components.add(null);
+    group1Components.add(null);
 
     Set<String> group1ComponentNames = new HashSet<>();
     group1ComponentNames.add("component1");
     group1ComponentNames.add("component2");
 
     Set<ComponentV2> group2Components = new HashSet<>();
-    group2Components.add(new ComponentV2("component3", new Service("service1", stack)));
+    group2Components.add(null);
     Set<ComponentV2> group3Components = new HashSet<>();
-    group3Components.add(new ComponentV2("component4", new Service("service2", stack)));
+    group3Components.add(null);
     Set<ComponentV2> group4Components = new HashSet<>();
-    group4Components.add(new ComponentV2("component5", new Service("service2", stack)));
+    group4Components.add(null);
 
-    expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
+    expect(blueprint.getHostGroups()).andReturn(null).anyTimes();
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(blueprint.getHostGroup("group3")).andReturn(group3).anyTimes();

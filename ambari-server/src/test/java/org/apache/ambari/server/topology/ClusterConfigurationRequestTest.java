@@ -263,7 +263,7 @@ public class ClusterConfigurationRequestTest {
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(blueprint.isValidConfigType("testConfigType")).andReturn(true).anyTimes();
 
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
@@ -352,7 +352,7 @@ public class ClusterConfigurationRequestTest {
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(topology.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
@@ -390,7 +390,7 @@ public class ClusterConfigurationRequestTest {
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getServices()).andReturn(services).anyTimes();
@@ -440,7 +440,7 @@ public class ClusterConfigurationRequestTest {
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfiguration()).andReturn(configuration).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getServices()).andReturn(services).anyTimes();

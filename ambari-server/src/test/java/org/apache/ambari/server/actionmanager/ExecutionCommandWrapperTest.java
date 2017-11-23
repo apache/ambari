@@ -115,7 +115,7 @@ public class ExecutionCommandWrapperTest {
 
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster1);
-    cluster1.addService("HDFS", repositoryVersion);
+    cluster1.addService(null, "HDFS", "", repositoryVersion);
 
     SERVICE_SITE_CLUSTER = new HashMap<>();
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);

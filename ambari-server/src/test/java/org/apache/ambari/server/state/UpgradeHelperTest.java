@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -28,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +46,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
@@ -1257,11 +1258,11 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, "YARN", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, "HIVE", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, "OOZIE", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "YARN", "", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HIVE", "", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "OOZIE", "", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1365,7 +1366,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
 
     for(String service : additionalServices) {
-      c.addService(service, repositoryVersion);
+      c.addService(null, service, "", repositoryVersion);
       if (service.equals("HBASE")) {
         type = new HostsType();
         type.hosts.addAll(Arrays.asList("h1", "h2"));
@@ -1477,7 +1478,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1549,7 +1550,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion2110));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repositoryVersion2110));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
@@ -1616,7 +1617,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion211));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion211));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1685,7 +1686,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion211));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion211));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1805,7 +1806,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add storm
-    c.addService(serviceFactory.createNew(c, "STORM", repoVersion211));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "STORM", "", repoVersion211));
 
     Service s = c.getService("STORM");
     ServiceComponent sc = s.addServiceComponent("NIMBUS");
@@ -1910,7 +1911,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repositoryVersion));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
@@ -2095,8 +2096,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     // add ZK Server to both hosts, and then Nimbus to only 1 - this will test
     // how the HOU breaks out dependencies into stages
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repoVersion211));
-    c.addService(serviceFactory.createNew(c, "HBASE", repoVersion211));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repoVersion211));
+    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HBASE", "", repoVersion211));
     Service zookeeper = c.getService("ZOOKEEPER");
     Service hbase = c.getService("HBASE");
     ServiceComponent zookeeperServer = zookeeper.addServiceComponent("ZOOKEEPER_SERVER");
@@ -2378,7 +2379,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     List<ServiceConfigEntity> latestServiceConfigs = Lists.newArrayList(zookeeperServiceConfig);
     expect(serviceConfigDAOMock.getLastServiceConfigsForService(EasyMock.anyLong(),
-        eq("ZOOKEEPER"))).andReturn(latestServiceConfigs).once();
+            EasyMock.anyLong())).andReturn(latestServiceConfigs).once();
 
     replay(serviceConfigDAOMock);
 

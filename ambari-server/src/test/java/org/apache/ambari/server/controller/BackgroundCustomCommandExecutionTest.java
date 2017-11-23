@@ -217,8 +217,8 @@ public class BackgroundCustomCommandExecutionTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        m_repositoryVersion.getId(), dStateStr);
+    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName,
+        m_repositoryVersion.getId(), dStateStr, null);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
@@ -234,7 +234,7 @@ public class BackgroundCustomCommandExecutionTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<>();
@@ -248,7 +248,7 @@ public class BackgroundCustomCommandExecutionTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
       new HashSet<>();

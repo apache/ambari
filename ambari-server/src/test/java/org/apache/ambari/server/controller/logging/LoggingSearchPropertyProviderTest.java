@@ -198,7 +198,7 @@ public class LoggingSearchPropertyProviderTest {
           mockSupport.createMock(LogDefinition.class);
 
       Service serviceMock = mockSupport.createNiceMock(Service.class);
-      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      //expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
       expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
 
@@ -406,7 +406,7 @@ public class LoggingSearchPropertyProviderTest {
           mockSupport.createMock(LoggingRequestHelper.class);
 
       Service serviceMock = mockSupport.createNiceMock(Service.class);
-      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      //expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
       expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
 
@@ -573,7 +573,7 @@ public class LoggingSearchPropertyProviderTest {
           mockSupport.createMock(LoggingRequestHelper.class);
 
       Service serviceMock = mockSupport.createNiceMock(Service.class);
-      expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+      //expect(controllerMock.findServiceName(clusterMock, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
       expect(clusterMock.getService(expectedServiceName)).andReturn(serviceMock).anyTimes();
       expect(serviceMock.getDesiredStackId()).andReturn(stackIdMock).anyTimes();
 

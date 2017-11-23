@@ -124,7 +124,7 @@ public class JMXHostProviderTest {
       dStateStr = desiredState.toString();
     }
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, m_repositoryVersion.getId(), dStateStr);
+    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName, m_repositoryVersion.getId(), dStateStr, null);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
@@ -140,7 +140,7 @@ public class JMXHostProviderTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
       serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<>();
@@ -155,7 +155,7 @@ public class JMXHostProviderTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
       serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
       new HashSet<>();
@@ -216,7 +216,7 @@ public class JMXHostProviderTest {
       configs.put("ambari.dfs.datanode.http.port", "70070");
 
       ConfigurationRequest cr = new ConfigurationRequest(clusterName,
-        "hdfs-site", "version1", configs, null);
+        "hdfs-site", "version1", configs, null, 1L, 1L);
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
       controller.updateClusters(Collections.singleton(crequest), new HashMap<>());
@@ -227,7 +227,7 @@ public class JMXHostProviderTest {
       configs.put(DATANODE_PORT, "localhost:70075");
 
       ConfigurationRequest cr = new ConfigurationRequest(clusterName,
-        "hdfs-site", "version2", configs, null);
+        "hdfs-site", "version2", configs, null, 1L, 1L);
 
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
@@ -344,7 +344,7 @@ public class JMXHostProviderTest {
     hbaseConfigs.put("hbase.ssl.enabled", "true");
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
-      "hdfs-site", "versionN", configs, null);
+      "hdfs-site", "versionN", configs, null, 1L, 1L);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
@@ -354,17 +354,17 @@ public class JMXHostProviderTest {
       .getTag());
 
     ConfigurationRequest cr2 = new ConfigurationRequest(clusterName,
-      "yarn-site", "versionN", yarnConfigs, null);
+      "yarn-site", "versionN", yarnConfigs, null, 1L, 1L);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     ConfigurationRequest cr3 = new ConfigurationRequest(clusterName,
-        "mapred-site", "versionN", mapreduceConfigs, null);
+        "mapred-site", "versionN", mapreduceConfigs, null, 1L ,1L);
       crReq.setDesiredConfig(Collections.singletonList(cr3));
       controller.updateClusters(Collections.singleton(crReq), null);
 
     ConfigurationRequest cr4 = new ConfigurationRequest(clusterName,
-        "hbase-site", "versionN", hbaseConfigs, null);
+        "hbase-site", "versionN", hbaseConfigs, null, 1L, 1L);
       crReq.setDesiredConfig(Collections.singletonList(cr4));
       controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -434,7 +434,7 @@ public class JMXHostProviderTest {
 
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
-        "hdfs-site", "version1", configs, null);
+        "hdfs-site", "version1", configs, null, 1L, 1L);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
@@ -533,7 +533,7 @@ public class JMXHostProviderTest {
     hostComponents.put("host1", null);
 
     expect(managementControllerMock.getClusters()).andReturn(clustersMock).anyTimes();
-    expect(managementControllerMock.findServiceName(clusterMock, "DATANODE")).andReturn("HDFS");
+    //expect(managementControllerMock.findServiceName(clusterMock, "DATANODE")).andReturn("HDFS");
     expect(clustersMock.getCluster("c1")).andReturn(clusterMock).anyTimes();
     expect(clusterMock.getService("HDFS")).andReturn(serviceMock).anyTimes();
     expect(serviceMock.getServiceComponent("DATANODE")).andReturn(serviceComponentMock).anyTimes();
@@ -632,7 +632,7 @@ public class JMXHostProviderTest {
     yarnConfigs.put(RESOURCEMANAGER_PORT, "localhost:50030");
     yarnConfigs.put(NODEMANAGER_PORT, "localhost:11111");
     ConfigurationRequest cr2 = new ConfigurationRequest("c1",
-      "yarn-site", "versionN+1", yarnConfigs, null);
+      "yarn-site", "versionN+1", yarnConfigs, null, 1L, 1L);
 
     ClusterRequest crReq = new ClusterRequest(1L, "c1", null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));

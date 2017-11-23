@@ -244,13 +244,13 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component100", stackId, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component100 Client", null, null));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component101", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component102", stackId, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component102 Client", "1.1", RepositoryVersionState.CURRENT));
 
     expect(ambariMetaInfo.getComponent("FOO", "1.0", null, "Component100")).andReturn(
@@ -423,13 +423,13 @@ public class ComponentResourceProviderTest {
     expect(component3Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component101", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component102", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component102 Client", null, null));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component103", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component103 Client", null, null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -731,7 +731,7 @@ public class ComponentResourceProviderTest {
     expect(component1Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-        new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", stackId, "", serviceComponentStateCountMap,
+        new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component101", stackId, "", serviceComponentStateCountMap,
             false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -897,8 +897,8 @@ public class ComponentResourceProviderTest {
     expect(component4Info.getCategory()).andReturn(null);
 
     expect(service.getName()).andReturn("service1").anyTimes();
-    expect(service.getServiceComponent("component1")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component1"));
-    expect(service.getServiceComponent("component2")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component2"));
+    expect(service.getServiceComponent("component1")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component1", "", ""));
+    expect(service.getServiceComponent("component2")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component2", "", ""));
     expect(service.getServiceComponent("component3")).andReturn(component1);
     expect(service.getServiceComponent("component4")).andReturn(component2);
 
@@ -966,7 +966,7 @@ public class ComponentResourceProviderTest {
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.getService("service1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andThrow(
-        new ServiceComponentNotFoundException("cluster1", "service1", "component1"));
+        new ServiceComponentNotFoundException("cluster1", "service1", "component1", "", ""));
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, service);
 

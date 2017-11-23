@@ -695,7 +695,7 @@ public class VersionDefinitionResourceProviderTest {
       cluster = clusters.getCluster("c1");
     }
 
-    cluster.addService(serviceName, serviceRepo);
+    cluster.addService(null, serviceName, "", serviceRepo);
   }
 
 }

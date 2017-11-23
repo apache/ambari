@@ -42,6 +42,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -453,7 +454,7 @@ public class OrmTestHelper {
         cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
     service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -487,7 +488,7 @@ public class OrmTestHelper {
         cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "YARN";
-    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
     service = cluster.getService(serviceName);
     assertNotNull(service);
 

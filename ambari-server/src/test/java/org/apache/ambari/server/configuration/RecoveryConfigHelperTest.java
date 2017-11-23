@@ -147,7 +147,7 @@ public class RecoveryConfigHelperTest {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(null, HDFS, "", repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -181,7 +181,7 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(null, HDFS, "", repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -217,7 +217,7 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(null, HDFS, "", repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -257,7 +257,7 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(null, HDFS, "", repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -292,7 +292,7 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(null, HDFS, "", repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
@@ -335,7 +335,7 @@ public class RecoveryConfigHelperTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
 
     // Add HDFS service with DATANODE component to the cluster
-    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+    Service hdfs = cluster.addService(null, HDFS, "", repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
 

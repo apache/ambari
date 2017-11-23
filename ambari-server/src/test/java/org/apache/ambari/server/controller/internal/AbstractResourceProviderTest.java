@@ -432,7 +432,7 @@ public class AbstractResourceProviderTest {
   public static class ConfigurationRequestMatcher extends ConfigurationRequest implements IArgumentMatcher {
 
     public ConfigurationRequestMatcher(String clusterName, String type, String tag, Map<String, String> configs, Map<String, Map<String, String>> configsAttributes) {
-      super(clusterName, type, tag, configs, configsAttributes);
+      super(clusterName, type, tag, configs, configsAttributes, 1L, 1L);
     }
 
     @Override
@@ -500,7 +500,7 @@ public class AbstractResourceProviderTest {
     public HostComponentRequestSetMatcher(String clusterName, String serviceName, String componentName, String hostName,
                                       Map<String, String> configVersions, String desiredState) {
       hostComponentRequest =
-          new ServiceComponentHostRequest(clusterName, serviceName, componentName,
+          new ServiceComponentHostRequest(clusterName, "", serviceName, componentName,
               hostName, desiredState);
       add(hostComponentRequest);
     }
