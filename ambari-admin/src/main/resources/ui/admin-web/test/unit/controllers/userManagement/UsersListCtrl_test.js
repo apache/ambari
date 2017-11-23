@@ -37,28 +37,26 @@ describe('#Cluster', function () {
 
       it('should clear filters and reset pagination', function () {
         scope.currentPage = 2;
-        scope.currentNameFilter = 'a';
-        scope.currentActiveFilter = {
+        scope.filters.name = 'a';
+        scope.filters.status = {
           label: $t('common.local'),
           value: false
         };
-        scope.currentTypeFilter = {
+        scope.filters.type = {
           label: $t('common.local'),
           value: 'LOCAL'
         };
-        scope.adminFilter = true;
         scope.clearFilters();
-        expect(scope.currentNameFilter).toEqual('');
-        expect(scope.currentActiveFilter).toEqual({
+        expect(scope.filters.name).toEqual('');
+        expect(scope.filters.status).toEqual({
           label: $t('common.all'),
           value: '*'
         });
-        expect(scope.currentTypeFilter).toEqual({
+        expect(scope.filters.type).toEqual({
           label: $t('common.all'),
           value: '*'
         });
         expect(scope.currentPage).toEqual(1);
-        expect(scope.adminFilter).toBe(false);
       });
 
     });
@@ -71,7 +69,6 @@ describe('#Cluster', function () {
           currentTypeFilter: null,
           currentActiveFilter: null,
           isNotEmptyFilter: false,
-          adminFilter: false,
           title: 'no filters'
         },
         {
@@ -82,7 +79,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: false,
           isNotEmptyFilter: false,
           title: 'empty filters'
         },
@@ -94,7 +90,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'name filter'
         },
@@ -106,7 +101,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'name filter with "0" as string'
         },
@@ -118,7 +112,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'type filter'
         },
@@ -130,21 +123,8 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'activity filter'
-        },
-        {
-          currentNameFilter: '',
-          currentTypeFilter: {
-            value: '*'
-          },
-          currentActiveFilter: {
-            value: '*'
-          },
-          adminFilter: true,
-          isNotEmptyFilter: true,
-          title: 'admin filter'
         },
         {
           currentNameFilter: 'a',
@@ -154,7 +134,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'name and type filters'
         },
@@ -166,7 +145,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'name and activity filters'
         },
@@ -178,7 +156,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'name and admin filters'
         },
@@ -190,7 +167,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'name and type filters with "0" as string'
         },
@@ -202,7 +178,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'name and activity filters with "0" as string'
         },
@@ -214,7 +189,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'name and admin filters with "0" as string'
         },
@@ -226,7 +200,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'type and activity filters'
         },
@@ -238,7 +211,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'type and admin filters'
         },
@@ -250,7 +222,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'activity and admin filters'
         },
@@ -262,7 +233,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'all filters except name one'
         },
@@ -274,7 +244,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'all filters except type one'
         },
@@ -286,7 +255,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'all filters except activity one'
         },
@@ -298,7 +266,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'all filters except admin one'
         },
@@ -310,7 +277,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'all filters with "0" as string except type one'
         },
@@ -322,7 +288,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: '*'
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'all filters with "0" as string except activity one'
         },
@@ -334,7 +299,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: false
           },
-          adminFilter: false,
           isNotEmptyFilter: true,
           title: 'all filters with "0" as string except admin one'
         },
@@ -346,7 +310,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: 'LOCAL'
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'all filters'
         },
@@ -358,7 +321,6 @@ describe('#Cluster', function () {
           currentActiveFilter: {
             value: 'LOCAL'
           },
-          adminFilter: true,
           isNotEmptyFilter: true,
           title: 'all filters with "0" as string'
         }
@@ -367,10 +329,9 @@ describe('#Cluster', function () {
       cases.forEach(function (item) {
         it(item.title, function () {
           $httpBackend.expectGET(/\/api\/v1\/users/).respond(200);
-          scope.currentNameFilter = item.currentNameFilter;
-          scope.currentActiveFilter = item.currentActiveFilter;
-          scope.currentTypeFilter = item.currentTypeFilter;
-          scope.adminFilter = item.adminFilter;
+          scope.filters.name = item.currentNameFilter;
+          scope.filters.status = item.currentActiveFilter;
+          scope.filters.type = item.currentTypeFilter;
           scope.$digest();
           expect(scope.isNotEmptyFilter).toEqual(item.isNotEmptyFilter);
         });

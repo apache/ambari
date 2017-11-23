@@ -38,51 +38,25 @@ angular.module('ambariAdminConsole')
       controller: 'LoginActivitiesMainCtrl'
     }
   },
-  users: {
-    list: {
-      url: '/users',
-      templateUrl: 'views/users/list.html',
-      controller: 'UsersListCtrl',
+  userManagement: {
+    main: {
+      url: '/userManagement',
+      templateUrl: 'views/userManagement/main.html',
+      controller: 'UserManagementCtrl',
       label: 'Users'
     },
-    edit: {
+    editUser: {
       url: '/users/:id/edit',
-      templateUrl: 'views/users/create.html',
-      controller: 'UsersCreateCtrl',
+      templateUrl: 'views/userManagement/userEdit.html',
+      controller: 'UserEditCtrl',
       label: 'Users'
     },
-    create: {
-      url: '/users/new',
-      templateUrl: 'views/users/create.html',
-      controller: 'UsersCreateCtrl',
-      label: 'Users'
-    },
-    show: {
-      url: '/users/:id*',
-      templateUrl: 'views/users/show.html',
-      controller: 'UsersShowCtrl',
-      label: 'Users'
-    }
-  },
-  groups: {
-    list: {
-      url: '/groups',
-      templateUrl: 'views/groups/list.html',
-      controller: 'GroupsListCtrl',
-      label: 'Groups'
-    },
-    edit: {
+    editGroup: {
       url: '/groups/:id/edit',
-      templateUrl: 'views/groups/edit.html',
-      controller: 'GroupsEditCtrl',
+      templateUrl: 'views/userManagement/groupEdit.html',
+      controller: 'GroupEditCtrl',
       label: 'Groups'
     },
-    create: {
-      url: '/groups/new',
-      templateUrl: 'views/groups/create.html',
-      controller: 'GroupsCreateCtrl',
-      label: 'Groups'
-    }
   },
   views: {
     list: {
@@ -157,20 +131,9 @@ angular.module('ambariAdminConsole')
     }
   },
   clusters: {
-    manageAccess: {
-      url: '/clusters/:id/manageAccess',
-      templateUrl: 'views/clusters/manageAccess.html',
-      controller: 'ClustersManageAccessCtrl',
-      label: 'Roles'
-    },
-    userAccessList: {
-      url: '/clusters/:id/userAccessList',
-      templateUrl: 'views/clusters/userAccessList.html',
-      controller: 'UserAccessListCtrl'
-    },
     clusterInformation: {
       url: '/clusterInformation',
-      templateUrl: 'views/clusterInformation.html',
+      templateUrl: 'views/clusters/clusterInformation.html',
       controller: 'ClusterInformationCtrl',
       label: 'Cluster Information'
     }

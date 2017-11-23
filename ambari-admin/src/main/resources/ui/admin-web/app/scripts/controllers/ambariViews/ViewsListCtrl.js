@@ -18,11 +18,11 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$translate', function($scope, View, $modal, Alert, ConfirmationModal, $translate) {
+.controller('ViewsListCtrl',['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$translate', 'Settings', function($scope, View, $modal, Alert, ConfirmationModal, $translate, Settings) {
   var $t = $translate.instant;
   var VIEWS_VERSION_STATUS_TIMEOUT = 5000;
   $scope.isLoading = false;
-  $scope.minInstanceForPagination = 10;
+  $scope.minInstanceForPagination = Settings.minRowsToShowPagination;
 
   function checkViewVersionStatus(view, versionObj, versionNumber) {
     var deferred = View.checkViewVersionStatus(view.view_name, versionNumber);

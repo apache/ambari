@@ -18,7 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Cluster', 'View', 'Alert', 'ConfirmationModal', '$location', 'GroupConstants', '$translate', function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $location, GroupConstants, $translate) {
+.controller('GroupEditCtrl',
+['$scope', 'Group', '$routeParams', 'Cluster', 'View', 'Alert', 'ConfirmationModal', '$location', 'GroupConstants', '$translate',
+function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $location, GroupConstants, $translate) {
   var $t = $translate.instant;
   $scope.constants = {
     group: $t('common.group'),
@@ -117,7 +119,7 @@ angular.module('ambariAdminConsole')
           });
         }
         group.destroy().then(function() {
-          $location.path('/groups');
+          $location.path('/userManagement');
           if (clusterPrivilegesIds.length) {
             Cluster.getAllClusters().then(function (clusters) {
               var clusterName = clusters[0].Clusters.cluster_name;

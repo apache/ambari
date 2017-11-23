@@ -25,7 +25,13 @@ describe('Utility Service', function () {
 
   beforeEach(function () {
     module('ambariAdminConsole', function ($provide) {
-      $provide.value('$window', {});
+      $provide.value('$window', {
+        localStorage: {
+          getItem: function() {return '{}';},
+          setItem: function() {}
+        },
+        location: {}
+      });
     });
     inject(function (_Utility_, _$httpBackend_, $rootScope, $controller, _Cluster_, _$q_) {
       Utility = _Utility_;
@@ -54,7 +60,7 @@ describe('Utility Service', function () {
       httpBackend.whenGET(/\/api\/v1\/views.+/).respond(200, {
         items: []
       });
-      httpBackend.whenGET("views/clusterInformation.html").respond(200, {});
+      httpBackend.whenGET("views/clusters/clusterInformation.html").respond(200, {});
     });
   });
 

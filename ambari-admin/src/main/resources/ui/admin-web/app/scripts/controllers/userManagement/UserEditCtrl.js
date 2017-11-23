@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'Cluster', 'User', 'View', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', 'UserConstants', '$translate', function($scope, $routeParams, Cluster, User, View, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, UserConstants, $translate) {
+.controller('UserEditCtrl', ['$scope', '$routeParams', 'Cluster', 'User', 'View', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', 'UserConstants', '$translate', function($scope, $routeParams, Cluster, User, View, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, UserConstants, $translate) {
 
   var $t = $translate.instant;
 
@@ -95,7 +95,7 @@ angular.module('ambariAdminConsole')
 
   $scope.openChangePwdDialog = function() {
     var modalInstance = $modal.open({
-      templateUrl: 'views/users/modals/changePassword.html',
+      templateUrl: 'views/userManagement/modals/changePassword.html',
       resolve: {
         userName: function() {
           return $scope.user.user_name;
@@ -229,7 +229,7 @@ angular.module('ambariAdminConsole')
           });
         }
         User.delete($scope.user.user_name).then(function() {
-          $location.path('/users');
+          $location.path('/userManagement');
           if (clusterPrivilegesIds.length) {
             Cluster.getAllClusters().then(function (clusters) {
               var clusterName = clusters[0].Clusters.cluster_name;

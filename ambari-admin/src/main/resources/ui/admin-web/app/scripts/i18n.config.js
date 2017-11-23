@@ -101,6 +101,7 @@ angular.module('ambariAdminConsole')
     'common.admin': 'Admin',
     'common.actions': 'Actions',
     'common.error': 'Error',
+    'common.select': 'Select',
 
     'common.clusterNameChangeConfirmation.title': 'Confirm Cluster Name Change',
     'common.clusterNameChangeConfirmation.message': 'Are you sure you want to change the cluster name to {{clusterName}}?',
@@ -276,6 +277,8 @@ angular.module('ambariAdminConsole')
 
     'groups.createLocal': 'Add Groups',
     'groups.name': 'Group name',
+    'groups.role': 'Add roles to this group',
+    'groups.addUsers': 'Add users to this group',
     'groups.members': 'Members',
     'groups.membersPlural': '{{n}} member{{n == 1 ? "" : "s"}}',
 
@@ -285,7 +288,7 @@ angular.module('ambariAdminConsole')
     'groups.alerts.getGroupsListError': 'Get groups list error',
 
     'users.username': 'Username',
-    'users.userName': 'User name',
+    'users.user.name': 'User name',
     'users.admin': 'Admin',
     'users.ambariAdmin': 'Ambari Admin',
     'users.ambariClusterURL': 'Ambari Cluster URL',
@@ -300,7 +303,11 @@ angular.module('ambariAdminConsole')
     'users.inactive': 'Inactive',
     'users.status': 'Status',
     'users.password': 'Password',
+    'users.role': 'Add roles for this user (Cluster Operator/Service Admin)',
+    'users.confirmPassword': 'Confirm Password',
     'users.passwordConfirmation': 'Password сonfirmation',
+    'users.isAmbariAdmin': 'Is this user an Ambari Admin?',
+    'users.isActive': 'Deactivate this user?',
     'users.userIsAdmin': 'This user is an Ambari Admin and has all privileges.',
     'users.showAll': 'Show all users',
     'users.showAdmin': 'Show only admin users',

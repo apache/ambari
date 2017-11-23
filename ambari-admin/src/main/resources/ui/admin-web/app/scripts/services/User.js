@@ -94,9 +94,10 @@ angular.module('ambariAdminConsole')
      * @returns {Object}
      */
     makeUser: function(user) {
-      user.Users.encoded_name = encodeURIComponent(user.Users.user_name);
+      user.Users.encodedName = encodeURIComponent(user.Users.user_name);
       user.Users.userTypeName = $t(UserConstants.TYPES[user.Users.user_type].LABEL_KEY);
-      user.Users.ldap_user = user.Users.user_type === UserConstants.TYPES.LDAP.VALUE;
+      user.Users.ldapUser = user.Users.user_type === UserConstants.TYPES.LDAP.VALUE;
+      user.Users.role = user.privileges.length ? user.privileges[0].PrivilegeInfo.privilege_id : null;
 
       return user;
     }

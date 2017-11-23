@@ -247,6 +247,9 @@ a.gotoinstance{
 .hide-soft{
   display: none;
 }
+.nowrap {
+  white-space: nowrap;
+}
 .visible{
   display: block;
 }
@@ -386,16 +389,6 @@ a.gotoinstance{
 .search-container input {
   font-weight: normal;
 }
-.groups-pane .search-container .close{
-  top: 32px;
-}
-
-.groups-pane table thead th{
-  border-top: 0;
-}
-.groups-pane table thead tr:first-child th{
-  border: 0;
-}
 
 ul.nav li > a{
   cursor: pointer;
@@ -464,16 +457,6 @@ table.no-border tr td{
   margin-top: 0;
 }
 
-.groups-pane table ul{
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-.groups-pane table ul li {
-  margin: 0;
-  padding: 0;
-}
-
 .property-form label{
   word-wrap: break-word;
   text-overflow: ellipsis;
@@ -539,6 +522,7 @@ button.btn.btn-xs{
   font-size: 12px;
   line-height: 1.5;
   border-radius: 3px;
+  height: 24px;
 }
 
 a.btn-primary, a.btn-primary:focus {
@@ -617,13 +601,13 @@ a.alert-link, a.alert-link:hover, a.alert-link:visited{
   box-sizing: border-box;
 }
 
-.fix-bottom{
+.fix-bottom th {
   border-bottom: none !important;;
   border-top: none !important;
   border-width: 0;
 }
 
-.fix-top{
+.fix-top th {
   border-top: none !important;
   border-width: 0;
 }
@@ -1333,4 +1317,22 @@ body {
 
 .navigation-bar-fit-height {
   z-index: 1001;
+}
+
+.entity-actions a {
+  color: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+td.entity-actions,
+th.entity-actions {
+  width: 10%;
+}
+
+.entity-actions a:hover,
+.entity-actions a:visited:hover,
+.entity-actions a:focus:hover {
+  text-decoration: none;
 }

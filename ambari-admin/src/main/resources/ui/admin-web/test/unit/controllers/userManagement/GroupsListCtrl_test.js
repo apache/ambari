@@ -37,14 +37,14 @@ describe('#Cluster', function () {
 
       it('should clear filters and reset pagination', function () {
         scope.currentPage = 2;
-        scope.currentNameFilter = 'a';
-        scope.currentTypeFilter = {
+        scope.filter.name = 'a';
+        scope.filter.type = {
           label: $t('common.local'),
           value: false
         };
         scope.clearFilters();
-        expect(scope.currentNameFilter).toEqual('');
-        expect(scope.currentTypeFilter).toEqual({
+        expect(scope.filter.name).toEqual('');
+        expect(scope.filter.type).toEqual({
           label: $t('common.all'),
           value: '*'
         });
@@ -115,8 +115,8 @@ describe('#Cluster', function () {
       cases.forEach(function (item) {
         it(item.title, function () {
           $httpBackend.expectGET(/\/api\/v1\/groups/).respond(200);
-          scope.currentNameFilter = item.currentNameFilter;
-          scope.currentTypeFilter = item.currentTypeFilter;
+          scope.filter.name = item.currentNameFilter;
+          scope.filter.type = item.currentTypeFilter;
           scope.$digest();
           expect(scope.isNotEmptyFilter).toEqual(item.isNotEmptyFilter);
         });

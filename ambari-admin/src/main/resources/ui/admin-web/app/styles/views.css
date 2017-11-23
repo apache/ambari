@@ -16,24 +16,6 @@
  * limitations under the License.
  */
 
-.view-instance-actions a {
-  color: inherit;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 0 5px;
-}
-
-td.view-instance-actions,
-th.view-instance-actions {
-  width: 10%;
-}
-
-.view-instance-actions a:hover,
-.view-instance-actions a:visited:hover,
-.view-instance-actions a:focus:hover {
-  text-decoration: none;
-}
-
 #create-instance-form i {
   cursor: pointer;
 }
