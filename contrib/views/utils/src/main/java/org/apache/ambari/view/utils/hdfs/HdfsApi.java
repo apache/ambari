@@ -386,7 +386,20 @@ public class HdfsApi {
    * @throws IOException
    * @throws InterruptedException
    */
-  public <T> T execute(PrivilegedExceptionAction<T> action)
+  public <T> T execute(PrivilegedExceptionAction<T> action) throws IOException, InterruptedException {
+    return this.execute(action, false);
+  }
+
+
+  /**
+   * Executes action on HDFS using doAs
+   * @param action strategy object
+   * @param <T> result type
+   * @return result of operation
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public <T> T execute(PrivilegedExceptionAction<T> action, boolean alwaysRetry)
       throws IOException, InterruptedException {
     T result = null;
 
@@ -401,7 +414,7 @@ public class HdfsApi {
         result = ugi.doAs(action);
         succeeded = true;
       } catch (IOException ex) {
-        if (!ex.getMessage().contains("Cannot obtain block length for")) {
+        if (!alwaysRetry && !ex.getMessage().contains("Cannot obtain block length for")) {
           throw ex;
         }
         if (tryNumber >= 3) {
@@ -409,6 +422,7 @@ public class HdfsApi {
         }
         LOG.info("HDFS threw 'IOException: Cannot obtain block length' exception. " +
             "Retrying... Try #" + (tryNumber + 1));
+        LOG.error("Retrying: " + ex.getMessage(),ex);
         Thread.sleep(1000);  //retry after 1 second
       }
     } while (!succeeded);
