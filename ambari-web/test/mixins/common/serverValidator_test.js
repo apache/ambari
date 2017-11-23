@@ -94,35 +94,35 @@ describe('App.ServerValidatorMixin', function () {
     });
 
     it('should add server warnings', function () {
-      var error = result.find(function(r) { return r.propertyName === 'c1' && r.filename === 'f1'; });
+      var error = result.issues.find(function(r) { return r.propertyName === 'c1' && r.filename === 'f1'; });
       expect(error.type).to.equal('WARN');
       expect(error.messages).to.eql(['warn1']);
     });
 
     it('should add server errors', function () {
-      var error = result.find(function(r) { return r.propertyName === 'c2' && r.filename === 'f2'; });
+      var error = result.issues.find(function(r) { return r.propertyName === 'c2' && r.filename === 'f2'; });
       expect(error.type).to.equal('ERROR');
       expect(error.messages).to.eql(['error2']);
     });
 
     it('should add ui warning', function () {
-      var error = result.find(function(r) { return r.propertyName === 'c3' && r.filename === 'f3'; });
+      var error = result.issues.find(function(r) { return r.propertyName === 'c3' && r.filename === 'f3'; });
       expect(error.type).to.equal('WARN');
       expect(error.messages).to.eql(['warn3']);
     });
 
     it('should add general issues', function () {
-      var error = result.findProperty('type', 'GENERAL');
+      var error = result.issues.findProperty('type', 'GENERAL');
       expect(error.messages).to.eql(['general issue']);
     });
 
     it('should ignore issues for hidden configs', function () {
-      var error = result.find(function(r) { return r.propertyName === 'c4' && r.filename === 'f4'; });
+      var error = result.issues.find(function(r) { return r.propertyName === 'c4' && r.filename === 'f4'; });
       expect(error).to.be.undefined;
     });
 
     it('should add issues for deleted properties', function () {
-      var error = result.find(function(r) { return r.id === 'c5_f5'; });
+      var error = result.issues.find(function(r) { return r.id === 'c5_f5'; });
       expect(error.messages).to.eql(['error5']);
     });
   });
@@ -150,6 +150,7 @@ describe('App.ServerValidatorMixin', function () {
     it('creates warn object', function() {
       expect(instanceObject.createErrorMessage('WARN', property, ['msg1'])).to.eql({
         type: 'WARN',
+        isCriticalError: false,
         isError: false,
         isWarn: true,
         isGeneral: false,
@@ -166,6 +167,7 @@ describe('App.ServerValidatorMixin', function () {
     it('creates error object', function() {
       expect(instanceObject.createErrorMessage('ERROR', $.extend({}, property, {serviceDisplayName: 'S Name'}), ['msg2'])).to.eql({
         type: 'ERROR',
+        isCriticalError: false,
         isError: true,
         isWarn: false,
         isGeneral: false,
@@ -182,6 +184,7 @@ describe('App.ServerValidatorMixin', function () {
     it('creates general issue object', function() {
       expect(instanceObject.createErrorMessage('GENERAL', null, ['msg3'])).to.eql({
         type: 'GENERAL',
+        isCriticalError: false,
         isError: false,
         isWarn: false,
         isGeneral: true,
