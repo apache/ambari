@@ -307,11 +307,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         selectedStack.get('operatingSystems').forEach(function (os) {
           if (os.get('isSelected')) {
             os.get('repositories').forEach(function(repo) {
-              allRepos.push(Em.Object.create({
-                base_url: repo.get('baseUrl'),
-                os_type: repo.get('osType'),
-                repo_id: repo.get('repoId')
-              }));
+              if (repo.get('showRepo')) {
+                allRepos.push(Em.Object.create({
+                  base_url: repo.get('baseUrl'),
+                  os_type: repo.get('osType'),
+                  repo_id: repo.get('repoId')
+                }));
+              }
             }, this);
           }
         }, this);

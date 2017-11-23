@@ -148,6 +148,7 @@
                     </div>
                     <div class="span9 repo-name-url">
                       {{#each repository in operatingSystem.repositories}}
+                        {{#if repository.showRepo}}
                         <div {{bindAttr class=":clearfix :repo-name-url-inner repository.repoName"}}>
                           <div class="span3">
                             <label class="repo-name-label control-label">{{repository.repoId}}</label>
@@ -176,6 +177,7 @@
                             {{/if}}
                           </div>
                         </div>
+                        {{/if}}
                       {{/each}}
                     </div>
                     <div {{bindAttr class=":span1 :remove-icon controller.selectedStack.useRedhatSatellite:disabled"}} {{action "removeOS" operatingSystem target="controller"}}>

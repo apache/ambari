@@ -807,6 +807,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
             "repo_id": repository.get('repoId'),
             "repo_name": repository.get('repoName'),
             "components": repository.get('components'),
+            "tags": repository.get('tags'),
             "distribution": repository.get('distribution')
           }
         });
@@ -827,7 +828,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
     var dfd = $.Deferred();
     if (selectedStack && selectedStack.get('operatingSystems')) {
       this.set('validationCnt', selectedStack.get('operatingSystems').filterProperty('isSelected').filterProperty('isEmpty', false).map(function (os) {
-        return os.get('repositories.length');
+        return os.get('repositories').filterProperty('showRepo', true).length;
       }).reduce(Em.sum, 0));
       var verifyBaseUrl = !wizardStep1Controller.get('skipValidationChecked') && !wizardStep1Controller.get('selectedStack.useRedhatSatellite');
       if (!verifyBaseUrl) {
@@ -836,32 +837,34 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       selectedStack.get('operatingSystems').forEach(function (os) {
         if (os.get('isSelected') && !os.get('isEmpty')) {
           os.get('repositories').forEach(function (repo) {
-            repo.setProperties({
-              errorTitle: '',
-              errorContent: '',
-              validation: App.Repository.validation.INPROGRESS
-            });
-            this.set('content.isCheckInProgress', true);
-            App.ajax.send({
-              name: 'wizard.advanced_repositories.valid_url',
-              sender: this,
-              data: {
-                stackName: stackName,
-                stackVersion: stackVersion,
-                repoId: repo.get('repoId'),
-                osType: os.get('osType'),
-                osId: os.get('id'),
-                dfd: dfd,
+            if (repo.get('showRepo')) {
+              repo.setProperties({
+                errorTitle: '',
+                errorContent: '',
+                validation: App.Repository.validation.INPROGRESS
+              });
+              this.set('content.isCheckInProgress', true);
+              App.ajax.send({
+                name: 'wizard.advanced_repositories.valid_url',
+                sender: this,
                 data: {
-                  'Repositories': {
-                    'base_url': repo.get('baseUrl'),
-                    "verify_base_url": verifyBaseUrl
+                  stackName: stackName,
+                  stackVersion: stackVersion,
+                  repoId: repo.get('repoId'),
+                  osType: os.get('osType'),
+                  osId: os.get('id'),
+                  dfd: dfd,
+                  data: {
+                    'Repositories': {
+                      'base_url': repo.get('baseUrl'),
+                      "verify_base_url": verifyBaseUrl
+                    }
                   }
-                }
-              },
-              success: 'checkRepoURLSuccessCallback',
-              error: 'checkRepoURLErrorCallback'
-            });
+                },
+                success: 'checkRepoURLSuccessCallback',
+                error: 'checkRepoURLErrorCallback'
+              });
+            }
           }, this);
         } else if (os.get('isSelected') && os.get('isEmpty')) {
           os.set('isSelected', false);
