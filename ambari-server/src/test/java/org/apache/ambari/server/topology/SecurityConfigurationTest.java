@@ -21,11 +21,12 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Map;
 
+import org.apache.ambari.server.utils.ResourceUtils;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.apache.ambari.server.utils.ResourceUtils;
-import org.junit.Test;
 
 public class SecurityConfigurationTest {
 

@@ -23,17 +23,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.io.IOException;
 import java.util.Map;
 
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.utils.ResourceUtils;
 import org.junit.Test;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Resources;
 
 public class TopologyTemplateFactoryTest {
 
