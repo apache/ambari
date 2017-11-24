@@ -81,7 +81,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -129,7 +128,7 @@ public class AmbariContextTest {
   private static final Map<Long, ConfigGroup> configGroups = new HashMap<>();
   private Configuration bpConfiguration = null;
   private Configuration group1Configuration = null;
-  private static final Collection<String> group1Hosts = Arrays.asList(HOST1, HOST2);
+  private static final Set<String> group1Hosts = ImmutableSet.of(HOST1, HOST2);
 
   private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = EasyMock.newCapture();
 
@@ -485,7 +484,7 @@ public class AmbariContextTest {
 
     reset(group1Info);
     expect(group1Info.getConfiguration()).andReturn(group1Configuration).anyTimes();
-    Collection<String> groupHosts = ImmutableList.of(HOST1, HOST2, "pending_host"); // pending_host is not registered with the cluster
+    Set<String> groupHosts = ImmutableSet.of(HOST1, HOST2, "pending_host"); // pending_host is not registered with the cluster
     expect(group1Info.getHostNames()).andReturn(groupHosts).anyTimes(); // there are 3 hosts for the host group
     // replay all mocks
     replayAll();
