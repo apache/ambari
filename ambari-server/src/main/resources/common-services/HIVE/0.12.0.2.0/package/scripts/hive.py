@@ -24,7 +24,7 @@ from urlparse import urlparse
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions import copy_tarball
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.resources.service import ServiceConfig
@@ -138,19 +138,19 @@ def hive(name=None):
     # *********************************
     #  if copy tarball to HDFS feature  supported copy mapreduce.tar.gz and tez.tar.gz to HDFS
     if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      copy_tarball.copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      copy_tarball.copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
     # This can use a different source and dest location to account
-    copy_to_hdfs("pig",
+    copy_tarball.copy_to_hdfs("pig",
                  params.user_group,
                  params.hdfs_user,
                  file_mode=params.tarballs_mode,
                  custom_source_file=params.pig_tar_source,
                  custom_dest_file=params.pig_tar_dest_file,
                  skip=params.sysprep_skip_copy_tarballs_hdfs)
-    copy_to_hdfs("hive",
+    copy_tarball.copy_to_hdfs("hive",
                  params.user_group,
                  params.hdfs_user,
                  file_mode=params.tarballs_mode,
@@ -171,7 +171,7 @@ def hive(name=None):
         src_filename = os.path.basename(source_file)
         dest_file = os.path.join(dest_dir, src_filename)
 
-        copy_to_hdfs(tarball_name,
+        copy_tarball.copy_to_hdfs(tarball_name,
                      params.user_group,
                      params.hdfs_user,
                      file_mode=params.tarballs_mode,

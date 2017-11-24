@@ -781,12 +781,12 @@ class TestHiveServer(RMFTestCase):
   @patch("os.path.exists", new = MagicMock(return_value=True))
   @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
   def test_stop_during_upgrade(self, copy_to_hdfs_mock):
-
     hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
 Hive 1.2.1.2.3.0.0-2434
 Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.3.0.0 -r a77a00ae765a73b2957337e96ed5a0dbb2e60dfb
 Compiled by jenkins on Sat Jun 20 11:50:41 EDT 2015
 From source with checksum 150f554beae04f76f814f59549dead8b"""
+
     call_side_effects = [(0, hiveServerVersionOutput), (0, hiveServerVersionOutput)] * 4
     copy_to_hdfs_mock.return_value = True
 
