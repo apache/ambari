@@ -21,18 +21,22 @@ import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptyMap;
 import static org.easymock.EasyMock.expect;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.StackLevelConfigurationResponse;
+import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.ValueAttributesInfo;
-import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Service;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -45,11 +49,12 @@ public class UnitValidatorTest extends EasyMockSupport {
   private static final String CONFIG_TYPE = "config-type";
   private static final String SERVICE = "service";
   @Rule public EasyMockRule mocks = new EasyMockRule(this);
-  private Map<String, Stack.ConfigProperty> stackConfigWithMetadata = new HashMap<>();
+  private Map<String, StackV2.ConfigProperty> stackConfigWithMetadata = new HashMap<>();
   private UnitValidator validator;
   private @Mock ClusterTopology clusterTopology;
-  private @Mock Blueprint blueprint;
-  private @Mock Stack stack;
+  private @Mock Service testService;
+  private @Mock BlueprintV2 blueprint;
+  private @Mock StackV2 stack;
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectsPropertyWithDifferentUnitThanStackUnit() throws Exception {
@@ -74,9 +79,13 @@ public class UnitValidatorTest extends EasyMockSupport {
 
   @Before
   public void setUp() throws Exception {
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
-    expect(clusterTopology.getHostGroupInfo()).andReturn(null).anyTimes();
-    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    List<Service> serviceConfigs = new ArrayList<>();
+    serviceConfigs.add(testService);
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(clusterTopology.getHostGroupInfo()).andReturn(new HashMap<String, HostGroupInfo>()).anyTimes();
+    expect(clusterTopology.getServiceConfigs()).andReturn(serviceConfigs).anyTimes();
+    expect(testService.getStackId()).andReturn("1");
+    expect(blueprint.getStackById("1")).andReturn(stack).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(SERVICE, CONFIG_TYPE)).andReturn(stackConfigWithMetadata).anyTimes();
   }
 
@@ -86,7 +95,7 @@ public class UnitValidatorTest extends EasyMockSupport {
         put(propertyName, propertyValue);
       }});
     }};
-    expect(clusterTopology.getConfiguration()).andReturn(new Configuration(propertiesToBeValidated, emptyMap())).anyTimes();
+    expect(testService.getConfiguration()).andReturn(new Configuration(propertiesToBeValidated, emptyMap())).anyTimes();
     replayAll();
   }
 
@@ -98,7 +107,7 @@ public class UnitValidatorTest extends EasyMockSupport {
   private void stackUnitIs(String name, String unit) {
     ValueAttributesInfo propertyValueAttributes = new ValueAttributesInfo();
     propertyValueAttributes.setUnit(unit);
-    stackConfigWithMetadata.put(name, new Stack.ConfigProperty(new StackLevelConfigurationResponse(
+    stackConfigWithMetadata.put(name, new StackV2.ConfigProperty(new StackLevelConfigurationResponse(
       name,
       "any",
       "any",

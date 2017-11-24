@@ -19,11 +19,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.controller.StackV2;
+import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Service;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
@@ -45,10 +46,16 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   private Configuration clusterConfigurationMock;
 
   @Mock
-  private Blueprint blueprintMock;
+  private BlueprintV2 blueprintMock;
 
   @Mock
-  private Stack stackMock;
+  private StackV2 stackMock;
+
+  @Mock
+  private Service yarnMock;
+
+  @Mock
+  private Service hdfsMock;
 
   @Mock
   private ClusterTopology clusterTopologyMock;
@@ -62,8 +69,12 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   public void before() {
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
 
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null).anyTimes();
-    EasyMock.expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
+    EasyMock.expect(blueprintMock.getStackById("1")).andReturn(stackMock).anyTimes();
+    EasyMock.expect(yarnMock.getStackId()).andReturn("1").anyTimes();
+    EasyMock.expect(yarnMock.getType()).andReturn("YARN").anyTimes();
+    EasyMock.expect(hdfsMock.getStackId()).andReturn("1").anyTimes();
+    EasyMock.expect(hdfsMock.getType()).andReturn("HDFS").anyTimes();
   }
 
   @After
@@ -94,7 +105,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     clusterRequestConfigTypes = new HashSet<>(Arrays.asList("core-site", "yarn-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(blueprintMock.getAllServices()).andReturn(new HashSet<>(Arrays.asList(yarnMock, hdfsMock)));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
@@ -117,7 +128,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     clusterRequestConfigTypes = new HashSet<>(Arrays.asList("oozie-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(blueprintMock.getAllServices()).andReturn(new HashSet<>(Arrays.asList(yarnMock, hdfsMock)));
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
 
@@ -138,7 +149,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     clusterRequestConfigTypes = new HashSet<>(Arrays.asList("core-site", "yarn-site", "oozie-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(blueprintMock.getAllServices()).andReturn(new HashSet<>(Arrays.asList(yarnMock, hdfsMock)));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));

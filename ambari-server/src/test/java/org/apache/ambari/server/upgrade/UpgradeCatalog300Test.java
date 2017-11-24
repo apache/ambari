@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -53,6 +54,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
@@ -194,7 +196,6 @@ public class UpgradeCatalog300Test {
 
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
-    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("createConfiguration")
         .addMockedMethod("getClusters", new Class[]{})
@@ -205,6 +206,10 @@ public class UpgradeCatalog300Test {
         .addMockedMethod("createConfigType", Cluster.class, StackId.class, AmbariManagementController.class,
             String.class, Map.class, String.class, String.class)
         .createMock();
+
+    Configuration configMock = createNiceMock(Configuration.class);
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(injector2.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
@@ -334,14 +339,27 @@ public class UpgradeCatalog300Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederOutputConfCapture), anyString(),
             anyObject(Map.class), anyLong())).andReturn(config).once();
 
-    replay(clusters, cluster);
+    Service logsearchMock = createNiceMock(Service.class);
+    expect(cluster.getServiceByConfigType("logsearch-properties")).andReturn(logsearchMock).atLeastOnce();
+    expect(cluster.getServiceByConfigType("logfeeder-properties")).andReturn(logsearchMock).atLeastOnce();
+    expect(cluster.getServiceByConfigType("logfeeder-log4j")).andReturn(logsearchMock).atLeastOnce();
+    expect(cluster.getServiceByConfigType("logsearch-log4j")).andReturn(logsearchMock).atLeastOnce();
+    expect(cluster.getServiceByConfigType("logsearch-service_logs-solrconfig")).andReturn(logsearchMock).atLeastOnce();
+    expect(cluster.getServiceByConfigType("logsearch-audit_logs-solrconfig")).andReturn(logsearchMock).atLeastOnce();
+    expect(cluster.getServiceByConfigType("logfeeder-output-config")).andReturn(logsearchMock).atLeastOnce();
+
+    expect(logsearchMock.getName()).andReturn("LOGSEARCH").atLeastOnce();
+
+    replay(clusters, cluster, logsearchMock, configMock);
     replay(controller, injector2);
     replay(confSomethingElse1, confSomethingElse2, confLogSearchConf1, confLogSearchConf2);
     replay(logSearchPropertiesConf, logFeederPropertiesConf);
     replay(logFeederLog4jConf, logSearchLog4jConf);
     replay(logSearchServiceLogsConf, logSearchAuditLogsConf);
     replay(logFeederOutputConf);
-    new UpgradeCatalog300(injector2).updateLogSearchConfigs();
+    UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector2);
+    upgradeCatalog300.setConfiguration(configMock);
+    upgradeCatalog300.updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
     Map<String,String> newLogFeederProperties = logFeederPropertiesCapture.getValue();

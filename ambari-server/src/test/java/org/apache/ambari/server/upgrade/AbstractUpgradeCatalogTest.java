@@ -57,6 +57,7 @@ public class AbstractUpgradeCatalogTest {
   private ConfigHelper configHelper;
   private Injector injector;
   private Cluster cluster;
+  private Service hdfsMock;
   private Clusters clusters;
   private ServiceInfo serviceInfo;
   private Config oldConfig;
@@ -72,6 +73,7 @@ public class AbstractUpgradeCatalogTest {
     clusters = createStrictMock(Clusters.class);
     serviceInfo = createNiceMock(ServiceInfo.class);
     oldConfig = createNiceMock(Config.class);
+    hdfsMock = createNiceMock(Service.class);
 
     expect(injector.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(amc).anyTimes();
@@ -87,6 +89,8 @@ public class AbstractUpgradeCatalogTest {
     HashMap<String, Service> serviceMap = new HashMap<>();
     serviceMap.put(SERVICE_NAME, null);
     expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+    expect(cluster.getServiceByConfigType("hdfs-site")).andReturn(hdfsMock).atLeastOnce();
+    expect(hdfsMock.getName()).andReturn("HDFS").atLeastOnce();
 
     HashSet<PropertyInfo> serviceProperties = new HashSet<>();
     serviceProperties.add(createProperty(CONFIG_TYPE, "prop1", true, false, false));
@@ -132,13 +136,13 @@ public class AbstractUpgradeCatalogTest {
     mergedProperties.put("prop1", "v1-old");
     mergedProperties.put("prop4", "v4");
 
-    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags), eq(anyLong()))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags), anyLong())).andReturn(null);
 
-    replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
+    replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig, hdfsMock);
 
     upgradeCatalog.addNewConfigurationsFromXml();
 
-    verify(configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
+    verify(configHelper, amc, cluster, clusters, serviceInfo, oldConfig, hdfsMock);
   }
 
   @Test
@@ -154,13 +158,13 @@ public class AbstractUpgradeCatalogTest {
     mergedProperties.put("prop2", "v2");
     mergedProperties.put("prop3", "v3-old");
 
-    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags), eq(anyLong()))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags), anyLong())).andReturn(null);
 
-    replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
+    replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig, hdfsMock);
 
     upgradeCatalog.addNewConfigurationsFromXml();
 
-    verify(configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
+    verify(configHelper, amc, cluster, clusters, serviceInfo, oldConfig, hdfsMock);
   }
 
   @Test
@@ -173,13 +177,13 @@ public class AbstractUpgradeCatalogTest {
     Map<String, String> mergedProperties = new HashMap<>();
     mergedProperties.put("prop1", "v1-old");
 
-    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags), eq(anyLong()))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags), anyLong())).andReturn(null);
 
-    replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
+    replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig, hdfsMock);
 
     upgradeCatalog.addNewConfigurationsFromXml();
 
-    verify(configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
+    verify(configHelper, amc, cluster, clusters, serviceInfo, oldConfig, hdfsMock);
   }
 
   private static PropertyInfo createProperty(String filename, String name, boolean add, boolean update, boolean delete) {

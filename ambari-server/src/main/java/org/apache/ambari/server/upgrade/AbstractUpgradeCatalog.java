@@ -1156,4 +1156,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   private StackId getStackId(Cluster cluster) throws AmbariException {
     return cluster.getServices().values().iterator().next().getDesiredStackId();
   }
+
+  protected void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
+  }
 }

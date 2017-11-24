@@ -22,12 +22,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.controller.StackV2;
+import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.HostGroupV2Impl;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.Service;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
@@ -53,16 +54,19 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   private Configuration topologyConfigurationMock;
 
   @Mock
-  private Blueprint blueprintMock;
+  private BlueprintV2 blueprintMock;
 
   @Mock
-  private Stack stackMock;
+  private StackV2 stackMock;
 
   @Mock
-  private HostGroup slaveHostGroupMock;
+  private Service kerberosMock;
 
   @Mock
-  private HostGroup masterHostGroupMock;
+  private HostGroupV2Impl slaveHostGroupMock;
+
+  @Mock
+  private HostGroupV2Impl masterHostGroupMock;
 
   @Mock
   private Configuration slaveHostGroupConfigurationMock;
@@ -75,9 +79,10 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   private Map<String, Map<String, String>> masterHostGroupConfigurationMap = new HashMap<>();
   private Map<String, Map<String, String>> slaveHostGroupConfigurationMap = new HashMap<>();
   private Collection<String> bpServices = new HashSet<>();
-  private Collection<String> slaveHostGroupServices = new HashSet<>();
-  private Collection<String> masterHostGroupServices = new HashSet<>();
-  private Map<String, HostGroup> hostGroups = new HashMap<>();
+  private Collection<Service> slaveHostGroupServices = new HashSet<>();
+  private Collection<Service> masterHostGroupServices = new HashSet<>();
+  private Map<String, HostGroupV2Impl> hostGroups = new HashMap<>();
+
   private Map<String, Collection<String>> missingProps = new TreeMap<>();
 
   @TestSubject
@@ -96,20 +101,21 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(topologyConfigurationMock);
     EasyMock.expect(topologyConfigurationMock.getFullProperties(1)).andReturn(topologyConfigurationMap);
 
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(null).anyTimes();
+    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
 
-    EasyMock.expect(blueprintMock.getHostGroups()).andReturn(hostGroups);
-    EasyMock.expect(blueprintMock.getServices()).andReturn(bpServices);
-    EasyMock.expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
+    EasyMock.expect((Map<String, HostGroupV2Impl>)blueprintMock.getHostGroups()).andReturn(hostGroups);
 
     EasyMock.expect(masterHostGroupMock.getName()).andReturn("master").anyTimes();
     EasyMock.expect(masterHostGroupMock.getConfiguration()).andReturn(masterHostGroupConfigurationMock).anyTimes();
     EasyMock.expect(masterHostGroupMock.getServices()).andReturn(masterHostGroupServices);
 
-
     EasyMock.expect(slaveHostGroupMock.getName()).andReturn("slave").anyTimes();
     EasyMock.expect(slaveHostGroupMock.getConfiguration()).andReturn(slaveHostGroupConfigurationMock).anyTimes();
     EasyMock.expect(slaveHostGroupMock.getServices()).andReturn(slaveHostGroupServices);
+
+    EasyMock.expect(kerberosMock.getName()).andReturn("KERBEROS").anyTimes();
+    EasyMock.expect(kerberosMock.getType()).andReturn("KERBEROS").anyTimes();
+    EasyMock.expect(kerberosMock.getStack()).andReturn(stackMock).anyTimes();
 
     // there are 2 hostgroups to be considered by the test
     hostGroups.put("master", masterHostGroupMock);
@@ -119,8 +125,8 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     bpServices.addAll(Lists.newArrayList("KERBEROS", "OOZIE"));
 
     // host group services
-    masterHostGroupServices.addAll(Collections.singletonList("KERBEROS"));
-    slaveHostGroupServices.addAll(Collections.singletonList("KERBEROS"));
+    masterHostGroupServices.addAll(Collections.singletonList(kerberosMock));
+    slaveHostGroupServices.addAll(Collections.singletonList(kerberosMock));
 
     EasyMock.expect(masterHostGroupConfigurationMock.getProperties()).andReturn(masterHostGroupConfigurationMap);
     EasyMock.expect(slaveHostGroupConfigurationMock.getProperties()).andReturn(slaveHostGroupConfigurationMap);
@@ -131,9 +137,9 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     // required properties for listed services
     EasyMock.expect(stackMock.getRequiredConfigurationProperties("KERBEROS")).
       andReturn(Lists.newArrayList(
-        new Stack.ConfigProperty("kerberos-env", "realm", "value"),
-        new Stack.ConfigProperty("kerberos-env", "kdc_type", "value"), // this is missing!
-        new Stack.ConfigProperty("krb5-conf", "domains", "smthg")));
+        new StackV2.ConfigProperty("kerberos-env", "realm", "value"),
+        new StackV2.ConfigProperty("kerberos-env", "kdc_type", "value"), // this is missing!
+        new StackV2.ConfigProperty("krb5-conf", "domains", "smthg"))).anyTimes();
 
     EasyMock.expect(stackMock.getRequiredConfigurationProperties("OOZIE")).andReturn(Collections.EMPTY_LIST);
 
