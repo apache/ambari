@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,10 @@ import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.RepositoryXml.Os;
+import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -185,15 +189,41 @@ public class VersionDefinitionTest {
   public void testSerialization() throws Exception {
 
     File f = new File("src/test/resources/version_definition_test_all_services.xml");
-
     VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
-
     String xmlString = xml.toXml();
-
     xml = VersionDefinitionXml.load(xmlString);
 
     assertNotNull(xml.release.build);
     assertEquals("1234", xml.release.build);
+
+    f = new File("src/test/resources/version_definition_with_tags.xml");
+    xml = VersionDefinitionXml.load(f.toURI().toURL());
+    xmlString = xml.toXml();
+
+    xml = VersionDefinitionXml.load(xmlString);
+
+    assertEquals(2, xml.repositoryInfo.getOses().size());
+    List<Repo> repos = null;
+    for (Os os : xml.repositoryInfo.getOses()) {
+      if (os.getFamily().equals("redhat6")) {
+        repos = os.getRepos();
+      }
+    }
+    assertNotNull(repos);
+    assertEquals(3, repos.size());
+
+    Repo found = null;
+    for (Repo repo : repos) {
+      if (repo.getRepoName().equals("HDP-GPL")) {
+        found = repo;
+        break;
+      }
+    }
+
+    assertNotNull(found);
+    assertNotNull(found.getTags());
+    assertEquals(1, found.getTags().size());
+    assertEquals(RepoTag.GPL, found.getTags().iterator().next());
   }
 
 
@@ -425,11 +455,52 @@ public class VersionDefinitionTest {
     summary = xml.getClusterSummary(cluster);
     assertEquals(0, summary.getAvailableServiceNames().size());
 
+    f = new File("src/test/resources/version_definition_test_maint.xml");
+    xml = VersionDefinitionXml.load(f.toURI().toURL());
+    xml.release.repositoryType = RepositoryType.STANDARD;
+    xml.availableServices = Collections.emptyList();
+    summary = xml.getClusterSummary(cluster);
+    assertEquals(2, summary.getAvailableServiceNames().size());
+
     f = new File("src/test/resources/version_definition_test_maint_partial.xml");
     xml = VersionDefinitionXml.load(f.toURI().toURL());
     summary = xml.getClusterSummary(cluster);
     assertEquals(1, summary.getAvailableServiceNames().size());
+  }
 
+  @Test
+  public void testAvailableBuildVersion() throws Exception {
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersion.getVersion()).andReturn("2.3.4.1-1").atLeastOnce();
+
+    Service serviceHdfs = createNiceMock(Service.class);
+    expect(serviceHdfs.getName()).andReturn("HDFS").atLeastOnce();
+    expect(serviceHdfs.getDisplayName()).andReturn("HDFS").atLeastOnce();
+    expect(serviceHdfs.getDesiredRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
+
+    Service serviceHBase = createNiceMock(Service.class);
+    expect(serviceHBase.getName()).andReturn("HBASE").atLeastOnce();
+    expect(serviceHBase.getDisplayName()).andReturn("HBase").atLeastOnce();
+    expect(serviceHBase.getDesiredRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
+
+    // !!! should never be accessed as it's not in any VDF
+    Service serviceAMS = createNiceMock(Service.class);
+
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", serviceHdfs)
+        .put("HBASE", serviceHBase)
+        .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
+
+    replay(cluster, repositoryVersion, serviceHdfs, serviceHBase);
+
+    File f = new File("src/test/resources/version_definition_test_maint_partial.xml");
+    VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
+    xml.release.version = "2.3.4.1";
+    xml.release.build = "2";
+    ClusterVersionSummary summary = xml.getClusterSummary(cluster);
+    assertEquals(1, summary.getAvailableServiceNames().size());
   }
 
 

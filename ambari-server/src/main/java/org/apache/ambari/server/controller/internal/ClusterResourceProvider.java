@@ -56,6 +56,8 @@ import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 
 import com.google.gson.Gson;
@@ -65,6 +67,8 @@ import com.google.gson.Gson;
  * Resource provider for cluster resources.
  */
 public class ClusterResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ClusterResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

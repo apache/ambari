@@ -79,6 +79,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   public static final String SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
   public static final String SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
 
+
   private static Set<String> pkPropertyIds =
     new HashSet<String>(Arrays.asList(new String[]{
       SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID,

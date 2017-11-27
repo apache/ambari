@@ -988,10 +988,19 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   }.observes('App.router.backgroundOperationsController.serviceTimestamp'),
 
+  nonClientServiceComponents: function () {
+    return App.MasterComponent.find().toArray().concat(App.SlaveComponent.find().toArray()).filterProperty('service.serviceName', this.get('content.serviceName'));
+  }.property('content.serviceName'),
+
   isStartDisabled: function () {
     if(this.get('isPending')) return true;
-    return !(this.get('content.healthStatus') == 'red');
-  }.property('content.healthStatus','isPending'),
+
+    var isDisabled = true;
+    this.get('nonClientServiceComponents').forEach(function(component) {
+      isDisabled = isDisabled ? !(component.get('installedAndMaintenanceOffCount') > 0) : false;
+    });
+    return isDisabled;
+  }.property('isPending', 'nonClientServiceComponents'),
 
   isStopDisabled: function () {
     if(this.get('isPending')) return true;

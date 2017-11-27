@@ -574,14 +574,15 @@ public class AmbariCustomCommandExecutionHelperTest {
     Host host = clusters.getHost("c1-c6401");
 
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    RepositoryVersionHelper repoHelper = injector.getInstance(RepositoryVersionHelper.class);
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     RepositoryVersionDAO repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     ServiceComponentDesiredStateDAO componentDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     RepositoryVersionHelper repoVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
 
-    CommandRepository commandRepo = helper.getCommandRepository(cluster, componentRM, host);
+    CommandRepository commandRepo = repoHelper.getCommandRepository(cluster, componentRM, host);
+    Assert.assertEquals(2, commandRepo.getRepositories().size());
 
-    Assert.assertEquals(0, commandRepo.getRepositories().size());
 
     RepositoryInfo ri = new RepositoryInfo();
     ri.setBaseUrl("http://foo");
@@ -607,18 +608,18 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     componentEntity.setDesiredRepositoryVersion(repositoryVersion);
     componentEntity.addVersion(componentVersionEntity);
-    componentEntity = componentDAO.merge(componentEntity);
+    componentDAO.merge(componentEntity);
 
     // !!! make sure the override is set
-    commandRepo = helper.getCommandRepository(cluster, componentRM, host);
+    commandRepo = repoHelper.getCommandRepository(cluster, componentRM, host);
 
     Assert.assertEquals(1, commandRepo.getRepositories().size());
     CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
     Assert.assertEquals("http://foo", repo.getBaseUrl());
 
     // verify that ZK has no repositories, since we haven't defined a repo version for ZKC
-    commandRepo = helper.getCommandRepository(cluster, componentZKC, host);
-    Assert.assertEquals(0, commandRepo.getRepositories().size());
+    commandRepo = repoHelper.getCommandRepository(cluster, componentZKC, host);
+    Assert.assertEquals(2, commandRepo.getRepositories().size());
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,

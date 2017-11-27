@@ -17,9 +17,10 @@
  */
 
 import {Component} from '@angular/core';
+import {Response} from '@angular/http';
 import 'rxjs/add/operator/finally';
-import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import {AuthService} from '@app/services/auth.service';
 
 @Component({
   selector: 'login-form',
@@ -28,7 +29,7 @@ import {AppStateService} from '@app/services/storage/app-state.service';
 })
 export class LoginFormComponent {
 
-  constructor(private httpClient: HttpClientService, private appState: AppStateService) {
+  constructor(private authService: AuthService, private appState: AppStateService) {
     appState.getParameter('isLoginInProgress').subscribe(value => this.isLoginInProgress = value);
   }
 
@@ -40,20 +41,25 @@ export class LoginFormComponent {
 
   isLoginInProgress: boolean;
 
-  private setIsAuthorized(value: boolean): void {
-    this.appState.setParameters({
-      isAuthorized: value,
-      isLoginInProgress: false
-    });
-    this.isLoginAlertDisplayed = !value;
-  }
+  /**
+   * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
+   * When it gets error response it shows.
+   * @param {Response} resp
+   */
+  private onLoginError = (resp: Response): void => {
+    this.isLoginAlertDisplayed = true;
+  };
+  /**
+   * Handling the response from the login action. Actually the goal only to show or hide the login error alert.
+   * When it gets success response it hides.
+   * @param {Response} resp
+   */
+  private onLoginSuccess = (resp: Response): void => {
+    this.isLoginAlertDisplayed = false;
+  };
 
   login() {
-    this.appState.setParameter('isLoginInProgress', true);
-    this.httpClient.postFormData('login', {
-      username: this.username,
-      password: this.password
-    }).subscribe(() => this.setIsAuthorized(true), () => this.setIsAuthorized(false));
+    this.authService.login(this.username,this.password).subscribe(this.onLoginSuccess, this.onLoginError);
   }
 
 }

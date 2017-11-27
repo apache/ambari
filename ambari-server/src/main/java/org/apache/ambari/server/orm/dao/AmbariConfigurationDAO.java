@@ -14,13 +14,20 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
+import org.apache.ambari.server.orm.entities.AmbariConfigurationEntityPK;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +39,7 @@ import com.google.inject.persist.Transactional;
  */
 
 @Singleton
-public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, Long> {
+public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, AmbariConfigurationEntityPK> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariConfigurationDAO.class);
 
@@ -41,49 +48,132 @@ public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, L
     super(AmbariConfigurationEntity.class);
   }
 
-  @Transactional
-  public void create(AmbariConfigurationEntity entity) {
-    // make  sure only one LDAP config entry exists
-    if ("ldap-configuration".equals(entity.getConfigurationBaseEntity().getType())) {
-      AmbariConfigurationEntity ldapConfigEntity = getLdapConfiguration();
-      if (ldapConfigEntity != null) {
-        LOGGER.error("Only one LDAP configuration entry can exist!");
-        throw new EntityExistsException("LDAP configuration entity already exists!");
-      }
-    }
-    super.create(entity);
-  }
-
-
-  @Transactional
-  public void update(AmbariConfigurationEntity entity) {
-    if (entity.getId() == null || findByPK(entity.getId()) == null) {
-      String msg = String.format("The entity with id [ %s ] is not found", entity.getId());
-      LOGGER.debug(msg);
-      throw new EntityNotFoundException(msg);
-    }
-
-    // updating the existing entity
-    super.merge(entity);
-    entityManagerProvider.get().flush();
+  /**
+   * Returns the Ambari configuration properties with the requested category name from the database.
+   *
+   * @param categoryName the configuration category name
+   * @return the configuration entity
+   */
+  @RequiresSession
+  public List<AmbariConfigurationEntity> findByCategory(String categoryName) {
+    TypedQuery<AmbariConfigurationEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AmbariConfigurationEntity.findByCategory", AmbariConfigurationEntity.class);
+    query.setParameter("categoryName", categoryName);
+    return daoUtils.selectList(query);
   }
 
   /**
-   * Returns the LDAP configuration from the database.
+   * Removes the Ambari configuration properties with the requested category name from the database.
    *
-   * @return the configuration entity
+   * @param categoryName the configuration category name
+   * @return the number of items removed
    */
   @Transactional
-  public AmbariConfigurationEntity getLdapConfiguration() {
-    LOGGER.info("Looking up the LDAP configuration ....");
-    AmbariConfigurationEntity ldapConfigEntity = null;
-
+  public int removeByCategory(String categoryName) {
     TypedQuery<AmbariConfigurationEntity> query = entityManagerProvider.get().createNamedQuery(
-      "AmbariConfigurationEntity.findByType", AmbariConfigurationEntity.class);
-    query.setParameter("typeName", "ldap-configuration");
+        "AmbariConfigurationEntity.deleteByCategory", AmbariConfigurationEntity.class);
+    query.setParameter("categoryName", categoryName);
+    return query.executeUpdate();
+  }
 
-    ldapConfigEntity = daoUtils.selectSingle(query);
-    LOGGER.info("Returned entity: {} ", ldapConfigEntity);
-    return ldapConfigEntity;
+  @Transactional
+  public void create(AmbariConfigurationEntity entity) {
+    // make sure only one entry exists per configuration type...
+    AmbariConfigurationEntity foundEntity = findByPK(new AmbariConfigurationEntityPK(entity.getCategoryName(), entity.getPropertyName()));
+    if (foundEntity != null) {
+      String message = String.format("Only one configuration entry can exist for the category %s and name %s", entity.getCategoryName(), entity.getPropertyName());
+      LOGGER.error(message);
+      throw new EntityExistsException(message);
+    }
+
+    super.create(entity);
+  }
+
+  @Override
+  public AmbariConfigurationEntity merge(AmbariConfigurationEntity entity) {
+    AmbariConfigurationEntity foundEntity = findByPK(new AmbariConfigurationEntityPK(entity.getCategoryName(), entity.getPropertyName()));
+    if (foundEntity == null) {
+      String message = String.format("The configuration entry for the category %s and name %s does not exist", entity.getCategoryName(), entity.getPropertyName());
+      LOGGER.debug(message);
+      throw new EntityNotFoundException(message);
+    }
+
+    AmbariConfigurationEntity updatedEntity = entity;
+
+    if (!StringUtils.equals(foundEntity.getPropertyValue(), entity.getPropertyValue())) {
+      // updating the existing entity
+      updatedEntity = super.merge(entity);
+      entityManagerProvider.get().flush();
+    }
+
+    return updatedEntity;
+  }
+
+  /**
+   * Reconciles the properties associted with an Ambari confgiration category (for example, ldap-configuration)
+   * using persisted properties and the supplied properties.
+   * <p>
+   * if <code>removeIfNotProvided</code> is <code>true</code>, only properties that exist in the new set of
+   * properties will be persisted; others will be removed.
+   * <p>
+   * If <code>removeIfNotProvided</code> is <code>false</code>, then the new properties will be used
+   * to update or append to the set of persisted properties.
+   *
+   * @param categoryName        the category name for the set of properties
+   * @param properties          a map of name to value pairs
+   * @param removeIfNotProvided <code>true</code> to explicitly set the set of properties for the category; <code>false</code> to upadate the set of properties for the category
+   * @return <code>true</code> if changes were made; <code>false</code> if not changes were made.
+   */
+  @Transactional
+  public boolean reconcileCategory(String categoryName, Map<String, String> properties, boolean removeIfNotProvided) {
+    boolean changesDetected = false;
+    List<AmbariConfigurationEntity> existingEntities = findByCategory(categoryName);
+    Map<String, String> propertiesToProcess = new HashMap<>();
+
+    if (properties != null) {
+      propertiesToProcess.putAll(properties);
+    }
+
+    if (existingEntities != null) {
+      for (AmbariConfigurationEntity entity : existingEntities) {
+        String propertyName = entity.getPropertyName();
+
+        if (propertiesToProcess.containsKey(propertyName)) {
+          String newPropertyValue = propertiesToProcess.get(propertyName);
+          if (!StringUtils.equals(newPropertyValue, entity.getPropertyValue())) {
+            // Update the entry...
+            entity.setPropertyValue(newPropertyValue);
+            merge(entity);
+            changesDetected = true;
+          }
+        } else if (removeIfNotProvided) {
+          // Remove the entry since it is not in the new set of properties...
+          remove(entity);
+          changesDetected = true;
+        }
+
+        // If already processed, remove it so we know no to add it later...
+        propertiesToProcess.remove(propertyName);
+      }
+    }
+
+    // Add the new entries...
+    if (!propertiesToProcess.isEmpty()) {
+      for (Map.Entry<String, String> property : propertiesToProcess.entrySet()) {
+        AmbariConfigurationEntity entity = new AmbariConfigurationEntity();
+        entity.setCategoryName(categoryName);
+        entity.setPropertyName(property.getKey());
+        entity.setPropertyValue(property.getValue());
+        create(entity);
+      }
+
+      changesDetected = true;
+    }
+
+    if (changesDetected) {
+      entityManagerProvider.get().flush();
+    }
+
+    return changesDetected;
   }
 }

@@ -95,7 +95,6 @@
     "manage_auth_to_local": "true",
     "manage_identities": "true",
     "master_kdc": "",
-    "password_chat_timeout": "5",
     "password_length": "20",
     "password_min_digits": "1",
     "password_min_lowercase_letters": "1",
@@ -104,7 +103,6 @@
     "password_min_whitespace": "0",
     "preconfigure_services": "DEFAULT",
     "realm": "EXAMPLE.COM",
-    "service_check_principal_name": "${cluster_name|toLower()}-${short_date}",
-    "set_password_expiry": "false"
+    "service_check_principal_name": "${cluster_name|toLower()}-${short_date}"
   }
 }

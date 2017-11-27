@@ -20,7 +20,6 @@ package org.apache.ambari.server.actionmanager;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
-import static org.apache.ambari.server.stack.StackManager.DEFAULT_HOOKS_FOLDER;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,15 +30,20 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -48,6 +52,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -79,11 +84,17 @@ public class ExecutionCommandWrapper {
   @Inject
   private UpgradeContextFactory upgradeContextFactory;
 
+  @Inject
+  private RepositoryVersionHelper repoVersionHelper;
+
   /**
    * Used for injecting hooks and common-services into the command.
    */
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  private Configuration configuration;
 
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
@@ -215,7 +226,34 @@ public class ExecutionCommandWrapper {
       if (null != upgrade) {
         UpgradeContext upgradeContext = upgradeContextFactory.create(cluster, upgrade);
         UpgradeSummary upgradeSummary = upgradeContext.getUpgradeSummary();
+
         executionCommand.setUpgradeSummary(upgradeSummary);
+      }
+
+      // setting repositoryFile
+      final Host host = cluster.getHost(executionCommand.getHostname());  // can be null on internal commands
+      final String serviceName = executionCommand.getServiceName(); // can be null on executing special RU tasks
+
+      if (null == executionCommand.getRepositoryFile() && null != host && null != serviceName) {
+        final CommandRepository commandRepository;
+        final Service service = cluster.getService(serviceName);
+        final String componentName = executionCommand.getComponentName();
+
+        try {
+
+          if (null != componentName) {
+            ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+            commandRepository = repoVersionHelper.getCommandRepository(null, serviceComponent, host);
+          } else {
+            RepositoryVersionEntity repoVersion = service.getDesiredRepositoryVersion();
+            OperatingSystemEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
+            commandRepository = repoVersionHelper.getCommandRepository(repoVersion, osEntity);
+          }
+          executionCommand.setRepositoryFile(commandRepository);
+
+        } catch (SystemException e) {
+          throw new RuntimeException(e);
+        }
       }
 
     } catch (ClusterNotFoundException cnfe) {
@@ -271,7 +309,7 @@ public class ExecutionCommandWrapper {
           stackId.getStackVersion());
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
-          commandParams.put(HOOKS_FOLDER, DEFAULT_HOOKS_FOLDER);
+          commandParams.put(HOOKS_FOLDER,configuration.getProperty(Configuration.HOOKS_FOLDER));
         }
 
         if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {

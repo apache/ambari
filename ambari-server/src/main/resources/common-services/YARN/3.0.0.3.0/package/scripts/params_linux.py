@@ -65,7 +65,7 @@ stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 tarball_map = default("/configurations/cluster-env/tarball_map", None)
 
-config_path = os.path.join(stack_root, "current/hadoop-client/conf")
+config_path = stack_select.get_hadoop_dir("conf")
 config_dir = os.path.realpath(config_path)
 
 # get the correct version to use for checking stack features

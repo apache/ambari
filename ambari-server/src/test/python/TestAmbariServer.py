@@ -3718,7 +3718,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.service_setup")
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
-  def test_setup_linux(self, expand_jce_zip_file_mock, read_ambari_user_mock,
+  @patch("ambari_server.serverSetup.write_gpl_license_accepted")
+  def test_setup_linux(self, write_gpl_license_accepted_mock, expand_jce_zip_file_mock, read_ambari_user_mock,
                  service_setup_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
@@ -3831,6 +3832,7 @@ class TestAmbariServer(TestCase):
     check_jdbc_drivers_mock.return_value = 0
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
+    write_gpl_license_accepted_mock.return_value = 0
 
     result = setup(args)
 
@@ -4970,7 +4972,7 @@ class TestAmbariServer(TestCase):
                               ensure_can_start_under_current_user_mock, get_jdbc_mock,
                               ensure_jdbc_driver_is_installed_mock):
     java_exe_path_mock.return_value = "/usr/lib/java/bin/java"
-    run_os_command_mock.return_value = (0, None, None)
+    run_os_command_mock.return_value = (0, '{"lzo_enabled":"false"}', None)
     get_conf_dir_mock.return_value = '/etc/conf'
     command = '/usr/lib/java/bin/java -cp /etc/conf' + os.pathsep + 'test' + os.pathsep + 'path12' + \
               os.pathsep +'/path/to/jdbc.jar ' \
@@ -6834,7 +6836,6 @@ class TestAmbariServer(TestCase):
                                     read_ambari_user_method, read_master_key_method,
                                     get_is_persisted_method, get_is_secure_method, exists_mock,
                                     save_passwd_for_alias_method):
-
     is_root_method.return_value = True
 
     p = Properties()

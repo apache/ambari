@@ -21,6 +21,7 @@
   <target-stack>HDP-2.6</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.LZOCheck</check>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
@@ -409,6 +410,15 @@
         </task>
       </execute-stage>
 
+      <!-- TEZ -->
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Updating LD Library Classpath for Tarball" >
+        <task xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library" supports-patch="true"/>
+      </execute-stage>
+      
+      <!-- MapR -->
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Updating LD Library Classpath for Tarball">
+        <task xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library" supports-patch="true"/>
+      </execute-stage>
     </group>
 
 

@@ -19,7 +19,7 @@
 # under the License.
 #
 #
-HIVE_BIN=${HIVE_BIN:-"hive"}
+HIVE_CMD=${HIVE_CMD:-"hive"}
 
-HIVE_CONF_DIR=$4 $HIVE_BIN --service metastore -hiveconf hive.log.file=hivemetastore.log -hiveconf hive.log.dir=$5 > $1 2> $2 &
+HIVE_CONF_DIR=$4 $HIVE_CMD --service metastore -hiveconf hive.log.file=hivemetastore.log -hiveconf hive.log.dir=$5 > $1 2> $2 &
 echo $!|cat>$3

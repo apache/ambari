@@ -822,7 +822,7 @@ public class ServiceImpl implements Service {
     List<Component> result = new ArrayList<>();
     for (ServiceComponent component : getServiceComponents().values()) {
       for (ServiceComponentHost host : component.getServiceComponentHosts().values()) {
-        result.add(new Component(host.getHostName(), getName(), component.getName()));
+        result.add(new Component(host.getHostName(), getName(), component.getName(), host.getHost().getHostId()));
       }
     }
     return result;

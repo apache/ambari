@@ -191,6 +191,7 @@ public class RepoUtil {
     re.setRepositoryId(repoInfo.getRepoId());
     re.setDistribution(repoInfo.getDistribution());
     re.setComponents(repoInfo.getComponents());
+    re.setTags(repoInfo.getTags());
     return re;
   }
 

@@ -65,7 +65,7 @@ public class RemoteAmbariClusterEntity {
   /**
    * The logger.
    */
-  protected final static Logger LOG = LoggerFactory.getLogger(RemoteAmbariClusterEntity.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RemoteAmbariClusterEntity.class);
 
   @Id
   @Column(name = "cluster_id", nullable = false)

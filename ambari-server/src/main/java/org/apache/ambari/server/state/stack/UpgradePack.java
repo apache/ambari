@@ -38,6 +38,7 @@ import javax.xml.bind.annotation.XmlValue;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
@@ -600,6 +601,8 @@ public class UpgradePack {
       for (Task task : tasks) {
         if (Task.Type.CONFIGURE == task.getType()) {
           ((ConfigureTask) task).associatedService = service;
+        } else if (Task.Type.CREATE_AND_CONFIGURE == task.getType()) {
+          ((CreateAndConfigureTask) task).associatedService = service;
         }
       }
     }

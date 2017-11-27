@@ -19,11 +19,6 @@
 
 angular.module('ambariAdminConsole')
 .constant('ROUTES', {
-  root: {
-    url: '/',
-    templateUrl: 'views/main.html',
-    controller: 'MainCtrl'
-  },
   authentication: {
     main: {
       url: '/authentication',
@@ -32,7 +27,7 @@ angular.module('ambariAdminConsole')
     }
   },
   loginActivities: {
-    loginMessage:{
+    loginMessage: {
       url: '/loginMessage',
       templateUrl: 'views/loginActivities/main.html',
       controller: 'LoginActivitiesMainCtrl'
@@ -43,157 +38,129 @@ angular.module('ambariAdminConsole')
       controller: 'LoginActivitiesMainCtrl'
     }
   },
-  users: {
-    list: {
-      url: '/users',
-      templateUrl: 'views/users/list.html',
-      controller: 'UsersListCtrl'
+  userManagement: {
+    main: {
+      url: '/userManagement',
+      templateUrl: 'views/userManagement/main.html',
+      controller: 'UserManagementCtrl',
+      label: 'Users'
     },
-    edit: {
+    editUser: {
       url: '/users/:id/edit',
-      templateUrl: 'views/users/create.html',
-      controller: 'UsersCreateCtrl'
+      templateUrl: 'views/userManagement/userEdit.html',
+      controller: 'UserEditCtrl',
+      label: 'Users'
     },
-    create: {
-      url: '/users/new',
-      templateUrl: 'views/users/create.html',
-      controller: 'UsersCreateCtrl'
-    },
-    show: {
-      url: '/users/:id*',
-      templateUrl: 'views/users/show.html',
-      controller: 'UsersShowCtrl'
-    }
-  },
-  groups: {
-    list: {
-      url: '/groups',
-      templateUrl: 'views/groups/list.html',
-      controller: 'GroupsListCtrl'
-    },
-    edit: {
+    editGroup: {
       url: '/groups/:id/edit',
-      templateUrl: 'views/groups/edit.html',
-      controller: 'GroupsEditCtrl'
+      templateUrl: 'views/userManagement/groupEdit.html',
+      controller: 'GroupEditCtrl',
+      label: 'Groups'
     },
-    create: {
-      url: '/groups/new',
-      templateUrl: 'views/groups/create.html',
-      controller: 'GroupsCreateCtrl'
-    }
   },
   views: {
     list: {
       url: '/views',
-      templateUrl: 'views/ambariViews/listTable.html',
-      controller: 'ViewsListCtrl'
-    },
-    listViewUrls: {
-      url: '/viewUrls',
-      templateUrl: 'views/ambariViews/listUrls.html',
-      controller: 'ViewsListCtrl'
-    },
-    createViewUrl:{
-      url: '/urls/new',
-      templateUrl: 'views/urls/create.html',
-      controller: 'ViewUrlCtrl'
-    },
-    linkViewUrl:{
-      url: '/urls/link/:viewName/:viewVersion/:viewInstanceName',
-      templateUrl: 'views/urls/create.html',
-      controller: 'ViewUrlCtrl'
-    },
-    editViewUrl:{
-      url: '/urls/edit/:urlName',
-      templateUrl: 'views/urls/edit.html',
-      controller: 'ViewUrlEditCtrl'
-    },
-    clone: {
-      url: '/views/:viewId/versions/:version/instances/:instanceId/clone',
-      templateUrl: 'views/ambariViews/create.html',
-      controller: 'CreateViewInstanceCtrl'
+      templateUrl: 'views/ambariViews/viewsList.html',
+      controller: 'ViewsListCtrl',
+      label: 'Views'
     },
     edit: {
       url: '/views/:viewId/versions/:version/instances/:instanceId/edit',
       templateUrl: 'views/ambariViews/edit.html',
-      controller: 'ViewsEditCtrl'
+      controller: 'ViewsEditCtrl',
+      label: 'Views'
     },
-    create: {
-      url: '/views/:viewId/new',
-      templateUrl: 'views/ambariViews/create.html',
-      controller: 'CreateViewInstanceCtrl'
+    createViewUrl: {
+      url: '/urls/new',
+      templateUrl: 'views/urls/create.html',
+      controller: 'ViewUrlCtrl',
+      label: 'Views'
+    },
+    linkViewUrl: {
+      url: '/urls/link/:viewName/:viewVersion/:viewInstanceName',
+      templateUrl: 'views/urls/create.html',
+      controller: 'ViewUrlCtrl',
+      label: 'Views'
+    },
+    editViewUrl: {
+      url: '/urls/edit/:urlName',
+      templateUrl: 'views/urls/edit.html',
+      controller: 'ViewUrlEditCtrl',
+      label: 'Views'
     }
   },
   stackVersions: {
     list: {
       url: '/stackVersions',
       templateUrl: 'views/stackVersions/list.html',
-      controller: 'StackVersionsListCtrl'
+      controller: 'StackVersionsListCtrl',
+      label: 'Versions'
     },
     create: {
       url: '/stackVersions/create',
       templateUrl: 'views/stackVersions/stackVersionPage.html',
-      controller: 'StackVersionsCreateCtrl'
+      controller: 'StackVersionsCreateCtrl',
+      label: 'Versions'
     },
     edit: {
       url: '/stackVersions/:stackName/:versionId/edit',
       templateUrl: 'views/stackVersions/stackVersionPage.html',
-      controller: 'StackVersionsEditCtrl'
+      controller: 'StackVersionsEditCtrl',
+      label: 'Versions'
     }
   },
   remoteClusters: {
     list: {
       url: '/remoteClusters',
       templateUrl: 'views/remoteClusters/list.html',
-      controller: 'RemoteClustersListCtrl'
+      controller: 'RemoteClustersListCtrl',
+      label: 'Remote Clusters'
     },
     create: {
       url: '/remoteClusters/create',
       templateUrl: 'views/remoteClusters/remoteClusterPage.html',
-      controller: 'RemoteClustersCreateCtrl'
+      controller: 'RemoteClustersCreateCtrl',
+      label: 'Remote Clusters'
     },
-     edit: {
-     url: '/remoteClusters/:clusterName/edit',
-     templateUrl: 'views/remoteClusters/editRemoteClusterPage.html',
-     controller: 'RemoteClustersEditCtrl'
-     }
-  },
-  clusters: {
-    manageAccess: {
-      url: '/clusters/:id/manageAccess',
-      templateUrl: 'views/clusters/manageAccess.html',
-      controller: 'ClustersManageAccessCtrl'
-    },
-    userAccessList: {
-      url: '/clusters/:id/userAccessList',
-      templateUrl: 'views/clusters/userAccessList.html',
-      controller: 'UserAccessListCtrl'
-    },
-    exportBlueprint: {
-      url: '/clusters/:id/exportBlueprint',
-      templateUrl: 'views/clusters/exportBlueprint.html',
-      controller: 'ExportBlueprintCtrl'
+    edit: {
+      url: '/remoteClusters/:clusterName/edit',
+      templateUrl: 'views/remoteClusters/editRemoteClusterPage.html',
+      controller: 'RemoteClustersEditCtrl',
+      label: 'Remote Clusters'
     }
   },
-  dashboard:{
+  clusters: {
+    clusterInformation: {
+      url: '/clusterInformation',
+      templateUrl: 'views/clusters/clusterInformation.html',
+      controller: 'ClusterInformationCtrl',
+      label: 'Cluster Information'
+    }
+  },
+  dashboard: {
     url: '/dashboard',
-    controller: ['$window', function($window) {
+    controller: ['$window', function ($window) {
       $window.location.replace('/#/main/dashboard');
     }],
     template: ''
   }
 })
-.config(['$routeProvider', '$locationProvider', 'ROUTES', function($routeProvider, $locationProvider, ROUTES) {
-  var createRoute = function(routeObj) {
-    if(routeObj.url){
+.config(['$routeProvider', '$locationProvider', 'ROUTES', function ($routeProvider, $locationProvider, ROUTES) {
+  var createRoute = function (routeObj) {
+    if (routeObj.url) {
       $routeProvider.when(routeObj.url, routeObj);
     } else {
       angular.forEach(routeObj, createRoute);
     }
   };
+  var rootUrl = ROUTES['clusters']['clusterInformation'].url;
   angular.forEach(ROUTES, createRoute);
+  $routeProvider.otherwise({
+    redirectTo: rootUrl
+  });
 }])
-.run(['$rootScope', 'ROUTES', 'Settings', function($rootScope, ROUTES, Settings) {
+.run(['$rootScope', 'ROUTES', 'Settings', function ($rootScope, ROUTES, Settings) {
   // Make routes available in every template and controller
   $rootScope.ROUTES = ROUTES;
   $rootScope.$on('$locationChangeStart', function (e, nextUrl) {
@@ -215,7 +182,7 @@ angular.module('ambariAdminConsole')
    * @param {string} url
    * @returns {string}
    */
-  $rootScope.fromSiteRoot = function(url) {
+  $rootScope.fromSiteRoot = function (url) {
     var path = url[0] === '/' ? url.substring(1) : url;
     return Settings.siteRoot + path;
   };

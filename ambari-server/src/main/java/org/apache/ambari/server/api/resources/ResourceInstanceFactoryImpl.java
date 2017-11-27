@@ -289,6 +289,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RootServiceComponentResourceDefinition();
         break;
 
+      case RootServiceComponentConfiguration:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.RootServiceComponentConfiguration,
+            "configuration", "configurations");
+        break;
+
       case RootServiceHostComponent:
         resourceDefinition = new RootServiceHostComponentResourceDefinition();
         break;
@@ -522,10 +527,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case RemoteCluster:
         resourceDefinition = new RemoteClusterResourceDefinition();
-        break;
-      case AmbariConfiguration:
-        resourceDefinition = new SimpleResourceDefinition(Resource.Type.AmbariConfiguration, "ambariconfiguration", "ambariconfigurations");
-
         break;
 
       default:

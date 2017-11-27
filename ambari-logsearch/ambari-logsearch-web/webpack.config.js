@@ -81,18 +81,17 @@ module.exports = {
   "resolve": {
     "extensions": [
       ".ts",
-      ".js"
+      ".js",
+      ".less"
     ],
     "modules": [
-      "./node_modules",
-      "./node_modules"
+      "node_modules"
     ],
     "symlinks": true
   },
   "resolveLoader": {
     "modules": [
-      "./node_modules",
-      "./node_modules"
+      "node_modules"
     ]
   },
   "entry": {
@@ -229,7 +228,9 @@ module.exports = {
             "loader": "less-loader",
             "options": {
               "sourceMap": false,
-              "paths": []
+              "paths": [
+                "./node_modules"
+              ]
             }
           }
         ]
@@ -359,7 +360,7 @@ module.exports = {
             "loader": "less-loader",
             "options": {
               "sourceMap": false,
-              "paths": []
+              "paths": ["./node_modules"]
             }
           }
         ]

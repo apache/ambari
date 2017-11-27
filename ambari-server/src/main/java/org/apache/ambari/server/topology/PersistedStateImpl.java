@@ -65,7 +65,7 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class PersistedStateImpl implements PersistedState {
 
-  protected final static Logger LOG = LoggerFactory.getLogger(PersistedState.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PersistedState.class);
 
   @Inject
   private TopologyRequestDAO topologyRequestDAO;

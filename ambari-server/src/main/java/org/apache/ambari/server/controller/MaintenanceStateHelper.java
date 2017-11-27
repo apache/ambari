@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -265,7 +264,7 @@ public class MaintenanceStateHelper {
     }
 
     // the AMBARI service is not a real service; it's never in MM
-    if( StringUtils.equals(Services.AMBARI.name(), serviceName)){
+    if( StringUtils.equals(RootService.AMBARI.name(), serviceName)){
       return MaintenanceState.OFF;
     }
 

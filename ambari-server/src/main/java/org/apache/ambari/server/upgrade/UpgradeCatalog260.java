@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import static org.apache.ambari.server.view.ViewContextImpl.CORE_SITE;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +45,7 @@ import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.lang.StringUtils;
@@ -134,8 +133,22 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String HOST_COMPONENT_DESIRED_STATE = "hostcomponentdesiredstate";
   public static final String HOST_COMPONENT_STATE = "hostcomponentstate";
 
+  private static final String CORE_SITE = "core-site";
   public static final String AMS_SSL_CLIENT = "ams-ssl-client";
   public static final String METRIC_TRUSTSTORE_ALIAS = "ssl.client.truststore.alias";
+
+  private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
+  public static final String HIVE_LLAP_DAEMON_KEYTAB_FILE = "hive.llap.daemon.keytab.file";
+  public static final String HIVE_LLAP_ZK_SM_KEYTAB_FILE = "hive.llap.zk.sm.keytab.file";
+  public static final String HIVE_LLAP_TASK_KEYTAB_FILE = "hive.llap.task.keytab.file";
+  public static final String HIVE_SERVER_KERBEROS_PREFIX = "/HIVE/HIVE_SERVER/";
+  public static final String YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY = "llap_zk_hive";
+  public static final String YARN_LLAP_TASK_HIVE_KERBEROS_IDENTITY = "llap_task_hive";
+  public static final String HIVE_SERVER_HIVE_KERBEROS_IDENTITY = "hive_server_hive";
+
+  // Used to track whether YARN -> NODEMANAGER -> 'llap_zk_hive' kerberos descriptor was updated or not.
+  private List<String> yarnKerberosDescUpdatedList = new ArrayList<>();
+
 
   /**
    * Logger.
@@ -193,7 +206,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    int currentVersionID = getCurrentVersionID();
+    Integer currentVersionID = getCurrentVersionID();
     dropBrokenFK();
     updateServiceComponentDesiredStateTable(currentVersionID);
     updateServiceDesiredStateTable(currentVersionID);
@@ -360,10 +373,13 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * Removes {@value #FK_SDS_DESIRED_STACK_ID} foreign key.
    * adds {@value #FK_REPO_VERSION_ID} foreign key.
    *
+   * @param currentRepoID id of current repo_version. Can be null if there are no cluster repo versions
+   *                      (in this case {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty)
+   *
    * @throws java.sql.SQLException
    */
-  private void updateServiceDesiredStateTable(int currentRepoID) throws SQLException {
-
+  private void updateServiceDesiredStateTable(Integer currentRepoID) throws SQLException {
+    //in case if currentRepoID is null {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty and null defaultValue is ok for non-nullable column
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
         new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, currentRepoID, false));
     dbAccessor.alterColumn(SERVICE_DESIRED_STATE_TABLE,
@@ -413,9 +429,13 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * Removes {@value #FK_SCDS_DESIRED_STACK_ID} foreign key.
    * adds {@value #FK_SCDS_DESIRED_REPO_ID} foreign key.
    *
+   * @param currentRepoID id of current repo_version. Can be null if there are no cluster repo versions
+   *                      (in this case {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty)
+   *
    * @throws java.sql.SQLException
    */
-  private void updateServiceComponentDesiredStateTable(int currentRepoID) throws SQLException {
+  private void updateServiceComponentDesiredStateTable(Integer currentRepoID) throws SQLException {
+    //in case if currentRepoID is null {@value #SERVICE_DESIRED_STATE_TABLE} table must be empty and null defaultValue is ok for non-nullable column
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
         new DBAccessor.DBColumnInfo(DESIRED_REPO_VERSION_ID_COLUMN, Long.class, null, currentRepoID, false));
     dbAccessor.alterColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
@@ -492,15 +512,32 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     ensureZeppelinProxyUserConfigs();
     updateKerberosDescriptorArtifacts();
     updateAmsConfigs();
+    updateHiveConfigs();
     updateHDFSWidgetDefinition();
     updateExistingRepositoriesToBeResolved();
   }
 
-  public int getCurrentVersionID() throws AmbariException, SQLException {
+  /**
+   * get {@value #REPO_VERSION_ID_COLUMN} value from {@value #CLUSTER_VERSION_TABLE}
+   * where {@value #STATE_COLUMN} = {@value #CURRENT}
+   * and validate it
+   *
+   * @return current version ID or null if no cluster versions do exist
+   * @throws AmbariException if cluster versions are present, but current is not selected
+   * @throws SQLException
+   */
+  public Integer getCurrentVersionID() throws AmbariException, SQLException {
     List<Integer> currentVersionList = dbAccessor.getIntColumnValues(CLUSTER_VERSION_TABLE, REPO_VERSION_ID_COLUMN,
         new String[]{STATE_COLUMN}, new String[]{CURRENT}, false);
-    if (currentVersionList.size() != 1) {
-      throw new AmbariException("Can't get current version id");
+    if (currentVersionList.isEmpty()) {
+      List<Integer> allVersionList = dbAccessor.getIntColumnValues(CLUSTER_VERSION_TABLE, REPO_VERSION_ID_COLUMN, null, null,false);
+      if (allVersionList.isEmpty()){
+        return null;
+      } else {
+        throw new AmbariException("Unable to find any CURRENT repositories.");
+      }
+    } else if (currentVersionList.size() != 1) {
+      throw new AmbariException("The following repositories were found to be CURRENT: ".concat(StringUtils.join(currentVersionList, ",")));
     }
     return currentVersionList.get(0);
   }
@@ -615,6 +652,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
         if (kerberosDescriptor != null) {
           fixRangerKMSKerberosDescriptor(kerberosDescriptor);
           fixIdentityReferences(getCluster(artifactEntity), kerberosDescriptor);
+          fixYarnHsiKerberosDescriptorAndSiteConfig(getCluster(artifactEntity), kerberosDescriptor);
 
           artifactEntity.setArtifactData(kerberosDescriptor.toMap());
           artifactDAO.merge(artifactEntity);
@@ -636,6 +674,132 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
         KerberosIdentityDescriptor rangerKmsComponentIdentity = rangerKmscomponentDescriptor.getIdentity("/smokeuser");
         if (rangerKmsComponentIdentity != null) {
           rangerKmscomponentDescriptor.removeIdentity("/smokeuser");
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates YARN's NM 'llap_zk_hive' kerberos descriptor as reference and the associated config
+   * hive-interactive-site/hive.llap.zk.sm.keytab.file
+   */
+  protected void fixYarnHsiKerberosDescriptorAndSiteConfig(Cluster cluster, KerberosDescriptor kerberosDescriptor) {
+    LOG.info("Updating YARN's HSI Kerberos Descriptor ....");
+
+    // Step 1. Get Hive -> HIVE_SERVER -> 'hive_server_hive' kerberos description for referencing later
+    KerberosServiceDescriptor hiveServiceDescriptor = kerberosDescriptor.getService("HIVE");
+    KerberosIdentityDescriptor hsh_identityDescriptor = null;
+    KerberosPrincipalDescriptor hsh_principalDescriptor = null;
+    KerberosKeytabDescriptor hsh_keytabDescriptor = null;
+    if (hiveServiceDescriptor != null) {
+      KerberosComponentDescriptor hiveServerKerberosDescriptor = hiveServiceDescriptor.getComponent("HIVE_SERVER");
+      if (hiveServerKerberosDescriptor != null) {
+        hsh_identityDescriptor = hiveServerKerberosDescriptor.getIdentity(HIVE_SERVER_HIVE_KERBEROS_IDENTITY);
+        if (hsh_identityDescriptor != null) {
+          LOG.info("  Retrieved HIVE->HIVE_SERVER kerberos descriptor. Name = " + hsh_identityDescriptor.getName());
+          hsh_principalDescriptor = hsh_identityDescriptor.getPrincipalDescriptor();
+          hsh_keytabDescriptor = hsh_identityDescriptor.getKeytabDescriptor();
+        }
+      }
+
+      // Step 2. Update YARN -> NODEMANAGER's : (1). 'llap_zk_hive' and (2). 'llap_task_hive' kerberos descriptor as reference to
+      // HIVE -> HIVE_SERVER -> 'hive_server_hive' (Same as YARN -> NODEMANAGER -> 'yarn_nodemanager_hive_server_hive')
+      if (hsh_principalDescriptor != null && hsh_keytabDescriptor != null) {
+        KerberosServiceDescriptor yarnServiceDescriptor = kerberosDescriptor.getService("YARN");
+        if (yarnServiceDescriptor != null) {
+          KerberosComponentDescriptor yarnNmKerberosDescriptor = yarnServiceDescriptor.getComponent("NODEMANAGER");
+          if (yarnNmKerberosDescriptor != null) {
+            String[] identities = {YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY, YARN_LLAP_TASK_HIVE_KERBEROS_IDENTITY};
+            for (String identity : identities) {
+              KerberosIdentityDescriptor identityDescriptor = yarnNmKerberosDescriptor.getIdentity(identity);
+
+              KerberosPrincipalDescriptor principalDescriptor = null;
+              KerberosKeytabDescriptor keytabDescriptor = null;
+              if (identityDescriptor != null) {
+                LOG.info("  Retrieved YARN->NODEMANAGER kerberos descriptor to be updated. Name = " + identityDescriptor.getName());
+                principalDescriptor = identityDescriptor.getPrincipalDescriptor();
+                keytabDescriptor = identityDescriptor.getKeytabDescriptor();
+
+                identityDescriptor.setReference(HIVE_SERVER_KERBEROS_PREFIX + hsh_identityDescriptor.getName());
+                LOG.info("    Updated '" + YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY + "' identity descriptor reference = '"
+                        + identityDescriptor.getReference() + "'");
+                principalDescriptor.setValue(null);
+                LOG.info("    Updated '" + YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY + "' principal descriptor value = '"
+                        + principalDescriptor.getValue() + "'");
+
+                // Updating keytabs now
+                keytabDescriptor.setFile(null);
+                LOG.info("    Updated '" + YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY + "' keytab descriptor file = '"
+                        + keytabDescriptor.getFile() + "'");
+                keytabDescriptor.setOwnerName(null);
+                LOG.info("    Updated '" + YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY + "' keytab descriptor owner name = '" + keytabDescriptor.getOwnerName() + "'");
+                keytabDescriptor.setOwnerAccess(null);
+                LOG.info("    Updated '" + YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY + "' keytab descriptor owner access = '" + keytabDescriptor.getOwnerAccess() + "'");
+                keytabDescriptor.setGroupName(null);
+                LOG.info("    Updated '" + YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY + "' keytab descriptor group name = '" + keytabDescriptor.getGroupName() + "'");
+                keytabDescriptor.setGroupAccess(null);
+                LOG.info("    Updated '" + YARN_LLAP_ZK_HIVE_KERBEROS_IDENTITY + "' keytab descriptor group access = '" + keytabDescriptor.getGroupAccess() + "'");
+
+                // Need this as trigger to update the HIVE_LLAP_ZK_SM_KEYTAB_FILE configs later.
+
+                // Get the keytab file 'config name'.
+                String[] splits = keytabDescriptor.getConfiguration().split("/");
+                if (splits != null && splits.length == 2) {
+                  updateYarnKerberosDescUpdatedList(splits[1]);
+                  LOG.info("    Updated 'yarnKerberosDescUpdatedList' = " + getYarnKerberosDescUpdatedList());
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public void updateYarnKerberosDescUpdatedList(String val) {
+    yarnKerberosDescUpdatedList.add(val);
+  }
+
+  public List<String> getYarnKerberosDescUpdatedList() {
+    return yarnKerberosDescUpdatedList;
+  }
+
+  protected void updateHiveConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          // Updating YARN->NodeManager kerebros descriptor : (1). 'llap_zk_hive' and (2). 'llap_task_hive''s associated configs
+          // hive-interactive-site/hive.llap.zk.sm.keytab.file and hive-interactive-site/hive.llap.task.keytab.file respectively,
+          // based on what hive-interactive-site/hive.llap.daemon.keytab.file has.
+          Config hsiSiteConfig = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
+          if (hsiSiteConfig != null) {
+            Map<String, String> hsiSiteConfigProperties = hsiSiteConfig.getProperties();
+            if (hsiSiteConfigProperties != null &&
+                    hsiSiteConfigProperties.containsKey(HIVE_LLAP_DAEMON_KEYTAB_FILE)) {
+              String[] identities = {HIVE_LLAP_ZK_SM_KEYTAB_FILE, HIVE_LLAP_TASK_KEYTAB_FILE};
+              Map<String, String> newProperties = new HashMap<>();
+              for (String identity : identities) {
+                // Update only if we were able to modify the corresponding kerberos descriptor,
+                // reflected in list 'getYarnKerberosDescUpdatedList'.
+                if (getYarnKerberosDescUpdatedList().contains(identity) && hsiSiteConfigProperties.containsKey(identity)) {
+                  newProperties.put(identity, hsiSiteConfigProperties.get(HIVE_LLAP_DAEMON_KEYTAB_FILE));
+                }
+              }
+
+              // Update step.
+              if (newProperties.size() > 0) {
+                try {
+                  updateConfigurationPropertiesForCluster(cluster, HIVE_INTERACTIVE_SITE, newProperties, true, false);
+                  LOG.info("Updated HSI config(s) : " + newProperties.keySet() + " with value(s) = " + newProperties.values() + " respectively.");
+                } catch (AmbariException e) {
+                  e.printStackTrace();
+                }
+              }
+            }
+          }
         }
       }
     }

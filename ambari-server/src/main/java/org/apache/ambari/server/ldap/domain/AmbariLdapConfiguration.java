@@ -19,8 +19,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ public class AmbariLdapConfiguration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AmbariLdapConfiguration.class);
 
-  private final Map<String, Object> configurationMap;
+  private final Map<String, String> configurationMap;
 
   private Object configValue(AmbariLdapConfigKeys ambariLdapConfigKeys) {
     Object value = null;
@@ -45,13 +45,13 @@ public class AmbariLdapConfiguration {
     return value;
   }
 
-  public void setValueFor(AmbariLdapConfigKeys ambariLdapConfigKeys, Object value) {
+  public void setValueFor(AmbariLdapConfigKeys ambariLdapConfigKeys, String value) {
     configurationMap.put(ambariLdapConfigKeys.key(), value);
   }
 
   // intentionally package private, instances to be created through the factory
   @Inject
-  AmbariLdapConfiguration(@Assisted Map<String, Object> configuration) {
+  AmbariLdapConfiguration(@Assisted Map<String, String> configuration) {
     this.configurationMap = configuration;
   }
 
@@ -179,21 +179,25 @@ public class AmbariLdapConfiguration {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
+    if (this == o) {
+      return true;
+    }
 
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     AmbariLdapConfiguration that = (AmbariLdapConfiguration) o;
 
     return new EqualsBuilder()
-      .append(configurationMap, that.configurationMap)
-      .isEquals();
+        .append(configurationMap, that.configurationMap)
+        .isEquals();
   }
 
   @Override
   public int hashCode() {
     return new HashCodeBuilder(17, 37)
-      .append(configurationMap)
-      .toHashCode();
+        .append(configurationMap)
+        .toHashCode();
   }
 }

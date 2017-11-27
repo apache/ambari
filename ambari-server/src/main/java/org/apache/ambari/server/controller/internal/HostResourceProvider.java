@@ -85,6 +85,8 @@ import com.google.inject.persist.Transactional;
  */
 public class HostResourceProvider extends AbstractControllerResourceProvider {
 
+  private static final Logger LOG = LoggerFactory.getLogger(HostResourceProvider.class);
+
   // ----- Property ID constants ---------------------------------------------
 
   // Hosts

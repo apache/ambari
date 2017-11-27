@@ -22,10 +22,10 @@
       <span *ngIf="iconClass" [ngClass]="iconClass"></span>
       <span *ngIf="label">{{label | translate}}</span>
     </span>
-    <span *ngIf="showSelectedValue && !isMultipleChoice">{{selectedLabel | translate}}</span>
+    <span *ngIf="showSelectedValue && !isMultipleChoice && selection.length">{{selection[0].label | translate}}</span>
     <span *ngIf="!hideCaret" class="caret"></span>
   </button>
   <ul data-component="dropdown-list" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
-      [items]="options" [isMultipleChoice]="isMultipleChoice" (selectedItemChange)="updateValue($event)"
+      [items]="options" [isMultipleChoice]="isMultipleChoice" (selectedItemChange)="updateSelection($event)"
       [actionArguments]="additionalArgs"></ul>
 </div>

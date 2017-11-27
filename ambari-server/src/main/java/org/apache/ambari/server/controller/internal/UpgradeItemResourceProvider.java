@@ -57,6 +57,8 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -65,6 +67,8 @@ import com.google.inject.Inject;
  */
 @StaticallyInject
 public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeItemResourceProvider.class);
 
   public static final String UPGRADE_CLUSTER_NAME = "UpgradeItem/cluster_name";
   public static final String UPGRADE_REQUEST_ID = "UpgradeItem/request_id";

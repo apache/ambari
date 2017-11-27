@@ -28,6 +28,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core.signal_utils import TerminateStrategy
 
 OK_MESSAGE = "TCP OK - {0:.3f}s response on port {1}"
 CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
@@ -271,7 +272,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     start_time = time.time()
     try:
-      Execute(cmd, user=hiveuser, timeout=30)
+      Execute(cmd, user=hiveuser, timeout=30, timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE)
       total_time = time.time() - start_time
       result_code = 'OK'
       label = OK_MESSAGE.format(total_time, port)

@@ -16,104 +16,28 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'top-menu',
   templateUrl: './top-menu.component.html',
   styleUrls: ['./top-menu.component.less']
 })
-export class TopMenuComponent implements OnInit {
-
-  constructor() {
-  }
-
-  ngOnInit() {
-  }
+export class TopMenuComponent {
 
   //TODO implement loading of real data into subItems
   readonly items = [
     {
-      iconClass: 'fa fa-arrow-left',
-      label: 'topMenu.undo',
-      labelClass: 'unstyled-link',
-      action: 'undo',
-      subItems: [
-        {
-          label: 'Apply \'Last week\' filter'
-        },
-        {
-          label: 'Clear all filters'
-        },
-        {
-          label: 'Apply \'HDFS\' filter'
-        },
-        {
-          label: 'Apply \'Errors\' filter'
-        }
-      ]
-    },
-    {
-      iconClass: 'fa fa-arrow-right',
-      label: 'topMenu.redo',
-      labelClass: 'unstyled-link',
-      action: 'redo',
-      subItems: [
-        {
-          label: 'Apply \'Warnings\' filter'
-        },
-        {
-          label: 'Switch to graph mode'
-        },
-        {
-          label: 'Apply \'Custom Date\' filter'
-        }
-      ]
-    },
-    {
-      iconClass: 'fa fa-refresh',
-      label: 'topMenu.refresh',
-      labelClass: 'unstyled-link',
-      action: 'refresh'
-    },
-    {
-      iconClass: 'fa fa-history',
-      label: 'topMenu.history',
-      labelClass: 'unstyled-link',
-      action: 'openHistory',
-      subItems: [
-        {
-          label: 'Apply \'Custom Date\' filter'
-        },
-        {
-          label: 'Switch to graph mode'
-        },
-        {
-          label: 'Apply \'Warnings\' filter'
-        },
-        {
-          label: 'Apply \'Last week\' filter'
-        },
-        {
-          label: 'Clear all filters'
-        },
-        {
-          label: 'Apply \'HDFS\' filter'
-        },
-        {
-          label: 'Apply \'Errors\' filter'
-        }
-      ]
-    },
-    {
       iconClass: 'fa fa-user unstyled-link',
       hideCaret: true,
+      isRightAlign: true,
       subItems: [
         {
           label: 'Options'
         },
         {
-          label: 'Logout'
+          label: 'authorization.logout',
+          action: 'logout'
         }
       ]
     }

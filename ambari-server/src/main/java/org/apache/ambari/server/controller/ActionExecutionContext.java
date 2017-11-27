@@ -262,12 +262,12 @@ public class ActionExecutionContext {
   }
 
   /**
+   *
    * Interface that allows a final attempt to setting values on an {@link ExecutionCommand}
-   * @author ncole
    *
    */
-  public static interface ExecutionCommandVisitor {
-    public void visit(ExecutionCommand command);
+  public interface ExecutionCommandVisitor {
+    void visit(ExecutionCommand command);
   }
 
 }

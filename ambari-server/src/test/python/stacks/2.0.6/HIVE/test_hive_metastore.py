@@ -62,8 +62,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
     self.assert_init_schema()
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
-           'HIVE_BIN': 'hive',
+        environment = { 'HIVE_CMD': '/usr/hdp/current/hive-server2/bin/hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
@@ -123,8 +122,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_secured()
     self.assert_init_schema()
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr/hdp/2.1.0.0-1234/hadoop',
-           'HIVE_BIN': 'hive',
+        environment = { 'HIVE_CMD': '/usr/hdp/current/hive-server2/bin/hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
@@ -552,7 +550,7 @@ class TestHiveMetastore(RMFTestCase):
         user = 'hive')
 
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr/hdp/2.3.0.0-1234/hadoop', 'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45', 'HIVE_BIN': '/usr/hdp/current/hive-server2/bin/hive'},
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45', 'HIVE_CMD': '/usr/hdp/current/hive-server2/bin/hive'},
         not_if = None,
         user = 'hive',
         path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/2.3.0.0-1234/hadoop/bin'])

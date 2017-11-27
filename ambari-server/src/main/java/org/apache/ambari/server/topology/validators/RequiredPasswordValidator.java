@@ -88,7 +88,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
       for (ComponentV2 component : hostGroup.getComponents()) {
         //for now, AMBARI is not recognized as a service in Stacks
         if (component.getType().equals("AMBARI_SERVER")) {
-          continue;
+           continue;
         }
 
         Service service = component.getService();

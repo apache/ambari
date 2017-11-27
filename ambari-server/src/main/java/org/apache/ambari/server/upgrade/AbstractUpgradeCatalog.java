@@ -143,6 +143,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     new HashMap<>();
 
   protected String ambariUpgradeConfigUpdatesFileName;
+  private Map<String,String> upgradeJsonOutput = new HashMap<>();
 
   @Inject
   public AbstractUpgradeCatalog(Injector injector) {
@@ -258,6 +259,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       return VersionUtils.compareVersions(upgradeCatalog1.getTargetVersion(),
         upgradeCatalog2.getTargetVersion(), 4);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Map<String,String> getUpgradeJsonOutput() {
+    return upgradeJsonOutput;
   }
 
   /**

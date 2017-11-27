@@ -116,11 +116,30 @@ CREATE TABLE configuration_base (
   CONSTRAINT PK_configuration_base PRIMARY KEY (id)
 );
 
+CREATE TABLE clusterconfig (
+  config_id BIGINT NOT NULL,
+  version_tag VARCHAR(100) NOT NULL,
+  version BIGINT NOT NULL,
+  type_name VARCHAR(100) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  stack_id BIGINT NOT NULL,
+  selected SMALLINT NOT NULL DEFAULT 0,
+  config_data LONGTEXT NOT NULL,
+  config_attributes LONGTEXT,
+  create_timestamp BIGINT NOT NULL,
+  unmapped SMALLINT NOT NULL DEFAULT 0,
+  selected_timestamp BIGINT NOT NULL DEFAULT 0,
+  CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
+  CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
+  CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
+  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
+
 CREATE TABLE ambari_configuration (
-  id BIGINT NOT NULL,
-  CONSTRAINT PK_ambari_configuration PRIMARY KEY (id),
-  CONSTRAINT FK_ambari_conf_conf_base FOREIGN KEY (id) REFERENCES configuration_base (id)
-);
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE hosts (
   host_id BIGINT NOT NULL,
@@ -1035,12 +1054,21 @@ CREATE TABLE kerberos_principal (
   CONSTRAINT PK_kerberos_principal PRIMARY KEY (principal_name)
 );
 
+CREATE TABLE kerberos_keytab (
+  keytab_path VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_krb_keytab_path_host_id PRIMARY KEY (keytab_path)
+);
+
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
+  keytab_path VARCHAR(255) NOT NULL,
+  is_distributed SMALLINT NOT NULL DEFAULT 0,
   host_id BIGINT NOT NULL,
-  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY (principal_name, host_id),
+  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY (principal_name, keytab_path, host_id),
   CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name));
+  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
+  CONSTRAINT FK_krb_pr_host_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path)
+);
 
 CREATE TABLE kerberos_descriptor
 (
@@ -1230,7 +1258,6 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('remote_cluster_id_seq', 0),
   ('remote_cluster_service_id_seq', 0),
   ('servicecomponent_version_id_seq', 0),
-  ('configuration_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0);
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name) VALUES

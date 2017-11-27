@@ -78,7 +78,7 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   @SuppressWarnings("unchecked")
   public void shouldLdapUserAttributeDetection() throws Exception {
     // GIVEN
-    Map<String, Object> configMap = Maps.newHashMap();
+    Map<String, String> configMap = Maps.newHashMap();
     configMap.put(AmbariLdapConfigKeys.USER_SEARCH_BASE.key(), "dc=example,dc=com");
     AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
 
@@ -109,7 +109,7 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   @Test(expected = AmbariLdapException.class)
   public void testShouldUserAttributeDetectionFailWhenLdapOerationFails() throws Exception {
     // GIVEN
-    Map<String, Object> configMap = Maps.newHashMap();
+    Map<String, String> configMap = Maps.newHashMap();
     configMap.put(AmbariLdapConfigKeys.USER_SEARCH_BASE.key(), "dc=example,dc=com");
     AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
 
@@ -129,7 +129,7 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   @SuppressWarnings("unchecked")
   public void shouldLdapGroupAttributeDetection() throws Exception {
     // GIVEN
-    Map<String, Object> configMap = Maps.newHashMap();
+    Map<String, String> configMap = Maps.newHashMap();
     configMap.put(AmbariLdapConfigKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
     AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
 
@@ -160,7 +160,7 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   @Test(expected = AmbariLdapException.class)
   public void testShouldGroupAttributeDetectionFailWhenLdapOerationFails() throws Exception {
     // GIVEN
-    Map<String, Object> configMap = Maps.newHashMap();
+    Map<String, String> configMap = Maps.newHashMap();
     configMap.put(AmbariLdapConfigKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
     AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
 

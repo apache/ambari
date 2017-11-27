@@ -87,6 +87,20 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
+    getGPLLicenseAccepted: function() {
+      var deferred = $q.defer();
+
+      $http.get(Settings.baseUrl + '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/gpl.license.accepted&minimal_response=true', {mock: 'true'})
+        .then(function(data) {
+          deferred.resolve(data.data.RootServiceComponents.properties['gpl.license.accepted']);
+        })
+        .catch(function(data) {
+          deferred.reject(data);
+        });
+
+      return deferred.promise;
+    },
+    
     allPublicStackVersions: function() {
       var self = this;
       var url = '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/type,' +

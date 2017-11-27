@@ -76,7 +76,7 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
   );
 
   protected static final Set<String> PK_PROPERTY_IDS = Collections.unmodifiableSet(
-    new HashSet<>(PK_PROPERTY_MAP.values())
+      new HashSet<>(PK_PROPERTY_MAP.values())
   );
 
   protected static final Set<String> PROPERTY_IDS = Collections.unmodifiableSet(
@@ -183,7 +183,7 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
                     KerberosPrincipalType principalType = principalDescriptor.getType();
 
                     // Assume the principal is a service principal if not specified
-                    if(principalType == null) {
+                    if (principalType == null) {
                       principalType = KerberosPrincipalType.SERVICE;
                     }
 
@@ -194,10 +194,17 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
                     setResourceProperty(resource, KERBEROS_IDENTITY_PRINCIPAL_TYPE_PROPERTY_ID, principalType, requestPropertyIds);
                     setResourceProperty(resource, KERBEROS_IDENTITY_PRINCIPAL_LOCAL_USERNAME_PROPERTY_ID, principalDescriptor.getLocalUsername(), requestPropertyIds);
 
+                    KerberosKeytabDescriptor keytabDescriptor = descriptor.getKeytabDescriptor();
+
                     String installedStatus;
+
                     if ((hostId != null) && kerberosPrincipalDAO.exists(principal)) {
-                      if (kerberosPrincipalHostDAO.exists(principal, hostId)) {
-                        installedStatus = "true";
+                      if (keytabDescriptor != null) {
+                        if (kerberosPrincipalHostDAO.exists(principal, hostId, keytabDescriptor.getFile())) {
+                          installedStatus = "true";
+                        } else {
+                          installedStatus = "false";
+                        }
                       } else {
                         installedStatus = "false";
                       }
@@ -207,7 +214,6 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
 
                     setResourceProperty(resource, KERBEROS_IDENTITY_KEYTAB_FILE_INSTALLED_PROPERTY_ID, installedStatus, requestPropertyIds);
 
-                    KerberosKeytabDescriptor keytabDescriptor = descriptor.getKeytabDescriptor();
                     if (keytabDescriptor != null) {
                       String ownerAccess = keytabDescriptor.getOwnerAccess();
                       String groupAccess = keytabDescriptor.getGroupAccess();

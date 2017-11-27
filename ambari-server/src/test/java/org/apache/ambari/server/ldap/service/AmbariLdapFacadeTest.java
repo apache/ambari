@@ -163,12 +163,12 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
   public void testShouldLdapAttributeDetectionDelegateToTheRightServiceCalls() throws Exception {
 
     // configuration map with user attributes detected
-    Map<String, Object> userConfigMap = Maps.newHashMap();
+    Map<String, String> userConfigMap = Maps.newHashMap();
     userConfigMap.put(AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE.key(), "uid");
     AmbariLdapConfiguration userAttrDecoratedConfig = ambariLdapConfigurationFactory.createLdapConfiguration(userConfigMap);
 
     // configuration map with user+group attributes detected
-    Map<String, Object> groupConfigMap = Maps.newHashMap(userConfigMap);
+    Map<String, String> groupConfigMap = Maps.newHashMap(userConfigMap);
     groupConfigMap.put(AmbariLdapConfigKeys.GROUP_NAME_ATTRIBUTE.key(), "dn");
     AmbariLdapConfiguration groupAttrDecoratedConfig = ambariLdapConfigurationFactory.createLdapConfiguration(groupConfigMap);
 

@@ -21,28 +21,20 @@ Ambari Agent
 """
 
 __all__ = ["curl_krb_request"]
+import hashlib
 import logging
 import os
+
 import time
 
+from get_kinit_path import get_kinit_path
+from get_klist_path import get_klist_path
 from resource_management.core import global_lock
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
-from get_kinit_path import get_kinit_path
-from get_klist_path import get_klist_path
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 
-# hashlib is supplied as of Python 2.5 as the replacement interface for md5
-# and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if
-# available, avoiding a deprecation warning under 2.6.  Import md5 otherwise,
-# preserving 2.4 compatibility.
-try:
-  import hashlib
-  _md5 = hashlib.md5
-except ImportError:
-  import md5
-  _md5 = md5.new
-
+HASH_ALGORITHM = hashlib.sha224
 CONNECTION_TIMEOUT_DEFAULT = 10
 MAX_TIMEOUT_DEFAULT = CONNECTION_TIMEOUT_DEFAULT + 2
 
@@ -103,10 +95,10 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   is_kinit_required = False
 
   # Create the kerberos credentials cache (ccache) file and set it in the environment to use
-  # when executing curl. Use the md5 hash of the combination of the principal and keytab file
+  # when executing curl. Use a hash of the combination of the principal and keytab file
   # to generate a (relatively) unique cache filename so that we can use it as needed. Scope
   # this file by user in order to prevent sharing of cache files by multiple users.
-  ccache_file_name = _md5("{0}|{1}".format(principal, keytab)).hexdigest()
+  ccache_file_name = HASH_ALGORITHM("{0}|{1}".format(principal, keytab)).hexdigest()
 
   curl_krb_cache_path = os.path.join(tmp_dir, "curl_krb_cache")
   if not os.path.exists(curl_krb_cache_path):

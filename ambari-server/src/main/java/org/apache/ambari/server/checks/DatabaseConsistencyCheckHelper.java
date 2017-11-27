@@ -81,7 +81,7 @@ import com.google.inject.persist.Transactional;
 
 public class DatabaseConsistencyCheckHelper {
 
-  static Logger LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
 
   @Inject
   private static Injector injector;

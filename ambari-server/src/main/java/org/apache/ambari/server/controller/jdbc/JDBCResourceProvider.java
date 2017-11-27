@@ -70,7 +70,7 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
      */
     private final Map<String, Map<String, String>> importedKeys = new HashMap<>();
 
-    protected final static Logger LOG =
+    private static final Logger LOG =
             LoggerFactory.getLogger(JDBCResourceProvider.class);
 
     public JDBCResourceProvider(ConnectionFactory connectionFactory,

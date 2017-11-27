@@ -214,23 +214,25 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     StackEntity stackEntity220 = stackDAO.find("HDP", "2.2.0");
     StackId stack211 = new StackId(stackEntity211);
 
+    String operatingSystems = "[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]";
+
     repoVersionEntity2110 = new RepositoryVersionEntity();
     repoVersionEntity2110.setDisplayName("My New Version 1");
-    repoVersionEntity2110.setOperatingSystems("");
+    repoVersionEntity2110.setOperatingSystems(operatingSystems);
     repoVersionEntity2110.setStack(stackEntity211);
     repoVersionEntity2110.setVersion("2.1.1.0");
     repoVersionDao.create(repoVersionEntity2110);
 
     repoVersionEntity2111 = new RepositoryVersionEntity();
     repoVersionEntity2111.setDisplayName("My New Version 2 for minor upgrade");
-    repoVersionEntity2111.setOperatingSystems("");
+    repoVersionEntity2111.setOperatingSystems(operatingSystems);
     repoVersionEntity2111.setStack(stackEntity211);
     repoVersionEntity2111.setVersion("2.1.1.1");
     repoVersionDao.create(repoVersionEntity2111);
 
     repoVersionEntity2112 = new RepositoryVersionEntity();
     repoVersionEntity2112.setDisplayName("My New Version 3 for patch upgrade");
-    repoVersionEntity2112.setOperatingSystems("");
+    repoVersionEntity2112.setOperatingSystems(operatingSystems);
     repoVersionEntity2112.setStack(stackEntity211);
     repoVersionEntity2112.setVersion("2.1.1.2");
     repoVersionEntity2112.setType(RepositoryType.PATCH);
@@ -239,7 +241,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     repoVersionEntity2200 = new RepositoryVersionEntity();
     repoVersionEntity2200.setDisplayName("My New Version 4 for major upgrade");
-    repoVersionEntity2200.setOperatingSystems("");
+    repoVersionEntity2200.setOperatingSystems(operatingSystems);
     repoVersionEntity2200.setStack(stackEntity220);
     repoVersionEntity2200.setVersion("2.2.0.0");
     repoVersionDao.create(repoVersionEntity2200);
@@ -1443,6 +1445,14 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS, hostsOrder);
     upgradeResourceProvider.createResources(request);
+
+
+    // make sure that the desired versions are updated
+    Cluster cluster = clusters.getCluster("c1");
+    assertNotNull(cluster);
+
+    Service service = cluster.getService("ZOOKEEPER");
+    assertEquals(repoVersionEntity2200, service.getDesiredRepositoryVersion());
   }
 
   /**
@@ -1923,7 +1933,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
-    repoVersionEntity.setOperatingSystems("");
+    repoVersionEntity.setOperatingSystems("[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]");
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setVersion("2.2.2.3");
     repoVersionDao.create(repoVersionEntity);

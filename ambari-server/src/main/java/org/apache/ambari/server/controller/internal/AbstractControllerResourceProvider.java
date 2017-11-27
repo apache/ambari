@@ -232,6 +232,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RootServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
       case RootServiceComponent:
         return new RootServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootServiceComponentConfiguration:
+        return resourceProviderFactory.getRootServiceHostComponentConfigurationResourceProvider();
       case RootServiceHostComponent:
         return new RootServiceHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case ConfigGroup:
@@ -280,8 +282,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new ClusterKerberosDescriptorResourceProvider(managementController);
       case LoggingQuery:
         return new LoggingResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case AmbariConfiguration:
-        return resourceProviderFactory.getAmbariConfigurationResourceProvider();
       case AlertTarget:
         return resourceProviderFactory.getAlertTargetResourceProvider();
       case ViewInstance:

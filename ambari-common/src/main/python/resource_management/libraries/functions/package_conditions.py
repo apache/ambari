@@ -19,8 +19,8 @@ limitations under the License.
 Ambari Agent
 
 """
-__all__ = ["is_lzo_enabled", "should_install_phoenix", "should_install_ams_collector", "should_install_ams_grafana",
-           "should_install_mysql", "should_install_mysql_connector", "should_install_ranger_tagsync"]
+__all__ = ["should_install_phoenix", "should_install_ams_collector", "should_install_ams_grafana",
+           "should_install_mysql", "should_install_ranger_tagsync"]
 
 import os
 from resource_management.libraries.script import Script
@@ -43,12 +43,6 @@ def _has_local_components(config, components, indicator_function = any):
 
 def _has_applicable_local_component(config, components):
   return _has_local_components(config, components, any)
-
-def should_install_lzo():
-  config = Script.get_config()
-  io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-  lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-  return lzo_enabled
 
 def should_install_phoenix():
   phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
@@ -84,10 +78,6 @@ def should_install_mysql():
   if hive_use_existing_db:
     return False
   return _has_applicable_local_component(config, "MYSQL_SERVER")
-
-def should_install_mysql_connector():
-  mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
-  return not os.path.exists(mysql_jdbc_driver_jar)
 
 def should_install_hive_atlas():
   atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
