@@ -97,7 +97,7 @@ export class FiltersPanelComponent {
   }
 
   isFilterConditionDisplayed(key: string): boolean {
-    return this.logsContainer.filtersFormItemsMap[this.logsType].indexOf(key) > -1
+    return this.logsContainer.logsTypeMap[this.logsType].listFilters.indexOf(key) > -1
       && Boolean(this.filtersForm.controls[key]);
   }
 

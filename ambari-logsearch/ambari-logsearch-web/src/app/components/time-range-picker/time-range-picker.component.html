@@ -22,8 +22,10 @@
 <div class="dropdown-menu row col-md-12">
   <div class="col-md-4" (click)="$event.stopPropagation()">
     <h4>{{'filter.timeRange' | translate}}</h4>
-    <date-picker (timeChange)="setStartTime($event)"></date-picker>
-    <date-picker (timeChange)="setEndTime($event)"></date-picker>
+    <div class="col-md-12 row text-uppercase">{{'filter.timeRange.from' | translate}}</div>
+    <date-picker class="col-md-12 row" [time]="startTime" (timeChange)="setStartTime($event)"></date-picker>
+    <div class="col-md-12 row text-uppercase">{{'filter.timeRange.to' | translate}}</div>
+    <date-picker class="col-md-12 row" [time]="endTime" (timeChange)="setEndTime($event)"></date-picker>
     <button class="btn btn-success pull-right" type="button" (click)="setCustomTimeRange()"
             [disabled]="!startTime || !endTime || startTime >= endTime">
       {{'modal.apply' | translate}}

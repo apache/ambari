@@ -18,6 +18,7 @@
 
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
+import * as moment from 'moment-timezone';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 
 import {DatePickerComponent} from './date-picker.component';
@@ -42,6 +43,7 @@ describe('DatePickerComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(DatePickerComponent);
     component = fixture.componentInstance;
+    component.time = moment();
     fixture.detectChanges();
   });
 

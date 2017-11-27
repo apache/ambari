@@ -51,7 +51,7 @@ public class CommandRepository {
   private String m_repoFileName;
 
   @SerializedName("feature")
-  private CommandRepositoryFeature feature = new CommandRepositoryFeature();
+  private final CommandRepositoryFeature feature = new CommandRepositoryFeature();
 
   /**
    * Provides {@link CommandRepository} feature

@@ -22,6 +22,8 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -1210,6 +1212,51 @@ public class ConfigHelperTest {
       Assert.assertEquals("included-type.xml", result.iterator().next().getFilename());
 
       verify(mockAmbariMetaInfo, mockStackVersion, mockServiceInfo, mockPropertyInfo1, mockPropertyInfo2);
+    }
+  }
+
+  public static class RunWithoutModules {
+    @Test
+    public void nullsAreEqual() {
+      assertTrue(ConfigHelper.valuesAreEqual(null, null));
+    }
+
+    @Test
+    public void equalStringsAreEqual() {
+      assertTrue(ConfigHelper.valuesAreEqual("asdf", "asdf"));
+      assertTrue(ConfigHelper.valuesAreEqual("qwerty", "qwerty"));
+    }
+
+    @Test
+    public void nullIsNotEqualWithNonNull() {
+      assertFalse(ConfigHelper.valuesAreEqual(null, "asdf"));
+      assertFalse(ConfigHelper.valuesAreEqual("asdf", null));
+    }
+
+    @Test
+    public void equalNumbersInDifferentFormsAreEqual() {
+      assertTrue(ConfigHelper.valuesAreEqual("1.234", "1.2340"));
+      assertTrue(ConfigHelper.valuesAreEqual("12.34", "1.234e1"));
+      assertTrue(ConfigHelper.valuesAreEqual("123L", "123l"));
+      assertTrue(ConfigHelper.valuesAreEqual("-1.234", "-1.2340"));
+      assertTrue(ConfigHelper.valuesAreEqual("-12.34", "-1.234e1"));
+      assertTrue(ConfigHelper.valuesAreEqual("-123L", "-123l"));
+      assertTrue(ConfigHelper.valuesAreEqual("1f", "1.0f"));
+      assertTrue(ConfigHelper.valuesAreEqual("0", "000"));
+
+      // these are treated as different by NumberUtils (due to different types not being equal)
+      assertTrue(ConfigHelper.valuesAreEqual("123", "123L"));
+      assertTrue(ConfigHelper.valuesAreEqual("0", "0.0"));
+    }
+
+    @Test
+    public void differentNumbersAreNotEqual() {
+      assertFalse(ConfigHelper.valuesAreEqual("1.234", "1.2341"));
+      assertFalse(ConfigHelper.valuesAreEqual("123L", "124L"));
+      assertFalse(ConfigHelper.valuesAreEqual("-1.234", "1.234"));
+      assertFalse(ConfigHelper.valuesAreEqual("-123L", "123L"));
+      assertFalse(ConfigHelper.valuesAreEqual("-1.234", "-1.2341"));
+      assertFalse(ConfigHelper.valuesAreEqual("-123L", "-124L"));
     }
   }
 }

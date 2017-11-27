@@ -705,18 +705,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
+    OperatingSystemEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
 
-    OperatingSystemEntity osEntity = null;
-    for (OperatingSystemEntity os : repoVersion.getOperatingSystems()) {
-      if (os.getOsType().equals(osFamily)) {
-        osEntity = os;
-        break;
-      }
-    }
-
-    if (null == osEntity || CollectionUtils.isEmpty(osEntity.getRepositories())) {
-      throw new SystemException(String.format("Repositories for os type %s are " +
-          "not defined for version %s of Stack %s.",
+    if (CollectionUtils.isEmpty(osEntity.getRepositories())) {
+      throw new SystemException(String.format("Repositories for os type %s are not defined for version %s of Stack %s.",
             osFamily, repoVersion.getVersion(), stackId));
     }
 
@@ -747,7 +739,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, cluster, repoVersion, osEntity);
+    repoVersionHelper.addCommandRepositoryToContext(actionContext, osEntity);
 
     return actionContext;
   }

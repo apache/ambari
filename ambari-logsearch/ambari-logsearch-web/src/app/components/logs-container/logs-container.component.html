@@ -44,11 +44,12 @@
     <time-histogram [data]="histogramData" [customOptions]="histogramOptions" svgId="service-logs-histogram"
                     (selectArea)="setCustomTimeRange($event[0], $event[1])"></time-histogram>
   </collapsible-panel>
-  <dropdown-button *ngIf="!isServiceLogsFileView" class="pull-right" label="logs.columns"
-                   [options]="availableColumns | async" [isRightAlign]="true" [isMultipleChoice]="true"
-                   action="updateSelectedColumns" [additionalArgs]="logsTypeMapObject.fieldsModel"></dropdown-button>
-  <logs-list [logs]="logs | async" [totalCount]="totalCount" [displayedColumns]="displayedColumns"
-             [isServiceLogsFileView]="isServiceLogsFileView" [filtersForm]="filtersForm"></logs-list>
-  <log-context *ngIf="isServiceLogContextView" [hostName]="activeLog.host_name" [componentName]="activeLog.component_name"
-               [id]="activeLog.id"></log-context>
+  <ng-container [ngSwitch]="logsType">
+    <service-logs-table *ngSwitchCase="'serviceLogs'" [totalCount]="totalCount" [logs]="serviceLogs | async"
+                        [columns]="serviceLogsColumns | async" [filtersForm]="filtersForm"></service-logs-table>
+    <audit-logs-table *ngSwitchCase="'auditLogs'" [totalCount]="totalCount" [logs]="auditLogs | async"
+                      [columns]="auditLogsColumns | async" [filtersForm]="filtersForm"></audit-logs-table>
+  </ng-container>
+  <log-context *ngIf="isServiceLogContextView" [id]="activeLog.id" [hostName]="activeLog.host_name"
+               [componentName]="activeLog.component_name"></log-context>
 </div>

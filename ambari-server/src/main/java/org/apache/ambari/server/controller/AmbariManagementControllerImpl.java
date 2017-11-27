@@ -107,6 +107,7 @@ import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory
 import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -189,9 +190,11 @@ import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
@@ -319,6 +322,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private StackDAO stackDAO;
   @Inject
   protected OsFamily osFamily;
+
+  @Inject
+  private RepositoryVersionHelper repoVersionHelper;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -2448,7 +2454,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
-    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, component, host);
+    String repoInfo;
+    try {
+      repoInfo = repoVersionHelper.getRepoInfo(cluster, component, host);
+    } catch (SystemException e) {
+      throw new AmbariException("", e);
+    }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Sending repo information to agent, hostname={}, clusterName={}, stackInfo={}, repoInfo={}",
         scHost.getHostName(), clusterName, stackId.getStackId(), repoInfo);
@@ -2546,7 +2557,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setRoleParams(roleParams);
     execCmd.setCommandParams(commandParams);
 
-    execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, component, host));
     execCmdWrapper.setVersions(cluster);
 
     if (execCmd.getConfigurationTags().containsKey("cluster-env")) {
@@ -4289,8 +4299,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
           if (operatingSystem.getOsType().equals(osType)) {
             for (RepositoryEntity repository: operatingSystem.getRepositories()) {
+
               final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
-                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "");
+                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "",
+                      repository.getTags());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4298,6 +4310,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
               response.setStackName(repositoryVersion.getStackName());
               response.setStackVersion(repositoryVersion.getStackVersion());
+
               responses.add(response);
             }
             break;
@@ -4319,7 +4332,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl());
+              repo.getBaseUrl(), Collections.<RepoTag>emptySet());
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());

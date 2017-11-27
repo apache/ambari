@@ -263,8 +263,8 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library">
             <type>tez-site</type>
-            <set key="tez.am.launch.env" value="LD_LIBRARY_PATH=./tezlib/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
-            <set key="tez.task.launch.env" value="LD_LIBRARY_PATH=./tezlib/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
+            <set key="tez.am.launch.env" value="LD_LIBRARY_PATH=./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
+            <set key="tez.task.launch.env" value="LD_LIBRARY_PATH=./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
           </definition>
         </changes>
       </component>
@@ -275,7 +275,7 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library">
             <type>mapred-site</type>
-            <set key="mapreduce.admin.user.env" value="LD_LIBRARY_PATH=./mr-framework/hadoop/lib/native:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64"/>
+            <set key="mapreduce.admin.user.env" value="LD_LIBRARY_PATH=./mr-framework/hadoop/lib/native:./mr-framework/hadoop/lib/native/Linux-{{architecture}}-64:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64"/>
           </definition>
         </changes>
       </component>

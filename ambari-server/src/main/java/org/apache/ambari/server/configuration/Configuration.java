@@ -729,6 +729,14 @@ public class Configuration {
       "server.version.file", null);
 
   /**
+   * Whether user accepted GPL license
+   */
+  @Markdown(
+      description = "Whether user accepted GPL license.")
+  public static final ConfigurationProperty<Boolean> GPL_LICENSE_ACCEPTED = new ConfigurationProperty<>(
+      "gpl.license.accepted", false);
+
+  /**
    * The location of the JDK on the Ambari Agent hosts.
    */
   @Markdown(
@@ -2026,6 +2034,13 @@ public class Configuration {
   @Markdown(description = "The time, in seconds, before a server-side operation is terminated.")
   public static final ConfigurationProperty<Integer> SERVER_TASK_TIMEOUT = new ConfigurationProperty<>(
       "server.task.timeout", 1200);
+
+  /**
+   * A location of hooks folder relative to resources folder.
+   */
+  @Markdown(description = "A location of hooks folder relative to resources folder.")
+  public static final ConfigurationProperty<String> HOOKS_FOLDER = new ConfigurationProperty<>(
+      "stack.hooks.folder", "stack-hooks");
 
   /**
    * The location on the Ambari Server where custom actions are defined.
@@ -5440,6 +5455,10 @@ public class Configuration {
    */
   public int getVersionDefinitionReadTimeout() {
     return NumberUtils.toInt(getProperty(VERSION_DEFINITION_READ_TIMEOUT));
+  }
+
+  public Boolean getGplLicenseAccepted(){
+    return Boolean.valueOf(getProperty(GPL_LICENSE_ACCEPTED));
   }
 
   public String getAgentStackRetryOnInstallCount(){

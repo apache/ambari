@@ -26,7 +26,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -42,6 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -57,6 +61,7 @@ public class SchemaUpgradeHelper {
   private DBAccessor dbAccessor;
   private Configuration configuration;
   private static final String[] rcaTableNames = {"workflow", "job", "task", "taskAttempt", "hdfsEvent", "mapreduceEvent", "clusterEvent"};
+  static final Gson gson = new GsonBuilder().create();
 
   @Inject
   public SchemaUpgradeHelper(Set<UpgradeCatalog> allUpgradeCatalogs,
@@ -180,6 +185,7 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog251.class);
       catalogBinder.addBinding().to(UpgradeCatalog252.class);
       catalogBinder.addBinding().to(UpgradeCatalog260.class);
+      catalogBinder.addBinding().to(UpgradeCatalog261.class);
       catalogBinder.addBinding().to(UpgradeCatalog300.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 
@@ -248,6 +254,26 @@ public class SchemaUpgradeHelper {
         }
       }
     }
+  }
+
+  public void outputUpgradeJsonOutput(List<UpgradeCatalog> upgradeCatalogs)
+      throws AmbariException {
+    LOG.info("Combining upgrade json output.");
+    Map<String,String> combinedUpgradeJsonOutput = new HashMap<>();
+
+    if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
+      for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
+        try {
+          combinedUpgradeJsonOutput.putAll(upgradeCatalog.getUpgradeJsonOutput());
+
+        } catch (Exception e) {
+          LOG.error("Upgrade failed. ", e);
+          throw new AmbariException(e.getMessage(), e);
+        }
+      }
+    }
+    String content = gson.toJson(combinedUpgradeJsonOutput);
+    System.out.println(content);
   }
 
   public void resetUIState() throws AmbariException {
@@ -420,6 +446,7 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs, ambariUpgradeConfigUpdatesFileName);
 
       schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
+      schemaUpgradeHelper.outputUpgradeJsonOutput(upgradeCatalogs);
 
       schemaUpgradeHelper.resetUIState();
 

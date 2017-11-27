@@ -22,6 +22,9 @@ import {Response} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/timer';
+import 'rxjs/add/observable/combineLatest';
+import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/takeUntil';
 import * as moment from 'moment-timezone';
 import {HttpClientService} from '@app/services/http-client.service';
@@ -41,7 +44,10 @@ import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {FilterCondition, TimeUnitListItem, SortingListItem} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {Tab} from '@app/classes/models/tab';
+import {LogField} from '@app/classes/models/log-field';
+import {AuditLog} from '@app/classes/models/audit-log';
 import {AuditLogField} from '@app/classes/models/audit-log-field';
+import {ServiceLog} from '@app/classes/models/service-log';
 import {ServiceLogField} from '@app/classes/models/service-log-field';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
@@ -383,7 +389,35 @@ export class LogsContainerService {
       options: [],
       defaultSelection: []
     },
-    sorting: {
+    auditLogsSorting: {
+      label: 'sorting.title',
+      options: [
+        {
+          label: 'sorting.time.asc',
+          value: {
+            key: 'evtTime',
+            type: 'asc'
+          }
+        },
+        {
+          label: 'sorting.time.desc',
+          value: {
+            key: 'evtTime',
+            type: 'desc'
+          }
+        }
+      ],
+      defaultSelection: [
+        {
+          label: 'sorting.time.desc',
+          value: {
+            key: 'evtTime',
+            type: 'desc'
+          }
+        }
+      ]
+    },
+    serviceLogsSorting: {
       label: 'sorting.title',
       options: [
         {
@@ -432,11 +466,6 @@ export class LogsContainerService {
     query: {}
   };
 
-  readonly filtersFormItemsMap: {[key: string]: string[]} = {
-    serviceLogs: ['clusters', 'timeRange', 'components', 'levels', 'hosts', 'sorting', 'pageSize', 'page', 'query'],
-    auditLogs: ['clusters', 'timeRange', 'sorting', 'pageSize', 'page', 'query'] // TODO add all the required fields
-  };
-
   readonly colors = {
     WARN: '#FF8916',
     ERROR: '#E81D1D',
@@ -447,13 +476,14 @@ export class LogsContainerService {
     UNKNOWN: '#BDBDBD'
   };
 
-  private readonly listFilters = {
+  private readonly filtersMapping = {
     clusters: ['clusters'],
     timeRange: ['to', 'from'],
     components: ['mustBe'],
     levels: ['level'],
     hosts: ['hostList'],
-    sorting: ['sortType', 'sortBy'],
+    auditLogsSorting: ['sortType', 'sortBy'],
+    serviceLogsSorting: ['sortType', 'sortBy'],
     pageSize: ['pageSize'],
     page: ['page'],
     query: ['includeQuery', 'excludeQuery']
@@ -471,11 +501,16 @@ export class LogsContainerService {
   readonly logsTypeMap = {
     auditLogs: {
       logsModel: this.auditLogsStorage,
-      fieldsModel: this.auditLogsFieldsStorage
+      fieldsModel: this.auditLogsFieldsStorage,
+      // TODO add all the required fields
+      listFilters: ['clusters', 'timeRange', 'auditLogsSorting', 'pageSize', 'page', 'query'],
+      histogramFilters: ['clusters', 'timeRange', 'query']
     },
     serviceLogs: {
       logsModel: this.serviceLogsStorage,
-      fieldsModel: this.serviceLogsFieldsStorage
+      fieldsModel: this.serviceLogsFieldsStorage,
+      listFilters: ['clusters', 'timeRange', 'components', 'levels', 'hosts', 'serviceLogsSorting', 'pageSize', 'page', 'query'],
+      histogramFilters: ['clusters', 'timeRange', 'components', 'levels', 'hosts', 'query']
     }
   };
 
@@ -501,6 +536,38 @@ export class LogsContainerService {
   activeLogsType: string;
 
   private filtersFormChange: Subject<any> = new Subject();
+
+  private columnsMapper<FieldT extends LogField>(fields: FieldT[]): ListItem[] {
+    return fields.filter((field: FieldT): boolean => field.isAvailable).map((field: FieldT): ListItem => {
+      return {
+        value: field.name,
+        label: field.displayName || field.name,
+        isChecked: field.isDisplayed
+      };
+    });
+  }
+
+  private logsMapper<LogT extends AuditLog & ServiceLog>(result: [LogT[], ListItem[]]): LogT[] {
+    const [logs, fields] = result;
+    if (fields.length) {
+      const names = fields.map((field: ListItem): string => field.value);
+      return logs.map((log: LogT): LogT => {
+        return names.reduce((currentObject: object, key: string) => Object.assign(currentObject, {
+          [key]: log[key]
+        }), {}) as LogT;
+      });
+    } else {
+      return [];
+    }
+  }
+
+  auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getAll().map(this.columnsMapper);
+
+  serviceLogsColumns: Observable<ListItem[]> = this.serviceLogsFieldsStorage.getAll().map(this.columnsMapper);
+
+  serviceLogs: Observable<ServiceLog[]> = Observable.combineLatest(this.serviceLogsStorage.getAll(), this.serviceLogsColumns).map(this.logsMapper);
+
+  auditLogs: Observable<AuditLog[]> = Observable.combineLatest(this.auditLogsStorage.getAll(), this.auditLogsColumns).map(this.logsMapper);
 
   /**
    * Get instance for dropdown list from string
@@ -604,11 +671,11 @@ export class LogsContainerService {
     });
   }
 
-  private getParams(filtersMapName: string): {[key: string]: string} {
+  private getParams(filtersMapName: string, logsType: string = this.activeLogsType): {[key: string]: string} {
     let params = {};
-    Object.keys(this[filtersMapName]).forEach((key: string): void => {
+    this.logsTypeMap[logsType][filtersMapName].forEach((key: string): void => {
       const inputValue = this.filtersForm.getRawValue()[key],
-        paramNames = this[filtersMapName][key];
+        paramNames = this.filtersMapping[key];
       paramNames.forEach((paramName: string): void => {
         let value;
         const valueGetter = this.valueGetters[paramName] || this.defaultValueGetter;
@@ -661,11 +728,11 @@ export class LogsContainerService {
     return Object.keys(keysObject).map((key: string): {fieldClass} => new fieldClass(key));
   }
 
-  private getStartTime = (selection: TimeUnitListItem, current: string): string => {
+  getStartTimeMoment = (selection: TimeUnitListItem, end: moment.Moment): moment.Moment | undefined => {
     let time;
     const value = selection && selection.value;
     if (value) {
-      const endTime = moment(moment(current).valueOf());
+      const endTime = end.clone();
       switch (value.type) {
         case 'LAST':
           time = endTime.subtract(value.interval, value.unit);
@@ -683,10 +750,15 @@ export class LogsContainerService {
           break;
       }
     }
-    return time ? time.toISOString() : '';
+    return time;
   };
 
-  private getEndTime = (selection: TimeUnitListItem): string => {
+  private getStartTime = (selection: TimeUnitListItem, current: string): string => {
+    const startMoment = this.getStartTimeMoment(selection, moment(moment(current).valueOf()));
+    return startMoment ? startMoment.toISOString() : '';
+  };
+
+  getEndTimeMoment = (selection: TimeUnitListItem): moment.Moment | undefined => {
     let time;
     const value = selection && selection.value;
     if (value) {
@@ -707,7 +779,12 @@ export class LogsContainerService {
           break;
       }
     }
-    return time ? time.toISOString() : '';
+    return time;
+  };
+
+  private getEndTime = (selection: TimeUnitListItem): string => {
+    const endMoment = this.getEndTimeMoment(selection);
+    return endMoment ? endMoment.toISOString() : '';
   };
 
   private getQuery(isExclude: boolean): (value: any[]) => string {
@@ -845,7 +922,7 @@ export class LogsContainerService {
   }
 
   getFiltersData(listType: string): object {
-    const itemsList = this.filtersFormItemsMap[listType],
+    const itemsList = this.logsTypeMap[listType].listFilters,
       keys = Object.keys(this.filters).filter((key: string): boolean => itemsList.indexOf(key) > -1);
     return keys.reduce((currentObject: object, key: string): object => {
       return Object.assign(currentObject, {

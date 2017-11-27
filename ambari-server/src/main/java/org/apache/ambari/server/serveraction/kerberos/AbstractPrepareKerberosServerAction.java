@@ -33,6 +33,8 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -192,11 +194,11 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
               // component.
               String componentName = KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME.equals(identity.getName())
                   ? "AMBARI_SERVER_SELF"
-                  : "AMBARI_SERVER";
+                  : RootComponent.AMBARI_SERVER.name();
 
               List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                  identityFilter, StageUtils.getHostName(), ambariServerHostID(), "AMBARI", componentName, kerberosConfigurations, currentConfigurations,
+                  identityFilter, StageUtils.getHostName(), ambariServerHostID(), RootService.AMBARI.name(), componentName, kerberosConfigurations, currentConfigurations,
                   resolvedKeytabs, realm);
               propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
             }

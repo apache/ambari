@@ -138,7 +138,7 @@ class YumProvider(RPMBasedPackageProvider):
     :rtype list[list,]
     """
 
-    cmd = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
+    cmd = list(ALL_AVAILABLE_PACKAGES_CMD)
 
     if repo_filter:
       cmd.extend(["--disablerepo=*", "--enablerepo=" + repo_filter])
@@ -154,7 +154,7 @@ class YumProvider(RPMBasedPackageProvider):
     :rtype list[list,]
     """
 
-    packages = self._lookup_packages([AMBARI_SUDO_BINARY, "yum", "list", "installed"], "Installed Packages")
+    packages = self._lookup_packages(list(ALL_INSTALLED_PACKAGES_CMD), "Installed Packages")
     if repo_filter:
       packages = [item for item in packages if item[2].lower() == repo_filter.lower()]
 

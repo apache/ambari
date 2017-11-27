@@ -78,7 +78,7 @@
   </property>
   <property>
     <name>tez.am.launch.env</name>
-    <value>LD_LIBRARY_PATH=./tezlib/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64</value>
+    <value>LD_LIBRARY_PATH=./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64</value>
     <description>
         Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
         you want to have access to native libraries.
@@ -124,7 +124,7 @@
   </property>
   <property>
     <name>tez.task.launch.env</name>
-    <value>LD_LIBRARY_PATH=./tezlib/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64</value>
+    <value>LD_LIBRARY_PATH=./tezlib/lib/native:./tezlib/lib/native/Linux-{{architecture}}-64:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64</value>
     <description>
       Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
       you want to have access to native libraries.

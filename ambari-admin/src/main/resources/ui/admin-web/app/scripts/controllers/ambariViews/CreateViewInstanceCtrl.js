@@ -19,8 +19,8 @@
 
 angular.module('ambariAdminConsole')
 .controller('CreateViewInstanceCtrl',
-['$scope', 'View','RemoteCluster' , 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate', '$modalInstance', 'views', '$q',
-function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate, $modalInstance, views, $q) {
+['$scope', 'View','RemoteCluster' , 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate', '$modalInstance', 'views', 'instanceClone', '$q',
+function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate, $modalInstance, views, instanceClone, $q) {
 
   var $t = $translate.instant;
   var viewToVersionMap = {};
@@ -28,14 +28,20 @@ function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, U
   $scope.form = {};
   $scope.nameValidationPattern = /^\s*\w*\s*$/;
   $scope.isLoading = false;
-  $scope.isLocalTypeChosen = true;
+  $scope.clusterType = 'LOCAL_AMBARI'; // LOCAL_AMBARI, REMOTE_AMBARI, NONE
   $scope.views = views;
+  $scope.instanceClone = instanceClone;
   $scope.viewOptions = [];
   $scope.versionOptions = [];
   $scope.localClusters = [];
   $scope.remoteClusters = [];
   $scope.clusterOptions = [];
+  $scope.fieldsWithErrors = [];
   $scope.isInstanceExists = false;
+  $scope.clusterConfigurable = false;
+  $scope.clusterSettingsCount = 0;
+  $scope.nonClusterSettingsCount = 0;
+  $scope.instanceTemplate = null;
   $scope.formData = {
     view: null,
     version: null,
@@ -43,22 +49,52 @@ function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, U
     displayName: '',
     description: '',
     clusterName: null,
-    visible: true
+    visible: true,
+    settings: []
   };
 
   $scope.updateVersionOptions = function () {
     if (viewToVersionMap[$scope.formData.view.value]) {
       $scope.versionOptions = viewToVersionMap[$scope.formData.view.value];
       $scope.formData.version = $scope.versionOptions[0];
+      $scope.updateSettingsList();
     }
   };
 
-  $scope.switchClusterType = function(bool) {
-    $scope.isLocalTypeChosen = bool;
-    if ($scope.isLocalTypeChosen) {
+  $scope.updateSettingsList = function() {
+    $scope.formData.settings = [];
+    $scope.clusterSettingsCount = 0;
+    $scope.nonClusterSettingsCount = 0;
+    $scope.instanceTemplate = null;
+    angular.forEach($scope.views, function(view) {
+      if (view.view_name === $scope.formData.view.value) {
+        angular.forEach(view.versionsList, function(version) {
+          if (version.ViewVersionInfo.version === $scope.formData.version.value) {
+            $scope.formData.settings = version.ViewVersionInfo.parameters.map(function(param) {
+              param.value = param['defaultValue'];
+              param.clusterConfig = Boolean(param.clusterConfig);
+              param.displayName = param.name.replace(/\./g, '\.\u200B');
+              $scope.clusterSettingsCount += param.clusterConfig;
+              $scope.nonClusterSettingsCount += !param.clusterConfig;
+              return param;
+            });
+            $scope.clusterConfigurable = version.ViewVersionInfo.cluster_configurable;
+          }
+        });
+      }
+    });
+  };
+
+  $scope.switchClusterType = function(clusterType) {
+    $scope.clusterType = clusterType;
+    if (clusterType === 'LOCAL_AMBARI') {
       $scope.clusterOptions = $scope.localClusters;
-    } else {
+      resetErrors();
+    } else if (clusterType === 'REMOTE_AMBARI') {
       $scope.clusterOptions = $scope.remoteClusters;
+      resetErrors();
+    } else {
+      $scope.clusterOptions = [];
     }
     $scope.formData.clusterName = $scope.clusterOptions[0];
   };
@@ -76,9 +112,9 @@ function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, U
         description: $scope.form.instanceCreateForm.description.$viewValue,
         view_name: $scope.form.instanceCreateForm.view.$viewValue.value,
         version: $scope.form.instanceCreateForm.version.$viewValue.value,
-        properties: [],
-        clusterId: $scope.form.instanceCreateForm.clusterName.$viewValue.id,
-        clusterType: $scope.isLocalTypeChosen ? 'LOCAL_AMBARI': 'REMOTE_AMBARI'
+        properties: $scope.formData.settings,
+        clusterId: $scope.formData.clusterName ? $scope.formData.clusterName.id : null,
+        clusterType: $scope.clusterType
       })
         .then(function () {
           $modalInstance.dismiss('created');
@@ -92,7 +128,16 @@ function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, U
 
           if (data.status >= 400) {
             try {
-              errorMessage = JSON.parse(errorMessage).detail;
+              var errorObject = JSON.parse(errorMessage);
+              errorMessage = errorObject.detail;
+              angular.forEach(errorObject.propertyResults, function (item, key) {
+                $scope.form.instanceCreateForm[key].validationError = !item.valid;
+                if (!item.valid) {
+                  $scope.form.instanceCreateForm[key].validationMessage = item.detail;
+                  $scope.fieldsWithErrors.push(key);
+                }
+              });
+
             } catch (e) {
               console.warn(data.message, e);
             }
@@ -109,6 +154,14 @@ function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, U
   $scope.checkIfInstanceExist = function() {
     $scope.isInstanceExists = Boolean(instances[$scope.formData.instanceName]);
   };
+
+  function resetErrors() {
+    $scope.fieldsWithErrors.forEach(function(field) {
+      $scope.form.instanceCreateForm[field].validationError = false;
+      $scope.form.instanceCreateForm[field].validationMessage = '';
+    });
+    $scope.fieldsWithErrors = [];
+  }
 
   function initViewAndVersionSelect () {
     $scope.viewOptions = [];
@@ -160,8 +213,32 @@ function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, U
     initViewAndVersionSelect();
     $q.all(loadClusters(), loadRemoteClusters()).then(function() {
       $scope.isLoading = false;
-      $scope.switchClusterType(true);
+      $scope.switchClusterType('LOCAL_AMBARI');
+      copyCloneInstanceInfo();
     });
+  }
+
+  function copyCloneInstanceInfo() {
+    if ($scope.instanceClone) {
+      $scope.formData.view = $scope.viewOptions.filter(function(option) {
+        return option.value === $scope.instanceClone.view_name;
+      })[0];
+      $scope.updateVersionOptions();
+      $scope.formData.version = $scope.versionOptions.filter(function(option) {
+        return option.value === $scope.instanceClone.version;
+      })[0];
+      $scope.formData.instanceName = $scope.instanceClone.instance_name + $t('common.copy');
+      $scope.formData.displayName = $scope.instanceClone.label + $t('common.copy');
+      $scope.formData.description = $scope.instanceClone.description;
+      $scope.formData.visible = $scope.instanceClone.visible;
+      $scope.switchClusterType($scope.instanceClone.cluster_type);
+      $scope.updateSettingsList();
+      $scope.formData.settings.forEach(function (setting) {
+        if ($scope.instanceClone.properties[setting.name]) {
+          setting.value = $scope.instanceClone.properties[setting.name];
+        }
+      });
+    }
   }
 
   function unsavedChangesCheck() {

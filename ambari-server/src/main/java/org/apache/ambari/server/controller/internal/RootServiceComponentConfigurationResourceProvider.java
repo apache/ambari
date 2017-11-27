@@ -59,10 +59,10 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
 
   static final String RESOURCE_KEY = "Configuration";
 
-  static final String CONFIGURATION_CATEGORY_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "category");
-  static final String CONFIGURATION_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "properties");
-  static final String CONFIGURATION_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "component_name");
-  static final String CONFIGURATION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "service_name");
+  public static final String CONFIGURATION_CATEGORY_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "category");
+  public static final String CONFIGURATION_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "properties");
+  public static final String CONFIGURATION_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "component_name");
+  public static final String CONFIGURATION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "service_name");
 
   private static final Set<String> PROPERTIES;
 

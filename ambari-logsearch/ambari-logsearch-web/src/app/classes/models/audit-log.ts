@@ -35,7 +35,7 @@ export interface AuditLog extends Log {
   repoType: number;
   repo: string;
   proxyUsers?: string[];
-  evtTime: string;
+  evtTime: number;
   enforcer: string;
   reqContext?: string;
   cliType?: string;

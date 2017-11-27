@@ -55,7 +55,7 @@ describe('AuthService', () => {
     isError: false,
     postFormData: function () {
       const isError = this.isError;
-      return Observable.create(observer => observer.next(isError ? errorResponse : successResponse)).delay(1000);
+      return Observable.create(observer => observer.next(isError ? errorResponse : successResponse)).delay(1);
     }
   };
 

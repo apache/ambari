@@ -30,6 +30,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
@@ -110,7 +112,8 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
     if (serviceComponentFilter != null) {
       // If we are including the Ambari identity; then ensure that if a service/component filter is set,
       // it contains the AMBARI/AMBARI_SERVER component; else do not include the Ambari service identity.
-      includeAmbariIdentity &= (serviceComponentFilter.get("AMBARI") != null) && serviceComponentFilter.get("AMBARI").contains("AMBARI_SERVER");
+      includeAmbariIdentity &= (serviceComponentFilter.get(RootService.AMBARI.name()) != null)
+        && serviceComponentFilter.get(RootService.AMBARI.name()).contains(RootComponent.AMBARI_SERVER.name());
 
       if((operationType != OperationType.DEFAULT)) {
         // Update the identity filter, if necessary
