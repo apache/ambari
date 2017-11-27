@@ -40,6 +40,8 @@ class ConfigurationEventListener(EventListener):
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
+    self.configuration_cache.timestamp = message.pop('timestamp')
+
     # this kind of response is received if hash was identical. And server does not need to change anything
     if message == {}:
       return

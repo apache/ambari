@@ -35,12 +35,12 @@ public abstract class AgentDataHolder<T extends Hashable> {
 
   protected abstract T getEmptyData();
 
-  final void regenerateHash(T data) {
+  protected void regenerateDataIdentifiers(T data) {
     data.setHash(null);
     data.setHash(getHash(data));
   }
 
-  private String getHash(T data) {
+  protected String getHash(T data) {
     String json = new Gson().toJson(data);
     String generatedPassword = null;
     try {

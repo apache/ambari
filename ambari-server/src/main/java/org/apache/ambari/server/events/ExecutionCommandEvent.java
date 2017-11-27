@@ -36,6 +36,12 @@ public class ExecutionCommandEvent extends AmbariHostUpdateEvent {
   private Long hostId;
 
   /**
+   *
+   */
+  @JsonProperty("requiredConfigTimestamp")
+  private Long requiredConfigTimestamp;
+
+  /**
    * Execution commands grouped by cluster id.
    */
   @JsonProperty("clusters")
@@ -79,5 +85,13 @@ public class ExecutionCommandEvent extends AmbariHostUpdateEvent {
   @Override
   public Long getHostId() {
     return hostId;
+  }
+
+  public Long getRequiredConfigTimestamp() {
+    return requiredConfigTimestamp;
+  }
+
+  public void setRequiredConfigTimestamp(Long requiredConfigTimestamp) {
+    this.requiredConfigTimestamp = requiredConfigTimestamp;
   }
 }

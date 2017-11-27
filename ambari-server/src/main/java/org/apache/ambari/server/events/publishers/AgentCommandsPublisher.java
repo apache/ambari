@@ -32,6 +32,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.dto.ExecutionCommandsCluster;
 import org.apache.ambari.server.events.ExecutionCommandEvent;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -70,6 +71,9 @@ public class AgentCommandsPublisher {
   @Inject
   private StateUpdateEventPublisher stateUpdateEventPublisher;
 
+  @Inject
+  private AgentConfigsHolder agentConfigsHolder;
+
   public void sendAgentCommand(Multimap<Long, AgentCommand> agentCommands) throws AmbariException {
     if (agentCommands != null && !agentCommands.isEmpty()) {
       Map<Long, TreeMap<String, ExecutionCommandsCluster>> executionCommandsClusters = new TreeMap<>();
@@ -82,6 +86,7 @@ public class AgentCommandsPublisher {
         Long hostId = hostEntry.getKey();
         ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostEntry.getValue());
         executionCommandEvent.setHostId(hostId);
+        executionCommandEvent.setRequiredConfigTimestamp(agentConfigsHolder.getCurrentData(hostId).getTimestamp());
         stateUpdateEventPublisher.publish(executionCommandEvent);
       }
     }

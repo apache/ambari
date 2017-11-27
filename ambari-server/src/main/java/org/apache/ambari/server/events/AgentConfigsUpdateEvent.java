@@ -39,6 +39,8 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
    */
   private String hash;
 
+  private Long timestamp;
+
   /**
    * Host identifier.
    */
@@ -53,6 +55,7 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
   public AgentConfigsUpdateEvent(SortedMap<String, ClusterConfigs> clustersConfigs) {
     super(Type.AGENT_CONFIGS);
     this.clustersConfigs = clustersConfigs;
+    this.timestamp = System.currentTimeMillis();
   }
 
   @Override
@@ -64,6 +67,14 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
     this.hash = hash;
   }
 
+  public Long getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(Long timestamp) {
+    this.timestamp = timestamp;
+  }
+
   public void setHostId(Long hostId) {
     this.hostId = hostId;
   }
@@ -71,6 +82,10 @@ public class AgentConfigsUpdateEvent extends AmbariHostUpdateEvent implements Ha
   @Override
   public Long getHostId() {
     return hostId;
+  }
+
+  public SortedMap<String, ClusterConfigs> getClustersConfigs() {
+    return clustersConfigs;
   }
 
   public static AgentConfigsUpdateEvent emptyUpdate() {

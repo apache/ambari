@@ -53,7 +53,7 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
     if (hostData == null) {
       hostData = getCurrentData(hostId);
       if (regenerateHash) {
-        regenerateHash(hostData);
+        regenerateDataIdentifiers(hostData);
       }
       data.put(hostId, hostData);
     }
@@ -68,10 +68,14 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
     initializeDataIfNeeded(update.getHostId(), false);
     if (handleUpdate(update)) {
       T hostData = getData(update.getHostId());
-      regenerateHash(hostData);
-      update.setHash(hostData.getHash());
+      regenerateDataIdentifiers(hostData);
+      setIdentifiersToEventUpdate(update, hostData);
       stateUpdateEventPublisher.publish(update);
     }
+  }
+
+  protected void setIdentifiersToEventUpdate(T update, T hostData) {
+    update.setHash(hostData.getHash());
   }
 
   /**

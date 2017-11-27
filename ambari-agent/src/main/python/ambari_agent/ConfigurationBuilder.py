@@ -27,9 +27,12 @@ class ConfigurationBuilder:
     self.topology_cache = initializer_module.topology_cache
     self.host_level_params_cache = initializer_module.host_level_params_cache
     self.configurations_cache = initializer_module.configurations_cache
-    
-  def get_configuration(self, cluster_id, service_name, component_name):
-    if cluster_id: 
+
+  def get_configuration(self, cluster_id, service_name, component_name, configurations_timestamp=None):
+    if cluster_id:
+      if configurations_timestamp and configurations_timestamp != self.configurations_cache.timestamp:
+        raise Exception("Command requires configs with timestamp={0} but configs on agent have timestamp={1}".format(configurations_timestamp, self.configurations_cache.timestamp))
+
       metadata_cache = self.metadata_cache[cluster_id]
       configurations_cache = self.configurations_cache[cluster_id]
       host_level_params_cache = self.host_level_params_cache[cluster_id]
@@ -49,7 +52,7 @@ class ConfigurationBuilder:
       if component_name in host_repos.componentRepos:
         repo_version_id = host_repos.componentRepos[component_name]
         command_dict['repositoryFile'] = host_repos.commandRepos[str(repo_version_id)]
-        
+
       component_dict = self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name)
       if component_dict is not None:
         command_dict.update({
@@ -74,7 +77,7 @@ class ConfigurationBuilder:
       }
     }
     return command_dict
-    
+
   @property
   def public_fqdn(self):
     hostname.public_hostname(self.config)

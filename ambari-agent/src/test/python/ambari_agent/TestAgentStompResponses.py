@@ -191,7 +191,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body='{}')
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{}')
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{"timestamp":1510577217}')
     self.server.topic_manager.send(f)
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body='{}')
@@ -242,7 +242,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body='{}')
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{}')
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{"timestamp":1510577217}')
     self.server.topic_manager.send(f)
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body='{}')
@@ -321,7 +321,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body='{}')
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{}')
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{"timestamp":1510577217}')
     self.server.topic_manager.send(f)
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body='{}')

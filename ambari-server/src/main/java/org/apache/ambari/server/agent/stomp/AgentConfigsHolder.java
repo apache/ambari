@@ -67,6 +67,29 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
   }
 
   @Override
+  public AgentConfigsUpdateEvent getUpdateIfChanged(String agentHash, Long hostId) throws AmbariException {
+    AgentConfigsUpdateEvent update = super.getUpdateIfChanged(agentHash, hostId);
+    if (update.getClustersConfigs() == null) {
+      update.setTimestamp(getData(hostId).getTimestamp());
+    }
+    return update;
+  }
+
+  @Override
+  protected void regenerateDataIdentifiers(AgentConfigsUpdateEvent data) {
+    data.setHash(null);
+    data.setTimestamp(null);
+    data.setHash(getHash(data));
+    data.setTimestamp(System.currentTimeMillis());
+  }
+
+  @Override
+  protected void setIdentifiersToEventUpdate(AgentConfigsUpdateEvent update, AgentConfigsUpdateEvent hostData) {
+    super.setIdentifiersToEventUpdate(update, hostData);
+    update.setTimestamp(hostData.getTimestamp());
+  }
+
+  @Override
   protected AgentConfigsUpdateEvent getEmptyData() {
     return AgentConfigsUpdateEvent.emptyUpdate();
   }

@@ -83,7 +83,7 @@ public abstract class AgentClusterDataHolder<T extends AmbariUpdateEvent & Hasha
   protected final void regenerateHash() {
     try {
       lock.lock();
-      regenerateHash(data);
+      regenerateDataIdentifiers(data);
     } finally {
       lock.unlock();
     }

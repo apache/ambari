@@ -51,6 +51,9 @@ class CommandsEventListener(EventListener):
       if 'cancelCommands' in cluster_dict:
         cancel_commands += cluster_dict['cancelCommands']
 
+    for command in commands:
+      command['requiredConfigTimestamp'] = message['requiredConfigTimestamp']
+
     with self.action_queue.lock:
       self.action_queue.cancel(cancel_commands)
       self.action_queue.put(commands)
