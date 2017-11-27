@@ -82,6 +82,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     controllerName: 'installerController',
     mpacks: [],
     mpackVersions: [],
+    mpackServiceVersions: [],
     mpackServices: [],
     // Tracks which steps have been saved before.
     // If you revisit a step, we will know if the step has been saved previously and we can warn about making changes.
@@ -222,9 +223,15 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.stackMapper.map(versionDefinition);
   },
 
-  //TODO: report error in UI
   loadMpackStackInfoError: function(request, status, error) {
-    console.log(`Failed to load stack info. ${status} - ${error}`);
+    const message = Em.I18n.t('installer.error.mpackStackInfo');
+
+    App.showAlertPopup(
+      Em.I18n.t('common.error'), //header
+      message //body
+    );
+
+    console.log(`${message} ${status} - ${error}`);
   },
 
   /**
@@ -239,7 +246,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       name: 'wizard.mpack_service_components',
       sender: this,
       data: {
-        stackName: stackName || "HDP", //TODO: mpacks - Remove default when this value is provided API
+        stackName: stackName,
         stackVersion: stackVersion,
         serviceName: serviceName
       },
@@ -253,9 +260,15 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     App.MpackServiceMapper.map(serviceInfo);
   },
 
-  //TODO: report error in UI
   loadMpackServiceInfoError: function(request, status, error) {
-    console.log(`Failed to load mpack service info. ${status} - ${error}`);
+    const message = Em.I18n.t('installer.error.mpackServiceInfo');
+
+    App.showAlertPopup(
+      Em.I18n.t('common.error'), //header
+      message //body
+    );
+    
+    console.log(`${message} ${status} - ${error}`);
   },
 
   /**
@@ -1059,6 +1072,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         callback: function () {
           this.load('selectedServices');
           this.load('selectedMpacks');
+          this.load('advancedMode');
         }
       }
     ],

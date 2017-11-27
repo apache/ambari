@@ -335,6 +335,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.save('selectedServiceNames');
         controller.save('selectedServices');
         controller.save('selectedMpacks');
+        controller.save('advancedMode');
         var wizardStep6Controller = router.get('wizardStep6Controller');
         // Clear subsequent settings if user changed service selections
         if (!wizardStep6Controller.get('isSaved')) {

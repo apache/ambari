@@ -23,6 +23,65 @@ App.WizardSelectMpacksView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+  },
+
+  toggleMode: function () {
+    const isAdvancedMode = this.get('controller.content.advancedMode');
+    const controller = this.get('controller');
+
+    if (isAdvancedMode) { //toggling to Basic Mode
+      this.showToggleToBasicBox(this.get('controller').toggleMode.bind(controller));
+    } else { //toggling to Advanced Mode
+      this.showToggleToAdvancedBox(this.get('controller').toggleMode.bind(controller));
+    }
+  },
+
+  showToggleToAdvancedBox: function (callback) {
+    App.ModalPopup.show({
+      primary: Em.I18n.t('installer.selectMpacks.basicMode'),
+      secondary: Em.I18n.t('installer.selectMpacks.advancedMode'),
+      header: Em.I18n.t('installer.selectMpacks.changeMode'),
+      body: Em.I18n.t('installer.selectMpacks.basicModeMessage'),
+      showCloseButton: false,
+      onPrimary: function () {
+        this._super();
+      },
+      onSecondary: function () {
+        this._super();
+        callback();
+      }
+    });
+  },
+
+  showToggleToBasicBox: function (callback) {
+    App.ModalPopup.show({
+      primary: Em.I18n.t('installer.selectMpacks.advancedMode'),
+      secondary: Em.I18n.t('installer.selectMpacks.basicMode'),
+      header: Em.I18n.t('installer.selectMpacks.changeMode'),
+      body: Em.I18n.t('installer.selectMpacks.advancedModeMessage'),
+      showCloseButton: false,
+      onPrimary: function () {
+        this._super();
+      },
+      onSecondary: function () {
+        this._super();
+        callback();
+      }
+    });
+  }
+})
+  
+/**
+ * View for each use case in the registry
+ */
+App.WizardUsecaseView = Em.View.extend({
+  templateName: require('templates/wizard/selectMpacks/usecase'),
+
+  /**
+   * Handle add/remove button clicked
+   */
+  toggle: function () {
+    this.get('controller').toggleUsecaseHandler(this.get('usecase.id'));
   }
 });
 
@@ -54,7 +113,37 @@ App.WizardMpackView = Em.View.extend({
   addService: function (event) {
     const serviceId = event.context;
     this.get('controller').addServiceHandler(serviceId);
+  },
+
+  addMpack: function (event) {
+    const version = this.get('mpack.versions').filterProperty('displayed')[0];
+    this.get('controller').addMpackHandler(version.get('id'));
   }
+});
+
+/**
+ * View for each service in the registry
+ */
+App.WizardServiceView = Em.View.extend({
+  templateName: require('templates/wizard/selectMpacks/service'),
+
+  /**
+   * Handle add button clicked
+   */
+  add: function () {
+    const service = this.get('service.versions').filterProperty('displayed')[0];
+    this.get('controller').addServiceHandler(service.get('id'));
+  },
+
+  /**
+   * Handle service version changed
+   * 
+   * @param {any} event 
+   */
+  changeVersion: function (event) {
+    const versionId = event.target.value;
+    this.get('controller').displayServiceVersion(versionId);
+  },
 });
 
 /**
@@ -62,10 +151,6 @@ App.WizardMpackView = Em.View.extend({
  */
 App.WizardSelectedMpackVersionView = Em.View.extend({
   templateName: require('templates/wizard/selectMpacks/selectedMpackVersion'),
-
-  mpack: function () {
-    return this.get('mpackVersion.mpack.name');
-  }.property(),
 
   /**
    * Handle remove service button clicked.
@@ -75,5 +160,15 @@ App.WizardSelectedMpackVersionView = Em.View.extend({
   removeService: function (event) {
     const serviceId = event.context;
     this.get('controller').removeServiceHandler(serviceId);
+  },
+
+  /**
+   * Handle remove mpack button clicked.
+   * 
+   * @param {any} event 
+   */
+  removeMpack: function (event) {
+    const mpackId = event.context;
+    this.get('controller').removeMpackHandler(mpackId);
   }
 });

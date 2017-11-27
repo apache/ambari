@@ -3069,8 +3069,8 @@ var urls = {
 
   /** Mpack related APIs */
   'mpack.download_by_url': {
-    'real': '/mpacks',
-    'format': function (data) {
+    real: '/mpacks',
+    format: function (data) {
       return {
         type: 'POST',
         data: JSON.stringify({
@@ -3085,8 +3085,8 @@ var urls = {
   },
 
   'mpack.download': {
-    'real': '/mpacks',
-    'format': function (data) {
+    real: '/mpacks',
+    format: function (data) {
       return {
         type: 'POST',
         data: JSON.stringify({
@@ -3103,12 +3103,12 @@ var urls = {
   },
 
   'mpack.get_registered_mpacks': {
-    'real': '/mpacks',
+    real: '/mpacks?fields=*',
   },
 
   'mpack.create_version_definition': {
-    'real': '/version_definitions',
-    'format': function (data) {
+    real: '/version_definitions',
+    format: function (data) {
       return {
         type: 'POST',
         data: JSON.stringify({
@@ -3123,34 +3123,45 @@ var urls = {
   },
 
   'mpack.get_version_definition': {
-    'real': '/version_definitions/{id}?fields=VersionDefinition/*,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version',
+    real: '/version_definitions/{id}?fields=VersionDefinition/*,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version',
   },
 
   'mpack.get_version_definitions': {
-    'real': '/version_definitions?fields=VersionDefinition/*,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version',
+    real: '/version_definitions?fields=VersionDefinition/*,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version',
+  },
+
+  'registry.all': {
+    real: '/registries?fields=mpacks/*,mpacks/versions/RegistryMpackVersionInfo/*,scenarios/*'
   },
 
   'registry.mpacks.versions': {
     real: '/registries?fields=mpacks/*,mpacks/versions/RegistryMpackVersionInfo/*',
-    mock: '/data/registry/mpacks_versions.json',
   },
 
   'registry.mpacks': {
     real: '/registries/{registryId}/mpacks',
-    mock: '/data/registry/mpacks.json',
   },
 
   'registry.mpack': {
     real: '/registries/{registryId}/mpacks/{name}',
-    mock: '/data/registry/mpack.json',
   },
 
   'registry.mpack.version': {
     real: '/registries/{registryId}/mpacks/{name}/versions/{version}',
-    mock: '/data/registry/mpack_version.json',
+  },
+
+  'registry.recommendation.usecases': {
+    real: '/registries/{registryId}/recommendations',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          recommend: "scenario-mpacks",
+          selected_scenarios: data.usecases
+        })
+      };
+    }
   }
-
-
 };
 /**
  * Replace data-placeholders to its values

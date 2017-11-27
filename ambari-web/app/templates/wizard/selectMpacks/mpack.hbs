@@ -17,8 +17,8 @@
 }}
 <div class="mpack-body">
   <div class="mpack-title" role="tab" id="headingOne">
-    {{mpack.name}} 
-    <select {{action "changeVersion" on="change" target="view"}}>
+    {{mpack.displayName}} 
+    <select {{action changeVersion on="change" target="view"}}>
       {{#each ver in mpack.versions}}
       <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
       {{/each}}
@@ -27,10 +27,16 @@
   <div>{{mpack.description}}</div>
   <div>
   {{#each service in view.services}}
-    <button {{bindAttr id="service.name"}} class="capsule" {{action "addService" service.id target="view"}}>
-      {{service.name}}&nbsp;{{service.version}}&nbsp;<i class="icon icon-plus"></i>
-      <span {{bindAttr class="selected:service-remove:service-add"}} {{bindAttr title="service.version"}}></span>
+    {{#if service.selected}}
+    <button class="capsule capsule-selected">
+      {{service.name}}&nbsp;{{service.version}}&nbsp;<span class="glyphicon glyphicon-ok"></span>
     </button>
+    {{else}}
+    <button class="capsule" {{action addService service.id target="view"}}>
+      {{service.name}}&nbsp;{{service.version}}&nbsp;<span class="glyphicon glyphicon-plus"></span>
+    </button>
+    {{/if}}
   {{/each}}
   </div>
+  <button class="mpack-add-button" {{action addMpack target="view"}}><span class="glyphicon glyphicon-plus"></span></button>
 </div>

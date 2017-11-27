@@ -17,24 +17,12 @@
 }}
 <div class="mpack-body">
   <div class="mpack-title" role="tab" id="headingOne">
-    <p>{{mpackVersion.mpack.displayName}} {{mpackVersion.version}}</p>
-     {{#if controller.content.advancedMode}}
-     <button class="mpack-remove-button" {{action removeMpack mpackVersion.id target="view"}}><span class="glyphicon glyphicon-remove"></span></button>
-     {{/if}}
+    {{usecase.displayName}}&nbsp;<span class="glyphicon glyphicon-question-sign"></span>
   </div>
-  <div>
-  {{#each service in mpackVersion.services}}
-    {{#if service.selected}}
-      {{#if controller.content.advancedMode}}
-      <button class="capsule capsule-selected" {{action removeService service.id target="view"}}>
-        {{service.name}}&nbsp;{{service.version}}&nbsp;<span class="glyphicon glyphicon-remove"></span>
-      </button>
-      {{else}}
-      <button class="capsule capsule-selected">
-        {{service.name}}&nbsp;{{service.version}}
-      </button>
-      {{/if}}
-    {{/if}}
-  {{/each}}
-  </div>
+  <div>{{usecase.description}}</div>
+  {{#if usecase.selected}}
+  <button class="mpack-add-button checked" {{action toggle target="view"}}><span class="glyphicon glyphicon-ok"></span></button>
+  {{else}}
+  <button class="mpack-add-button" {{action toggle target="view"}}><span class="glyphicon glyphicon-plus"></span></button>
+  {{/if}}
 </div>

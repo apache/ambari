@@ -29,7 +29,7 @@ App.WizardDownloadProductsController = Em.Controller.extend({
     selectedMpacks.forEach(mpack => {
       this.get('mpacks').pushObject(Em.Object.create({
         name: mpack.name,
-        displayName: mpack.displayName || mpack.name, //TODO: remove default when displayName is available
+        displayName: mpack.displayName,
         url: mpack.url,
         inProgress: true,
         failed: false,
@@ -101,16 +101,16 @@ App.WizardDownloadProductsController = Em.Controller.extend({
     }
 
     if (!this.get('isSubmitDisabled')) {
-      //TODO: mpacks
       //get info about stacks from version definitions and save to Stack model
       this.getRegisteredMpacks().then(mpacks => {
         const stackVersionsRegistered = mpacks.items.map(mpack => this.get('wizardController').createMpackStackVersion
           (
-            mpack.MpackInfo.stack_name || "HDP", //TODO: mpacks - remove fallback when stack info is included in API response
-            mpack.MpackInfo.stack_version || "3.0.0" //TODO: mpacks - remove fallback when stack info is included in API response
+            mpack.version[0].Versions.stack_name,
+            mpack.version[0].Versions.stack_version
           )
         );
 
+        //TODO: mpacks
         //var versionData = installerController.getSelectedRepoVersionData(); //This would be used to post a VDF xml for a local repo (I think), but do we still need to do this when we will just be using mpacks?
         $.when(...stackVersionsRegistered).always(() => { //this uses always() because the api call made by createMpackStackVersion will return a 500 error
                                                           //if the stack version has already been registered, but we want to proceed anyway

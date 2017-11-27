@@ -17,24 +17,18 @@
 }}
 <div class="mpack-body">
   <div class="mpack-title" role="tab" id="headingOne">
-    <p>{{mpackVersion.mpack.displayName}} {{mpackVersion.version}}</p>
-     {{#if controller.content.advancedMode}}
-     <button class="mpack-remove-button" {{action removeMpack mpackVersion.id target="view"}}><span class="glyphicon glyphicon-remove"></span></button>
-     {{/if}}
+    {{service.displayName}} 
+    <select {{action changeVersion on="change" target="view"}}>
+      {{#each ver in service.versions}}
+      <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
+      {{/each}}
+    </select>
   </div>
-  <div>
-  {{#each service in mpackVersion.services}}
-    {{#if service.selected}}
-      {{#if controller.content.advancedMode}}
-      <button class="capsule capsule-selected" {{action removeService service.id target="view"}}>
-        {{service.name}}&nbsp;{{service.version}}&nbsp;<span class="glyphicon glyphicon-remove"></span>
-      </button>
-      {{else}}
-      <button class="capsule capsule-selected">
-        {{service.name}}&nbsp;{{service.version}}
-      </button>
-      {{/if}}
-    {{/if}}
-  {{/each}}
-  </div>
+  <div>{{service.displayedVersion.mpackVersion.mpack.displayName}}&nbsp;{{service.displayedVersion.mpackVersion.version}}</div>
+  <div>{{service.description}}</div>
+  {{#if service.displayedVersion.selected}}
+  <button class="mpack-add-button checked"><span class="glyphicon glyphicon-ok"></span></button>
+  {{else}}
+  <button class="mpack-add-button" {{action add target="view"}}><span class="glyphicon glyphicon-plus"></span></button>
+  {{/if}}
 </div>

@@ -332,10 +332,86 @@ var registry = {
             }
           ]
         }
+      ],
+      "scenarios": [
+        {
+          "href": "http://localhost:8080/api/v1/registries/1/scenarios/DataScience",
+          "RegistryScenarioInfo": {
+            "registry_id": 1,
+            "scenario_description": "Data Science and Machine Learning",
+            "scenario_mpacks": [
+              {
+                "name": "HDP"
+              },
+              {
+                "name": "HDS"
+              }
+            ],
+            "scenario_name": "DataScience"
+          }
+        },
+        {
+          "href": "http://localhost:8080/api/v1/registries/1/scenarios/EDW",
+          "RegistryScenarioInfo": {
+            "registry_id": 1,
+            "scenario_description": "EDW or SQL Analytics",
+            "scenario_mpacks": [
+              {
+                "name": "HDP"
+              },
+              {
+                "name": "EDW"
+              }
+            ],
+            "scenario_name": "EDW"
+          }
+        },
+        {
+          "href": "http://localhost:8080/api/v1/registries/1/scenarios/Hadoop",
+          "RegistryScenarioInfo": {
+            "registry_id": 1,
+            "scenario_description": "Hadoop Core",
+            "scenario_mpacks": [
+              {
+                "name": "HDP"
+              }
+            ],
+            "scenario_name": "Hadoop"
+          }
+        }
       ]
     }
   ]
 };
+
+describe('App.WizardSelectMpacksController', function () {
+  describe('#registryLoaded - before loading registry', function () {  
+    it('should not have a loaded registry', function () {
+      wizardController = App.InstallerController.create();
+      wizardController.set('steps', [
+        "step0",
+        "selectMpacks",
+        "step2",
+        "step3",
+        "step4"
+      ]);
+
+      wizardSelectMpacksController = App.WizardSelectMpacksController.create({
+        isSubmitDisabled: false,
+        selectedServices: null,
+        selectedMpackVersions: null,
+        content: {
+          selectedServices: null,
+          selectedServiceNames: null,
+          selectedMpacks: null
+        },
+        wizardController: wizardController
+      });
+
+      expect(wizardSelectMpacksController.registryLoaded()).to.be.false;
+    });
+  });  
+});
 
 describe('App.WizardSelectMpacksController', function () {
 
@@ -360,7 +436,14 @@ describe('App.WizardSelectMpacksController', function () {
       },
       wizardController: wizardController      
     });
+
     wizardSelectMpacksController.loadRegistrySucceeded(registry);
+  });
+
+  describe('#registryLoaded - after loading registry', function () { 
+    it('should have a loaded registry', function () {
+      expect(wizardSelectMpacksController.registryLoaded()).to.be.true;
+    })
   });
 
   describe('#loadStep', function () {
@@ -372,13 +455,74 @@ describe('App.WizardSelectMpacksController', function () {
 
       wizardSelectMpacksController.loadStep();
       
-      var service = wizardSelectMpacksController.getServiceById("HDPCore3.0.0ZOOKEEPER");
+      var service = wizardSelectMpacksController.getServiceVersionById("HDPCore3.0.0ZOOKEEPER");
       expect(service.get('selected')).to.be.true;
       expect(service.get('mpackVersion.selected')).to.be.true;
 
-      var service = wizardSelectMpacksController.getServiceById("HDPCore3.0.0HDFS");
+      var service = wizardSelectMpacksController.getServiceVersionById("HDPCore3.0.0HDFS");
       expect(service.get('selected')).to.be.true;
       expect(service.get('mpackVersion.selected')).to.be.true;
+    });
+  });
+
+  describe('#getMpacksByName', function () {
+    it('should return an array of mpacks matching the given names', function () {
+      //this test assumes that mpackNames contains the names of all mpacks in the test registry data at the top of this file
+      var mpackNames = [
+        'EDW',
+        'HDPCore',
+        'HDS'
+      ]
+
+      var expected = wizardSelectMpacksController.get('content.mpacks');
+      var actual = wizardSelectMpacksController.getMpacksByName(mpackNames);
+      
+      expect(actual.length).to.equal(expected.length);
+      for (var i = 0, length = actual.length; i < length; i++) {
+        expect(actual[i].get('mpack.name')).to.equal(expected[i].get('name'));
+      }
+    });
+  });
+
+  describe('#getServiceVersionById', function () {
+    it('should return the correct service', function () {
+      var serviceVersions = [
+        Em.Object.create({ id: 0 }),
+        Em.Object.create({ id: 1 }),
+        Em.Object.create({ id: 2 }),
+      ];     
+      wizardSelectMpacksController.set('content.mpackServiceVersions', serviceVersions);
+      
+      var actual = wizardSelectMpacksController.getServiceVersionById(1);
+      expect(actual).to.equal(serviceVersions[1]);
+    });
+  });
+
+  describe('#getUsecaseById', function () {
+    it('should return the correct use case', function () {
+      var usecases = [
+        Em.Object.create({ id: 0 }),
+        Em.Object.create({ id: 1 }),
+        Em.Object.create({ id: 2 }),
+      ];
+      wizardSelectMpacksController.set('content.mpackUsecases', usecases);
+
+      var actual = wizardSelectMpacksController.getUsecaseById(1);
+      expect(actual).to.equal(usecases[1]);
+    });
+  });
+
+  describe('#getMpackVersionById', function () {
+    it('should return the correct mpack', function () {
+      var mpackVersions = [
+        Em.Object.create({ id: 0 }),
+        Em.Object.create({ id: 1 }),
+        Em.Object.create({ id: 2 }),
+      ];
+      wizardSelectMpacksController.set('content.mpackVersions', mpackVersions);
+
+      var actual = wizardSelectMpacksController.getMpackVersionById(1);
+      expect(actual).to.equal(mpackVersions[1]);
     });
   });
 
@@ -419,6 +563,43 @@ describe('App.WizardSelectMpacksController', function () {
     });
   });
 
+  describe('#displayServiceVersion', function () {
+    var actual = {
+      service: {
+        versions: [
+          Em.Object.create({ id: "1", displayed: true }),
+          Em.Object.create({ id: "2", displayed: false }),
+          Em.Object.create({ id: "3", displayed: false }),
+          Em.Object.create({ id: "4", displayed: false }),
+        ]
+      }
+    };
+
+    before(function () {
+      sinon.stub(wizardSelectMpacksController, 'getServiceVersionById').returns(actual);
+    });
+
+    it('should set chosen service version to displayed and set others to not displayed', function () {
+      var expected = {
+        service: {
+          versions: [
+            Em.Object.create({ id: "1", displayed: false }),
+            Em.Object.create({ id: "2", displayed: false }),
+            Em.Object.create({ id: "3", displayed: true }),
+            Em.Object.create({ id: "4", displayed: false }),
+          ]
+        }
+      };
+
+      wizardSelectMpacksController.displayServiceVersion("3");
+      expect(actual).to.deep.equal(expected);
+    });
+
+    after(function () {
+      wizardSelectMpacksController.getServiceVersionById.restore();
+    });
+  });
+
   describe('#addServiceHandler', function () {
     var actual;
 
@@ -443,11 +624,11 @@ describe('App.WizardSelectMpacksController', function () {
         }
       });
 
-      sinon.stub(wizardSelectMpacksController, 'getServiceById').returns(actual);
+      sinon.stub(wizardSelectMpacksController, 'getServiceVersionById').returns(actual);
     });
     
     after(function () {
-      wizardSelectMpacksController.getServiceById.restore();
+      wizardSelectMpacksController.getServiceVersionById.restore();
     });
 
     it('should set the service and its mpack to selected and set the step to unsaved', function () {
@@ -500,7 +681,7 @@ describe('App.WizardSelectMpacksController', function () {
       var savedState = wizardSelectMpacksController.get('wizardController.content.stepsSavedState');
       expect(savedState).to.deep.equal(final);
 
-      wizardSelectMpacksController.getServiceById.restore();
+      wizardSelectMpacksController.getServiceVersionById.restore();
     });
 
     it('should set only the service to not selected and set the step to unsaved', function () {
@@ -516,7 +697,7 @@ describe('App.WizardSelectMpacksController', function () {
         Em.Object.create({ selected: true })
       ]);
 
-      sinon.stub(wizardSelectMpacksController, 'getServiceById').returns(actual);
+      sinon.stub(wizardSelectMpacksController, 'getServiceVersionById').returns(actual);
 
       wizardSelectMpacksController.removeServiceHandler("HDPCore3.0.0ZOOKEEPER");
       expect(actual.get('selected')).to.be.false;
@@ -536,7 +717,7 @@ describe('App.WizardSelectMpacksController', function () {
         Em.Object.create({ selected: false })
       ]);
 
-      sinon.stub(wizardSelectMpacksController, 'getServiceById').returns(actual);
+      sinon.stub(wizardSelectMpacksController, 'getServiceVersionById').returns(actual);
 
       wizardSelectMpacksController.removeServiceHandler("HDPCore3.0.0ZOOKEEPER");
       expect(actual.get('selected')).to.be.false;
@@ -544,31 +725,233 @@ describe('App.WizardSelectMpacksController', function () {
     });
   });
 
+  describe('#addMpackHandler', function () {
+    var actual;
+
+    before(function () {
+      var initial = Em.Object.create({
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+      wizardSelectMpacksController.set('wizardController.content.stepsSavedState', initial);
+
+      var service0 = Em.Object.create({
+        id: 0,
+        selected: false
+      });
+
+      var service1 = Em.Object.create({
+        id: 1,
+        selected: false
+      });
+
+      actual = Em.Object.create({
+        selected: false,
+        services: [
+          service0,
+          service1
+        ]
+      });
+
+      actual.get('services')[0].set('mpackVersion', actual);
+      actual.get('services')[1].set('mpackVersion', actual);
+
+      sinon.stub(wizardSelectMpacksController, 'getMpackVersionById').returns(actual);
+      sinon.stub(wizardSelectMpacksController, 'getServiceVersionById')
+        .withArgs(0).returns(service0)
+        .withArgs(1).returns(service1);
+    });
+
+    after(function () {
+      wizardSelectMpacksController.getMpackVersionById.restore();
+      wizardSelectMpacksController.getServiceVersionById.restore();
+    });
+
+    it('should set the mpack and all of its services to selected and set the step to unsaved', function () {
+      var expected = Em.Object.create({
+        selected: true,
+        services: [
+          Em.Object.create({
+            id: 0,
+            selected: true
+          }),
+          Em.Object.create({
+            id: 1,
+            selected: true
+          })
+        ]
+      });
+      expected.get('services')[0].set('mpackVersion', expected);
+      expected.get('services')[1].set('mpackVersion', expected);
+
+      wizardSelectMpacksController.addMpackHandler("HDPCore3.0.0");
+      expect(actual).to.deep.equal(expected);
+
+      var final = Em.Object.create({
+        "0": true,
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": true
+      });
+      var savedState = wizardSelectMpacksController.get('wizardController.content.stepsSavedState');
+      expect(savedState).to.deep.equal(final);
+    });
+  });
+
+  describe('#removeMpackHandler', function () {
+    before(function () {
+      var initial = Em.Object.create({
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+      wizardSelectMpacksController.set('wizardController.content.stepsSavedState', initial);
+
+      var service0 = Em.Object.create({
+        id: 0,
+        selected: true
+      });
+
+      var service1 = Em.Object.create({
+        id: 1,
+        selected: true
+      });
+
+      actual = Em.Object.create({
+        selected: true,
+        services: [
+          service0,
+          service1
+        ]
+      });
+
+      actual.get('services')[0].set('mpackVersion', actual);
+      actual.get('services')[1].set('mpackVersion', actual);
+
+      sinon.stub(wizardSelectMpacksController, 'getMpackVersionById').returns(actual);
+      sinon.stub(wizardSelectMpacksController, 'getServiceVersionById')
+        .withArgs(0).returns(service0)
+        .withArgs(1).returns(service1);
+    });
+
+    after(function () {
+      wizardSelectMpacksController.getMpackVersionById.restore();
+      wizardSelectMpacksController.getServiceVersionById.restore();
+    });
+
+    it('should set the mpack and all its services to not selected and set the step to unsaved', function () {
+      var expected = Em.Object.create({
+        selected: false,
+        services: [
+          Em.Object.create({
+            id: 0,
+            selected: false
+          }),
+          Em.Object.create({
+            id: 1,
+            selected: false
+          })
+        ]
+      });
+      expected.get('services')[0].set('mpackVersion', expected);
+      expected.get('services')[1].set('mpackVersion', expected);
+
+      wizardSelectMpacksController.removeMpackHandler("HDPCore3.0.0");
+      expect(actual).to.deep.equal(expected);
+      
+      var final = Em.Object.create({
+        "0": true,
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": true
+      });
+      var savedState = wizardSelectMpacksController.get('wizardController.content.stepsSavedState');
+      expect(savedState).to.deep.equal(final);
+    });
+  });
+
   describe('#clearSelection', function () {
-    it('should set all services and mpacks to be unselected', function () {
-      var servicesActual = [
+    var initial, servicesActual, versionsActual, usecasesActual, expected, final;
+
+    beforeEach(function () {
+      initial = Em.Object.create({
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      });
+      wizardSelectMpacksController.set('wizardController.content.stepsSavedState', initial);
+
+      final = Em.Object.create({
+        "0": true,
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": true
+      });
+
+      servicesActual = [
         Em.Object.create({ selected: true }),
         Em.Object.create({ selected: true }),
         Em.Object.create({ selected: true })
       ];
-      wizardSelectMpacksController.set('content.mpackServices', servicesActual);
+      wizardSelectMpacksController.set('content.mpackServiceVersions', servicesActual);
 
-      var versionsActual = [
+      versionsActual = [
         Em.Object.create({ selected: true }),
         Em.Object.create({ selected: true }),
         Em.Object.create({ selected: true })
       ];
       wizardSelectMpacksController.set('content.mpackVersions', versionsActual);
 
-      var expected = [
+      usecasesActual = [
+        Em.Object.create({ selected: true }),
+        Em.Object.create({ selected: true }),
+        Em.Object.create({ selected: true })
+      ];
+      wizardSelectMpacksController.set('content.mpackUsecases', usecasesActual);
+
+      expected = [
         Em.Object.create({ selected: false }),
         Em.Object.create({ selected: false }),
         Em.Object.create({ selected: false })
       ];
-
+    });
+    
+    it('should set all services and mpacks to be unselected and set the step to unsaved', function () {
+      wizardSelectMpacksController.set('content.advancedMode', false);
       wizardSelectMpacksController.clearSelection();
       expect(servicesActual).to.deep.equal(expected);
       expect(versionsActual).to.deep.equal(expected);
+       
+      //should not be changed
+      expect(usecasesActual).to.deep.equal([
+        Em.Object.create({ selected: true }),
+        Em.Object.create({ selected: true }),
+        Em.Object.create({ selected: true })
+      ]);
+
+      var savedState = wizardSelectMpacksController.get('wizardController.content.stepsSavedState');
+      expect(savedState).to.deep.equal(final);
+    });
+
+    it('should set all usecases to be unselected in advanced mode', function () {
+      wizardSelectMpacksController.set('content.advancedMode', true);
+      wizardSelectMpacksController.clearSelection();
+      expect(servicesActual).to.deep.equal(expected);
+      expect(versionsActual).to.deep.equal(expected);
+      expect(usecasesActual).to.deep.equal(expected);
+
+      var savedState = wizardSelectMpacksController.get('wizardController.content.stepsSavedState');
+      expect(savedState).to.deep.equal(final);
     });
   });
 
@@ -662,6 +1045,121 @@ describe('App.WizardSelectMpacksController', function () {
       expect(wizardSelectMpacksController.get('content.selectedServices')).to.deep.equal(expectedSelectedServices);
       expect(wizardSelectMpacksController.get('content.selectedServiceNames')).to.deep.equal(expectedSelectedServiceNames);
       expect(wizardSelectMpacksController.get('content.selectedMpacks')).to.deep.equal(expectedSelectedMpacks);
-    })
-  })
+    });
+  });
+
+  describe('#toggleUsecaseHandler', function () {
+    beforeEach(function () {
+      var initial = Em.Object.create({
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      })
+      wizardSelectMpacksController.set('wizardController.content.stepsSavedState', initial);
+
+      sinon.stub(wizardSelectMpacksController, 'getUsecaseRecommendation').returns({
+        done: sinon.stub().returns({ fail: sinon.stub() })
+      });
+    });
+
+    afterEach(function () {
+      var final = Em.Object.create({
+        "0": true,
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": true
+      });
+      var savedState = wizardSelectMpacksController.get('wizardController.content.stepsSavedState');
+      expect(savedState).to.deep.equal(final);
+
+      wizardSelectMpacksController.getUsecaseById.restore();
+      wizardSelectMpacksController.getUsecaseRecommendation.restore();
+    });
+
+    it('should select usecase when it is not already selected', function () {
+      var actual = Em.Object.create({
+        selected: false
+      });
+
+      wizardSelectMpacksController.set('content.mpackUsecases', [
+        Em.Object.create({
+          selected: false
+        }),
+        actual
+      ]);
+
+      sinon.stub(wizardSelectMpacksController, 'getUsecaseById').returns(actual);
+
+      wizardSelectMpacksController.toggleUsecaseHandler("DataScience");
+      expect(actual.get('selected')).to.be.true;
+      expect(wizardSelectMpacksController.getUsecaseRecommendation).to.have.been.called;
+    });
+
+    it('should deselect use case when it is already selected', function () {
+      var actual = Em.Object.create({
+        selected: true
+      });
+      
+      wizardSelectMpacksController.set('content.mpackUsecases', [
+        Em.Object.create({
+          selected: true
+        }),
+        actual
+      ]);
+      
+      sinon.stub(wizardSelectMpacksController, 'getUsecaseById').returns(actual);
+      sinon.stub(wizardSelectMpacksController, 'clearSelection');
+
+      wizardSelectMpacksController.toggleUsecaseHandler("DataScience");
+      expect(actual.get('selected')).to.be.false;
+      expect(wizardSelectMpacksController.getUsecaseRecommendation).to.have.been.called;
+      
+      wizardSelectMpacksController.clearSelection.restore();
+    });
+
+    it('should not call getUsecaseRecommendation when no use cases are selected', function () {
+      var actual = Em.Object.create({
+        selected: true
+      });
+
+      wizardSelectMpacksController.set('content.mpackUsecases', [
+        Em.Object.create({
+          selected: false
+        }),
+        actual
+      ]);
+
+      sinon.stub(wizardSelectMpacksController, 'getUsecaseById').returns(actual);
+      sinon.stub(wizardSelectMpacksController, 'clearSelection');
+
+      wizardSelectMpacksController.toggleUsecaseHandler("DataScience");
+      expect(actual.get('selected')).to.be.false;
+      expect(wizardSelectMpacksController.getUsecaseRecommendation).to.not.have.been.called;
+
+      wizardSelectMpacksController.clearSelection.restore();
+    });
+  });
+
+  describe('#toggleMode', function () {
+    it('should set mode to advanced', function () {
+      wizardSelectMpacksController.set('content.advancedMode', false);
+      wizardSelectMpacksController.toggleMode();
+      expect(wizardSelectMpacksController.get('content.advancedMode')).to.be.true;
+    });
+
+    it('should set mode to basic', function () {
+      wizardSelectMpacksController.set('content.advancedMode', true);
+      sinon.stub(wizardSelectMpacksController, 'clearSelection');
+
+      wizardSelectMpacksController.toggleMode();
+
+      expect(wizardSelectMpacksController.get('content.advancedMode')).to.be.false;
+      expect(wizardSelectMpacksController.clearSelection).to.have.been.called
+
+      wizardSelectMpacksController.clearSelection.restore();
+    });
+  });
 });
