@@ -197,6 +197,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     if (parentVersion != null) {
       mergeStackWithParent(parentVersion, allStacks, commonServices, extensions);
     }
+
     for (ExtensionInfo extension : stackInfo.getExtensions()) {
       String extensionKey = extension.getName() + StackManager.PATH_DELIMITER + extension.getVersion();
       ExtensionModule extensionModule = extensions.get(extensionKey);
@@ -404,9 +405,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
   private void addExtensionServices() throws AmbariException {
     for (ExtensionModule extension : extensionModules.values()) {
-      stackInfo.getExtensions().add(extension.getModuleInfo());
-      Collection<ServiceModule> services = extension.getServiceModules().values();
-      addServices(services);
+      for (Map.Entry<String, ServiceModule> entry : extension.getServiceModules().entrySet()) {
+        serviceModules.put(entry.getKey(), entry.getValue());
+      }
+      stackInfo.addExtension(extension.getModuleInfo());
     }
   }
 

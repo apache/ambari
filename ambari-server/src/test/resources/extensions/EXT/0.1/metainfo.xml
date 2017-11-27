@@ -23,7 +23,7 @@
     <min-stack-versions>
       <stack>
         <name>HDP</name>
-        <version>0.1.*</version>
+        <version>0.1</version>
       </stack>
     </min-stack-versions>
   </prerequisites>

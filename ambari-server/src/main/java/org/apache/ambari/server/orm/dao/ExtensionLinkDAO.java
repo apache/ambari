@@ -74,16 +74,19 @@ public class ExtensionLinkDAO {
     }
 
     String stackName = request.getStackName();
-    String stackVersion = request.getStackName();
-    String extensionName = request.getStackName();
-    String extensionVersion = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String extensionName = request.getExtensionName();
+    String extensionVersion = request.getExtensionVersion();
 
     if (stackName != null && stackVersion != null) {
-      if (extensionName != null && extensionVersion != null) {
-        ExtensionLinkEntity entity = findByStackAndExtension(stackName, stackVersion, extensionName, extensionVersion);
-        List<ExtensionLinkEntity> list = new ArrayList<ExtensionLinkEntity>();
-        list.add(entity);
-        return list;
+      if (extensionName != null) {
+        if (extensionVersion != null) {
+          ExtensionLinkEntity entity = findByStackAndExtension(stackName, stackVersion, extensionName, extensionVersion);
+          List<ExtensionLinkEntity> list = new ArrayList<>();
+          list.add(entity);
+          return list;
+        }
+        return findByStackAndExtensionName(stackName, stackVersion, extensionName);
       }
       return findByStack(stackName, stackVersion);
     }
@@ -148,6 +151,23 @@ public class ExtensionLinkDAO {
 
     query.setParameter("stackName", stackName);
     query.setParameter("stackVersion", stackVersion);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the extension link that match the specified stack name, stack version and extension name.
+   *
+   * @return the extension link matching the specified stack name, stack version and extension name if any.
+   */
+  @RequiresSession
+  public List<ExtensionLinkEntity> findByStackAndExtensionName(String stackName, String stackVersion, String extensionName) {
+    TypedQuery<ExtensionLinkEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ExtensionLinkEntity.findByStackAndExtensionName", ExtensionLinkEntity.class);
+
+    query.setParameter("stackName", stackName);
+    query.setParameter("stackVersion", stackVersion);
+    query.setParameter("extensionName", extensionName);
 
     return daoUtils.selectList(query);
   }

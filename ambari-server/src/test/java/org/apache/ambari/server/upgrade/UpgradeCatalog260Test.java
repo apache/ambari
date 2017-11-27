@@ -74,6 +74,9 @@ import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
@@ -647,7 +650,7 @@ public class UpgradeCatalog260Test {
     expect(artifactEntity.getArtifactData()).andReturn(kerberosDescriptor.toMap()).once();
 
     Capture<Map<String, Object>> captureMap = newCapture();
-    expect(artifactEntity.getForeignKeys()).andReturn(Collections.singletonMap("cluster", "2"));
+    expect(artifactEntity.getForeignKeys()).andReturn(Collections.singletonMap("cluster", "2")).times(2);
     artifactEntity.setArtifactData(capture(captureMap));
     expectLastCall().once();
 
@@ -664,11 +667,26 @@ public class UpgradeCatalog260Test {
     expect(config.getTag()).andReturn("version1").anyTimes();
     expect(config.getType()).andReturn("ranger-kms-audit").anyTimes();
 
+    Map<String, String> hsiProperties = new HashMap<>();
+    hsiProperties.put("hive.llap.daemon.keytab.file", "/etc/security/keytabs/hive.service.keytab");
+    hsiProperties.put("hive.llap.zk.sm.keytab.file", "/etc/security/keytabs/hive.llap.zk.sm.keytab");
+
+    Config hsiConfig = createMock(Config.class);
+    expect(hsiConfig.getProperties()).andReturn(hsiProperties).anyTimes();
+    expect(hsiConfig.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).anyTimes();
+    expect(hsiConfig.getTag()).andReturn("version1").anyTimes();
+    expect(hsiConfig.getType()).andReturn("hive-interactive-site").anyTimes();
+
     Config newConfig = createMock(Config.class);
     expect(newConfig.getTag()).andReturn("version2").anyTimes();
     expect(newConfig.getType()).andReturn("ranger-kms-audit").anyTimes();
 
+    Config newHsiConfig = createMock(Config.class);
+    expect(newHsiConfig.getTag()).andReturn("version2").anyTimes();
+    expect(newHsiConfig.getType()).andReturn("hive-interactive-site").anyTimes();
+
     ServiceConfigVersionResponse response = createMock(ServiceConfigVersionResponse.class);
+    ServiceConfigVersionResponse response1 = createMock(ServiceConfigVersionResponse.class);
 
     StackId stackId = createMock(StackId.class);
 
@@ -682,6 +700,12 @@ public class UpgradeCatalog260Test {
     expect(cluster.getConfig(eq("ranger-kms-audit"), anyString())).andReturn(newConfig).once();
     expect(cluster.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig))).andReturn(response).once();
 
+    //HIVE
+    expect(cluster.getDesiredConfigByType("hive-site")).andReturn(hsiConfig).anyTimes();
+    expect(cluster.getDesiredConfigByType("hive-interactive-site")).andReturn(hsiConfig).anyTimes();
+    expect(cluster.getConfigsByType("hive-interactive-site")).andReturn(Collections.singletonMap("version1", hsiConfig)).anyTimes();
+    expect(cluster.getServiceByConfigType("hive-interactive-site")).andReturn("HIVE").anyTimes();
+
     final Clusters clusters = injector.getInstance(Clusters.class);
     expect(clusters.getCluster(2L)).andReturn(cluster).anyTimes();
 
@@ -692,11 +716,11 @@ public class UpgradeCatalog260Test {
         .andReturn(null)
         .once();
 
-    replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller);
+    replay(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller);
 
     UpgradeCatalog260 upgradeCatalog260 = injector.getInstance(UpgradeCatalog260.class);
     upgradeCatalog260.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
-    verify(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, response, controller);
+    verify(artifactDAO, artifactEntity, cluster, clusters, config, newConfig, hsiConfig, newHsiConfig, response, response1, controller);
 
     KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(captureMap.getValue());
     Assert.assertNotNull(kerberosDescriptorUpdated);
@@ -721,6 +745,39 @@ public class UpgradeCatalog260Test {
     Assert.assertTrue(captureProperties.hasCaptured());
     Map<String, String> newProperties = captureProperties.getValue();
     Assert.assertEquals("correct_value@EXAMPLE.COM", newProperties.get("xasecure.audit.jaas.Client.option.principal"));
+
+    // YARN's NodeManager identities (1). 'llap_zk_hive' and (2). 'llap_task_hive' checks after modifications.
+    Map<String, List<String>> identitiesMap = new HashMap<>();
+    identitiesMap.put("llap_zk_hive", new ArrayList<String>() {{
+      add("hive-interactive-site/hive.llap.zk.sm.keytab.file");
+      add("hive-interactive-site/hive.llap.zk.sm.principal");
+    }});
+    identitiesMap.put("llap_task_hive", new ArrayList<String>() {{
+      add("hive-interactive-site/hive.llap.task.keytab.file");
+      add("hive-interactive-site/hive.llap.task.principal");
+    }});
+    for (String llapIdentity : identitiesMap.keySet()) {
+      KerberosIdentityDescriptor yarnKerberosIdentityDescriptor = kerberosDescriptorUpdated.getService("YARN").getComponent("NODEMANAGER").getIdentity(llapIdentity);
+      Assert.assertNotNull(yarnKerberosIdentityDescriptor);
+      Assert.assertEquals("/HIVE/HIVE_SERVER/hive_server_hive", yarnKerberosIdentityDescriptor.getReference());
+
+      KerberosKeytabDescriptor yarnKerberosKeytabDescriptor = yarnKerberosIdentityDescriptor.getKeytabDescriptor();
+      Assert.assertNotNull(yarnKerberosKeytabDescriptor);
+
+      Assert.assertEquals(null, yarnKerberosKeytabDescriptor.getGroupAccess());
+      Assert.assertEquals(null, yarnKerberosKeytabDescriptor.getGroupName());
+      Assert.assertEquals(null, yarnKerberosKeytabDescriptor.getOwnerAccess());
+      Assert.assertEquals(null, yarnKerberosKeytabDescriptor.getOwnerName());
+      Assert.assertEquals(null, yarnKerberosKeytabDescriptor.getFile());
+      Assert.assertEquals(identitiesMap.get(llapIdentity).get(0), yarnKerberosKeytabDescriptor.getConfiguration());
+
+      KerberosPrincipalDescriptor yarnKerberosPrincipalDescriptor = yarnKerberosIdentityDescriptor.getPrincipalDescriptor();
+      Assert.assertNotNull(yarnKerberosPrincipalDescriptor);
+      Assert.assertEquals(null, yarnKerberosPrincipalDescriptor.getName());
+      Assert.assertEquals(KerberosPrincipalType.SERVICE, yarnKerberosPrincipalDescriptor.getType());
+      Assert.assertEquals(null, yarnKerberosPrincipalDescriptor.getValue());
+      Assert.assertEquals(identitiesMap.get(llapIdentity).get(1), yarnKerberosPrincipalDescriptor.getConfiguration());
+    }
   }
 
   @Test
@@ -773,6 +830,72 @@ public class UpgradeCatalog260Test {
 
     replay(controller, injector2);
     new UpgradeCatalog260(injector2).updateAmsConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testUpdateHiveConfigs() throws Exception {
+
+    Map<String, String> oldProperties = new HashMap<String, String>() {
+      {
+        put("hive.llap.zk.sm.keytab.file", "/etc/security/keytabs/hive.llap.zk.sm.keytab");
+        put("hive.llap.daemon.keytab.file", "/etc/security/keytabs/hive.service.keytab");
+        put("hive.llap.task.keytab.file", "/etc/security/keytabs/hive.llap.task.keytab");
+      }
+    };
+    Map<String, String> newProperties = new HashMap<String, String>() {
+      {
+        put("hive.llap.zk.sm.keytab.file", "/etc/security/keytabs/hive.service.keytab");
+        put("hive.llap.daemon.keytab.file", "/etc/security/keytabs/hive.service.keytab");
+        put("hive.llap.task.keytab.file", "/etc/security/keytabs/hive.service.keytab");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockHsiConfigs = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("hive-interactive-site")).andReturn(mockHsiConfigs).atLeastOnce();
+    expect(mockHsiConfigs.getProperties()).andReturn(oldProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+
+    replay(injector, clusters, mockHsiConfigs, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+            .addMockedMethod("createConfiguration")
+            .addMockedMethod("getClusters", new Class[] { })
+            .addMockedMethod("createConfig")
+            .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+            .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
+            anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+    replay(controller, injector2);
+
+    // This tests the update of HSI config 'hive.llap.daemon.keytab.file'.
+    UpgradeCatalog260  upgradeCatalog260 = new UpgradeCatalog260(injector2);
+    // Set 'isYarnKerberosDescUpdated' value to true, implying kerberos descriptor was updated.
+    upgradeCatalog260.updateYarnKerberosDescUpdatedList("hive.llap.zk.sm.keytab.file");
+    upgradeCatalog260.updateYarnKerberosDescUpdatedList("hive.llap.task.keytab.file");
+
+    upgradeCatalog260.updateHiveConfigs();
+
     easyMockSupport.verifyAll();
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();

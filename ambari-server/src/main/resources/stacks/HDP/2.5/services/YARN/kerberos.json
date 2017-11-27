@@ -102,21 +102,11 @@
             },
             {
               "name": "llap_zk_hive",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
-                "value": "hive/_HOST@${realm}",
-                "type" : "service",
                 "configuration": "hive-interactive-site/hive.llap.zk.sm.principal"
               },
               "keytab": {
-                "file": "${keytab_dir}/hive.llap.zk.sm.keytab",
-                "owner": {
-                  "name": "${yarn-env/yarn_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": "r"
-                },
                 "configuration": "hive-interactive-site/hive.llap.zk.sm.keytab.file"
               },
               "when" : {

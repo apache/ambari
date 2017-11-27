@@ -20,11 +20,12 @@
     <active>true</active>
   </versions>
   <extends>0.1</extends>
+  <auto-link>false</auto-link>
   <prerequisites>
     <min-stack-versions>
       <stack>
         <name>HDP</name>
-        <version>0.2.*</version>
+        <version>0.1</version>
       </stack>
     </min-stack-versions>
   </prerequisites>
