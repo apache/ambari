@@ -2045,6 +2045,13 @@ public class Configuration {
       "server.task.timeout", 1200);
 
   /**
+   * A location of hooks folder relative to resources folder.
+   */
+  @Markdown(description = "A location of hooks folder relative to resources folder.")
+  public static final ConfigurationProperty<String> HOOKS_FOLDER = new ConfigurationProperty<>(
+      "stack.hooks.folder", "stack-hooks");
+
+  /**
    * The location on the Ambari Server where custom actions are defined.
    */
   @Markdown(description = "The location on the Ambari Server where custom actions are defined.")

@@ -20,7 +20,6 @@ package org.apache.ambari.server.actionmanager;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
-import static org.apache.ambari.server.stack.StackManager.DEFAULT_HOOKS_FOLDER;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +33,7 @@ import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
@@ -92,6 +92,9 @@ public class ExecutionCommandWrapper {
    */
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  private Configuration configuration;
 
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
@@ -304,7 +307,7 @@ public class ExecutionCommandWrapper {
           stackId.getStackVersion());
 
         if (!commandParams.containsKey(HOOKS_FOLDER)) {
-          commandParams.put(HOOKS_FOLDER, DEFAULT_HOOKS_FOLDER);
+          commandParams.put(HOOKS_FOLDER,configuration.getProperty(Configuration.HOOKS_FOLDER));
         }
 
         if (!commandParams.containsKey(SERVICE_PACKAGE_FOLDER)) {
