@@ -147,6 +147,7 @@
         <component>DRUID_SUPERSET</component>
       </service>
 
+
     </group>
 
     <group xsi:type="cluster" name="Backups" title="Perform Backups">
@@ -351,7 +352,12 @@
         <task xsi:type="configure" id="hdp_2_6_yarn_app_classpath_parameterization" supports-patch="true"/>
       </execute-stage>
 
-      <!-- YARN -->
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Spark Versioned Classpaths">
+        <task xsi:type="configure" id="hdp_2_6_yarn_spark_versioned_classpaths" supports-patch="true">
+          <summary>Updating the Spark classpath entries to use the specific version of Spark which is installed.</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM">
         <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem">
           <summary>Updating YARN NodeManager config for LLAP</summary>
@@ -414,7 +420,7 @@
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Updating LD Library Classpath for Tarball" >
         <task xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library" supports-patch="true"/>
       </execute-stage>
-      
+
       <!-- MapR -->
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Updating LD Library Classpath for Tarball">
         <task xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library" supports-patch="true"/>
