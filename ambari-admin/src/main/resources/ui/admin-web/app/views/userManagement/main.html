@@ -19,10 +19,10 @@
 <div id="user-management">
   <ul class="nav nav-tabs">
     <li ng-class="{active: activeTab === 'USERS'}">
-      <a ng-click="activeTab = 'USERS'">{{'common.users' | translate}}</a>
+      <a href="#/userManagement?tab=users" >{{'common.users' | translate}}</a>
     </li>
     <li ng-class="{active: activeTab === 'GROUPS'}">
-      <a ng-click="activeTab = 'GROUPS'">{{'common.groups' | translate}}</a>
+      <a href="#/userManagement?tab=groups" >{{'common.groups' | translate}}</a>
     </li>
   </ul>
   <div>

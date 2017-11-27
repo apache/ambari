@@ -18,9 +18,15 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UserEditCtrl', ['$scope', '$routeParams', 'Cluster', 'User', 'View', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', 'UserConstants', '$translate', function($scope, $routeParams, Cluster, User, View, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, UserConstants, $translate) {
+.controller('UserEditCtrl',
+['$scope', '$rootScope', '$routeParams', 'Cluster', 'User', 'View', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', 'UserConstants', '$translate', 'RoleDetailsModal',
+function($scope, $rootScope, $routeParams, Cluster, User, View, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, UserConstants, $translate, RoleDetailsModal) {
 
   var $t = $translate.instant;
+  var nonRole = {
+    permission_name: 'NONE',
+    permission_label: $t('users.roles.none')
+  };
 
   $scope.constants = {
     user: $t('common.user'),
@@ -31,77 +37,95 @@ angular.module('ambariAdminConsole')
     cluster: $t('common.cluster').toLowerCase()
   };
 
-  function loadUserInfo(){
-    User.get($routeParams.id).then(function(data) {
-      $scope.user = User.makeUser(data).Users;
-      $scope.isCurrentUser = $scope.user.user_name === Auth.getCurrentUser();
-      $scope.editingGroupsList = angular.copy($scope.user.groups);
-    });
-  }
-
-  loadUserInfo();
-  $scope.user;
+  $scope.user = null;
   $scope.isCurrentUser = true;
   $scope.dataLoaded = false;
-
   $scope.isGroupEditing = false;
-  $scope.enableGroupEditing = function() {
+
+  $scope.enableGroupEditing = function () {
     $scope.isGroupEditing = true;
     $scope.editingGroupsList = angular.copy($scope.user.groups);
   };
 
-  $scope.$watch(function() {
+  $scope.$watch(function () {
     return $scope.editingGroupsList;
-  }, function(newValue) {
-    if(newValue){
-      if( !angular.equals(newValue, $scope.user.groups) ){
+  }, function (newValue) {
+    if (newValue) {
+      if (!angular.equals(newValue, $scope.user.groups)) {
         $scope.updateGroups();
       }
     }
   }, true);
 
-  $scope.updateGroups = function() {
-    var groups = $scope.editingGroupsList.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
+  $scope.showHelpPage = function() {
+    Cluster.getRolesWithAuthorizations().then(function(roles) {
+      RoleDetailsModal.show(roles);
+    });
+  };
+
+  $scope.updateRole = function () {
+    var clusterName = $rootScope.cluster.Clusters.cluster_name;
+    if ($scope.originalRole.permission_name !== $scope.currentRole.permission_name) {
+      if ($scope.currentRole.permission_name === 'NONE') {
+        deleteUserRoles(clusterName, $scope.user).finally(loadUserInfo);
+      } else {
+        if ($scope.user.roles.length) {
+          deleteUserRoles(clusterName, $scope.user, true).finally(function() {
+            addUserRoles(clusterName, $scope.currentRole, $scope.user).finally(loadUserInfo);
+          });
+        } else {
+          addUserRoles(clusterName, $scope.currentRole, $scope.user).finally(loadUserInfo);
+        }
+      }
+    }
+  };
+
+  $scope.updateGroups = function () {
+    var groups = $scope.editingGroupsList.filter(function (item) {
+      return item.trim();
+    }).map(function (item) {
+      return item.trim();
+    });
     var diff = getDifference($scope.user.groups, groups);
     var promises = [];
     // Remove user from groups
-    angular.forEach(diff.del, function(groupName) {
-      promises.push(Group.removeMemberFromGroup(groupName, $scope.user.user_name).catch(function(data) {
+    angular.forEach(diff.del, function (groupName) {
+      promises.push(Group.removeMemberFromGroup(groupName, $scope.user.user_name).catch(function (data) {
         Alert.error($t('users.alerts.removeUserError'), data.data.message);
       }));
     });
     // Add user to groups
-    angular.forEach(diff.add, function(groupName) {
-      promises.push(Group.addMemberToGroup(groupName, $scope.user.user_name).catch(function(data) {
+    angular.forEach(diff.add, function (groupName) {
+      promises.push(Group.addMemberToGroup(groupName, $scope.user.user_name).catch(function (data) {
         Alert.error($t('users.alerts.cannotAddUser'), data.data.message);
       }));
     });
-    $q.all(promises).then(function() {
+    $q.all(promises).then(function () {
       loadUserInfo();
     });
     $scope.isGroupEditing = false;
   };
 
-  $scope.getUserMembership = function(userType) {
-    if(userType) {
-	return $t(UserConstants.TYPES[userType].LABEL_KEY) + " " + $t('users.groupMembership');
+  $scope.getUserMembership = function (userType) {
+    if (userType) {
+      return $t(UserConstants.TYPES[userType].LABEL_KEY) + " " + $t('users.groupMembership');
     }
   };
 
-  $scope.cancelUpdate = function() {
+  $scope.cancelUpdate = function () {
     $scope.isGroupEditing = false;
     $scope.editingGroupsList = '';
   };
 
-  $scope.openChangePwdDialog = function() {
+  $scope.openChangePwdDialog = function () {
     var modalInstance = $modal.open({
       templateUrl: 'views/userManagement/modals/changePassword.html',
       resolve: {
-        userName: function() {
+        userName: function () {
           return $scope.user.user_name;
         }
       },
-      controller: ['$scope', 'userName', function($scope, userName) {
+      controller: ['$scope', 'userName', function ($scope, userName) {
         $scope.passwordData = {
           password: '',
           currentUserPassword: ''
@@ -110,55 +134,54 @@ angular.module('ambariAdminConsole')
         $scope.form = {};
         $scope.userName = userName;
 
-        $scope.ok = function() {
+        $scope.ok = function () {
           $scope.form.passwordChangeForm.submitted = true;
-          if($scope.form.passwordChangeForm.$valid){
-
+          if ($scope.form.passwordChangeForm.$valid) {
             modalInstance.close({
-              password: $scope.passwordData.password, 
+              password: $scope.passwordData.password,
               currentUserPassword: $scope.passwordData.currentUserPassword
             });
           }
         };
-        $scope.cancel = function() {
+        $scope.cancel = function () {
           modalInstance.dismiss('cancel');
         };
       }]
     });
 
-    modalInstance.result.then(function(data) {
-      User.setPassword($scope.user, data.password, data.currentUserPassword).then(function() {
+    modalInstance.result.then(function (data) {
+      User.setPassword($scope.user, data.password, data.currentUserPassword).then(function () {
         Alert.success($t('users.alerts.passwordChanged'));
-      }).catch(function(data) {
+      }).catch(function (data) {
         Alert.error($t('users.alerts.cannotChangePassword'), data.data.message);
       });
-    }); 
+    });
   };
 
-  $scope.toggleUserActive = function() {
-    if(!$scope.isCurrentUser){
-      var newStatusKey = $scope.user.active ? 'inactive' : 'active',
-        newStatus = $t('users.' + newStatusKey).toLowerCase();
+  $scope.toggleUserActive = function () {
+    if (!$scope.isCurrentUser) {
+      var newStatusKey = $scope.user.active ? 'inactive' : 'active';
       ConfirmationModal.show(
         $t('users.changeStatusConfirmation.title'),
         $t('users.changeStatusConfirmation.message', {
           userName: $scope.user.user_name,
-          status: newStatus
+          status: $t('users.' + newStatusKey).toLowerCase()
         })
-      ).then(function() {
+      ).then(function () {
         User.setActive($scope.user.user_name, $scope.user.active)
-          .catch(function(data) {
-            Alert.error($t('common.alerts.cannotUpdateStatus'), data.data.message);
-            $scope.user.active = !$scope.user.active;
-          });
+        .catch(function (data) {
+          Alert.error($t('common.alerts.cannotUpdateStatus'), data.data.message);
+          $scope.user.active = !$scope.user.active;
+        });
       })
-      .catch(function() {
+      .catch(function () {
         $scope.user.active = !$scope.user.active;
       });
     }
-  };    
-  $scope.toggleUserAdmin = function() {
-    if(!$scope.isCurrentUser){
+  };
+
+  $scope.toggleUserAdmin = function () {
+    if (!$scope.isCurrentUser) {
       var action = $scope.user.admin ?
         $t('users.changePrivilegeConfirmation.revoke') : $t('users.changePrivilegeConfirmation.grant');
       ConfirmationModal.show(
@@ -167,36 +190,35 @@ angular.module('ambariAdminConsole')
           action: action,
           userName: $scope.user.user_name
         })
-      ).then(function() {
+      ).then(function () {
         User.setAdmin($scope.user.user_name, $scope.user.admin)
-        .then(function() {
-          loadPrivileges();
+        .then(function () {
+          loadUserInfo();
         })
         .catch(function (data) {
           Alert.error($t('common.alerts.cannotUpdateAdminStatus'), data.data.message);
           $scope.user.admin = !$scope.user.admin;
         });
       })
-      .catch(function() {
+      .catch(function () {
         $scope.user.admin = !$scope.user.admin;
       });
-
     }
   };
 
-  $scope.removePrivilege = function(name, privilege) {
+  $scope.removeViewPrivilege = function (name, privilege) {
     var privilegeObject = {
-        id: privilege.privilege_id,
-        view_name: privilege.view_name,
-        version: privilege.version,
-        instance_name: name
+      id: privilege.privilege_id,
+      view_name: privilege.view_name,
+      version: privilege.version,
+      instance_name: name
     };
-    View.deletePrivilege(privilegeObject).then(function() {
-      loadPrivileges();
+    View.deletePrivilege(privilegeObject).then(function () {
+      loadUserInfo();
     });
   };
 
-  $scope.deleteUser = function() {
+  $scope.deleteUser = function () {
     ConfirmationModal.show(
       $t('common.delete', {
         term: $t('common.user')
@@ -205,15 +227,15 @@ angular.module('ambariAdminConsole')
         instanceType: $t('common.user').toLowerCase(),
         instanceName: '"' + $scope.user.user_name + '"'
       })
-    ).then(function() {
+    ).then(function () {
       Cluster.getPrivilegesForResource({
-        nameFilter : $scope.user.user_name,
-        typeFilter : {value: 'USER'}
-      }).then(function(data) {
+        nameFilter: $scope.user.user_name,
+        typeFilter: {value: 'USER'}
+      }).then(function (data) {
         var clusterPrivilegesIds = [];
         var viewsPrivileges = [];
         if (data.items && data.items.length) {
-          angular.forEach(data.items[0].privileges, function(privilege) {
+          angular.forEach(data.items[0].privileges, function (privilege) {
             if (privilege.PrivilegeInfo.principal_type === 'USER') {
               if (privilege.PrivilegeInfo.type === 'VIEW') {
                 viewsPrivileges.push({
@@ -228,15 +250,12 @@ angular.module('ambariAdminConsole')
             }
           });
         }
-        User.delete($scope.user.user_name).then(function() {
-          $location.path('/userManagement');
+        User.delete($scope.user.user_name).then(function () {
+          $location.path('/userManagement?tab=users');
           if (clusterPrivilegesIds.length) {
-            Cluster.getAllClusters().then(function (clusters) {
-              var clusterName = clusters[0].Clusters.cluster_name;
-              Cluster.deleteMultiplePrivileges(clusterName, clusterPrivilegesIds);
-            });
+            Cluster.deleteMultiplePrivileges($rootScope.cluster.Clusters.cluster_name, clusterPrivilegesIds);
           }
-          angular.forEach(viewsPrivileges, function(privilege) {
+          angular.forEach(viewsPrivileges, function (privilege) {
             View.deletePrivilege(privilege);
           });
         });
@@ -244,47 +263,102 @@ angular.module('ambariAdminConsole')
     });
   };
 
-  // Load privileges
-  function loadPrivileges(){
-    User.getPrivileges($routeParams.id).then(function(data) {
-      var privileges = {
-        clusters: {},
-        views: {}
-      };
-      angular.forEach(data.data.items, function(privilege) {
-        privilege = privilege.PrivilegeInfo;
-        if(privilege.type === 'CLUSTER'){
-          // This is cluster
-          if (privileges.clusters[privilege.cluster_name]) {
-            var preIndex = Cluster.orderedRoles.indexOf(privileges.clusters[privilege.cluster_name].permission_name);
-            var curIndex = Cluster.orderedRoles.indexOf(privilege.permission_name);
-            // replace when cur is a more powerful role
-            if (curIndex < preIndex) {
-              privileges.clusters[privilege.cluster_name] = privilege;
-            }
-          } else {
-            privileges.clusters[privilege.cluster_name] = privilege;
-          }
-        } else if ( privilege.type === 'VIEW'){
-          privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
-          privileges.views[privilege.instance_name].version = privilege.version;
-          privileges.views[privilege.instance_name].view_name = privilege.view_name;
-          privileges.views[privilege.instance_name].privilege_id = privilege.privilege_id;
-          if (privileges.views[privilege.instance_name].privileges.indexOf(privilege.permission_label) == -1) {
-            privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
-          }
-        }
-      });
-
-      $scope.privileges = data.data.items.length ? privileges : null;
-      $scope.noClusterPriv = $.isEmptyObject(privileges.clusters);
-      $scope.noViewPriv = $.isEmptyObject(privileges.views);
-      $scope.hidePrivileges = $scope.noClusterPriv && $scope.noViewPriv;
-      $scope.dataLoaded = true;
-
-    }).catch(function(data) {
-      Alert.error($t('common.alerts.cannotLoadPrivileges'), data.data.message);
+  function deleteUserRoles(clusterName, user, ignoreAlert) {
+    return Cluster.deleteMultiplePrivileges(
+      clusterName,
+      user.roles.map(function(item) {
+        return item.privilege_id;
+      })
+    ).then(function () {
+      if (!ignoreAlert) {
+        Alert.success($t('users.alerts.roleChangedToNone', {
+          user_name: user.user_name
+        }));
+      }
+    }).catch(function (data) {
+      Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
     });
   }
-  loadPrivileges();
+
+  function addUserRoles(clusterName, newRole, user) {
+    return Cluster.createPrivileges(
+      {
+        clusterId: clusterName
+      },
+      [{
+        PrivilegeInfo: {
+          permission_name: newRole.permission_name,
+          principal_name: user.user_name,
+          principal_type: 'USER'
+        }
+      }]
+    ).then(function () {
+      Alert.success($t('users.alerts.roleChanged', {
+        name: user.user_name,
+        role: newRole.permission_label
+      }));
+    }).catch(function (data) {
+      Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
+    });
+  }
+
+  function loadUserInfo() {
+    return User.getWithRoles($routeParams.id).then(function (data) {
+      $scope.user = User.makeUser(data.data).Users;
+      $scope.isCurrentUser = $scope.user.user_name === Auth.getCurrentUser();
+      $scope.editingGroupsList = angular.copy($scope.user.groups);
+      parsePrivileges(data.data.privileges);
+      var clusterRole = $scope.user.roles[0];
+      $scope.currentRole = clusterRole || nonRole;
+      $scope.originalRole = clusterRole || nonRole;
+      $scope.dataLoaded = true;
+    });
+  }
+
+  function parsePrivileges(rawPrivileges) {
+    var privileges = {
+      clusters: {},
+      views: {}
+    };
+    angular.forEach(rawPrivileges, function (privilege) {
+      privilege = privilege.PrivilegeInfo;
+      if (privilege.type === 'CLUSTER') {
+        // This is cluster
+        if (privileges.clusters[privilege.cluster_name]) {
+          var preIndex = Cluster.orderedRoles.indexOf(privileges.clusters[privilege.cluster_name].permission_name);
+          var curIndex = Cluster.orderedRoles.indexOf(privilege.permission_name);
+          // set more powerful role
+          if (curIndex < preIndex) {
+            privileges.clusters[privilege.cluster_name] = privilege;
+          }
+        } else {
+          privileges.clusters[privilege.cluster_name] = privilege;
+        }
+      } else if (privilege.type === 'VIEW') {
+        privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || {
+          privileges: [],
+          version: privilege.version,
+          view_name: privilege.view_name,
+          privilege_id: privilege.privilege_id
+        };
+        if (privileges.views[privilege.instance_name].privileges.indexOf(privilege.permission_label) === -1) {
+          privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
+        }
+      }
+    });
+
+    $scope.privilegesView = privileges;
+    $scope.noClusterPriv = $.isEmptyObject(privileges.clusters);
+    $scope.noViewPriv = $.isEmptyObject(privileges.views);
+    $scope.hidePrivileges = $scope.noClusterPriv && $scope.noViewPriv;
+  }
+
+  function loadRoles() {
+    return Cluster.getRoleOptions().then(function (data) {
+      $scope.roleOptions = data;
+    });
+  }
+
+  loadRoles().finally(loadUserInfo);
+
 }]);

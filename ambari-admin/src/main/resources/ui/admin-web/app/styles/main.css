@@ -312,11 +312,6 @@ a.gotoinstance{
   font-size: 16px;
 }
 
-.user-edit-panel .ats-switch span.switch-right , .create-user-form .ats-switch span.switch-right, .enable-ldap .ats-switch span.switch-right {
-  background-color: #da4f49;
-  color: white;
-}
-
 .create-view-form, .register-version-form, .edit-version-form {
   padding-bottom: 50px;
 }

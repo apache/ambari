@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .factory('User', ['Restangular', '$http', 'Settings', 'UserConstants', '$translate', function(Restangular, $http, Settings, UserConstants, $translate) {
+.factory('User', ['Restangular', '$http', 'Settings', 'UserConstants', '$translate', 'Cluster', function(Restangular, $http, Settings, UserConstants, $translate, Cluster) {
   Restangular.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
     var extractedData;
     if(operation === 'getList'){
@@ -31,14 +31,13 @@ angular.module('ambariAdminConsole')
     return extractedData;
   });
   var $t = $translate.instant;
-  var Users = Restangular.all('users');
 
   return {
     list: function(params) {
       return $http.get(
         Settings.baseUrl + '/users/?'
         + 'Users/user_name.matches(.*'+params.searchString+'.*)'
-        + '&fields=*'
+        + '&fields=privileges/PrivilegeInfo/*,Users'
         + '&from=' + (params.currentPage-1)*params.usersPerPage
         + '&page_size=' + params.usersPerPage
         + (params.user_type === '*' ? '' : '&Users/user_type=' + params.user_type)
@@ -51,6 +50,12 @@ angular.module('ambariAdminConsole')
         Settings.baseUrl + '/users?'
         + 'Users/user_name.matches(.*'+name+'.*)'
         + '&from=0&page_size=20'
+      );
+    },
+    getWithRoles: function(userId) {
+      return $http.get(
+        Settings.baseUrl + '/users/' + userId
+        + '?fields=privileges/PrivilegeInfo,Users'
       );
     },
     get: function(userId) {
@@ -97,7 +102,11 @@ angular.module('ambariAdminConsole')
       user.Users.encodedName = encodeURIComponent(user.Users.user_name);
       user.Users.userTypeName = $t(UserConstants.TYPES[user.Users.user_type].LABEL_KEY);
       user.Users.ldapUser = user.Users.user_type === UserConstants.TYPES.LDAP.VALUE;
-      user.Users.role = user.privileges.length ? user.privileges[0].PrivilegeInfo.privilege_id : null;
+      user.Users.roles = Cluster.sortRoles(user.privileges.filter(function(item) {
+        return item.PrivilegeInfo.type === 'CLUSTER' || item.PrivilegeInfo.type === 'AMBARI';
+      }).map(function(item) {
+        return item.PrivilegeInfo;
+      }));
 
       return user;
     }

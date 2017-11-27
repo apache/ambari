@@ -19,9 +19,14 @@
 
 angular.module('ambariAdminConsole')
 .controller('GroupEditCtrl',
-['$scope', 'Group', '$routeParams', 'Cluster', 'View', 'Alert', 'ConfirmationModal', '$location', 'GroupConstants', '$translate',
-function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $location, GroupConstants, $translate) {
+['$scope', '$rootScope', 'Group', '$routeParams', 'Cluster', 'View', 'Alert', 'ConfirmationModal', '$location', '$translate', 'RoleDetailsModal',
+function($scope, $rootScope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $location,  $translate, RoleDetailsModal) {
   var $t = $translate.instant;
+  var nonRole = {
+    permission_name: 'NONE',
+    permission_label: $t('users.roles.none')
+  };
+
   $scope.constants = {
     group: $t('common.group'),
     view: $t('common.view').toLowerCase(),
@@ -32,7 +37,6 @@ function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $
   $scope.group.editingUsers = [];
   $scope.groupMembers = [];
   $scope.dataLoaded = false;
-  
   $scope.isMembersEditing = false;
 
   $scope.$watch(function() {
@@ -62,29 +66,10 @@ function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $
     $scope.group.saveMembers().catch(function(data) {
         Alert.error($t('groups.alerts.cannotUpdateGroupMembers'), "<div class='break-word'>" + data.message + "</div>");
       }).finally(function() {
-        loadMembers();
+        loadGroup();
       });
     $scope.isMembersEditing = false;
   };
-
-
-  function loadMembers(){
-    $scope.group.getMembers().then(function(members) {
-      $scope.group.groupTypeName = $t(GroupConstants.TYPES[$scope.group.group_type].LABEL_KEY);
-      $scope.groupMembers = members;
-      $scope.group.editingUsers = angular.copy($scope.groupMembers);
-    });
-  }    
-  
-  $scope.group.isLDAP().then(function(isLDAP) {
-    $scope.group.ldap_group = isLDAP;
-    $scope.group.getGroupType().then(function() {
-      $scope.group.groupTypeName = $t(GroupConstants.TYPES[$scope.group.group_type].LABEL_KEY);
-    });
-    loadMembers();
-  });
-
-  $scope.group.getGroupType();
 
   $scope.deleteGroup = function(group) {
     ConfirmationModal.show(
@@ -119,12 +104,9 @@ function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $
           });
         }
         group.destroy().then(function() {
-          $location.path('/userManagement');
+          $location.path('/userManagement?tab=groups');
           if (clusterPrivilegesIds.length) {
-            Cluster.getAllClusters().then(function (clusters) {
-              var clusterName = clusters[0].Clusters.cluster_name;
-              Cluster.deleteMultiplePrivileges(clusterName, clusterPrivilegesIds);
-            });
+            Cluster.deleteMultiplePrivileges($rootScope.cluster.Clusters.cluster_name, clusterPrivilegesIds);
           }
           angular.forEach(viewsPrivileges, function(privilege) {
             View.deletePrivilege(privilege);
@@ -135,7 +117,7 @@ function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $
   };
 
 
-  $scope.removePrivilege = function(name, privilege) {
+  $scope.removeViewPrivilege = function(name, privilege) {
     var privilegeObject = {
         id: privilege.privilege_id,
         view_name: privilege.view_name,
@@ -143,40 +125,124 @@ function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $
         instance_name: name
     };
     View.deletePrivilege(privilegeObject).then(function() {
-      loadPrivileges();
+      loadGroup();
     });
   };
 
-function loadPrivileges() {
-  // Load privileges
-  Group.getPrivileges($routeParams.id).then(function(data) {
+  $scope.showHelpPage = function() {
+    Cluster.getRolesWithAuthorizations().then(function(roles) {
+      RoleDetailsModal.show(roles);
+    });
+  };
+
+  $scope.updateRole = function () {
+    var clusterName = $rootScope.cluster.Clusters.cluster_name;
+    if ($scope.originalRole.permission_name !== $scope.currentRole.permission_name) {
+      if ($scope.currentRole.permission_name === 'NONE') {
+        deleteGroupRoles(clusterName, $scope.group).finally(loadGroup);
+      } else {
+        if ($scope.group.roles.length) {
+          deleteGroupRoles(clusterName, $scope.group, true).finally(function() {
+            addGroupRoles(clusterName, $scope.currentRole, $scope.group).finally(loadGroup);
+          });
+        } else {
+          addGroupRoles(clusterName, $scope.currentRole, $scope.group).finally(loadGroup);
+        }
+      }
+    }
+  };
+
+  function deleteGroupRoles(clusterName, group, ignoreAlert) {
+    return Cluster.deleteMultiplePrivileges(
+      clusterName,
+      group.roles.map(function(item) {
+        return item.privilege_id;
+      })
+    ).then(function () {
+      if (!ignoreAlert) {
+        Alert.success($t('users.alerts.roleChangedToNone', {
+          user_name: group.group_name
+        }));
+      }
+    }).catch(function (data) {
+      Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
+    });
+  }
+
+  function addGroupRoles(clusterName, newRole, group) {
+    return Cluster.createPrivileges(
+      {
+        clusterId: clusterName
+      },
+      [{
+        PrivilegeInfo: {
+          permission_name: newRole.permission_name,
+          principal_name: group.group_name,
+          principal_type: 'GROUP'
+        }
+      }]
+    ).then(function () {
+      Alert.success($t('users.alerts.roleChanged', {
+        name: group.group_name,
+        role: newRole.permission_label
+      }));
+    }).catch(function (data) {
+      Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
+    });
+  }
+
+  function parsePrivileges(rawPrivileges) {
     var privileges = {
       clusters: {},
       views: {}
     };
-    angular.forEach(data.data.items, function(privilege) {
+    angular.forEach(rawPrivileges, function (privilege) {
       privilege = privilege.PrivilegeInfo;
-      if(privilege.type === 'CLUSTER'){
+      if (privilege.type === 'CLUSTER') {
         // This is cluster
         privileges.clusters[privilege.cluster_name] = privileges.clusters[privilege.cluster_name] || [];
         privileges.clusters[privilege.cluster_name].push(privilege.permission_label);
-      } else if ( privilege.type === 'VIEW'){
-        privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
-        privileges.views[privilege.instance_name].version = privilege.version;
-        privileges.views[privilege.instance_name].view_name = privilege.view_name;
-        privileges.views[privilege.instance_name].privilege_id = privilege.privilege_id;
-        privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
+      } else if (privilege.type === 'VIEW') {
+        privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || {
+          privileges: [],
+          version: privilege.version,
+          view_name: privilege.view_name,
+          privilege_id: privilege.privilege_id
+        };
+        if (privileges.views[privilege.instance_name].privileges.indexOf(privilege.permission_label) === -1) {
+          privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
+        }
       }
     });
 
-    $scope.privileges = data.data.items.length ? privileges : null;
+    $scope.privileges = privileges;
     $scope.noClusterPriv = $.isEmptyObject(privileges.clusters);
     $scope.noViewPriv = $.isEmptyObject(privileges.views);
     $scope.hidePrivileges = $scope.noClusterPriv && $scope.noViewPriv;
-    $scope.dataLoaded = true;
-  }).catch(function(data) {
-    Alert.error($t('common.alerts.cannotLoadPrivileges'), data.data.message);
-  });
-}
-loadPrivileges();
+  }
+
+  function loadGroup() {
+    Group.get($routeParams.id).then(function(group) {
+      $scope.group = group;
+      parsePrivileges(group.privileges);
+      var clusterRole = $scope.group.roles[0];
+      $scope.currentRole = clusterRole || nonRole;
+      $scope.originalRole = clusterRole || nonRole;
+      $scope.groupMembers = group.members.map(function(item) {
+        return item.MemberInfo.user_name;
+      });
+      $scope.group.editingUsers = angular.copy($scope.groupMembers);
+    }).finally(function() {
+      $scope.dataLoaded = true;
+    });
+  }
+
+  function loadRoles() {
+    return Cluster.getRoleOptions().then(function(data) {
+      $scope.roleOptions = data;
+    });
+  }
+
+  loadRoles().finally(loadGroup);
+
 }]);

@@ -100,9 +100,9 @@
     <div class="row">
       <div class="form-group col-sm-6"
            ng-class="{ 'has-error': form.userCreateForm.role.$error.required && form.userCreateForm.submitted }">
-        <label for="role" class="nowrap">
-          {{'users.role' | translate}}<span>&nbsp;*</span>&nbsp;
-          <i class="fa fa-question-circle" aria-hidden="true"></i>
+        <label for="role" class="nowrap roles-label">
+          {{'users.role' | translate}}<span>&nbsp;*</span>
+          <i class="fa fa-question-circle" aria-hidden="true" ng-click="showHelpPage()"></i>
         </label>
         <select
           class="form-control"
@@ -110,8 +110,8 @@
           name="role"
           ng-model="formData.role"
           required>
-          <option value="" disabled selected>{{'common.select' | translate}}</option>
-          <option ng-repeat="role in roleOptions" value="{{role.permission_id}}">{{role.permission_label}}</option>
+          <option value="" class="hide">{{'common.select' | translate}}</option>
+          <option ng-repeat="role in roleOptions" value="{{role.permission_name}}">{{role.permission_label}}</option>
         </select>
         <span class="help-block validation-block" ng-show='form.userCreateForm.role.$error.required && form.userCreateForm.submitted'>
           {{'common.alerts.fieldRequired' | translate}}

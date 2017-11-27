@@ -22,11 +22,10 @@ angular.module('ambariAdminConsole')
   return {
     show: function(roles) {
       roles = roles.map(function(role) {
-        role.authorizations = role.authorizations.map(function(authorization) {
+        var r = role.PermissionInfo;
+        r.authorizations = role.authorizations.map(function(authorization) {
           return authorization.AuthorizationInfo;
         });
-        var r = role.PermissionInfo;
-        r.authorizations = role.authorizations;
         return r;
       });
       var modalInstance = $modal.open({

@@ -19,8 +19,8 @@
 
 angular.module('ambariAdminConsole')
 .controller('UserCreateCtrl',
-['$scope', '$rootScope', 'User', '$location', 'Alert', 'UnsavedDialog', '$translate', 'Cluster', '$modalInstance',
-function($scope, $rootScope, User, $location, Alert, UnsavedDialog, $translate, Cluster, $modalInstance) {
+['$scope', '$rootScope', 'User', '$location', 'Alert', 'UnsavedDialog', '$translate', 'Cluster', '$modalInstance', 'RoleDetailsModal',
+function($scope, $rootScope, User, $location, Alert, UnsavedDialog, $translate, Cluster, $modalInstance, RoleDetailsModal) {
   var $t = $translate.instant;
 
   $scope.form = {};
@@ -28,17 +28,15 @@ function($scope, $rootScope, User, $location, Alert, UnsavedDialog, $translate, 
     userName: '',
     password: '',
     confirmPassword: '',
-    role: null,
+    role: '',
     isAdmin: false,
     isActive: true
   };
   $scope.roleOptions = [];
 
   function loadRoles() {
-    Cluster.getPermissions().then(function(data) {
-      $scope.roleOptions = data.map(function(item) {
-        return item.PermissionInfo;
-      });
+    return Cluster.getRoleOptions().then(function (data) {
+      $scope.roleOptions = data;
     });
   }
 
@@ -60,6 +58,12 @@ function($scope, $rootScope, User, $location, Alert, UnsavedDialog, $translate, 
       $modalInstance.close('discard');
     }
   }
+
+  $scope.showHelpPage = function() {
+    Cluster.getRolesWithAuthorizations().then(function(roles) {
+      RoleDetailsModal.show(roles);
+    });
+  };
 
   $scope.save = function () {
     $scope.form.userCreateForm.submitted = true;
@@ -83,14 +87,15 @@ function($scope, $rootScope, User, $location, Alert, UnsavedDialog, $translate, 
   };
 
   function saveRole() {
+    if (!$scope.formData.role || $scope.formData.role === 'NONE') {
+      return;
+    }
     Cluster.createPrivileges(
       {
         clusterId: $rootScope.cluster.Clusters.cluster_name
       },
       [{PrivilegeInfo: {
-        permission_name: $scope.roleOptions.filter(function(role) {
-          return role.permission_id == Number($scope.formData.role);
-        })[0].permission_name,
+        permission_name: $scope.formData.role,
         principal_name: $scope.formData.userName,
         principal_type: 'USER'
       }}]

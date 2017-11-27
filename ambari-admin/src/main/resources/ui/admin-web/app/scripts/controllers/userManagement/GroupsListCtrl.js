@@ -19,8 +19,8 @@
 
 angular.module('ambariAdminConsole')
 .controller('GroupsListCtrl',
-['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', 'GroupConstants', '$translate', 'Settings', 'Cluster', 'View', '$location',
-function($scope, Group, $modal, ConfirmationModal, $rootScope, GroupConstants, $translate, Settings, Cluster, View, $location) {
+['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', '$translate', 'Settings', 'Cluster', 'View', 'Alert',
+function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Settings, Cluster, View, Alert) {
   var $t = $translate.instant;
   $scope.constants = {
     groups: $t('common.groups').toLowerCase()
@@ -70,15 +70,15 @@ function($scope, Group, $modal, ConfirmationModal, $rootScope, GroupConstants, $
       $scope.tableInfo.showed = groups.length;
     })
     .catch(function(data) {
-      console.error($t('groups.alerts.getGroupsListError'));
+      Alert.error($t('groups.alerts.getGroupsListError'), data.data.message);
     });
   }
 
   $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
-    .concat(Object.keys(GroupConstants.TYPES).map(function(key) {
+    .concat(Object.keys(Group.getTypes()).map(function(key) {
       return {
-        label: $t(GroupConstants.TYPES[key].LABEL_KEY),
-        value: GroupConstants.TYPES[key].VALUE
+        label: $t(Group.getTypes()[key].LABEL_KEY),
+        value: Group.getTypes()[key].VALUE
       };
   }));
   $scope.filter.type = $scope.typeFilterOptions[0];
@@ -153,10 +153,7 @@ function($scope, Group, $modal, ConfirmationModal, $rootScope, GroupConstants, $
         }
         group.destroy().then(function() {
           if (clusterPrivilegesIds.length) {
-            Cluster.getAllClusters().then(function (clusters) {
-              var clusterName = clusters[0].Clusters.cluster_name;
-              Cluster.deleteMultiplePrivileges(clusterName, clusterPrivilegesIds);
-            });
+            Cluster.deleteMultiplePrivileges($rootScope.cluster.Clusters.cluster_name, clusterPrivilegesIds);
           }
           angular.forEach(viewsPrivileges, function(privilege) {
             View.deletePrivilege(privilege);

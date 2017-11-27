@@ -28,3 +28,16 @@
 #user-management .groups-pane {
   margin-top: -35px;
 }
+
+#group-edit .roles-label,
+#user-edit .roles-label {
+  line-height: 30px;
+}
+
+#create-user-form .roles-label i,
+#create-group-form .roles-label i,
+#group-edit .roles-label i,
+#user-edit .roles-label i {
+  margin-right: -10px;
+  cursor: pointer;
+}

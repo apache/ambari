@@ -16,13 +16,13 @@
 * limitations under the License.
 -->
     
-<div ng-show="user" class="user-edit-panel">
+<div ng-show="user" id="user-edit">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li><a href="#/userManagement">{{'common.users' | translate}}</a></li>
+      <li><a href="#/userManagement?tab=users">{{'common.users' | translate}}</a></li>
       <li class="active"><span class="glyphicon glyphicon-flash" ng-show="user.admin"></span>{{user.user_name}}</li>
     </ol>
-    <div class="pull-right top-margin-4">
+    <div class="pull-right">
       <div ng-switch="isCurrentUser || user.user_type != 'LOCAL'">
         <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'common.cannotDelete' | translate: '{term: constants.user}'}}">{{'common.delete' | translate: '{term: constants.user}'}}</button>
         <button class="btn deleteuser-btn btn-danger" ng-switch-when="false" ng-click="deleteUser()">{{'common.delete' | translate: '{term: constants.user}'}}</button>
@@ -32,25 +32,25 @@
   <hr>
   <form class="form-horizontal" role="form" >
     <div class="form-group">
-      <label for="" class="col-sm-2 control-label">{{'common.type' | translate}}</label>
+      <label class="col-sm-2 ">{{'common.type' | translate}}</label>
       <div class="col-sm-10">
-        <label for="" class="control-label">{{user.userTypeName}}</label>
+        <label>{{user.userTypeName}}</label>
       </div>
     </div>
     <div class="form-group">
-      <label for="" class="col-sm-2 control-label">{{'users.status' | translate}}</label>
+      <label class="col-sm-2 ">{{'users.status' | translate}}</label>
       <div class="col-sm-10">
         <toggle-switch on-change="toggleUserActive()" disabled-tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.status}'}}" ng-disabled="isCurrentUser" model="user.active" on-label="{{'users.active' | translate}}" off-label="{{'users.inactive' | translate}}" class="switch-primary userstatus {{user ? '' : 'no-animation'}}" data-off-color="danger"></toggle-switch>
       </div>
     </div>
     <div class="form-group">
-      <label for="" class="col-sm-2 control-label"><span class="glyphicon glyphicon-flash"></span> {{'users.ambariAdmin' | translate}}</label>
+      <label class="col-sm-2 "><span class="glyphicon glyphicon-flash"></span> {{'users.ambariAdmin' | translate}}</label>
       <div class="col-sm-10">
         <toggle-switch on-change="toggleUserAdmin()" disabled-tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.admin}'}}" ng-disabled="isCurrentUser" model="user.admin" on-label="{{'common.yes' | translate}}" off-label="{{'common.no' | translate}}" class="switch-primary userstatus {{user ? '' : 'no-animation'}}" data-off-color="danger"></toggle-switch>
       </div>
     </div>
     <div class="form-group">
-      <label for="password" class="col-sm-2 control-label">{{'users.password' | translate}}</label>
+      <label class="col-sm-2 ">{{'users.password' | translate}}</label>
       <div class="col-sm-10">
         <div ng-switch="user.user_type != 'LOCAL'">
           <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.password}'}}">{{'users.changePassword' | translate}}</button>
@@ -60,14 +60,32 @@
       </div>
     </div>
     <div class="form-group">
-      <label for="groups" class="col-sm-2 control-label">{{getUserMembership(user.user_type)}}</label>
+      <label class="col-sm-2 ">{{getUserMembership(user.user_type)}}</label>
       <div class="col-sm-10">
         <editable-list items-source="editingGroupsList" resource-type="Group" editable="user.user_type == 'LOCAL'"></editable-list>
       </div>
-        
     </div>
+
+    <div class="form-group">
+      <label for="role" class="col-sm-2 roles-label">
+        {{'users.role' | translate}}
+        <i class="fa fa-question-circle" aria-hidden="true" ng-click="showHelpPage()"></i>
+      </label>
+      <div class="col-sm-3">
+        <select ng-hide="user.admin"
+                class="form-control"
+                id="role"
+                name="role"
+                ng-options="item as item.permission_label for item in roleOptions track by item.permission_name"
+                ng-change="updateRole()"
+                ng-model="currentRole">
+        </select>
+        <span ng-show="user.admin" class="roles-label">{{user.roles[0].permission_label}}</span>
+      </div>
+    </div>
+
     <div class="form-group" >
-      <label for="" class="col-sm-2 control-label">{{'common.privileges' | translate}}</label>
+      <label class="col-sm-2 ">{{'common.privileges' | translate}}</label>
       <div class="col-sm-10">
         <table class="table" ng-hide="hidePrivileges || user.admin">
           <thead>
@@ -77,7 +95,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="(name, privilege) in privileges.clusters">
+            <tr ng-repeat="(name, privilege) in privilegesView.clusters">
               <td>
                 <span class="glyphicon glyphicon-cloud"></span> 
                 <a href="#/clusters/{{name}}/manageAccess">{{name}}</a>
@@ -97,7 +115,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="(name, privilege) in privileges.views">
+            <tr ng-repeat="(name, privilege) in privilegesView.views">
               <td>
                 <span class="glyphicon glyphicon-th"></span>
                 <a href="#/views/{{privilege.view_name}}/versions/{{privilege.version}}/instances/{{name}}/edit">{{name}}</a>
@@ -106,7 +124,7 @@
                 <span tooltip="{{item}}" ng-repeat="item in privilege.privileges track by $index">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
               <td>
-                <i class="fa fa-trash-o" aria-hidden="true" ng-click="removePrivilege(name, privilege);"></i>
+                <i class="fa fa-trash-o" aria-hidden="true" ng-click="removeViewPrivilege(name, privilege);"></i>
               </td>
             </tr>
             <tr>
@@ -114,7 +132,7 @@
             </tr>
           </tbody>
         </table>
-        <div class="alert alert-info" ng-show="!privileges && !user.admin">{{'common.alerts.noPrivilegesDescription' | translate: '{term: constants.user}'}}</div>
+        <div class="alert alert-info" ng-show="hidePrivileges && !user.admin">{{'common.alerts.noPrivilegesDescription' | translate: '{term: constants.user}'}}</div>
         <div class="alert alert-info" ng-show="user.admin">{{'users.userIsAdmin' | translate}}</div>
       </div>
     </div>

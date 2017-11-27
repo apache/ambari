@@ -18,7 +18,11 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('Cluster', ['$http', '$q', 'Settings', function($http, $q, Settings) {
+.factory('Cluster', ['$http', '$q', 'Settings', '$translate', function($http, $q, Settings, $translate) {
+  var $t = $translate.instant;
+  var permissions = null;
+  var rolesWithAuthorizations = null;
+
   return {
     repoStatusCache : {},
 
@@ -33,6 +37,13 @@ angular.module('ambariAdminConsole')
     orderedLevels: ['SERVICE', 'HOST', 'CLUSTER', 'AMBARI'],
 
     ineditableRoles : ['VIEW.USER', 'AMBARI.ADMINISTRATOR'],
+
+    sortRoles: function(roles) {
+      var orderedRoles = ['AMBARI.ADMINISTRATOR'].concat(this.orderedRoles);
+      return roles.sort(function(a, b) {
+        return orderedRoles.indexOf(a.permission_name) - orderedRoles.indexOf(b.permission_name);
+      });
+    },
 
     getAllClusters: function() {
       var deferred = $q.defer();
@@ -120,22 +131,48 @@ angular.module('ambariAdminConsole')
 
       return deferred.promise;
     },
-    getRolesWithAuthorizations: function() {
-      var self = this;
+    getRoleOptions: function () {
+      var roleOptions = [];
       var deferred = $q.defer();
-      $http({
-        method: 'GET',
-        url: Settings.baseUrl + '/permissions?PermissionInfo/resource_name.in(CLUSTER,AMBARI)',
-        mock: 'permission/permissions.json',
-        params: {
-          fields: 'PermissionInfo/*,authorizations/AuthorizationInfo/*'
-        }
-      })
-        .success(function(data) {
-          deferred.resolve(data.items);
+      var localDeferred = $q.defer();
+      var promise = permissions ? localDeferred.promise : this.getPermissions();
+
+      localDeferred.resolve(permissions);
+      promise.then(function(data) {
+        permissions = data;
+        roleOptions = data.map(function(item) {
+          return item.PermissionInfo;
+        });
+        roleOptions.unshift({
+          permission_name: 'NONE',
+          permission_label: $t('users.roles.none')
+        });
+      }).finally(function() {
+        deferred.resolve(roleOptions);
+      });
+      return deferred.promise;
+    },
+    getRolesWithAuthorizations: function() {
+      var deferred = $q.defer();
+      if (rolesWithAuthorizations) {
+        deferred.resolve(rolesWithAuthorizations);
+      } else {
+        $http({
+          method: 'GET',
+          url: Settings.baseUrl + '/permissions?PermissionInfo/resource_name.in(CLUSTER,AMBARI)',
+          mock: 'permission/permissions.json',
+          params: {
+            fields: 'PermissionInfo/*,authorizations/AuthorizationInfo/*'
+          }
         })
-        .catch(function(data) {
-          deferred.reject(data); });
+          .success(function (data) {
+            rolesWithAuthorizations = data.items;
+            deferred.resolve(data.items);
+          })
+          .catch(function (data) {
+            deferred.reject(data);
+          });
+      }
 
       return deferred.promise;
     },
@@ -152,31 +189,6 @@ angular.module('ambariAdminConsole')
       })
       .success(function(data) {
         deferred.resolve(data.privileges);
-      })
-      .catch(function(data) {
-        deferred.reject(data);
-      });
-
-      return deferred.promise;
-    },
-    getPrivilegesWithFilters: function(params) {
-      var deferred = $q.defer();
-      var isUser = params.typeFilter.value == 'USER';
-      var endpoint = isUser? '/users' : '/groups';
-      var nameURL = isUser? '&Users/user_name.matches(.*' : '&Groups/group_name.matches(.*';
-      var nameFilter = params.nameFilter? nameURL + params.nameFilter + '.*)' : '';
-      var roleFilter = params.roleFilter.value? '&privileges/PrivilegeInfo/permission_name.matches(.*' + params.roleFilter.value + '.*)' : '';
-      $http({
-        method: 'GET',
-        url: Settings.baseUrl + endpoint + '?'
-        + 'fields=privileges/PrivilegeInfo/*'
-        + nameFilter
-        + roleFilter
-        + '&from=' + (params.currentPage - 1) * params.usersPerPage
-        + '&page_size=' + params.usersPerPage
-      })
-      .success(function(data) {
-        deferred.resolve(data);
       })
       .catch(function(data) {
         deferred.reject(data);

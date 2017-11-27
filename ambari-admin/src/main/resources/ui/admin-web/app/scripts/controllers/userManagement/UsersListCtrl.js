@@ -44,14 +44,7 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
   };
   $scope.isNotEmptyFilter = true;
 
-  $scope.pageChanged = function() {
-    $scope.loadUsers();
-  };
-  $scope.usersPerPageChanges = function() {
-    $scope.resetPagination();
-  };
-
-  $scope.loadUsers = function(){
+  function loadUsers() {
     $scope.isLoading = true;
     User.list({
       currentPage: $scope.currentPage,
@@ -59,29 +52,37 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
       searchString: $scope.filters.name,
       user_type: $scope.filters.type.value,
       active: $scope.filters.status.value
-    }).then(function(data) {
-      $scope.isLoading = false;
+    }).then(function (data) {
       $scope.totalUsers = data.data.itemTotal;
       $scope.users = data.data.items.map(User.makeUser);
       $scope.tableInfo.showed = data.data.items.length;
       $scope.tableInfo.total = data.data.itemTotal;
+    }).finally(function () {
+      $scope.isLoading = false;
     });
+  }
+
+  $scope.pageChanged = function () {
+    loadUsers();
+  };
+  $scope.usersPerPageChanges = function () {
+    $scope.resetPagination();
   };
 
-  $scope.resetPagination = function() {
+  $scope.resetPagination = function () {
     $scope.currentPage = 1;
-    $scope.loadUsers();
+    loadUsers();
   };
 
   $scope.activeFilterOptions = [
     {label: $t('common.all'), value: '*'},
     {label: $t('users.active'), value: true},
-    {label: $t('users.inactive'), value:false}
+    {label: $t('users.inactive'), value: false}
   ];
   $scope.filters.status = $scope.activeFilterOptions[0];
 
-  $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
-    .concat(Object.keys(UserConstants.TYPES).map(function(key) {
+  $scope.typeFilterOptions = [{label: $t('common.all'), value: '*'}]
+    .concat(Object.keys(UserConstants.TYPES).map(function (key) {
       return {
         label: $t(UserConstants.TYPES[key].LABEL_KEY),
         value: UserConstants.TYPES[key].VALUE
@@ -97,8 +98,6 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
     $scope.resetPagination();
   };
 
-  $scope.loadUsers();
-
   $scope.$watch(
     function (scope) {
       return Boolean(scope.filters.name || (scope.filters.status && scope.filters.status.value !== '*')
@@ -109,12 +108,12 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
     }
   );
 
-  $rootScope.$watch(function(scope) {
+  $rootScope.$watch(function (scope) {
     return scope.LDAPSynced;
-  }, function(LDAPSynced) {
-    if(LDAPSynced === true){
+  }, function (LDAPSynced) {
+    if (LDAPSynced === true) {
       $rootScope.LDAPSynced = false;
-      $scope.loadUsers();
+      loadUsers();
     }
   });
 
@@ -125,10 +124,10 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
       backdrop: 'static'
     });
 
-    modalInstance.result.finally($scope.loadUsers);
+    modalInstance.result.finally(loadUsers);
   };
 
-  $scope.deleteUser = function(user) {
+  $scope.deleteUser = function (user) {
     ConfirmationModal.show(
       $t('common.delete', {
         term: $t('common.user')
@@ -137,15 +136,15 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
         instanceType: $t('common.user').toLowerCase(),
         instanceName: '"' + user.user_name + '"'
       })
-    ).then(function() {
+    ).then(function () {
       Cluster.getPrivilegesForResource({
-        nameFilter : user.user_name,
-        typeFilter : {value: 'USER'}
-      }).then(function(data) {
+        nameFilter: user.user_name,
+        typeFilter: {value: 'USER'}
+      }).then(function (data) {
         var clusterPrivilegesIds = [];
         var viewsPrivileges = [];
         if (data.items && data.items.length) {
-          angular.forEach(data.items[0].privileges, function(privilege) {
+          angular.forEach(data.items[0].privileges, function (privilege) {
             if (privilege.PrivilegeInfo.principal_type === 'USER') {
               if (privilege.PrivilegeInfo.type === 'VIEW') {
                 viewsPrivileges.push({
@@ -160,19 +159,19 @@ function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, V
             }
           });
         }
-        User.delete(user.user_name).then(function() {
+        User.delete(user.user_name).then(function () {
           if (clusterPrivilegesIds.length) {
-            Cluster.getAllClusters().then(function (clusters) {
-              var clusterName = clusters[0].Clusters.cluster_name;
-              Cluster.deleteMultiplePrivileges(clusterName, clusterPrivilegesIds);
-            });
+            Cluster.deleteMultiplePrivileges($rootScope.cluster.Clusters.cluster_name, clusterPrivilegesIds);
           }
-          angular.forEach(viewsPrivileges, function(privilege) {
+          angular.forEach(viewsPrivileges, function (privilege) {
             View.deletePrivilege(privilege);
           });
-          $scope.loadUsers();
+          loadUsers();
         });
       });
     });
   };
+
+  loadUsers();
+
 }]);

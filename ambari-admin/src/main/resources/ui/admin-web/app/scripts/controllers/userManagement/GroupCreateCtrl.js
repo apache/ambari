@@ -19,8 +19,8 @@
 
 angular.module('ambariAdminConsole')
 .controller('GroupCreateCtrl',
-['$scope', '$rootScope', 'Group', '$location', 'Alert', 'UnsavedDialog', '$translate', '$modalInstance', 'Cluster',
-function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate, $modalInstance, Cluster) {
+['$scope', '$rootScope', 'Group', '$location', 'Alert', 'UnsavedDialog', '$translate', '$modalInstance', 'Cluster', 'RoleDetailsModal',
+function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate, $modalInstance, Cluster, RoleDetailsModal) {
   var $t = $translate.instant;
 
   $scope.form = {};
@@ -33,10 +33,8 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
 
 
   function loadRoles() {
-    Cluster.getPermissions().then(function(data) {
-      $scope.roleOptions = data.map(function(item) {
-        return item.PermissionInfo;
-      });
+    return Cluster.getRoleOptions().then(function (data) {
+      $scope.roleOptions = data;
     });
   }
 
@@ -60,6 +58,9 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
   }
 
   function saveMembers(group, members) {
+    if (!members.length) {
+      return;
+    }
     group.members = members.filter(function(item) {
       return item.trim();
     }).map(function(item) {
@@ -69,6 +70,12 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
       Alert.error($t('groups.alerts.cannotUpdateGroupMembers'), "<div class='break-word'>" + data.message + "</div>");
     });
   }
+
+  $scope.showHelpPage = function() {
+    Cluster.getRolesWithAuthorizations().then(function(roles) {
+      RoleDetailsModal.show(roles);
+    });
+  };
 
   $scope.save = function () {
     $scope.form.groupCreateForm.submitted = true;
@@ -87,21 +94,22 @@ function($scope, $rootScope, Group, $location, Alert, UnsavedDialog, $translate,
   };
 
   function saveRole() {
+    if (!$scope.formData.role || $scope.formData.role === 'NONE') {
+      return;
+    }
     Cluster.createPrivileges(
       {
         clusterId: $rootScope.cluster.Clusters.cluster_name
       },
       [{PrivilegeInfo: {
-        permission_name: $scope.roleOptions.filter(function(role) {
-          return role.permission_id == Number($scope.formData.role);
-        })[0].permission_name,
+        permission_name: $scope.formData.role,
         principal_name: $scope.formData.groupName,
         principal_type: 'GROUP'
       }}]
     )
-      .catch(function(data) {
-        Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
-      });
+    .catch(function(data) {
+      Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
+    });
   }
 
   $scope.cancel = function () {

@@ -18,6 +18,6 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UserManagementCtrl', ['$scope', function($scope) {
-  $scope.activeTab = 'USERS';
+.controller('UserManagementCtrl', ['$scope', '$routeParams', function($scope, $routeParams) {
+  $scope.activeTab = $routeParams.tab === 'groups' ? 'GROUPS' : 'USERS';
 }]);
