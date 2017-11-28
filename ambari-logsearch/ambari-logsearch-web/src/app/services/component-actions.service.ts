@@ -132,7 +132,7 @@ export class ComponentActionsService {
   }
 
   proceedWithExclude = (item: string): void => this.logsContainer.queryParameterNameChange.next({
-    item: item,
+    value: item,
     isExclude: true
   });
 

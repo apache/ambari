@@ -16,22 +16,10 @@
  * limitations under the License.
  */
 
-import {QueryParams} from '@app/classes/queries/query-params';
-import {ScrollType} from '@app/classes/string';
+export type LogsType = 'auditLogs' | 'serviceLogs';
 
-export const defaultParams = {
-  numberRows: '10',
-  scrollType: ''
-};
+export type TimeRangeType = 'CURRENT' | 'LAST' | 'PAST';
 
-export class ServiceLogsTruncatedQueryParams extends QueryParams {
-  constructor(options: ServiceLogsTruncatedQueryParams) {
-    const finalParams = Object.assign({}, defaultParams, options);
-    super(finalParams);
-  }
-  id: string;
-  host_name: string;
-  component_name: string;
-  numberRows: string;
-  scrollType: ScrollType;
-}
+export type SortingType = 'asc' | 'desc';
+
+export type ScrollType = 'before' | 'after' | '';

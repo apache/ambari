@@ -27,6 +27,7 @@ import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/takeUntil';
 import * as moment from 'moment-timezone';
+import {TranslateService} from '@ngx-translate/core';
 import {HttpClientService} from '@app/services/http-client.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
@@ -41,8 +42,11 @@ import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
-import {FilterCondition, TimeUnitListItem, SortingListItem} from '@app/classes/filtering';
+import {
+  FilterCondition, TimeUnitListItem, SortingListItem, SearchBoxParameter, SearchBoxParameterTriggered
+} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {LogsType, ScrollType, SortingType} from '@app/classes/string';
 import {Tab} from '@app/classes/models/tab';
 import {LogField} from '@app/classes/models/log-field';
 import {AuditLog} from '@app/classes/models/audit-log';
@@ -51,14 +55,15 @@ import {ServiceLog} from '@app/classes/models/service-log';
 import {ServiceLogField} from '@app/classes/models/service-log-field';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {NodeItem} from '@app/classes/models/node-item';
+import {CommonEntry} from '@app/classes/models/common-entry';
 
 @Injectable()
 export class LogsContainerService {
 
   constructor(
-    private httpClient: HttpClientService, private auditLogsStorage: AuditLogsService,
-    private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService,
-    private serviceLogsFieldsStorage: ServiceLogsFieldsService,
+    private translate: TranslateService, private httpClient: HttpClientService,
+    private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService,
+    private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService,
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
     private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appState: AppStateService,
     private appSettings: AppSettingsService, private tabsStorage: TabsService, private clustersStorage: ClustersService,
@@ -78,7 +83,7 @@ export class LogsContainerService {
     this.loadHosts();
     appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => this.activeLog = value);
     appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
-    appState.getParameter('activeLogsType').subscribe((value: string) => this.activeLogsType = value);
+    appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.activeLogsType = value);
     appSettings.getParameter('timeZone').subscribe((value: string) => this.timeZone = value || this.defaultTimeZone);
     tabsStorage.mapCollection((tab: Tab): Tab => {
       let currentAppState = tab.appState || {};
@@ -111,6 +116,8 @@ export class LogsContainerService {
         this.loadLogs();
       });
     });
+    this.auditLogsColumns.subscribe(this.getTranslationKeysSubscriber('auditLogsColumnsTranslated'));
+    this.serviceLogsColumns.subscribe(this.getTranslationKeysSubscriber('serviceLogsColumnsTranslated'));
   }
 
   private readonly paginationOptions: string[] = ['10', '25', '50', '100'];
@@ -119,7 +126,8 @@ export class LogsContainerService {
     clusters: {
       label: 'filter.clusters',
       options: [],
-      defaultSelection: []
+      defaultSelection: [],
+      fieldName: 'cluster'
     },
     timeRange: {
       options: [
@@ -346,7 +354,8 @@ export class LogsContainerService {
       label: 'filter.components',
       iconClass: 'fa fa-cubes',
       options: [],
-      defaultSelection: []
+      defaultSelection: [],
+      fieldName: 'type'
     },
     levels: {
       label: 'filter.levels',
@@ -381,13 +390,15 @@ export class LogsContainerService {
           value: 'UNKNOWN'
         }
       ],
-      defaultSelection: []
+      defaultSelection: [],
+      fieldName: 'level'
     },
     hosts: {
       label: 'filter.hosts',
       iconClass: 'fa fa-server',
       options: [],
-      defaultSelection: []
+      defaultSelection: [],
+      fieldName: 'host'
     },
     auditLogsSorting: {
       label: 'sorting.title',
@@ -533,7 +544,7 @@ export class LogsContainerService {
 
   activeLog: ActiveServiceLogEntry | null = null;
 
-  activeLogsType: string;
+  activeLogsType: LogsType;
 
   private filtersFormChange: Subject<any> = new Subject();
 
@@ -561,9 +572,29 @@ export class LogsContainerService {
     }
   }
 
+  private getTranslationKeysSubscriber = (propertyName: string): (items: ListItem[]) => void  => {
+    return (items: ListItem[]): void => {
+      const keys = items.map((item: ListItem): string => item.label);
+      if (keys.length) {
+        this.translate.get(keys).first().subscribe((translation: {[key: string]: string}): void => {
+          this[propertyName] = items.map((item: ListItem): CommonEntry => {
+            return {
+              name: translation[item.label],
+              value: item.value
+            };
+          });
+        });
+      }
+    };
+  };
+
   auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getAll().map(this.columnsMapper);
 
+  auditLogsColumnsTranslated: CommonEntry[] = [];
+
   serviceLogsColumns: Observable<ListItem[]> = this.serviceLogsFieldsStorage.getAll().map(this.columnsMapper);
+
+  serviceLogsColumnsTranslated: CommonEntry[] = [];
 
   serviceLogs: Observable<ServiceLog[]> = Observable.combineLatest(this.serviceLogsStorage.getAll(), this.serviceLogsColumns).map(this.logsMapper);
 
@@ -593,9 +624,9 @@ export class LogsContainerService {
     };
   }
 
-  queryParameterNameChange: Subject<any> = new Subject();
+  queryParameterNameChange: Subject<SearchBoxParameterTriggered> = new Subject();
 
-  queryParameterAdd: Subject<any> = new Subject();
+  queryParameterAdd: Subject<SearchBoxParameter> = new Subject();
 
   private stopTimer: Subject<any> = new Subject();
 
@@ -611,7 +642,7 @@ export class LogsContainerService {
 
   private stopCaptureTime: number;
 
-  loadLogs = (logsType: string = this.activeLogsType): void => {
+  loadLogs = (logsType: LogsType = this.activeLogsType): void => {
     this.httpClient.get(logsType, this.getParams('listFilters')).subscribe((response: Response): void => {
       const jsonResponse = response.json(),
         model = this.logsTypeMap[logsType].logsModel;
@@ -640,7 +671,7 @@ export class LogsContainerService {
     }
   };
 
-  loadLogContext(id: string, hostName: string, componentName: string, scrollType: 'before' | 'after' | '' = ''): void {
+  loadLogContext(id: string, hostName: string, componentName: string, scrollType: ScrollType = ''): void {
     const params = {
       id: id,
       host_name: hostName,
@@ -671,7 +702,7 @@ export class LogsContainerService {
     });
   }
 
-  private getParams(filtersMapName: string, logsType: string = this.activeLogsType): {[key: string]: string} {
+  private getParams(filtersMapName: string, logsType: LogsType = this.activeLogsType): {[key: string]: string} {
     let params = {};
     this.logsTypeMap[logsType][filtersMapName].forEach((key: string): void => {
       const inputValue = this.filtersForm.getRawValue()[key],
@@ -787,11 +818,11 @@ export class LogsContainerService {
     return endMoment ? endMoment.toISOString() : '';
   };
 
-  private getQuery(isExclude: boolean): (value: any[]) => string {
-    return (value: any[]): string => {
+  private getQuery(isExclude: boolean): (value: SearchBoxParameter[]) => string {
+    return (value: SearchBoxParameter[]): string => {
       let parameters;
       if (value && value.length) {
-        parameters = value.filter(item => item.isExclude === isExclude).map(parameter => {
+        parameters = value.filter((item: SearchBoxParameter): boolean => item.isExclude === isExclude).map((parameter: SearchBoxParameter): {[key: string]: string} => {
           return {
             [parameter.name]: parameter.value.replace(/\s/g, '+')
           };
@@ -801,7 +832,7 @@ export class LogsContainerService {
     }
   }
 
-  private getSortType(selection: SortingListItem[] = []): 'asc' | 'desc' {
+  private getSortType(selection: SortingListItem[] = []): SortingType {
     return selection[0] && selection[0].value ? selection[0].value.type : 'desc';
   }
 

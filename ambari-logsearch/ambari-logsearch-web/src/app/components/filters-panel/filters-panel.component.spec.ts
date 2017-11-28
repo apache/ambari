@@ -106,6 +106,7 @@ describe('FiltersPanelComponent', () => {
     component.filtersForm = new FormGroup({
       control: new FormControl()
     });
+    component.logsType = 'auditLogs';
     fixture.detectChanges();
   });
 
