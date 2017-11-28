@@ -45,6 +45,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   private final Stack stack;
 
   public static final String LZO_CODEC_CLASS_PROPERTY_NAME = "io.compression.codec.lzo.class";
+  public static final String CODEC_CLASSES_PROPERTY_NAME = "io.compression.codecs";
   public static final String LZO_CODEC_CLASS = "com.hadoop.compression.lzo.LzoCodec";
 
   @Inject
@@ -110,7 +111,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
             String propertyName = propertyEntry.getKey();
             String propertyValue = propertyEntry.getValue();
             if (propertyValue != null) {
-              if (!gplEnabled && configType.equals("core-site") && propertyName.equals(LZO_CODEC_CLASS_PROPERTY_NAME)
+              if (!gplEnabled && configType.equals("core-site")
+                  && (propertyName.equals(LZO_CODEC_CLASS_PROPERTY_NAME) || propertyName.equals(CODEC_CLASSES_PROPERTY_NAME))
                   && propertyValue.contains(LZO_CODEC_CLASS)) {
                 throw new GPLLicenseNotAcceptedException("Your Ambari server has not been configured to download LZO GPL software. " +
                     "Please refer to documentation to configure Ambari before proceeding.");
