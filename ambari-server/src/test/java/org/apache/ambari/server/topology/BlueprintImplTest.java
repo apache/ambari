@@ -299,7 +299,24 @@ public class BlueprintImplTest {
   }
 
   @Test(expected = GPLLicenseNotAcceptedException.class)
-  public void testValidateConfigurations__gplIsNotAllowed() throws InvalidTopologyException,
+  public void testValidateConfigurations__gplIsNotAllowedCodecsProperty() throws InvalidTopologyException,
+      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
+    Map<String, Map<String, String>> lzoProperties = new HashMap<>();
+    lzoProperties.put("core-site", new HashMap<String, String>(){{
+      put(BlueprintValidatorImpl.CODEC_CLASSES_PROPERTY_NAME, "OtherCodec, " + BlueprintValidatorImpl.LZO_CODEC_CLASS);
+    }});
+    Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
+
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(false);
+    replay(stack, group1, group2, serverConfig);
+
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
+    blueprint.validateRequiredProperties();
+    verify(stack, group1, group2, serverConfig);
+  }
+
+  @Test(expected = GPLLicenseNotAcceptedException.class)
+  public void testValidateConfigurations__gplIsNotAllowedLZOProperty() throws InvalidTopologyException,
       GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
     Map<String, Map<String, String>> lzoProperties = new HashMap<>();
     lzoProperties.put("core-site", new HashMap<String, String>(){{
@@ -321,6 +338,7 @@ public class BlueprintImplTest {
     Map<String, Map<String, String>> lzoProperties = new HashMap<>();
     lzoProperties.put("core-site", new HashMap<String, String>(){{
       put(BlueprintValidatorImpl.LZO_CODEC_CLASS_PROPERTY_NAME, BlueprintValidatorImpl.LZO_CODEC_CLASS);
+      put(BlueprintValidatorImpl.CODEC_CLASSES_PROPERTY_NAME, "OtherCodec, " + BlueprintValidatorImpl.LZO_CODEC_CLASS);
     }});
     Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
 
