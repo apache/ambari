@@ -28,7 +28,7 @@ public class ObjectNotFoundException extends AmbariException {
    * @param cause  the root cause
    */
   public ObjectNotFoundException(String msg, ObjectNotFoundException cause) {
-    super(msg + ".  " + cause.getMessage(), cause);
+    super(msg + ". " + cause.getMessage(), cause);
   }
 
   /**

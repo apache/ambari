@@ -348,10 +348,11 @@ public class AmbariMetaInfo {
     ComponentInfo component = getService(stackName, version, stackServiceName).getComponentByName(componentName);
 
     if (component == null) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", stackServiceName=" + stackServiceName
-          + ", componentName=" + componentName);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "stackServiceName", stackServiceName,
+        "componentName", componentName);
     }
     return component;
   }
@@ -405,11 +406,12 @@ public class AmbariMetaInfo {
       }
     }
     if (foundDependency == null) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion= " + version
-          + ", stackService=" + service
-          + ", stackComponent= " + component
-          + ", dependency=" + dependencyName);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "stackService", service,
+        "stackComponent", component,
+        "dependency", dependencyName);
     }
 
     return foundDependency;
@@ -458,10 +460,11 @@ public class AmbariMetaInfo {
     List<RepositoryInfo> repositories = getRepositories(stackName, version, osType);
 
     if (repositories.size() == 0) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", osType=" + osType
-          + ", repoId=" + repoId);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "osType", osType,
+        "repoId", repoId);
     }
 
     RepositoryInfo repoResult = null;
@@ -592,8 +595,10 @@ public class AmbariMetaInfo {
     ServiceInfo service = getStack(stackName, version).getService(stackServiceName);
 
     if (service == null) {
-      throw new StackAccessException("stackName=" + stackName + ", stackVersion=" +
-                                     version + ", stackServiceName=" + stackServiceName);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "stackServiceName", stackServiceName);
     }
 
     return service;
@@ -700,7 +705,7 @@ public class AmbariMetaInfo {
     Collection<StackInfo> stacks = stackManager.getStacks(stackName);
 
     if (stacks.isEmpty()) {
-      throw new StackAccessException("stackName=" + stackName);
+      throw new StackAccessException("stackName", stackName);
     }
 
     return stacks;
@@ -750,7 +755,7 @@ public class AmbariMetaInfo {
     Collection<ExtensionInfo> extensions = stackManager.getExtensions(extensionName);
 
     if (extensions.isEmpty()) {
-      throw new StackAccessException("extensionName=" + extensionName);
+      throw new StackAccessException("extensionName", extensionName);
     }
 
     return extensions;
@@ -786,10 +791,11 @@ public class AmbariMetaInfo {
       : getServiceProperties(stackName, version, stackServiceName);
 
     if (properties.size() == 0) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", stackServiceName=" + stackServiceName
-          + ", propertyName=" + propertyName);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "stackServiceName", stackServiceName,
+        "propertyName", propertyName);
     }
 
     Set<PropertyInfo> propertyResult = new HashSet<>();
@@ -854,9 +860,10 @@ public class AmbariMetaInfo {
           throws AmbariException {
     Set<PropertyInfo> settings = getStackSettings(stackName, version);
     if (settings.size() == 0) {
-      throw new StackAccessException("stackName=" + stackName
-              + ", stackVersion=" + version
-              + ", settingName=" + settingName);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "settingName", settingName);
     }
 
     Set<PropertyInfo> settingResult = new HashSet<>();
@@ -868,9 +875,10 @@ public class AmbariMetaInfo {
     }
 
     if (settingResult.isEmpty()) {
-      throw new StackAccessException("stackName=" + stackName
-              + ", stackVersion=" + version
-              + ", settingName=" + settingName);
+      throw new StackAccessException(
+        "stackName",stackName,
+        "stackVersion", version,
+        "settingName=", settingName);
     }
 
     return settingResult;
@@ -881,9 +889,10 @@ public class AmbariMetaInfo {
     Set<PropertyInfo> properties = getStackProperties(stackName, version);
 
     if (properties.size() == 0) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", propertyName=" + propertyName);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "propertyName",propertyName);
     }
 
     Set<PropertyInfo> propertyResult = new HashSet<>();
@@ -895,9 +904,10 @@ public class AmbariMetaInfo {
     }
 
     if (propertyResult.isEmpty()) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", propertyName=" + propertyName);
+      throw new StackAccessException(
+        "stackName", stackName,
+        "stackVersion", version,
+        "propertyName", propertyName);
     }
 
     return propertyResult;
@@ -925,9 +935,10 @@ public class AmbariMetaInfo {
     Set<OperatingSystemInfo> operatingSystems = getOperatingSystems(stackName, version);
 
     if (operatingSystems.size() == 0) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", osType=" + osType);
+      throw new StackAccessException(
+        "stackName",stackName,
+        "stackVersion", version,
+        "osType", osType);
     }
 
     OperatingSystemInfo resultOperatingSystem = null;
@@ -940,9 +951,9 @@ public class AmbariMetaInfo {
     }
 
     if (resultOperatingSystem == null) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", osType=" + osType);
+      throw new StackAccessException("stackName" + stackName
+          + "stackVersion=" + version
+          + "osType=" + osType);
     }
 
     return resultOperatingSystem;

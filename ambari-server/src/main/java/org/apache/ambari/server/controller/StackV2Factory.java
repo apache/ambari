@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -35,8 +36,6 @@ import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 public class StackV2Factory {
   private final static Logger LOG = LoggerFactory.getLogger(StackV2Factory.class);
@@ -89,7 +88,10 @@ public class StackV2Factory {
     StackId stackId = new StackId(stackData.stackName, stackData.stackVersion);
     RepositoryVersionEntity entity =
       repositoryVersionDAO.findByStackAndVersion(stackId, stackData.repoVersion);
-    Preconditions.checkNotNull(entity, "Repo version %s not found for stack %s", stackData.repoVersion, stackId);
+    if (null == entity) {
+      throw new ObjectNotFoundException(
+        String.format("Repo version %s not found for stack %s", stackData.repoVersion, stackId));
+    }
   }
 
   private void getComponentInfos(StackData stackData) {

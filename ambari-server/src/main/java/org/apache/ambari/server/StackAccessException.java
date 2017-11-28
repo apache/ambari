@@ -22,6 +22,22 @@ package org.apache.ambari.server;
 public class StackAccessException extends ObjectNotFoundException {
 
   public StackAccessException(String message) {
-    super("Stack data, " + message);
+    super(message);
   }
+
+  public StackAccessException(String... messageAttributes) {
+    super(buildMessage(messageAttributes));
+  }
+
+  private static String buildMessage(String... messageAttributes) {
+    StringBuilder bld = new StringBuilder("Stack data");
+    boolean even = true;
+    for (String messageAttribute: messageAttributes) {
+      bld.append(even ? ", " : "=");
+      bld.append(messageAttribute);
+      even = !even;
+    }
+    return bld.toString();
+  }
+
 }

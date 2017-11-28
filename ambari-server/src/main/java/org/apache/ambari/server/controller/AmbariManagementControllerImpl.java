@@ -483,7 +483,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       stackId.getStackVersion());
 
     if (stackInfo == null) {
-      throw new StackAccessException("stackName=" + stackId.getStackName() + ", stackVersion=" + stackId.getStackVersion());
+      throw new StackAccessException(
+        "stackName", stackId.getStackName(),
+        "stackVersion=", stackId.getStackVersion());
     }
 
     // FIXME add support for desired configs at cluster level
@@ -5784,13 +5786,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StackInfo stackInfo = ambariMetaInfo.getStack(linkEntity.getStack().getStackName(), linkEntity.getStack().getStackVersion());
 
     if (stackInfo == null) {
-      throw new StackAccessException("stackName=" + linkEntity.getStack().getStackName() + ", stackVersion=" + linkEntity.getStack().getStackVersion());
+      throw new StackAccessException(
+        "stackName", linkEntity.getStack().getStackName(),
+        "stackVersion", linkEntity.getStack().getStackVersion());
     }
 
     ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(linkEntity.getExtension().getExtensionName(), linkEntity.getExtension().getExtensionVersion());
 
     if (extensionInfo == null) {
-      throw new StackAccessException("extensionName=" + linkEntity.getExtension().getExtensionName() + ", extensionVersion=" + linkEntity.getExtension().getExtensionVersion());
+      throw new StackAccessException(
+        "extensionName", linkEntity.getExtension().getExtensionName(),
+        "extensionVersion", linkEntity.getExtension().getExtensionVersion());
     }
 
     ExtensionHelper.validateDeleteLink(getClusters(), stackInfo, extensionInfo);
@@ -5828,13 +5834,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StackInfo stackInfo = ambariMetaInfo.getStack(request.getStackName(), request.getStackVersion());
 
     if (stackInfo == null) {
-      throw new StackAccessException("stackName=" + request.getStackName() + ", stackVersion=" + request.getStackVersion());
+      throw new StackAccessException(
+        "stackName", request.getStackName(),
+        "stackVersion", request.getStackVersion());
     }
 
     ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(request.getExtensionName(), request.getExtensionVersion());
 
     if (extensionInfo == null) {
-      throw new StackAccessException("extensionName=" + request.getExtensionName() + ", extensionVersion=" + request.getExtensionVersion());
+      throw new StackAccessException(
+        "extensionName", request.getExtensionName(),
+        "extensionVersion", request.getExtensionVersion());
     }
 
     helper.createExtensionLink(ambariMetaInfo.getStackManager(), stackInfo, extensionInfo);
@@ -5870,7 +5880,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StackInfo stackInfo = ambariMetaInfo.getStack(oldLinkEntity.getStack().getStackName(), oldLinkEntity.getStack().getStackVersion());
 
     if (stackInfo == null) {
-      throw new StackAccessException(String.format("stackName=%s, stackVersion=%s", oldLinkEntity.getStack().getStackName(), oldLinkEntity.getStack().getStackVersion()));
+      throw new StackAccessException(
+        "stackName", oldLinkEntity.getStack().getStackName(),
+        "stackVersion", oldLinkEntity.getStack().getStackVersion());
     }
 
     if (newLinkRequest.getExtensionName() == null || newLinkRequest.getExtensionVersion() == null) {
@@ -5887,10 +5899,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ExtensionInfo newExtensionInfo = ambariMetaInfo.getExtension(newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion());
 
     if (oldExtensionInfo == null) {
-      throw new StackAccessException(String.format("Old extensionName=%s, extensionVersion=%s", oldLinkEntity.getExtension().getExtensionName(), oldLinkEntity.getExtension().getExtensionVersion()));
+      throw new StackAccessException(
+        "Old extensionName", oldLinkEntity.getStack().getStackName(),
+        "extensionVersion", oldLinkEntity.getExtension().getExtensionVersion());
     }
     if (newExtensionInfo == null) {
-      throw new StackAccessException(String.format("New extensionName=%s, extensionVersion=%s", newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion()));
+      throw new StackAccessException(
+        "New extensionName", newLinkRequest.getExtensionName(),
+        "extensionVersion", newLinkRequest.getExtensionVersion());
     }
 
     helper.updateExtensionLink(ambariMetaInfo.getStackManager(), oldLinkEntity, stackInfo, oldExtensionInfo, newExtensionInfo);

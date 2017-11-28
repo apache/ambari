@@ -129,7 +129,10 @@ public class BlueprintV2Factory {
       return stackFactory.create(stackId, repositoryVersion);
     } catch (AmbariException e) {
       throw new IllegalArgumentException(
-        String.format("Unable to parse stack. name=%s, version=%s", stackId.getStackName(), stackId.getStackVersion()),
+        String.format("Unable to parse stack. name=%s, version=%s, cause: %s",
+          stackId.getStackName(),
+          stackId.getStackVersion(),
+          e.getMessage()),
         e);
     }
   }

@@ -30,7 +30,7 @@ public class ParentObjectNotFoundException extends ObjectNotFoundException {
    * @param cause  the root cause
    */
   public ParentObjectNotFoundException(String msg, ObjectNotFoundException cause) {
-    super(msg + ".  " + cause.getMessage(), cause);
+    super(msg, cause);
   }
 
   /**
