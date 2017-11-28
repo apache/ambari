@@ -34,11 +34,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   isAllChecked: function(key, value) {
     if (arguments.length > 1) {
-      this.filterProperty('isDisabled', false).setEach('isSelected', value);
+      this.filterProperty('isDisabled', false).filterProperty('isDFS', false).setEach('isSelected', value);
       return value;
     }
     return this.filterProperty('isInstalled', false).
       filterProperty('isHiddenOnSelectServicePage', false).
+      filterProperty('isDFS', false).
       everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
@@ -57,6 +58,16 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {Object[]}
    */
   errorStack: [],
+
+  /**
+   * Services which are HDFS compatible
+   */
+  fileSystems: function() {
+    var fileSystems = this.filterProperty('isDFS', true);;
+    return fileSystems.map(function(fs) {
+      return App.FileSystem.create({content: fs, services: fileSystems});
+    });
+  }.property('@each.isDFS'),
 
   /**
    * Drop errorStack content on selected state changes.

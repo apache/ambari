@@ -879,6 +879,8 @@ Em.I18n.translations = {
 
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
+  'installer.step4.headerFS':'Choose File System',
+  'installer.step4.bodyFS':'Choose which file system you want to install on your cluster.',
   'installer.step4.fsCheck.popup.header':'File System Required',
   'installer.step4.fsCheck.popup.body':'You did not select a File System but one is required. We will automatically add {0}. Is this OK?',
   'installer.step4.multipleDFS.popup.header':'Multiple File Systems Selected',

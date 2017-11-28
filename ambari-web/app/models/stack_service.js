@@ -71,6 +71,23 @@ var MissingDependency = Ember.Object.extend({
   })
 });
 
+App.FileSystem = Ember.ObjectProxy.extend({
+  content: null,
+  services: [],
+
+  isSelected: function(key, aBoolean) {
+    if (arguments.length > 1) {
+      this.clearAllSelection();
+      this.get('content').set('isSelected', aBoolean);
+    }
+    return this.get('content.isSelected');
+  }.property('content.isSelected', 'services.@each.isSelected'),
+
+  clearAllSelection: function() {
+    this.get('services').setEach('isSelected', false);
+  }
+});
+
 /**
  * This model loads all services supported by the stack
  * The model maps to the  http://hostname:8080/api/v1/stacks/HDP/versions/${versionNumber}/services?fields=StackServices/*,serviceComponents/*
