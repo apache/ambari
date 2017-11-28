@@ -690,6 +690,10 @@
 
     <service name="YARN">
       <component name="APP_TIMELINE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_yarn_spark_versioned_classpaths" supports-patch="true"/>
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

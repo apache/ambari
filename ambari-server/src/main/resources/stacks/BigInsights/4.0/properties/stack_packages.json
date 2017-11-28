@@ -840,6 +840,12 @@
           "current_dir": "{0}/current/knox-server/conf"
         }
       ],
+      "livy": [
+        {
+          "conf_dir": "/etc/livy/conf",
+          "current_dir": "{0}/current/livy-client/conf"
+        }
+      ],
       "mahout": [
         {
           "conf_dir": "/etc/mahout/conf",

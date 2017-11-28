@@ -66,6 +66,7 @@ public class SolrConstants {
     public static final String STORED_TOKEN_DYNAMIC_FIELDS = "std_*";
     public static final String KEY_DYNAMIC_FIELDS = "key_*";
     public static final String WS_DYNAMIC_FIELDS = "ws_*";
+    public static final String SDI_DYNAMIC_FIELDS = "sdi_*";
   }
 
   public class AuditLogConstants {
