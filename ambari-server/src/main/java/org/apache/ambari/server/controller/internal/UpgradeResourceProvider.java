@@ -1053,10 +1053,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, params);
 
-    // the ru_execute_tasks invokes scripts - it needs information about where
-    // the scripts live and for that it should always use the target repository
-    // stack
-    applyRepositoryAssociatedParameters(wrapper, effectiveRepositoryVersion.getStackId(), params);
 
     // add each host to this stage
     RequestResourceFilter filter = new RequestResourceFilter(serviceName, componentName,
@@ -1203,10 +1199,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
-
-    // add things like hooks and service folders based on effective repo
-    applyRepositoryAssociatedParameters(wrapper, effectiveRepositoryVersion.getStackId(),
-        commandParams);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
