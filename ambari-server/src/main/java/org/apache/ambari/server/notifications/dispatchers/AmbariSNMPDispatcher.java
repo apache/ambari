@@ -38,8 +38,12 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.util.DefaultPDUFactory;
+import org.snmp4j.smi.TimeTicks;
 
 import com.google.inject.Singleton;
+
+import java.lang.management.RuntimeMXBean;
+import java.lang.management.ManagementFactory;
 
 /**
  * The {@link AmbariSNMPDispatcher} class is used to dispatch {@link AlertNotification} via SNMP using predefined Ambari OIDs.
@@ -113,7 +117,12 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
         }
 
         pdu.setType(snmpVersion.getTrapType());
-        // Set trap oid for PDU
+    
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        long uptimeInMillis = runtimeMXBean.getUptime();
+        pdu.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(uptimeInMillis)));
+
+       // Set trap oid for PDU
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AMBARI_ALERT_TRAP_OID)));
         // Set notification body and subject for PDU objects with identifiers specified in dispatch properties.
         AlertNoticeDispatchService.AlertInfo alertInfo = alertNotification.getAlertInfo();
