@@ -40,7 +40,10 @@ import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.RepositoryXml.Os;
+import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -186,15 +189,41 @@ public class VersionDefinitionTest {
   public void testSerialization() throws Exception {
 
     File f = new File("src/test/resources/version_definition_test_all_services.xml");
-
     VersionDefinitionXml xml = VersionDefinitionXml.load(f.toURI().toURL());
-
     String xmlString = xml.toXml();
-
     xml = VersionDefinitionXml.load(xmlString);
 
     assertNotNull(xml.release.build);
     assertEquals("1234", xml.release.build);
+
+    f = new File("src/test/resources/version_definition_with_tags.xml");
+    xml = VersionDefinitionXml.load(f.toURI().toURL());
+    xmlString = xml.toXml();
+
+    xml = VersionDefinitionXml.load(xmlString);
+
+    assertEquals(2, xml.repositoryInfo.getOses().size());
+    List<Repo> repos = null;
+    for (Os os : xml.repositoryInfo.getOses()) {
+      if (os.getFamily().equals("redhat6")) {
+        repos = os.getRepos();
+      }
+    }
+    assertNotNull(repos);
+    assertEquals(3, repos.size());
+
+    Repo found = null;
+    for (Repo repo : repos) {
+      if (repo.getRepoName().equals("HDP-GPL")) {
+        found = repo;
+        break;
+      }
+    }
+
+    assertNotNull(found);
+    assertNotNull(found.getTags());
+    assertEquals(1, found.getTags().size());
+    assertEquals(RepoTag.GPL, found.getTags().iterator().next());
   }
 
 

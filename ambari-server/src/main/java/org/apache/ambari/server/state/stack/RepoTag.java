@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,24 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.state.stack;
 
-var App = require('app');
+import javax.xml.bind.annotation.XmlEnum;
 
-App.Repository = DS.Model.extend({
-  id: DS.attr('string'),
-  baseUrl : DS.attr('string'),
-  defaultBaseUrl : DS.attr('string'),
-  latestBaseUrl : DS.attr('string'),
-  mirrorsList : DS.attr('array'),
-  osType : DS.attr('string'),
-  repoId : DS.attr('string'),
-  repoName : DS.attr('string'),
-  stackName : DS.attr('string'),
-  stackVersion : DS.attr('string'),
-  operatingSystem: DS.belongsTo('App.OS'),
-  tags: DS.attr('array')
-});
+/**
+ * A Repo tag is a way to allow Ambari to place logic surrounding repository details.
+ * This is used instead of random strings to tightly control how tags are used.
+ */
+@XmlEnum
+public enum RepoTag {
 
-App.Repository.FIXTURES = [];
+  /**
+   * The repository may contain GPL-Licensed software
+   */
+  GPL
 
-
+}

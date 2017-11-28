@@ -94,6 +94,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
   private static final String USER_CONTEXT_PROPERTY = "user-context";
+  private static final String GPL_LICENSE_ACCEPTED = "gpl-license-accepted";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
 
   private File recommendationsDir;
@@ -205,6 +206,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     JsonNode userContext = mapper.valueToTree(request.getUserContext());
     root.put(USER_CONTEXT_PROPERTY, userContext);
+    root.put(GPL_LICENSE_ACCEPTED, request.getGplLicenseAccepted());
   }
 
   private void populateConfigGroups(ObjectNode root,

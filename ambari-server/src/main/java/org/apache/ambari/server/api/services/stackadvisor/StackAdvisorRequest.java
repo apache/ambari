@@ -48,6 +48,7 @@ public class StackAdvisorRequest {
   private List<ChangedConfigInfo> changedConfigurations = new LinkedList<ChangedConfigInfo>();
   private Set<RecommendationResponse.ConfigGroup> configGroups;
   private Map<String, String> userContext = new HashMap<String, String>();
+  private Boolean gplLicenseAccepted;
 
   public String getStackName() {
     return stackName;
@@ -115,6 +116,13 @@ public class StackAdvisorRequest {
 
   public void setConfigGroups(Set<RecommendationResponse.ConfigGroup> configGroups) {
     this.configGroups = configGroups;
+  }
+
+  /**
+   * @return true if GPL license is accepted, false otherwise
+   */
+  public Boolean getGplLicenseAccepted() {
+    return gplLicenseAccepted;
   }
 
   private StackAdvisorRequest(String stackName, String stackVersion) {
@@ -186,6 +194,17 @@ public class StackAdvisorRequest {
     public StackAdvisorRequestBuilder withConfigGroups(
       Set<RecommendationResponse.ConfigGroup> configGroups) {
       this.instance.configGroups = configGroups;
+      return this;
+    }
+
+    /**
+     * Set GPL license acceptance parameter to request.
+     * @param gplLicenseAccepted is GPL license accepted.
+     * @return stack advisor request builder.
+     */
+    public StackAdvisorRequestBuilder withGPLLicenseAccepted(
+        Boolean gplLicenseAccepted) {
+      this.instance.gplLicenseAccepted = gplLicenseAccepted;
       return this;
     }
 

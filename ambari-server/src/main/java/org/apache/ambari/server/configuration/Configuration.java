@@ -726,6 +726,14 @@ public class Configuration {
       "server.version.file", null);
 
   /**
+   * Whether user accepted GPL license
+   */
+  @Markdown(
+      description = "Whether user accepted GPL license.")
+  public static final ConfigurationProperty<Boolean> GPL_LICENSE_ACCEPTED = new ConfigurationProperty<>(
+      "gpl.license.accepted", false);
+
+  /**
    * The location of the JDK on the Ambari Agent hosts.
    */
   @Markdown(
@@ -5317,6 +5325,10 @@ public class Configuration {
    */
   public int getVersionDefinitionReadTimeout() {
     return NumberUtils.toInt(getProperty(VERSION_DEFINITION_READ_TIMEOUT));
+  }
+
+  public Boolean getGplLicenseAccepted(){
+    return Boolean.valueOf(getProperty(GPL_LICENSE_ACCEPTED));
   }
 
   public String getAgentStackRetryOnInstallCount(){

@@ -20,9 +20,9 @@ Ambari Agent
 """
 
 from resource_management import *
+from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 import sys
 import os
-
 
 def hdfs(name=None):
   import params
@@ -115,8 +115,7 @@ def hdfs(name=None):
        content=Template("slaves.j2")
   )
 
-  if params.lzo_enabled and len(params.lzo_packages) > 0:
-      Package(params.lzo_packages)
+  install_lzo_if_needed()
 
 def install_snappy():
   import params

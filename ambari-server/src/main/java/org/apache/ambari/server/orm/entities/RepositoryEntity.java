@@ -17,10 +17,13 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.state.stack.RepoTag;
 
 /**
  * Emulates entity to provide a quick way to change it to real entity in future.
@@ -37,6 +40,8 @@ public class RepositoryEntity {
   @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
     comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   private List<String> applicableServices;
+
+  private Set<RepoTag> tags;
 
   public String getName() {
     return name;
@@ -106,6 +111,20 @@ public class RepositoryEntity {
     this.applicableServices = applicableServices;
   }
 
+  /**
+   * @return the repo tags
+   */
+  public Set<RepoTag> getTags() {
+    return tags == null ? Collections.<RepoTag>emptySet() : tags;
+  }
+
+  /**
+   * @param repoTags the tags to set
+   */
+  public void setTags(Set<RepoTag> repoTags) {
+    tags = repoTags;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -132,4 +151,5 @@ public class RepositoryEntity {
     result = 31 * result + (applicableServices != null ? applicableServices.hashCode() : 0);
     return result;
   }
+
 }

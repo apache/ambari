@@ -200,6 +200,7 @@ public class RepoUtil {
     re.setDistribution(repoInfo.getDistribution());
     re.setComponents(repoInfo.getComponents());
     re.setApplicableServices(repoInfo.getApplicableServices());
+    re.setTags(repoInfo.getTags());
     return re;
   }
 

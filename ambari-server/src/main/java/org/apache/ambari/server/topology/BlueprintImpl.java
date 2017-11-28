@@ -19,7 +19,13 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.gson.Gson;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -36,12 +42,7 @@ import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
 
 /**
  * Blueprint implementation.
@@ -349,9 +350,10 @@ public class BlueprintImpl implements Blueprint {
    * Validate blueprint configuration.
    *
    * @throws InvalidTopologyException if the blueprint configuration is invalid
+   * @throws GPLLicenseNotAcceptedException ambari was configured to use gpl software, but gpl license is not accepted
    */
   @Override
-  public void validateRequiredProperties() throws InvalidTopologyException {
+  public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
     validator.validateRequiredProperties();
   }
 

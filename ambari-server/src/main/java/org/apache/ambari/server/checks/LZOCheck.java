@@ -52,6 +52,9 @@ public class LZOCheck extends AbstractCheckDescriptor {
    */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+    if (config.getGplLicenseAccepted()){
+      return;
+    }
     List<String> errorMessages = new ArrayList<>();
     PrereqCheckStatus checkStatus = PrereqCheckStatus.WARNING;
 
@@ -66,7 +69,8 @@ public class LZOCheck extends AbstractCheckDescriptor {
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, "You have LZO codec enabled in the core-site config of your cluster. LZO is no longer installed automatically. " +
+      prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, "You have LZO codec enabled in the core-site config of your cluster. " +
+          "You have to accept GPL license during ambari-server setup to have LZO installed automatically. " +
           "If any hosts require LZO, it should be installed before starting the upgrade. " +
           "Consult Ambari documentation for instructions on how to do this."));
       prerequisiteCheck.getFailedOn().add("LZO");

@@ -276,6 +276,7 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
+    expect(configuration.getGplLicenseAccepted()).andReturn(Configuration.GPL_LICENSE_ACCEPTED.getDefaultValue());
     expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
     Map<String,String> props = new HashMap<String, String>();
@@ -528,6 +529,7 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
+    expect(configuration.getGplLicenseAccepted()).andReturn(Configuration.GPL_LICENSE_ACCEPTED.getDefaultValue());
     expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
 

@@ -64,6 +64,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "repository_version_id");
   public static final String REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "version_definition_id");
   public static final String REPOSITORY_UNIQUE_PROPERTY_ID                = PropertyHelper.getPropertyId("Repositories", "unique");
+  public static final String REPOSITORY_TAGS_PROPERTY_ID                  = PropertyHelper.getPropertyId("Repositories", "tags");
   @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
     comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   public static final String REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID   = PropertyHelper.getPropertyId("Repositories", "applicable_services");
@@ -98,6 +99,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       add(REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       add(REPOSITORY_UNIQUE_PROPERTY_ID);
       add(REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID);
+      add(REPOSITORY_TAGS_PROPERTY_ID);
     }
   };
 
@@ -123,7 +125,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+    final Set<RepositoryRequest> requests = new HashSet<>();
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     if (iterator.hasNext()) {
@@ -148,7 +150,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+    final Set<RepositoryRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -166,7 +168,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (RepositoryResponse response : responses) {
         Resource resource = new ResourceImpl(Resource.Type.Repository);
@@ -184,6 +186,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_LATEST_BASE_URL_PROPERTY_ID, response.getLatestBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_UNIQUE_PROPERTY_ID, response.isUnique(), requestedIds);
         setResourceProperty(resource, REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID, response.getApplicableServices(), requestedIds);
+        setResourceProperty(resource, REPOSITORY_TAGS_PROPERTY_ID, response.getTags(), requestedIds);
         if (null != response.getClusterVersionId()) {
           setResourceProperty(resource, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID, response.getClusterVersionId(), requestedIds);
         }
@@ -207,7 +210,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
     final String validateOnlyProperty = request.getRequestInfoProperties().get(RepositoryResourceDefinition.VALIDATE_ONLY_DIRECTIVE);
     if (BooleanUtils.toBoolean(validateOnlyProperty)) {
-      final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+      final Set<RepositoryRequest> requests = new HashSet<>();
       final Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
       if (iterator.hasNext()) {
         for (Map<String, Object> propertyMap : request.getProperties()) {

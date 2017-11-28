@@ -904,7 +904,8 @@ public class AmbariServer {
     PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
-    StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class));
+    StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class),
+        injector.getInstance(Configuration.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));

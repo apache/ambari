@@ -18,11 +18,17 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
-import org.apache.ambari.server.utils.SecretReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -41,28 +47,24 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.GPLLicenseNotAcceptedException;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.utils.SecretReference;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.gson.Gson;
 
 
 /**
@@ -514,7 +516,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
         try {
           blueprint.validateRequiredProperties();
-        } catch (InvalidTopologyException e) {
+        } catch (InvalidTopologyException | GPLLicenseNotAcceptedException e) {
           throw new IllegalArgumentException("Blueprint configuration validation failed: " + e.getMessage(), e);
         }
 
