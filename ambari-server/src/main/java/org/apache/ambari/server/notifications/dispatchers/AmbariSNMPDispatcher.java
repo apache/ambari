@@ -19,6 +19,8 @@
 package org.apache.ambari.server.notifications.dispatchers;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,14 +38,11 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.TimeTicks;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.util.DefaultPDUFactory;
-import org.snmp4j.smi.TimeTicks;
 
 import com.google.inject.Singleton;
-
-import java.lang.management.RuntimeMXBean;
-import java.lang.management.ManagementFactory;
 
 /**
  * The {@link AmbariSNMPDispatcher} class is used to dispatch {@link AlertNotification} via SNMP using predefined Ambari OIDs.
