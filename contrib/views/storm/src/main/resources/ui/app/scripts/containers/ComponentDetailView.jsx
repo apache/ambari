@@ -574,7 +574,7 @@ export default class ComponentDetailView extends Component {
               <div className="form-group">
                 <label className="col-sm-4 control-label">ID:</label>
                 <div className="col-sm-8">
-                  <p className="form-control-static" style={{'word-wrap' : 'break-word'}}>{componentDetail.id}</p>
+                  <p className="form-control-static" style={{'wordWrap' : 'break-word'}}>{componentDetail.id}</p>
                 </div>
               </div>
               <div className="form-group">
