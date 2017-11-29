@@ -47,7 +47,6 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -104,6 +103,8 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
   public static final String FK_SDS_DESIRED_STACK_ID = "FK_sds_desired_stack_id";
   public static final String FK_REPO_VERSION_ID = "FK_repo_version_id";
+
+  public static final String CLUSTERS_TABLE = "clusters";
 
   public static final String UPGRADE_TABLE = "upgrade";
   public static final String UPGRADE_GROUP_TABLE = "upgrade_group";
@@ -346,6 +347,8 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
    * @throws java.sql.SQLException
    */
   private void updateUpgradeTable() throws SQLException {
+    dbAccessor.clearTableColumn(CLUSTERS_TABLE, UPGRADE_ID_COLUMN, null);
+
     dbAccessor.clearTable(UPGRADE_ITEM_TABLE);
     dbAccessor.clearTable(UPGRADE_GROUP_TABLE);
     dbAccessor.clearTable(UPGRADE_TABLE);
