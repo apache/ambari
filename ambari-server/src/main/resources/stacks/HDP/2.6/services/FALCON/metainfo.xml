@@ -21,6 +21,32 @@
     <service>
       <name>FALCON</name>
       <version>0.10.0</version>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>falcon_${stack_version}</name>
+            </package>
+            <package>
+              <name>atlas-metadata_${stack_version}-falcon-plugin</name>
+              <condition>should_install_falcon_atlas_hook</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>falcon-${stack_version}</name>
+            </package>
+            <package>
+              <name>atlas-metadata-${stack_version}-falcon-plugin</name>
+              <condition>should_install_falcon_atlas_hook</condition>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
     </service>
   </services>
 </metainfo>
