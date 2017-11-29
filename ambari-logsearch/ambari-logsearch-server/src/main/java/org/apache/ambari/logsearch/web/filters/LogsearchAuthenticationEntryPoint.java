@@ -24,12 +24,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 public class LogsearchAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
-  private static final Logger logger = Logger.getLogger(LogsearchAuthenticationEntryPoint.class);
+  private static final Logger logger = LoggerFactory.getLogger(LogsearchAuthenticationEntryPoint.class);
 
   public LogsearchAuthenticationEntryPoint(String loginFormUrl) {
     super(loginFormUrl);
@@ -38,13 +39,7 @@ public class LogsearchAuthenticationEntryPoint extends LoginUrlAuthenticationEnt
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
     throws IOException, ServletException {
-    String ajaxRequestHeader = request.getHeader("X-Requested-With");
-    if (ajaxRequestHeader != null && ajaxRequestHeader.equalsIgnoreCase("XMLHttpRequest")) {
-      logger.debug("AJAX request. Authentication required. Returning URL=" + request.getRequestURI());
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session Timeout");
-    } else {
-      logger.debug("Redirecting to login page :" + this.getLoginFormUrl());
-      super.commence(request, response, authException);
-    }
+    logger.debug("Got 401 from request: {}", request.getRequestURI());
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
   }
 }
