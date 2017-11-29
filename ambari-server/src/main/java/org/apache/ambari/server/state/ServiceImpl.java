@@ -691,6 +691,7 @@ public class ServiceImpl implements Service {
     serviceEntityPK.setServiceId(serviceId);
     serviceDesiredStateEntityPK.setServiceId(serviceId);
     clusterEntity.getClusterServiceEntities().add(serviceEntity);
+    serviceEntity.getServiceDesiredStateEntity().setServiceId(serviceId);
     clusterDAO.merge(clusterEntity);
     serviceGroupDAO.merge(serviceGroupEntity);
     clusterServiceDAO.merge(serviceEntity);
