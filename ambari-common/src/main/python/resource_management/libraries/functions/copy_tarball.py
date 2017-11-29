@@ -90,8 +90,14 @@ def _prepare_tez_tarball():
   # if enabled, LZO GPL libraries must be copied as well
   if lzo_utils.should_install_lzo():
     stack_root = Script.get_stack_root()
-    tez_version = component_version.get_component_repository_version("TEZ")
-    hadoop_lib_native_lzo_dir = os.path.join(stack_root, tez_version, "hadoop", "lib", "native")
+    service_version = component_version.get_component_repository_version(service_name = "TEZ")
+
+    # some installations might not have Tez, but MapReduce2 should be a fallback to get the LZO libraries from
+    if service_version is None:
+      Logger.warning("Tez does not appear to be installed, using the MapReduce version to get the LZO libraries")
+      service_version = component_version.get_component_repository_version(service_name = "MAPREDUCE2")
+
+    hadoop_lib_native_lzo_dir = os.path.join(stack_root, service_version, "hadoop", "lib", "native")
 
     if not sudo.path_isdir(hadoop_lib_native_lzo_dir):
       Logger.warning("Unable to located native LZO libraries at {0}, falling back to hadoop home".format(hadoop_lib_native_lzo_dir))
