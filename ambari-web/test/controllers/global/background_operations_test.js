@@ -149,14 +149,6 @@ describe('App.BackgroundOperationsController', function () {
 
   describe('#callBackForMostRecent()', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.router.get('clusterController'), 'restoreUpgradeState', Em.K);
-    });
-
-    afterEach(function () {
-      App.router.get('clusterController').restoreUpgradeState.restore();
-    });
-
     it('No requests exists', function () {
       var data = {
         items: []
@@ -781,6 +773,13 @@ describe('App.BackgroundOperationsController', function () {
       controller.parseRequestContext.restore();
       controller.generateTasksMapOfRequest.restore();
       controller.propertyDidChange.restore();
+    });
+
+    it('should exit when request is upgrade', function() {
+      controller.updateRequests({
+        requestContext: 'upgrading'
+      });
+      expect(controller.parseRequestContext.called).to.be.false;
     });
 
     it('should add request to list', function() {

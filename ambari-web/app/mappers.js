@@ -51,3 +51,4 @@ require('mappers/socket/alert_summary_mapper');
 require('mappers/socket/host_state_mapper');
 require('mappers/socket/alert_definitions_mapper_adapter');
 require('mappers/socket/alert_groups_mapper_adapter');
+require('mappers/socket/upgrade_state_mapper');

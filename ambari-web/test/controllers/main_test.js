@@ -102,4 +102,37 @@ describe('App.MainController', function () {
     });
   });
 
+  describe('#startPolling', function() {
+    var mock,
+        updateController = Em.Object.create({
+          startSubscriptions: sinon.spy(),
+          isWorking: false
+        }),
+        backgroundOperationsController = Em.Object.create({
+          isWorking: false
+        });
+    beforeEach(function() {
+      mock = sinon.stub(App.router, 'get');
+      mock.withArgs('applicationController.isExistingClusterDataLoaded').returns(true);
+      mock.withArgs('updateController').returns(updateController);
+      mock.withArgs('backgroundOperationsController').returns(backgroundOperationsController);
+      mainController.startPolling();
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+
+    it('updateController should be working', function() {
+      expect(updateController.get('isWorking')).to.be.true;
+    });
+
+    it('backgroundOperationsController should be working', function() {
+      expect(backgroundOperationsController.get('isWorking')).to.be.true;
+    });
+
+    it('startSubscriptions should be called', function() {
+      expect(updateController.startSubscriptions.called).to.be.true;
+    });
+  });
+
 });

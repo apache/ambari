@@ -306,7 +306,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * restore upgrade status from server
    * and make call to get latest status from server
    * Also loading all upgrades to App.StackUpgradeHistory model
-   * TODO should be called even if recent background operations doesn't have Upgrade request
    */
   restoreUpgradeState: function () {
     var self = this;
@@ -314,7 +313,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
       var allUpgrades = data.items.sortProperty('Upgrade.request_id');
       var lastUpgradeData = allUpgrades.pop();
-      var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
       if (lastUpgradeData){
         var status = lastUpgradeData.Upgrade.request_status;
         var lastUpgradeNotFinished = (self.isSuspendedState(status) || self.isRunningState(status));
@@ -347,11 +345,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         }
       } else {
         upgradeController.initDBProperties();
-        upgradeController.loadUpgradeData(true);
-      }
-
-      if (!Em.isNone(dbUpgradeState)) {
-        App.set('upgradeState', dbUpgradeState);
       }
 
       App.stackUpgradeHistoryMapper.map(data);

@@ -421,13 +421,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var dfd = $.Deferred();
     var self = this;
 
-    this.loadUpgradeData(true).done(function() {
-      self.loadStackVersionsToModel(true).done(function () {
-        self.loadRepoVersionsToModel().done(function() {
-          self.loadCompatibleVersions().done(function() {
-            self.updateCurrentStackVersion();
-            dfd.resolve();
-          });
+    this.loadStackVersionsToModel(true).done(function () {
+      self.loadRepoVersionsToModel().done(function() {
+        self.loadCompatibleVersions().done(function() {
+          self.updateCurrentStackVersion();
+          dfd.resolve();
         });
       });
     });
@@ -2140,16 +2138,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       isWizardRestricted: upgradeType.get('isWizardRestricted'),
       downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
       upgradeTypeDisplayName: upgradeType.get('displayName'),
-      failuresTolerance: Em.Object.create({
+      isSuspended: lastUpgradeData.Upgrade.suspended,
+      failuresTolerance: {
         skipComponentFailures: lastUpgradeData.Upgrade.skip_failures,
         skipSCFailures: lastUpgradeData.Upgrade.skip_service_check_failures
-      })
+      }
     });
+    this.initDBProperties();
+    App.set('upgradeState', lastUpgradeData.Upgrade.request_status);
     this.loadRepoVersionsToModel().done(function () {
       var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.associated_version);
       self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
-      self.initDBProperties();
-      self.loadUpgradeData(true);
+      self.set('upgradeVersion', toVersion && toVersion.get('displayName'));
     });
   },
 

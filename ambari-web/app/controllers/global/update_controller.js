@@ -187,15 +187,6 @@ App.UpdateController = Em.Controller.extend({
    */
   updateAll: function () {
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
-      App.StompClient.subscribe('/events/hostcomponents', App.hostComponentStatusMapper.map.bind(App.hostComponentStatusMapper));
-      App.StompClient.subscribe('/events/alerts', App.alertSummaryMapper.map.bind(App.alertSummaryMapper));
-      App.StompClient.subscribe('/events/ui_topologies', App.topologyMapper.map.bind(App.topologyMapper));
-      App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
-      App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
-      App.StompClient.subscribe('/events/hosts', App.hostStateMapper.map.bind(App.hostStateMapper));
-      App.StompClient.subscribe('/events/alert_definitions', App.alertDefinitionsMapperAdapter.map.bind(App.alertDefinitionsMapperAdapter));
-      App.StompClient.subscribe('/events/alert_group', App.alertGroupsMapperAdapter.map.bind(App.alertGroupsMapperAdapter));
-
       App.updater.run(this, 'updateHostsMetrics', 'isWorking', App.contentUpdateInterval, '\/main\/(hosts).*');
       App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
       App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services|hosts).*');
@@ -204,19 +195,21 @@ App.UpdateController = Em.Controller.extend({
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
-      App.updater.run(this, 'updateUpgradeState', 'isWorking', App.bgOperationsUpdateInterval);
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
-    } else {
-      App.StompClient.unsubscribe('/events/hostcomponents');
-      App.StompClient.unsubscribe('/events/alerts');
-      // "/events/ui_topologies" topic should listen to topology changes when wizard running
-      App.StompClient.unsubscribe('/events/configs');
-      App.StompClient.unsubscribe('/events/services');
-      App.StompClient.unsubscribe('/events/hosts');
-      App.StompClient.unsubscribe('/events/alert_definitions');
-      App.StompClient.unsubscribe('/events/alert_group');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
+
+  startSubscriptions: function () {
+    App.StompClient.subscribe('/events/hostcomponents', App.hostComponentStatusMapper.map.bind(App.hostComponentStatusMapper));
+    App.StompClient.subscribe('/events/alerts', App.alertSummaryMapper.map.bind(App.alertSummaryMapper));
+    App.StompClient.subscribe('/events/ui_topologies', App.topologyMapper.map.bind(App.topologyMapper));
+    App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
+    App.StompClient.subscribe('/events/services', App.serviceStateMapper.map.bind(App.serviceStateMapper));
+    App.StompClient.subscribe('/events/hosts', App.hostStateMapper.map.bind(App.hostStateMapper));
+    App.StompClient.subscribe('/events/alert_definitions', App.alertDefinitionsMapperAdapter.map.bind(App.alertDefinitionsMapperAdapter));
+    App.StompClient.subscribe('/events/alert_group', App.alertGroupsMapperAdapter.map.bind(App.alertGroupsMapperAdapter));
+    App.StompClient.subscribe('/events/upgrade', App.upgradeStateMapper.map.bind(App.upgradeStateMapper));
+  },
 
   /**
    *
@@ -620,17 +613,6 @@ App.UpdateController = Em.Controller.extend({
     App.HttpClient.get(App.get('apiPrefix') + '/alert_targets?fields=*', App.alertNotificationMapper, {
       complete: callback
     });
-  },
-
-  updateUpgradeState: function (callback) {
-    var currentStateName = App.get('router.currentState.name'),
-      parentStateName = App.get('router.currentState.parentState.name'),
-      mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController');
-    if (!(currentStateName === 'versions' && parentStateName === 'stackAndUpgrade') && currentStateName !== 'stackUpgrade' && App.get('wizardIsNotFinished') && !mainAdminStackAndUpgradeController.get('isLoadUpgradeDataPending')) {
-      mainAdminStackAndUpgradeController.loadUpgradeData(true).done(callback);
-    } else {
-      callback();
-    }
   },
 
   makeCallForClusterEnv: function(event) {

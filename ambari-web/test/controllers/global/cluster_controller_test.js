@@ -501,10 +501,6 @@ describe('App.clusterController', function () {
         expect(controller.getAllUpgrades.calledOnce).to.be.true;
       });
 
-      it('upgradeState is PENDING', function () {
-        expect(App.get('upgradeState')).to.equal('PENDING');
-      });
-
       it('restoreLastUpgrade is called with valid arguments', function () {
         expect(upgradeController.restoreLastUpgrade.calledWith(data.upgradeData.items[0])).to.be.true;
       });
@@ -572,10 +568,6 @@ describe('App.clusterController', function () {
         expect(controller.getAllUpgrades.calledOnce).to.be.true;
       });
 
-      it('upgradeState is PENDING', function () {
-        expect(App.get('upgradeState')).to.equal('PENDING');
-      });
-
       it('restoreLastUpgrade is not called', function () {
         expect(upgradeController.restoreLastUpgrade.called).to.be.false;
       });
@@ -586,10 +578,6 @@ describe('App.clusterController', function () {
 
       it('initDBProperties is called once', function () {
         expect(upgradeController.initDBProperties.calledOnce).to.be.true;
-      });
-
-      it('loadUpgradeData is called with valid arguments', function () {
-        expect(upgradeController.loadUpgradeData.calledWith(true)).to.be.true;
       });
 
     });
