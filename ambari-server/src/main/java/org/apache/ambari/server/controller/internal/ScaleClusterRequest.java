@@ -119,7 +119,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
           "Currently, a scaling request may only refer to a single blueprint");
     }
 
-    String hostName = getHostNameFromProperties(properties);
+    String hostName = HostResourceProvider.getHostNameFromProperties(properties);
     boolean containsHostCount = properties.containsKey(HostResourceProvider.HOST_COUNT_PROPERTY_ID);
     boolean containsHostPredicate = properties.containsKey(HostResourceProvider.HOST_PREDICATE_PROPERTY_ID);
 
@@ -209,21 +209,6 @@ public class ScaleClusterRequest extends BaseClusterRequest {
       throw new InvalidTopologyTemplateException("The specified blueprint doesn't exist: " + blueprintName);
     }
     return blueprint;
-  }
-
-  /**
-   * Get the host name from the request properties.
-   *
-   * @param properties  request properties
-   * @return host name
-   */
-  //todo: this was copied exactly from HostResourceProvider
-  private String getHostNameFromProperties(Map<String, Object> properties) {
-    String hostName = (String) properties.get(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID);
-    if (hostName == null) {
-      hostName = (String) properties.get(HostResourceProvider.HOST_NAME_PROPERTY_ID);
-    }
-    return hostName;
   }
 
   /**
