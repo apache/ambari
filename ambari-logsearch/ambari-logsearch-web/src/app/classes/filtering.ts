@@ -18,9 +18,10 @@
 
 import {Moment, unitOfTime} from 'moment';
 import {ListItem} from '@app/classes/list-item';
+import {TimeRangeType, SortingType} from '@app/classes/string';
 
 export interface TimeUnit {
-  type: 'CURRENT' | 'LAST' | 'PAST';
+  type: TimeRangeType;
   unit: unitOfTime.DurationConstructor;
   interval?: number;
 }
@@ -33,7 +34,7 @@ export interface CustomTimeRange {
 
 export interface SortingConditions {
   key: string;
-  type: 'asc' | 'desc';
+  type: SortingType;
 }
 
 export interface TimeUnitListItem extends ListItem {
@@ -49,4 +50,21 @@ export interface FilterCondition {
   options?: (ListItem | TimeUnitListItem[])[];
   defaultSelection?: ListItem | ListItem[] | number;
   iconClass?: string;
+  fieldName?: string;
+}
+
+export interface SearchBoxParameter {
+  name: string;
+  value: string;
+  isExclude: boolean;
+}
+
+export interface SearchBoxParameterProcessed extends SearchBoxParameter {
+  id: number;
+  label: string;
+}
+
+export interface SearchBoxParameterTriggered {
+  value: string;
+  isExclude: boolean;
 }

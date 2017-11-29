@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
@@ -35,14 +36,24 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 /**
  * Default blueprint validator.
  */
+@StaticallyInject
 public class BlueprintValidatorImpl implements BlueprintValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BlueprintValidatorImpl.class);
   private final Blueprint blueprint;
   private final Stack stack;
+
+  public static final String LZO_CODEC_CLASS_PROPERTY_NAME = "io.compression.codec.lzo.class";
+  public static final String CODEC_CLASSES_PROPERTY_NAME = "io.compression.codecs";
+  public static final String LZO_CODEC_CLASS = "com.hadoop.compression.lzo.LzoCodec";
+
+  @Inject
+  private static org.apache.ambari.server.configuration.Configuration configuration;
 
   public BlueprintValidatorImpl(Blueprint blueprint) {
     this.blueprint = blueprint;
@@ -84,13 +95,17 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   }
 
   @Override
-  public void validateRequiredProperties() throws InvalidTopologyException {
+  public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
 
     // we don't want to include default stack properties so we can't just use hostGroup full properties
     Map<String, Map<String, String>> clusterConfigurations = blueprint.getConfiguration().getProperties();
 
     // we need to have real passwords, not references
     if (clusterConfigurations != null) {
+
+      // need to reject blueprints that have LZO enabled if the Ambari Server hasn't been configured for it
+      boolean gplEnabled = configuration.getGplLicenseAccepted();
+
       StringBuilder errorMessage = new StringBuilder();
       boolean containsSecretReferences = false;
       for (Map.Entry<String, Map<String, String>> configEntry : clusterConfigurations.entrySet()) {
@@ -100,6 +115,12 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
             String propertyName = propertyEntry.getKey();
             String propertyValue = propertyEntry.getValue();
             if (propertyValue != null) {
+              if (!gplEnabled && configType.equals("core-site")
+                  && (propertyName.equals(LZO_CODEC_CLASS_PROPERTY_NAME) || propertyName.equals(CODEC_CLASSES_PROPERTY_NAME))
+                  && propertyValue.contains(LZO_CODEC_CLASS)) {
+                throw new GPLLicenseNotAcceptedException("Your Ambari server has not been configured to download LZO GPL software. " +
+                    "Please refer to documentation to configure Ambari before proceeding.");
+              }
               if (SecretReference.isSecret(propertyValue)) {
                 errorMessage.append("  Config:" + configType + " Property:" + propertyName + "\n");
                 containsSecretReferences = true;

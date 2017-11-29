@@ -17,6 +17,7 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
@@ -62,7 +63,8 @@ describe('ComponentActionsService', () => {
           serviceLogsHistogramData,
           serviceLogsTruncated,
           tabs
-        })
+        }),
+        ...TranslationModules
       ],
       providers: [
         ComponentActionsService,
