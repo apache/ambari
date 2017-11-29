@@ -1277,7 +1277,9 @@
       }
     },
     "upgrade-dependencies" : {
-      "HIVE": ["TEZ"],
+      "HIVE": ["TEZ", "MAPREDUCE2"],
+      "TEZ": ["HIVE"],
+      "MAPREDUCE2": ["HIVE"],
       "MAHOUT": ["MAPREDUCE2"],
       "OOZIE": ["MAPREDUCE2"]
     }    
