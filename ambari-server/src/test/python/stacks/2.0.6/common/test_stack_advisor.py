@@ -2522,7 +2522,8 @@ class TestHDP206StackAdvisor(TestCase):
                   'hadoop.proxyuser.hdfs-user.groups': '*',
                   'hadoop.proxyuser.yarn-user.hosts': 'host1,host2',
                   'hadoop.proxyuser.yarn-user.groups': '*',
-                  'io.compression.codec.lzo.class': 'com.hadoop.compression.lzo.LzoCodec'}
+                  'io.compression.codec.lzo.class': 'com.hadoop.compression.lzo.LzoCodec',
+                  'io.compression.codecs': 'AnotherCodec, com.hadoop.compression.lzo.LzoCodec'}
     services = {
       'services':  [
         { 'StackServices': {'service_name': 'HDFS'}},
@@ -2558,10 +2559,17 @@ class TestHDP206StackAdvisor(TestCase):
     res_expected = [{'config-type': 'core-site',
                      'message': 'Your Ambari Server has not been configured to download LZO and install it. '
                                 'LZO is GPL software and requires you to accept a license prior to use. '
-                                'Please refer to this documentation to configure Ambari before proceeding.',
+                                'Please refer to the documentation to configure Ambari before proceeding.',
+                     'type': 'configuration',
+                     'config-name': 'io.compression.codecs',
+                     'level': 'NOT_APPLICABLE'},
+                    {'config-type': 'core-site',
+                     'message': 'Your Ambari Server has not been configured to download LZO and install it. '
+                                'LZO is GPL software and requires you to accept a license prior to use. '
+                                'Please refer to the documentation to configure Ambari before proceeding.',
                      'type': 'configuration',
                      'config-name': 'io.compression.codec.lzo.class',
-                     'level': 'ERROR'}]
+                     'level': 'NOT_APPLICABLE'}]
 
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, hosts)
     self.assertEquals(res, res_expected)
