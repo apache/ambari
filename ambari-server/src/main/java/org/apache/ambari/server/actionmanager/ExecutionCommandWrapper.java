@@ -302,7 +302,12 @@ public class ExecutionCommandWrapper {
       if (null != repositoryVersion) {
         // only set the version if it's not set and this is NOT an install
         // command
+        // Some stack scripts use version for path purposes.  Sending unresolved version first (for
+        // blueprints) and then resolved one would result in various issues: duplicate directories
+        // (/hdp/apps/2.6.3.0 + /hdp/apps/2.6.3.0-235), parent directory not found, and file not
+        // found, etc.  Hence requiring repositoryVersion to be resolved.
         if (!commandParams.containsKey(VERSION)
+          && repositoryVersion.isResolved()
           && executionCommand.getRoleCommand() != RoleCommand.INSTALL) {
           commandParams.put(VERSION, repositoryVersion.getVersion());
         }

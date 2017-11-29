@@ -318,8 +318,7 @@ public class ExecutionCommandWrapperTest {
     commandParams = processedExecutionCommand.getCommandParams();
     Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
 
-    // now try with a START command which should populate the version even
-    // though the state is INSTALLING
+    // now try with a START command, but still unresolved
     executionCommand = new ExecutionCommand();
     commandParams = new HashMap<>();
 
@@ -340,6 +339,17 @@ public class ExecutionCommandWrapperTest {
 
     processedExecutionCommand = execCommWrap.getExecutionCommand();
     commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
+
+    // now that the repositoryVersion is resolved, it should populate the version even
+    // though the state is INSTALLING
+    repositoryVersion.setResolved(true);
+    ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
+    execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
     Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
   }
 
@@ -352,6 +362,7 @@ public class ExecutionCommandWrapperTest {
 
     StackId stackId = cluster.getDesiredStackVersion();
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+    repositoryVersion.setResolved(true); // has build number
     Service service = cluster.getService("HDFS");
     service.setDesiredRepositoryVersion(repositoryVersion);
 
