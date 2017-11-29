@@ -997,7 +997,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
    *
    * @return the host name for the host request
    */
-  private String getHostNameFromProperties(Map<String, Object> properties) {
+  public static String getHostNameFromProperties(Map<String, Object> properties) {
     String hostname = (String) properties.get(HOST_HOST_NAME_PROPERTY_ID);
 
     return hostname != null ? hostname :
