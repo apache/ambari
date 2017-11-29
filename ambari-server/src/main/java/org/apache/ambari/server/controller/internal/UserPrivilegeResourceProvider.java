@@ -286,7 +286,6 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         }
 
         if (userEntity == null) {
-          LOG.debug("User {} was not found", userName);
           throw new SystemException("User was not found");
         }
 

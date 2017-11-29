@@ -57,6 +57,8 @@ import org.apache.ambari.server.security.authentication.AccountDisabledException
 import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
 import org.apache.ambari.server.security.authentication.UserNotFoundException;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
+import org.apache.ambari.server.security.ldap.LdapGroupDto;
+import org.apache.ambari.server.security.ldap.LdapUserDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -694,9 +696,6 @@ public class Users {
    *
    * @param batchInfo DTO with batch information
    */
-  // TODO: ************
-  // TODO: This is to be revisited for AMBARI-21222 (Update LDAP sync process to work with improved user management facility)
-  // TODO: ************
   public void processLdapSync(LdapBatchDto batchInfo) {
     final Map<String, UserEntity> allUsers = new HashMap<>();
     final Map<String, GroupEntity> allGroups = new HashMap<>();
@@ -712,7 +711,7 @@ public class Users {
     }
 
     final PrincipalTypeEntity groupPrincipalType = principalTypeDAO
-      .ensurePrincipalTypeCreated(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
+        .ensurePrincipalTypeCreated(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
 
     /* *****
      * Remove users
@@ -721,17 +720,21 @@ public class Users {
      * ***** */
     final Set<UserEntity> usersToRemove = new HashSet<>();
     final Set<UserAuthenticationEntity> authenticationEntitiesToRemove = new HashSet<>();
-    for (String userName : batchInfo.getUsersToBeRemoved()) {
-      UserEntity userEntity = userDAO.findUserByName(userName);
+    for (LdapUserDto user : batchInfo.getUsersToBeRemoved()) {
+      UserEntity userEntity = userDAO.findUserByName(user.getUserName());
       if (userEntity != null) {
-        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+        List<UserAuthenticationEntity> authenticationEntities = userAuthenticationDAO.findByUser(userEntity);
         Iterator<UserAuthenticationEntity> iterator = authenticationEntities.iterator();
         while (iterator.hasNext()) {
           UserAuthenticationEntity authenticationEntity = iterator.next();
 
           if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LDAP) {
-            // TODO: Determine if this is the _relevant_ LDAP authentication entry - for now there will only be one..
-            authenticationEntitiesToRemove.add(authenticationEntity);
+            String dn = user.getDn();
+            String authenticationKey = authenticationEntity.getAuthenticationKey();
+
+            if (StringUtils.isEmpty(dn) || StringUtils.isEmpty(authenticationKey) || dn.equals(authenticationKey)) {
+              authenticationEntitiesToRemove.add(authenticationEntity);
+            }
             iterator.remove();
           }
         }
@@ -747,8 +750,8 @@ public class Users {
 
     // remove groups
     final Set<GroupEntity> groupsToRemove = new HashSet<>();
-    for (String groupName : batchInfo.getGroupsToBeRemoved()) {
-      final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    for (LdapGroupDto group : batchInfo.getGroupsToBeRemoved()) {
+      final GroupEntity groupEntity = groupDAO.findGroupByName(group.getGroupName());
       allGroups.remove(groupEntity.getGroupName());
       groupsToRemove.add(groupEntity);
     }
@@ -758,36 +761,18 @@ public class Users {
      * Update users
      * ***** */
     final Set<UserEntity> userEntitiesToUpdate = new HashSet<>();
-    for (String userName : batchInfo.getUsersToBecomeLdap()) {
+    for (LdapUserDto user : batchInfo.getUsersToBecomeLdap()) {
       // Ensure the username is all lowercase
-      userName = userName.toLowerCase();
+      String userName = user.getUserName();
 
       UserEntity userEntity = userDAO.findUserByName(userName);
       if (userEntity != null) {
         LOG.trace("Enabling LDAP authentication for the user account with the username {}.", userName);
-        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
-        boolean createNew = true;
-
-        for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
-          if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LDAP) {
-            // TODO: check for the relevant LDAP entry... for now there will be only one.
-            LOG.debug("Found existing LDAP authentication record for the user account with the username {}.", userName);
-            createNew = false;
-            break;
-          }
-        }
-
-        if (createNew) {
-          LOG.debug("Creating new LDAP authentication record for the user account with the username {}.", userName);
-
-          UserAuthenticationEntity authenticationEntity = new UserAuthenticationEntity();
-          authenticationEntity.setUser(userEntity);
-          authenticationEntity.setAuthenticationType(UserAuthenticationType.LDAP);
-          authenticationEntity.setAuthenticationKey("DN to be set");
-          authenticationEntities.add(authenticationEntity);
-
-          userEntity.setAuthenticationEntities(authenticationEntities);
+        try {
+          addLdapAuthentication(userEntity, user.getDn(), false);
           userEntitiesToUpdate.add(userEntity);
+        } catch (AmbariException e) {
+          LOG.warn(String.format("Failed to enable LDAP authentication for the user account with the username %s: %s", userName, e.getLocalizedMessage()), e);
         }
       } else {
         LOG.warn("Failed to find user account for {} while enabling LDAP authentication for the user.", userName);
@@ -797,8 +782,8 @@ public class Users {
 
     // update groups
     final Set<GroupEntity> groupsToBecomeLdap = new HashSet<>();
-    for (String groupName : batchInfo.getGroupsToBecomeLdap()) {
-      final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+    for (LdapGroupDto group : batchInfo.getGroupsToBecomeLdap()) {
+      final GroupEntity groupEntity = groupDAO.findGroupByName(group.getGroupName());
       groupEntity.setGroupType(GroupType.LDAP);
       allGroups.put(groupEntity.getGroupName(), groupEntity);
       groupsToBecomeLdap.add(groupEntity);
@@ -809,7 +794,8 @@ public class Users {
     final List<PrincipalEntity> principalsToCreate = new ArrayList<>();
 
     // Create users
-    for (String userName : batchInfo.getUsersToBeCreated()) {
+    for (LdapUserDto user : batchInfo.getUsersToBeCreated()) {
+      String userName = user.getUserName();
       UserEntity userEntity;
 
       try {
@@ -820,24 +806,29 @@ public class Users {
       }
 
       if (userEntity != null) {
-        UserAuthenticationEntity authenticationEntity = new UserAuthenticationEntity();
-        authenticationEntity.setUser(userEntity);
-        authenticationEntity.setAuthenticationType(UserAuthenticationType.LDAP);
-        authenticationEntity.setAuthenticationKey("DN to be set");
-        userEntity.setAuthenticationEntities(Collections.singletonList(authenticationEntity));
+        LOG.trace("Enabling LDAP authentication for the user account with the username {}.", userName);
+        try {
+          addLdapAuthentication(userEntity, user.getDn(), false);
+        } catch (AmbariException e) {
+          LOG.warn(String.format("Failed to enable LDAP authentication for the user account with the username %s: %s", userName, e.getLocalizedMessage()), e);
+        }
+
         userDAO.merge(userEntity);
+
+        // Add the new user to the allUsers map.
+        allUsers.put(userEntity.getUserName(), userEntity);
       }
     }
 
     // prepare create groups
     final Set<GroupEntity> groupsToCreate = new HashSet<>();
-    for (String groupName : batchInfo.getGroupsToBeCreated()) {
+    for (LdapGroupDto group: batchInfo.getGroupsToBeCreated()) {
       final PrincipalEntity principalEntity = new PrincipalEntity();
       principalEntity.setPrincipalType(groupPrincipalType);
       principalsToCreate.add(principalEntity);
 
       final GroupEntity groupEntity = new GroupEntity();
-      groupEntity.setGroupName(groupName);
+      groupEntity.setGroupName(group.getGroupName());
       groupEntity.setPrincipal(principalEntity);
       groupEntity.setGroupType(GroupType.LDAP);
 
@@ -1284,25 +1275,60 @@ public class Users {
    * Adds the ability for a user to authenticate using a JWT token.
    * <p>
    * The key for this authentication mechanism is the username expected to be in the JWT token.
+   * <p>
+   * The created {@link UserAuthenticationEntity} and the supplied {@link UserEntity} are persisted.
    *
    * @param userEntity the user
    * @param key        the relevant key
    * @throws AmbariException
+   * @see #addJWTAuthentication(UserEntity, String, boolean)
    */
   public void addJWTAuthentication(UserEntity userEntity, String key) throws AmbariException {
-    addAuthentication(userEntity, UserAuthenticationType.JWT, key, new Validator() {
-      public void validate(UserEntity userEntity, String key) throws AmbariException {
-        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+    addJWTAuthentication(userEntity, key, true);
+  }
 
-        // Ensure only one UserAuthenticationEntity exists for JWT for the user...
-        for (UserAuthenticationEntity entity : authenticationEntities) {
-          if ((entity.getAuthenticationType() == UserAuthenticationType.JWT) &&
-              ((key == null) ? (entity.getAuthenticationKey() == null) : key.equals(entity.getAuthenticationKey()))) {
-            throw new AmbariException("The authentication type already exists for this user");
+  /**
+   * Adds the ability for a user to authenticate using a JWT token.
+   * <p>
+   * The key for this authentication mechanism is the username expected to be in the JWT token.
+   *
+   * @param userEntity the user
+   * @param key        the relevant key
+   * @param persist    true, to persist the created entity; false, to not persist the created entity
+   * @throws AmbariException
+   */
+  public void addJWTAuthentication(UserEntity userEntity, String key, boolean persist) throws AmbariException {
+    addAuthentication(userEntity,
+        UserAuthenticationType.JWT,
+        key,
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+            // Ensure only one UserAuthenticationEntity exists for JWT for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if ((entity.getAuthenticationType() == UserAuthenticationType.JWT) &&
+                  ((key == null) ? (entity.getAuthenticationKey() == null) : key.equals(entity.getAuthenticationKey()))) {
+                throw new AmbariException("The authentication type already exists for this user");
+              }
+            }
           }
-        }
-      }
-    });
+        },
+        persist);
+  }
+
+  /**
+   * Adds the ability for a user to authenticate using a Kerberos token.
+   * <p>
+   * The created {@link UserAuthenticationEntity} and the supplied {@link UserEntity} are persisted.
+   *
+   * @param userEntity    the user
+   * @param principalName the user's principal name
+   * @throws AmbariException
+   * @see #addKerberosAuthentication(UserEntity, String, boolean)
+   */
+  public void addKerberosAuthentication(UserEntity userEntity, String principalName) throws AmbariException {
+    addKerberosAuthentication(userEntity, principalName, true);
   }
 
   /**
@@ -1310,17 +1336,38 @@ public class Users {
    *
    * @param userEntity    the user
    * @param principalName the user's principal name
+   * @param persist       true, to persist the created entity; false, to not persist the created entity
    * @throws AmbariException
    */
-  public void addKerberosAuthentication(UserEntity userEntity, String principalName) throws AmbariException {
-    addAuthentication(userEntity, UserAuthenticationType.KERBEROS, principalName, new Validator() {
-      public void validate(UserEntity userEntity, String key) throws AmbariException {
-        // Ensure no other authentication entries exist for the same principal...
-        if (!CollectionUtils.isEmpty(userAuthenticationDAO.findByTypeAndKey(UserAuthenticationType.KERBEROS, key))) {
-          throw new AmbariException("The authentication type already exists for this principal");
-        }
-      }
-    });
+  public void addKerberosAuthentication(UserEntity userEntity, String principalName, boolean persist) throws AmbariException {
+    addAuthentication(userEntity,
+        UserAuthenticationType.KERBEROS,
+        principalName,
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            // Ensure no other authentication entries exist for the same principal...
+            if (!CollectionUtils.isEmpty(userAuthenticationDAO.findByTypeAndKey(UserAuthenticationType.KERBEROS, key))) {
+              throw new AmbariException("The authentication type already exists for this principal");
+            }
+          }
+        },
+        persist);
+  }
+
+  /**
+   * Adds the ability for a user to authenticate using a password stored in Ambari's database
+   * <p>
+   * The supplied plaintext password will be encoded before storing.
+   * <p>
+   * The created {@link UserAuthenticationEntity} and the supplied {@link UserEntity} are persisted.
+   *
+   * @param userEntity the user
+   * @param password   the user's plaintext password
+   * @throws AmbariException
+   * @see #addLocalAuthentication(UserEntity, String, boolean)
+   */
+  public void addLocalAuthentication(UserEntity userEntity, String password) throws AmbariException {
+    addLocalAuthentication(userEntity, password, true);
   }
 
   /**
@@ -1330,9 +1377,10 @@ public class Users {
    *
    * @param userEntity the user
    * @param password   the user's plaintext password
+   * @param persist    true, to persist the created entity; false, to not persist the created entity
    * @throws AmbariException
    */
-  public void addLocalAuthentication(UserEntity userEntity, String password) throws AmbariException {
+  public void addLocalAuthentication(UserEntity userEntity, String password, boolean persist) throws AmbariException {
 
     // Ensure the password meets configured minimal requirements, if any
     validatePassword(password);
@@ -1340,18 +1388,36 @@ public class Users {
     // Encode the password..
     String encodedPassword = passwordEncoder.encode(password);
 
-    addAuthentication(userEntity, UserAuthenticationType.LOCAL, encodedPassword, new Validator() {
-      public void validate(UserEntity userEntity, String key) throws AmbariException {
-        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+    addAuthentication(userEntity,
+        UserAuthenticationType.LOCAL,
+        encodedPassword,
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
-        // Ensure only one UserAuthenticationEntity exists for LOCAL for the user...
-        for (UserAuthenticationEntity entity : authenticationEntities) {
-          if (entity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
-            throw new AmbariException("The authentication type already exists for this user");
+            // Ensure only one UserAuthenticationEntity exists for LOCAL for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if (entity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
+                throw new AmbariException("The authentication type already exists for this user");
+              }
+            }
           }
-        }
-      }
-    });
+        },
+        persist);
+  }
+
+  /**
+   * Adds the ability for a user to authenticate using Pam
+   * <p>
+   * The created {@link UserAuthenticationEntity} and the supplied {@link UserEntity} are persisted.
+   *
+   * @param userEntity the user
+   * @param userName   the user's os-level username
+   * @throws AmbariException
+   * @see #addPamAuthentication(UserEntity, String, boolean)
+   */
+  public void addPamAuthentication(UserEntity userEntity, String userName) throws AmbariException {
+    addPamAuthentication(userEntity, userName, true);
   }
 
   /**
@@ -1359,45 +1425,68 @@ public class Users {
    *
    * @param userEntity the user
    * @param userName   the user's os-level username
+   * @param persist    true, to persist the created entity; false, to not persist the created entity
    * @throws AmbariException
    */
-  public void addPamAuthentication(UserEntity userEntity, String userName) throws AmbariException {
-    addAuthentication(userEntity, UserAuthenticationType.PAM, userName, new Validator() {
-      public void validate(UserEntity userEntity, String key) throws AmbariException {
-        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+  public void addPamAuthentication(UserEntity userEntity, String userName, boolean persist) throws AmbariException {
+    addAuthentication(userEntity,
+        UserAuthenticationType.PAM,
+        userName,
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
 
-        // Ensure only one UserAuthenticationEntity exists for PAM for the user...
-        for (UserAuthenticationEntity entity : authenticationEntities) {
-          if (entity.getAuthenticationType() == UserAuthenticationType.PAM) {
-            throw new AmbariException("The authentication type already exists for this user");
+            // Ensure only one UserAuthenticationEntity exists for PAM for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if (entity.getAuthenticationType() == UserAuthenticationType.PAM) {
+                throw new AmbariException("The authentication type already exists for this user");
+              }
+            }
           }
-        }
-      }
-    });
+        },
+        persist);
   }
 
   /**
-   * TODO: This is to be revisited for AMBARI-21219 (Update LDAP Authentication process to work with improved user management facility)
    * Adds the ability for a user to authenticate using a remote LDAP server
+   * <p>
+   * The created {@link UserAuthenticationEntity} and the supplied {@link UserEntity} are persisted.
    *
    * @param userEntity the user
    * @param dn         the user's distinguished name
    * @throws AmbariException
+   * @see #addLdapAuthentication(UserEntity, String, boolean)
    */
   public void addLdapAuthentication(UserEntity userEntity, String dn) throws AmbariException {
-    addAuthentication(userEntity, UserAuthenticationType.LDAP, dn, new Validator() {
-      public void validate(UserEntity userEntity, String key) throws AmbariException {
-        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+    addLdapAuthentication(userEntity, dn, true);
+  }
 
-        // Ensure only one UserAuthenticationEntity exists for PAM for the user...
-        for (UserAuthenticationEntity entity : authenticationEntities) {
-          if ((entity.getAuthenticationType() == UserAuthenticationType.LDAP) &&
-              ((key == null) ? (entity.getAuthenticationKey() == null) : key.equalsIgnoreCase(entity.getAuthenticationKey()))) {
-            throw new AmbariException("The authentication type already exists for this user");
+  /**
+   * Adds the ability for a user to authenticate using a remote LDAP server
+   *
+   * @param userEntity the user
+   * @param dn         the user's distinguished name
+   * @param persist    true, to persist the created entity; false, to not persist the created entity
+   * @throws AmbariException
+   */
+  public void addLdapAuthentication(UserEntity userEntity, String dn, boolean persist) throws AmbariException {
+    addAuthentication(userEntity,
+        UserAuthenticationType.LDAP,
+        dn,
+        new Validator() {
+          public void validate(UserEntity userEntity, String key) throws AmbariException {
+            List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+            // Ensure only one UserAuthenticationEntity exists for LDAP for the user...
+            for (UserAuthenticationEntity entity : authenticationEntities) {
+              if ((entity.getAuthenticationType() == UserAuthenticationType.LDAP) &&
+                  ((key == null) ? (entity.getAuthenticationKey() == null) : key.equalsIgnoreCase(entity.getAuthenticationKey()))) {
+                throw new AmbariException("The authentication type already exists for this user");
+              }
+            }
           }
-        }
-      }
-    });
+        },
+        persist);
   }
 
   /**
@@ -1407,9 +1496,12 @@ public class Users {
    * @param type       the authentication type
    * @param key        the authentication type specific metadata
    * @param validator  the authentication type specific validator
+   * @param persist    true, to persist the created entity; false, to not persist the created entity
    * @throws AmbariException
    */
-  private void addAuthentication(UserEntity userEntity, UserAuthenticationType type, String key, Validator validator) throws AmbariException {
+  private void addAuthentication(UserEntity userEntity, UserAuthenticationType type, String key,
+                                 Validator validator, boolean persist)
+      throws AmbariException {
 
     if (userEntity == null) {
       throw new AmbariException("Missing user");
@@ -1426,7 +1518,10 @@ public class Users {
     authenticationEntities.add(authenticationEntity);
 
     userEntity.setAuthenticationEntities(authenticationEntities);
-    userDAO.merge(userEntity);
+
+    if (persist) {
+      userDAO.merge(userEntity);
+    }
   }
 
   /**

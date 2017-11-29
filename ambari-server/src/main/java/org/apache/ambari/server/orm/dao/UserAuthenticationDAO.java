@@ -25,6 +25,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 
 import com.google.inject.Inject;
@@ -63,6 +64,12 @@ public class UserAuthenticationDAO {
     TypedQuery<UserAuthenticationEntity> query = entityManagerProvider.get().createNamedQuery("UserAuthenticationEntity.findByTypeAndKey", UserAuthenticationEntity.class);
     query.setParameter("authenticationType", authenticationType.name());
     query.setParameter("authenticationKey", (key == null) ? null : key.getBytes());
+    return daoUtils.selectList(query);
+  }
+
+  public List<UserAuthenticationEntity> findByUser(UserEntity userEntity) {
+    TypedQuery<UserAuthenticationEntity> query = entityManagerProvider.get().createNamedQuery("UserAuthenticationEntity.findByUser", UserAuthenticationEntity.class);
+    query.setParameter("userId", userEntity.getUserId());
     return daoUtils.selectList(query);
   }
 
