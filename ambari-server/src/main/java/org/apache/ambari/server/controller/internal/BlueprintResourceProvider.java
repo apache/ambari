@@ -56,6 +56,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.GPLLicenseNotAcceptedException;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
@@ -519,7 +520,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
         try {
           blueprint.validateRequiredProperties();
-        } catch (InvalidTopologyException e) {
+        } catch (InvalidTopologyException | GPLLicenseNotAcceptedException e) {
           throw new IllegalArgumentException("Blueprint configuration validation failed: " + e.getMessage(), e);
         }
 

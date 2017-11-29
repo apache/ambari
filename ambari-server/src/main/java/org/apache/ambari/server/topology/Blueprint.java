@@ -152,7 +152,7 @@ public interface Blueprint {
    *
    * @throws InvalidTopologyException if the blueprint doesn't contain all required properties
    */
-  void validateRequiredProperties() throws InvalidTopologyException;
+  void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException;
 
   /**
    *

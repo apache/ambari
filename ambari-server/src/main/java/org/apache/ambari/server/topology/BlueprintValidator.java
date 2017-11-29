@@ -37,5 +37,5 @@ public interface BlueprintValidator {
    *
    * @throws InvalidTopologyException if required properties are not set in blueprint
    */
-  void validateRequiredProperties() throws InvalidTopologyException;
+  void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException;
 }

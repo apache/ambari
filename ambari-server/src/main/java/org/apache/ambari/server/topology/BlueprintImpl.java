@@ -353,7 +353,7 @@ public class BlueprintImpl implements Blueprint {
    * @throws InvalidTopologyException if the blueprint configuration is invalid
    */
   @Override
-  public void validateRequiredProperties() throws InvalidTopologyException {
+  public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
     validator.validateRequiredProperties();
   }
 
