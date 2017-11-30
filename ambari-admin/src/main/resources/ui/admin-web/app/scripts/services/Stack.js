@@ -405,7 +405,8 @@ angular.module('ambariAdminConsole')
               $http.post(url + '/operating_systems/' + os.OperatingSystems.os_type + '/repositories/' + repo.Repositories.repo_id + '?validate_only=true',
                 {
                   "Repositories": {
-                    "base_url": repo.Repositories.base_url
+                    "base_url": repo.Repositories.base_url,
+                    "repo_name": repo.Repositories.repo_name
                   }
                 },
                 {
