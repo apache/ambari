@@ -17,9 +17,8 @@ package org.apache.ambari.server.ldap.service.ads;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.TestAmbariLdapConfigurationFactory;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.LdapConfigurationService;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
@@ -65,7 +64,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   @Test
   public void testShouldConnectionCheckSucceedWhenConnectionCallbackSucceeds() throws Exception {
     // GIVEN
-    AmbariLdapConfiguration ambariLdapConfiguration = new TestAmbariLdapConfigurationFactory().createLdapConfiguration(Maps.newHashMap());
+    AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(Maps.newHashMap());
 
     // the cllback returns TRUE
     EasyMock.expect(ldapConnectionTemplateMock.execute(EasyMock.anyObject(ConnectionCallback.class))).andReturn(Boolean.TRUE);
@@ -84,7 +83,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   public void testShouldConnectionCheckFailWhenConnectionCallbackFails() throws Exception {
 
     // GIVEN
-    AmbariLdapConfiguration ambariLdapConfiguration = new TestAmbariLdapConfigurationFactory().createLdapConfiguration(Maps.newHashMap());
+    AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(Maps.newHashMap());
 
     // the callback returns FALSE
     EasyMock.expect(ldapConnectionTemplateMock.execute(EasyMock.anyObject(ConnectionCallback.class))).andReturn(Boolean.FALSE);
@@ -103,10 +102,10 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   public void testShouldUserAttributeConfigurationCheckSucceedWhenUserDnIsFound() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigKeys.USER_OBJECT_CLASS.key(), "person");
-    configMap.put(AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE.key(), "uid");
+    configMap.put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS.key(), "person");
+    configMap.put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key(), "uid");
 
-    AmbariLdapConfiguration ambariLdapConfiguration = new TestAmbariLdapConfigurationFactory().createLdapConfiguration(configMap);
+    AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(configMap);
 
     // the callback returns FALSE
     EasyMock.expect(ldapConnectionTemplateFactory.create(ambariLdapConfiguration)).andReturn(ldapConnectionTemplateMock);
@@ -127,10 +126,10 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
   public void testShouldUserAttributeConfigurationCheckFailWhenNoUsersFound() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigKeys.USER_OBJECT_CLASS.key(), "posixAccount");
-    configMap.put(AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE.key(), "dn");
+    configMap.put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS.key(), "posixAccount");
+    configMap.put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key(), "dn");
 
-    AmbariLdapConfiguration ambariLdapConfiguration = new TestAmbariLdapConfigurationFactory().createLdapConfiguration(configMap);
+    AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(configMap);
 
     // the callback returns FALSE
     EasyMock.expect(ldapConnectionTemplateFactory.create(ambariLdapConfiguration)).andReturn(ldapConnectionTemplateMock);
@@ -159,7 +158,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
 
     SearchRequest sr = new SearchRequestImpl();
 
-    AmbariLdapConfiguration ambariLdapConfiguration = new TestAmbariLdapConfigurationFactory().createLdapConfiguration(configMap);
+    AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(configMap);
 
     // the callback returns FALSE
     EasyMock.expect(ldapConnectionTemplateFactory.create(ambariLdapConfiguration)).andReturn(ldapConnectionTemplateMock);
@@ -188,7 +187,7 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
 
     SearchRequest sr = new SearchRequestImpl();
 
-    AmbariLdapConfiguration ambariLdapConfiguration = new TestAmbariLdapConfigurationFactory().createLdapConfiguration(configMap);
+    AmbariLdapConfiguration ambariLdapConfiguration = new AmbariLdapConfiguration(configMap);
 
     // the callback returns FALSE
     EasyMock.expect(ldapConnectionTemplateFactory.create(ambariLdapConfiguration)).andReturn(ldapConnectionTemplateMock);
@@ -210,10 +209,10 @@ public class DefaultLdapConfigurationServiceTest extends EasyMockSupport {
 
   private Map<String, String> groupConfigObjectMap() {
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigKeys.GROUP_OBJECT_CLASS.key(), "groupOfNames");
-    configMap.put(AmbariLdapConfigKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
-    configMap.put(AmbariLdapConfigKeys.GROUP_NAME_ATTRIBUTE.key(), "uid");
-    configMap.put(AmbariLdapConfigKeys.GROUP_MEMBER_ATTRIBUTE.key(), "member");
+    configMap.put(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS.key(), "groupOfNames");
+    configMap.put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
+    configMap.put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE.key(), "uid");
+    configMap.put(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE.key(), "member");
     return configMap;
   }
 

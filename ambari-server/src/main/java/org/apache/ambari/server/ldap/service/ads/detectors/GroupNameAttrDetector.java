@@ -16,18 +16,17 @@ package org.apache.ambari.server.ldap.service.ads.detectors;
 
 import javax.inject.Inject;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GroupNameAttrDetector extends OccurrenceAndWeightBasedDetector {
-  private static final Logger LOGGER = LoggerFactory.getLogger(UserNameAttrDetector.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GroupNameAttrDetector.class);
 
   private enum GroupNameAttr {
 
     DISTINGUISHED_NAME("distinguishedName", 1),
-
     CN("cn", 1);
 
     private String attrName;
@@ -65,6 +64,6 @@ public class GroupNameAttrDetector extends OccurrenceAndWeightBasedDetector {
 
   @Override
   public String detectedProperty() {
-    return AmbariLdapConfigKeys.GROUP_NAME_ATTRIBUTE.key();
+    return AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE.key();
   }
 }

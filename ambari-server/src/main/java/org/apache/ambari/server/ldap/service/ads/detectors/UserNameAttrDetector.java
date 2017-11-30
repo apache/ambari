@@ -17,7 +17,7 @@ package org.apache.ambari.server.ldap.service.ads.detectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ public class UserNameAttrDetector extends OccurrenceAndWeightBasedDetector {
 
   @Override
   public String detectedProperty() {
-    return AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE.key();
+    return AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key();
   }
 
 }

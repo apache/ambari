@@ -17,10 +17,8 @@ package org.apache.ambari.server.ldap.service.ads;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationFactory;
-import org.apache.ambari.server.ldap.domain.TestAmbariLdapConfigurationFactory;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.ads.detectors.AttributeDetectorFactory;
 import org.apache.ambari.server.ldap.service.ads.detectors.ChainedAttributeDetector;
@@ -63,9 +61,6 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   @Mock
   private SearchRequest searchRequestMock;
 
-
-  private AmbariLdapConfigurationFactory ldapConfigurationFactory = new TestAmbariLdapConfigurationFactory();
-
   @TestSubject
   private DefaultLdapAttributeDetectionService defaultLdapAttributeDetectionService = new DefaultLdapAttributeDetectionService();
 
@@ -79,8 +74,8 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   public void shouldLdapUserAttributeDetection() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigKeys.USER_SEARCH_BASE.key(), "dc=example,dc=com");
-    AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
+    configMap.put(AmbariLdapConfigurationKeys.USER_SEARCH_BASE.key(), "dc=example,dc=com");
+    AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(configMap);
 
     List<Object> entryList = Lists.newArrayList(new DefaultEntry("uid=gauss"));
 
@@ -110,8 +105,8 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   public void testShouldUserAttributeDetectionFailWhenLdapOerationFails() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigKeys.USER_SEARCH_BASE.key(), "dc=example,dc=com");
-    AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
+    configMap.put(AmbariLdapConfigurationKeys.USER_SEARCH_BASE.key(), "dc=example,dc=com");
+    AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(configMap);
 
     EasyMock.expect(ldapConnectionTemplateFactoryMock.create(ldapConfiguration)).andThrow(new AmbariLdapException("Testing ..."));
 
@@ -130,8 +125,8 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   public void shouldLdapGroupAttributeDetection() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
-    AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
+    configMap.put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
+    AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(configMap);
 
     List<Object> entryList = Lists.newArrayList(new DefaultEntry("uid=gauss"));
 
@@ -161,8 +156,8 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
   public void testShouldGroupAttributeDetectionFailWhenLdapOerationFails() throws Exception {
     // GIVEN
     Map<String, String> configMap = Maps.newHashMap();
-    configMap.put(AmbariLdapConfigKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
-    AmbariLdapConfiguration ldapConfiguration = ldapConfigurationFactory.createLdapConfiguration(configMap);
+    configMap.put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE.key(), "dc=example,dc=com");
+    AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration(configMap);
 
     EasyMock.expect(ldapConnectionTemplateFactoryMock.create(ldapConfiguration)).andThrow(new AmbariLdapException("Testing ..."));
 
@@ -174,7 +169,6 @@ public class DefaultLdapAttributeDetectionServiceTest extends EasyMockSupport {
     // exception is thrown
 
   }
-
 
   private EntryMapper<Entry> entryMapperMock() {
     return new EntryMapper<Entry>() {

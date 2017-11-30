@@ -18,7 +18,7 @@ package org.apache.ambari.server.ldap.domain;
  * Constants representing supported LDAP related property names
  * // todo extend this with validation information, description, defaults maybe
  */
-public enum AmbariLdapConfigKeys {
+public enum AmbariLdapConfigurationKeys {
 
   LDAP_ENABLED("ambari.ldap.authentication.enabled"),
   SERVER_HOST("ambari.ldap.connectivity.server.host"),
@@ -62,7 +62,7 @@ public enum AmbariLdapConfigKeys {
 
   private String propertyName;
 
-  AmbariLdapConfigKeys(String propName) {
+  AmbariLdapConfigurationKeys(String propName) {
     this.propertyName = propName;
   }
 
@@ -70,8 +70,8 @@ public enum AmbariLdapConfigKeys {
     return this.propertyName;
   }
 
-  public static AmbariLdapConfigKeys fromKeyStr(String keyStr) {
-    for (AmbariLdapConfigKeys key : values()) {
+  public static AmbariLdapConfigurationKeys fromKeyStr(String keyStr) {
+    for (AmbariLdapConfigurationKeys key : values()) {
       if (key.key().equals(keyStr)) {
         return key;
       }

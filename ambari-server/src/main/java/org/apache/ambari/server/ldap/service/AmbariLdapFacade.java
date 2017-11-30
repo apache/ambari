@@ -114,9 +114,7 @@ public class AmbariLdapFacade implements LdapFacade {
 
     // todo handle the case where group membership is stored in the user rather than the group
     LOGGER.info("Testing LDAP group attributes with test user dn: {}", userDn);
-    Set<String> groups = ldapConfigurationService.checkGroupAttributes(userDn, ldapConfiguration);
-
-    return groups;
+    return ldapConfigurationService.checkGroupAttributes(userDn, ldapConfiguration);
   }
 
 
