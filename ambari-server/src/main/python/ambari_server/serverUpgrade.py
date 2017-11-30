@@ -179,7 +179,7 @@ def check_gpl_license_approved(upgrade_response):
   if 'lzo_enabled' not in upgrade_response or upgrade_response['lzo_enabled'].lower() != "true":
     return
 
-  while not write_gpl_license_accepted(LZO_ENABLED_GPL_TEXT) and not get_YN_input(INSTALLED_LZO_WITHOUT_GPL_TEXT, False):
+  while not write_gpl_license_accepted(text = LZO_ENABLED_GPL_TEXT) and not get_YN_input(INSTALLED_LZO_WITHOUT_GPL_TEXT, False):
     pass
 
 #
