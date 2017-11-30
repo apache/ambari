@@ -20,7 +20,8 @@ import {Component, OnChanges, SimpleChanges, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
-import {FilterCondition} from '@app/classes/filtering';
+import 'rxjs/add/observable/from';
+import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {LogsType} from '@app/classes/string';
 import {CommonEntry} from '@app/classes/models/common-entry';
@@ -46,6 +47,9 @@ export class FiltersPanelComponent implements OnChanges {
         case 'serviceLogs':
           result = this.logsContainer.serviceLogsColumns;
           break;
+        default:
+          result = Observable.from([]);
+          break;
       }
       this.searchBoxItems = result;
     }
@@ -65,6 +69,8 @@ export class FiltersPanelComponent implements OnChanges {
         return this.logsContainer.auditLogsColumnsTranslated;
       case 'serviceLogs':
         return this.logsContainer.serviceLogsColumnsTranslated;
+      default:
+        return [];
     }
   }
 
@@ -93,11 +99,11 @@ export class FiltersPanelComponent implements OnChanges {
     }, {});
   }
 
-  get queryParameterNameChange(): Subject<any> {
+  get queryParameterNameChange(): Subject<SearchBoxParameterTriggered> {
     return this.logsContainer.queryParameterNameChange;
   }
 
-  get queryParameterAdd(): Subject<any> {
+  get queryParameterAdd(): Subject<SearchBoxParameter> {
     return this.logsContainer.queryParameterAdd;
   }
 
@@ -105,9 +111,14 @@ export class FiltersPanelComponent implements OnChanges {
     return this.logsContainer.captureSeconds;
   }
 
+  searchBoxValueUpdate: Subject<void> = new Subject();
+
   isFilterConditionDisplayed(key: string): boolean {
-    return this.logsContainer.logsTypeMap[this.logsType].listFilters.indexOf(key) > -1
-      && Boolean(this.filtersForm.controls[key]);
+    return this.logsContainer.isFilterConditionDisplayed(key);
+  }
+
+  updateSearchBoxValue(): void {
+    this.searchBoxValueUpdate.next();
   }
 
 }

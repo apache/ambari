@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-@import '../variables';
+@import '../mixins';
 
 :host {
   cursor: pointer;
@@ -24,8 +24,7 @@
   a {
     text-align: center;
     text-decoration: none;
-    i {
-      color: @link-color;
+    .icon {
       display: inline-block;
       position: relative;
       &.fa-caret-down {
@@ -35,14 +34,6 @@
     .menu-button-label {
       display: block;
     }
-  }
-  a:hover, a:focus {
-    i {
-      color: @link-hover-color;
-    }
-  }
-  .unstyled-link {
-    color: inherit;
   }
 
   .badge {

@@ -35,6 +35,9 @@ export class DropdownButtonComponent {
   label?: string;
 
   @Input()
+  buttonClass: string = '';
+
+  @Input()
   iconClass?: string;
 
   @Input()

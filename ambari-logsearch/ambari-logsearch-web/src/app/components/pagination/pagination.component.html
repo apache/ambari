@@ -16,8 +16,8 @@
 -->
 
 <form class="pagination-form" [formGroup]="filtersForm">
-  <filter-dropdown [label]="filterInstance.label" formControlName="pageSize" [options]="filterInstance.options"
-                   [isRightAlign]="true" [isDropup]="true"></filter-dropdown>
+  <filter-dropdown label="{{filterInstance.label | translate}}" formControlName="pageSize"
+                   [options]="filterInstance.options" [isRightAlign]="true" [isDropup]="true"></filter-dropdown>
   <span>{{'pagination.numbers' | translate: numbersTranslateParams}}</span>
   <pagination-controls formControlName="page" [totalCount]="totalCount" [pagesCount]="pagesCount"
                        (currentPageChange)="setCurrentPage($event)"></pagination-controls>
