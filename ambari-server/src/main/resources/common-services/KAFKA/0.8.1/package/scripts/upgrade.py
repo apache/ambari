@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -43,7 +42,7 @@ def run_migration(env, upgrade_type):
   if params.upgrade_direction is None:
     raise Fail('Parameter "upgrade_direction" is missing.')
 
-  if not params.security_enabled:
+  if not params.kerberos_security_enabled:
     Logger.info("Skip running the Kafka ACL migration script since cluster security is not enabled.")
     return
   
