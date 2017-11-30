@@ -28,6 +28,7 @@ from resource_management.core.resources.system import File
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import lzo_utils
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import StackFeature
@@ -52,7 +53,8 @@ class OozieUpgrade(Script):
     import params
 
     # some stack versions don't need the lzo compression libraries
-    target_version_needs_compression_libraries = params.version and check_stack_feature(StackFeature.LZO, params.version)
+    target_version_needs_compression_libraries = check_stack_feature(StackFeature.LZO,
+      params.version_for_stack_feature_checks)
 
     # ensure the directory exists
     Directory(params.oozie_libext_dir, mode = 0777)
@@ -66,6 +68,9 @@ class OozieUpgrade(Script):
     # When a version is Installed, it is responsible for downloading the hadoop-lzo packages
     # if lzo is enabled.
     if params.lzo_enabled and (params.upgrade_direction == Direction.UPGRADE or target_version_needs_compression_libraries):
+      # ensure that the LZO files are installed for this version of Oozie
+      lzo_utils.install_lzo_if_needed()
+
       hadoop_lzo_pattern = 'hadoop-lzo*.jar'
       hadoop_client_new_lib_dir = format("{stack_root}/{version}/hadoop/lib")
 
@@ -86,6 +91,12 @@ class OozieUpgrade(Script):
         raise Fail("There are no files at {0} matching {1}".format(
           hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
+    # ExtJS is used to build a working Oozie Web UI - without it, Oozie will startup and work
+    # but will not have a functioning user interface - Some stacks no longer ship ExtJS,
+    # so it's optional now. On an upgrade, we should make sure that if it's not found, that's OK
+    # However, if it is found on the system (from an earlier install) then it should be used
+    extjs_included = check_stack_feature(StackFeature.OOZIE_EXTJS_INCLUDED, params.version_for_stack_feature_checks)
+
     # something like <stack-root>/current/oozie-server/libext/ext-2.2.zip
     oozie_ext_zip_target_path = os.path.join(params.oozie_libext_dir, params.ext_js_file)
 
@@ -104,13 +115,16 @@ class OozieUpgrade(Script):
           Logger.info("Copying {0} to {1}".format(source_ext_zip_path, params.oozie_libext_dir))
           Execute(("cp", source_ext_zip_path, params.oozie_libext_dir), sudo=True)
           Execute(("chown", format("{oozie_user}:{user_group}"), oozie_ext_zip_target_path), sudo=True)
-          File(oozie_ext_zip_target_path,
-               mode=0644
-               )
+          File(oozie_ext_zip_target_path, mode=0644)
           break
 
-    if not found_at_least_one_oozie_ext_file:
+    # ExtJS was expected to the be on the system, but was not found
+    if extjs_included and not found_at_least_one_oozie_ext_file:
       raise Fail("Unable to find any Oozie source extension files from the following paths {0}".format(source_ext_zip_paths))
+
+    # ExtJS is not expected, so it's OK - just log a warning
+    if not found_at_least_one_oozie_ext_file:
+      Logger.warning("Unable to find ExtJS in any of the following paths. The Oozie UI will not be available. Source Paths: {0}".format(source_ext_zip_paths))
 
     # Redownload jdbc driver to a new current location
     oozie.download_database_library_if_needed()
