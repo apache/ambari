@@ -2242,11 +2242,6 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
-    RepositoryInfo dummyRepoInfo = new RepositoryInfo();
-    dummyRepoInfo.setRepoName("repo_name");
-
-    expect(ambariMetaInfo.getRepository("stackName", "stackVersion", "redhat6", "repoId")).andReturn(dummyRepoInfo);
-
     Configuration configuration = createNiceMock(Configuration.class);
     String[] suffices = {"/repodata/repomd.xml"};
     expect(configuration.getRepoValidationSuffixes("redhat6")).andReturn(suffices);
@@ -2265,7 +2260,7 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, configuration);
 
     Set<RepositoryRequest> requests = new HashSet<>();
-    RepositoryRequest request = new RepositoryRequest("stackName", "stackVersion", "redhat6", "repoId");
+    RepositoryRequest request = new RepositoryRequest("stackName", "stackVersion", "redhat6", "repoId", "repo_name");
     request.setBaseUrl("file:///some/repo");
     requests.add(request);
 

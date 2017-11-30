@@ -4582,8 +4582,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
     usp.setSetupTruststoreForHttps(false);
 
-    RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(request.getStackName(), request.getStackVersion(), request.getOsType(), request.getRepoId());
-    String repoName = repositoryInfo.getRepoName();
+    String repoName = request.getRepoName();
+    if (StringUtils.isEmpty(repoName)) {
+      throw new IllegalArgumentException("repo_name is required to verify repository");
+    }
 
     String errorMessage = null;
     Exception e = null;

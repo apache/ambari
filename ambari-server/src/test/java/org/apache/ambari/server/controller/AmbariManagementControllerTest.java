@@ -188,6 +188,7 @@ public class AmbariManagementControllerTest {
   private static final String NEW_STACK_VERSION = "2.0.6";
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-1.1.1.16";
+  private static final String REPO_NAME = "HDP";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
   private static final String FAKE_SERVICE_NAME = "FAKENAGIOS";
@@ -7002,11 +7003,11 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetRepositories() throws Exception {
 
-    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null);
+    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null, REPO_NAME);
     Set<RepositoryResponse> responses = controller.getRepositories(Collections.singleton(request));
     Assert.assertEquals(REPOS_CNT, responses.size());
 
-    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, REPO_NAME);
     requestWithParams.setClusterVersionId(525L);
     Set<RepositoryResponse> responsesWithParams = controller.getRepositories(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
@@ -7015,7 +7016,7 @@ public class AmbariManagementControllerTest {
       Assert.assertEquals(525L, responseWithParams.getClusterVersionId().longValue());
     }
 
-    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE);
+    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE, REPO_NAME);
     try {
       controller.getRepositories(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
