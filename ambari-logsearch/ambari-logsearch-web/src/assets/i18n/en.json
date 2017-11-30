@@ -10,6 +10,7 @@
   "modal.apply": "Apply",
   "modal.close": "Close",
 
+  "authorization.logout": "Logout",
   "authorization.name": "Username",
   "authorization.password": "Password",
   "authorization.signIn": "Sign In",
@@ -61,7 +62,9 @@
   "filter.timeRange.6hr": "Last 6 hours",
   "filter.timeRange.12hr": "Last 12 hours",
   "filter.timeRange.24hr": "Last 24 hours",
-  "filter.timeRange.custom": "Custom time range",
+  "filter.timeRange.custom": "Custom",
+  "filter.timeRange.from": "from",
+  "filter.timeRange.to": "to",
 
   "levels.fatal": "Fatal",
   "levels.error": "Error",

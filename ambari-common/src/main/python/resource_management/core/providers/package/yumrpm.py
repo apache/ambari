@@ -46,8 +46,8 @@ REMOVE_WITHOUT_DEPENDENCIES_CMD = ['rpm', '-e', '--nodeps']
 
 YUM_REPO_LOCATION = "/etc/yum.repos.d"
 REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean', 'metadata']
-ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed"]
-ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
+ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed", "--noplugins"]
+ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available", "--noplugins"]
 VERIFY_DEPENDENCY_CMD = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'dependencies']
 
 # base command output sample:
@@ -138,7 +138,7 @@ class YumProvider(RPMBasedPackageProvider):
     :rtype list[list,]
     """
 
-    cmd = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
+    cmd = list(ALL_AVAILABLE_PACKAGES_CMD)
 
     if repo_filter:
       cmd.extend(["--disablerepo=*", "--enablerepo=" + repo_filter])
@@ -154,7 +154,7 @@ class YumProvider(RPMBasedPackageProvider):
     :rtype list[list,]
     """
 
-    packages = self._lookup_packages([AMBARI_SUDO_BINARY, "yum", "list", "installed"], "Installed Packages")
+    packages = self._lookup_packages(list(ALL_INSTALLED_PACKAGES_CMD), "Installed Packages")
     if repo_filter:
       packages = [item for item in packages if item[2].lower() == repo_filter.lower()]
 

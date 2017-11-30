@@ -88,6 +88,8 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -102,6 +104,8 @@ import com.google.inject.persist.Transactional;
  */
 @StaticallyInject
 public class ClusterStackVersionResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ClusterStackVersionResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -701,18 +705,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
+    OperatingSystemEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
 
-    OperatingSystemEntity osEntity = null;
-    for (OperatingSystemEntity os : repoVersion.getOperatingSystems()) {
-      if (os.getOsType().equals(osFamily)) {
-        osEntity = os;
-        break;
-      }
-    }
-
-    if (null == osEntity || CollectionUtils.isEmpty(osEntity.getRepositories())) {
-      throw new SystemException(String.format("Repositories for os type %s are " +
-          "not defined for version %s of Stack %s.",
+    if (CollectionUtils.isEmpty(osEntity.getRepositories())) {
+      throw new SystemException(String.format("Repositories for os type %s are not defined for version %s of Stack %s.",
             osFamily, repoVersion.getVersion(), stackId));
     }
 
@@ -743,7 +739,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, cluster, repoVersion, osEntity);
+    repoVersionHelper.addCommandRepositoryToContext(actionContext, osEntity);
 
     return actionContext;
   }

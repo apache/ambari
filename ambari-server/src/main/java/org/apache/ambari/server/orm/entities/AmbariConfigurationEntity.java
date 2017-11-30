@@ -14,57 +14,99 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.MapsId;
+import javax.persistence.IdClass;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-@Entity
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 @Table(name = "ambari_configuration")
 @NamedQueries({
-  @NamedQuery(
-    name = "AmbariConfigurationEntity.findByType",
-    query = "select ace from AmbariConfigurationEntity ace where ace.configurationBaseEntity.type = :typeName")
+    @NamedQuery(
+        name = "AmbariConfigurationEntity.findByCategory",
+        query = "select ace from AmbariConfigurationEntity ace where ace.categoryName = :categoryName"),
+    @NamedQuery(
+        name = "AmbariConfigurationEntity.deleteByCategory",
+        query = "delete from AmbariConfigurationEntity ace where ace.categoryName = :categoryName")
 })
-
+@IdClass(AmbariConfigurationEntityPK.class)
+@Entity
 public class AmbariConfigurationEntity {
 
   @Id
-  @Column(name = "id")
-  private Long id;
+  @Column(name = "category_name")
+  private String categoryName;
 
-  @OneToOne(cascade = CascadeType.ALL)
-  @MapsId
-  @JoinColumn(name = "id")
-  private ConfigurationBaseEntity configurationBaseEntity;
+  @Id
+  @Column(name = "property_name")
+  private String propertyName;
 
-  public Long getId() {
-    return id;
+  @Column(name = "property_value")
+  private String propertyValue;
+
+  public String getCategoryName() {
+    return categoryName;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void setCategoryName(String category) {
+    this.categoryName = category;
   }
 
-  public ConfigurationBaseEntity getConfigurationBaseEntity() {
-    return configurationBaseEntity;
+  public String getPropertyName() {
+    return propertyName;
   }
 
-  public void setConfigurationBaseEntity(ConfigurationBaseEntity configurationBaseEntity) {
-    this.configurationBaseEntity = configurationBaseEntity;
+  public void setPropertyName(String propertyName) {
+    this.propertyName = propertyName;
+  }
+
+  public String getPropertyValue() {
+    return propertyValue;
+  }
+
+  public void setPropertyValue(String propertyValue) {
+    this.propertyValue = propertyValue;
   }
 
   @Override
   public String toString() {
     return "AmbariConfigurationEntity{" +
-      "id=" + id +
-      ", configurationBaseEntity=" + configurationBaseEntity +
-      '}';
+        ", category=" + categoryName +
+        ", name=" + propertyName +
+        ", value=" + propertyValue +
+        '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    AmbariConfigurationEntity that = (AmbariConfigurationEntity) o;
+
+    return new EqualsBuilder()
+        .append(categoryName, that.categoryName)
+        .append(propertyName, that.propertyName)
+        .append(propertyValue, that.propertyValue)
+        .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+        .append(categoryName)
+        .append(propertyName)
+        .append(propertyValue)
+        .toHashCode();
   }
 }

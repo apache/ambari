@@ -301,9 +301,9 @@ public class StackAdvisorCommandTest {
       "items",
       list(
         map(
-          "AmbariConfiguration",
+          "Configuration",
           map(
-            "data", list(ldapConfigData)
+            "properties", ldapConfigData
           )
         )
       )
@@ -380,7 +380,7 @@ public class StackAdvisorCommandTest {
       "items",
       list(
         map(
-          "AmbariConfiguration",
+          "Configuration",
           map(
             "data",
             list(ldapConfigData, ldapConfigData)
@@ -417,7 +417,7 @@ public class StackAdvisorCommandTest {
       .build();
 
     Map<String, Object> ldapConfig = map(
-      "AmbariConfiguration",
+      "Configuration",
       map(
         "data",
         list(

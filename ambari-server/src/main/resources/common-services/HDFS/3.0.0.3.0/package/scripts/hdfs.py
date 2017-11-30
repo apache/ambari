@@ -32,6 +32,7 @@ from resource_management.libraries.functions.format import format
 import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hdfs(name=None):
@@ -141,6 +142,8 @@ def hdfs(name=None):
        owner=tc_owner,
        content=Template("slaves.j2")
   )
+  
+  install_lzo_if_needed()
       
 def install_snappy():
   import params

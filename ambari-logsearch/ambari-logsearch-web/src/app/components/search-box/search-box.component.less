@@ -35,15 +35,12 @@
   cursor: text;
 
   .parameter-label {
-    // TODO implement actual styles
     margin: @label-margin;
-    padding: @label-margin;
-    background-color: @main-background-color;
+    border-radius: @dropdown-border-radius;
+    padding: @search-parameter-padding;
+    background-color: @search-parameter-background-color;
+    color: @base-font-color;
     font-size: 0.8em;
-
-    .exclude-icon {
-      color: @exclude-color;
-    }
 
     .parameter-value {
       font-weight: normal;
@@ -94,8 +91,16 @@
       }
 
       &.value {
-        /deep/ .ng2-auto-complete-wrapper, .parameter-input {
-          display: none;
+        .parameter-input-wrapper {
+          /deep/ .ng2-auto-complete-wrapper {
+            display: none;
+          }
+        }
+
+        .no-value-options {
+          /deep/ .ng2-auto-complete {
+            display: none;
+          }
         }
 
         .value-input {

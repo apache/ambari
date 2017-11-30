@@ -25,9 +25,11 @@
       </div>
       <fieldset>
         <div class="form-group">
-          <label class="col-sm-4 control-label">{{'common.loginActivities.homeDirectory.autoCreate' | translate}}</label>
+          <label class="col-sm-4 switch-inline-label">{{'common.loginActivities.homeDirectory.autoCreate' | translate}}</label>
           <div class="col-sm-8">
-            <toggle-switch model="autoCreate" on-label="{{'common.enabled' | translate}}" off-label="{{'common.disabled' | translate}}" class="switch-primary"></toggle-switch>
+            <toggle-switch model="autoCreate" class="switch-success"></toggle-switch>
+            <span ng-if="autoCreate" class="switch-option-label">{{'common.enabled' | translate}}</span>
+            <span ng-if="!autoCreate" class="switch-option-label">{{'common.disabled' | translate}}</span>
           </div>
           <input type="checkbox" name="autoCreate" class="hidden" ng-model="autoCreate">
         </div>

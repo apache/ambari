@@ -19,21 +19,18 @@
 import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/takeUntil';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuditLog} from '@app/classes/models/audit-log';
 import {ServiceLog} from '@app/classes/models/service-log';
-import {LogField} from '@app/classes/models/log-field';
 import {Tab} from '@app/classes/models/tab';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {HistogramOptions} from '@app/classes/histogram-options';
 import {ListItem} from '@app/classes/list-item';
+import {LogsType} from '@app/classes/string';
 
 @Component({
   selector: 'logs-container',
@@ -47,35 +44,7 @@ export class LogsContainerComponent {
     private tabsStorage: TabsService, private logsContainer: LogsContainerService
   ) {
     this.logsContainer.loadColumnsNames();
-    appState.getParameter('activeLogsType').subscribe((value: string): void => {
-      this.logsType = value;
-      this.logsTypeChange.next();
-      const fieldsModel = this.logsTypeMapObject.fieldsModel,
-        logsModel = this.logsTypeMapObject.logsModel;
-      this.availableColumns = fieldsModel.getAll().takeUntil(this.logsTypeChange).map((fields: LogField[]): ListItem[] => {
-        return fields.filter((field: LogField): boolean => field.isAvailable).map((field: LogField): ListItem => {
-          return {
-            value: field.name,
-            label: field.displayName || field.name,
-            isChecked: field.isDisplayed
-          };
-        });
-      });
-      fieldsModel.getAll().takeUntil(this.logsTypeChange).subscribe(columns => {
-        const availableFields = columns.filter((field: LogField): boolean => field.isAvailable),
-          availableNames = availableFields.map((field: LogField): string => field.name);
-        if (availableNames.length) {
-          this.logs = logsModel.getAll().map((logs: (AuditLog | ServiceLog)[]): (AuditLog | ServiceLog)[] => {
-            return logs.map((log: AuditLog | ServiceLog): AuditLog | ServiceLog => {
-              return availableNames.reduce((obj, key) => Object.assign(obj, {
-                [key]: log[key]
-              }), {});
-            });
-          });
-        }
-        this.displayedColumns = columns.filter((column: LogField): boolean => column.isAvailable && column.isDisplayed);
-      });
-    });
+    appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
     serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
       this.histogramData = this.logsContainer.getHistogramData(data);
     });
@@ -88,23 +57,11 @@ export class LogsContainerComponent {
     return this.logsContainer.filtersForm;
   };
 
-  private logsType: string;
-
-  private logsTypeChange: Subject<any> = new Subject();
-
-  get logsTypeMapObject(): any {
-    return this.logsContainer.logsTypeMap[this.logsType];
-  }
+  private logsType: LogsType;
 
   get totalCount(): number {
     return this.logsContainer.totalCount;
   }
-
-  logs: Observable<AuditLog[] | ServiceLog[]>;
-
-  availableColumns: Observable<LogField[]>;
-
-  displayedColumns: any[] = [];
 
   histogramData: {[key: string]: number};
 
@@ -140,6 +97,22 @@ export class LogsContainerComponent {
 
   get activeLog(): ActiveServiceLogEntry | null {
     return this.logsContainer.activeLog;
+  }
+
+  get auditLogs(): Observable<AuditLog[]> {
+    return this.logsContainer.auditLogs;
+  }
+
+  get auditLogsColumns(): Observable<ListItem[]> {
+    return this.logsContainer.auditLogsColumns;
+  }
+
+  get serviceLogs(): Observable<ServiceLog[]> {
+    return this.logsContainer.serviceLogs;
+  }
+
+  get serviceLogsColumns(): Observable<ListItem[]> {
+    return this.logsContainer.serviceLogsColumns;
   }
 
   setCustomTimeRange(startTime: number, endTime: number): void {

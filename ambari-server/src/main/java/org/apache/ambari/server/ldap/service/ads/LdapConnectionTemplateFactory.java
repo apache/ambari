@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.ambari.server.events.AmbariLdapConfigChangedEvent;
+import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.LdapConnectionConfigService;
@@ -103,7 +103,7 @@ public class LdapConnectionTemplateFactory {
    * @throws AmbariLdapException
    */
   @Subscribe
-  public void onConfigChange(AmbariLdapConfigChangedEvent event) throws AmbariLdapException {
+  public void onConfigChange(AmbariConfigurationChangedEvent event) throws AmbariLdapException {
     ldapConnectionTemplateInstance = create(ambariLdapConfigurationProvider.get());
   }
 

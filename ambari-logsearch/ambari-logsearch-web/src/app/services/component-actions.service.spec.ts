@@ -17,6 +17,7 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
@@ -32,6 +33,7 @@ import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/s
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {ComponentActionsService} from './component-actions.service';
 
@@ -61,7 +63,8 @@ describe('ComponentActionsService', () => {
           serviceLogsHistogramData,
           serviceLogsTruncated,
           tabs
-        })
+        }),
+        ...TranslationModules
       ],
       providers: [
         ComponentActionsService,
@@ -81,7 +84,8 @@ describe('ComponentActionsService', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
-        LogsContainerService
+        LogsContainerService,
+        AuthService
       ]
     });
   });

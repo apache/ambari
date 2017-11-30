@@ -17,6 +17,7 @@
  */
 
 import {QueryParams} from '@app/classes/queries/query-params';
+import {ScrollType} from '@app/classes/string';
 
 export const defaultParams = {
   numberRows: '10',
@@ -32,5 +33,5 @@ export class ServiceLogsTruncatedQueryParams extends QueryParams {
   host_name: string;
   component_name: string;
   numberRows: string;
-  scrollType: 'before' | 'after' | '';
+  scrollType: ScrollType;
 }

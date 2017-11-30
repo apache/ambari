@@ -70,6 +70,7 @@ class HdfsClientDefault(HdfsClient):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HdfsClientWindows(HdfsClient):
   def install(self, env):
+    import install_params
     self.install_packages(env)
     self.configure(env)
 

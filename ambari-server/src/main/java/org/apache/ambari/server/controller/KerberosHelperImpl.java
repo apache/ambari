@@ -467,8 +467,8 @@ public class KerberosHelperImpl implements KerberosHelper {
     // If Ambari is managing it own identities then add AMBARI to the set of installed service so
     // that its Kerberos descriptor entries will be included.
     if (createAmbariIdentities(existingConfigurations.get(KERBEROS_ENV))) {
-      installedServices = new HashMap<String, Set<String>>(installedServices);
-      installedServices.put("AMBARI", Collections.singleton("AMBARI_SERVER"));
+      installedServices = new HashMap<>(installedServices);
+      installedServices.put(RootService.AMBARI.name(), Collections.singleton(RootComponent.AMBARI_SERVER.name()));
     }
 
     // Create the context to use for filtering Kerberos Identities based on the state of the cluster
@@ -1546,19 +1546,21 @@ public class KerberosHelperImpl implements KerberosHelper {
                 keytabFileOwnerAccess,
                 keytabFileGroupName,
                 keytabFileGroupAccess,
-                Sets.newHashSet(Pair.of(hostId, evaluatedPrincipal)),
-                serviceName.equalsIgnoreCase("AMBARI"),
+                Sets.newHashSet(Pair.of(hostId, Pair.of(evaluatedPrincipal, principalType))),
+                serviceName.equalsIgnoreCase(RootService.AMBARI.name()),
                 componentName.equalsIgnoreCase("AMBARI_SERVER_SELF")
             );
             if (resolvedKeytabs.containsKey(keytabFilePath)) {
               ResolvedKerberosKeytab sameKeytab = resolvedKeytabs.get(keytabFilePath);
               // validating owner and group
-              String warnTemplate = "Keytab '{}' on host '{}' have different {}, originally set to '{}' and '{}:{}' has '{}', using '{}'";
+              boolean differentOwners = false;
+              String warnTemplate = "Keytab '{}' on host '{}' has different {}, originally set to '{}' and '{}:{}' has '{}', using '{}'";
               if (!resolvedKeytab.getOwnerName().equals(sameKeytab.getOwnerName())) {
                 LOG.warn(warnTemplate,
                     keytabFilePath, hostname, "owners", sameKeytab.getOwnerName(),
                     serviceName, componentName, resolvedKeytab.getOwnerName(),
                     sameKeytab.getOwnerName());
+                differentOwners = true;
               }
               if (!resolvedKeytab.getOwnerAccess().equals(sameKeytab.getOwnerAccess())) {
                 LOG.warn(warnTemplate,
@@ -1570,16 +1572,39 @@ public class KerberosHelperImpl implements KerberosHelper {
               // TODO with different owners, so make sure that keytabs are accessible through group acls
               // TODO this includes same group name and group 'r' mode
               if (!resolvedKeytab.getGroupName().equals(sameKeytab.getGroupName())) {
-                LOG.warn(warnTemplate,
-                    keytabFilePath, hostname, "groups", sameKeytab.getGroupName(),
-                    serviceName, componentName, resolvedKeytab.getGroupName(),
-                    sameKeytab.getGroupName());
+                if(differentOwners) {
+                  LOG.error(warnTemplate,
+                      keytabFilePath, hostname, "groups", sameKeytab.getGroupName(),
+                      serviceName, componentName, resolvedKeytab.getGroupName(),
+                      sameKeytab.getGroupName());
+                } else {
+                  LOG.warn(warnTemplate,
+                      keytabFilePath, hostname, "groups", sameKeytab.getGroupName(),
+                      serviceName, componentName, resolvedKeytab.getGroupName(),
+                      sameKeytab.getGroupName());
+                }
               }
               if (!resolvedKeytab.getGroupAccess().equals(sameKeytab.getGroupAccess())) {
-                LOG.warn(warnTemplate,
-                    keytabFilePath, hostname, "group access", sameKeytab.getGroupAccess(),
-                    serviceName, componentName, resolvedKeytab.getGroupAccess(),
-                    sameKeytab.getGroupAccess());
+                if(differentOwners) {
+                  if (!sameKeytab.getGroupAccess().contains("r")) {
+                    LOG.error("Keytab '{}' on host '{}' referenced by multiple identities which have different owners," +
+                        "but 'r' attribute missing for group. Make sure all users (that need this keytab) are in '{}' +" +
+                        "group and keytab can be read by this group",
+                        keytabFilePath,
+                        hostname,
+                        sameKeytab.getGroupName()
+                    );
+                  }
+                  LOG.error(warnTemplate,
+                      keytabFilePath, hostname, "group access", sameKeytab.getGroupAccess(),
+                      serviceName, componentName, resolvedKeytab.getGroupAccess(),
+                      sameKeytab.getGroupAccess());
+                } else {
+                  LOG.warn(warnTemplate,
+                      keytabFilePath, hostname, "group access", sameKeytab.getGroupAccess(),
+                      serviceName, componentName, resolvedKeytab.getGroupAccess(),
+                      sameKeytab.getGroupAccess());
+                }
               }
               // end validating
               // merge principal to keytab
@@ -1877,15 +1902,17 @@ public class KerberosHelperImpl implements KerberosHelper {
     if (kerberosKeytabDAO.find(resolvedKerberosKeytab.getFile()) == null) {
       kerberosKeytabDAO.create(resolvedKerberosKeytab.getFile());
     }
-    for (Pair<Long, String> principalPair : resolvedKerberosKeytab.getMappedPrincipals()) {
-      String principal = principalPair.getRight();
+    for (Pair<Long, Pair<String, String>> principalPair : resolvedKerberosKeytab.getMappedPrincipals()) {
+      Pair<String, String> principal = principalPair.getRight();
+      String principalName = principal.getLeft();
+      String principalType = principal.getRight();
       Long hostId = principalPair.getLeft();
-      if (!kerberosPrincipalDAO.exists(principal)) {
-        kerberosPrincipalDAO.create(principal, false);
+      if (!kerberosPrincipalDAO.exists(principalName)) {
+        kerberosPrincipalDAO.create(principalName, "service".equalsIgnoreCase(principalType));
       }
       if (hostId != null) {
-        if(!kerberosPrincipalHostDAO.exists(principal, hostId, resolvedKerberosKeytab.getFile())) {
-          kerberosPrincipalHostDAO.create(principal, hostId, resolvedKerberosKeytab.getFile());
+        if(!kerberosPrincipalHostDAO.exists(principalName, hostId, resolvedKerberosKeytab.getFile())) {
+          kerberosPrincipalHostDAO.create(principalName, hostId, resolvedKerberosKeytab.getFile());
         }
       }
     }

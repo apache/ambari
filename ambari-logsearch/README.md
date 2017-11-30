@@ -34,6 +34,7 @@ In case if you started the containers separately and if you would like to access
 ### Run applications from IDE / maven
 
 - [Start Log Search locally](ambari-logsearch-server/README.md)
+- [Start Log Feeder locally](ambari-logsearch-logfeeder/README.md)
 
 ## Package build process
 

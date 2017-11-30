@@ -105,6 +105,9 @@ class TestRemoveBits(RMFTestCase):
     self.assertResourceCalled('Package', 'hadoop-hdfs',
                               action = ['remove'],
                               )
+    self.assertResourceCalled('Package', 'hadoop-lzo',
+                              action = ['remove'],
+                              )
     self.assertResourceCalled('Package', 'hadoop',
                               action = ['remove'],
                               )

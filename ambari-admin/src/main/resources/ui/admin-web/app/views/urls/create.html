@@ -16,7 +16,6 @@
 * limitations under the License.
 -->
 <ol class="breadcrumb">
-    <li> <link-to route="views.listViewUrls">{{'urls.viewUrls' | translate}}</link-to></li>
     <li class="active">{{'urls.createNewUrl' | translate}}</li>
 </ol>
 <hr>
@@ -68,7 +67,6 @@
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
                         <button ng-disabled="stepTwoNotCompleted" class="btn btn-primary pull-right left-margin saveuser" ng-click="saveUrl()">{{'common.controls.save' | translate}}</button>
-                        <link-to route="views.listViewUrls" class="btn btn-default pull-right cancel">{{'common.controls.cancel' | translate}}</link-to>
 
                     </div>
                 </div>

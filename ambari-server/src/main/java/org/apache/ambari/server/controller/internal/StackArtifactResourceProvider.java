@@ -56,6 +56,8 @@ import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -73,6 +75,9 @@ import com.google.inject.Inject;
  */
 @StaticallyInject
 public class StackArtifactResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(StackArtifactResourceProvider.class);
+
   /**
    * stack name
    */

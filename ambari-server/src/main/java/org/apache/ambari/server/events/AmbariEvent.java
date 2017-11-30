@@ -143,9 +143,9 @@ public abstract class AmbariEvent {
     USER_CREATED,
 
     /**
-     * LDAP config changed event;
+     * Ambari configuration changed event;
      */
-    LDAP_CONFIG_CHANGED;
+    AMBARI_CONFIGURATION_CHANGED;
 
   }
 

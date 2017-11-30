@@ -50,6 +50,8 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -60,6 +62,8 @@ import com.google.inject.Provider;
 @StaticallyInject
 public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     ExtendedResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AlertResourceProvider.class);
 
   public static final String ALERT_ID = "Alert/id";
   public static final String ALERT_STATE = "Alert/state";

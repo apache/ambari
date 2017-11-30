@@ -946,7 +946,7 @@
       "livy": [
         {
           "conf_dir": "/etc/livy/conf",
-          "current_dir": "{0}/current/livy"
+          "current_dir": "{0}/current/livy-client/conf"
         }
       ],
       "mahout": [
@@ -1154,9 +1154,11 @@
       }
     },
     "upgrade-dependencies" : {
-      "YARN": ["TEZ"],
-      "TEZ": ["YARN"],
-      "MAHOUT": ["MAPREDUCE2"]
+      "HIVE": ["TEZ", "MAPREDUCE2"],
+      "TEZ": ["HIVE"],
+      "MAPREDUCE2": ["HIVE"],
+      "MAHOUT": ["MAPREDUCE2"],
+      "OOZIE": ["MAPREDUCE2"]
     }    
   }
 }

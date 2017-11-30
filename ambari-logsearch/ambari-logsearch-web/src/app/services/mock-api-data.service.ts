@@ -65,6 +65,28 @@ export class mockApiDataService implements InMemoryDbService {
           isValuesList: true
         }
       }
+    },
+    'api/v1/audit/logs': {
+      pathToCollection: 'logList',
+      totalCountKey: 'totalCount',
+      filters: {
+        clusters: {
+          key: 'cluster',
+          isValuesList: true
+        },
+        iMessage: {
+          key: 'log_message',
+          filterFunction: (value, filterValue) => value.toLowerCase().indexOf(filterValue.toLowerCase()) > -1
+        },
+        from: {
+          key: 'evtTime',
+          filterFunction: (value, filterValue) => value >= moment(filterValue).valueOf()
+        },
+        to: {
+          key: 'evtTime',
+          filterFunction: (value, filterValue) => value < moment(filterValue).valueOf()
+        }
+      }
     }
   };
 

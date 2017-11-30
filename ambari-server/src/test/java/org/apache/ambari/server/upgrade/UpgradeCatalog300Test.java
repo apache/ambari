@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SECURITY_STATE_COLUMN;
@@ -42,6 +46,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -186,6 +191,15 @@ public class UpgradeCatalog300Test {
     dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
     expectLastCall().once();
 
+    // Ambari configuration table addition...
+    Capture<List<DBAccessor.DBColumnInfo>> ambariConfigurationTableColumns = newCapture();
+
+    dbAccessor.createTable(eq(AMBARI_CONFIGURATION_TABLE), capture(ambariConfigurationTableColumns));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
+    expectLastCall().once();
+    // Ambari configuration table addition...
+
     replay(dbAccessor, configuration);
 
     Injector injector = Guice.createInjector(module);
@@ -196,6 +210,35 @@ public class UpgradeCatalog300Test {
     Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedOpsDisplayNameColumn.getName());
     Assert.assertEquals(null, capturedOpsDisplayNameColumn.getDefaultValue());
     Assert.assertEquals(String.class, capturedOpsDisplayNameColumn.getType());
+
+    // Ambari configuration table addition...
+    Assert.assertTrue(ambariConfigurationTableColumns.hasCaptured());
+    List<DBAccessor.DBColumnInfo> columns = ambariConfigurationTableColumns.getValue();
+    Assert.assertEquals(3, columns.size());
+
+    for (DBAccessor.DBColumnInfo column : columns) {
+      String columnName = column.getName();
+
+      if (AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN.equals(columnName)) {
+        Assert.assertEquals(String.class, column.getType());
+        Assert.assertEquals(Integer.valueOf(100), column.getLength());
+        Assert.assertEquals(null, column.getDefaultValue());
+        Assert.assertFalse(column.isNullable());
+      } else if (AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN.equals(columnName)) {
+        Assert.assertEquals(String.class, column.getType());
+        Assert.assertEquals(Integer.valueOf(100), column.getLength());
+        Assert.assertEquals(null, column.getDefaultValue());
+        Assert.assertFalse(column.isNullable());
+      } else if (AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN.equals(columnName)) {
+        Assert.assertEquals(String.class, column.getType());
+        Assert.assertEquals(Integer.valueOf(255), column.getLength());
+        Assert.assertEquals(null, column.getDefaultValue());
+        Assert.assertTrue(column.isNullable());
+      } else {
+        Assert.fail("Unexpected column name: " + columnName);
+      }
+    }
+    // Ambari configuration table addition...
 
     verify(dbAccessor);
   }

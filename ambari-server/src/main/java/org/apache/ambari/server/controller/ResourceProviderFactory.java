@@ -68,8 +68,8 @@ public interface ResourceProviderFactory {
   @Named("upgrade")
   UpgradeResourceProvider getUpgradeResourceProvider(AmbariManagementController managementController);
 
-  @Named("ambariConfiguration")
-  ResourceProvider getAmbariConfigurationResourceProvider();
+  @Named("rootServiceHostComponentConfiguration")
+  ResourceProvider getRootServiceHostComponentConfigurationResourceProvider();
 
   @Named("clusterStackVersion")
   ClusterStackVersionResourceProvider getClusterStackVersionResourceProvider(AmbariManagementController managementController);

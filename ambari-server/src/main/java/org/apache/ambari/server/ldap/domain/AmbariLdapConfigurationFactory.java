@@ -30,5 +30,5 @@ public interface AmbariLdapConfigurationFactory {
    * @param configuration a map where keys are the configuration properties and values are the configuration values
    * @return an AmbariLdapConfiguration instance
    */
-  AmbariLdapConfiguration createLdapConfiguration(Map<String, Object> configuration);
+  AmbariLdapConfiguration createLdapConfiguration(Map<String, String> configuration);
 }

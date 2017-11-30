@@ -70,7 +70,7 @@ import com.google.inject.assistedinject.AssistedInject;
  */
 public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
       LoggerFactory.getLogger(RestMetricsPropertyProvider.class);
 
   @Inject

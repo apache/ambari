@@ -24,7 +24,7 @@ import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -67,7 +67,7 @@ import com.google.inject.Singleton;
  * <ul>
  * <li>If {@link AlertTargetEntity#isEnabled()} is {@code false}
  * <li>If the cluster is upgrading or the upgrade is suspended, only
- * {@link Services#AMBARI} alerts will be dispatched.
+ * {@link RootService#AMBARI} alerts will be dispatched.
  * </ul>
  */
 @Singleton
@@ -230,7 +230,7 @@ public class AlertStateChangedListener {
       if (null != cluster.getUpgradeInProgress()) {
         // only send AMBARI alerts if in an upgrade
         String serviceName = definition.getServiceName();
-        if (!StringUtils.equals(serviceName, Services.AMBARI.name())) {
+        if (!StringUtils.equals(serviceName, RootService.AMBARI.name())) {
           LOG.debug(
               "Skipping alert notifications for {} because the cluster is upgrading",
               definition.getDefinitionName(), target);

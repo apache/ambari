@@ -111,6 +111,8 @@ App.CheckHostMixin = Em.Mixin.create({
    */
   warningsTimeInterval: 60000,
 
+  finishStates: ["FAILED", "COMPLETED", "TIMEDOUT", "ABORTED"],
+
   /**
    * disables host check on Add host wizard as per the experimental flag
    */
@@ -206,7 +208,7 @@ App.CheckHostMixin = Em.Mixin.create({
       //if resolution host check has corrupted data then skip it
       return this.getGeneralHostCheck();
     }
-    if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(data.Requests.request_status)) {
+    if (this.get('finishStates').contains(data.Requests.request_status)) {
       if (data.Requests.inputs.indexOf("last_agent_env_check") != -1) {
         this.set('stopChecking', true);
         this.set('hostsPackagesData', data.tasks.map(function (task) {
@@ -214,7 +216,7 @@ App.CheckHostMixin = Em.Mixin.create({
           return {
             hostName: Em.get(task, 'Tasks.host_name'),
             transparentHugePage: Em.get(task, 'Tasks.structured_out.transparentHugePage.message'),
-            installedPackages: installed_packages ? installed_packages : []
+            installedPackages: installed_packages && Array.isArray(installed_packages) ? installed_packages : []
           };
         }));
 
@@ -369,7 +371,7 @@ App.CheckHostMixin = Em.Mixin.create({
     data.tasks.forEach(function (task) {
       var name = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error');
       var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
-      if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(task.Tasks.status)) {
+      if (this.get('finishStates').contains(task.Tasks.status)) {
         if (task.Tasks.status === "COMPLETED" && !!Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count")) {
           var targetHostName = Em.get(task, "Tasks.host_name");
           var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.hosts_with_failures") || [];

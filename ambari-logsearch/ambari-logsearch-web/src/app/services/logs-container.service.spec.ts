@@ -17,6 +17,7 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -61,7 +62,8 @@ describe('LogsContainerService', () => {
           hosts,
           serviceLogsTruncated,
           tabs
-        })
+        }),
+        ...TranslationModules
       ],
       providers: [
         AuditLogsService,

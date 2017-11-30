@@ -43,7 +43,7 @@ public abstract class MetricsReportPropertyProvider extends AbstractPropertyProv
 
   // ----- Constants --------------------------------------------------------
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
     LoggerFactory.getLogger(MetricsReportPropertyProvider.class);
 
 

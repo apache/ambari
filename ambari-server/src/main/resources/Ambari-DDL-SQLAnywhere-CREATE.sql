@@ -83,22 +83,11 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
-CREATE TABLE configuration_base (
-  id NUMERIC(19) NOT NULL,
-  version_tag VARCHAR(255) NOT NULL,
-  version NUMERIC(19) NOT NULL,
-  type VARCHAR(255) NOT NULL,
-  data TEXT NOT NULL,
-  attributes TEXT,
-  create_timestamp NUMERIC(19) NOT NULL,
-  CONSTRAINT PK_configuration_base PRIMARY KEY (id)
-);
-
 CREATE TABLE ambari_configuration (
-  id NUMERIC(19) NOT NULL,
-  CONSTRAINT PK_ambari_configuration PRIMARY KEY (id),
-  CONSTRAINT FK_ambari_conf_conf_base FOREIGN KEY (id) REFERENCES configuration_base (id)
-);
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE serviceconfig (
   service_config_id NUMERIC(19) NOT NULL,
@@ -1115,7 +1104,6 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_clus
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_cluster_service_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_version_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentdesiredstate_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('configuration_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI'

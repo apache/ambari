@@ -14,14 +14,11 @@
 
 package org.apache.ambari.server.ldap.service;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-
-import org.apache.ambari.server.events.AmbariLdapConfigChangedEvent;
+import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationFactory;
@@ -32,8 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
 /**
  * Provider implementation for LDAP configurations.
@@ -41,7 +39,7 @@ import com.google.gson.GsonBuilder;
  * It's responsible for managing LDAP configurations in the application.
  * Whenever requested, this provider returns an AmbariLdapConfiguration which is always in sync with the persisted LDAP
  * configuration resource.
- *
+ * <p>
  * The provider receives notifications on CRUD operations related to the persisted resource and reloads the cached
  * configuration instance accordingly.
  */
@@ -60,8 +58,6 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
   @Inject
   private AmbariLdapConfigurationFactory ldapConfigurationFactory;
 
-  private Gson gson = new GsonBuilder().create();
-
   @Inject
   public AmbariLdapConfigurationProvider() {
   }
@@ -73,34 +69,23 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
 
   @Override
   public AmbariLdapConfiguration get() {
-    return instance != null ? instance : loadInstance(null);
+    return instance != null ? instance : loadInstance();
   }
 
   /**
    * Loads the AmbariLdapConfiguration from the database.
    *
-   * @param configurationId the configuration id
    * @return the AmbariLdapConfiguration instance
    */
-  private AmbariLdapConfiguration loadInstance(Long configurationId) {
-    AmbariConfigurationEntity configEntity = null;
+  private AmbariLdapConfiguration loadInstance() {
+    List<AmbariConfigurationEntity> configEntities;
 
     LOGGER.info("Loading LDAP configuration ...");
-    if (null == configurationId) {
+    configEntities = ambariConfigurationDAOProvider.get().findByCategory("ldap-configuration");
 
-      LOGGER.debug("Initial loading of the ldap configuration ...");
-      configEntity = ambariConfigurationDAOProvider.get().getLdapConfiguration();
-
-    } else {
-
-      LOGGER.debug("Reloading configuration based on the provied id: {}", configurationId);
-      configEntity = ambariConfigurationDAOProvider.get().findByPK(configurationId);
-
-    }
-
-    if (configEntity != null) {
-      Set propertyMaps = gson.fromJson(configEntity.getConfigurationBaseEntity().getConfigurationData(), Set.class);
-      instance = ldapConfigurationFactory.createLdapConfiguration((Map<String, Object>) propertyMaps.iterator().next());
+    if (configEntities != null) {
+      Map<String, String> properties = toProperties(configEntities);
+      instance = ldapConfigurationFactory.createLdapConfiguration(properties);
     }
 
     LOGGER.info("Loaded LDAP configuration instance: [ {} ]", instance);
@@ -108,13 +93,21 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
     return instance;
   }
 
-  // On changing the configuration, the provider gets updated with the fresh value
-  @Subscribe
-  public void ambariLdapConfigChanged(AmbariLdapConfigChangedEvent event) {
-    LOGGER.info("LDAP config changed event received: {}", event);
-    loadInstance(event.getConfigurationId());
-    LOGGER.info("Refreshed LDAP config instance.");
+  private Map<String, String> toProperties(List<AmbariConfigurationEntity> configEntities) {
+    Map<String, String> map = new HashMap<>();
+
+    for (AmbariConfigurationEntity entity : configEntities) {
+      map.put(entity.getPropertyName(), entity.getPropertyValue());
+    }
+
+    return map;
   }
 
-
+  // On changing the configuration, the provider gets updated with the fresh value
+  @Subscribe
+  public void ambariLdapConfigChanged(AmbariConfigurationChangedEvent event) {
+    LOGGER.info("LDAP config changed event received: {}", event);
+    loadInstance();
+    LOGGER.info("Refreshed LDAP config instance.");
+  }
 }

@@ -286,6 +286,9 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
         success: 'onLoadConfigsTags'
       });
     }
+    else{
+      this.set('isLoaded', true);
+    }
   },
 
   clearStep: function () {

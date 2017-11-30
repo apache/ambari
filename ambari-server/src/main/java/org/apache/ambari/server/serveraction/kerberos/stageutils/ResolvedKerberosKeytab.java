@@ -40,7 +40,7 @@ public class ResolvedKerberosKeytab {
   private String groupName = null;
   private String groupAccess = null;
   private String file = null;
-  private Set<Pair<Long, String>> mappedPrincipals = null;
+  private Set<Pair<Long, Pair<String, String>>> mappedPrincipals = null;
   private boolean isAmbariServerKeytab = false;
   private boolean mustWriteAmbariJaasFile = false;
 
@@ -50,7 +50,7 @@ public class ResolvedKerberosKeytab {
       String ownerAccess,
       String groupName,
       String groupAccess,
-      Set<Pair<Long, String>> mappedPrincipals,
+      Set<Pair<Long, Pair<String, String>>> mappedPrincipals,
       boolean isAmbariServerKeytab,
       boolean writeAmbariJaasFile
   ) {
@@ -177,7 +177,7 @@ public class ResolvedKerberosKeytab {
    *
    * @return a Set with mappedPrincipals associated with given keytab
    */
-  public Set<Pair<Long, String>> getMappedPrincipals() {
+  public Set<Pair<Long, Pair<String, String>>> getMappedPrincipals() {
     return mappedPrincipals;
   }
 
@@ -186,7 +186,7 @@ public class ResolvedKerberosKeytab {
    *
    * @param mappedPrincipals a Map with host-to-principal mapping associated with given keytab
    */
-  public void setMappedPrincipals(Set<Pair<Long, String>> mappedPrincipals) {
+  public void setMappedPrincipals(Set<Pair<Long, Pair<String, String>>> mappedPrincipals) {
     this.mappedPrincipals = mappedPrincipals;
   }
 
@@ -197,7 +197,7 @@ public class ResolvedKerberosKeytab {
    */
   public Set<Long> getHosts() {
     ImmutableSet.Builder<Long> builder = ImmutableSet.builder();
-    for (Pair<Long, String> principal : getMappedPrincipals()) {
+    for (Pair<Long, Pair<String, String>> principal : getMappedPrincipals()) {
       if (principal.getLeft() != null) {
         builder.add(principal.getLeft());
       }
@@ -210,9 +210,9 @@ public class ResolvedKerberosKeytab {
    *
    * @return a Set of principals
    */
-  public Set<String> getPrincipals() {
-    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-    for (Pair<Long, String> principal : getMappedPrincipals()) {
+  public Set<Pair<String, String>> getPrincipals() {
+    ImmutableSet.Builder<Pair<String, String>> builder = ImmutableSet.builder();
+    for (Pair<Long, Pair<String, String>> principal : getMappedPrincipals()) {
       builder.add(principal.getRight());
     }
     return builder.build();

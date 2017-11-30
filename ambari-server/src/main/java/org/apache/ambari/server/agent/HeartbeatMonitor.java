@@ -25,7 +25,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TY
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.stack.StackManager.DEFAULT_HOOKS_FOLDER;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -341,7 +340,7 @@ public class HeartbeatMonitor implements Runnable {
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
     commandParams.put(SERVICE_PACKAGE_FOLDER,
        serviceInfo.getServicePackageFolder());
-    commandParams.put(HOOKS_FOLDER, DEFAULT_HOOKS_FOLDER);
+    commandParams.put(HOOKS_FOLDER, configuration.getProperty(Configuration.HOOKS_FOLDER));
     // Fill host level params
     Map<String, String> hostLevelParams = statusCmd.getHostLevelParams();
     hostLevelParams.put(JDK_LOCATION, ambariManagementController.getJdkResourceUrl());

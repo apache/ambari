@@ -226,7 +226,6 @@
                   <description>Maven Recipe: RPM Package.</description>
                   <autoRequires>false</autoRequires>
                   <requires>
-                    <require>snappy</require>
                     <require>${python.ver}</require>
                   </requires>
 

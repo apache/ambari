@@ -100,6 +100,8 @@ angular.module('ambariAdminConsole')
     'common.userManagement': 'User Management',
     'common.admin': 'Admin',
     'common.actions': 'Actions',
+    'common.error': 'Error',
+    'common.select': 'Select',
 
     'common.clusterNameChangeConfirmation.title': 'Confirm Cluster Name Change',
     'common.clusterNameChangeConfirmation.message': 'Are you sure you want to change the cluster name to {{clusterName}}?',
@@ -180,7 +182,6 @@ angular.module('ambariAdminConsole')
     'views.viewInstance': 'View Instance',
     'views.create': 'Create Instance',
     'views.clone': 'Clone Instance',
-    'views.createViewInstance': 'Create Instance',
     'views.edit': 'Edit',
     'views.viewName': 'View Name',
     'views.instances': 'Instances',
@@ -276,6 +277,8 @@ angular.module('ambariAdminConsole')
 
     'groups.createLocal': 'Add Groups',
     'groups.name': 'Group name',
+    'groups.role': 'Add roles to this group',
+    'groups.addUsers': 'Add users to this group',
     'groups.members': 'Members',
     'groups.membersPlural': '{{n}} member{{n == 1 ? "" : "s"}}',
 
@@ -285,7 +288,7 @@ angular.module('ambariAdminConsole')
     'groups.alerts.getGroupsListError': 'Get groups list error',
 
     'users.username': 'Username',
-    'users.userName': 'User name',
+    'users.user.name': 'User name',
     'users.admin': 'Admin',
     'users.ambariAdmin': 'Ambari Admin',
     'users.ambariClusterURL': 'Ambari Cluster URL',
@@ -300,7 +303,11 @@ angular.module('ambariAdminConsole')
     'users.inactive': 'Inactive',
     'users.status': 'Status',
     'users.password': 'Password',
+    'users.role': 'Add roles for this user',
+    'users.confirmPassword': 'Confirm Password',
     'users.passwordConfirmation': 'Password сonfirmation',
+    'users.isAmbariAdmin': 'Is this user an Ambari Admin?',
+    'users.isActive': 'Deactivate this user?',
     'users.userIsAdmin': 'This user is an Ambari Admin and has all privileges.',
     'users.showAll': 'Show all users',
     'users.showAdmin': 'Show only admin users',
@@ -330,7 +337,7 @@ angular.module('ambariAdminConsole')
     'users.alerts.wrongPassword': 'Password must match!',
     'users.alerts.usernameRequired': 'Username Required',
     'users.alerts.cannotChange': 'Cannot Change {{term}}',
-    'users.alerts.userCreated': 'Created user <a href="#/users/{{encUserName}}">{{userName}}</a>',
+    'users.alerts.userCreated': 'Created user <a href="#/users/{{encUserName}}/edit">{{userName}}</a>',
     'users.alerts.userCreationError': 'User creation error',
     'users.alerts.removeUserError': 'Removing from group error',
     'users.alerts.cannotAddUser': 'Cannot add user to group',
@@ -366,8 +373,6 @@ angular.module('ambariAdminConsole')
     'versions.installOn': 'Install on...',
 
     'versions.register.title': 'Register Version',
-    'versions.add.title': 'Add Version',
-
     'versions.register.error.header': 'Unable to Register',
     'versions.register.error.body': 'You are attempting to register a version with a Base URL that is already in use with an existing registered version. You *must* review your Base URLs and confirm they are unique for the version you are trying to register.',
 

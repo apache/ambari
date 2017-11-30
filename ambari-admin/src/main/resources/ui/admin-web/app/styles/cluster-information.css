@@ -28,18 +28,17 @@
   vertical-align: text-top;
 }
 
-#cluster-information .cluster-name label {
-  font-weight: normal;
+#cluster-information .cluster-name input {
+  width: 75%;
 }
 
-#cluster-information .dev-blueprint {
-  line-height: 35px;
+#cluster-information .cluster-name button {
+  margin-top: -34px;
 }
 
-#cluster-information .dev-blueprint span {
-  vertical-align: text-top;
+#cluster-information .cluster-name input.edited {
+  background-color: #fdfbdd;
 }
-
 
 #cluster-information .welcome-header {
   margin: -15px;

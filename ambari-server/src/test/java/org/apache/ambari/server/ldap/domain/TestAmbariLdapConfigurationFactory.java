@@ -23,7 +23,7 @@ import java.util.Map;
 public class TestAmbariLdapConfigurationFactory implements AmbariLdapConfigurationFactory {
 
   @Override
-  public AmbariLdapConfiguration createLdapConfiguration(Map<String, Object> configuration) {
+  public AmbariLdapConfiguration createLdapConfiguration(Map<String, String> configuration) {
     return new AmbariLdapConfiguration(configuration);
   }
 }

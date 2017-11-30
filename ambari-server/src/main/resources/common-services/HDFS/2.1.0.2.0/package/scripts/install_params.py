@@ -18,7 +18,6 @@ limitations under the License.
 """
 from ambari_commons import OSCheck
 
-exclude_packages = []
 # These parameters are supposed to be referenced at installation time, before the Hadoop environment variables have been set
 if OSCheck.is_windows_family():
   exclude_packages = []
@@ -28,7 +27,3 @@ else:
 
   _config = Script.get_config()
   stack_version_unformatted = str(_config['hostLevelParams']['stack_version'])
-
-  # The logic for LZO also exists in OOZIE's params.py
-  io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-  lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()

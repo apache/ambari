@@ -176,7 +176,7 @@ class VersionBuilder:
         e = ET.SubElement(service_element, 'component')
         e.text = component
 
-  def add_repo(self, os_family, repo_id, repo_name, base_url, unique):
+  def add_repo(self, os_family, repo_id, repo_name, base_url, unique, tags):
     """
     Adds a repository
     """
@@ -210,6 +210,13 @@ class VersionBuilder:
     if unique is not None:
       e = ET.SubElement(repo_element, 'unique')
       e.text = unique
+
+    if tags is not None:
+      e = ET.SubElement(repo_element, 'tags')
+      tag_names = tags.split(',')
+      for tag in tag_names:
+        t = ET.SubElement(e, 'tag')
+        t.text = tag
 
 
   def _check_xmllint(self):
@@ -326,7 +333,8 @@ def process_repo(vb, options):
   if not options.repo:
     return
 
-  vb.add_repo(options.repo_os, options.repo_id, options.repo_name, options.repo_url, options.unique)
+  vb.add_repo(options.repo_os, options.repo_id, options.repo_name, options.repo_url,
+    options.unique, options.repo_tags)
 
 def validate_manifest(parser, options):
   """
@@ -444,6 +452,7 @@ def main(argv):
                     help="Indicates base url should be unique")
   parser.add_option('--repo-id', dest='repo_id', help="The ID of the repo")
   parser.add_option('--repo-name', dest='repo_name', help="The name of the repo")
+  parser.add_option('--repo-tags', dest='repo_tags', help="The CSV tags for the repo")
 
   (options, args) = parser.parse_args()
 

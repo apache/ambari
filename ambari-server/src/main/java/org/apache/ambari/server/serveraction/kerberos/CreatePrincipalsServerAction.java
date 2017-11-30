@@ -135,10 +135,11 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
 
       boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
-
+      boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
       if (regenerateKeytabs) {
         // force recreation of principal due to keytab regeneration
-        processPrincipal = true;
+        // regenerate only service principals if request filtered by hosts
+        processPrincipal = !hasHostFilters() || servicePrincipal;
       } else if (kerberosPrincipalEntity == null) {
         // This principal has not been processed before, process it.
         processPrincipal = true;
@@ -156,7 +157,6 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         String password = principalPasswordMap.get(evaluatedPrincipal);
 
         if (password == null) {
-          boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
           CreatePrincipalResult result = createPrincipal(evaluatedPrincipal, servicePrincipal, kerberosConfiguration, operationHandler, regenerateKeytabs, actionLog);
           if (result == null) {
             commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());

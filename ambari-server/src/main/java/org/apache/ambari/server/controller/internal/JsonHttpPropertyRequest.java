@@ -37,7 +37,7 @@ import com.google.gson.reflect.TypeToken;
  * instance.
  */
 public abstract class JsonHttpPropertyRequest extends HttpPropertyProvider.HttpPropertyRequest {
-  protected final static Logger LOG = LoggerFactory.getLogger(JsonHttpPropertyRequest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JsonHttpPropertyRequest.class);
 
   private static final Type MAP_TYPE = new TypeToken<Map<String, Object>>() {}.getType();
 

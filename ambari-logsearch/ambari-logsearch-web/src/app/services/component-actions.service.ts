@@ -21,6 +21,7 @@ import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {CollectionModelService} from '@app/classes/models/store';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 import {ServiceLog} from '@app/classes/models/service-log';
 import {ListItem} from '@app/classes/list-item';
 
@@ -29,7 +30,8 @@ export class ComponentActionsService {
 
   constructor(
     private appSettings: AppSettingsService, private tabsStorage: TabsService,
-    private logsContainer: LogsContainerService
+    private logsContainer: LogsContainerService,
+    private authService: AuthService
   ) {
   }
 
@@ -130,8 +132,24 @@ export class ComponentActionsService {
   }
 
   proceedWithExclude = (item: string): void => this.logsContainer.queryParameterNameChange.next({
-    item: item,
+    value: item,
     isExclude: true
   });
+
+  /**
+   * Request a login action from the AuthService
+   * @param {string} username
+   * @param {string} password
+   */
+  login(username: string, password: string): void {
+    this.authService.login(username, password);
+  }
+
+  /**
+   * Request a logout action from AuthService
+   */
+  logout(): void {
+    this.authService.logout();
+  }
 
 }

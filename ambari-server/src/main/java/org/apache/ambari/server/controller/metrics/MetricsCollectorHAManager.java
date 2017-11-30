@@ -38,7 +38,7 @@ public class MetricsCollectorHAManager {
   protected AmbariEventPublisher eventPublisher;
 
   private Map<String, MetricsCollectorHAClusterState> clusterCollectorHAState;
-  protected final static Logger LOG =
+  private static final Logger LOG =
     LoggerFactory.getLogger(MetricsCollectorHAManager.class);
 
   public MetricsCollectorHAManager() {

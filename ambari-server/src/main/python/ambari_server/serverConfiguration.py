@@ -40,6 +40,7 @@ from ambari_server.properties import Properties
 from ambari_server.userInput import get_validated_string_input
 from ambari_server.utils import compare_versions, locate_file, on_powerpc
 from ambari_server.ambariPath import AmbariPath
+from ambari_server.userInput import get_YN_input
 
 
 OS_VERSION = OSCheck().get_os_major_version()
@@ -195,6 +196,15 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
                        "- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
                        "Refer to the Ambari documentation for more information on setup and upgrade."
 
+GPL_LICENSE_PROMPT_TEXT = """To download GPL licensed products like lzo you must accept the license terms below:
+LICENSE_LINE_1
+LICENSE_LINE_2
+LICENSE_LINE_3
+LICENSE_LINE_4
+LICENSE_LINE_5
+LICENSE_LINE_6
+Do you accept the GPL License Agreement [y/n] (y)?"""
+
 DEFAULT_DB_NAME = "ambari"
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
@@ -209,6 +219,8 @@ BOOTSTRAP_SETUP_AGENT_SCRIPT = 'bootstrap.setup_agent.script'
 STACKADVISOR_SCRIPT = 'stackadvisor.script'
 PID_DIR_PROPERTY = 'pid.dir'
 SERVER_TMP_DIR_PROPERTY = "server.tmp.dir"
+GPL_LICENSE_ACCEPTED_PROPERTY = 'gpl.license.accepted'
+
 REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PATH_PROPERTY, SERVER_VERSION_FILE_PATH,
                        WEBAPP_DIR_PROPERTY, STACK_LOCATION_KEY, SECURITY_KEYS_DIR, JDBC_DATABASE_NAME_PROPERTY,
                        NR_USER_PROPERTY, JAVA_HOME_PROPERTY, JDBC_PASSWORD_PROPERTY, SHARED_RESOURCES_DIR,
@@ -1139,6 +1151,23 @@ def update_ambari_env():
     return -1
 
   return 0
+  
+def write_gpl_license_accepted():
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    raise FatalException(-1, err)
+
+
+  if GPL_LICENSE_ACCEPTED_PROPERTY in properties.keys() and properties.get_property(GPL_LICENSE_ACCEPTED_PROPERTY).lower() == "true":
+    return True
+
+  result = get_YN_input(GPL_LICENSE_PROMPT_TEXT, True)
+
+  properties.process_pair(GPL_LICENSE_ACCEPTED_PROPERTY, str(result).lower())
+  update_properties(properties)
+
+  return result
 
 def update_ambari_properties():
   prev_conf_file = search_file(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, get_conf_dir())

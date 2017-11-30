@@ -110,6 +110,7 @@ public interface Resource {
     TaskAttempt,
     RootService,
     RootServiceComponent,
+    RootServiceComponentConfiguration,
     RootServiceHostComponent,
     View,
     ViewURL,
@@ -160,8 +161,7 @@ public interface Resource {
     VersionDefinition,
     ClusterKerberosDescriptor,
     LoggingQuery,
-    RemoteCluster,
-    AmbariConfiguration;
+    RemoteCluster;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -232,6 +232,7 @@ public interface Resource {
     public static final Type TaskAttempt = InternalType.TaskAttempt.getType();
     public static final Type RootService = InternalType.RootService.getType();
     public static final Type RootServiceComponent = InternalType.RootServiceComponent.getType();
+    public static final Type RootServiceComponentConfiguration = InternalType.RootServiceComponentConfiguration.getType();
     public static final Type RootServiceHostComponent = InternalType.RootServiceHostComponent.getType();
     public static final Type View = InternalType.View.getType();
     public static final Type ViewURL = InternalType.ViewURL.getType();
@@ -283,7 +284,6 @@ public interface Resource {
     public static final Type ClusterKerberosDescriptor = InternalType.ClusterKerberosDescriptor.getType();
     public static final Type LoggingQuery = InternalType.LoggingQuery.getType();
     public static final Type RemoteCluster = InternalType.RemoteCluster.getType();
-    public static final Type AmbariConfiguration = InternalType.AmbariConfiguration.getType();
 
 
     /**
