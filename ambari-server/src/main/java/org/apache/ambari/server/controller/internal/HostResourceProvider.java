@@ -62,7 +62,6 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
@@ -145,9 +144,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String HOST_PREDICATE_PROPERTY_ID = "host_predicate";
 
   //todo use the same json structure for cluster host addition (cluster template and upscale)
-
-  protected static final String FORCE_DELETE_COMPONENTS = "force_delete_components";
-
 
   private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(HOST_HOST_NAME_PROPERTY_ID);
 
@@ -320,8 +316,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     final Set<HostRequest> requests = new HashSet<>();
     Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
-    final boolean forceDelete = requestInfoProperties.containsKey(FORCE_DELETE_COMPONENTS) &&
-                  requestInfoProperties.get(FORCE_DELETE_COMPONENTS).equals("true");
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
@@ -330,7 +324,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     DeleteStatusMetaData deleteStatusMetaData = modifyResources(new Command<DeleteStatusMetaData>() {
       @Override
       public DeleteStatusMetaData invoke() throws AmbariException {
-        return deleteHosts(requests, request.isDryRunRequest(), forceDelete);
+        return deleteHosts(requests, request.isDryRunRequest());
       }
     });
 
@@ -848,7 +842,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Transactional
-  protected DeleteStatusMetaData deleteHosts(Set<HostRequest> requests, boolean dryRun, boolean forceDelete)
+  protected DeleteStatusMetaData deleteHosts(Set<HostRequest> requests, boolean dryRun)
       throws AmbariException {
 
     AmbariManagementController controller = getManagementController();
@@ -863,7 +857,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
 
       try {
-        validateHostInDeleteFriendlyState(hostRequest, clusters, forceDelete);
+        validateHostInDeleteFriendlyState(hostRequest, clusters);
         okToRemove.add(hostRequest);
       } catch (Exception ex) {
         deleteStatusMetaData.addException(hostName, ex);
@@ -964,7 +958,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
   }
 
-  private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters, boolean forceDelete) throws AmbariException {
+  private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters) throws AmbariException {
     Set<String> clusterNamesForHost = new HashSet<>();
     String hostName = hostRequest.getHostname();
     if (null != hostRequest.getClusterName()) {
@@ -984,43 +978,25 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostName);
 
       if (!list.isEmpty()) {
-        List<String> componentsToRemove = new ArrayList<>();
         List<String> componentsStarted = new ArrayList<>();
         for (ServiceComponentHost sch : list) {
-          componentsToRemove.add(sch.getServiceComponentName());
-          if (sch.getState() == State.STARTED) {
+          if (!sch.canBeRemoved()) {
             componentsStarted.add(sch.getServiceComponentName());
           }
         }
 
-        if (forceDelete) {
-          // error if components are running
-          if (!componentsStarted.isEmpty()) {
-            StringBuilder reason = new StringBuilder("Cannot remove host ")
-                .append(hostName)
-                .append(" from ")
-                .append(hostRequest.getClusterName())
-                .append(
-                    ".  The following roles exist, and these components must be stopped: ");
+        // error if components are running
+        if (!componentsStarted.isEmpty()) {
+          StringBuilder reason = new StringBuilder("Cannot remove host ")
+              .append(hostName)
+              .append(" from ")
+              .append(hostRequest.getClusterName())
+              .append(
+                  ".  The following roles exist, and these components are not in the removable state: ");
 
-            reason.append(StringUtils.join(componentsToRemove, ", "));
+          reason.append(StringUtils.join(componentsStarted, ", "));
 
-            throw new AmbariException(reason.toString());
-          }
-        } else {
-//          TODO why host with all components stopped can't be deleted? This functional is implemented and only this validation stops the request.
-          if (!componentsToRemove.isEmpty()) {
-            StringBuilder reason = new StringBuilder("Cannot remove host ")
-                .append(hostName)
-                .append(" from ")
-                .append(hostRequest.getClusterName())
-                .append(
-                    ".  The following roles exist, and these components must be stopped if running, and then deleted: ");
-
-            reason.append(StringUtils.join(componentsToRemove, ", "));
-
-            throw new AmbariException(reason.toString());
-          }
+          throw new AmbariException(reason.toString());
         }
       }
     }

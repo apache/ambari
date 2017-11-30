@@ -3477,15 +3477,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               + ", hostname=" + request.getHostname()
               + ", request=" + request);
     }
-
-    // Only allow removing master/slave components in DISABLED/UNKNOWN/INSTALL_FAILED/INIT state without stages
-    // generation.
-    // Clients may be removed without a state check.
-    if (!component.isClientComponent() &&
-            !componentHost.getState().isRemovableState()) {
-      throw new AmbariException("To remove master or slave components they must be in " +
-              "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
-    }
   }
 
   @Override
