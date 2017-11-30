@@ -20,16 +20,20 @@ limitations under the License.
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from functions import calc_xmn_from_xms, ensure_unit_for_memory
+import status_params
+from resource_management.libraries.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries import functions
+from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_stack_version, compare_versions
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.default import default
-from resource_management import *
+from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.expect import expect
-import status_params
-from hbase import *
 
 def treat_value_as_mb(value1):
   value = str(value1)
