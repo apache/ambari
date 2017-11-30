@@ -94,7 +94,7 @@ export JAVA_HOME={{java64_home}}
 export PATH=$PATH:$JAVA_HOME/bin
 export PID_DIR={{kafka_pid_dir}}
 export LOG_DIR={{kafka_log_dir}}
-{% if security_enabled %}
+{% if kerberos_security_enabled or kafka_other_sasl_enabled %}
 export KAFKA_KERBEROS_PARAMS="-Djavax.security.auth.useSubjectCredsOnly=false {{kafka_kerberos_params}}"
 {% else %}
 export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}

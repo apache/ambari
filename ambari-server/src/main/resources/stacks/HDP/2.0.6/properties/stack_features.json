@@ -447,6 +447,11 @@
         "name": "sam_storage_core_in_registry",
         "description": "Storage core module moved to registry",
         "min_version": "2.6.3.0"
+      },
+      {
+        "name": "kafka_extended_sasl_support",
+        "description": "Support SASL PLAIN and GSSAPI",
+        "min_version": "2.6.5.0"
       }
     ]
   }
