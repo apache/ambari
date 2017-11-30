@@ -189,6 +189,28 @@
     #warningsSection {
       margin: 0px 10px;
     }
+    .ambari-repo-url-panel {
+      p.help-block.validation-block {
+        &::before {
+          content: '\e083';
+          color:  #EF6162;
+        }
+      }
+      .btn-area {
+        padding: 10px;
+      }
+      input {
+        width:85%;
+      }
+      td {
+        .onerror {
+          .ember-text-field {
+            border-color: #EF6162;
+          }
+        }
+      }
+    }
+
   }
   #step4, #step5, #step6 {
     a.selected {

@@ -41,7 +41,16 @@ public class BSHostStatus {
   private String statusAction;
   @XmlElement
   private String log;
+  @XmlElement
+  private String osType;
 
+  public String getOsType() {
+    return osType;
+  }
+
+  public void setOsType(String osType) {
+    this.osType = osType;
+  }
 
   public void setStatus(String status) {
     this.status = status;

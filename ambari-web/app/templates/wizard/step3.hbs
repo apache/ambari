@@ -140,6 +140,53 @@
             {{/unless}}
           </div>
         {{/unless}}
+
+        {{#if promptAmbariRepoUrl}}
+          <div class="ambari-repo-url-panel">
+            <div class="step-title"> <p>Ambari Repositories</p></div>
+            <div class="step-description">
+              <div class="alert alert-info">
+                <label>{{t ambari.repository.url.os.textbox}}</label>
+              </div>
+            </div>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th class="col-sm-2">{{t common.os}} </th>
+                  <th class="col-sm-3">{{t ambari.repository.baseUrl}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each os in newAmbariOsTypes}}
+                  <tr>
+                    <td class="col-sm-2">{{os.os_type }}</td>
+                    <td class="col-sm-9" colspan="2">
+                      <table class="table table-condensed no-borders inner-table">
+                        <tbody>
+                          <tr>
+                            <td class="col-sm-3" {{bindAttr class="os.hasError:onerror"}}>{{view Ember.TextField valueBinding="os.ambari_repo" }}</td>
+                          </tr>
+                          <tr>
+                            <td class="col-sm-3">
+                            {{#if os.hasError}}
+                              <p class="help-block validation-block col-sm-9"  {{QAAttr "ambari-repo-validation"}}>{{os.ambariRepoUIError}}</p>
+                            {{/if}}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+
+            <div class="btn-area">
+              <button type="button" class="btn" {{bindAttr disabled="isAmbariRepoURLSubmitDisabled" }} {{action bootstrapWithAmbariRepoUrl  target="controller"}}>Validate
+            </div>
+          </div>
+        {{/if}}
+
       </div>
     </div>
   </div>
