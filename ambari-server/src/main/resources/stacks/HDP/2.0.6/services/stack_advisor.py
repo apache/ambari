@@ -547,7 +547,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if not lzo_allowed and lzo_codec_class in property_value:
         validations.append({"config-name": property_name, "item": self.getNotApplicableItem(
           "Your Ambari Server has not been configured to download LZO and install it. "
-          "LZO is GPL software and requires you to accept a license prior to use. "
+          "LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. "
           "Please refer to the documentation to configure Ambari before proceeding.")})
 
   def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):

@@ -2373,14 +2373,14 @@ class TestHDP206StackAdvisor(TestCase):
     services["gpl-license-accepted"] = False
     res_expected = [{'config-type': 'core-site',
                      'message': 'Your Ambari Server has not been configured to download LZO and install it. '
-                                'LZO is GPL software and requires you to accept a license prior to use. '
+                                'LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. '
                                 'Please refer to the documentation to configure Ambari before proceeding.',
                      'type': 'configuration',
                      'config-name': 'io.compression.codecs',
                      'level': 'NOT_APPLICABLE'},
                     {'config-type': 'core-site',
                      'message': 'Your Ambari Server has not been configured to download LZO and install it. '
-                                'LZO is GPL software and requires you to accept a license prior to use. '
+                                'LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. '
                                 'Please refer to the documentation to configure Ambari before proceeding.',
                      'type': 'configuration',
                      'config-name': 'io.compression.codec.lzo.class',
