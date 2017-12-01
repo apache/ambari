@@ -14,13 +14,44 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific
 
-PIDFILE=/var/run//var/run/ambari-metrics-anomaly-detection/ambari-metrics-admanager.pid
+PIDFILE=/var/run/ambari-metrics-anomaly-detection/ambari-metrics-admanager.pid
 OUTFILE=/var/log/ambari-metrics-anomaly-detection/ambari-metrics-admanager.out
 
 CONF_DIR=/etc/ambari-metrics-anomaly-detection/conf
 DAEMON_NAME=ams_admanager
+SPARK_HOME=/usr/lib/ambari-metrics-anomaly-detection/spark
 
-STOP_TIMEOUT=5
+SPARK_MASTER_PID=/var/run/ambari-metrics-anomaly-detection/spark-ams-org.apache.spark.deploy.master.Master.pid
+
+STOP_TIMEOUT=10
+
+function spark_daemon
+{
+    local cmd=$1
+    local pid
+
+    if [[ "${cmd}" == "start" ]]
+      then
+
+        ${SPARK_HOME}/sbin/start-master.sh
+        sleep 2
+        master_pid=$(cat "$SPARK_MASTER_PID")
+        if [ -z "`ps ax | grep -w ${master_pid} | grep org.apache.spark.deploy.master.Master`" ]; then
+          echo "ERROR: Spark Master start failed. For more details, see outfile in log directory."
+          exit -1
+        fi
+
+        ${SPARK_HOME}/sbin/start-slave.sh spark://${SPARK_MASTER_HOST}:${SPARK_MASTER_PORT}
+    elif [[ "${cmd}" == "stop" ]]
+      then
+        ${SPARK_HOME}/sbin/stop-slave.sh
+        ${SPARK_HOME}/sbin/stop-master.sh
+    else
+        pid=${SPARK_MASTER_PID}
+        daemon_status "${pid}"
+    fi
+
+}
 
 function write_pidfile
 {
@@ -55,22 +86,6 @@ function java_setup
 
 function daemon_status()
 {
-  #
-  # LSB 4.1.0 compatible status command (1)
-  #
-  # 0 = program is running
-  # 1 = dead, but still a pid (2)
-  # 2 = (not used by us)
-  # 3 = not running
-  #
-  # 1 - this is not an endorsement of the LSB
-  #
-  # 2 - technically, the specification says /var/run/pid, so
-  #     we should never return this value, but we're giving
-  #     them the benefit of a doubt and returning 1 even if
-  #     our pid is not in in /var/run .
-  #
-
   local pidfile="$1"
   shift
 
@@ -89,6 +104,12 @@ function daemon_status()
 function start()
 {
   java_setup
+
+
+  if [[ "${AMS_AD_STANDALONE_SPARK_ENABLED}" == "true" || "${AMS_AD_STANDALONE_SPARK_ENABLED}" == "True" ]]
+  then
+    spark_daemon "start"
+  fi
 
   daemon_status "${PIDFILE}"
   if [[ $? == 0  ]]; then
@@ -144,9 +165,12 @@ function stop()
       rm -f "${pidfile}" >/dev/null 2>&1
     fi
   fi
+
+  #Let's try to stop spark always since if the user has flipped the spark mode to 'yarn', the enabled flag becomes obsolete.
+  spark_daemon "stop"
 }
 
-# execute ams-env.sh
+# execute ams-admanager-env.sh
 if [[ -f "${CONF_DIR}/ams-admanager-env.sh" ]]; then
   . "${CONF_DIR}/ams-admanager-env.sh"
 else
@@ -154,12 +178,21 @@ else
   exit 1
 fi
 
-# set these env variables only if they were not set by ams-env.sh
+if [[ -f "${CONF_DIR}/ams-admanager-spark-env.sh" ]]; then
+  . "${CONF_DIR}/ams-admanager-spark-env.sh"
+else
+  echo "ERROR: Cannot execute ${CONF_DIR}/ams-admanager-spark-env.sh." 2>&1
+  exit 1
+fi
+
+# set these env variables only if they were not set by ams-admanager-env.sh
 : ${AMS_AD_LOG_DIR:=/var/log/ambari-metrics-anomaly-detection}
+: ${AMS_AD_STANDALONE_SPARK_ENABLED:=true}
 
 # set pid dir path
 if [[ -n "${AMS_AD_PID_DIR}" ]]; then
-  PIDFILE=${AMS_AD_PID_DIR}/admanager.pid
+  PIDFILE=${AMS_AD_PID_DIR}/ambari-metrics-admanager.pid
+  SPARK_MASTER_PID=${AMS_AD_PID_DIR}/spark-${USER}-org.apache.spark.deploy.master.Master-1.pid
 fi
 
 # set out file path

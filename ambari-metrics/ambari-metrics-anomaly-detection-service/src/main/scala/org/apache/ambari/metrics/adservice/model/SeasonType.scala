@@ -15,23 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.common
+package org.apache.ambari.metrics.adservice.model
 
-import org.scalatest.FlatSpec
+object SeasonType extends Enumeration{
 
-class RangeTest extends FlatSpec {
-
-  "A Range " should " return true for inner and boundary values" in {
-    val range : Range = Range(4,6)
-    assert(range.withinRange(5))
-    assert(range.withinRange(6))
-    assert(range.withinRange(4))
-    assert(!range.withinRange(7))
-  }
-
-  it should "accept same lower and higher range values" in {
-    val range : Range = Range(4,4)
-    assert(range.withinRange(4))
-  }
-
+  type SeasonType = Value
+  val DAY,HOUR = Value
 }

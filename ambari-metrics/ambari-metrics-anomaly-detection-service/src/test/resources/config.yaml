@@ -10,16 +10,6 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-server:
-  applicationConnectors:
-   - type: http
-     port: 9999
-  requestLog:
-    type: external
-
-logging:
-  type: external
-
 metricDefinitionService:
   inputDefinitionDirectory: /etc/ambari-metrics-anomaly-detection/conf/definitionDirectory
 
@@ -40,7 +30,6 @@ metricDefinitionDB:
   # Path to Level DB directory
   dbDirPath: /var/lib/ambari-metrics-anomaly-detection/
 
-#subsystemService:
-#  spark:
-#  pointInTime:
-#  trend:
+spark:
+  mode: standalone
+  masterHostPort: localhost:7077

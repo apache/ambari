@@ -102,6 +102,10 @@
         performParanoidChecks: false
         # Path to Level DB directory
         dbDirPath: {{ams_ad_data_dir}}
+
+      spark:
+        mode: {{admanager_spark_op_mode}}
+        masterHostPort: {{admanager_spark_hostport}}
     </value>
     <value-attributes>
       <type>content</type>

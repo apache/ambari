@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.common
+package org.apache.ambari.metrics.adservice.model
 
 import java.time.DayOfWeek
 import java.util.Calendar
 
 import javax.xml.bind.annotation.XmlRootElement
 
-import org.apache.ambari.metrics.adservice.common.SeasonType.SeasonType
+import org.apache.ambari.metrics.adservice.model.SeasonType.SeasonType
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
