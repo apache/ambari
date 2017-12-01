@@ -26,7 +26,7 @@
   "filter.clusters": "Clusters",
   "filter.components": "Components",
   "filter.levels": "Levels",
-  "filter.excluded": "Excluded",
+  "filter.exclude": "Exclude",
   "filter.hosts": "Hosts",
 
   "filter.capture": "Capture",

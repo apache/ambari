@@ -315,7 +315,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       App.Repository.find().findProperty('id', repo.id).set('baseUrl', repo.base_url);
     });
     _oses.forEach(function (os) {
-      App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
+      if (App.OperatingSystem.find().findProperty('id', os.id)) {
+        App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
+      }
     });
     //should delete the record on going to step 2, on going back to step 1, still need the record
     if (App.router.get('currentState.name') != "step1") {
@@ -863,6 +865,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
                   data: {
                     'Repositories': {
                       'base_url': repo.get('baseUrl'),
+                      'repo_name': repo.get('repoName'),
                       "verify_base_url": verifyBaseUrl
                     }
                   }

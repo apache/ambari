@@ -16,11 +16,11 @@
 -->
 
 <div [ngClass]="{'dropup': isDropup}">
-  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">
+  <button [ngClass]="['btn', 'btn-link', 'dropdown-toggle', buttonClass]" data-toggle="dropdown">
     <span *ngIf="iconClass || label"
           [ngClass]="{'filter-label': true, 'plain': !isMultipleChoice && !hideCaret && showSelectedValue}">
       <span *ngIf="iconClass" [ngClass]="iconClass"></span>
-      <span *ngIf="label">{{label | translate}}</span>
+      <span *ngIf="label">{{label}}</span>
     </span>
     <span *ngIf="showSelectedValue && !isMultipleChoice && selection.length">{{selection[0].label | translate}}</span>
     <span *ngIf="!hideCaret" class="caret"></span>

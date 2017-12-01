@@ -17,6 +17,10 @@
  */
 
 import {Component} from '@angular/core';
+import {FormGroup} from '@angular/forms';
+import {FilterCondition, TimeUnitListItem} from '@app/classes/filtering';
+import {ListItem} from '@app/classes/list-item';
+import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
   selector: 'top-menu',
@@ -25,10 +29,21 @@ import {Component} from '@angular/core';
 })
 export class TopMenuComponent {
 
+  constructor(private logsContainer: LogsContainerService) {
+  }
+
+  get filtersForm(): FormGroup {
+    return this.logsContainer.filtersForm;
+  };
+
+  get filters(): {[key: string]: FilterCondition} {
+    return this.logsContainer.filters;
+  };
+
   //TODO implement loading of real data into subItems
   readonly items = [
     {
-      iconClass: 'fa fa-user unstyled-link',
+      iconClass: 'fa fa-user grey',
       hideCaret: true,
       isRightAlign: true,
       subItems: [
@@ -42,5 +57,13 @@ export class TopMenuComponent {
       ]
     }
   ];
+
+  get clusters(): (ListItem | TimeUnitListItem[])[] {
+    return this.filters.clusters.options;
+  }
+
+  get isClustersFilterDisplayed(): boolean {
+    return this.logsContainer.isFilterConditionDisplayed('clusters') && this.clusters.length > 1;
+  }
 
 }

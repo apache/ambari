@@ -28,9 +28,11 @@
   <div class="form-horizontal">
     <div class="form-group col-sm-12">{{'authentication.description' | translate}}</div>
     <div class="form-group">
-      <label class="control-label col-sm-4">{{'authentication.ldap' | translate}}</label>
+      <label class="switch-inline-label col-sm-4">{{'authentication.ldap' | translate}}</label>
       <span class="col-sm-8">
-        <toggle-switch model="isLDAPEnabled" ng-disabled="isRequestRunning" on-label="{{'authentication.on' | translate}}" off-label="{{'authentication.off' | translate}}" class="switch-primary" data-off-color="danger" on-change="toggleAuthentication()"></toggle-switch>
+        <toggle-switch model="isLDAPEnabled" ng-disabled="isRequestRunning" class="switch-success" data-off-color="danger" on-change="toggleAuthentication()"></toggle-switch>
+        <span ng-if="isLDAPEnabled" class="switch-option-label">{{'authentication.on' | translate}}</span>
+        <span ng-if="!isLDAPEnabled" class="switch-option-label">{{'authentication.off' | translate}}</span>
       </span>
     </div>
   </div>

@@ -20,8 +20,8 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.ldap.service.AmbariLdapException;
 import org.apache.ambari.server.ldap.service.AttributeDetector;
 import org.apache.ambari.server.ldap.service.LdapAttributeDetectionService;
@@ -154,7 +154,7 @@ public class DefaultLdapAttributeDetectionService implements LdapAttributeDetect
 
     for (Map.Entry<String, String> detecteMapEntry : detectedAttributes.entrySet()) {
       LOG.info("Setting detected configuration value: [{}] - > [{}]", detecteMapEntry.getKey(), detecteMapEntry.getValue());
-      ambariLdapConfiguration.setValueFor(AmbariLdapConfigKeys.fromKeyStr(detecteMapEntry.getKey()), detecteMapEntry.getValue());
+      ambariLdapConfiguration.setValueFor(AmbariLdapConfigurationKeys.fromKeyStr(detecteMapEntry.getKey()), detecteMapEntry.getValue());
     }
 
   }
@@ -163,7 +163,7 @@ public class DefaultLdapAttributeDetectionService implements LdapAttributeDetect
     try {
 
       SearchRequest req = ldapConnectionTemplate.newSearchRequest(ambariLdapConfiguration.userSearchBase(),
-        FilterBuilder.present(ambariLdapConfiguration.dnAttribute()).toString(), SearchScope.SUBTREE);
+        FilterBuilder.present("objectClass").toString(), SearchScope.SUBTREE);
       req.setSizeLimit(SAMPLE_RESULT_SIZE);
 
       return req;
@@ -178,7 +178,7 @@ public class DefaultLdapAttributeDetectionService implements LdapAttributeDetect
     try {
 
       SearchRequest req = ldapConnectionTemplate.newSearchRequest(ambariLdapConfiguration.groupSearchBase(),
-        FilterBuilder.present(ambariLdapConfiguration.dnAttribute()).toString(), SearchScope.SUBTREE);
+        FilterBuilder.present("objectClass").toString(), SearchScope.SUBTREE);
       req.setSizeLimit(SAMPLE_RESULT_SIZE);
 
       return req;

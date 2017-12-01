@@ -546,7 +546,7 @@ export class LogsContainerService {
 
   activeLogsType: LogsType;
 
-  private filtersFormChange: Subject<any> = new Subject();
+  private filtersFormChange: Subject<void> = new Subject();
 
   private columnsMapper<FieldT extends LogField>(fields: FieldT[]): ListItem[] {
     return fields.filter((field: FieldT): boolean => field.isAvailable).map((field: FieldT): ListItem => {
@@ -628,9 +628,9 @@ export class LogsContainerService {
 
   queryParameterAdd: Subject<SearchBoxParameter> = new Subject();
 
-  private stopTimer: Subject<any> = new Subject();
+  private stopTimer: Subject<void> = new Subject();
 
-  private stopAutoRefreshCountdown: Subject<any> = new Subject();
+  private stopAutoRefreshCountdown: Subject<void> = new Subject();
 
   captureSeconds: number = 0;
 
@@ -960,6 +960,11 @@ export class LogsContainerService {
         [key]: this.filters[key].defaultSelection
       });
     }, {});
+  }
+
+  isFilterConditionDisplayed(key: string): boolean {
+    return this.logsTypeMap[this.activeLogsType].listFilters.indexOf(key) > -1
+      && Boolean(this.filtersForm.controls[key]);
   }
 
 }

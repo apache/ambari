@@ -447,6 +447,17 @@
         "name": "sam_storage_core_in_registry",
         "description": "Storage core module moved to registry",
         "min_version": "2.6.3.0"
+      },
+      {
+        "name": "kafka_extended_sasl_support",
+        "description": "Support SASL PLAIN and GSSAPI",
+        "min_version": "2.6.5.0"
+      },
+      {
+        "name": "oozie_extjs_included",
+        "description": "ExtJS is included in the repository and automatically installed by Ambari",
+        "min_version": "2.2.0.0",
+        "max_version": "2.6.0.0"
       }
     ]
   }

@@ -16,8 +16,13 @@
 -->
 
 <div class="pull-right">
+  <form [formGroup]="filtersForm" class="filters">
+    <filter-dropdown *ngIf="isClustersFilterDisplayed" formControlName="clusters" [options]="filters.clusters.options"
+                     [isMultipleChoice]="true" label="{{filters.clusters.label | translate}}" [isRightAlign]="true"
+                     buttonClass="inherited-color"></filter-dropdown>
+  </form>
   <menu-button *ngFor="let item of items" label="{{item.label | translate}}" [action]="item.action"
                [iconClass]="item.iconClass" [labelClass]="item.labelClass" [subItems]="item.subItems"
-               [hideCaret]="item.hideCaret" [badge]="item.badge"  [isRightAlign]="item.isRightAlign">
+               [hideCaret]="item.hideCaret" [badge]="item.badge" [isRightAlign]="item.isRightAlign">
   </menu-button>
 </div>

@@ -16,13 +16,12 @@ package org.apache.ambari.server.ldap.service.ads.detectors;
 
 import javax.inject.Inject;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.directory.api.ldap.model.entry.Entry;
 
 public class UserGroupMemberAttrDetector extends OccurrenceAndWeightBasedDetector {
 
   private enum UserGroupMemberAttr {
-
     MEMBER_OF("memberOf", 1),
     IS_MEMBER_OF("ismemberOf", 1);
 
@@ -59,6 +58,6 @@ public class UserGroupMemberAttrDetector extends OccurrenceAndWeightBasedDetecto
 
   @Override
   public String detectedProperty() {
-    return AmbariLdapConfigKeys.USER_GROUP_MEMBER_ATTRIBUTE.key();
+    return AmbariLdapConfigurationKeys.USER_GROUP_MEMBER_ATTRIBUTE.key();
   }
 }

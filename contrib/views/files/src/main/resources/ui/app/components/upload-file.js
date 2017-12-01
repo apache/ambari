@@ -104,25 +104,25 @@ export default Ember.Component.extend(OperationModal, {
           url: url
         });
         this.set('uploader', uploader);
-        if(!Ember.isEmpty(file)) {
-          uploader.upload(file, {path: this.get('path')});
-          this.setUploading(file.name);
-          uploader.on('progress', (e) => {
-            this.setUploadPercent(e.percent);
-          });
-          uploader.on('didUpload', (e) => {
-            this.set('uploader');
-            this.send('close');
-            this.sendAction('refreshAction');
-          });
-          uploader.on('didError', (jqXHR, textStatus, errorThrown) => {
-            var error = Ember.$.parseJSON(jqXHR.responseText);
-            this.set('uploader');
-            this.get('logger').danger(`Failed to upload ${file.name} to ${this.get('path')}`, error);
-            this.send('close');
-            return false;
-          });
-        }
+        uploader.upload(file, {
+          path: this.get('path')
+        });
+        this.setUploading(file.name);
+        uploader.on('progress', (e) => {
+          this.setUploadPercent(e.percent);
+        });
+        uploader.on('didUpload', (e) => {
+          this.set('uploader');
+          this.send('close');
+          this.sendAction('refreshAction');
+        });
+        uploader.on('didError', (jqXHR, textStatus, errorThrown) => {
+          var error = Ember.$.parseJSON(jqXHR.responseText);
+          this.set('uploader');
+          this.get('logger').danger(`Failed to upload ${file.name} to ${this.get('path')}`, error);
+          this.send('close');
+          return false;
+        });
       }, (error) => {
         console.error("Cannot add a directory.", error);
         this.send('close');

@@ -16,7 +16,6 @@
 package org.apache.ambari.server.ldap;
 
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationFactory;
 import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.ldap.service.AmbariLdapFacade;
 import org.apache.ambari.server.ldap.service.AttributeDetector;
@@ -36,7 +35,6 @@ import org.apache.ambari.server.ldap.service.ads.detectors.UserNameAttrDetector;
 import org.apache.ambari.server.ldap.service.ads.detectors.UserObjectClassDetector;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
@@ -59,8 +57,6 @@ public class LdapModule extends AbstractModule {
     bind(AmbariLdapConfiguration.class).toProvider(AmbariLdapConfigurationProvider.class);
 
     bind(AttributeDetectorFactory.class);
-
-    install(new FactoryModuleBuilder().build(AmbariLdapConfigurationFactory.class));
 
     // binding the set of user attributes detector
     Multibinder<AttributeDetector> userAttributeDetectorBinder = Multibinder.newSetBinder(binder(), AttributeDetector.class,
