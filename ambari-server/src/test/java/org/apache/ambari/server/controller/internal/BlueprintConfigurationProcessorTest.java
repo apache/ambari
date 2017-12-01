@@ -8238,7 +8238,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     expect(topologyRequestMock.getClusterId()).andReturn(1L).anyTimes();
     expect(topologyRequestMock.getBlueprint()).andReturn(null).anyTimes();
-    expect(topologyRequestMock.getConfiguration()).andReturn(configuration).anyTimes();
     expect(topologyRequestMock.getHostGroupInfo()).andReturn(hostGroupInfo).anyTimes();
 
     replay(bp, topologyRequestMock);

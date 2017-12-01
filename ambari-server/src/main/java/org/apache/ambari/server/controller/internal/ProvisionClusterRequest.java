@@ -73,6 +73,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       throws InvalidTopologyTemplateException {
 
     this.topologyTemplate = topologyTemplate;
+    topologyTemplate.validate();
 
     clusterName = String.valueOf(properties.get(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
 
@@ -186,8 +187,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     HostGroupInfo output = new HostGroupInfo(input.getName());
     output.setPredicate(input.getHostPredicate());
     output.setRequestedCount(input.getHostCount());
-    output.addHosts(input.getHosts().stream().map(TopologyTemplate.Host::getFqdn).collect(toSet()));
-    input.getHosts().forEach(h -> output.addHostRackInfo(h.getFqdn(), h.getRackInfo()));
+    if (input.getHosts() != null) {
+      output.addHosts(input.getHosts().stream().map(TopologyTemplate.Host::getFqdn).collect(toSet()));
+      input.getHosts().forEach(h -> output.addHostRackInfo(h.getFqdn(), h.getRackInfo()));
+    }
     output.setConfiguration(input.getConfiguration());
     return output;
   }

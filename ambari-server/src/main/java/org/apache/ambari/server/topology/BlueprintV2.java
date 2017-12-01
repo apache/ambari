@@ -53,7 +53,7 @@ public interface BlueprintV2 {
    * Get the hot groups contained in the blueprint.
    * @return map of host group name to host group
    */
-  Map<String, ? extends HostGroupV2> getHostGroups();
+  Map<String, HostGroupV2> getHostGroups();
 
   /**
    * Get  stacks associated with the blueprint.

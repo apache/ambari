@@ -33,6 +33,8 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
+
 /**
  * Host Group information specific to a cluster instance.
  */
@@ -154,6 +156,7 @@ public class HostGroupInfo {
    */
   public void addHosts(Collection<String> hosts) {
     Collection<String> lower = hosts.stream()
+      .filter(s -> !Strings.isNullOrEmpty(s))
       .map(String::toLowerCase)
       .collect(toSet());
 

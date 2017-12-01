@@ -27,6 +27,7 @@ import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -187,16 +188,23 @@ public class TopologyTemplate {
       this.hostPredicate = hostPredicate;
     }
 
-    void validate() throws IllegalStateException {
+    public void validate() {
       Preconditions.checkArgument(!Strings.isNullOrEmpty(name), "Host group name must be specified");
-      Preconditions.checkArgument(hostCount > 0 || !hosts.isEmpty(),
+      boolean hasHostCount = hostCount > 0;
+      boolean hasHostList = hosts != null && !hosts.isEmpty();
+      Preconditions.checkArgument(hasHostCount || hasHostList,
         "Host group '%s' must contain either 'hosts' or 'host_count'", name);
-      Preconditions.checkArgument(hostCount == 0 || hosts.isEmpty(),
+      Preconditions.checkArgument(!hasHostCount || !hasHostList,
         "Host group '%s' must not contain both 'hosts' and 'host_count'", name);
       Preconditions.checkArgument(hostPredicate == null || hostCount > 0,
         "Host group '%s' must not specify 'host_predicate' without 'host_count'", name);
 
-      hosts.forEach(Host::validate);
+      if (hasHostList) {
+        hosts.forEach(Host::validate);
+      }
+      if (hostPredicate != null) {
+        BaseClusterRequest.validateHostPredicateProperties(hostPredicate);
+      }
     }
   }
 

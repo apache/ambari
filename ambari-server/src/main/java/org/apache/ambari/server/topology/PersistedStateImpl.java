@@ -399,12 +399,8 @@ public class PersistedStateImpl implements PersistedState {
 
       try {
         blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());
-      } catch (NoSuchBlueprintException e) {
-        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
-      } catch (NoSuchStackException e) {
-        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
+      } catch (NoSuchBlueprintException | IOException | NoSuchStackException e) {
+        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e.getMessage(), e);
       }
       // load Service configurations from db, set Blueprint service config as parent for each
       services = new ArrayList<>();

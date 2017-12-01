@@ -60,8 +60,8 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
@@ -96,15 +96,15 @@ public class ClusterResourceProviderTest {
   private static final TopologyRequestFactory topologyFactory = createStrictMock(TopologyRequestFactory.class);
   private final static SecurityConfigurationFactory securityFactory = createMock(SecurityConfigurationFactory.class);
   private static final ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
-  private static final BlueprintFactory blueprintFactory = createStrictMock(BlueprintFactory.class);
-  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
+  private static final BlueprintV2Factory blueprintFactory = createStrictMock(BlueprintV2Factory.class);
+  private static final BlueprintV2 blueprint = createNiceMock(BlueprintV2.class);
   private static final RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
   private static final Gson gson = new Gson();
 
   @Before
   public void setup() throws Exception{
     ClusterResourceProvider.init(topologyManager, topologyFactory, securityFactory, gson);
-    ProvisionClusterRequest.init(null);
+    BaseClusterRequest.setBlueprintFactory(blueprintFactory);
     provider = new ClusterResourceProvider(controller);
 
     expect(blueprintFactory.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).anyTimes();

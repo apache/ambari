@@ -56,7 +56,7 @@ public class BlueprintV2Impl implements BlueprintV2 {
 
   // Transient fields
   @JsonIgnore
-  private Map<String, HostGroupV2Impl> hostGroupMap = new HashMap<>();
+  private Map<String, HostGroupV2> hostGroupMap = new HashMap<>();
 
   @JsonIgnore
   private Map<StackId, StackV2> stacks;
@@ -111,9 +111,9 @@ public class BlueprintV2Impl implements BlueprintV2 {
   }
 
   @JsonProperty("host_groups")
-  public void setHostGroups(Collection<HostGroupV2Impl> hostGroups) {
+  public void setHostGroups(Collection<? extends HostGroupV2> hostGroups) {
     this.hostGroupMap = hostGroups.stream().collect(toMap(
-      HostGroupV2Impl::getName,
+      HostGroupV2::getName,
       Function.identity()
     ));
   }
@@ -136,7 +136,7 @@ public class BlueprintV2Impl implements BlueprintV2 {
 
   @Override
   @JsonIgnore
-  public Map<String, ? extends HostGroupV2> getHostGroups() {
+  public Map<String, HostGroupV2> getHostGroups() {
     return hostGroupMap;
   }
 
@@ -377,13 +377,12 @@ public class BlueprintV2Impl implements BlueprintV2 {
 
 
     // Set HostGroup -> Services and Component -> Service references
-    for (HostGroupV2Impl hg: hostGroupMap.values()) {
+    for (HostGroupV2 hg : hostGroupMap.values()) {
       hg.setServiceMap(hg.getServiceIds().stream().collect(toMap(
-        Function.identity(),
-        serviceId -> this.services.get(serviceId)
+        Function.identity(), this::getService
       )));
       for (ComponentV2 comp: hg.getComponents()) {
-        comp.setService(hg.getService(comp.getServiceId()));
+        comp.setService(getService(comp.getServiceId()));
       }
     }
   }

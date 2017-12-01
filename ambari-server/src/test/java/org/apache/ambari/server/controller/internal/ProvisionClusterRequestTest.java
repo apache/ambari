@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.verify;
@@ -27,54 +26,48 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.easymock.PowerMock.createStrictMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilderTest;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.Credential;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.topology.TopologyTemplate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Unit tests for ProvisionClusterRequest.
  */
-@SuppressWarnings("unchecked")
 public class ProvisionClusterRequestTest {
 
   private static final String CLUSTER_NAME = "cluster_name";
   private static final String BLUEPRINT_NAME = "blueprint_name";
+  private static final Map<String, Object> REQUEST_PROPERTIES = ImmutableMap.of(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
 
-  private static final BlueprintFactory blueprintFactory = createStrictMock(BlueprintFactory.class);
-  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private static final ResourceProvider hostResourceProvider = createMock(ResourceProvider.class);
-  private static final Configuration blueprintConfig = new Configuration(
-      Collections.emptyMap(),
-      Collections.emptyMap());
+  private static final BlueprintV2Factory blueprintFactory = createNiceMock(BlueprintV2Factory.class);
+  private static final BlueprintV2 blueprint = createNiceMock(BlueprintV2.class);
+  private static final ResourceProvider hostResourceProvider = createNiceMock(ResourceProvider.class);
+  private static final Configuration blueprintConfig = Configuration.createEmpty();
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -82,17 +75,13 @@ public class ProvisionClusterRequestTest {
   @Before
   public void setUp() throws Exception {
     reset(blueprintFactory, blueprint, hostResourceProvider);
-    ProvisionClusterRequest.init(null);
-    // set host resource provider field
-    Class clazz = BaseClusterRequest.class;
-    Field f = clazz.getDeclaredField("hostResourceProvider");
-    f.setAccessible(true);
-    f.set(null, hostResourceProvider);
 
-    expect(blueprintFactory.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).once();
+    BaseClusterRequest.setBlueprintFactory(blueprintFactory);
+    BaseClusterRequest.setHostResourceProvider(hostResourceProvider);
+
+    expect(blueprintFactory.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(blueprintConfig).anyTimes();
-    expect(hostResourceProvider.checkPropertyIds(Collections.singleton("Hosts/host_name"))).
-        andReturn(Collections.emptySet()).once();
+    expect(hostResourceProvider.checkPropertyIds(Collections.singleton("Hosts/host_name"))).andReturn(Collections.emptySet()).anyTimes();
 
     replay(blueprintFactory, blueprint, hostResourceProvider);
   }
@@ -104,12 +93,9 @@ public class ProvisionClusterRequestTest {
 
   @Test
   public void testHostNameSpecified() throws Exception {
-    // reset host resource provider expectations to none since we are not specifying a host predicate
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
-    Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
+    TopologyTemplate topology = createBlueprintRequestPropertiesNameOnly(BLUEPRINT_NAME);
 
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -135,32 +121,14 @@ public class ProvisionClusterRequestTest {
     assertEquals("prop1Value", group1TypeProperties.get("hostGroup1Prop1"));
     assertEquals("prop2Value", group1TypeProperties.get("hostGroup1Prop2"));
     assertTrue(group1Configuration.getAttributes().isEmpty());
-
-    // cluster scoped configuration
-    Configuration clusterScopeConfiguration = provisionClusterRequest.getConfiguration();
-    assertSame(blueprintConfig, clusterScopeConfiguration.getParentConfiguration());
-    assertEquals(1, clusterScopeConfiguration.getProperties().size());
-    Map<String, String> clusterScopedProperties = clusterScopeConfiguration.getProperties().get("someType");
-    assertEquals(1, clusterScopedProperties.size());
-    assertEquals("someValue", clusterScopedProperties.get("property1"));
-    // attributes
-    Map<String, Map<String, Map<String, String>>> clusterScopedAttributes = clusterScopeConfiguration.getAttributes();
-    assertEquals(1, clusterScopedAttributes.size());
-    Map<String, Map<String, String>> clusterScopedTypeAttributes = clusterScopedAttributes.get("someType");
-    assertEquals(1, clusterScopedTypeAttributes.size());
-    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("attribute1");
-    assertEquals(1, clusterScopedTypePropertyAttributes.size());
-    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("property1"));
   }
 
   @Test
   public void testHostCountSpecified() throws Exception {
-    // reset host resource provider expectations to none since we are not specifying a host predicate
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
-    Map<String, Object> properties = createBlueprintRequestPropertiesCountOnly(CLUSTER_NAME, BLUEPRINT_NAME);
+    TopologyTemplate topology = createBlueprintRequestPropertiesCountOnly(BLUEPRINT_NAME);
+    topology.getHostGroups().iterator().next().setHostPredicate(null);
 
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -190,28 +158,12 @@ public class ProvisionClusterRequestTest {
     Map<String, String> group2Type1Prop1Attributes = group2Type1Attributes.get("attribute1");
     assertEquals(1, group2Type1Prop1Attributes.size());
     assertEquals("attribute1Prop10-value", group2Type1Prop1Attributes.get("hostGroup2Prop10"));
-
-    // cluster scoped configuration
-    Configuration clusterScopeConfiguration = provisionClusterRequest.getConfiguration();
-    assertSame(blueprintConfig, clusterScopeConfiguration.getParentConfiguration());
-    assertEquals(1, clusterScopeConfiguration.getProperties().size());
-    Map<String, String> clusterScopedProperties = clusterScopeConfiguration.getProperties().get("someType");
-    assertEquals(1, clusterScopedProperties.size());
-    assertEquals("someValue", clusterScopedProperties.get("property1"));
-    // attributes
-    Map<String, Map<String, Map<String, String>>> clusterScopedAttributes = clusterScopeConfiguration.getAttributes();
-    assertEquals(1, clusterScopedAttributes.size());
-    Map<String, Map<String, String>> clusterScopedTypeAttributes = clusterScopedAttributes.get("someType");
-    assertEquals(1, clusterScopedTypeAttributes.size());
-    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("attribute1");
-    assertEquals(1, clusterScopedTypePropertyAttributes.size());
-    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("property1"));
   }
 
   @Test
   public void testMultipleGroups() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -259,49 +211,24 @@ public class ProvisionClusterRequestTest {
     Map<String, String> group2Type1Prop1Attributes = group2Type1Attributes.get("attribute1");
     assertEquals(1, group2Type1Prop1Attributes.size());
     assertEquals("attribute1Prop10-value", group2Type1Prop1Attributes.get("hostGroup2Prop10"));
-
-    // cluster scoped configuration
-    Configuration clusterScopeConfiguration = provisionClusterRequest.getConfiguration();
-    assertSame(blueprintConfig, clusterScopeConfiguration.getParentConfiguration());
-    assertEquals(1, clusterScopeConfiguration.getProperties().size());
-    Map<String, String> clusterScopedProperties = clusterScopeConfiguration.getProperties().get("someType");
-    assertEquals(1, clusterScopedProperties.size());
-    assertEquals("someValue", clusterScopedProperties.get("property1"));
-    // attributes
-    Map<String, Map<String, Map<String, String>>> clusterScopedAttributes = clusterScopeConfiguration.getAttributes();
-    assertEquals(1, clusterScopedAttributes.size());
-    Map<String, Map<String, String>> clusterScopedTypeAttributes = clusterScopedAttributes.get("someType");
-    assertEquals(1, clusterScopedTypeAttributes.size());
-    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("attribute1");
-    assertEquals(1, clusterScopedTypePropertyAttributes.size());
-    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("property1"));
   }
 
-  @Test(expected= InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void test_NoHostGroupInfo() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    ((Collection)properties.get("host_groups")).clear();
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
+    topology.getHostGroups().clear();
 
-    // reset default host resource provider expectations to none
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
     // should result in an exception
-    new ProvisionClusterRequest(null, properties, null);
+    new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
   }
 
   @Test
-  public void test_Creditentials() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    HashMap<String, String> credentialHashMap = new HashMap<>();
-    credentialHashMap.put("alias", "testAlias");
-    credentialHashMap.put("principal", "testPrincipal");
-    credentialHashMap.put("key", "testKey");
-    credentialHashMap.put("type", "temporary");
-    Set<Map<String, String>> credentialsSet = new HashSet<>();
-    credentialsSet.add(credentialHashMap);
-    properties.put("credentials", credentialsSet);
+  public void testCredentials() throws Exception {
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
+    Credential credential = new Credential("testAlias", "testPrincipal", "testKey", CredentialStoreType.TEMPORARY);
+    topology.setCredentials(Collections.singleton(credential));
 
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
 
     assertEquals(provisionClusterRequest.getCredentialsMap().get("testAlias").getAlias(), "testAlias");
     assertEquals(provisionClusterRequest.getCredentialsMap().get("testAlias").getPrincipal(), "testPrincipal");
@@ -309,122 +236,98 @@ public class ProvisionClusterRequestTest {
     assertEquals(provisionClusterRequest.getCredentialsMap().get("testAlias").getType().name(), "TEMPORARY");
   }
 
-
-  @Test
-  public void test_CreditentialsInvalidType() throws Exception {
-    expectedException.expect(InvalidTopologyTemplateException.class);
-    expectedException.expectMessage("credential.type [TESTTYPE] is invalid. acceptable values: " +
-        Arrays.toString(CredentialStoreType.values()));
-
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    HashMap<String, String> credentialHashMap = new HashMap<>();
-    credentialHashMap.put("alias", "testAlias");
-    credentialHashMap.put("principal", "testPrincipal");
-    credentialHashMap.put("key", "testKey");
-    credentialHashMap.put("type", "testType");
-    Set<Map<String, String>> credentialsSet = new HashSet<>();
-    credentialsSet.add(credentialHashMap);
-    properties.put("credentials", credentialsSet);
-
-    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(null, properties, null);
-  }
-
-  @Test(expected= InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void test_GroupInfoMissingName() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    ((Collection<Map<String, Object>>)properties.get("host_groups")).iterator().next().remove("name");
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
+    topology.getHostGroups().iterator().next().setName(null);
 
     // reset default host resource provider expectations to none
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
+    reset(hostResourceProvider, blueprintFactory);
+    replay(hostResourceProvider, blueprintFactory);
     // should result in an exception
-    new ProvisionClusterRequest(null, properties, null);
+    new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
   }
 
-  @Test(expected= InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void test_NoHostsInfo() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    ((Collection<Map<String, Object>>)properties.get("host_groups")).iterator().next().remove("hosts");
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
+    topology.getHostGroups().forEach(hg -> hg.setHosts(null));
 
-    // reset default host resource provider expectations to none
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
+    reset(blueprintFactory);
+    replay(blueprintFactory);
     // should result in an exception
-    new ProvisionClusterRequest(null, properties, null);
+    new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
   }
 
-  @Test(expected = InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void test_NoHostNameOrHostCount() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
     // remove fqdn property for a group that contains fqdn not host_count
-    for (Map<String, Object> groupProps : (Collection<Map<String, Object>>) properties.get("host_groups")) {
-      Collection<Map<String, Object>> hostInfo = (Collection<Map<String, Object>>) groupProps.get("hosts");
-      Map<String, Object> next = hostInfo.iterator().next();
-      if (next.containsKey("fqdn")) {
-        next.remove("fqdn");
-        break;
-      }
-    }
+    topology.getHostGroups().forEach(
+      hg -> hg.getHosts().forEach(
+        h -> h.setFqdn(null)
+      )
+    );
 
-    // reset default host resource provider expectations to none
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
+    reset(blueprintFactory);
+    replay(blueprintFactory);
     // should result in an exception
-    new ProvisionClusterRequest(null, properties, null);
+    new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
   }
 
 
-  @Test(expected = InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testInvalidPredicateProperty() throws Exception {
-    reset(hostResourceProvider);
+    reset(hostResourceProvider, blueprintFactory);
     // checkPropertyIds() returns invalid property names
     expect(hostResourceProvider.checkPropertyIds(Collections.singleton("Hosts/host_name"))).
       andReturn(Collections.singleton("Hosts/host_name"));
-    replay(hostResourceProvider);
+    replay(hostResourceProvider, blueprintFactory);
 
     // should result in an exception due to invalid property in host predicate
-    new ProvisionClusterRequest(null, createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME), null);
+    new ProvisionClusterRequest(createBlueprintRequestProperties(BLUEPRINT_NAME), REQUEST_PROPERTIES, null);
   }
 
-  @Test(expected = InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testHostNameAndCountSpecified() throws Exception {
     // reset host resource provider expectations to none since we are not specifying a host predicate
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
+    reset(hostResourceProvider, blueprintFactory);
+    replay(hostResourceProvider, blueprintFactory);
 
-    Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
-    ((Map) ((List) properties.get("host_groups")).iterator().next()).put("host_count", "5");
+    TopologyTemplate topology = createBlueprintRequestPropertiesNameOnly(BLUEPRINT_NAME);
+    topology.getHostGroups().iterator().next().setHostCount(5);
     // should result in an exception due to both host name and host count being specified
-    new ProvisionClusterRequest(null, properties, null);
+    new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
   }
 
-  @Test(expected = InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testHostNameAndPredicateSpecified() throws Exception {
     // reset host resource provider expectations to none since we are not specifying a host predicate
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
+    reset(hostResourceProvider, blueprintFactory);
+    replay(hostResourceProvider, blueprintFactory);
 
-    Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
-    ((Map) ((List) properties.get("host_groups")).iterator().next()).put("host_predicate", "Hosts/host_name=myTestHost");
+    TopologyTemplate topology = createBlueprintRequestPropertiesNameOnly(BLUEPRINT_NAME);
+    topology.getHostGroups().iterator().next().setHostPredicate("Hosts/host_name=myTestHost");
     // should result in an exception due to both host name and host count being specified
-    new ProvisionClusterRequest(null, properties, null);
+    new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
   }
 
   @Test
   public void testQuickLinksProfile_NoDataInRequest() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(topology, REQUEST_PROPERTIES, null);
     assertNull("No quick links profile is expected", request.getQuickLinksProfileJson());
   }
 
   @Test
   public void testQuickLinksProfile_OnlyGlobalFilterDataInRequest() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
 
+    Map<String, Object> properties = new HashMap<>(REQUEST_PROPERTIES);
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_FILTERS_PROPERTY,
-        Sets.newHashSet(QuickLinksProfileBuilderTest.filter(null, null, true)));
+        Collections.singleton(QuickLinksProfileBuilderTest.filter(null, null, true)));
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(topology, properties, null);
     assertEquals("Quick links profile doesn't match expected",
         "{\"filters\":[{\"visible\":true}],\"services\":[]}",
         request.getQuickLinksProfileJson());
@@ -432,14 +335,15 @@ public class ProvisionClusterRequestTest {
 
   @Test
   public void testQuickLinksProfile_OnlyServiceFilterDataInRequest() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
 
+    Map<String, Object> properties = new HashMap<>(REQUEST_PROPERTIES);
     Map<String, String> filter = QuickLinksProfileBuilderTest.filter(null, null, true);
-    Map<String, Object> hdfs = QuickLinksProfileBuilderTest.service("HDFS", null, Sets.newHashSet(filter));
-    Set<Map<String, Object>> services = Sets.newHashSet(hdfs);
+    Map<String, Object> hdfs = QuickLinksProfileBuilderTest.service("HDFS", null, Collections.singleton(filter));
+    Set<Map<String, Object>> services = Collections.singleton(hdfs);
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, services);
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(topology, properties, null);
     assertEquals("Quick links profile doesn't match expected",
         "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
         request.getQuickLinksProfileJson());
@@ -447,18 +351,18 @@ public class ProvisionClusterRequestTest {
 
   @Test
   public void testQuickLinksProfile_BothGlobalAndServiceLevelFilters() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
 
+    Map<String, Object> properties = new HashMap<>(REQUEST_PROPERTIES);
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_FILTERS_PROPERTY,
-        Sets.newHashSet(QuickLinksProfileBuilderTest.filter(null, null, true)));
+      Collections.singleton(QuickLinksProfileBuilderTest.filter(null, null, true)));
 
     Map<String, String> filter = QuickLinksProfileBuilderTest.filter(null, null, true);
-    Map<String, Object> hdfs = QuickLinksProfileBuilderTest.service("HDFS", null, Sets.newHashSet(filter));
-    Set<Map<String, Object>> services = Sets.newHashSet(hdfs);
+    Map<String, Object> hdfs = QuickLinksProfileBuilderTest.service("HDFS", null, Collections.singleton(filter));
+    Set<Map<String, Object>> services = Collections.singleton(hdfs);
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, services);
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
-    System.out.println(request.getQuickLinksProfileJson());
+    ProvisionClusterRequest request = new ProvisionClusterRequest(topology, properties, null);
     assertEquals("Quick links profile doesn't match expected",
         "{\"filters\":[{\"visible\":true}],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
         request.getQuickLinksProfileJson());
@@ -466,141 +370,94 @@ public class ProvisionClusterRequestTest {
 
   @Test(expected = InvalidTopologyTemplateException.class)
   public void testQuickLinksProfile_InvalidRequestData() throws Exception {
-    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    TopologyTemplate topology = createBlueprintRequestProperties(BLUEPRINT_NAME);
 
+    Map<String, Object> properties = new HashMap<>(REQUEST_PROPERTIES);
     properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, "Hello World!");
 
-    ProvisionClusterRequest request = new ProvisionClusterRequest(null, properties, null);
+    new ProvisionClusterRequest(topology, properties, null);
   }
 
-  public static Map<String, Object> createBlueprintRequestProperties(String clusterName, String blueprintName) {
-    Map<String, Object> properties = new LinkedHashMap<>();
+  public static TopologyTemplate createBlueprintRequestProperties(String blueprintName) {
+    TopologyTemplate topology = new TopologyTemplate();
+    topology.setBlueprint(blueprintName);
 
-    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
+    Collection<TopologyTemplate.HostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(createHostGroupWithHosts());
+    hostGroups.add(createHostGroupWithHostCount());
+    topology.setHostGroups(hostGroups); // must come after host group creation, since it processes
 
-    Collection<Map<String, Object>> hostGroups = new ArrayList<>();
-    properties.put("host_groups", hostGroups);
+    // createClusterConfig(); TODO what's up with it?
 
-    // host group 1
-    Map<String, Object> hostGroup1Properties = new HashMap<>();
-    hostGroups.add(hostGroup1Properties);
-    hostGroup1Properties.put("name", "group1");
-    Collection<Map<String, String>> hostGroup1Hosts = new ArrayList<>();
-    hostGroup1Properties.put("hosts", hostGroup1Hosts);
-    Map<String, String> hostGroup1HostProperties = new HashMap<>();
-    hostGroup1HostProperties.put("fqdn", "host1.myDomain.com");
-    hostGroup1Hosts.add(hostGroup1HostProperties);
-    // host group 1 scoped configuration
-    // version 1 configuration syntax
-    Collection<Map<String, String>> hostGroup1Configurations = new ArrayList<>();
-    hostGroup1Properties.put("configurations", hostGroup1Configurations);
-    Map<String, String> hostGroup1Configuration1 = new HashMap<>();
-    hostGroup1Configuration1.put("foo-type/hostGroup1Prop1", "prop1Value");
-    hostGroup1Configuration1.put("foo-type/hostGroup1Prop2", "prop2Value");
-    hostGroup1Configurations.add(hostGroup1Configuration1);
+    return topology;
+  }
 
-    // host group 2
-    Map<String, Object> hostGroup2Properties = new HashMap<>();
-    hostGroups.add(hostGroup2Properties);
-    hostGroup2Properties.put("name", "group2");
-    hostGroup2Properties.put("host_count", "5");
-    hostGroup2Properties.put("host_predicate", "Hosts/host_name=myTestHost");
+  private static TopologyTemplate createBlueprintRequestPropertiesNameOnly(String blueprintName) {
+    TopologyTemplate topology = new TopologyTemplate();
+    topology.setBlueprint(blueprintName);
 
-    // host group 2 scoped configuration
+    Collection<TopologyTemplate.HostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(createHostGroupWithHosts());
+    topology.setHostGroups(hostGroups); // must come after host group creation, since it processes
+
+    // createClusterConfig(); TODO what's up with it?
+
+    return topology;
+  }
+
+  public static TopologyTemplate createBlueprintRequestPropertiesCountOnly(String blueprintName) {
+    TopologyTemplate topology = new TopologyTemplate();
+    topology.setBlueprint(blueprintName);
+
+    Collection<TopologyTemplate.HostGroup> hostGroups = new ArrayList<>();
+    hostGroups.add(createHostGroupWithHostCount());
+    topology.setHostGroups(hostGroups); // must come after host group creation, since it processes
+
+    // createClusterConfig();
+
+    return topology;
+  }
+
+  private static TopologyTemplate.HostGroup createHostGroupWithHostCount() {
+    TopologyTemplate.HostGroup hg = new TopologyTemplate.HostGroup();
+
+    hg.setName("group2");
+    hg.setHostCount(5);
+    hg.setHostPredicate("Hosts/host_name=myTestHost");
+
+    // host group scoped configuration
     // version 2 configuration syntax
-    Collection<Map<String, String>> hostGroup2Configurations = new ArrayList<>();
-    hostGroup2Properties.put("configurations", hostGroup2Configurations);
-    Map<String, String> hostGroup2Configuration1 = new HashMap<>();
-    hostGroup2Configuration1.put("foo-type/properties/hostGroup2Prop1", "prop1Value");
-    hostGroup2Configuration1.put("foo-type/properties_attributes/attribute1/hostGroup2Prop10", "attribute1Prop10-value");
-    hostGroup2Configurations.add(hostGroup2Configuration1);
+    hg.getConfiguration().setProperty("foo-type", "hostGroup2Prop1", "prop1Value");
+    hg.getConfiguration().setAttribute("foo-type", "hostGroup2Prop10", "attribute1", "attribute1Prop10-value");
 
-    // cluster scoped configuration
-    Collection<Map<String, String>> clusterConfigurations = new ArrayList<>();
-    properties.put("configurations", clusterConfigurations);
-
-    Map<String, String> clusterConfigurationProperties = new HashMap<>();
-    clusterConfigurations.add(clusterConfigurationProperties);
-    clusterConfigurationProperties.put("someType/properties/property1", "someValue");
-    clusterConfigurationProperties.put("someType/properties_attributes/attribute1/property1", "someAttributePropValue");
-
-    return properties;
+    return hg;
   }
 
-  public static Map<String, Object> createBlueprintRequestPropertiesNameOnly(String clusterName, String blueprintName) {
-    Map<String, Object> properties = new LinkedHashMap<>();
+  private static TopologyTemplate.HostGroup createHostGroupWithHosts() {
+    TopologyTemplate.HostGroup hg = new TopologyTemplate.HostGroup();
 
-    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
+    hg.setName("group1");
 
-    Collection<Map<String, Object>> hostGroups = new ArrayList<>();
-    properties.put("host_groups", hostGroups);
+    Collection<TopologyTemplate.Host> hosts = new ArrayList<>();
+    hg.setHosts(hosts);
 
-    // host group 1
-    Map<String, Object> hostGroup1Properties = new HashMap<>();
-    hostGroups.add(hostGroup1Properties);
-    hostGroup1Properties.put("name", "group1");
-    Collection<Map<String, String>> hostGroup1Hosts = new ArrayList<>();
-    hostGroup1Properties.put("hosts", hostGroup1Hosts);
-    Map<String, String> hostGroup1HostProperties = new HashMap<>();
-    hostGroup1HostProperties.put("fqdn", "host1.myDomain.com");
-    hostGroup1Hosts.add(hostGroup1HostProperties);
-    // host group 1 scoped configuration
+    TopologyTemplate.Host host = new TopologyTemplate.Host();
+    host.setFqdn("host1.myDomain.com");
+    hosts.add(host);
+
+    // host group scoped configuration
     // version 1 configuration syntax
-    Collection<Map<String, String>> hostGroup1Configurations = new ArrayList<>();
-    hostGroup1Properties.put("configurations", hostGroup1Configurations);
-    Map<String, String> hostGroup1Configuration1 = new HashMap<>();
-    hostGroup1Configuration1.put("foo-type/hostGroup1Prop1", "prop1Value");
-    hostGroup1Configuration1.put("foo-type/hostGroup1Prop2", "prop2Value");
-    hostGroup1Configurations.add(hostGroup1Configuration1);
+    hg.getConfiguration().setProperty("foo-type", "hostGroup1Prop1", "prop1Value");
+    hg.getConfiguration().setProperty("foo-type", "hostGroup1Prop2", "prop2Value");
 
-    // cluster scoped configuration
-    Collection<Map<String, String>> clusterConfigurations = new ArrayList<>();
-    properties.put("configurations", clusterConfigurations);
-
-    Map<String, String> clusterConfigurationProperties = new HashMap<>();
-    clusterConfigurations.add(clusterConfigurationProperties);
-    clusterConfigurationProperties.put("someType/properties/property1", "someValue");
-    clusterConfigurationProperties.put("someType/properties_attributes/attribute1/property1", "someAttributePropValue");
-
-    return properties;
+    return hg;
   }
 
-  public static Map<String, Object> createBlueprintRequestPropertiesCountOnly(String clusterName, String blueprintName) {
-    Map<String, Object> properties = new LinkedHashMap<>();
-
-    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
-
-    Collection<Map<String, Object>> hostGroups = new ArrayList<>();
-    properties.put("host_groups", hostGroups);
-
-    // host group 2
-    Map<String, Object> hostGroup2Properties = new HashMap<>();
-    hostGroups.add(hostGroup2Properties);
-    hostGroup2Properties.put("name", "group2");
-    // count with no predicate
-    hostGroup2Properties.put("host_count", "5");
-
-    // host group 2 scoped configuration
-    // version 2 configuration syntax
-    Collection<Map<String, String>> hostGroup2Configurations = new ArrayList<>();
-    hostGroup2Properties.put("configurations", hostGroup2Configurations);
-    Map<String, String> hostGroup2Configuration1 = new HashMap<>();
-    hostGroup2Configuration1.put("foo-type/properties/hostGroup2Prop1", "prop1Value");
-    hostGroup2Configuration1.put("foo-type/properties_attributes/attribute1/hostGroup2Prop10", "attribute1Prop10-value");
-    hostGroup2Configurations.add(hostGroup2Configuration1);
-
-    // cluster scoped configuration
-    Collection<Map<String, String>> clusterConfigurations = new ArrayList<>();
-    properties.put("configurations", clusterConfigurations);
-
-    Map<String, String> clusterConfigurationProperties = new HashMap<>();
-    clusterConfigurations.add(clusterConfigurationProperties);
-    clusterConfigurationProperties.put("someType/properties/property1", "someValue");
-    clusterConfigurationProperties.put("someType/properties_attributes/attribute1/property1", "someAttributePropValue");
-
-    return properties;
+  private static Configuration createClusterConfig() {
+    Configuration clusterConfig = Configuration.createEmpty();
+    clusterConfig.setProperty("someType", "property1", "someValue");
+    clusterConfig.setAttribute("someType", "property1", "attribute1", "someAttributePropValue");
+    return clusterConfig;
   }
+
 }

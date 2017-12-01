@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toSet;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,7 +37,6 @@ import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyRequest;
@@ -49,38 +50,8 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    * blueprint deploy by default.
    */
   public static final String PROVISION_ACTION_PROPERTY = "provision_action";
-  /**
-   * host group info map
-   */
-  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
-  protected ProvisionAction provisionAction;
-
-  /**
-   * cluster id
-   */
-  protected Long clusterId;
-
-  /**
-   * blueprint
-   */
-  //todo: change interface to only return blueprint name
-  protected BlueprintV2 blueprint;
-
-  /**
-   * security configuration
-   */
-  protected SecurityConfiguration securityConfiguration;
-
-  /**
-   * blueprint factory
-   */
-  protected static BlueprintV2Factory blueprintFactory;
-
-  /**
-   * List of services
-   */
-  protected Collection<Service> serviceConfigs;
+  private static BlueprintV2Factory blueprintFactory;
 
   /**
    * Lexer used to obtain property names from a predicate string
@@ -92,9 +63,15 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    */
   private static ResourceProvider hostResourceProvider;
 
+  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
+  protected ProvisionAction provisionAction;
+  protected Long clusterId;
+  protected BlueprintV2 blueprint;
+  protected SecurityConfiguration securityConfiguration;
+  protected Collection<Service> serviceConfigs;
 
   public static void init(AmbariManagementController controller) {
-    blueprintFactory = BlueprintV2Factory.create(controller);
+    setBlueprintFactory(BlueprintV2Factory.create(controller));
   }
 
   @Override
@@ -128,79 +105,57 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    *
    * @param predicate  predicate to validate
    *
-   * @throws InvalidTopologyTemplateException  if any of the properties specified in the predicate are invalid
-   *                                           for the Host resource type
+   * @throws IllegalArgumentException if any of the properties specified in the predicate are invalid for the Host resource type
    */
-  protected void validateHostPredicateProperties(String predicate) throws InvalidTopologyTemplateException {
+  public static void validateHostPredicateProperties(String predicate) {
     Token[] tokens;
     try {
       tokens = queryLexer.tokens(predicate);
     } catch (InvalidQueryException e) {
-      throw new InvalidTopologyTemplateException(
-          String.format("The specified host query is invalid: %s", e.getMessage()));
+      throw new IllegalArgumentException(String.format("The specified host query is invalid: %s", e.getMessage()));
     }
 
-    Set<String> propertyIds = new HashSet<>();
-    for (Token token : tokens) {
-      if (token.getType() == Token.TYPE.PROPERTY_OPERAND) {
-        propertyIds.add(token.getValue());
-      }
-    }
+    Set<String> propertyIds = Arrays.stream(tokens)
+      .filter(t -> t.getType() == Token.TYPE.PROPERTY_OPERAND)
+      .map(Token::getValue)
+      .collect(toSet());
 
     Set<String> invalidProperties = ensureHostProvider().checkPropertyIds(propertyIds);
     if (! invalidProperties.isEmpty()) {
-      throw new InvalidTopologyTemplateException(String.format(
+      throw new IllegalArgumentException(String.format(
           "Invalid Host Predicate.  The following properties are not valid for a host predicate: %s",
           invalidProperties));
     }
   }
 
-  /**
-   * Set the request blueprint.
-   *
-   * @param blueprint blueprint
-   */
   protected void setBlueprint(BlueprintV2 blueprint) {
     this.blueprint = blueprint;
   }
 
-  /**
-   * Set the request configuration.
-   *
-   * @param configuration  configuration
-   */
-  @Deprecated
-  protected void setConfiguration(Configuration configuration) {
-  }
-
-  /**
-   * Get the blueprint factory.
-   */
   protected BlueprintV2Factory getBlueprintFactory() {
     return blueprintFactory;
   }
-
 
   public SecurityConfiguration getSecurityConfiguration() {
     return securityConfiguration;
   }
 
-  /**
-   * Get the host resource provider instance.
-   *
-   * @return host resourece provider instance
-   */
   private static synchronized ResourceProvider ensureHostProvider() {
     if (hostResourceProvider == null) {
-      hostResourceProvider = ClusterControllerHelper.getClusterController().
-          ensureResourceProvider(Resource.Type.Host);
+      ResourceProvider provider = ClusterControllerHelper.getClusterController().ensureResourceProvider(Resource.Type.Host);
+      setHostResourceProvider(provider);
     }
     return hostResourceProvider;
   }
 
-  /**
-   * Get requested @ProvisionClusterRequest.ProvisionAction
-   */
+  static void setHostResourceProvider(ResourceProvider provider) { // exposed for tests
+    hostResourceProvider = provider;
+  }
+
+  public static void setBlueprintFactory(BlueprintV2Factory factory) { // exposed for tests
+    blueprintFactory = factory;
+  }
+
   public ProvisionAction getProvisionAction() {
     return provisionAction;
   }

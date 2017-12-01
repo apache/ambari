@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
@@ -132,5 +133,7 @@ public interface HostGroupV2 {
    * @return the cardinality specified for the hostgroup
    */
   String getCardinality();
+
+  void setServiceMap(Map<ServiceId, Service> serviceMap);
 }
 
