@@ -161,6 +161,7 @@
             <package>
               <name>snappy</name>
             </package>
+            <package>
               <name>hadoop-libhdfs</name>
             </package>
             <package>
