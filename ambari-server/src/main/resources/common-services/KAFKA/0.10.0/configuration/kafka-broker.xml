@@ -22,7 +22,7 @@
         <name>sasl.enabled.mechanisms</name>
         <value>GSSAPI</value>
         <description>The list of SASL mechanisms enabled in the Kafka server. The list may contain any mechanism for which a security provider is available. Only GSSAPI is enabled by default.</description>
-        <on-ambari-upgrade add="upgrade"/>
+        <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>security.inter.broker.protocol</name>
