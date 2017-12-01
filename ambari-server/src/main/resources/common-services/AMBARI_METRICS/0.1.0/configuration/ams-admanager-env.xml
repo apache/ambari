@@ -83,10 +83,10 @@
       export AMS_AD_HEAPSIZE={{ams_admanager_heapsize}}
 
       # Anomaly Detection Manager data dir
-      export AMS_AD_DATA_DIR={{ams_admanager_data_dir}}
+      export AMS_AD_DATA_DIR={{ams_ad_data_dir}}
 
       # Anomaly Detection Manager options
-      export AMS_AD_OPTS="
+      export AMS_AD_OPTS=$AMS_AD_OPTS
       {% if security_enabled %}
       export AMS_AD_OPTS="$AMS_AD_OPTS -Djava.security.auth.login.config={{ams_ad_jaas_config_file}}"
       {% endif %}
@@ -95,6 +95,8 @@
       export AMS_AD_GC_OPTS="-XX:+UseConcMarkSweepGC -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{ams_ad_log_dir}}/admanager-gc.log-`date +'%Y%m%d%H%M'`"
       export AMS_AD_OPTS="$AMS_AD_OPTS $AMS_AD_GC_OPTS"
 
+      # Anomaly Detection Manager data dir
+      export AMS_AD_STANDALONE_SPARK_ENABLED={{ams_ad_standalone_spark_enabled}}
     </value>
     <value-attributes>
       <type>content</type>

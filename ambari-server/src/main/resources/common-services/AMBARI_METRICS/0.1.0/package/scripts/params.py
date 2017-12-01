@@ -154,6 +154,7 @@ def get_ambari_version():
     pass
   return ambari_version
 
+hostname = config["hostname"]
 
 ams_collector_log_dir = config['configurations']['ams-env']['metrics_collector_log_dir']
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
@@ -199,6 +200,26 @@ ams_admanager_config_template = config['configurations']['ams-admanager-config']
 ams_admanager_script = "/usr/sbin/ambari-metrics-admanager"
 ams_admanager_port = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.application.port']
 ams_admanager_heapsize = config['configurations']['ams-admanager-env']['ams_admanager_heapsize']
+ams_admanager_lib_dir = "/usr/lib/ambari-metrics-anomaly-detection"
+ams_admanager_jar = format("{ams_admanager_lib_dir}/ambari-metrics-anomaly-detection-service-*.jar")
+ams_ad_log_max_backup_size = default('configurations/ams-admanager-log4j/ams_ad_log_max_backup_size',80)
+ams_ad_log_number_of_backup_files = default('configurations/ams-admanager-log4j/ams_ad_log_number_of_backup_files',60)
+
+admanager_spark_op_mode = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.spark.operation.mode']
+ams_ad_spark_env_sh_template = config['configurations']['ams-admanager-spark-env']['content']
+spark_master_port = default("/configurations/ams-admanager-spark-env/spark_master_port", 6190)
+spark_master_webui_port = default("/configurations/ams-admanager-spark-env/spark_master_webui_port", 6180)
+spark_worker_cores = default("/configurations/ams-admanager-spark-env/spark_worker_cores", 4)
+spark_worker_memory = default("/configurations/ams-admanager-spark-env/spark_worker_memory", 2048)
+spark_worker_webui_port = default("/configurations/ams-admanager-spark-env/spark_worker_webui_port", 6181)
+spark_daemon_memory = default("/configurations/ams-admanager-spark-env/spark_daemon_memory", 1024)
+
+if admanager_spark_op_mode == 'spark-on-yarn':
+  admanager_spark_hostport = hostname + ":" + spark_master_port #TODO : Fix for spark on yarn mode.
+  ams_ad_standalone_spark_enabled = False
+else:
+  admanager_spark_hostport = hostname + ":" + spark_master_port
+  ams_ad_standalone_spark_enabled = True
 
 if (('ams-admanager-log4j' in config['configurations']) and ('content' in config['configurations']['ams-admanager-log4j'])):
   ams_ad_log4j_props = config['configurations']['ams-admanager-log4j']['content']
@@ -289,7 +310,6 @@ else:
   hbase_heapsize = master_heapsize
 
 max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
-hostname = config["hostname"]
 
 cluster_zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
 if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:

@@ -18,28 +18,31 @@
 package org.apache.ambari.metrics.adservice.app
 
 import java.io.File
+import java.net.URL
 
 import javax.validation.Validator
 
 import org.scalatest.FunSuite
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.guava.GuavaModule
 
 import io.dropwizard.configuration.YamlConfigurationFactory
-import io.dropwizard.jackson.Jackson
 import io.dropwizard.jersey.validation.Validators
 
 class AnomalyDetectionAppConfigTest extends FunSuite {
 
   test("testConfiguration") {
 
-    val objectMapper: ObjectMapper = Jackson.newObjectMapper()
+    val classLoader = getClass.getClassLoader
+    val url: URL = classLoader.getResource("config.yaml")
+    val file = new File(url.getFile)
+
+    val objectMapper: ObjectMapper = new ObjectMapper()
+    objectMapper.registerModule(new GuavaModule)
     val validator: Validator = Validators.newValidator
     val factory: YamlConfigurationFactory[AnomalyDetectionAppConfig] =
       new YamlConfigurationFactory[AnomalyDetectionAppConfig](classOf[AnomalyDetectionAppConfig], validator, objectMapper, "")
-
-    val classLoader = getClass.getClassLoader
-    val file = new File(classLoader.getResource("config.yml").getFile)
     val config = factory.build(file)
 
     assert(config.isInstanceOf[AnomalyDetectionAppConfig])
@@ -48,16 +51,16 @@ class AnomalyDetectionAppConfigTest extends FunSuite {
       "/etc/ambari-metrics-anomaly-detection/conf/definitionDirectory")
 
     assert(config.getMetricCollectorConfiguration.getHosts == "host1,host2")
-
     assert(config.getMetricCollectorConfiguration.getPort == "6188")
 
     assert(config.getAdServiceConfiguration.getAnomalyDataTtl == 604800)
 
     assert(config.getMetricDefinitionDBConfiguration.getDbDirPath == "/var/lib/ambari-metrics-anomaly-detection/")
-
     assert(config.getMetricDefinitionDBConfiguration.getVerifyChecksums)
-
     assert(!config.getMetricDefinitionDBConfiguration.getPerformParanoidChecks)
+
+    assert(config.getSparkConfiguration.getMode.equals("standalone"))
+    assert(config.getSparkConfiguration.getMasterHostPort.equals("localhost:7077"))
 
   }
 

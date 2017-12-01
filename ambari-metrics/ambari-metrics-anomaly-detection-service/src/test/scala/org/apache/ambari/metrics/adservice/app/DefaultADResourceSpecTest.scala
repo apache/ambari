@@ -36,7 +36,7 @@ class DefaultADResourceSpecTest extends FunSpec with Matchers {
 
   describe("/anomaly") {
     it("Must return default message") {
-      withAppRunning(classOf[AnomalyDetectionApp], Resources.getResource("config.yml").getPath) { rule =>
+      withAppRunning(classOf[AnomalyDetectionApp], Resources.getResource("config.yaml").getPath) { rule =>
         val json = client.target(s"http://localhost:${rule.getLocalPort}/anomaly")
           .request().accept(APPLICATION_JSON).buildGet().invoke(classOf[String])
         val dtf = java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")

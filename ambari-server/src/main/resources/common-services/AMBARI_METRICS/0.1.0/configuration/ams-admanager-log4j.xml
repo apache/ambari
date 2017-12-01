@@ -63,7 +63,7 @@
             #
 
             # Define some default values that can be overridden by system properties
-            ams.ad.log.dir=.
+            ams.ad.log.dir={{ams_ad_log_dir}}
             ams.ad.log.file=ambari-metrics-admanager.log
 
             # Root logger option

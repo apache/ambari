@@ -45,7 +45,7 @@ class AmsADManager(Script):
     Execute(start_cmd,
             user=params.ams_user
             )
-    pidfile = format("{ams_ad_pid_dir}/admanager.pid")
+    pidfile = format("{ams_ad_pid_dir}/ambari-metrics-admanager.pid")
     if not sudo.path_exists(pidfile):
       Logger.warning("Pid file doesn't exist after starting of the component.")
     else:
@@ -57,7 +57,7 @@ class AmsADManager(Script):
     env.set_params(params)
     self.configure(env, action = 'stop')
     Execute((format("{ams_admanager_script}"), 'stop'),
-            sudo=True
+            user=params.ams_user
             )
 
   def status(self, env):

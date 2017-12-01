@@ -15,17 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.common
-
-import java.util.Date
+package org.apache.ambari.metrics.adservice.model
 
 /**
-  * A special form of a 'Range' class to denote Time range.
+  * Class to capture a Range in a Season.
+  * For example Monday - Wednesday is a 'Range' in a DAY Season.
+  * @param lower lower end
+  * @param higher higher end
   */
-case class TimeRange (startTime: Long, endTime: Long) {
-  @Override
-  override def toString: String = {
-    "StartTime=" + new Date(startTime) + ", EndTime=" + new Date(endTime)
+case class Range (lower: Int, higher: Int) {
+
+  def withinRange(value: Int) : Boolean = {
+    if (lower <= higher) {
+      (value >= lower) && (value <= higher)
+    } else {
+      !(value > higher) && (value < lower)
+    }
   }
 
   @Override
@@ -33,7 +38,7 @@ case class TimeRange (startTime: Long, endTime: Long) {
     if (obj == null) {
       return false
     }
-    val that : TimeRange = obj.asInstanceOf[TimeRange]
-    (startTime == that.startTime) && (endTime == that.endTime)
+    val that : Range = obj.asInstanceOf[Range]
+    (lower == that.lower) && (higher == that.higher)
   }
 }

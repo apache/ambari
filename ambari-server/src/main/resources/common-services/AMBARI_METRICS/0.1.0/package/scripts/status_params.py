@@ -37,7 +37,7 @@ ams_ad_pid_dir = config['configurations']['ams-admanager-env']['ams_ad_pid_dir']
 
 monitor_pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
 grafana_pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")
-ams_ad_pid_file = format("{ams_ad_pid_dir}/admanager.pid")
+ams_ad_pid_file = format("{ams_ad_pid_dir}/ambari-metrics-admanager.pid")
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 ams_hbase_conf_dir = format("{hbase_conf_dir}")

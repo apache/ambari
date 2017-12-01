@@ -550,14 +550,26 @@ def ams(name=None, action=None):
     if (params.ams_ad_log4j_props != None):
       File(os.path.join(params.ams_ad_conf_dir, "log4j.properties"),
          owner=params.ams_user,
-         content=params.ams_ad_log4j_props
+         content=InlineTemplate(params.ams_ad_log4j_props)
          )
+
+    File(format("{ams_ad_conf_dir}/ams-admanager-spark-env.sh"),
+          owner=params.ams_user,
+          group=params.user_group,
+          content=InlineTemplate(params.ams_ad_spark_env_sh_template)
+        )
 
     if action != 'stop':
       for dir in ams_ad_directories:
         Execute(('chown', '-R', params.ams_user, dir),
                 sudo=True
                 )
+      Execute(('chmod', '-R', '755', format("{ams_admanager_lib_dir}/spark/bin")),
+                sudo = True,
+                )
+      Execute(('chmod', '-R', '755', format("{ams_admanager_lib_dir}/spark/sbin")),
+              sudo = True,
+              )
 
 def is_spnego_enabled(params):
   if 'core-site' in params.config['configurations'] \

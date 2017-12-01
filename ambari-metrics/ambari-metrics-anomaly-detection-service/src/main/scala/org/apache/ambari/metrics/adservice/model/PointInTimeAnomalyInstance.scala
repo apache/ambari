@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.subsystem.pointintime
+package org.apache.ambari.metrics.adservice.model
 
 import java.util.Date
 
-import org.apache.ambari.metrics.adservice.common.Season
 import org.apache.ambari.metrics.adservice.metadata.MetricKey
 import org.apache.ambari.metrics.adservice.model.AnomalyDetectionMethod.AnomalyDetectionMethod
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
-import org.apache.ambari.metrics.adservice.model.{AnomalyType, MetricAnomalyInstance}
 
 class PointInTimeAnomalyInstance(val metricKey: MetricKey,
                                  val timestamp: Long,

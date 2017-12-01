@@ -42,6 +42,7 @@
     <storm-sink-legacy.dir>${project.basedir}/../ambari-metrics-storm-sink-legacy</storm-sink-legacy.dir>
     <flume-sink.dir>${project.basedir}/../ambari-metrics-flume-sink</flume-sink.dir>
     <kafka-sink.dir>${project.basedir}/../ambari-metrics-kafka-sink</kafka-sink.dir>
+    <anomaly-detection.dir>${project.basedir}/../ambari-metrics-anomaly-detection-service</anomaly-detection.dir>
     <python.ver>python &gt;= 2.6</python.ver>
     <python.devel>python-devel</python.devel>
     <deb.publisher>Apache</deb.publisher>
@@ -56,6 +57,7 @@
     <storm.sink.legacy.jar>ambari-metrics-storm-sink-legacy-with-common-${project.version}.jar</storm.sink.legacy.jar>
     <flume.sink.jar>ambari-metrics-flume-sink-with-common-${project.version}.jar</flume.sink.jar>
     <kafka.sink.jar>ambari-metrics-kafka-sink-with-common-${project.version}.jar</kafka.sink.jar>
+    <anomaly.detection.jar>ambari-metrics-anomaly-detection-service-${project.version}.jar</anomaly.detection.jar>
   </properties>
 
   <build>
@@ -134,6 +136,22 @@
               <appendAssemblyId>false</appendAssemblyId>
               <descriptors>
                 <descriptor>${assemblydescriptor.grafana}</descriptor>
+              </descriptors>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+          </execution>
+          <execution>
+            <id>anomaly-detection</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>false</attach>
+              <finalName>ambari-metrics-anomaly-detection-${project.version}</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>${assemblydescriptor.anomaly-detection}</descriptor>
               </descriptors>
               <tarLongFileMode>gnu</tarLongFileMode>
             </configuration>
@@ -637,6 +655,81 @@
                 </configuration>
               </execution>
 
+              <!--ambari-metrics-anomaly-detection-->
+              <execution>
+                <id>ambari-metrics-anomaly-detection</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>rpm</goal>
+                </goals>
+                <configuration>
+                <name>ambari-metrics-anomaly-detection</name>
+                <copyright>2012, Apache Software Foundation</copyright>
+                <group>Development</group>
+                <description>Maven Recipe: RPM Package.</description>
+                <autoRequires>false</autoRequires>
+
+
+                <defaultFilemode>644</defaultFilemode>
+                <defaultDirmode>755</defaultDirmode>
+                <defaultUsername>root</defaultUsername>
+                <defaultGroupname>root</defaultGroupname>
+
+                <postinstallScriptlet>
+                  <scriptFile>${project.build.directory}/resources/rpm/anomaly-detection/postinstall.sh</scriptFile>
+                  <fileEncoding>utf-8</fileEncoding>
+                </postinstallScriptlet>
+
+                <mappings>
+                  <mapping>
+                    <!--jars-->
+                    <directory>/usr/lib/ambari-metrics-anomaly-detection/</directory>
+                    <sources>
+                      <source>
+                        <location>
+                          ${anomaly-detection.dir}/target/ambari-metrics-anomaly-detection-service-${project.version}.jar
+                        </location>
+                      </source>
+                    </sources>
+                  </mapping>
+                  <mapping>
+                    <directory>/usr/lib/ambari-metrics-anomaly-detection/spark</directory>
+                    <sources>
+                      <source>
+                        <location>
+                          ${anomaly-detection.dir}/target/embedded/spark
+                        </location>
+                      </source>
+                    </sources>
+                  </mapping>
+                  <mapping>
+                    <directory>/usr/sbin</directory>
+                    <filemode>755</filemode>
+                    <username>root</username>
+                    <groupname>root</groupname>
+                    <directoryIncluded>false</directoryIncluded>
+                    <sources>
+                      <source>
+                        <location>${anomaly-detection.dir}/conf/unix/ambari-metrics-admanager</location>
+                        <filter>false</filter>
+                      </source>
+                    </sources>
+                  </mapping>
+                  <mapping>
+                    <directory>/etc/ambari-metrics-anomaly-detection/conf</directory>
+                    <configuration>true</configuration>
+                    <sources>
+                      <source>
+                        <location>${anomaly-detection.dir}/conf/unix/config.yaml</location>
+                      </source>
+                      <source>
+                        <location>${anomaly-detection.dir}/conf/unix/log4j.properties</location>
+                      </source>
+                    </sources>
+                  </mapping>
+                </mappings>
+                </configuration>
+              </execution>
 
             </executions>
           </plugin>
@@ -756,10 +849,13 @@
                     <path>/etc/ambari-metrics-collector/conf</path>
                     <path>/etc/ambari-metrics-grafana/conf</path>
                     <path>/etc/ams-hbase/conf</path>
+                    <path>/etc/ambari-metrics-anomaly-detection/conf</path>
                     <path>/var/run/ams-hbase</path>
                     <path>/var/run/ambari-metrics-grafana</path>
                     <path>/var/log/ambari-metrics-grafana</path>
                     <path>/var/lib/ambari-metrics-collector</path>
+                    <path>/usr/lib/ambari-metrics-anomaly-detection</path>
+                    <path>/var/lib/ambari-metrics-anomaly-detection</path>
                     <path>/var/lib/ambari-metrics-monitor/lib</path>
                     <path>/var/lib/ambari-metrics-grafana</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
@@ -978,6 +1074,49 @@
                   </mapper>
                 </data>
 
+                <!-- Anomaly Detection -->
+                <data>
+                  <src>${anomaly-detection.dir}/target/${anomaly.detection.jar}</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <dirmode>644</dirmode>
+                    <prefix>/usr/lib/ambari-metrics-anomaly-detection</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <type>link</type>
+                  <linkName>/usr/lib/ambari-metrics-anomaly-detection/ambari-metrics-anomaly-detection-service.jar</linkName>
+                  <linkTarget>/usr/lib/ambari-metrics-anomaly-detection/${anomaly.detection.jar}</linkTarget>
+                  <symlink>true</symlink>
+                </data>
+                <data>
+                  <src>${anomaly-detection.dir}/target/embedded/spark</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/lib/ambari-metrics-anomaly-detection/spark</prefix>
+                    <filemode>644</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${anomaly-detection.dir}/conf/unix/config.yaml</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/etc/ambari-metrics-anomaly-detection/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${anomaly-detection.dir}/conf/unix/log4j.properties</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/etc/ambari-metrics-anomaly-detection/conf</prefix>
+                  </mapper>
+                </data>
                 <!-- hadoop sink -->
 
                 <data>
@@ -1074,6 +1213,8 @@
         <assemblydescriptor.monitor>src/main/assembly/monitor.xml</assemblydescriptor.monitor>
         <assemblydescriptor.sink>src/main/assembly/sink.xml</assemblydescriptor.sink>
         <assemblydescriptor.grafana>src/main/assembly/grafana.xml</assemblydescriptor.grafana>
+        <assemblydescriptor.anomaly-detection>src/main/assembly/anomaly-detection.xml</assemblydescriptor.anomaly-detection>
+
         <packagingFormat>jar</packagingFormat>
       </properties>
       <build>
@@ -1352,6 +1493,13 @@
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-host-aggregator</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-metrics-anomaly-detection-service</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 

@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.common
+package org.apache.ambari.metrics.adservice.model
 
 import java.util.Calendar
 
+import org.apache.ambari.metrics.adservice.model
 import org.scalatest.FunSuite
 
 class SeasonTest extends FunSuite {
@@ -26,7 +27,7 @@ class SeasonTest extends FunSuite {
   test("testBelongsTo") {
 
     //Create Season for weekdays. Mon to Friday and 9AM - 5PM
-    var season : Season = Season(Range(Calendar.MONDAY,Calendar.FRIDAY), Range(9,17))
+    var season : Season = Season(model.Range(Calendar.MONDAY,Calendar.FRIDAY), model.Range(9,17))
 
     //Try with a timestamp on a Monday, @ 9AM.
     val c = Calendar.getInstance
@@ -41,7 +42,7 @@ class SeasonTest extends FunSuite {
     assert(!season.belongsTo(c.getTimeInMillis))
 
     //Create Season for Monday 11AM - 12Noon.
-    season = Season(Range(Calendar.MONDAY,Calendar.MONDAY), Range(11,12))
+    season = Season(model.Range(Calendar.MONDAY,Calendar.MONDAY), model.Range(11,12))
     c.set(2017, Calendar.OCTOBER, 30, 9, 0, 0)
     assert(!season.belongsTo(c.getTimeInMillis))
 
@@ -50,7 +51,7 @@ class SeasonTest extends FunSuite {
 
 
     //Create Season from Friday to Monday and 9AM - 5PM
-    season = Season(Range(Calendar.FRIDAY,Calendar.MONDAY), Range(9,17))
+    season = Season(model.Range(Calendar.FRIDAY,Calendar.MONDAY), model.Range(9,17))
 
     //Try with a timestamp on a Monday, @ 9AM.
     c.set(2017, Calendar.OCTOBER, 30, 9, 0, 0)
@@ -67,23 +68,23 @@ class SeasonTest extends FunSuite {
 
   test("testEquals") {
 
-    var season1: Season =  Season(Range(4,5), Range(2,3))
-    var season2: Season =  Season(Range(4,5), Range(2,3))
+    var season1: Season =  Season(model.Range(4,5), model.Range(2,3))
+    var season2: Season =  Season(model.Range(4,5), model.Range(2,3))
     assert(season1 == season2)
 
-    var season3: Season =  Season(Range(4,4), Range(2,3))
+    var season3: Season =  Season(model.Range(4,4), model.Range(2,3))
     assert(!(season1 == season3))
   }
 
   test("testSerialize") {
-    val season1 : Season = Season(Range(Calendar.MONDAY,Calendar.FRIDAY), Range(9,17))
+    val season1 : Season = Season(model.Range(Calendar.MONDAY,Calendar.FRIDAY), model.Range(9,17))
 
     val seasonString = Season.toJson(season1)
 
     val season2 : Season = Season.fromJson(seasonString)
     assert(season1 == season2)
 
-    val season3 : Season = Season(Range(Calendar.MONDAY,Calendar.THURSDAY), Range(9,17))
+    val season3 : Season = Season(model.Range(Calendar.MONDAY,Calendar.THURSDAY), model.Range(9,17))
     assert(!(season2 == season3))
 
   }
