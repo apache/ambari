@@ -989,7 +989,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_6_maint_ranger_storm_plugin_cluster_name"/>
           <task xsi:type="configure" id="storm_nimbus_autocred_config"/>
-          <task xsi:type="configure" id="storm_remove_jmxetric"/>
+          <task xsi:type="configure" id="storm_remove_jmxetric" supports-patch="true"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>

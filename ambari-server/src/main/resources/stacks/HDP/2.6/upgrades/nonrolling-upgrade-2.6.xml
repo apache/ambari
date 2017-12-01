@@ -338,7 +338,7 @@
       </execute-stage>
 
       <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
-        <task xsi:type="configure" id="storm_remove_jmxetric"/>
+        <task xsi:type="configure" id="storm_remove_jmxetric" supports-patch="true"/>
       </execute-stage>
 
       <!-- YARN -->
