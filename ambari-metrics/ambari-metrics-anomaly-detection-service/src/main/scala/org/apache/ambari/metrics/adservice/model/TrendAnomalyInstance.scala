@@ -15,13 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.subsystem.trend
+package org.apache.ambari.metrics.adservice.model
 
-import org.apache.ambari.metrics.adservice.common.{Season, TimeRange}
 import org.apache.ambari.metrics.adservice.metadata.MetricKey
 import org.apache.ambari.metrics.adservice.model.AnomalyDetectionMethod.AnomalyDetectionMethod
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
-import org.apache.ambari.metrics.adservice.model.{AnomalyType, MetricAnomalyInstance}
 
 case class TrendAnomalyInstance (metricKey: MetricKey,
                                  anomalousPeriod: TimeRange,
