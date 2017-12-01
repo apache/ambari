@@ -53,6 +53,12 @@ class AnomalyDetectionAppConfig extends Configuration {
   @Valid
   private val metricDefinitionDBConfiguration = new MetricDefinitionDBConfiguration
 
+  /**
+    * Spark configurations
+    */
+  @Valid
+  private val sparkConfiguration = new SparkConfiguration
+
   /*
    AMS HBase Conf
     */
@@ -76,4 +82,8 @@ class AnomalyDetectionAppConfig extends Configuration {
 
   @JsonProperty("metricDefinitionDB")
   def getMetricDefinitionDBConfiguration: MetricDefinitionDBConfiguration = metricDefinitionDBConfiguration
+
+  @JsonProperty("spark")
+  def getSparkConfiguration: SparkConfiguration = sparkConfiguration
+
 }

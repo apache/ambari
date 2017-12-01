@@ -17,8 +17,6 @@
 
 package org.apache.ambari.metrics.adservice.configuration
 
-import javax.validation.constraints.NotNull
-
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
@@ -26,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
   */
 class MetricDefinitionServiceConfiguration {
 
-  @NotNull
   private val inputDefinitionDirectory: String = ""
 
   @JsonProperty
