@@ -74,7 +74,7 @@
                             </label>
                           </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 hosts-dropdown">
                           {{#if isServiceCoHost}}
                             <div class="hostName" {{QAAttr "service-co-host"}}>
                               {{selectedHost}}<i class="glyphicon glyphicon-asterisks">&#10037;</i>
@@ -106,16 +106,14 @@
                             </div>
                           {{/if}}
                         </div>
-                        <div class="col-md-1 pts">
+                        <div class="col-md-2 pts assign-masters-controls">
                           {{#if showAddControl}}
-                            <div class="pull-right">
+                            <div>
                               {{view App.AddControlView componentNameBinding="component_name"}}
                             </div>
                           {{/if}}
-                        </div>
-                        <div class="col-md-1 pts">
                           {{#if showRemoveControl}}
-                            <div class="pull-left">
+                            <div>
                               {{view App.RemoveControlView componentNameBinding="component_name" serviceComponentIdBinding="serviceComponentId"}}
                             </div>
                           {{/if}}
@@ -129,14 +127,12 @@
 
           <div class="host-assignments col-md-4">
             {{#each masterHostMapping}}
-              <div class="well side-menu-well">
-                <div class="row">
-                  <div class="col-md-10 col-md-offset-1">
-                    <div class="hostString"><span>{{hostInfo}}</span></div>
-                    {{#each masterServicesToDisplay}}
-                      <span {{QAAttr "component-on-host"}} {{bindAttr class="isInstalled:assigned-service:new-service :service-component :label"}}>{{display_name}}</span>
-                    {{/each}}
-                  </div>
+              <div class="well">
+                <div>
+                  <div class="hostString"><span>{{hostInfo}}</span></div>
+                  {{#each masterServicesToDisplay}}
+                    <span {{QAAttr "component-on-host"}} {{bindAttr class="isInstalled:assigned-service:new-service :service-component :label"}}>{{display_name}}</span>
+                  {{/each}}
                 </div>
               </div>
             {{/each}}
