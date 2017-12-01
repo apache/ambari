@@ -52,12 +52,11 @@ def hive_service_interactive(name, action='start', upgrade_type=None):
   if action == 'start':
     check_fs_root(params.hive_server_interactive_conf_dir, params.execute_path_hive_interactive)
     daemon_cmd = cmd
-    hadoop_home = params.hadoop_home
-    hive_interactive_bin = "hive2"
+    hive_interactive_bin = format("{stack_root}/current/hive-server2-hive2/bin/hive2")
 
     Execute(daemon_cmd,
             user = params.hive_user,
-            environment = { 'HADOOP_HOME': hadoop_home, 'JAVA_HOME': params.java64_home, 'HIVE_BIN': hive_interactive_bin },
+            environment = { 'JAVA_HOME': params.java64_home, 'HIVE_BIN': hive_interactive_bin },
             path = params.execute_path,
             not_if = process_id_exists_command)
 

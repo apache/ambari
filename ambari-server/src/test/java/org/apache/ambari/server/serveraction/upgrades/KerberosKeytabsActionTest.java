@@ -26,17 +26,26 @@ import static org.junit.Assert.assertNotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -87,6 +96,14 @@ public class KerberosKeytabsActionTest {
         bind(Clusters.class).toInstance(m_clusters);
         bind(KerberosHelper.class).toInstance(m_kerberosHelper);
         bind(AuditLogger.class).toInstance(EasyMock.createNiceMock(AuditLogger.class));
+        bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
+        bind(AmbariManagementController.class).toInstance(EasyMock.createNiceMock(AmbariManagementController.class));
+        bind(UpgradeHelper.class).toInstance(EasyMock.createNiceMock(UpgradeHelper.class));
+        bind(UpgradeContextFactory.class).toInstance(EasyMock.createNiceMock(UpgradeContextFactory.class));
+        bind(StackManagerFactory.class).toInstance(EasyMock.createNiceMock(StackManagerFactory.class));
+        bind(StackDAO.class).toInstance(EasyMock.createNiceMock(StackDAO.class));
+        bind(EntityManager.class).toInstance(EasyMock.createNiceMock(EntityManager.class));
+        bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));
       }
     });
   }

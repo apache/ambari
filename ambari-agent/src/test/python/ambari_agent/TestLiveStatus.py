@@ -25,7 +25,6 @@ import os, sys, StringIO
 from ambari_agent import ActualConfigHandler
 from mock.mock import patch, MagicMock
 import pprint
-from ambari_agent import StatusCheck
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
@@ -43,8 +42,7 @@ class TestLiveStatus(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler.ActualConfigHandler, "read_actual_component")
-  @patch.object(StatusCheck.StatusCheck, "getStatus")
-  def test_build_predefined(self, getStatus_mock, read_actual_component_mock):
+  def test_build_predefined(self, read_actual_component_mock):
     read_actual_component_mock.return_value = "actual_component"
     """
     Tests that if live status us defined (using default parameter),
@@ -62,6 +60,5 @@ class TestLiveStatus(TestCase):
                      "'configurationTags': 'actual_component',\n "
                      "'msg': '',\n 'serviceName': 'SOME_UNKNOWN_SERVICE',\n "
                      "'stackVersion': '',\n 'status': 'STARTED'}")
-    self.assertFalse(getStatus_mock.called)
 
 

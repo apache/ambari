@@ -307,11 +307,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         selectedStack.get('operatingSystems').forEach(function (os) {
           if (os.get('isSelected')) {
             os.get('repositories').forEach(function(repo) {
-              allRepos.push(Em.Object.create({
-                base_url: repo.get('baseUrl'),
-                os_type: repo.get('osType'),
-                repo_id: repo.get('repoId')
-              }));
+              if (repo.get('showRepo')) {
+                allRepos.push(Em.Object.create({
+                  base_url: repo.get('baseUrl'),
+                  os_type: repo.get('osType'),
+                  repo_id: repo.get('repoId')
+                }));
+              }
             }, this);
           }
         }, this);
@@ -1459,11 +1461,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createConfigurations
    */
   createConfigurations: function () {
-    var tag = this.getServiceConfigVersion();
-
     if (this.get('isInstaller')) {
       /** add cluster-env **/
-      this.get('serviceConfigTags').pushObject(this.createDesiredConfig('cluster-env', tag, this.get('configs').filterProperty('filename', 'cluster-env.xml')));
+      this.get('serviceConfigTags').pushObject(this.createDesiredConfig('cluster-env', this.get('configs').filterProperty('filename', 'cluster-env.xml')));
     }
 
     this.get('selectedServices').forEach(function (service) {
@@ -1471,20 +1471,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
           var configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(type));
           var serviceConfigNote = this.getServiceConfigNote(type, service.get('displayName'));
-          this.get('serviceConfigTags').pushObject(this.createDesiredConfig(type, tag, configs, serviceConfigNote));
+          this.get('serviceConfigTags').pushObject(this.createDesiredConfig(type, configs, serviceConfigNote));
         }
       }, this);
     }, this);
     this.createNotification();
-  },
-
-  /**
-   * Get config version tag
-   *
-   * @returns {string}
-   */
-  getServiceConfigVersion: function() {
-    return 'version' + (this.get('isAddService') ? (new Date).getTime() : '1');
   },
 
   /**

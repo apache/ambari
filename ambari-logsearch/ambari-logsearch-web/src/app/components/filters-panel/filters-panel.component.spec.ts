@@ -18,6 +18,7 @@
 
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {FormGroup, FormControl} from '@angular/forms';
 import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
@@ -30,7 +31,8 @@ import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/aud
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
-import {FilteringService} from '@app/services/filtering.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -67,7 +69,9 @@ describe('FiltersPanelComponent', () => {
           auditLogsFields,
           serviceLogsFields,
           serviceLogsHistogramData,
-          appState
+          appState,
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
@@ -82,7 +86,8 @@ describe('FiltersPanelComponent', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         AppStateService,
-        FilteringService,
+        ServiceLogsTruncatedService,
+        TabsService,
         LogsContainerService,
         {
           provide: HttpClientService,
@@ -98,6 +103,10 @@ describe('FiltersPanelComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(FiltersPanelComponent);
     component = fixture.componentInstance;
+    component.filtersForm = new FormGroup({
+      control: new FormControl()
+    });
+    component.logsType = 'auditLogs';
     fixture.detectChanges();
   });
 

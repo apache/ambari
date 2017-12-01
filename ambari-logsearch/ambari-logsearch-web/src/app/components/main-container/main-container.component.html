@@ -20,5 +20,4 @@
   <span class="fa fa-spinner fa-spin"></span>
 </div>
 <login-form *ngIf="!isInitialLoading && !isAuthorized"></login-form>
-<filters-panel *ngIf="isAuthorized" class="row"></filters-panel>
-<logs-container *ngIf="isAuthorized" logsType="serviceLogs"></logs-container>
+<logs-container *ngIf="isAuthorized"></logs-container>

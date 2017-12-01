@@ -20,6 +20,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -33,24 +34,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 
 public class AbstractPrepareKerberosServerActionTest {
   private class PrepareKerberosServerAction extends AbstractPrepareKerberosServerAction{
@@ -78,6 +84,8 @@ public class AbstractPrepareKerberosServerActionTest {
         bind(KerberosIdentityDataFileWriterFactory.class).toInstance(kerberosIdentityDataFileWriterFactory);
         bind(Clusters.class).toInstance(clusters);
         bind(AuditLogger.class).toInstance(auditLogger);
+        Provider<EntityManager> entityManagerProvider =  EasyMock.createNiceMock(Provider.class);
+        bind(EntityManager.class).toProvider(entityManagerProvider);
       }
     });
 
@@ -130,10 +138,12 @@ public class AbstractPrepareKerberosServerActionTest {
     expect(serviceComponentHostHDFS.getHostName()).andReturn(hostName).atLeastOnce();
     expect(serviceComponentHostHDFS.getServiceName()).andReturn(hdfsService).atLeastOnce();
     expect(serviceComponentHostHDFS.getServiceComponentName()).andReturn(hdfsComponent).atLeastOnce();
+    expect(serviceComponentHostHDFS.getHost()).andReturn(createNiceMock(Host.class)).atLeastOnce();
 
     expect(serviceComponentHostZK.getHostName()).andReturn(hostName).atLeastOnce();
     expect(serviceComponentHostZK.getServiceName()).andReturn(zookeeperService).atLeastOnce();
     expect(serviceComponentHostZK.getServiceComponentName()).andReturn(zkComponent).atLeastOnce();
+    expect(serviceComponentHostZK.getHost()).andReturn(createNiceMock(Host.class)).atLeastOnce();
 
     expect(kerberosDescriptor.getService(hdfsService)).andReturn(serviceDescriptor).once();
 
@@ -149,9 +159,13 @@ public class AbstractPrepareKerberosServerActionTest {
       identityFilter,
       "",
         configurations, kerberosConfigurations,
-        false, propertiesToIgnore, false);
+        false, propertiesToIgnore);
 
     verify(kerberosHelper);
+
+    // Ensure the host and hostname values were set in the configuration context
+    Assert.assertEquals("host1", configurations.get("").get("host"));
+    Assert.assertEquals("host1", configurations.get("").get("hostname"));
   }
 
 }

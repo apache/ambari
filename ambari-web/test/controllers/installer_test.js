@@ -92,7 +92,8 @@ describe('App.InstallerController', function () {
                 isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
-                validation: ''
+                validation: '',
+                showRepo: true
               })
             ])
           })
@@ -131,7 +132,8 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "",
                   "errorContent": "",
-                  "validation": "INPROGRESS"
+                  "validation": "INPROGRESS",
+                  "showRepo": true
                 }
               ]
             }
@@ -172,7 +174,8 @@ describe('App.InstallerController', function () {
                 isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
-                validation: ''
+                validation: '',
+                showRepo: true
               })
             ])
           })
@@ -189,7 +192,7 @@ describe('App.InstallerController', function () {
         }
       }
     };
-    it ('Should check stacks for sucess', function() {
+    it ('Should check stacks for success', function() {
 
       installerController.set('content.stacks', stacks);
       installerController.checkRepoURLSuccessCallback(null,null,data);
@@ -220,7 +223,8 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "1",
                   "errorContent": "1",
-                  "validation": "OK"
+                  "validation": "OK",
+                  "showRepo": true
                 }
               ]
             }
@@ -460,35 +464,52 @@ describe('App.InstallerController', function () {
       var checker = {
         loadStacks: function() {
           return {
-            always: function() {
-              loadStacks = true;
+            done: function(callback) {
+              callback(true);
             }
           };
         }
       };
 
       beforeEach(function () {
+        sinon.spy(checker, 'loadStacks');
         installerController.loadMap['1'][0].callback.call(checker);
       });
 
-      it('stack info is loaded', function () {
-        expect(loadStacks).to.be.true;
+      afterEach(function() {
+        checker.loadStacks.restore();
+      });
+
+      it('should call loadStacks, stack info not loaded', function () {
+        expect(checker.loadStacks.calledOnce).to.be.true;
       });
     });
 
-    describe ('Should load stacks async', function() {
-      var loadStacksVersions = false;
+    describe('Should load stacks async', function() {
       var checker = {
-        loadStacksVersions: function() {
-          loadStacksVersions = true;
-        }
+        loadStacksVersions: Em.K
       };
+
+      beforeEach(function () {
+        sinon.spy(checker, 'loadStacksVersions');
+      });
+
+      afterEach(function() {
+        checker.loadStacksVersions.restore();
+      });
 
       it('stack versions are loaded', function () {
         installerController.loadMap['1'][1].callback.call(checker, true).then(function(data){
           expect(data).to.be.true;
         });
-        expect(loadStacksVersions).to.be.false;
+        expect(checker.loadStacksVersions.called).to.be.false;
+      });
+
+      it('should call loadStacksVersions, stack versions not loaded', function () {
+        installerController.loadMap['1'][1].callback.call(checker, false).then(function(data){
+          expect(data).to.be.true;
+        });
+        expect(checker.loadStacksVersions.calledOnce).to.be.true;
       });
     });
 

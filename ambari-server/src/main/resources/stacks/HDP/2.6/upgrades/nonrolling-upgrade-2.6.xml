@@ -21,6 +21,7 @@
   <target-stack>HDP-2.6</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.LZOCheck</check>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
@@ -145,6 +146,7 @@
         <component>DRUID_OVERLORD</component>
         <component>DRUID_SUPERSET</component>
       </service>
+
 
     </group>
 
@@ -279,8 +281,7 @@
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_REPOSITORY_ID" title="Update Target Repositories">
       <execute-stage title="Update Target Repositories">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction">
-        </task>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction"/>
       </execute-stage>
     </group>
 
@@ -334,6 +335,10 @@
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_storm_plugin_cluster_name"/>
       </execute-stage>
 
+      <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
+        <task xsi:type="configure" id="storm_remove_jmxetric" supports-patch="true"/>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for Ranger Yarn plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name"/>
@@ -343,7 +348,16 @@
         <task xsi:type="configure" id="hdp_2_6_yarn_preemption"/>
       </execute-stage>
 
-      <!-- YARN -->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Application Classpath Parameterization">
+        <task xsi:type="configure" id="hdp_2_6_yarn_app_classpath_parameterization" supports-patch="true"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Spark Versioned Classpaths">
+        <task xsi:type="configure" id="hdp_2_6_yarn_spark_versioned_classpaths" supports-patch="true">
+          <summary>Updating the Spark classpath entries to use the specific version of Spark which is installed.</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM">
         <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem">
           <summary>Updating YARN NodeManager config for LLAP</summary>
@@ -376,6 +390,10 @@
         <task xsi:type="configure" id="atlas_hbase_conf_dir"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Applying Atlas proxy-user configurations.">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.AtlasProxyUserConfigCalculation"/>
+      </execute-stage>
+
       <!-- KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger Kms plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>
@@ -398,6 +416,15 @@
         </task>
       </execute-stage>
 
+      <!-- TEZ -->
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Updating LD Library Classpath for Tarball" >
+        <task xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library" supports-patch="true"/>
+      </execute-stage>
+
+      <!-- MapR -->
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Updating LD Library Classpath for Tarball">
+        <task xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library" supports-patch="true"/>
+      </execute-stage>
     </group>
 
 

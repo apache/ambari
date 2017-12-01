@@ -14,7 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+: ${JAVA_HOME:?"Please set the JAVA_HOME variable!"}
+
 JVM="java"
 sdir="`dirname \"$0\"`"
+ldir="`dirname "$(readlink -f "$0")"`"
 
-PATH=$JAVA_HOME/bin:$PATH nohup $JVM -classpath "/etc/ambari-infra-manager/conf:$sdir:$sdir/libs/*" $INFRA_MANAGER_OPTS org.apache.ambari.infra.InfraManager ${1+"$@"} &
+DIR="$sdir"
+if [ "$sdir" != "$ldir" ]; then
+  DIR="$ldir"
+fi
+
+PATH=$JAVA_HOME/bin:$PATH nohup $JVM -classpath "/etc/ambari-infra-manager/conf:$DIR:$DIR/libs/*" $INFRA_MANAGER_OPTS org.apache.ambari.infra.InfraManager ${1+"$@"} &

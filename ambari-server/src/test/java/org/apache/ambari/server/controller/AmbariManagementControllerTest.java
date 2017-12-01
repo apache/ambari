@@ -34,6 +34,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.text.MessageFormat;
@@ -51,7 +52,6 @@ import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -189,6 +189,7 @@ public class AmbariManagementControllerTest {
   private static final String NEW_STACK_VERSION = "2.0.6";
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-1.1.1.16";
+  private static final String REPO_NAME = "HDP";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
   private static final String FAKE_SERVICE_NAME = "FAKENAGIOS";
@@ -331,11 +332,11 @@ public class AmbariManagementControllerTest {
     host.setHostAttributes(hostAttributes);
   }
 
-  private void addHost(String hostname) throws AmbariException {
+  private void addHost(String hostname) throws Exception {
     addHostToCluster(hostname, null);
   }
 
-  private void addHostToCluster(String hostname, String clusterName) throws AmbariException {
+  private void addHostToCluster(String hostname, String clusterName) throws Exception {
 
     if (!clusters.hostExists(hostname)) {
       clusters.addHost(hostname);
@@ -348,27 +349,30 @@ public class AmbariManagementControllerTest {
     }
   }
 
-  private void deleteHost(String hostname) throws AmbariException {
+  private void deleteHost(String hostname) throws Exception {
     clusters.deleteHost(hostname);
   }
+
+
 
   /**
    * Creates a Cluster object, along with its corresponding ClusterVersion based on the stack.
    * @param clusterName Cluster name
-   * @throws AmbariException
+   * @throws Exception
    */
-  private void createCluster(String clusterName) throws AmbariException, AuthorizationException {
+  private void createCluster(String clusterName) throws Exception{
+    RepositoryVersionDAO repoDAO = injector.getInstance(RepositoryVersionDAO.class);
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, "HDP-0.1", null);
     controller.createCluster(r);
   }
 
-  private void createService(String clusterName, String serviceName, State desiredState) throws AmbariException, AuthorizationException {
+  private void createService(String clusterName, String serviceName, State desiredState) throws Exception, AuthorizationException {
     createService(clusterName, serviceName, repositoryVersion02, desiredState);
   }
 
   private void createService(String clusterName, String serviceName,
       RepositoryVersionEntity repositoryVersion, State desiredState)
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -386,7 +390,7 @@ public class AmbariManagementControllerTest {
 
   private void createServiceComponent(String clusterName,
       String serviceName, String componentName, State desiredState)
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -401,7 +405,7 @@ public class AmbariManagementControllerTest {
 
   private void createServiceComponentHost(String clusterName,
       String serviceName, String componentName, String hostname,
-      State desiredState) throws AmbariException, AuthorizationException {
+      State desiredState) throws Exception, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -416,7 +420,7 @@ public class AmbariManagementControllerTest {
 
   private void deleteServiceComponentHost(String clusterName,
                                           String serviceName, String componentName, String hostname,
-                                          State desiredState) throws AmbariException, AuthorizationException {
+                                          State desiredState) throws Exception, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -431,7 +435,7 @@ public class AmbariManagementControllerTest {
 
   private Long createConfigGroup(Cluster cluster, String serviceName, String name, String tag,
                               List<String> hosts, List<Config> configs)
-                              throws AmbariException {
+                              throws Exception {
 
     Map<Long, Host> hostMap = new HashMap<>();
     Map<String, Config> configMap = new HashMap<>();
@@ -458,7 +462,7 @@ public class AmbariManagementControllerTest {
 
   private long stopService(String clusterName, String serviceName,
       boolean runSmokeTests, boolean reconfigureClients) throws
-      AmbariException, AuthorizationException {
+      Exception, AuthorizationException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null, State.INSTALLED.toString(), null);
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r);
@@ -515,7 +519,7 @@ public class AmbariManagementControllerTest {
 
   private long startService(String clusterName, String serviceName,
                             boolean runSmokeTests, boolean reconfigureClients) throws
-      AmbariException, AuthorizationException {
+      Exception, AuthorizationException {
     return startService(clusterName, serviceName, runSmokeTests, reconfigureClients, null);
   }
 
@@ -523,7 +527,7 @@ public class AmbariManagementControllerTest {
   private long startService(String clusterName, String serviceName,
                             boolean runSmokeTests, boolean reconfigureClients,
                             MaintenanceStateHelper maintenanceStateHelper) throws
-      AmbariException, AuthorizationException {
+      Exception, AuthorizationException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, repositoryVersion02.getId(),
         State.STARTED.toString(), null);
     Set<ServiceRequest> requests = new HashSet<>();
@@ -564,7 +568,7 @@ public class AmbariManagementControllerTest {
 
   private long installService(String clusterName, String serviceName,
                               boolean runSmokeTests, boolean reconfigureClients)
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
     return installService(clusterName, serviceName, runSmokeTests, reconfigureClients, null, null);
   }
 
@@ -577,7 +581,7 @@ public class AmbariManagementControllerTest {
                               boolean runSmokeTests, boolean reconfigureClients,
                               MaintenanceStateHelper maintenanceStateHelper,
                               Map<String, String> mapRequestPropsInput)
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
 
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, repositoryVersion02.getId(),
         State.INSTALLED.toString(), null);
@@ -617,7 +621,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateClusterSimple() throws AmbariException, AuthorizationException {
+  public void testCreateClusterSimple() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Set<ClusterResponse> r =
@@ -630,13 +634,13 @@ public class AmbariManagementControllerTest {
     try {
       createCluster(cluster1);
       fail("Duplicate cluster creation should fail");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // Expected
     }
   }
 
   @Test
-  public void testCreateClusterWithHostMapping() throws AmbariException, AuthorizationException {
+  public void testCreateClusterWithHostMapping() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
 
     String host1 = getUniqueName();
@@ -696,7 +700,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServicesSimple() throws AmbariException, AuthorizationException {
+  public void testCreateServicesSimple() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceName = "HDFS";
@@ -721,7 +725,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServicesWithInvalidRequest() throws AmbariException, AuthorizationException {
+  public void testCreateServicesWithInvalidRequest() throws Exception, AuthorizationException {
     // invalid request
     // dups in requests
     // multi cluster updates
@@ -754,7 +758,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       ServiceResourceProviderTest.createServices(controller, repositoryVersionDAO, set1);
       fail("Expected failure for invalid cluster");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // Expected
       Assert.assertTrue(checkExceptionType(e, ClusterNotFoundException.class));
     }
@@ -826,7 +830,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServiceWithInvalidInfo() throws AmbariException, AuthorizationException {
+  public void testCreateServiceWithInvalidInfo() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceName = "HDFS";
@@ -867,7 +871,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServicesMultiple() throws AmbariException, AuthorizationException {
+  public void testCreateServicesMultiple() throws Exception, AuthorizationException {
     Set<ServiceRequest> set1 = new HashSet<>();
 
     String cluster1 = getUniqueName();
@@ -887,7 +891,7 @@ public class AmbariManagementControllerTest {
       set1.add(valid2);
       ServiceResourceProviderTest.createServices(controller, repositoryVersionDAO, set1);
       fail("Expected failure for invalid services");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // Expected
       Assert.assertTrue(checkExceptionType(e, DuplicateResourceException.class));
     }
@@ -899,7 +903,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServiceComponentSimple() throws AmbariException, AuthorizationException {
+  public void testCreateServiceComponentSimple() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceName = "HDFS";
@@ -940,7 +944,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateServiceComponentWithInvalidRequest()
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
     // multiple clusters
     // dup objects
     // existing components
@@ -1318,8 +1322,6 @@ public class AmbariManagementControllerTest {
                                         RoleCommand.START);
     assertEquals(cluster1, ec.getClusterName());
     assertNotNull(ec.getCommandParams());
-    assertTrue(ec.getCommandParams().containsKey("custom_folder"));
-    assertEquals("dashboards", ec.getCommandParams().get("custom_folder"));
     assertNotNull(ec.getHostLevelParams());
     assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_LIST));
     assertEquals("[\"myhdfsuser\"]", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_LIST));
@@ -1330,7 +1332,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServiceComponentMultiple() throws AmbariException, AuthorizationException {
+  public void testCreateServiceComponentMultiple() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     String cluster2 = getUniqueName();
 
@@ -1378,7 +1380,7 @@ public class AmbariManagementControllerTest {
   }
 
   private void createServiceComponentHostSimple(String clusterName, String host1,
-      String host2) throws AmbariException, AuthorizationException {
+      String host2) throws Exception, AuthorizationException {
 
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -1477,7 +1479,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateServiceComponentHostMultiple()
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceName = "HDFS";
@@ -1535,7 +1537,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateServiceComponentHostWithInvalidRequest()
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
     // multiple clusters
     // dup objects
     // existing components
@@ -1662,7 +1664,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createHostComponents(set1);
       fail("Expected failure for invalid service");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // Expected
     }
 
@@ -1681,7 +1683,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createHostComponents(set1);
       fail("Expected failure for invalid host");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // Expected
     }
 
@@ -1708,7 +1710,7 @@ public class AmbariManagementControllerTest {
       set1.add(rInvalid);
       controller.createHostComponents(set1);
       fail("Expected failure for invalid host cluster mapping");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // Expected
     }
 
@@ -1797,7 +1799,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateHostSimple() throws AmbariException, AuthorizationException {
+  public void testCreateHostSimple() throws Exception {
     String cluster1 = getUniqueName();
     String host1 = getUniqueName();
     String host2 = getUniqueName();
@@ -1826,7 +1828,7 @@ public class AmbariManagementControllerTest {
     try {
       HostResourceProviderTest.createHosts(controller, requests);
       fail("Create host should fail for invalid clusters");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // Expected
     }
 
@@ -1850,7 +1852,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateHostMultiple() throws AmbariException, AuthorizationException {
+  public void testCreateHostMultiple() throws Exception {
     String host1 = getUniqueName();
     String host2 = getUniqueName();
     String host3 = getUniqueName();
@@ -1886,7 +1888,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateHostWithInvalidRequests() throws AmbariException {
+  public void testCreateHostWithInvalidRequests() throws Exception {
     // unknown host
     // invalid clusters
     // duplicate host
@@ -2197,7 +2199,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetClusters() throws AmbariException, AuthorizationException {
+  public void testGetClusters() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
 
     clusters.addCluster(cluster1, new StackId("HDP-0.1"));
@@ -2228,7 +2230,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetClustersWithFilters() throws AmbariException, AuthorizationException {
+  public void testGetClustersWithFilters() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     String cluster2 = getUniqueName();
     String cluster3 = getUniqueName();
@@ -2259,7 +2261,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetServices() throws AmbariException {
+  public void testGetServices() throws Exception {
     String cluster1 = getUniqueName();
 
     StackId stackId = new StackId("HDP-0.1");
@@ -2288,7 +2290,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetServicesWithFilters() throws AmbariException {
+  public void testGetServicesWithFilters() throws Exception {
     String cluster1 = getUniqueName();
     String cluster2 = getUniqueName();
 
@@ -2368,7 +2370,7 @@ public class AmbariManagementControllerTest {
 
 
   @Test
-  public void testGetServiceComponents() throws AmbariException {
+  public void testGetServiceComponents() throws Exception {
     String cluster1 = getUniqueName();
 
     StackId stackId = new StackId("HDP-0.2");
@@ -2405,7 +2407,7 @@ public class AmbariManagementControllerTest {
 
 
   @Test
-  public void testGetServiceComponentsWithFilters() throws AmbariException {
+  public void testGetServiceComponentsWithFilters() throws Exception {
     String cluster1 = getUniqueName();
     String cluster2 = getUniqueName();
 
@@ -2526,7 +2528,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetServiceComponentHosts() throws AmbariException, AuthorizationException {
+  public void testGetServiceComponentHosts() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     String host1 = getUniqueName();
 
@@ -2572,7 +2574,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetServiceComponentHostsWithStaleConfigFilter() throws AmbariException, AuthorizationException {
+  public void testGetServiceComponentHostsWithStaleConfigFilter() throws Exception, AuthorizationException {
 
     final String host1 = getUniqueName();
     final String host2 = getUniqueName();
@@ -2760,7 +2762,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testHbaseDecommission() throws AmbariException, AuthorizationException {
+  public void testHbaseDecommission() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("HDP-2.0.7"));
@@ -2902,7 +2904,7 @@ public class AmbariManagementControllerTest {
   }
 
   private Cluster setupClusterWithHosts(String clusterName, String stackId, List<String> hosts,
-                                        String osType) throws AmbariException, AuthorizationException {
+                                        String osType) throws Exception, AuthorizationException {
     ClusterRequest r = new ClusterRequest(null, clusterName, stackId, null);
     controller.createCluster(r);
     Cluster c1 = clusters.getCluster(clusterName);
@@ -2913,7 +2915,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetServiceComponentHostsWithFilters() throws AmbariException, AuthorizationException {
+  public void testGetServiceComponentHostsWithFilters() throws Exception, AuthorizationException {
     final String cluster1 = getUniqueName();
     final String host1 = getUniqueName();
     final String host2 = getUniqueName();
@@ -3062,7 +3064,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetHosts() throws AmbariException, AuthorizationException {
+  public void testGetHosts() throws Exception, AuthorizationException {
     final String cluster1 = getUniqueName();
     final String cluster2 = getUniqueName();
     final String host1 = getUniqueName();
@@ -3136,7 +3138,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testServiceUpdateBasic() throws AmbariException, AuthorizationException {
+  public void testServiceUpdateBasic() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceName = "HDFS";
@@ -3179,7 +3181,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testServiceUpdateInvalidRequest() throws AmbariException, AuthorizationException {
+  public void testServiceUpdateInvalidRequest() throws Exception, AuthorizationException {
     // multiple clusters
     // dup services
     // multiple diff end states
@@ -3261,7 +3263,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Ignore("Something fishy with the stacks here that's causing the RCO to be loaded incorrectly")
-  public void testServiceUpdateRecursive() throws AmbariException, AuthorizationException {
+  public void testServiceUpdateRecursive() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
 
     createCluster(cluster1);
@@ -3516,7 +3518,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testServiceComponentUpdateRecursive() throws AmbariException, AuthorizationException {
+  public void testServiceComponentUpdateRecursive() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
 
     createCluster(cluster1);
@@ -4054,7 +4056,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testComponentCategorySentWithRestart() throws AmbariException, AuthorizationException {
+  public void testComponentCategorySentWithRestart() throws Exception, AuthorizationException {
     final String cluster1 = getUniqueName();
     final String host1 = getUniqueName();
 
@@ -4420,7 +4422,7 @@ public class AmbariManagementControllerTest {
     try {
       RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
       Assert.fail("createAction should fail");
-    } catch (AmbariException ex) {
+    } catch (Exception ex) {
       LOG.info(ex.getMessage());
       if (!ex.getMessage().contains(message)) {
         fail(String.format("Expected '%s' to contain '%s'", ex.getMessage(), message));
@@ -5118,7 +5120,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testReConfigureServiceClient() throws AmbariException, AuthorizationException {
+  public void testReConfigureServiceClient() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
@@ -5400,7 +5402,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testClientServiceSmokeTests() throws AmbariException, AuthorizationException {
+  public void testClientServiceSmokeTests() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceName = "PIG";
@@ -5494,7 +5496,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testSkipTaskOnUnhealthyHosts() throws AmbariException, AuthorizationException {
+  public void testSkipTaskOnUnhealthyHosts() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
@@ -5629,7 +5631,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testServiceCheckWhenHostIsUnhealthy() throws AmbariException, AuthorizationException {
+  public void testServiceCheckWhenHostIsUnhealthy() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("HDP-0.1"));
@@ -5721,13 +5723,13 @@ public class AmbariManagementControllerTest {
     try {
       response = controller.createAction(actionRequest, requestProperties);
       assertTrue("Exception should have been raised.", false);
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       assertTrue(e.getMessage().contains("there were no healthy eligible hosts"));
     }
   }
 
   @Test
-  public void testReInstallForInstallFailedClient() throws AmbariException, AuthorizationException {
+  public void testReInstallForInstallFailedClient() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
@@ -5856,7 +5858,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testReInstallClientComponentFromServiceChange() throws AmbariException, AuthorizationException {
+  public void testReInstallClientComponentFromServiceChange() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1)
@@ -6093,7 +6095,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testResourceFiltersWithCustomActions() throws AmbariException, AuthorizationException {
+  public void testResourceFiltersWithCustomActions() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     final String host1 = getUniqueName();
     final String host2 = getUniqueName();
@@ -6165,7 +6167,7 @@ public class AmbariManagementControllerTest {
     RequestStatusResponse response = null;
     try {
       response = controller.createAction(actionRequest, requestProperties);
-    } catch (AmbariException ae) {
+    } catch (Exception ae) {
       LOG.info("Expected exception.", ae);
       Assert.assertTrue(ae.getMessage().contains("Custom action definition only " +
         "allows one resource filter to be specified"));
@@ -6196,7 +6198,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testResourceFiltersWithCustomCommands() throws AmbariException, AuthorizationException {
+  public void testResourceFiltersWithCustomCommands() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     final String host1 = getUniqueName();
     final String host2 = getUniqueName();
@@ -6350,7 +6352,7 @@ public class AmbariManagementControllerTest {
 
 
   @Test
-  public void testConfigsAttachedToServiceChecks() throws AmbariException, AuthorizationException {
+  public void testConfigsAttachedToServiceChecks() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
@@ -6432,7 +6434,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   @Ignore("Unsuported feature !")
-  public void testConfigsAttachedToServiceNotCluster() throws AmbariException, AuthorizationException {
+  public void testConfigsAttachedToServiceNotCluster() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("HDP-0.1"));
@@ -6512,7 +6514,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testHostLevelParamsSentWithCommands() throws AmbariException, AuthorizationException {
+  public void testHostLevelParamsSentWithCommands() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     String serviceName = "PIG";
@@ -6569,7 +6571,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testConfigGroupOverridesWithHostActions() throws AmbariException, AuthorizationException {
+  public void testConfigGroupOverridesWithHostActions() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
@@ -6726,7 +6728,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testConfigGroupOverridesWithDecommissionDatanode() throws AmbariException, AuthorizationException {
+  public void testConfigGroupOverridesWithDecommissionDatanode() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
@@ -6831,7 +6833,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testConfigGroupOverridesWithServiceCheckActions() throws AmbariException, AuthorizationException {
+  public void testConfigGroupOverridesWithServiceCheckActions() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     createCluster(cluster1);
     Cluster cluster = clusters.getCluster(cluster1);
@@ -7001,11 +7003,11 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetRepositories() throws Exception {
 
-    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null);
+    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null, REPO_NAME);
     Set<RepositoryResponse> responses = controller.getRepositories(Collections.singleton(request));
     Assert.assertEquals(REPOS_CNT, responses.size());
 
-    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, REPO_NAME);
     requestWithParams.setClusterVersionId(525L);
     Set<RepositoryResponse> responsesWithParams = controller.getRepositories(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
@@ -7014,7 +7016,7 @@ public class AmbariManagementControllerTest {
       Assert.assertEquals(525L, responseWithParams.getClusterVersionId().longValue());
     }
 
-    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE);
+    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE, REPO_NAME);
     try {
       controller.getRepositories(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
@@ -7320,7 +7322,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testUpdateClusterUpgradabilityCheck() throws AmbariException, AuthorizationException {
+  public void testUpdateClusterUpgradabilityCheck() throws Exception, AuthorizationException {
     String cluster1 = getUniqueName();
     StackId currentStackId = new StackId("HDP-0.2");
 
@@ -7333,7 +7335,7 @@ public class AmbariManagementControllerTest {
     ClusterRequest r = new ClusterRequest(c.getClusterId(), cluster1, "HDP-0.3", null);
     try {
       controller.updateClusters(Collections.singleton(r), mapRequestProps);
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("Illegal request to upgrade to"));
     }
 
@@ -7344,7 +7346,7 @@ public class AmbariManagementControllerTest {
     r = new ClusterRequest(c.getClusterId(), cluster1, "HDP-0.2", null);
     try {
       controller.updateClusters(Collections.singleton(r), mapRequestProps);
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("Upgrade is not allowed from"));
     }
   }
@@ -7612,7 +7614,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetTasksByRequestId() throws AmbariException {
+  public void testGetTasksByRequestId() throws Exception {
     ActionManager am = injector.getInstance(ActionManager.class);
 
     final long requestId1 = am.getNextRequestId();
@@ -8000,7 +8002,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testDeleteHostComponentWithForce() throws Exception {
+  public void testDeleteHostWithComponent() throws Exception {
     String cluster1 = getUniqueName();
 
     createCluster(cluster1);
@@ -8044,51 +8046,39 @@ public class AmbariManagementControllerTest {
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
 
-    // Case 1: Attempt delete when components still exist
+    // Case 1: Attempt delete when some components are STARTED
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
     requests.add(new HostRequest(host1, cluster1));
-    try {
-      HostResourceProviderTest.deleteHosts(controller, requests, false, false);
-      fail("Expect failure deleting hosts when components exist and have not been deleted.");
-    } catch (Exception e) {
-      LOG.info("Exception is - " + e.getMessage());
-      Assert.assertTrue(e.getMessage().contains("these components must be stopped if running, and then deleted"));
-    }
 
     Service s = cluster.getService(serviceName);
     s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.STARTED);
     try {
-      HostResourceProviderTest.deleteHosts(controller, requests, false, true);
+      HostResourceProviderTest.deleteHosts(controller, requests, false);
       fail("Expect failure deleting hosts when components exist and have not been stopped.");
     } catch (Exception e) {
       LOG.info("Exception is - " + e.getMessage());
-      Assert.assertTrue(e.getMessage().contains("these components must be stopped:"));
+      Assert.assertTrue(e.getMessage().contains("these components are not in the removable state:"));
     }
 
+    // Case 2: Attempt delete dryRun = true
     DeleteStatusMetaData data = null;
-    try {
-      data = HostResourceProviderTest.deleteHosts(controller, requests, true, true);
-      Assert.assertTrue(data.getDeletedKeys().size() == 0);
-    } catch (Exception e) {
-      LOG.info("Exception is - " + e.getMessage());
-      fail("Do not expect failure deleting hosts when components exist and are stopped.");
-    }
 
     LOG.info("Test dry run of delete with all host components");
     s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.INSTALLED);
     try {
-      data = HostResourceProviderTest.deleteHosts(controller, requests, true, true);
+      data = HostResourceProviderTest.deleteHosts(controller, requests, true);
       Assert.assertTrue(data.getDeletedKeys().size() == 1);
     } catch (Exception e) {
       LOG.info("Exception is - " + e.getMessage());
       fail("Do not expect failure deleting hosts when components exist and are stopped.");
     }
 
+    // Case 3: Attempt delete dryRun = false
     LOG.info("Test successful delete with all host components");
     s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.INSTALLED);
     try {
-      data = HostResourceProviderTest.deleteHosts(controller, requests, false, true);
+      data = HostResourceProviderTest.deleteHosts(controller, requests, false);
       Assert.assertNotNull(data);
       Assert.assertTrue(4 == data.getDeletedKeys().size());
       Assert.assertTrue(0 == data.getExceptionForKeys().size());
@@ -8153,17 +8143,11 @@ public class AmbariManagementControllerTest {
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
 
-    // Case 1: Attempt delete when components still exist
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
     requests.add(new HostRequest(host1, cluster1));
-    try {
-      HostResourceProviderTest.deleteHosts(controller, requests);
-      fail("Expect failure deleting hosts when components exist and have not been deleted.");
-    } catch (Exception e) {
-    }
 
-    // Case 2: Delete host that is still part of cluster, but do not specify the cluster_name in the request
+    // Case 1: Delete host that is still part of cluster, but do not specify the cluster_name in the request
     Set<ServiceComponentHostRequest> schRequests = new HashSet<>();
     // Disable HC for non-clients
     schRequests.add(new ServiceComponentHostRequest(cluster1, serviceName, componentName1, host1, "DISABLED"));
@@ -8200,7 +8184,7 @@ public class AmbariManagementControllerTest {
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByHostId(firstHostId);
     assertEquals(0, tasks.size());
 
-    // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
+    // Case 2: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();
     requests.add(new HostRequest(host2, cluster1));
     try {
@@ -8213,7 +8197,7 @@ public class AmbariManagementControllerTest {
     Assert.assertFalse(clusters.getClustersForHost(host2).contains(cluster));
     Assert.assertNull(topologyHostInfoDAO.findByHostname(host2));
 
-    // Case 4: Attempt to delete a host that has already been deleted
+    // Case 3: Attempt to delete a host that has already been deleted
     requests.clear();
     requests.add(new HostRequest(host1, null));
     try {
@@ -8231,7 +8215,7 @@ public class AmbariManagementControllerTest {
       // expected
     }
 
-    // Case 5: Attempt to delete a host that was never added to the cluster
+    // Case 4: Attempt to delete a host that was never added to the cluster
     requests.clear();
     requests.add(new HostRequest(host3, null));
     try {
@@ -8247,13 +8231,13 @@ public class AmbariManagementControllerTest {
 
     RootServiceRequest request = new RootServiceRequest(null);
     Set<RootServiceResponse> responses = controller.getRootServices(Collections.singleton(request));
-    Assert.assertEquals(RootServiceResponseFactory.Services.values().length, responses.size());
+    Assert.assertEquals(RootService.values().length, responses.size());
 
-    RootServiceRequest requestWithParams = new RootServiceRequest(RootServiceResponseFactory.Services.AMBARI.toString());
+    RootServiceRequest requestWithParams = new RootServiceRequest(RootService.AMBARI.toString());
     Set<RootServiceResponse> responsesWithParams = controller.getRootServices(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
     for (RootServiceResponse responseWithParams: responsesWithParams) {
-      Assert.assertEquals(responseWithParams.getServiceName(), RootServiceResponseFactory.Services.AMBARI.toString());
+      Assert.assertEquals(responseWithParams.getServiceName(), RootService.AMBARI.toString());
     }
 
     RootServiceRequest invalidRequest = new RootServiceRequest(NON_EXT_VALUE);
@@ -8267,18 +8251,18 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetRootServiceComponents() throws Exception {
 
-    RootServiceComponentRequest request = new RootServiceComponentRequest(RootServiceResponseFactory.Services.AMBARI.toString(), null);
+    RootServiceComponentRequest request = new RootServiceComponentRequest(RootService.AMBARI.toString(), null);
     Set<RootServiceComponentResponse> responses = controller.getRootServiceComponents(Collections.singleton(request));
-    Assert.assertEquals(RootServiceResponseFactory.Services.AMBARI.getComponents().length, responses.size());
+    Assert.assertEquals(RootService.AMBARI.getComponents().length, responses.size());
 
     RootServiceComponentRequest requestWithParams = new RootServiceComponentRequest(
-        RootServiceResponseFactory.Services.AMBARI.toString(),
-        RootServiceResponseFactory.Services.AMBARI.getComponents()[0].toString());
+        RootService.AMBARI.toString(),
+        RootService.AMBARI.getComponents()[0].toString());
 
     Set<RootServiceComponentResponse> responsesWithParams = controller.getRootServiceComponents(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
     for (RootServiceComponentResponse responseWithParams: responsesWithParams) {
-      Assert.assertEquals(responseWithParams.getComponentName(), RootServiceResponseFactory.Services.AMBARI.getComponents()[0].toString());
+      Assert.assertEquals(responseWithParams.getComponentName(), RootService.AMBARI.getComponents()[0].toString());
     }
 
     RootServiceComponentRequest invalidRequest = new RootServiceComponentRequest(NON_EXT_VALUE, NON_EXT_VALUE);
@@ -8356,7 +8340,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testExecutionCommandConfiguration() throws AmbariException {
+  public void testExecutionCommandConfiguration() throws Exception {
     Map<String, Map<String, String>> config = new HashMap<>();
     config.put("type1", new HashMap<>());
     config.put("type3", new HashMap<>());
@@ -8399,7 +8383,7 @@ public class AmbariManagementControllerTest {
 
     String tag = "version1";
     String type = "core-site";
-    AmbariException exception = null;
+    Exception exception = null;
     try {
       AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
       Clusters clusters = injector.getInstance(Clusters.class);
@@ -8431,7 +8415,7 @@ public class AmbariManagementControllerTest {
       amc.createConfiguration(configurationRequest);
 
       amc.createConfiguration(configurationRequest);
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       exception = e;
     }
 
@@ -9089,7 +9073,7 @@ public class AmbariManagementControllerTest {
   private void testRunSmokeTestFlag(Map<String, String> mapRequestProps,
                                     AmbariManagementController amc,
                                     Set<ServiceRequest> serviceRequests)
-      throws AmbariException, AuthorizationException {
+      throws Exception, AuthorizationException {
     RequestStatusResponse response;//Starting HDFS service. No run_smoke_test flag is set, smoke
 
     String cluster1 = getUniqueName();
@@ -9913,7 +9897,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.updateClusters(Collections.singleton(cr), new HashMap<>());
       Assert.fail("Expect failure when creating a config that exists");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       // expected
     }
   }
@@ -10017,7 +10001,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testConfigAttributesStaleConfigFilter() throws AmbariException, AuthorizationException {
+  public void testConfigAttributesStaleConfigFilter() throws Exception, AuthorizationException {
 
     final String host1 = getUniqueName();
     final String host2 = getUniqueName();
@@ -10118,7 +10102,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testSecretReferences() throws AmbariException, AuthorizationException {
+  public void testSecretReferences() throws Exception, AuthorizationException {
 
     final String host1 = getUniqueName();
     final String host2 = getUniqueName();
@@ -10207,7 +10191,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.updateClusters(Collections.singleton(crReq), null);
       fail("Request need to be failed with wrong secret reference");
-    } catch (AmbariException e){
+    } catch (Exception e){
 
     }
     // reference to config which does not contain requested property
@@ -10236,7 +10220,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.updateClusters(Collections.singleton(crReq), null);
       fail("Request need to be failed with wrong secret reference");
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       assertEquals("Error when parsing secret reference. Cluster: " + cluster1 + " ConfigType: hdfs-site ConfigVersion: 4 does not contain property 'test.password'",
           e.getMessage());
     }
@@ -10423,6 +10407,11 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("FILES_LOCAL", layoutUserWidgetEntities.get(2).getWidget().getWidgetName());
     Assert.assertEquals("UPDATED_BLOCKED_TIME", layoutUserWidgetEntities.get(3).getWidget().getWidgetName());
     Assert.assertEquals("HBASE_SUMMARY", layoutUserWidgetEntities.get(0).getWidget().getDefaultSectionName());
+
+    File widgetsFile  = ambariMetaInfo.getCommonWidgetsDescriptorFile();
+    assertNotNull(widgetsFile);
+    assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
+    assertTrue(widgetsFile.exists());
 
     candidateLayoutEntity = null;
     for (WidgetLayoutEntity entity : layoutEntities) {

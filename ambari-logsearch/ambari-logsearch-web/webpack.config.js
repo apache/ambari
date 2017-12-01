@@ -75,22 +75,23 @@ const postcssPlugins = function () {
         ].concat(minimizeCss ? [cssnano(minimizeOptions)] : []);
     };
 
+const resourcesDirName = 'resources';
+
 module.exports = {
   "resolve": {
     "extensions": [
       ".ts",
-      ".js"
+      ".js",
+      ".less"
     ],
     "modules": [
-      "./node_modules",
-      "./node_modules"
+      "node_modules"
     ],
     "symlinks": true
   },
   "resolveLoader": {
     "modules": [
-      "./node_modules",
-      "./node_modules"
+      "node_modules"
     ]
   },
   "entry": {
@@ -101,17 +102,17 @@ module.exports = {
       "./src/polyfills.ts"
     ],
     "styles": [
-      "./src/styles.less",
       "./node_modules/bootstrap/dist/css/bootstrap.min.css",
       "./node_modules/font-awesome/css/font-awesome.min.css",
       "./src/vendor/css/bootstrap-logsearch.min.css",
-      "./src/vendor/css/bootstrap-datetimepicker.min.css"
+      "./src/vendor/css/bootstrap-datetimepicker.min.css",
+      "./src/styles.less"
     ]
   },
   "output": {
-    "path": path.join(process.cwd(), "dist/resources"),
-    "publicPath": "resources/",
-    "filename": "[name].bundle.js",
+    "path": path.join(process.cwd(), "dist"),
+    "publicPath": "",
+    "filename": `${resourcesDirName}/[name].bundle.js`,
     "chunkFilename": "[id].chunk.js"
   },
   "module": {
@@ -130,11 +131,11 @@ module.exports = {
       },
       {
         "test": /\.(eot|svg|cur)$/,
-        "loader": "file-loader?name=[name].[ext]"
+        "loader": `file-loader?name=${resourcesDirName}/[name].[ext]`
       },
       {
         "test": /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
-        "loader": "url-loader?name=[name].[ext]&limit=10000"
+        "loader": `url-loader?name=${resourcesDirName}/[name].[ext]&limit=10000`
       },
       {
         "exclude": [
@@ -227,7 +228,9 @@ module.exports = {
             "loader": "less-loader",
             "options": {
               "sourceMap": false,
-              "paths": []
+              "paths": [
+                "./node_modules"
+              ]
             }
           }
         ]
@@ -268,11 +271,11 @@ module.exports = {
       },
       {
         "include": [
-          path.join(process.cwd(), "src/styles.less"),
           path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
           path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
           path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
+          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
+          path.join(process.cwd(), "src/styles.less")
         ],
         "test": /\.css$/,
         "use": [
@@ -295,11 +298,11 @@ module.exports = {
       },
       {
         "include": [
-          path.join(process.cwd(), "src/styles.less"),
           path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
           path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
           path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
+          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
+          path.join(process.cwd(), "src/styles.less")
         ],
         "test": /\.scss$|\.sass$/,
         "use": [
@@ -330,11 +333,11 @@ module.exports = {
       },
       {
         "include": [
-          path.join(process.cwd(), "src/styles.less"),
           path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
           path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
           path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
+          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
+          path.join(process.cwd(), "src/styles.less")
         ],
         "test": /\.less$/,
         "use": [
@@ -357,18 +360,18 @@ module.exports = {
             "loader": "less-loader",
             "options": {
               "sourceMap": false,
-              "paths": []
+              "paths": ["./node_modules"]
             }
           }
         ]
       },
       {
         "include": [
-          path.join(process.cwd(), "src/styles.less"),
           path.join(process.cwd(), "node_modules/bootstrap/dist/css/bootstrap.min.css"),
           path.join(process.cwd(), "node_modules/font-awesome/css/font-awesome.min.css"),
           path.join(process.cwd(), "src/vendor/css/bootstrap-logsearch.min.css"),
-          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css")
+          path.join(process.cwd(), "src/vendor/css/bootstrap-datetimepicker.min.css"),
+          path.join(process.cwd(), "src/styles.less")
         ],
         "test": /\.styl$/,
         "use": [
@@ -408,7 +411,7 @@ module.exports = {
       "uglify": false,
       "sourceMap": true,
       "name": "scripts",
-      "fileName": "../resources/[name].bundle.js",
+      "fileName": `${resourcesDirName}/[name].bundle.js`,
       "filesToConcat": [
         "node_modules/jquery/dist/jquery.min.js",
         "node_modules/bootstrap/dist/js/bootstrap.min.js",
@@ -421,7 +424,7 @@ module.exports = {
     new CopyWebpackPlugin([
       {
         "context": "src/",
-        "to": "",
+        "to": resourcesDirName,
         "from": {
           "glob": "assets/**/*",
           "dot": true
@@ -429,7 +432,7 @@ module.exports = {
       },
       {
         "context": "src/",
-        "to": "../favicon.ico",
+        "to": "favicon.ico",
         "from": {
           "glob": "favicon.ico",
           "dot": true
@@ -449,7 +452,7 @@ module.exports = {
     new NamedLazyChunksWebpackPlugin(),
     new HtmlWebpackPlugin({
       "template": "./src/index.html",
-      "filename": "../index.html",
+      "filename": "index.html",
       "hash": false,
       "inject": true,
       "compile": true,
@@ -533,7 +536,6 @@ module.exports = {
     "setImmediate": false
   },
   "devServer": {
-    "contentBase": path.join(process.cwd(), "dist"),
     "historyApiFallback": true
   }
 };

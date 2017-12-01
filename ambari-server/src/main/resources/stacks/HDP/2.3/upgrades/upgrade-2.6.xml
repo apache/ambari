@@ -36,6 +36,7 @@
     <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
+    <check>org.apache.ambari.server.checks.LZOCheck</check>
 
     <!-- Specific to HDP 2.5, Storm is not rolling -->
     <check>org.apache.ambari.server.checks.StormShutdownWarning</check>
@@ -1130,6 +1131,7 @@
           <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
           <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
           <task xsi:type="configure" id="storm_worker_log4j_directory" />
+          <task xsi:type="configure" id="storm_remove_jmxetric"/>
         </pre-upgrade>
 
         <pre-downgrade>

@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -147,6 +148,7 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
         TARGET_STACK.getStackVersion(), "ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(
             m_zookeeperServerInfo).anyTimes();
 
+    expect(m_repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(m_repositoryVersion.getStackId()).andReturn(TARGET_STACK).anyTimes();
     expect(m_repositoryVersion.getVersion()).andReturn("2.2.0").anyTimes();
 

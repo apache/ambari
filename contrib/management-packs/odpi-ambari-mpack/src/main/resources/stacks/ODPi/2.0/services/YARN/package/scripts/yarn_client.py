@@ -59,7 +59,6 @@ class YarnClientDefault(YarnClient):
     env.set_params(params)
 
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-client", params.version)
 
 

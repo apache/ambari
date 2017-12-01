@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.query.QueryImpl;
+import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
 import org.apache.ambari.server.controller.internal.ClusterKerberosDescriptorResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
@@ -235,6 +236,12 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case RootServiceComponent:
         resourceDefinition = new RootServiceComponentResourceDefinition();
+        break;
+
+      case RootServiceComponentConfiguration:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.RootServiceComponentConfiguration,
+            "configuration", "configurations",
+            null, RootServiceComponentConfigurationService.DIRECTIVES_MAP);
         break;
 
       case RootServiceHostComponent:

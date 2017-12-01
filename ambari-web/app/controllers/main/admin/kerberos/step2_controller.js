@@ -46,7 +46,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
       type: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc')
     },
     'ipa': {
-      configNames: ['group', 'set_password_expiry', 'password_chat_timeout'],
+      configNames: ['ipa_user_group'],
       type: Em.I18n.t('admin.kerberos.wizard.step1.option.ipa')
     }
   },
@@ -199,13 +199,12 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
   createConfigurations: function () {
     var service = App.StackService.find().findProperty('serviceName', 'KERBEROS'),
         serviceConfigTags = [],
-        tag = 'version' + (new Date).getTime(),
         allConfigData = [],
         serviceConfigData = [];
 
     Object.keys(service.get('configTypes')).forEach(function (type) {
       if (!serviceConfigTags.someProperty('type', type)) {
-        var obj = this.createKerberosSiteObj(type, tag);
+        var obj = this.createKerberosSiteObj(type);
         obj.service_config_version_note = Em.I18n.t('admin.kerberos.wizard.configuration.note');
         serviceConfigTags.pushObject(obj);
       }
@@ -233,7 +232,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     });
   },
 
-  createKerberosSiteObj: function (site, tag) {
+  createKerberosSiteObj: function (site) {
     var properties = {};
     var content = this.get('stepConfigs')[0].get('configs');
     var configs = content.filterProperty('filename', site + '.xml');
@@ -253,7 +252,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     this.tweakKdcTypeValue(properties);
     this.tweakManualKdcProperties(properties);
     this.tweakIpaKdcProperties(properties);
-    return {"type": site, "tag": tag, "properties": properties};
+    return {"type": site, "properties": properties};
   },
 
   tweakKdcTypeValue: function (properties) {

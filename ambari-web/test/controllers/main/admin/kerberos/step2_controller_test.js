@@ -451,7 +451,7 @@ describe('App.KerberosWizardStep2Controller', function() {
     });
 
     it("ipa type configs", function() {
-      var configs = [{name: 'group'}];
+      var configs = [{name: 'ipa_user_group'}];
       controller.setConfigVisibility('ipa', configs, Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'));
       expect(configs[0].isVisible).to.be.true;
     });
@@ -632,9 +632,8 @@ describe('App.KerberosWizardStep2Controller', function() {
           filename: 'site.xml'
         }]
       })]);
-      expect(controller.createKerberosSiteObj('site', 'tag')).to.be.eql({
+      expect(controller.createKerberosSiteObj('site')).to.be.eql({
         "type": 'site',
-        "tag": 'tag',
         "properties": {}
       });
     });
@@ -647,9 +646,8 @@ describe('App.KerberosWizardStep2Controller', function() {
           filename: 'site.xml'
         }]
       })]);
-      expect(controller.createKerberosSiteObj('site', 'tag')).to.be.eql({
+      expect(controller.createKerberosSiteObj('site')).to.be.eql({
         "type": 'site',
-        "tag": 'tag',
         "properties": {
           'kdc_hosts': {
             displayType: 'host',
@@ -667,9 +665,8 @@ describe('App.KerberosWizardStep2Controller', function() {
           filename: 'site.xml'
         }]
       })]);
-      expect(controller.createKerberosSiteObj('site', 'tag')).to.be.eql({
+      expect(controller.createKerberosSiteObj('site')).to.be.eql({
         "type": 'site',
-        "tag": 'tag',
         "properties": {
           'n1': {
             name: 'n1',

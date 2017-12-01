@@ -68,8 +68,7 @@ public class KerberosIdentityDataFileWriter extends AbstractKerberosDataFileWrit
                           String principal, String principalType,
                           String keytabFilePath, String keytabFileOwnerName,
                           String keytabFileOwnerAccess, String keytabFileGroupName,
-                          String keytabFileGroupAccess, String keytabFileCanCache,
-                          String onlyKeytabWrite)
+                          String keytabFileGroupAccess, String keytabFileCanCache)
       throws IOException {
     super.appendRecord(hostName,
         serviceName,
@@ -81,8 +80,7 @@ public class KerberosIdentityDataFileWriter extends AbstractKerberosDataFileWrit
         keytabFileOwnerAccess,
         keytabFileGroupName,
         keytabFileGroupAccess,
-        keytabFileCanCache,
-        onlyKeytabWrite);
+        keytabFileCanCache);
   }
 
   @Override
@@ -97,7 +95,6 @@ public class KerberosIdentityDataFileWriter extends AbstractKerberosDataFileWrit
         KEYTAB_FILE_OWNER_ACCESS,
         KEYTAB_FILE_GROUP_NAME,
         KEYTAB_FILE_GROUP_ACCESS,
-        KEYTAB_FILE_IS_CACHABLE,
-        ONLY_KEYTAB_WRITE);
+        KEYTAB_FILE_IS_CACHABLE);
   }
 }

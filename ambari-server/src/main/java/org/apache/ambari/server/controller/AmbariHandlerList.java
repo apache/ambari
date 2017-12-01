@@ -111,10 +111,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    */
   private final Collection<Handler> nonViewHandlers = new HashSet<>();
 
-  /**
-   * The logger.
-   */
-  protected final static Logger LOG = LoggerFactory.getLogger(AmbariHandlerList.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariHandlerList.class);
 
 
   // ----- Constructors ------------------------------------------------------

@@ -24,6 +24,7 @@ App.ClientComponent = DS.Model.extend({
   componentName: DS.attr('string'),
   displayName: DS.attr('string'),
   installedCount: DS.attr('number'),
+  installedAndMaintenanceOffCount: DS.attr('number'),
   installFailedCount: DS.attr('number'),
   initCount: DS.attr('number'),
   unknownCount: DS.attr('number'),

@@ -21,13 +21,10 @@ var misc = require('utils/misc');
 require('views/main/service/service');
 require('data/service_graph_config');
 
-App.MainServiceInfoSummaryView = Em.View.extend(App.Persist, App.TimeRangeMixin, {
+App.MainServiceInfoSummaryView = Em.View.extend({
   templateName: require('templates/main/service/info/summary'),
-  /**
-   * @property {Number} chunkSize - number of columns in Metrics section
-   */
-  chunkSize: 5,
-  attributes:null,
+
+  attributes: null,
 
   /**
    * Contain array with list of master components from <code>App.Service.hostComponets</code> which are
@@ -61,6 +58,14 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.Persist, App.TimeRangeMixin,
    *  <code>loadServiceSummary()</code>
    */
   serviceSummaryView: null,
+
+  /**
+   * @type {App.ViewInstance}
+   */
+  views: function () {
+    return App.router.get('loggedIn') ? App.router.get('mainViewsController.visibleAmbariViews') : [];
+  }.property('App.router.mainViewsController.visibleAmbariViews.[]', 'App.router.loggedIn'),
+
   /**
    * @property {Object} serviceCustomViewsMap - custom views to embed
    *
@@ -156,6 +161,47 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.Persist, App.TimeRangeMixin,
     if (!this.get('service') || this.get('service.deleteInProgress')) return;
     Em.run.once(self, 'setComponentsContent');
   }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount'),
+
+  loadServiceSummary: function () {
+    var serviceName = this.get('serviceName');
+    var serviceSummaryView = null;
+
+    if (!serviceName) {
+      return;
+    }
+
+    if (this.get('oldServiceName')) {
+      // do not delete it!
+      return;
+    }
+
+    var customServiceView = this.get('serviceCustomViewsMap')[serviceName];
+    if (customServiceView) {
+      serviceSummaryView = customServiceView.extend({
+        service: this.get('service')
+      });
+    } else {
+      serviceSummaryView = Em.View.extend(App.MainDashboardServiceViewWrapper, {
+        templateName: this.get('templatePathPrefix') + 'base'
+      });
+    }
+    this.set('serviceSummaryView', serviceSummaryView);
+    this.set('oldServiceName', serviceName);
+  }.observes('serviceName'),
+
+  didInsertElement: function () {
+    this._super();
+    var svcName = this.get('controller.content.serviceName');
+    this.set('service', this.getServiceModel(svcName));
+    App.loadTimer.finish('Service Summary Page');
+  },
+
+  willDestroyElement: function() {
+    this.set('service', null);
+    this.get('mastersObj').clear();
+    this.get('slavesObj').clear();
+    this.get('clientObj').clear();
+  },
 
   setComponentsContent: function() {
     Em.run.next(function() {
@@ -364,270 +410,5 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.Persist, App.TimeRangeMixin,
 
   rollingRestartStaleConfigSlaveComponents: function (componentName) {
     batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('service.displayName'), this.get('service.passiveState') === "ON", true);
-  },
-
-   /*
-   * Find the graph class associated with the graph name, and split
-   * the array into sections of 5 for displaying on the page
-   * (will only display rows with 5 items)
-   */
-  constructGraphObjects: function (graphNames) {
-    var self = this,
-        stackService = App.StackService.find(this.get('controller.content.serviceName'));
-
-    if (!graphNames && !stackService.get('isServiceWithWidgets')) {
-      this.get('serviceMetricGraphs').clear();
-      this.set('isServiceMetricLoaded', false);
-      return;
-    }
-
-    // load time range(currentTimeRangeIndex) for current service from server
-    this.getUserPref(self.get('persistKey')).complete(function () {
-      var result = [], graphObjects = [], chunkSize = self.get('chunkSize');
-      if (graphNames) {
-        graphNames.forEach(function (graphName) {
-          graphObjects.push(App["ChartServiceMetrics" + graphName].extend());
-        });
-      }
-      while (graphObjects.length) {
-        result.push(graphObjects.splice(0, chunkSize));
-      }
-      self.set('serviceMetricGraphs', result);
-      self.set('isServiceMetricLoaded', true);
-    });
-  },
-
-  /**
-   * Contains graphs for this particular service
-   */
-  serviceMetricGraphs: [],
-
-  /**
-   * @type {boolean}
-   * @default false
-   */
-  isServiceMetricLoaded: false,
-
-  /**
-   * Key-name to store time range in Persist
-   * @type {string}
-   */
-  persistKey: Em.computed.format('time-range-service-{0}', 'service.serviceName'),
-
-  getUserPrefSuccessCallback: function (response, request) {
-    if (response) {
-      this.set('currentTimeRangeIndex', response);
-    }
-  },
-
-  getUserPrefErrorCallback: function (request) {
-    if (request.status === 404) {
-      this.postUserPref(this.get('persistKey'), 0);
-      this.set('currentTimeRangeIndex', 0);
-    }
-  },
-
-  /**
-   * list of static actions of widget
-   * @type {Array}
-   */
-  staticGeneralWidgetActions: [
-    Em.Object.create({
-      label: Em.I18n.t('dashboard.widgets.actions.browse'),
-      class: 'glyphicon glyphicon-th',
-      action: 'goToWidgetsBrowser',
-      isAction: true
-    })
-  ],
-
-  /**
-   *list of static actions of widget accessible to Admin/Operator privelege
-   * @type {Array}
-   */
-
-  staticAdminPrivelegeWidgetActions: [
-    Em.Object.create({
-      label: Em.I18n.t('dashboard.widgets.create'),
-      class: 'glyphicon glyphicon-plus',
-      action: 'createWidget',
-      isAction: true
-    })
-  ],
-
-  /**
-   * List of static actions related to widget layout
-   */
-  staticWidgetLayoutActions: [
-    Em.Object.create({
-      label: Em.I18n.t('dashboard.widgets.layout.save'),
-      class: 'glyphicon glyphicon-download-alt',
-      action: 'saveLayout',
-      isAction: true
-    }),
-    Em.Object.create({
-      label: Em.I18n.t('dashboard.widgets.layout.import'),
-      class: 'glyphicon glyphicon-file',
-      isAction: true,
-      layouts: App.WidgetLayout.find()
-    })
-  ],
-
-  /**
-   * @type {Array}
-   */
-  widgetActions: function() {
-    var options = [];
-    if (App.isAuthorized('SERVICE.MODIFY_CONFIGS')) {
-      if (App.supports.customizedWidgetLayout) {
-        options.pushObjects(this.get('staticWidgetLayoutActions'));
-      }
-      options.pushObjects(this.get('staticAdminPrivelegeWidgetActions'));
-    }
-    options.pushObjects(this.get('staticGeneralWidgetActions'));
-    return options;
-  }.property(''),
-
-  /**
-   * call action function defined in controller
-   * @param event
-   */
-  doWidgetAction: function(event) {
-    if($.isFunction(this.get('controller')[event.context])) {
-      this.get('controller')[event.context].apply(this.get('controller'));
-    }
-  },
-
-  /**
-   * onclick handler for a time range option
-   * @param {object} event
-   */
-  setTimeRange: function (event) {
-    var graphs = this.get('controller.widgets').filterProperty('widgetType', 'GRAPH'),
-      callback = function () {
-        graphs.forEach(function (widget) {
-          widget.set('properties.time_range', event.context.value);
-        });
-      };
-    this._super(event, callback);
-
-    // Preset time range is specified by user
-    if (event.context.value !== '0') {
-      callback();
-    }
-  },
-
-  loadServiceSummary: function () {
-    var serviceName = this.get('serviceName');
-    var serviceSummaryView = null;
-
-    if (!serviceName) {
-      return;
-    }
-
-    if (this.get('oldServiceName')) {
-      // do not delete it!
-      return;
-    }
-
-    var customServiceView = this.get('serviceCustomViewsMap')[serviceName];
-    if (customServiceView) {
-      serviceSummaryView = customServiceView.extend({
-        service: this.get('service')
-      });
-    } else {
-      serviceSummaryView = Em.View.extend(App.MainDashboardServiceViewWrapper, {
-        templateName: this.get('templatePathPrefix') + 'base'
-      });
-    }
-    this.set('serviceSummaryView', serviceSummaryView);
-    this.set('oldServiceName', serviceName);
-  }.observes('serviceName'),
-
-
-  /**
-   * Service metrics panel not displayed when metrics service (ex:Ganglia) is not in stack definition.
-   *
-   * @type {boolean}
-   */
-  isNoServiceMetricsService: Em.computed.equal('App.services.serviceMetrics.length', 0),
-
-  didInsertElement: function () {
-    this._super();
-    var svcName = this.get('controller.content.serviceName');
-    this.set('service', this.getServiceModel(svcName));
-    var isMetricsSupported = svcName !== 'STORM' || App.get('isStormMetricsSupported');
-
-    this.get('controller').getActiveWidgetLayout();
-    if (App.get('supports.customizedWidgetLayout')) {
-      this.get('controller').loadWidgetLayouts();
-    }
-
-    if (svcName && isMetricsSupported) {
-      var allServices = require('data/service_graph_config');
-      this.constructGraphObjects(allServices[svcName.toLowerCase()]);
-    }
-    this.makeSortable();
-    this.addWidgetTooltip();
-    App.loadTimer.finish('Service Summary Page');
-  },
-
-  addWidgetTooltip: function() {
-    Em.run.later(this, function () {
-      App.tooltip($("[rel='add-widget-tooltip']"));
-      // enable description show up on hover
-      $('.img-thumbnail').hoverIntent(function() {
-        if ($(this).is('hover')) {
-          $(this).find('.hidden-description').delay(1000).fadeIn(200).end();
-        }
-      }, function() {
-        $(this).find('.hidden-description').stop().hide().end();
-      });
-    }, 1000);
-  },
-
-  willDestroyElement: function() {
-    $("[rel='add-widget-tooltip']").tooltip('destroy');
-    $('.img-thumbnail').off();
-    $('#widget_layout').sortable('destroy');
-    $('.widget.span2p4').detach().remove();
-    this.get('serviceMetricGraphs').clear();
-    this.set('service', null);
-    this.get('mastersObj').clear();
-    this.get('slavesObj').clear();
-    this.get('clientObj').clear();
-  },
-
-  /**
-   * Define if some widget is currently moving
-   * @type {boolean}
-   */
-  isMoving: false,
-
-  /**
-   * Make widgets' list sortable on New Dashboard style
-   */
-  makeSortable: function () {
-    var self = this;
-    $('html').on('DOMNodeInserted', '#widget_layout', function () {
-      $(this).sortable({
-        items: "> div",
-        cursor: "move",
-        tolerance: "pointer",
-        scroll: false,
-        update: function () {
-          var widgets = misc.sortByOrder($("#widget_layout .widget").map(function () {
-            return this.id;
-          }), self.get('controller.widgets'));
-          self.get('controller').saveWidgetLayout(widgets);
-        },
-        activate: function () {
-          self.set('isMoving', true);
-        },
-        deactivate: function () {
-          self.set('isMoving', false);
-        }
-      }).disableSelection();
-      $('html').off('DOMNodeInserted', '#widget_layout');
-    });
   }
 });

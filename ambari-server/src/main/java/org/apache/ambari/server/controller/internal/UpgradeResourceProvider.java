@@ -92,6 +92,7 @@ import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
@@ -197,7 +198,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String REQUEST_END_TIME_ID = "Upgrade/end_time";
   private static final String REQUEST_EXCLUSIVE_ID = "Upgrade/exclusive";
 
-  private static final String REQUEST_PROGRESS_PERCENT_ID = "Upgrade/progress_percent";
+  protected static final String REQUEST_PROGRESS_PERCENT_ID = "Upgrade/progress_percent";
   private static final String REQUEST_STATUS_PROPERTY_ID = "Upgrade/request_status";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
@@ -415,12 +416,80 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
 
+        if (calc.getStatus() == HostRoleStatus.ABORTED && entity.isSuspended()) {
+          double percent = calculateAbortedProgress(summary);
+          setResourceProperty(r, REQUEST_PROGRESS_PERCENT_ID, percent*100, requestPropertyIds);
+        } else {
+          setResourceProperty(r, REQUEST_PROGRESS_PERCENT_ID, calc.getPercent(), requestPropertyIds);
+        }
+
         setResourceProperty(r, REQUEST_STATUS_PROPERTY_ID, calc.getStatus(), requestPropertyIds);
-        setResourceProperty(r, REQUEST_PROGRESS_PERCENT_ID, calc.getPercent(), requestPropertyIds);
       }
     }
 
     return results;
+  }
+
+  /**
+   * Unlike in CalculatedStatus, we can't use ABORTED here as a COMPLETED state.
+   * Therefore, the values will be slightly off since in CalulatedStatus, ABORTED
+   * contributes all of its progress to the overall progress, but here it
+   * contributes none of it.
+   *
+   * Since this is specifically for ABORTED upgrades that are
+   * also suspended, the percentages should come out pretty close after ABORTED move back
+   * to PENDING.
+   *
+   * @return the percent complete, counting ABORTED as zero percent.
+   */
+  private double calculateAbortedProgress(Map<Long, HostRoleCommandStatusSummaryDTO> summary) {
+    // !!! use the raw states to determine percent completes
+    Map<HostRoleStatus, Integer> countTotals = new HashMap<>();
+    int totalTasks = 0;
+
+
+    for (HostRoleCommandStatusSummaryDTO statusSummary : summary.values()) {
+      totalTasks += statusSummary.getTaskTotal();
+      for (Map.Entry<HostRoleStatus, Integer> entry : statusSummary.getCounts().entrySet()) {
+        if (!countTotals.containsKey(entry.getKey())) {
+          countTotals.put(entry.getKey(), Integer.valueOf(0));
+        }
+        countTotals.put(entry.getKey(), countTotals.get(entry.getKey()) + entry.getValue());
+      }
+    }
+
+    double percent = 0d;
+
+    for (HostRoleStatus status : HostRoleStatus.values()) {
+      if (!countTotals.containsKey(status)) {
+        countTotals.put(status, Integer.valueOf(0));
+      }
+      double countValue = (double) countTotals.get(status);
+
+      // !!! calculation lifted from CalculatedStatus
+      switch (status) {
+        case ABORTED:
+          // !!! see javadoc
+          break;
+        case HOLDING:
+        case HOLDING_FAILED:
+        case HOLDING_TIMEDOUT:
+        case IN_PROGRESS:
+        case PENDING:  // shouldn't be any, we're supposed to be ABORTED
+          percent += countValue * 0.35d;
+          break;
+        case QUEUED:
+          percent += countValue * 0.09d;
+          break;
+        default:
+          if (status.isCompletedState()) {
+            percent += countValue / (double) totalTasks;
+          }
+          break;
+      }
+    }
+
+    return percent;
   }
 
   @Override
@@ -693,11 +762,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredRepositoryAction}
     at the appropriate moment during the orchestration.
     */
-    if (pack.getType() == UpgradeType.ROLLING) {
+    if (pack.getType() == UpgradeType.ROLLING || pack.getType() == UpgradeType.HOST_ORDERED) {
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
     }
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is wrong")
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is SO VERY wrong")
     StackId configurationPackSourceStackId = upgradeContext.getSourceVersions().values().iterator().next().getStackId();
 
     // resolve or build a proper config upgrade pack - always start out with the config pack
@@ -907,7 +976,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           effectiveStackId.getStackVersion(), serviceName);
 
       commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+      commandParams.put(HOOKS_FOLDER, s_configuration.getProperty(Configuration.HOOKS_FOLDER));
     }
   }
 
@@ -984,10 +1053,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, params);
 
-    // the ru_execute_tasks invokes scripts - it needs information about where
-    // the scripts live and for that it should always use the target repository
-    // stack
-    applyRepositoryAssociatedParameters(wrapper, effectiveRepositoryVersion.getStackId(), params);
 
     // add each host to this stage
     RequestResourceFilter filter = new RequestResourceFilter(serviceName, componentName,
@@ -1004,7 +1069,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion, null);
+        cluster, effectiveRepositoryVersion.getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1086,7 +1151,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion, null);
+        cluster, effectiveRepositoryVersion.getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1135,10 +1200,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
 
-    // add things like hooks and service folders based on effective repo
-    applyRepositoryAssociatedParameters(wrapper, effectiveRepositoryVersion.getStackId(),
-        commandParams);
-
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
 
@@ -1151,7 +1212,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, effectiveRepositoryVersion, null);
+        cluster, effectiveRepositoryVersion.getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
@@ -1272,6 +1333,41 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         break;
       }
+      case CREATE_AND_CONFIGURE: {
+        CreateAndConfigureTask ct = (CreateAndConfigureTask) task;
+
+        // !!! would prefer to do this in the sequence generator, but there's too many
+        // places to miss
+        if (context.getOrchestrationType().isRevertable() && !ct.supportsPatch) {
+          process = false;
+        }
+
+        Map<String, String> configurationChanges =
+                ct.getConfigurationChanges(cluster, configUpgradePack);
+
+        // add all configuration changes to the command params
+        commandParams.putAll(configurationChanges);
+
+        // extract the config type to build the summary
+        String configType = configurationChanges.get(CreateAndConfigureTask.PARAMETER_CONFIG_TYPE);
+        if (null != configType) {
+          itemDetail = String.format("Updating configuration %s", configType);
+        } else {
+          itemDetail = "Skipping Configuration Task "
+              + StringUtils.defaultString(ct.id, "(missing id)");
+        }
+
+        entity.setText(itemDetail);
+
+        String configureTaskSummary = ct.getSummary(configUpgradePack);
+        if (null != configureTaskSummary) {
+          stageText = configureTaskSummary;
+        } else {
+          stageText = itemDetail;
+        }
+
+        break;
+      }
       default:
         break;
     }
@@ -1292,7 +1388,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getRepositoryVersion(), null);
+        cluster, context.getRepositoryVersion().getStackId(), null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getCommandParamsForStage(),
@@ -1309,6 +1405,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stage.setStageId(stageId);
     entity.setStageId(Long.valueOf(stageId));
 
+    Map<String, String> taskParameters = task.getParameters();
+    commandParams.putAll(taskParameters);
     stage.addServerActionCommand(task.getImplementationClass(),
         getManagementController().getAuthName(), Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE,
         cluster.getClusterName(),

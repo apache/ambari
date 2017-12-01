@@ -37,11 +37,14 @@ import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.CreateAndConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,6 +151,9 @@ public class UpgradePack {
    * @return the preCheck name, e.g. "CheckDescription"
    */
   public List<String> getPrerequisiteChecks() {
+    if (prerequisiteChecks == null) {
+      return new ArrayList<String>();
+    }    
     return new ArrayList<>(prerequisiteChecks.checks);
   }
 
@@ -156,6 +162,9 @@ public class UpgradePack {
    * @return the prerequisite check configuration
    */
   public PrerequisiteCheckConfig getPrerequisiteCheckConfig() {
+    if (prerequisiteChecks == null) {
+      return new PrerequisiteCheckConfig();
+    }    
     return prerequisiteChecks.configuration;
   }
 
@@ -440,7 +449,7 @@ public class UpgradePack {
   private void initializeProcessingComponentMappings() {
     m_process = new LinkedHashMap<>();
 
-    if (null == processing || processing.isEmpty()) {
+    if (CollectionUtils.isEmpty(processing)) {
       return;
     }
 
@@ -567,6 +576,34 @@ public class UpgradePack {
             + "post-upgrade exists for processing component %s/%s", service.name, name);
 
         throw new RuntimeException(error);
+      }
+
+      // !!! check for config tasks and mark the associated service
+      initializeTasks(service.name, preTasks);
+      initializeTasks(service.name, postTasks);
+      initializeTasks(service.name, tasks);
+      initializeTasks(service.name, preDowngradeTasks);
+      initializeTasks(service.name, postDowngradeTasks);
+    }
+
+    /**
+     * Checks for config tasks and marks the associated service.
+     * @param service
+     *          the service name
+     * @param tasks
+     *          the list of tasks to check
+     */
+    private void initializeTasks(String service, List<Task> tasks) {
+      if (CollectionUtils.isEmpty(tasks)) {
+        return;
+      }
+
+      for (Task task : tasks) {
+        if (Task.Type.CONFIGURE == task.getType()) {
+          ((ConfigureTask) task).associatedService = service;
+        } else if (Task.Type.CREATE_AND_CONFIGURE == task.getType()) {
+          ((CreateAndConfigureTask) task).associatedService = service;
+        }
       }
     }
   }

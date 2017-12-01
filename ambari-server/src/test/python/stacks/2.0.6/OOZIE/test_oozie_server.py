@@ -28,7 +28,10 @@ from resource_management.libraries import functions
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 import tempfile
 
-@patch.object(Script, 'format_package_name', new = MagicMock())
+def format_package_name_side_effect(name):
+  return name.replace("${stack_version}", "1_2_3_4")
+
+@patch.object(Script, 'format_package_name', new = MagicMock(side_effect=format_package_name_side_effect))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(WebHDFSUtil, "run_command", new=MagicMock(return_value={}))
 @patch.object(tempfile, "gettempdir", new=MagicMock(return_value="/tmp"))
@@ -1177,8 +1180,8 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
-  def test_upgrade(self, glob_mock, remove_mock,
-      isfile_mock, exists_mock, isdir_mock):
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
+  def test_upgrade(self, glob_mock, remove_mock, isfile_mock, exists_mock, isdir_mock):
 
     def exists_mock_side_effect(path):
       if path == '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar':
@@ -1216,6 +1219,9 @@ class TestOozieServer(RMFTestCase):
       sudo = True )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
+    self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4-native'), retry_count = 5, retry_on_repo_unavailability = False)
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
@@ -1228,6 +1234,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_upgrade_23(self, glob_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1252,6 +1259,7 @@ class TestOozieServer(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = "2.3"
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
@@ -1275,6 +1283,10 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
+    self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4-native'), retry_count = 5, retry_on_repo_unavailability = False)
+
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
@@ -1287,6 +1299,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value=True))
   def test_upgrade_23_with_type(self, glob_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1311,6 +1324,7 @@ class TestOozieServer(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['upgradeSummary'] = {
       'services': { 'OOZIE': { 'sourceStackId': 'HDP-2.3' }},
       'direction': 'UPGRADE',
@@ -1341,6 +1355,10 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
+    self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4-native'), retry_count = 5, retry_on_repo_unavailability = False)
+
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
@@ -1353,6 +1371,7 @@ class TestOozieServer(RMFTestCase):
   @patch("os.remove")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_downgrade_no_compression_library_copy(self, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1377,6 +1396,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', u'2.2.0.0-0000'), sudo = True)
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',mode = 0777)
+
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',mode = 0644)
@@ -1397,6 +1417,7 @@ class TestOozieServer(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = "HDP"
+    json_content['hostLevelParams']['stack_version'] = "2.3"
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server_upgrade.py",
       classname = "OozieUpgrade", command = "upgrade_oozie_database_and_sharelib",
@@ -1459,6 +1480,7 @@ class TestOozieServer(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = "HDP"
+    json_content['hostLevelParams']['stack_version'] = "2.3"
 
     # use mysql external database
     json_content['configurations']['oozie-site']['oozie.service.JPAService.jdbc.driver'] = "com.mysql.jdbc.Driver"
@@ -1525,6 +1547,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
+  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_upgrade_23_ensure_falcon_copied(self, glob_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock):
 
@@ -1571,6 +1594,10 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
+
+    self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
+    self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4-native'), retry_count = 5, retry_on_repo_unavailability = False)
 
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)

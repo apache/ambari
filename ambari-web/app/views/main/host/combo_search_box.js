@@ -18,17 +18,10 @@
 
 var App = require('app');
 
-App.MainHostComboSearchBoxView = Em.View.extend({
-  templateName: require('templates/main/host/combo_search_box'),
+App.MainHostComboSearchBoxView = App.SearchBoxView.extend({
   healthStatusCategories: require('data/host/categories'),
-  errMsg: '',
   serviceMap : {},
-
-  didInsertElement: function () {
-    this.initVS();
-    this.restoreComboFilterQuery();
-    this.showHideClearButton();
-  },
+  controllerBinding: 'App.router.mainHostComboSearchBoxController',
 
   initVS: function() {
     this.setupLabelMap();
@@ -60,7 +53,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     if (invalidFacet) {
       this.showErrMsg(invalidFacet);
     }
-    var tableView = this.get('parentView.parentView');
+    var tableView = this.get('parentView');
     App.db.setComboSearchQuery(tableView.get('controller.name'), query);
     var filterConditions = this.createFilterConditions(searchCollection);
     tableView.updateComboFilter(filterConditions);
@@ -270,29 +263,6 @@ App.MainHostComboSearchBoxView = Em.View.extend({
       }
     }
     return result;
-  },
-
-  showErrMsg: function(category) {
-    this.set('errMsg', category.attributes.value + " " + Em.I18n.t('hosts.combo.search.invalidCategory'));
-  },
-
-  clearErrMsg: function() {
-    this.set('errMsg', '')
-  },
-
-  showHideClearButton: function () {
-    if (visualSearch.searchQuery.toJSON().length > 0) {
-      $('.VS-cancel-search-box').removeClass('hide');
-    } else {
-      $('.VS-cancel-search-box').addClass('hide');
-    }
-  },
-
-  restoreComboFilterQuery: function() {
-    var query = App.db.getComboSearchQuery(this.get('parentView.parentView.controller.name'));
-    if (query) {
-      visualSearch.searchBox.setQuery(query);
-    }
   },
 
   getHostComponentList: function() {

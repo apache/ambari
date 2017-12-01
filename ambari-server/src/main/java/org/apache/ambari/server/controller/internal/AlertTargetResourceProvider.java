@@ -53,6 +53,8 @@ import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertGroup;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -67,6 +69,8 @@ import com.google.inject.persist.Transactional;
 public class AlertTargetResourceProvider extends
  AbstractAuthorizedResourceProvider {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AlertTargetResourceProvider.class);
+
   public static final String ALERT_TARGET = "AlertTarget";
   public static final String ALERT_TARGET_ID = "AlertTarget/id";
   public static final String ALERT_TARGET_NAME = "AlertTarget/name";
@@ -79,7 +83,7 @@ public class AlertTargetResourceProvider extends
   public static final String ALERT_TARGET_ENABLED = "AlertTarget/enabled";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
-    Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
+      Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
 
   /**
    * The property ids for an alert target resource.
@@ -124,6 +128,7 @@ public class AlertTargetResourceProvider extends
   /**
    * Constructor.
    */
+  @Inject
   AlertTargetResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
 

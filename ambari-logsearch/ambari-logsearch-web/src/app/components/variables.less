@@ -17,17 +17,17 @@
  */
 
 // Variables
+@base-font-color: #666;
 @navbar-background-color: #323544;
 @h1-vertical-margin: 20px;
 @button-border-radius: 4px;
 @input-border-width: 1px;
 @input-border: @input-border-width solid #CFD3D7;
-@button-border-radius: 4px;
 @input-group-addon-padding: 6px 12px 6px 0;
 @block-margin-top: 20px;
 @link-color: #1491C1;
 @link-hover-color: #23527C;
-@grey-color: #666;
+@grey-color: #DDD;
 @default-line-height: 1.42857143;
 @main-background-color: #ECECEC;
 @filters-panel-background-color: #FFF;
@@ -36,9 +36,11 @@
 @checkbox-top: 4px;
 @dropdown-min-width: 160px;
 @dropdown-max-height: 500px; // TODO get rid of magic number, base on actual design
+@dropdown-border-radius: 2px;
 @input-height: 34px;
 @input-padding: 10px;
 @col-padding: 15px;
+@search-parameter-padding: 5px 2px;
 
 @fatal-color: #830A0A;
 @error-color: #E81D1D;
@@ -51,90 +53,15 @@
 @submit-hover-color: #449D44;
 @exclude-color: #EF6162;
 
-// Mixins
-.flex-vertical-align {
-  display: flex;
-  align-items: center;
-}
+// Panels
+@panel-heading: rgba(255, 255, 255, 1);
 
-.default-flex {
-  .flex-vertical-align;
-  justify-content: space-between;
-}
+// Badge
+@badge-bg: rgba(239, 97, 98, 1);
+@badge-padding: 2px 5px;
 
-.common-hexagon(@side, @color) {
-  display: block;
-  position: absolute;
-  margin: (@side / 3.464101615) 0;
-  width: @side;
-  height: @side / 1.732050808;
-  background-color: @color;
+// Icon
+@icon-padding: 5px;
 
-  &:before, &:after {
-    display: block;
-    position: absolute;
-    width: 0;
-    border-left: (@side / 2) solid transparent;
-    border-right: (@side / 2) solid transparent;
-    content: '';
-  }
-
-  &:before {
-    bottom: 100%;
-    border-bottom: (@side / 3.464101615) solid @color;
-  }
-
-  &:after {
-    top: 100%;
-    border-top: (@side / 3.464101615) solid @color;
-  }
-}
-
-.clickable-item {
-  cursor: pointer;
-  color: @link-color;
-
-  &:hover {
-    color: @link-hover-color;
-  }
-}
-
-.full-size {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-
-.dropdown-list-default {
-  line-height: 1;
-  border-radius: 2px;
-  font-size: 14px;
-  min-width: @dropdown-min-width;
-  background: #FFF;
-  color: #666;
-  border: 1px solid #CFD3D7;
-  padding: 5px 0;
-  margin: 2px 0 0;
-  text-align: left;
-  list-style: none;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
-}
-
-.dropdown-item-default {
-  display: block;
-  padding: 3px 20px;
-  clear: both;
-  font-weight: 400;
-  line-height: 1.42857143;
-  color: #333;
-  white-space: nowrap;
-  cursor: pointer;
-
-  &:hover {
-    color: #262626;
-    text-decoration: none;
-    background-color: #F5F5F5;
-  }
-}
+// Table
+@table-border-color: #EEE;

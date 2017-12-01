@@ -22,11 +22,8 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STA
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 
 import java.util.HashSet;
 import java.util.List;
@@ -47,9 +44,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.customactions.ActionDefinition;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -58,6 +52,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
@@ -65,8 +60,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -78,6 +71,7 @@ public class AmbariActionExecutionHelper {
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariActionExecutionHelper.class);
   private static final String TYPE_PYTHON = "PYTHON";
+  private static final String ACTION_FILE_EXTENSION = "py";
   private static final String ACTION_UPDATE_REPO = "update_repo";
   private static final String SUCCESS_FACTOR_PARAMETER = "success_factor";
 
@@ -85,14 +79,22 @@ public class AmbariActionExecutionHelper {
 
   @Inject
   private Clusters clusters;
+
   @Inject
   private AmbariManagementController managementController;
+
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
+
   @Inject
   private Configuration configs;
+
+  @Inject
+  private RepositoryVersionHelper repoVersionHelper;
+
 
   /**
    * Validates the request to execute an action.
@@ -417,7 +419,7 @@ public class AmbariActionExecutionHelper {
         commandParams.put(KeyNames.LOG_OUTPUT, requestParams.get(KeyNames.LOG_OUTPUT));
       }
 
-      commandParams.put(SCRIPT, actionName + ".py");
+      commandParams.put(SCRIPT, actionName + "." + ACTION_FILE_EXTENSION);
       commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
       StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
@@ -465,10 +467,10 @@ public class AmbariActionExecutionHelper {
 
       if (StringUtils.isNotBlank(serviceName)) {
         Service service = cluster.getService(serviceName);
-        addRepoInfoToHostLevelParams(actionContext, service.getDesiredRepositoryVersion(),
+        repoVersionHelper.addRepoInfoToHostLevelParams(cluster, actionContext, service.getDesiredRepositoryVersion(),
             hostLevelParams, hostName);
       } else {
-        addRepoInfoToHostLevelParams(actionContext, null, hostLevelParams, hostName);
+        repoVersionHelper.addRepoInfoToHostLevelParams(cluster, actionContext, null, hostLevelParams, hostName);
       }
 
 
@@ -526,53 +528,4 @@ public class AmbariActionExecutionHelper {
     }
   }
 
-  /*
-  * This method builds and adds repo info
-  * to hostLevelParams of action
-  *
-  * */
-
-  private void addRepoInfoToHostLevelParams(ActionExecutionContext actionContext,
-      RepositoryVersionEntity repositoryVersion, Map<String, String> hostLevelParams,
-      String hostName) throws AmbariException {
-
-    // if the repo is null, see if any values from the context should go on the
-    // host params and then return
-    if (null == repositoryVersion) {
-      // see if the action context has a repository set to use for the command
-      if (null != actionContext.getRepositoryVersion()) {
-        StackId stackId = actionContext.getRepositoryVersion().getStackId();
-        hostLevelParams.put(STACK_NAME, stackId.getStackName());
-        hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
-      }
-
-      return;
-    } else {
-      StackId stackId = repositoryVersion.getStackId();
-      hostLevelParams.put(STACK_NAME, stackId.getStackName());
-      hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
-    }
-
-    JsonObject rootJsonObject = new JsonObject();
-    JsonArray repositories = new JsonArray();
-
-    String hostOsFamily = clusters.getHost(hostName).getOsFamily();
-    for (OperatingSystemEntity operatingSystemEntity : repositoryVersion.getOperatingSystems()) {
-      // ostype in OperatingSystemEntity it's os family. That should be fixed
-      // in OperatingSystemEntity.
-      if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
-        for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
-          JsonObject repositoryInfo = new JsonObject();
-          repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
-          repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
-          repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
-
-          repositories.add(repositoryInfo);
-        }
-        rootJsonObject.add("repositories", repositories);
-      }
-    }
-
-    hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
-  }
 }

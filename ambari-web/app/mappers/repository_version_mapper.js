@@ -73,7 +73,8 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     repo_id : 'Repositories.repo_id',
     repo_name : 'Repositories.repo_name',
     stack_name : 'Repositories.stack_name',
-    stack_version : 'Repositories.stack_version'
+    stack_version : 'Repositories.stack_version',
+    tags: 'Repositories.tags'
   },
 
   map: function (json, loadAll, isCurrentStackOnly) {
@@ -122,7 +123,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
                 name: service.name,
                 display_name: service.display_name,
                 latest_version: service.versions[0] ? service.versions[0] : '',
-                is_available: item[repoVersionsKey].services.someProperty('name', service.name),
+                is_available: item[repoVersionsKey].services ? item[repoVersionsKey].services.someProperty( 'name', service.name) : true,
                 is_upgradable: json.stackServices ? json.stackServices[service.name] && json.stackServices[service.name].upgrade : true
               };
               resultService.push(serviceObj);

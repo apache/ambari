@@ -92,8 +92,11 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
       }
     }
 
+    KerberosHelper kerberosHelper = getKerberosHelper();
+    Map<String, ? extends Collection<String>> serviceComponentFilter = getServiceComponentFilter();
+    Collection<String> hostFilter = getHostFilter();
     Collection<String> identityFilter = getIdentityFilter();
-    List<ServiceComponentHost> schToProcess = getServiceComponentHostsToProcess(cluster, kerberosDescriptor, identityFilter);
+    List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster, kerberosDescriptor, serviceComponentFilter, hostFilter);
 
     String dataDirectory = getCommandParameterValue(commandParameters, DATA_DIRECTORY);
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
@@ -107,7 +110,6 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    KerberosHelper kerberosHelper = getKerberosHelper();
     Map<String, Set<String>> propertiesToRemove = new HashMap<>();
     Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
     Set<String> services = cluster.getServices().keySet();
@@ -117,7 +119,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
     Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-        configurations, kerberosConfigurations, true, propertiesToIgnore, false);
+        configurations, kerberosConfigurations, true, propertiesToIgnore);
 
     // Calculate the set of configurations to update and replace any variables
     // using the previously calculated Map of configurations for the host.

@@ -118,6 +118,18 @@ App.upgradeWizardView = Em.View.extend({
   }.property('activeGroup.upgradeItems.@each.status'),
 
   /**
+   * can skip failed item or not
+   * @type {boolean}
+   */
+  canSkipFailedItem: function () {
+    var failedItem = this.get('failedItem');
+    var associatedVersion = this.get('controller.upgradeData.Upgrade.associated_version');
+    var version = associatedVersion && App.RepositoryVersion.find().findProperty('repositoryVersion', associatedVersion);
+    var isPatchOrMaint = version && ( version.get('isPatch') || version.get('isMaint') );
+    return failedItem && failedItem.get('skippable') && !(this.get('isFinalizeItem') && isPatchOrMaint);
+  }.property('failedItem'),
+
+  /**
    * upgrade doesn't have any failed or manual or running item
    * @type {boolean}
    */
@@ -394,22 +406,30 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   /**
+   * previous item request
+   */
+  prevItemRequest: null,
+
+  /**
    * poll for tasks when item is expanded
    */
   doUpgradeItemPolling: function () {
     var self = this;
     var item = this.get('runningItem') || this.get('failedItem');
-
+    var request = this.get('prevItemRequest');
+    if ( request ) request.abort();
     if (item && this.get('isDetailsOpened')) {
-      this.get('controller').getUpgradeItem(item).complete(function () {
+      request = this.get('controller').getUpgradeItem(item).complete(function () {
         self.set('upgradeItemTimer', setTimeout(function () {
           self.doUpgradeItemPolling();
         }, App.bgOperationsUpdateInterval));
       });
+
+      this.set('prevItemRequest', request);
     } else {
       clearTimeout(this.get('upgradeItemTimer'));
     }
-  }.observes('isDetailsOpened'),
+  }.observes('isDetailsOpened', 'runningItem', 'failedItem'),
 
   /**
    * set current upgrade item state to FAILED (for HOLDING_FAILED) or TIMED_OUT (for HOLDING_TIMED_OUT)

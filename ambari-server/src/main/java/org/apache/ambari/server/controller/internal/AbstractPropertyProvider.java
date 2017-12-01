@@ -45,11 +45,15 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  Abstract property provider implementation.
  */
 public abstract class AbstractPropertyProvider extends BaseProvider implements PropertyProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractPropertyProvider.class);
 
   /**
    * The property/metric information for this provider keyed by component name / property id.

@@ -2315,214 +2315,6 @@ class TestHDP206StackAdvisor(TestCase):
 
 
 
-  def test_recommendAmsConfigurations(self):
-    configurations = {
-      "hadoop-env": {
-        "properties": {
-          "hdfs_user": "hdfs",
-          "proxyuser_group": "users"
-        }
-      }
-    }
-
-    hosts = {
-      "items": [
-        {
-          "href": "/api/v1/hosts/host1",
-          "Hosts": {
-            "cpu_count": 1,
-            "host_name": "c6401.ambari.apache.org",
-            "os_arch": "x86_64",
-            "os_type": "centos6",
-            "ph_cpu_count": 1,
-            "public_host_name": "public.c6401.ambari.apache.org",
-            "rack_info": "/default-rack",
-            "total_mem": 2097152,
-            "disk_info": [{
-              "size": '80000000',
-              "mountpoint": "/"
-            }]
-          }
-        },
-        {
-          "href": "/api/v1/hosts/host2",
-          "Hosts": {
-            "cpu_count": 1,
-            "host_name": "c6402.ambari.apache.org",
-            "os_arch": "x86_64",
-            "os_type": "centos6",
-            "ph_cpu_count": 1,
-            "public_host_name": "public.c6402.ambari.apache.org",
-            "rack_info": "/default-rack",
-            "total_mem": 1048576,
-            "disk_info": [{
-              "size": '800000000',
-              "mountpoint": "/"
-            }]
-          }
-        }
-      ]}
-
-
-    services1 = {
-      "services": [
-        {
-          "StackServices": {
-            "service_name": "HDFS"
-          }, "components": [
-          {
-            "StackServiceComponents": {
-              "component_name": "NAMENODE",
-              "hostnames": ["c6401.ambari.apache.org"]
-            }
-          }
-        ]
-        },
-        {
-          "StackServices": {
-            "service_name": "AMBARI_METRICS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "METRICS_COLLECTOR",
-                "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
-              }
-            }, {
-              "StackServiceComponents": {
-                "component_name": "METRICS_MONITOR",
-                "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
-              }
-            }
-          ]
-        }],
-      "configurations": configurations,
-      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
-    }
-
-    clusterData = {
-      "totalAvailableRam": 2048
-    }
-
-    expected = {'ams-env': {'properties': {'metrics_collector_heapsize': '512'}},
-                  'ams-grafana-env': {'properties': {},
-                                                             'property_attributes': {'metrics_grafana_password': {'visible': 'false'}}},
-                  'ams-hbase-env': {'properties': {'hbase_log_dir': '/var/log/ambari-metrics-collector',
-                                                                                       'hbase_master_heapsize': '512',
-                                                                                       'hbase_master_xmn_size': '102',
-                                                                                       'hbase_regionserver_heapsize': '1024',
-                                                                                       'regionserver_xmn_size': '128'}},
-                  'ams-hbase-site': {'properties': {'hbase.cluster.distributed': 'true',
-                                                                                         'hbase.hregion.memstore.flush.size': '134217728',
-                                                                                         'hbase.regionserver.global.memstore.lowerLimit': '0.3',
-                                                                                         'hbase.regionserver.global.memstore.upperLimit': '0.35',
-                                                                                         'hbase.rootdir': '/user/ams/hbase',
-                                                                                         'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase-tmp',
-                                                                                         'hbase.zookeeper.property.clientPort': '2181',
-                                                                                         'hfile.block.cache.size': '0.3'}},
-                  'ams-site': {'properties': {'timeline.metrics.cache.commit.interval': '10',
-                                                                             'timeline.metrics.cache.size': '100',
-                                                                             'timeline.metrics.cluster.aggregate.splitpoints': 'master.Balancer.BalancerCluster_95th_percentile',
-                                                                             'timeline.metrics.host.aggregate.splitpoints': 'master.Balancer.BalancerCluster_95th_percentile',
-                                                                             'timeline.metrics.service.handler.thread.count': '20',
-                                                                             'timeline.metrics.service.operation.mode': 'distributed',
-                                                                             'timeline.metrics.service.watcher.disabled': 'true',
-                                                                             'timeline.metrics.service.webapp.address': '0.0.0.0:6188'}},
-                  'hadoop-env': {'properties': {'hdfs_user': 'hdfs',
-                                                                                 'proxyuser_group': 'users'}}}
-
-    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services1, hosts)
-    self.assertEquals(configurations, expected)
-
-    services1 = {
-      "services": [
-        {
-          "StackServices": {
-            "service_name": "HDFS"
-          }, "components": [
-          {
-            "StackServiceComponents": {
-              "component_name": "NAMENODE",
-              "hostnames": ["c6401.ambari.apache.org"]
-            }
-          }
-        ]
-        },
-        {
-          "StackServices": {
-            "service_name": "AMBARI_METRICS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "METRICS_COLLECTOR",
-                "hostnames": ["c6401.ambari.apache.org"]
-              }
-            }, {
-              "StackServiceComponents": {
-                "component_name": "METRICS_MONITOR",
-                "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
-              }
-            }
-          ]
-        }],
-      "configurations": configurations,
-      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
-    }
-    expected = {'ams-env': {'properties': {'metrics_collector_heapsize': '512'}},
-                  'ams-grafana-env': {'properties': {},
-                                                             'property_attributes': {'metrics_grafana_password': {'visible': 'false'}}},
-                  'ams-hbase-env': {'properties': {'hbase_log_dir': '/var/log/ambari-metrics-collector',
-                                                                                       'hbase_master_heapsize': '512',
-                                                                                       'hbase_master_xmn_size': '102',
-                                                                                       'hbase_regionserver_heapsize': '1024',
-                                                                                       'regionserver_xmn_size': '128'}},
-                  'ams-hbase-site': {'properties': {'hbase.cluster.distributed': 'true',
-                                                                                         'hbase.hregion.memstore.flush.size': '134217728',
-                                                                                         'hbase.regionserver.global.memstore.lowerLimit': '0.3',
-                                                                                         'hbase.regionserver.global.memstore.upperLimit': '0.35',
-                                                                                         'hbase.rootdir': '/user/ams/hbase',
-                                                                                         'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase-tmp',
-                                                                                         'hbase.zookeeper.property.clientPort': '2181',
-                                                                                         'hfile.block.cache.size': '0.3',
-                                                                                         'phoenix.coprocessor.maxMetaDataCacheSize': '20480000'}},
-                  'ams-site': {'properties': {'timeline.metrics.cache.commit.interval': '10',
-                                                                             'timeline.metrics.cache.size': '100',
-                                                                             'timeline.metrics.cluster.aggregate.splitpoints': 'master.Balancer.BalancerCluster_95th_percentile',
-                                                                             'timeline.metrics.host.aggregate.splitpoints': 'master.Balancer.BalancerCluster_95th_percentile',
-                                                                             'timeline.metrics.service.handler.thread.count': '20',
-                                                                             'timeline.metrics.service.operation.mode': 'distributed',
-                                                                             'timeline.metrics.service.watcher.disabled': 'true',
-                                                                             'timeline.metrics.service.webapp.address': '0.0.0.0:6188'}},
-                  'hadoop-env': {'properties': {'hdfs_user': 'hdfs',
-                                                                                 'proxyuser_group': 'users'}}}
-    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services1, hosts)
-    self.assertEquals(configurations, expected)
-
-  def test_getHostNamesWithComponent(self):
-
-    services = {
-      "services":  [
-        {
-          "StackServices": {
-            "service_name": "SERVICE"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "COMPONENT",
-                "hostnames": ["host1","host2","host3"]
-              }
-            }
-          ]
-        }
-      ],
-      "configurations": {}
-    }
-
-    result = self.stackAdvisor.getHostNamesWithComponent("SERVICE","COMPONENT", services)
-    expected = ["host1","host2","host3"]
-    self.assertEquals(result, expected)
 
 
   def test_getZKHostPortString(self):
@@ -2729,7 +2521,9 @@ class TestHDP206StackAdvisor(TestCase):
                   'hadoop.proxyuser.hdfs-user.hosts': '*',
                   'hadoop.proxyuser.hdfs-user.groups': '*',
                   'hadoop.proxyuser.yarn-user.hosts': 'host1,host2',
-                  'hadoop.proxyuser.yarn-user.groups': '*'}
+                  'hadoop.proxyuser.yarn-user.groups': '*',
+                  'io.compression.codec.lzo.class': 'com.hadoop.compression.lzo.LzoCodec',
+                  'io.compression.codecs': 'AnotherCodec, com.hadoop.compression.lzo.LzoCodec'}
     services = {
       'services':  [
         { 'StackServices': {'service_name': 'HDFS'}},
@@ -2745,7 +2539,8 @@ class TestHDP206StackAdvisor(TestCase):
         }
       ],
       'ambari-server-properties': {'ambari-server.user': 'ambari-user'},
-      'configurations': configurations
+      'configurations': configurations,
+      "gpl-license-accepted": True
     }
     hosts = {
       'items' : [
@@ -2759,7 +2554,28 @@ class TestHDP206StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(res, res_expected)
 
-    # 2) fail: test filter function: two RESOURCE_MANAGERs, hadoop.proxyuser.yarn-user.hosts is expected to be set
+    # 2) fail: gpl is not allowed
+    services["gpl-license-accepted"] = False
+    res_expected = [{'config-type': 'core-site',
+                     'message': 'Your Ambari Server has not been configured to download LZO and install it. '
+                                'LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. '
+                                'Please refer to the documentation to configure Ambari before proceeding.',
+                     'type': 'configuration',
+                     'config-name': 'io.compression.codecs',
+                     'level': 'NOT_APPLICABLE'},
+                    {'config-type': 'core-site',
+                     'message': 'Your Ambari Server has not been configured to download LZO and install it. '
+                                'LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. '
+                                'Please refer to the documentation to configure Ambari before proceeding.',
+                     'type': 'configuration',
+                     'config-name': 'io.compression.codec.lzo.class',
+                     'level': 'NOT_APPLICABLE'}]
+
+    res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, hosts)
+    self.assertEquals(res, res_expected)
+    services["gpl-license-accepted"] = True
+
+    # 3) fail: test filter function: two RESOURCE_MANAGERs, hadoop.proxyuser.yarn-user.hosts is expected to be set
     del properties['hadoop.proxyuser.yarn-user.hosts']
     res_expected = [{'config-name': 'hadoop.proxyuser.yarn-user.hosts',
                      'config-type': 'core-site',
@@ -2769,13 +2585,13 @@ class TestHDP206StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(res, res_expected)
 
-    # 3) ok: test filter function: only one RESOURCE_MANAGER
+    # 4) ok: test filter function: only one RESOURCE_MANAGER
     services['services'][1]['components'][0]['StackServiceComponents']['hostnames'] = ["host1"]
     res_expected = []
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(res, res_expected)
 
-    # 4) fail: some proxyusers are empty or absent:
+    # 5) fail: some proxyusers are empty or absent:
     del properties['hadoop.proxyuser.ambari-user.hosts']
     properties['hadoop.proxyuser.hdfs-user.groups'] = ''
     res_expected = [{'config-name': 'hadoop.proxyuser.hdfs-user.groups',
@@ -2834,6 +2650,31 @@ class TestHDP206StackAdvisor(TestCase):
     }
     res = self.stackAdvisor.getHadoopProxyUsers(services, hosts, configurations)
     self.assertEquals(res, res_expected)
+
+  # def test_validateHDFSConfigurationsCoreSite(self):
+  #
+  #   configurations = {}
+  #   services = {"gpl-license-accepted": True, "services": [{"StackServices": {"service_name": "HDFS"}}], 'ambari-server-properties': {'ambari-server.user': 'ambari-user'}}
+  #
+  #   # 1) ok: gpl is allowed
+  #   properties = {'io.compression.codec.lzo.class': 'com.hadoop.compression.lzo.LzoCodec'}
+  #   res_expected = []
+  #
+  #   res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, '')
+  #   self.assertEquals(res, res_expected)
+  #
+  #   # 2) fail: gpl is not allowed
+  #   services["gpl-license-accepted"] = False
+  #   res_expected = [{'config-type': 'core-site',
+  #                    'message': 'Your Ambari Server has not been configured to download LZO and install it. '
+  #                               'LZO is GPL software and requires you to accept a license prior to use. '
+  #                               'Please refer to this documentation to configure Ambari before proceeding.',
+  #                    'type': 'configuration',
+  #                    'config-name': 'io.compression.codec.lzo.class',
+  #                    'level': 'ERROR'}]
+  #
+  #   res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, '')
+  #   self.assertEquals(res, res_expected)
 
   def test_validateOneDataDirPerPartition(self):
     recommendedDefaults = {
@@ -2908,374 +2749,6 @@ class TestHDP206StackAdvisor(TestCase):
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(validation_problems, expected)
 
-  def test_validateAmsSiteConfigurations(self):
-    configurations = {
-      "hdfs-site": {
-        "properties": {
-          'dfs.datanode.data.dir': "/hadoop/data"
-        }
-      },
-      "core-site": {
-        "properties": {
-          "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
-        }
-      },
-      "ams-site": {
-        "properties": {
-          "timeline.metrics.service.operation.mode": "embedded"
-        }
-      }
-    }
-    recommendedDefaults = {
-      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false'
-    }
-    properties = {
-      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false',
-      'timeline.metrics.service.operation.mode' : 'embedded'
-    }
-    host1 = {
-      "href" : "/api/v1/hosts/host1",
-      "Hosts" : {
-        "cpu_count" : 1,
-        "host_name" : "host1",
-        "os_arch" : "x86_64",
-        "os_type" : "centos6",
-        "ph_cpu_count" : 1,
-        "public_host_name" : "host1",
-        "rack_info" : "/default-rack",
-        "total_mem" : 2097152,
-        "disk_info": [
-          {
-            "available": str(15<<30), # 15 GB
-            "type": "ext4",
-            "mountpoint": "/"
-          }
-        ]
-      }
-    }
-    host2 = {
-      "href" : "/api/v1/hosts/host2",
-      "Hosts" : {
-        "cpu_count" : 1,
-        "host_name" : "host2",
-        "os_arch" : "x86_64",
-        "os_type" : "centos6",
-        "ph_cpu_count" : 1,
-        "public_host_name" : "host2",
-        "rack_info" : "/default-rack",
-        "total_mem" : 2097152,
-        "disk_info": [
-          {
-            "available": str(15<<30), # 15 GB
-            "type": "ext4",
-            "mountpoint": "/"
-          }
-        ]
-      }
-    }
-
-    hosts = {
-      "items" : [
-        host1, host2
-      ]
-    }
-
-    services = {
-      "services":  [
-        {
-          "StackServices": {
-            "service_name": "AMBARI_METRICS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "METRICS_COLLECTOR",
-                "hostnames": ["host1", "host2"]
-              }
-            }, {
-              "StackServiceComponents": {
-                "component_name": "METRICS_MONITOR",
-                "hostnames": ["host1", "host2"]
-              }
-            }
-          ]
-        },
-        {
-          "StackServices": {
-            "service_name": "HDFS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "DATANODE",
-                "hostnames": ["host1"]
-              }
-            }
-          ]
-        }
-      ],
-      "configurations": configurations
-    }
-    # only 1 partition, enough disk space, no warnings
-    res = self.stackAdvisor.validateAmsSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    expected = [{'config-name': 'timeline.metrics.service.operation.mode',
-                    'config-type': 'ams-site',
-                    'level': 'ERROR',
-                    'message': "Correct value should be 'distributed' for clusters with more then 1 Metrics collector",
-                    'type': 'configuration'}]
-    self.assertEquals(res, expected)
-
-
-    services = {
-      "services":  [
-        {
-          "StackServices": {
-            "service_name": "AMBARI_METRICS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "METRICS_COLLECTOR",
-                "hostnames": ["host1"]
-              }
-            }, {
-              "StackServiceComponents": {
-                "component_name": "METRICS_MONITOR",
-                "hostnames": ["host1"]
-              }
-            }
-          ]
-        },
-        {
-          "StackServices": {
-            "service_name": "HDFS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "DATANODE",
-                "hostnames": ["host1"]
-              }
-            }
-          ]
-        }
-      ],
-      "configurations": configurations
-    }
-    res = self.stackAdvisor.validateAmsSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    expected = []
-    self.assertEquals(res, expected)
-
-  def test_validateAmsHbaseSiteConfigurations(self):
-    configurations = {
-      "hdfs-site": {
-        "properties": {
-          'dfs.datanode.data.dir': "/hadoop/data"
-        }
-      },
-      "core-site": {
-        "properties": {
-          "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
-        }
-      },
-      "ams-site": {
-        "properties": {
-          "timeline.metrics.service.operation.mode": "embedded"
-        }
-      }
-    }
-
-    recommendedDefaults = {
-      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false'
-    }
-    properties = {
-      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false'
-    }
-    host = {
-      "href" : "/api/v1/hosts/host1",
-      "Hosts" : {
-        "cpu_count" : 1,
-        "host_name" : "host1",
-        "os_arch" : "x86_64",
-        "os_type" : "centos6",
-        "ph_cpu_count" : 1,
-        "public_host_name" : "host1",
-        "rack_info" : "/default-rack",
-        "total_mem" : 2097152,
-        "disk_info": [
-          {
-            "available": str(15<<30), # 15 GB
-            "type": "ext4",
-            "mountpoint": "/"
-          }
-        ]
-      }
-    }
-
-    hosts = {
-      "items" : [
-        host
-      ]
-    }
-
-    services = {
-      "services":  [
-        {
-          "StackServices": {
-            "service_name": "AMBARI_METRICS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "METRICS_COLLECTOR",
-                "hostnames": ["host1"]
-              }
-            }, {
-              "StackServiceComponents": {
-                "component_name": "METRICS_MONITOR",
-                "hostnames": ["host1"]
-              }
-            }
-          ]
-        },
-        {
-          "StackServices": {
-            "service_name": "HDFS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "DATANODE",
-                "hostnames": ["host1"]
-              }
-            }
-          ]
-        }
-      ],
-      "configurations": configurations
-    }
-
-    # only 1 partition, enough disk space, no warnings
-    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    expected = []
-    self.assertEquals(res, expected)
-
-
-    # 1 partition, no enough disk space
-    host['Hosts']['disk_info'] = [
-      {
-        "available" : '1',
-        "type" : "ext4",
-        "mountpoint" : "/"
-      }
-    ]
-    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    expected = [
-      {'config-name': 'hbase.rootdir',
-       'config-type': 'ams-hbase-site',
-       'level': 'WARN',
-       'message': 'Ambari Metrics disk space requirements not met. '
-                  '\nRecommended disk space for partition / is 10G',
-       'type': 'configuration'
-      }
-    ]
-    self.assertEquals(res, expected)
-
-    # 2 partitions
-    host['Hosts']['disk_info'] = [
-      {
-        "available": str(15<<30), # 15 GB
-        "type" : "ext4",
-        "mountpoint" : "/grid/0"
-      },
-      {
-        "available" : str(15<<30), # 15 GB
-        "type" : "ext4",
-        "mountpoint" : "/"
-      }
-    ]
-    recommendedDefaults = {
-      'hbase.rootdir': 'file:///grid/0/var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false'
-    }
-    properties = {
-      'hbase.rootdir': 'file:///grid/0/var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false'
-    }
-    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    expected = []
-    self.assertEquals(res, expected)
-
-    # dfs.dir & hbase.rootdir crosscheck + root partition + hbase.rootdir == hbase.tmp.dir warnings
-    properties = {
-      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false'
-    }
-
-    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    expected = [
-      {
-        'config-name': 'hbase.rootdir',
-        'config-type': 'ams-hbase-site',
-        'level': 'WARN',
-        'message': 'It is not recommended to use root partition for hbase.rootdir',
-        'type': 'configuration'
-      },
-      {
-        'config-name': 'hbase.tmp.dir',
-        'config-type': 'ams-hbase-site',
-        'level': 'WARN',
-        'message': 'Consider not using / partition for storing metrics temporary data. '
-                   '/ partition is already used as hbase.rootdir to store metrics data',
-        'type': 'configuration'
-      },
-      {
-        'config-name': 'hbase.rootdir',
-        'config-type': 'ams-hbase-site',
-        'level': 'WARN',
-        'message': 'Consider not using / partition for storing metrics data. '
-                   '/ is already used by datanode to store HDFS data',
-        'type': 'configuration'
-      }
-    ]
-    self.assertEquals(res, expected)
-
-    # incorrect hbase.rootdir in distributed mode
-    properties = {
-      'hbase.rootdir': 'file:///grid/0/var/lib/ambari-metrics-collector/hbase',
-      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
-      'hbase.cluster.distributed': 'false'
-    }
-    configurations['ams-site']['properties']['timeline.metrics.service.operation.mode'] = 'distributed'
-    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    expected = [
-      {
-        'config-name': 'hbase.rootdir',
-        'config-type': 'ams-hbase-site',
-        'level': 'WARN',
-        'message': 'In distributed mode hbase.rootdir should point to HDFS.',
-        'type': 'configuration'
-      },
-      {
-        'config-name': 'hbase.cluster.distributed',
-        'config-type': 'ams-hbase-site',
-        'level': 'ERROR',
-        'message': 'hbase.cluster.distributed property should be set to true for distributed mode',
-        'type': 'configuration'
-      }
-    ]
-    self.assertEquals(res, expected)
 
   def test_validateStormSiteConfigurations(self):
     configurations = {

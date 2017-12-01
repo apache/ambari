@@ -415,13 +415,14 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
 
     """
-    Remove extra lines from 'llapstatus' status output (eg: because of MOTD logging) so as to have a valid JSON data to be passed in
-    to JSON converter.
+    Remove extra lines (begginning/end) from 'llapstatus' status output (eg: because of MOTD logging) so as to have 
+    a valid JSON data to be passed in to JSON converter.
     """
     def _make_valid_json(self, output):
       '''
 
-      Note: It is assumed right now that extra lines will be only at the start and not at the end.
+      Note: Extra lines (eg: because of MOTD) may be at the start or the end (some other logging getting appended)
+      of the passed-in data.
 
       Sample expected JSON to be passed for 'loads' is either of the form :
 
@@ -457,6 +458,19 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       if (len_splits < 3):
         raise Fail ("Malformed JSON data received from 'llapstatus' command. Exiting ....")
 
+      # Firstly, remove extra lines from the END.
+      updated_splits = []
+      for itr, line in enumerate(reversed(splits)):
+        if line == "}": # Our assumption of end of JSON data.
+          updated_splits = splits[:-itr]
+          break
+
+      if len(updated_splits) > 0:
+        splits = updated_splits
+        len_splits = len(splits)
+
+
+      # Secondly, remove extra lines from the BEGGINNING.
       marker_idx = None # To detect where from to start reading for JSON data
       for idx, split in enumerate(splits):
         curr_elem = split.strip()

@@ -1,10 +1,16 @@
 {
   "common.title": "Log Search",
+  "common.hide": "Hide",
+  "common.show": "Show",
+  "common.serviceLogs": "Service Logs",
+  "common.auditLogs": "Audit Logs",
 
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
   "modal.apply": "Apply",
+  "modal.close": "Close",
 
+  "authorization.logout": "Logout",
   "authorization.name": "Username",
   "authorization.password": "Password",
   "authorization.signIn": "Sign In",
@@ -20,7 +26,7 @@
   "filter.clusters": "Clusters",
   "filter.components": "Components",
   "filter.levels": "Levels",
-  "filter.excluded": "Excluded",
+  "filter.exclude": "Exclude",
   "filter.hosts": "Hosts",
 
   "filter.capture": "Capture",
@@ -56,7 +62,9 @@
   "filter.timeRange.6hr": "Last 6 hours",
   "filter.timeRange.12hr": "Last 12 hours",
   "filter.timeRange.24hr": "Last 24 hours",
-  "filter.timeRange.custom": "Custom time range",
+  "filter.timeRange.custom": "Custom",
+  "filter.timeRange.from": "from",
+  "filter.timeRange.to": "to",
 
   "levels.fatal": "Fatal",
   "levels.error": "Error",
@@ -141,5 +149,14 @@
   "logs.versionNote": "Version Note",
   "logs.versionNumber": "Version Number",
   "logs.addToQuery": "Add to Query",
-  "logs.excludeFromQuery": "Exclude from Query"
+  "logs.excludeFromQuery": "Exclude from Query",
+  "logs.copy": "Copy",
+  "logs.open": "Open Log",
+  "logs.context": "Context",
+  "logs.loadMore": "Load more",
+  "logs.oneEventFound": "1 event found",
+  "logs.totalEventFound": "{{totalCount}} events found",
+  "logs.noEventFound": "No event found",
+  "logs.hideGraph": "Hide Graph",
+  "logs.showGraph": "Show Graph"
 }

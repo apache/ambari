@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.Blueprint;
@@ -86,7 +87,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
       HostGroup hostGroup = blueprint.getHostGroup(hostGroupName);
       for (String component : hostGroup.getComponentNames()) {
         //for now, AMBARI is not recognized as a service in Stacks
-        if (component.equals("AMBARI_SERVER")) {
+        if (component.equals(RootComponent.AMBARI_SERVER.name())) {
           continue;
         }
 

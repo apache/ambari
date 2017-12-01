@@ -30,10 +30,16 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,11 +73,22 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       throw new AmbariException("Missing cluster object");
     }
 
-    KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster, false);
-    Collection<String> identityFilter = getIdentityFilter();
-    List<ServiceComponentHost> schToProcess = getServiceComponentHostsToProcess(cluster, kerberosDescriptor, identityFilter);
+    KerberosHelper kerberosHelper = getKerberosHelper();
 
+    KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster, false);
     Map<String, String> commandParameters = getCommandParameters();
+    OperationType operationType = getOperationType(getCommandParameters());
+
+    Map<String, ? extends Collection<String>> serviceComponentFilter = getServiceComponentFilter();
+    Collection<String> hostFilter = getHostFilter();
+    Collection<String> identityFilter = getIdentityFilter();
+    // If the operationType is default, use the getServiceComponentHostsToProcess method to determine
+    // which ServiceComponentHosts to process based on the filters.  However if we are regenerating
+    // keytabs for a specific set of components, build the identity filter below so we can
+    // customized what needs to be done.
+    List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster, kerberosDescriptor,
+        (operationType == OperationType.DEFAULT) ? serviceComponentFilter : null, hostFilter);
+
     String dataDirectory = getCommandParameterValue(commandParameters, DATA_DIRECTORY);
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
 
@@ -84,18 +101,32 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    KerberosHelper kerberosHelper = getKerberosHelper();
     Set<String> services = cluster.getServices().keySet();
     Map<String, Set<String>> propertiesToRemove = new HashMap<>();
     Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
     boolean includeAmbariIdentity = "true".equalsIgnoreCase(getCommandParameterValue(commandParameters, KerberosServerAction.INCLUDE_AMBARI_IDENTITY));
+
+    // If we are including the Ambari identity; then ensure that if a host filter is set, do not the Ambari service identity.
+    includeAmbariIdentity &= (hostFilter == null);
+
+    if (serviceComponentFilter != null) {
+      // If we are including the Ambari identity; then ensure that if a service/component filter is set,
+      // it contains the AMBARI/AMBARI_SERVER component; else do not include the Ambari service identity.
+      includeAmbariIdentity &= (serviceComponentFilter.get(RootService.AMBARI.name()) != null)
+        && serviceComponentFilter.get(RootService.AMBARI.name()).contains(RootComponent.AMBARI_SERVER.name());
+
+      if((operationType != OperationType.DEFAULT)) {
+        // Update the identity filter, if necessary
+        identityFilter = updateIdentityFilter(kerberosDescriptor, identityFilter, serviceComponentFilter);
+      }
+    }
 
     // Calculate the current host-specific configurations. These will be used to replace
     // variables within the Kerberos descriptor data
     Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore, !CollectionUtils.isEmpty(getHostFilter()));
+        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
 
     kerberosHelper.applyStackAdvisorUpdates(cluster, services, configurations, kerberosConfigurations,
         propertiesToIgnore, propertiesToRemove, true);
@@ -116,35 +147,6 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
     throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Calls {@link KerberosHelper#getServiceComponentHostsToProcess(Cluster, KerberosDescriptor, Map, Collection, Collection, KerberosHelper.Command)}
-   * with no filter on ServiceComponentHosts
-   * <p/>
-   * The <code>shouldProcessCommand</code> implementation passed to KerberosHelper#getServiceComponentHostsToProcess
-   * always returns true, indicating to process all ServiceComponentHosts.
-   *
-   * @param cluster            the cluster
-   * @param kerberosDescriptor the current Kerberos descriptor
-   * @param identityFilter     a list of identities to include, or all if null  @return the list of ServiceComponentHosts to process
-   * @throws AmbariException
-   * @see KerberosHelper#getServiceComponentHostsToProcess(Cluster, KerberosDescriptor, Map, Collection, Collection, KerberosHelper.Command)
-   */
-  protected List<ServiceComponentHost> getServiceComponentHostsToProcess(Cluster cluster,
-                                                                         KerberosDescriptor kerberosDescriptor,
-                                                                         Collection<String> identityFilter)
-      throws AmbariException {
-    return getKerberosHelper().getServiceComponentHostsToProcess(cluster,
-        kerberosDescriptor,
-        getServiceComponentFilter(),
-        getHostFilter(), identityFilter,
-        new KerberosHelper.Command<Boolean, ServiceComponentHost>() {
-          @Override
-          public Boolean invoke(ServiceComponentHost sch) throws AmbariException {
-            return true;
-          }
-        });
   }
 
   /**
@@ -198,6 +200,82 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       KerberosHelper kerberosHelper = getKerberosHelper();
       kerberosHelper.setAuthToLocalRules(cluster, kerberosDescriptor, defaultRealm, services,
           calculatedConfiguration, kerberosConfigurations, includePreconfiguredData);
+    }
+  }
+
+  /**
+   * Iterate through the identities in the Kerberos descriptor to find the relevant identities to
+   * add to the identity filter.
+   * <p>
+   * The set of identities to include in the filter are determined by whether they are explicit
+   * identities set in a component or service in the supplied service/component filter.
+   *
+   * @param kerberosDescriptor     the Kerberos descriptor
+   * @param identityFilter         the existing identity filter
+   * @param serviceComponentFilter the service/component filter
+   * @return a new collection of paths (including any existing paths) to act as the updated identity filter
+   */
+  private Collection<String> updateIdentityFilter(KerberosDescriptor kerberosDescriptor,
+                                                  Collection<String> identityFilter,
+                                                  Map<String, ? extends Collection<String>> serviceComponentFilter) {
+
+    Set<String> updatedFilter = (identityFilter == null) ? new HashSet<>() : new HashSet<>(identityFilter);
+
+    Map<String, KerberosServiceDescriptor> serviceDescriptors = kerberosDescriptor.getServices();
+
+    if (serviceDescriptors != null) {
+      for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors.values()) {
+        String serviceName = serviceDescriptor.getName();
+
+        if (serviceComponentFilter.containsKey("*") || serviceComponentFilter.containsKey(serviceName)) {
+          Collection<String> componentFilter = serviceComponentFilter.get(serviceName);
+          boolean anyComponent = ((componentFilter == null) || componentFilter.contains("*"));
+
+          // Only include the service-wide identities if the component filter is null contains "*", which indicates
+          // that all component for the given service are to be processed.
+          if (anyComponent) {
+            addIdentitiesToFilter(serviceDescriptor.getIdentities(), updatedFilter, true);
+          }
+
+          Map<String, KerberosComponentDescriptor> componentDescriptors = serviceDescriptor.getComponents();
+          if (componentDescriptors != null) {
+            for (KerberosComponentDescriptor componentDescriptor : componentDescriptors.values()) {
+              String componentName = componentDescriptor.getName();
+              if (anyComponent || (componentFilter.contains(componentName))) {
+                addIdentitiesToFilter(componentDescriptor.getIdentities(), updatedFilter, true);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return updatedFilter;
+  }
+
+  /**
+   * Add the path of each identity in the collection of identities to the supplied identity filter
+   * if that identity is not a reference to another identity or if references are allowed.
+   *  @param identityDescriptors the collection of identity descriptors to process
+   * @param identityFilter      the identity filter to modify
+   * @param skipReferences
+   */
+  private void addIdentitiesToFilter(List<KerberosIdentityDescriptor> identityDescriptors,
+                                     Collection<String> identityFilter, boolean skipReferences) {
+    if (!CollectionUtils.isEmpty(identityDescriptors)) {
+      for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
+        if (!skipReferences || !identityDescriptor.isReference()) {
+          String identityPath = identityDescriptor.getPath();
+
+          if (!StringUtils.isEmpty(identityPath)) {
+            identityFilter.add(identityPath);
+
+            // Find and add the references TO this identity to ensure the new/updated keytab file is
+            // sent to the appropriate host(s)
+            addIdentitiesToFilter(identityDescriptor.findReferences(), identityFilter, false);
+          }
+        }
+      }
     }
   }
 }

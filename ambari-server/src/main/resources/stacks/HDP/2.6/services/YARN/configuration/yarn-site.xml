@@ -19,7 +19,7 @@
 <configuration supports_final="true">
   <property>
     <name>yarn.application.classpath</name>
-    <value>/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*,/usr/hdp/current/ext/hadoop/*</value>
+    <value>{{hadoop_home}}/conf,{{hadoop_home}}/*,{{hadoop_home}}/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*,/usr/hdp/current/ext/hadoop/*</value>
     <description>Classpath for typical applications.</description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -116,5 +116,23 @@
       </property>
     </depends-on>
     <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.file-formats</name>
+    <value>IndexedFormat,TFile</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.file-controller.TFile.class</name>
+    <value>org.apache.hadoop.yarn.logaggregation.filecontroller.tfile.LogAggregationTFileController</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.file-controller.IndexedFormat.class</name>
+    <value>org.apache.hadoop.yarn.logaggregation.filecontroller.ifile.LogAggregationIndexedFileController</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

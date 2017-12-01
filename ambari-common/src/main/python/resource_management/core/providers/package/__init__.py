@@ -39,13 +39,13 @@ class PackageProvider(Provider):
   def __init__(self, *args, **kwargs):
     super(PackageProvider, self).__init__(*args, **kwargs)   
   
-  def install_package(self, name, use_repos=set(), skip_repos=set(), is_upgrade=False):
+  def install_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=False):
     raise NotImplementedError()
 
   def remove_package(self, name, ignore_dependencies=False):
     raise NotImplementedError()
 
-  def upgrade_package(self, name, use_repos=set(), skip_repos=set(), is_upgrade=True):
+  def upgrade_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=True):
     raise NotImplementedError()
 
   def action_install(self):
@@ -69,7 +69,7 @@ class PackageProvider(Provider):
   def get_available_packages_in_repos(self, repositories):
     """
     Gets all (both installed and available) packages that are available at given repositories.
-    :param repositories: from command configs like config['repositoryFile']['repositories']
+    :type repositories resource_management.libraries.functions.repository_util.CommandRepository
     :return: installed and available packages from these repositories
     """
     raise NotImplementedError()

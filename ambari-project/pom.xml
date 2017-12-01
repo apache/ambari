@@ -31,6 +31,7 @@
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
     <jetty.version>8.1.19.v20160209</jetty.version>
+    <ldap-api.version>1.0.0</ldap-api.version>
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
     <swagger.version>1.5.10</swagger.version>
     <swagger.maven.plugin.version>3.1.4</swagger.maven.plugin.version>
@@ -159,57 +160,6 @@
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
         <version>2.0.4.RELEASE</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>apacheds-server-annotations</artifactId>
-        <version>2.0.0-M19</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>apacheds-core-integ</artifactId>
-        <version>2.0.0-M19</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>apacheds-server-integ</artifactId>
-        <version>2.0.0-M19</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>apacheds-jdbm</artifactId>
-        <version>2.0.0-M5</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>apacheds-kerberos-codec</artifactId>
-        <version>2.0.0-M19</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>apacheds-core</artifactId>
-        <version>2.0.0-M19</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>kerberos-client</artifactId>
-        <version>2.0.0-M19</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.server</groupId>
-        <artifactId>apacheds-protocol-ldap</artifactId>
-        <version>2.0.0-M19</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.directory.jdbm</groupId>
-            <artifactId>apacheds-jdbm1</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.directory.shared</groupId>
-        <artifactId>shared-ldap</artifactId>
-        <version>0.9.17</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

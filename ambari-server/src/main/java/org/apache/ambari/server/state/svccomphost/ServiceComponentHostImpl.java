@@ -1181,6 +1181,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       LOG.error("Could not determine stale config", e);
     }
 
+    try {
+      Cluster cluster = clusters.getCluster(clusterName);
+      ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(serviceComponentName);
+      ServiceComponentHost sch = serviceComponent.getServiceComponentHost(hostName);
+      String refreshConfigsCommand = helper.getRefreshConfigsCommand(cluster,sch);
+      r.setReloadConfig(refreshConfigsCommand != null);
+    } catch (Exception e) {
+      LOG.error("Could not determine reload config flag", e);
+    }
+
     return r;
   }
 
@@ -1270,7 +1280,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
           clusterId, stackName, stackVersion, serviceName, componentName,
-          hostName, recoveryEnabled);
+          hostName, recoveryEnabled, host.getHostId());
 
       eventPublisher.publish(event);
     }
@@ -1440,8 +1450,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   @Transactional
   public HostVersionEntity recalculateHostVersionState() throws AmbariException {
-    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
     HostEntity hostEntity = host.getHostEntity();
+    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
     HostVersionEntity hostVersionEntity = hostVersionDAO.findHostVersionByHostAndRepository(
         hostEntity, repositoryVersion);
 
@@ -1462,11 +1472,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         hostVersionDAO.create(hostVersionEntity);
       }
 
-      final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(
-          ambariMetaInfo, hostEntity, repositoryVersion);
-
-      if (hostSummary.isVersionCorrectForAllHosts(repositoryVersion)) {
-        if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT) {
+      if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT) {
+        if (host.isRepositoryVersionCorrect(repositoryVersion)) {
           hostVersionEntity.setState(RepositoryVersionState.CURRENT);
           hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
         }

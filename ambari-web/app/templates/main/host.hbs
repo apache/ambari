@@ -16,24 +16,35 @@
 * limitations under the License.
 }}
 
-<div id="hosts">
+<div id="hosts" class="container-wrap-table">
 
   <div class="row">
     <h2 class="table-title col-sm-1">{{t common.hosts}}</h2>
     <div class="table-controls row col-sm-10 pull-right">
       <div class="col-sm-12">
-        {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS"}}
+        {{#havePermissions "HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS"}}
           {{view App.HostTableMenuView}}
-        {{/isAuthorized}}
-        <div class="col-sm-10 pull-right">
-          {{outlet}}
+        {{/havePermissions}}
+        <div class="VS-open-box pull-right">
+          <button class="btn btn-default">
+            <i class="icon-search"></i>
+          </button>
+          <div class="popup-arrow-up hide"></div>
         </div>
       </div>
     </div>
   </div>
+  <div class="row search-box-row hide">
+    {{view App.MainHostComboSearchBoxView}}
+  </div>
   <table class="table advanced-header-table table-hover" id="hosts-table">
     <thead>
-    {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+      {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+        <th>
+          <div class="ember-view view-wrapper">
+            {{view App.CheckboxView classNames="host-select-all" checkedBinding="view.parentView.selectAllHosts"}}
+          </div>
+        </th>
         <th> </th>
         {{view view.parentView.nameSort}}
         <th> </th>
@@ -48,17 +59,14 @@
           {{t hosts.host.menu.stackVersions}}
         </th>
         <th class="sort-view-6">{{t common.components}}</th>
-        <th>
-          <div class="ember-view view-wrapper">
-            {{view App.CheckboxView classNames="host-select-all" checkedBinding="view.parentView.selectAllHosts"}}
-          </div>
-        </th>
+
       {{/view}}
     </thead>
     <tbody>
     {{#if view.pageContent}}
       {{#each host in view.pageContent}}
         {{#view view.HostView contentBinding="host"}}
+          <td>{{view App.CheckboxView checkedBinding="host.selected"}}</td>
 
           <td class="health">
             <span rel="HealthTooltip" {{bindAttr class="host.healthClass host.healthIconClass"}} {{bindAttr data-original-title="host.healthToolTip" }}></span>
@@ -108,8 +116,6 @@
               {{view.content.hostComponents.length}} {{pluralize view.content.hostComponents.length singular="t:common.component" plural="t:common.components"}}
             </a>
           </td>
-
-          <td>{{view App.CheckboxView checkedBinding="host.selected"}}</td>
         {{/view}}
       {{/each}}
     {{else}}

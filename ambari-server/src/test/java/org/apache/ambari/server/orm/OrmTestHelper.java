@@ -670,11 +670,13 @@ public class OrmTestHelper {
 
     if (repositoryVersion == null) {
       try {
+        String operatingSystems = "[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]";
+
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
-        ex.printStackTrace();
+
         Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
             stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
       }

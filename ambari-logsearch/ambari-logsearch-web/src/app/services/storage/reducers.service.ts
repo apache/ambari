@@ -27,9 +27,11 @@ import {graphs} from '@app/services/storage/graphs.service';
 import {hosts} from '@app/services/storage/hosts.service';
 import {serviceLogs} from '@app/services/storage/service-logs.service';
 import {serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {userConfigs} from '@app/services/storage/user-configs.service';
+import {tabs} from '@app/services/storage/tabs.service';
 
 export const reducers = {
   appSettings,
@@ -37,6 +39,7 @@ export const reducers = {
   auditLogs,
   serviceLogs,
   serviceLogsHistogramData,
+  serviceLogsTruncated,
   graphs,
   hosts,
   userConfigs,
@@ -44,7 +47,8 @@ export const reducers = {
   clusters,
   components,
   serviceLogsFields,
-  auditLogsFields
+  auditLogsFields,
+  tabs
 };
 
 export function reducer(state: any, action: any) {

@@ -232,7 +232,8 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
   def recommendRangerKMSConfigurationsFromHDP25(self, configurations, clusterData, services, hosts):
 
     security_enabled = self.isSecurityEnabled(services)
-    required_services = [{'service' : 'RANGER', 'config-type': 'ranger-env', 'property-name': 'ranger_user', 'proxy-category': ['hosts', 'users', 'groups']}]
+    required_services = [{'service' : 'RANGER', 'config-type': 'ranger-env', 'property-name': 'ranger_user', 'proxy-category': ['hosts', 'users', 'groups']},
+                        {'service' : 'SPARK2', 'config-type': 'livy2-env', 'property-name': 'livy2_user', 'proxy-category': ['hosts', 'users', 'groups']}]
 
     if security_enabled:
       # recommendations for kms proxy related properties

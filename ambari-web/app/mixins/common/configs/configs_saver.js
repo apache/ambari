@@ -405,33 +405,15 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       serviceConfigNote = serviceConfigNote || "";
 
       fileNamesToSave.forEach(function(fName) {
-        var tagVersion = this.getUniqueTag();
 
         if (this.allowSaveSite(fName)) {
           var properties = configsToSave.filterProperty('filename', fName);
           var type = App.config.getConfigTagFromFileName(fName);
-          desired_config.push(this.createDesiredConfig(type, tagVersion, properties, serviceConfigNote, ignoreVersionNote));
+          desired_config.push(this.createDesiredConfig(type, properties, serviceConfigNote, ignoreVersionNote));
         }
       }, this);
     }
     return desired_config;
-  },
-
-  /**
-   * generate unique tag
-   * @returns {string}
-   */
-  getUniqueTag: function() {
-    var timestamp = (new Date).getTime();
-    var tagVersion = "version" + timestamp;
-
-    while(this.get('_timeStamps')[tagVersion]) {
-      timestamp++;
-      tagVersion = "version" + timestamp;
-    }
-    /** @see <code>_timeStamps<code> **/
-    this.get('_timeStamps')[tagVersion] = true;
-    return tagVersion;
   },
 
   /**
@@ -467,17 +449,15 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   /**
    * generating common JSON object for desired config
    * @param {string} type - file name without '.xml'
-   * @param {string} tagVersion - version + timestamp
    * @param {App.ConfigProperty[]} properties - array of properties from model
    * @param {string} [serviceConfigNote='']
    * @param {boolean} [ignoreVersionNote=false]
    * @returns {{type: string, tag: string, properties: {}, properties_attributes: {}|undefined, service_config_version_note: string|undefined}}
    */
-  createDesiredConfig: function(type, tagVersion, properties, serviceConfigNote, ignoreVersionNote) {
-    Em.assert('type and tagVersion should be defined', type && tagVersion);
+  createDesiredConfig: function(type, properties, serviceConfigNote, ignoreVersionNote) {
+    Em.assert('type should be defined', type);
     var desired_config = {
       "type": type,
-      "tag": tagVersion,
       "properties": {}
     };
     if (!ignoreVersionNote) {

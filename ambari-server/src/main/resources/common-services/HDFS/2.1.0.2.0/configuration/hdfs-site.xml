@@ -184,6 +184,9 @@
     <value>3</value>
     <description>Determines datanode heartbeat interval in seconds.</description>
     <on-ambari-upgrade add="true"/>
+    <supported-refresh-commands>
+      <refresh-command componentName="NAMENODE" command="reload_configs" />
+    </supported-refresh-commands>
   </property>
   <property>
     <name>dfs.namenode.safemode.threshold-pct</name>
@@ -335,6 +338,7 @@
   <property>
     <name>dfs.permissions.superusergroup</name>
     <value>hdfs</value>
+    <property-type>GROUP</property-type>
     <description>The name of the group of super-users.</description>
     <on-ambari-upgrade add="true"/>
   </property>

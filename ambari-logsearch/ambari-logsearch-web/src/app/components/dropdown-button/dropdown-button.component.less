@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
-@import '../variables';
+@import '../mixins';
 
 :host {
   .default-flex;
   position: relative;
-  float: left;
 
-  .filter-label {
-    padding: @input-group-addon-padding;
-
-    &.plain {
-      color: initial;
-    }
-  }
-
-  .btn {
+  button {
     text-transform: none;
+
+    .filter-label {
+      padding: @input-group-addon-padding;
+
+      &.plain {
+        color: initial;
+      }
+    }
   }
 }

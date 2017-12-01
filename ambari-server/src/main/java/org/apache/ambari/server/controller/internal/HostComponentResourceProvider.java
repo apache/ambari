@@ -66,6 +66,8 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.ambari.server.topology.Setting;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -76,6 +78,8 @@ import com.google.inject.assistedinject.AssistedInject;
  * Resource provider for host component resources.
  */
 public class HostComponentResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(HostComponentResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -106,6 +110,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "actual_configs");
   public static final String HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "stale_configs");
+  public static final String HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "reload_configs");
   public static final String HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_admin_state");
   public static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID
@@ -244,6 +250,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
               response.isStaleConfig(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_RELOAD_CONFIGS_PROPERTY_ID,
+              response.isReloadConfig(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID,
               response.getUpgradeState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_REPOSITORY_VERSION,

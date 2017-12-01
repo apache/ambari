@@ -167,6 +167,22 @@
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
+      <directory>${stackHooksLocation}</directory>
+      <outputDirectory>/var/lib/ambari-server/resources/stack-hooks</outputDirectory>
+      <excludes>
+	    <exclude>/before-START/files/fast-hdfs-resource.jar</exclude>
+	  </excludes>
+    </fileSet>
+    <fileSet>
+      <fileMode>644</fileMode>
+      <directory>${stackHooksLocation}</directory>
+      <outputDirectory>/var/lib/ambari-server/resources/stack-hooks</outputDirectory>
+      <includes>
+	    <include>/before-START/files/fast-hdfs-resource.jar</include>
+	  </includes>
+    </fileSet>
+    <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/resources/upgrade/catalog</directory>
       <outputDirectory>/var/lib/ambari-server/resources/upgrade/catalog</outputDirectory>
     </fileSet>
@@ -176,8 +192,6 @@
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
       <excludes>
 	    <exclude>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</exclude>
-        <exclude>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
-        <exclude>/3.0/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
 	  </excludes>
     </fileSet>
     <fileSet>
@@ -186,8 +200,6 @@
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
       <includes>
 	    <include>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
-        <include>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</include>
-        <include>/3.0/hooks/before-START/files/fast-hdfs-resource.jar</include>
 	  </includes>
     </fileSet>
     <fileSet>
@@ -377,6 +389,16 @@
     <file>
       <fileMode>755</fileMode>
       <source>src/main/resources/APACHE-AMBARI-MIB.txt</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
+      <source>src/main/resources/kerberos.json</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
+      <source>src/main/resources/widgets.json</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>

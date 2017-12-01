@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Input} from '@angular/core';
-import {ListItem} from '@app/classes/list-item.class';
+import {Component, Input} from '@angular/core';
+import {ListItem} from '@app/classes/list-item';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 
@@ -26,17 +26,16 @@ import {UtilsService} from '@app/services/utils.service';
   templateUrl: './dropdown-button.component.html',
   styleUrls: ['./dropdown-button.component.less']
 })
-export class DropdownButtonComponent implements OnInit {
+export class DropdownButtonComponent {
 
   constructor(protected actions: ComponentActionsService, protected utils: UtilsService) {
-  }
-
-  ngOnInit() {
-    this.selectedLabel = this.defaultLabel;
   }
   
   @Input()
   label?: string;
+
+  @Input()
+  buttonClass: string = '';
 
   @Input()
   iconClass?: string;
@@ -48,13 +47,7 @@ export class DropdownButtonComponent implements OnInit {
   showSelectedValue: boolean = true;
 
   @Input()
-  options?: ListItem[];
-
-  @Input()
-  defaultValue?: string;
-
-  @Input()
-  defaultLabel?: string;
+  options: ListItem[] = [];
 
   @Input()
   action?: string;
@@ -71,36 +64,33 @@ export class DropdownButtonComponent implements OnInit {
   @Input()
   isDropup: boolean = false;
 
-  protected selectedValue?: any;
+  protected selectedItems?: ListItem[] = [];
 
-  selectedLabel: string;
-
-  get value(): any {
-    return this.selectedValue;
+  get selection(): ListItem[] {
+    return this.selectedItems;
   }
 
-  set value(value: any) {
-    this.selectedValue = value;
+  set selection(items: ListItem[]) {
+    this.selectedItems = items;
   }
 
-  updateValue(eventOptions: ListItem): void {
-    const value = eventOptions && eventOptions.value,
-      action = this.action && this.actions[this.action];
+  updateSelection(item: ListItem): void {
+    const action = this.action && this.actions[this.action];
     if (this.isMultipleChoice) {
-      this.value = this.utils.updateMultiSelectValue(this.value, value, eventOptions.isChecked);
-      this.options.find(item => item.value === value).isChecked = eventOptions.isChecked;
+      this.options.find((option: ListItem): boolean => {
+        return this.utils.isEqual(option.value, item.value);
+      }).isChecked = item.isChecked;
+      const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
+      this.selection = checkedItems;
       if (action) {
-        action(this.options.filter(item => item.isChecked).map(item => item.value), ...this.additionalArgs);
+        action(checkedItems.map((option: ListItem): any => option.value), ...this.additionalArgs);
       }
-    } else {
-      if (this.utils.valueHasChanged(this.value, value)) {
-        this.value = value;
-        this.selectedLabel = eventOptions.label;
-        if (action) {
-          action(this.value, ...this.additionalArgs);
-        }
+    } else if (!this.utils.isEqual(this.selection[0], item)) {
+      this.selection = [item];
+      if (action) {
+        action(item.value, ...this.additionalArgs);
       }
     }
   }
-  
+
 }

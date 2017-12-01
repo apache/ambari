@@ -42,6 +42,8 @@ import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -50,6 +52,8 @@ import com.google.inject.Inject;
  */
 @StaticallyInject
 public class RoleAuthorizationResourceProvider extends ReadOnlyResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RoleAuthorizationResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

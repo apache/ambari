@@ -108,13 +108,21 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   setDependentHostComponents: function (componentName) {
     var installedServices = App.Service.find().mapProperty('serviceName');
-    var installedComponents = App.Host.find(this.get('content.reassignHosts.target'))
+    var hostInstalledComponents = App.Host.find(this.get('content.reassignHosts.target'))
         .get('hostComponents')
         .mapProperty('componentName');
+    var clusterInstalledComponents = App.MasterComponent.find().toArray()
+        .concat(App.ClientComponent.find().toArray())
+        .concat(App.SlaveComponent.find().toArray())
+        .filter(function(service){
+          return service.get("installedCount") > 0;
+        })
+        .mapProperty('componentName');
+
     var dependenciesToInstall = App.StackServiceComponent.find(componentName)
         .get('dependencies')
         .filter(function (component) {
-          return !installedComponents.contains(component.componentName) && installedServices.contains(component.serviceName);
+          return !(component.scope == 'host' ? hostInstalledComponents : clusterInstalledComponents).contains(component.componentName) && (installedServices.contains(component.serviceName));
         })
         .mapProperty('componentName');
     this.set('dependentHostComponents', dependenciesToInstall);
@@ -315,11 +323,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   getServiceConfigData: function (configs, attributes) {
     var componentName = this.get('content.reassign.component_name');
-    var tagName = 'version' + (new Date).getTime();
     var configData = Object.keys(configs).map(function (_siteName) {
       return {
         type: _siteName,
-        tag: tagName,
         properties: configs[_siteName],
         properties_attributes: attributes[_siteName] || {},
         service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName, false))

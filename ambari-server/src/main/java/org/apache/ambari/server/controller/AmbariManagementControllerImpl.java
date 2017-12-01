@@ -68,6 +68,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.persistence.RollbackException;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -105,6 +107,7 @@ import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory
 import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -138,7 +141,6 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
@@ -188,9 +190,11 @@ import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
@@ -318,6 +322,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private StackDAO stackDAO;
   @Inject
   protected OsFamily osFamily;
+
+  @Inject
+  private RepositoryVersionHelper repoVersionHelper;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -909,9 +916,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackId stackId = null;
     if (null != service) {
-      Service svc = cluster.getService(service);
-      stackId = svc.getDesiredStackId();
-    } else {
+      try {
+        Service svc = cluster.getService(service);
+        stackId = svc.getDesiredStackId();
+      } catch (AmbariException ambariException) {
+        LOG.warn("Adding configurations for {} even though its parent service {} is not installed",
+            configType, service);
+      }
+    }
+
+    if (null == stackId) {
       stackId = cluster.getDesiredStackVersion();
     }
 
@@ -1434,70 +1448,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // We have to allow for multiple requests to account for multiple
     // configuration updates (create multiple configuration resources)...
     for (ClusterRequest request : requests) {
-      // TODO : Is there ever a real world case where we could have multiple non-null responses?
-
-      // ***************************************************
-      // set any session attributes for this cluster request
-      Cluster cluster;
-      if (request.getClusterId() == null) {
-        cluster = clusters.getCluster(request.getClusterName());
-      } else {
-        cluster = clusters.getClusterById(request.getClusterId());
-      }
-
-      if (cluster == null) {
-        throw new AmbariException("The cluster may not be null");
-      }
-
-      Map<String, Object> sessionAttributes = request.getSessionAttributes();
-
-      // TODO: Once the UI uses the Credential Resource API, remove this block to _clean_ the
-      // TODO: session attributes and store any KDC administrator credentials in the secure
-      // TODO: credential provider facility.
-      // For now, to keep things backwards compatible, get and remove the KDC administrator credentials
-      // from the session attributes and store them in the CredentialsProvider. The KDC administrator
-      // credentials are prefixed with kdc_admin/. The following attributes are expected, if setting
-      // the KDC administrator credentials:
-      //    kerberos_admin/principal
-      //    kerberos_admin/password
-      if((sessionAttributes != null) && !sessionAttributes.isEmpty()) {
-        Map<String, Object> cleanedSessionAttributes = new HashMap<>();
-        String principal = null;
-        char[] password = null;
-
-        for(Map.Entry<String,Object> entry: sessionAttributes.entrySet()) {
-          String name = entry.getKey();
-          Object value = entry.getValue();
-
-          if ("kerberos_admin/principal".equals(name)) {
-            if(value instanceof String) {
-              principal = (String)value;
-            }
-          }
-          else if ("kerberos_admin/password".equals(name)) {
-            if(value instanceof String) {
-              password = ((String) value).toCharArray();
-            }
-          } else {
-            cleanedSessionAttributes.put(name, value);
-          }
-        }
-
-        if(principal != null) {
-          // The KDC admin principal exists... set the credentials in the credentials store
-          credentialStoreService.setCredential(cluster.getClusterName(),
-              KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS,
-              new PrincipalKeyCredential(principal, password), CredentialStoreType.TEMPORARY);
-        }
-
-        sessionAttributes = cleanedSessionAttributes;
-      }
-      // TODO: END
-
-      cluster.addSessionAttributes(sessionAttributes);
-      //
-      // ***************************************************
-
       response = updateCluster(request, requestProperties);
     }
     return response;
@@ -2454,7 +2404,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
 
-    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, component, host);
+    String repoInfo;
+    try {
+      repoInfo = repoVersionHelper.getRepoInfo(cluster, component, host);
+    } catch (SystemException e) {
+      throw new AmbariException("", e);
+    }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Sending repo information to agent, hostname={}, clusterName={}, stackInfo={}, repoInfo={}",
         scHost.getHostName(), clusterName, stackId.getStackId(), repoInfo);
@@ -2552,7 +2507,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setRoleParams(roleParams);
     execCmd.setCommandParams(commandParams);
 
-    execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, component, host));
     execCmdWrapper.setVersions(cluster);
 
     if (execCmd.getConfigurationTags().containsKey("cluster-env")) {
@@ -2831,7 +2785,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (StringUtils.isBlank(stage.getHostParamsStage())) {
               RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
               stage.setHostParamsStage(StageUtils.getGson().toJson(
-                  customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion)));
+                  customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
             }
 
 
@@ -3179,7 +3133,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
 
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
-        cluster, scHost.getServiceComponent().getDesiredRepositoryVersion());
+        cluster, scHost.getServiceComponent().getDesiredStackId());
 
     Stage stage = createNewStage(0, cluster, 1, "", clusterHostInfoJson, "{}", "");
 
@@ -3457,15 +3411,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               + ", componentName=" + request.getComponentName()
               + ", hostname=" + request.getHostname()
               + ", request=" + request);
-    }
-
-    // Only allow removing master/slave components in DISABLED/UNKNOWN/INSTALL_FAILED/INIT state without stages
-    // generation.
-    // Clients may be removed without a state check.
-    if (!component.isClientComponent() &&
-            !componentHost.getState().isRemovableState()) {
-      throw new AmbariException("To remove master or slave components they must be in " +
-              "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
     }
   }
 
@@ -4147,56 +4092,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         actionManager,
         actionRequest);
 
-    RepositoryVersionEntity desiredRepositoryVersion = null;
-
-    RequestOperationLevel operationLevel = actionExecContext.getOperationLevel();
-    if (null != operationLevel && StringUtils.isNotBlank(operationLevel.getServiceName())) {
-      Service service = cluster.getService(operationLevel.getServiceName());
-      if (null != service) {
-        desiredRepositoryVersion = service.getDesiredRepositoryVersion();
-      }
-    }
-
-    if (null == desiredRepositoryVersion && CollectionUtils.isNotEmpty(actionExecContext.getResourceFilters())) {
-      Set<RepositoryVersionEntity> versions = new HashSet<>();
-
-      for (RequestResourceFilter filter : actionExecContext.getResourceFilters()) {
-        RepositoryVersionEntity repoVersion = null;
-
-        if (StringUtils.isNotBlank(filter.getServiceName())) {
-          Service service = cluster.getService(filter.getServiceName());
-
-          if (StringUtils.isNotBlank(filter.getComponentName())) {
-            ServiceComponent serviceComponent = service.getServiceComponent(filter.getComponentName());
-
-            repoVersion = serviceComponent.getDesiredRepositoryVersion();
-          }
-
-          if (null == repoVersion) {
-            repoVersion = service.getDesiredRepositoryVersion();
-          }
-        }
-
-        if (null != repoVersion) {
-          versions.add(repoVersion);
-        }
-      }
-
-      if (1 == versions.size()) {
-        desiredRepositoryVersion = versions.iterator().next();
-      } else if (versions.size() > 1) {
-        Set<String> errors = new HashSet<>();
-        for (RepositoryVersionEntity version : versions) {
-          errors.add(String.format("%s/%s", version.getStackId(), version.getVersion()));
-        }
-        throw new IllegalArgumentException(String.format("More than one repository is resolved with this Action: %s",
-            StringUtils.join(errors, ';')));
-      }
-    }
-
-
-    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext,
-        cluster, desiredRepositoryVersion, requestContext);
+    @Experimental(feature=ExperimentalFeature.MULTI_SERVICE,
+        comment = "This must change with Multi-Service since the cluster won't have a desired stack version")
+    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster,
+        null == cluster ? null : cluster.getDesiredStackVersion(), requestContext);
 
     String commandParamsForStage = jsons.getCommandParamsForStage();
 
@@ -4473,8 +4372,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
           if (operatingSystem.getOsType().equals(osType)) {
             for (RepositoryEntity repository: operatingSystem.getRepositories()) {
+
               final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(),
-                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "");
+                      repository.getName(), repository.getDistribution(), repository.getComponents(), "", "",
+                      repository.getTags());
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4482,6 +4383,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
               response.setStackName(repositoryVersion.getStackName());
               response.setStackVersion(repositoryVersion.getStackVersion());
+
               responses.add(response);
             }
             break;
@@ -4503,7 +4405,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl());
+              repo.getBaseUrl(), Collections.<RepoTag>emptySet());
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());
@@ -4555,8 +4457,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
     usp.setSetupTruststoreForHttps(false);
 
-    RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(request.getStackName(), request.getStackVersion(), request.getOsType(), request.getRepoId());
-    String repoName = repositoryInfo.getRepoName();
+    String repoName = request.getRepoName();
+    if (StringUtils.isEmpty(repoName)) {
+      throw new IllegalArgumentException("repo_name is required to verify repository");
+    }
 
     String errorMessage = null;
     Exception e = null;
@@ -5184,22 +5088,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         widgetDescriptorFiles.add(widgetDescriptorFile);
       }
     } else {
-      Set<StackId> stackIds = new HashSet<>();
-
-      for (Service svc : cluster.getServices().values()) {
-        stackIds.add(svc.getDesiredStackId());
-      }
-
-      for (StackId stackId : stackIds) {
-        StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
-
-        String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
-        if (widgetDescriptorFileLocation != null) {
-          File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
-          if (widgetDescriptorFile.exists()) {
-            widgetDescriptorFiles.add(widgetDescriptorFile);
-          }
-        }
+      // common cluster level widgets
+      File commonWidgetsFile = ambariMetaInfo.getCommonWidgetsDescriptorFile();
+      if (commonWidgetsFile != null && commonWidgetsFile.exists()) {
+        widgetDescriptorFiles.add(commonWidgetsFile);
+      } else {
+        LOG.warn("Common widgets file with path {%s} doesn't exist. No cluster widgets will be created.", commonWidgetsFile);
       }
     }
 
@@ -5630,12 +5524,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   /**
-   * This method will update a link between an extension version and a stack version (Extension Link).
-   * Updating will only force ambari server to reread the stack and extension directories.
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
-   * An extension version is like a stack version but it contains custom services.  Linking an extension
-   * version to the current stack version allows the cluster to install the custom services contained in
-   * the extension version.
+   * @throws AmbariException if we fail to link the extension to the stack
    */
   @Override
   public void updateExtensionLink(ExtensionLinkRequest request) throws AmbariException {
@@ -5649,32 +5540,43 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new AmbariException("Unable to find extension link"
             + ", linkId=" + request.getLinkId(), e);
     }
-    updateExtensionLink(linkEntity);
+    updateExtensionLink(linkEntity, request);
   }
 
   /**
-   * This method will update a link between an extension version and a stack version (Extension Link).
-   * Updating will only force ambari server to reread the stack and extension directories.
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
-   * An extension version is like a stack version but it contains custom services.  Linking an extension
-   * version to the current stack version allows the cluster to install the custom services contained in
-   * the extension version.
+   * @throws AmbariException if we fail to link the extension to the stack
    */
   @Override
-  public void updateExtensionLink(ExtensionLinkEntity linkEntity) throws AmbariException {
-    StackInfo stackInfo = ambariMetaInfo.getStack(linkEntity.getStack().getStackName(), linkEntity.getStack().getStackVersion());
+  public void updateExtensionLink(ExtensionLinkEntity oldLinkEntity, ExtensionLinkRequest newLinkRequest) throws AmbariException {
+    StackInfo stackInfo = ambariMetaInfo.getStack(oldLinkEntity.getStack().getStackName(), oldLinkEntity.getStack().getStackVersion());
 
     if (stackInfo == null) {
-      throw new StackAccessException("stackName=" + linkEntity.getStack().getStackName() + ", stackVersion=" + linkEntity.getStack().getStackVersion());
+      throw new StackAccessException(String.format("stackName=%s, stackVersion=%s", oldLinkEntity.getStack().getStackName(), oldLinkEntity.getStack().getStackVersion()));
     }
 
-    ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(linkEntity.getExtension().getExtensionName(), linkEntity.getExtension().getExtensionVersion());
-
-    if (extensionInfo == null) {
-      throw new StackAccessException("extensionName=" + linkEntity.getExtension().getExtensionName() + ", extensionVersion=" + linkEntity.getExtension().getExtensionVersion());
+    if (newLinkRequest.getExtensionName() == null || newLinkRequest.getExtensionVersion() == null) {
+      throw new AmbariException(String.format("Invalid extension name or version: %s/%s",
+		  newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion()));
     }
 
-    ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
+    if (!newLinkRequest.getExtensionName().equals(oldLinkEntity.getExtension().getExtensionName())) {
+      throw new AmbariException(String.format("Update is not allowed to switch the extension name, only the version.  Old name/new name: %s/%s",
+		  oldLinkEntity.getExtension().getExtensionName(), newLinkRequest.getExtensionName()));
+    }
+
+    ExtensionInfo oldExtensionInfo = ambariMetaInfo.getExtension(oldLinkEntity.getExtension().getExtensionName(), oldLinkEntity.getExtension().getExtensionVersion());
+    ExtensionInfo newExtensionInfo = ambariMetaInfo.getExtension(newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion());
+
+    if (oldExtensionInfo == null) {
+      throw new StackAccessException(String.format("Old extensionName=%s, extensionVersion=%s", oldLinkEntity.getExtension().getExtensionName(), oldLinkEntity.getExtension().getExtensionVersion()));
+    }
+    if (newExtensionInfo == null) {
+      throw new StackAccessException(String.format("New extensionName=%s, extensionVersion=%s", newLinkRequest.getExtensionName(), newLinkRequest.getExtensionVersion()));
+    }
+
+    helper.updateExtensionLink(ambariMetaInfo.getStackManager(), oldLinkEntity, stackInfo, oldExtensionInfo, newExtensionInfo);
   }
 
   @Override

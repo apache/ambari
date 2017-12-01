@@ -41,6 +41,13 @@
       <xs:element name="deleted" type="xs:boolean" minOccurs="0"/>
       <xs:element name="final" type="xs:boolean" minOccurs="0"/>
       <xs:element name="on-ambari-upgrade" type="propertyUpgradeBehavior" minOccurs="1"/>
+      <xs:element name="supported-refresh-commands" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="refresh-command" type="refreshCommands" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
       <xs:element name="on-stack-upgrade" type="propertyStackUpgradeBehavior" minOccurs="0"/>
       <xs:element name="property-type" minOccurs="0">
         <xs:simpleType>
@@ -84,6 +91,11 @@
     <xs:attribute name="merge" type="xs:boolean" use="optional" default="true"/>
   </xs:complexType>
 
+  <xs:complexType name="refreshCommands">
+    <xs:attribute name="componentName" type="xs:string" use="required"/>
+    <xs:attribute name="command" type="xs:string" use="optional"/>
+  </xs:complexType>
+
   <xs:complexType name="valueAttributesInfo">
     <xs:all>
       <xs:element name="type" type="xs:string" minOccurs="0"/>
@@ -115,7 +127,7 @@
     <xs:element name="user-groups" minOccurs="0">
       <xs:complexType>
         <xs:sequence>
-          <xs:element name="property" type="userGroupInfo" minOccurs="1"/>
+          <xs:element name="property" type="userGroupInfo" minOccurs="1" maxOccurs="unbounded"/>
         </xs:sequence>
       </xs:complexType>
     </xs:element>

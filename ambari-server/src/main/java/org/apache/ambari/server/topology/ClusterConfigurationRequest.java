@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClusterConfigurationRequest {
 
-  protected final static Logger LOG = LoggerFactory.getLogger(ClusterConfigurationRequest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ClusterConfigurationRequest.class);
 
   /**
    * a regular expression Pattern used to find "clusterHostInfo.(component_name)_host" placeholders in strings

@@ -90,6 +90,11 @@ public class PropertyInfo {
   private Set<PropertyDependencyInfo> usedByProperties =
           new HashSet<>();
 
+  @XmlElementWrapper(name="supported-refresh-commands")
+  @XmlElement(name="refresh-command")
+  private Set<RefreshCommand> supportedRefreshCommands = new HashSet<>();
+
+
   //This method is called after all the properties (except IDREF) are unmarshalled for this object,
   //but before this object is set to the parent object.
   void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
@@ -207,6 +212,30 @@ public class PropertyInfo {
 
   public void setRequireInput(boolean requireInput) {
     this.requireInput = requireInput;
+  }
+
+  public List<Element> getPropertyAttributes() {
+    return propertyAttributes;
+  }
+
+  public void setPropertyAttributes(List<Element> propertyAttributes) {
+    this.propertyAttributes = propertyAttributes;
+  }
+
+  public Set<RefreshCommand> getSupportedRefreshCommands() {
+    return supportedRefreshCommands;
+  }
+
+  public void setSupportedRefreshCommands(Set<RefreshCommand> supportedRefreshCommands) {
+    this.supportedRefreshCommands = supportedRefreshCommands;
+  }
+
+  /**
+   * Willcard properties should not be included to stack configurations.
+   * @return
+   */
+  public boolean shouldBeConfigured() {
+    return !getName().contains("*");
   }
 
   @Override

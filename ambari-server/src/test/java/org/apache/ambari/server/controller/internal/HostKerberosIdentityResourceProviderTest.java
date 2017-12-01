@@ -139,11 +139,12 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
     expect(principalDescriptor1.getLocalUsername()).andReturn("principal1");
 
     KerberosKeytabDescriptor keytabDescriptor1 = createStrictMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").times(1);
-    expect(keytabDescriptor1.getGroupAccess()).andReturn("r").times(1);
     expect(keytabDescriptor1.getFile()).andReturn("/etc/security/keytabs/principal1.headless.keytab").times(1);
-    expect(keytabDescriptor1.getOwnerName()).andReturn("principal1").times(1);
-    expect(keytabDescriptor1.getGroupName()).andReturn("principal1").times(1);
+    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").once();
+    expect(keytabDescriptor1.getGroupAccess()).andReturn("r").once();
+    expect(keytabDescriptor1.getFile()).andReturn("/etc/security/keytabs/principal1.headless.keytab").times(1);
+    expect(keytabDescriptor1.getOwnerName()).andReturn("principal1").once();
+    expect(keytabDescriptor1.getGroupName()).andReturn("principal1").once();
 
     KerberosIdentityDescriptor identity1 = createStrictMock(KerberosIdentityDescriptor.class);
     expect(identity1.getPrincipalDescriptor()).andReturn(principalDescriptor1).times(1);
@@ -189,8 +190,7 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
     expect(kerberosPrincipalDAO.exists("principal5@EXAMPLE.COM")).andReturn(false).times(1);
 
     KerberosPrincipalHostDAO kerberosPrincipalHostDAO = createStrictMock(KerberosPrincipalHostDAO.class);
-    expect(kerberosPrincipalHostDAO.exists("principal1@EXAMPLE.COM", 100L)).andReturn(true).times(1);
-    expect(kerberosPrincipalHostDAO.exists("principal2/Host100@EXAMPLE.COM", 100L)).andReturn(false).times(1);
+    expect(kerberosPrincipalHostDAO.exists("principal1@EXAMPLE.COM", 100L, "/etc/security/keytabs/principal1.headless.keytab")).andReturn(true).times(1);
 
     HostEntity host100 = createStrictMock(HostEntity.class);
     expect(host100.getHostId()).andReturn(100L).times(1);

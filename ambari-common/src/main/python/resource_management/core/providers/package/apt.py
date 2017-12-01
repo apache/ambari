@@ -44,6 +44,7 @@ REMOVE_CMD = {
 }
 REPO_UPDATE_CMD = ['/usr/bin/apt-get', 'update','-qq']
 
+EMPTY_FILE = "/dev/null"
 APT_SOURCES_LIST_DIR = "/etc/apt/sources.list.d"
 
 CHECK_CMD = "dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^%s$"
@@ -273,24 +274,31 @@ class AptProvider(PackageProvider):
 
     return packages
 
-  def get_available_packages_in_repos(self, repositories):
+  def get_available_packages_in_repos(self, repos):
     """
     Gets all (both installed and available) packages that are available at given repositories.
-    :param repositories: from command configs like config['repositoryFile']['repositories']
+    :type repos resource_management.libraries.functions.repository_util.CommandRepository
     :return: installed and available packages from these repositories
     """
 
     filtered_packages = []
     packages = self.all_available_packages()
+    repo_ids = []
 
-    for repo in repositories:
-      repo_url_part = repo['baseUrl'].replace("http://", "").replace("/", "_")
+    for repo in repos.items:
+      repo_ids.append(repo.base_url.replace("http://", "").replace("/", "_"))
 
-      for package in packages:
-        if repo_url_part in package[2]:
-          filtered_packages.append(package[0])
+    if repos.feat.scoped:
+      Logger.info("Looking for matching packages in the following repositories: {0}".format(", ".join(repo_ids)))
+      for repo_id in repo_ids:
+        for package in packages:
+          if repo_id in package[2]:
+            filtered_packages.append(package[0])
 
-    return filtered_packages
+      return filtered_packages
+    else:
+      Logger.info("Packages will be queried using all available repositories on the system.")
+      return [package[0] for package in packages]
 
   def get_all_package_versions(self, pkg_name):
     """
@@ -338,38 +346,44 @@ class AptProvider(PackageProvider):
     return True
 
   @replace_underscores
-  def install_package(self, name, use_repos=set(), skip_repos=set(), is_upgrade=False):
+  def install_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=False):
     if is_upgrade or use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       copied_sources_files = []
       is_tmp_dir_created = False
       if use_repos:
-        is_tmp_dir_created = True
-        apt_sources_list_tmp_dir = tempfile.mkdtemp(suffix="-ambari-apt-sources-d")
-        Logger.info("Temporal sources directory was created: %s" % apt_sources_list_tmp_dir)
-        if 'base' not in use_repos:
+        if 'base' in use_repos:
+          use_repos = set([v for k,v in use_repos.items() if k != 'base'])
+        else:
           cmd = cmd + ['-o', 'Dir::Etc::SourceList=%s' % EMPTY_FILE]
-        for repo in use_repos:
-          if repo != 'base':
+          use_repos = set(use_repos.values())
+
+        if use_repos:
+          is_tmp_dir_created = True
+          apt_sources_list_tmp_dir = tempfile.mkdtemp(suffix="-ambari-apt-sources-d")
+          Logger.info("Temporary sources directory was created: %s" % apt_sources_list_tmp_dir)
+
+          for repo in use_repos:
             new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + '.list')
-            Logger.info("Temporal sources file will be copied: %s" % new_sources_file)
+            Logger.info("Temporary sources file will be copied: %s" % new_sources_file)
             sudo.copy(os.path.join(APT_SOURCES_LIST_DIR, repo + '.list'), new_sources_file)
             copied_sources_files.append(new_sources_file)
-        cmd = cmd + ['-o', 'Dir::Etc::SourceParts=%s' % apt_sources_list_tmp_dir]
+          cmd = cmd + ['-o', 'Dir::Etc::SourceParts=%s' % apt_sources_list_tmp_dir]
 
       cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       self.checked_call_with_retries(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
 
       if is_tmp_dir_created:
-        for temporal_sources_file in copied_sources_files:
-          Logger.info("Removing temporal sources file: %s" % temporal_sources_file)
-          os.remove(temporal_sources_file)
-        Logger.info("Removing temporal sources directory: %s" % apt_sources_list_tmp_dir)
+        for temporary_sources_file in copied_sources_files:
+          Logger.info("Removing temporary sources file: %s" % temporary_sources_file)
+          os.remove(temporary_sources_file)
+        Logger.info("Removing temporary sources directory: %s" % apt_sources_list_tmp_dir)
         os.rmdir(apt_sources_list_tmp_dir)
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
       
+
   def is_locked_output(self, out):
     return "Unable to lock the administration directory" in out
 
@@ -380,7 +394,7 @@ class AptProvider(PackageProvider):
     return REPO_UPDATE_CMD
 
   @replace_underscores
-  def upgrade_package(self, name, use_repos=set(), skip_repos=set(), is_upgrade=True):
+  def upgrade_package(self, name, use_repos={}, skip_repos=set(), is_upgrade=True):
     return self.install_package(name, use_repos, skip_repos, is_upgrade)
 
   @replace_underscores

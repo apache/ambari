@@ -33,7 +33,7 @@ class ResourceFilesKeeper():
   This class encapsulates all utility methods for resource files maintenance.
   """
 
-  HOOKS_DIR="hooks"
+  STACK_HOOKS_DIR= "stack-hooks"
   PACKAGE_DIR="package"
   STACKS_DIR="stacks"
   COMMON_SERVICES_DIR="common-services"
@@ -43,7 +43,7 @@ class ResourceFilesKeeper():
   EXTENSIONS_DIR="extensions"
 
   # For these directories archives are created
-  ARCHIVABLE_DIRS = [HOOKS_DIR, PACKAGE_DIR]
+  ARCHIVABLE_DIRS = [PACKAGE_DIR]
 
   HASH_SUM_FILE=".hash"
   ARCHIVE_NAME="archive.zip"
@@ -115,6 +115,9 @@ class ResourceFilesKeeper():
     self.dbg_out("Extensions: {0}".format(pprint.pformat(valid_extensions)))
     # Iterate over extension directories
     self._iter_update_directory_archive(valid_extensions)
+
+    # stack hooks
+    self._update_resources_subdir_archive(self.STACK_HOOKS_DIR)
 
     # custom actions
     self._update_resources_subdir_archive(self.CUSTOM_ACTIONS_DIR)

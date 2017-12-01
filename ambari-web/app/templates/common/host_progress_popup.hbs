@@ -256,11 +256,11 @@
           <div class="col-sm-12">
             {{#if App.supports.logSearch}}
               {{#if view.isLogSearchInstalled}}
-                {{#isAuthorized "SERVICE.VIEW_OPERATIONAL_LOGS"}}
-                  <button type="button" class="btn btn-link pull-right" {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}}>
+                {{#havePermissions "SERVICE.VIEW_OPERATIONAL_LOGS"}}
+                  <button type="button" class="btn btn-link pull-right" {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden" disabled="App.router.wizardWatcherController.isNonWizardUser"}}>
                     <i class="glyphicon glyphicon-file"></i>&nbsp;{{t common.host}} {{t common.logs}}
                   </button>
-                {{/isAuthorized}}
+                {{/havePermissions}}
               {{/if}}
             {{/if}}
             <button type="button" class="btn btn-link pull-right" {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}}>

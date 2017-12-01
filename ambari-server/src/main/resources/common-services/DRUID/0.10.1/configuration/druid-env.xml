@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <!--Heap Settings -->
+  <property>
+    <name>druid.broker.jvm.heap.memory</name>
+    <value>2048</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>65536</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.coordinator.jvm.heap.memory</name>
+    <value>512</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>65536</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.middlemanager.jvm.heap.memory</name>
+    <value>256</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>65536</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.historical.jvm.heap.memory</name>
+    <value>2048</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>65536</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.overlord.jvm.heap.memory</name>
+    <value>512</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>65536</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.router.jvm.heap.memory</name>
+    <value>512</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>65536</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- DirectMemorySettings -->
+  <property>
+    <name>druid.broker.jvm.direct.memory</name>
+    <value>1048576</value>
+    <depends-on>
+      <property>
+        <type>druid-broker</type>
+        <name>druid.processing.buffer.sizeBytes</name>
+      </property>
+      <property>
+        <type>druid-broker</type>
+        <name>druid.processing.numThreads</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.coordinator.jvm.direct.memory</name>
+    <value>1048576</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.middlemanager.jvm.direct.memory</name>
+    <value>1048576</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.historical.jvm.direct.memory</name>
+    <value>1048576</value>
+    <depends-on>
+      <property>
+        <type>druid-historical</type>
+        <name>druid.processing.buffer.sizeBytes</name>
+      </property>
+      <property>
+        <type>druid-historical</type>
+        <name>druid.processing.numThreads</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.overlord.jvm.direct.memory</name>
+    <value>1048576</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.router.jvm.direct.memory</name>
+    <value>1048576</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- JavaOpts Tune GC related configs here-->
+  <property>
+    <name>druid.broker.jvm.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.coordinator.jvm.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.middlemanager.jvm.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.historical.jvm.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.overlord.jvm.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.router.jvm.opts</name>
+    <value>-Duser.timezone=UTC -Dfile.encoding=UTF-8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid_user</name>
+    <display-name>Druid User</display-name>
+    <value>druid</value>
+    <property-type>USER</property-type>
+    <description></description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid_log_dir</name>
+    <value>/var/log/druid</value>
+    <description></description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid_pid_dir</name>
+    <value>/var/run/druid</value>
+    <display-name>Druid PID dir</display-name>
+    <description></description>
+    <value-attributes>
+      <type>directory</type>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- druid-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>druid-env template</display-name>
+    <description>This is simple template for druid-env.sh file</description>
+    <value>
+      #!/bin/bash
+
+      # Set DRUID specific environment variables here.
+
+      # The java implementation to use.
+      export JAVA_HOME={{java8_home}}
+      export PATH=$JAVA_HOME/bin:$PATH
+      export DRUID_PID_DIR={{druid_pid_dir}}
+      export DRUID_LOG_DIR={{druid_log_dir}}
+      export DRUID_CONF_DIR={{druid_conf_dir}}
+      export DRUID_LIB_DIR={{druid_home}}/lib
+      export HADOOP_CONF_DIR={{hadoop_conf_dir}}
+
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

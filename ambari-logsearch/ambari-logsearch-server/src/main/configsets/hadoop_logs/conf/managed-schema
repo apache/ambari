@@ -115,6 +115,8 @@
   <dynamicField name='std_*' type="text_std_token_lower_case" multiValued="false" stored="false"/>
   <dynamicField name='key_*' type="key_lower_case" multiValued="false" stored="false"/>
   <dynamicField name="ws_*" type="text_ws" multiValued="false" omitNorms="false" stored="false"/>
+  <dynamicField name="sdi_*" type="text_ws" omitNorms="false" multiValued="false" stored="true"/>
+
   <copyField source="log_message" dest="key_log_message"/>
 
 </schema>

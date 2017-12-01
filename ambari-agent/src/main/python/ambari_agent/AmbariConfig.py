@@ -30,6 +30,9 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 logger = logging.getLogger(__name__)
 
+"""
+The below config is necessary only for unit tests.
+"""
 content = """
 
 [server]
@@ -74,77 +77,6 @@ iddle_interval_max=10
 log_command_executes = 0
 
 """.format(ps=os.sep)
-
-servicesToPidNames = {
-  'GLUSTERFS': 'glusterd.pid$',
-  'NAMENODE': 'hadoop-{USER}-namenode.pid$',
-  'SECONDARY_NAMENODE': 'hadoop-{USER}-secondarynamenode.pid$',
-  'DATANODE': 'hadoop-{USER}-datanode.pid$',
-  'JOBTRACKER': 'hadoop-{USER}-jobtracker.pid$',
-  'TASKTRACKER': 'hadoop-{USER}-tasktracker.pid$',
-  'RESOURCEMANAGER': 'yarn-{USER}-resourcemanager.pid$',
-  'NODEMANAGER': 'yarn-{USER}-nodemanager.pid$',
-  'HISTORYSERVER': 'mapred-{USER}-historyserver.pid$',
-  'JOURNALNODE': 'hadoop-{USER}-journalnode.pid$',
-  'ZKFC': 'hadoop-{USER}-zkfc.pid$',
-  'OOZIE_SERVER': 'oozie.pid',
-  'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
-  'FLUME_SERVER': 'flume-node.pid',
-  'TEMPLETON_SERVER': 'templeton.pid',
-  'HBASE_MASTER': 'hbase-{USER}-master.pid',
-  'HBASE_REGIONSERVER': 'hbase-{USER}-regionserver.pid',
-  'HCATALOG_SERVER': 'webhcat.pid',
-  'KERBEROS_SERVER': 'kadmind.pid',
-  'HIVE_SERVER': 'hive-server.pid',
-  'HIVE_METASTORE': 'hive.pid',
-  'HIVE_SERVER_INTERACTIVE': 'hive-interactive.pid',
-  'MYSQL_SERVER': 'mysqld.pid',
-  'HUE_SERVER': '/var/run/hue/supervisor.pid',
-  'WEBHCAT_SERVER': 'webhcat.pid',
-}
-
-# Each service, which's pid depends on user should provide user mapping
-servicesToLinuxUser = {
-  'NAMENODE': 'hdfs_user',
-  'SECONDARY_NAMENODE': 'hdfs_user',
-  'DATANODE': 'hdfs_user',
-  'JOURNALNODE': 'hdfs_user',
-  'ZKFC': 'hdfs_user',
-  'JOBTRACKER': 'mapred_user',
-  'TASKTRACKER': 'mapred_user',
-  'RESOURCEMANAGER': 'yarn_user',
-  'NODEMANAGER': 'yarn_user',
-  'HISTORYSERVER': 'mapred_user',
-  'HBASE_MASTER': 'hbase_user',
-  'HBASE_REGIONSERVER': 'hbase_user',
-}
-
-pidPathVars = [
-  {'var': 'glusterfs_pid_dir_prefix',
-   'defaultValue': '/var/run'},
-  {'var': 'hadoop_pid_dir_prefix',
-   'defaultValue': '/var/run/hadoop'},
-  {'var': 'hadoop_pid_dir_prefix',
-   'defaultValue': '/var/run/hadoop'},
-  {'var': 'hbase_pid_dir',
-   'defaultValue': '/var/run/hbase'},
-  {'var': 'zk_pid_dir',
-   'defaultValue': '/var/run/zookeeper'},
-  {'var': 'oozie_pid_dir',
-   'defaultValue': '/var/run/oozie'},
-  {'var': 'hcat_pid_dir',
-   'defaultValue': '/var/run/webhcat'},
-  {'var': 'hive_pid_dir',
-   'defaultValue': '/var/run/hive'},
-  {'var': 'mysqld_pid_dir',
-   'defaultValue': '/var/run/mysqld'},
-  {'var': 'hcat_pid_dir',
-   'defaultValue': '/var/run/webhcat'},
-  {'var': 'yarn_pid_dir_prefix',
-   'defaultValue': '/var/run/hadoop-yarn'},
-  {'var': 'mapred_pid_dir_prefix',
-   'defaultValue': '/var/run/hadoop-mapreduce'},
-]
 
 
 class AmbariConfig:

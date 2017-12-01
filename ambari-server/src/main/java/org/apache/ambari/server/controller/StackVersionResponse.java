@@ -42,13 +42,6 @@ public class StackVersionResponse implements Validable{
   private Map<String, Map<String, Map<String, String>>> configTypes;
 
   /**
-   * A File pointing to the stack-level Kerberos descriptor file
-   *
-   * This may be null if a relevant file is not available.
-   */
-  private File stackKerberosDescriptorFile;
-
-  /**
    * A Collection of Files pointing to the service-level Kerberos descriptor files
    *
    * This may be null or empty if no relevant files are available.
@@ -59,7 +52,6 @@ public class StackVersionResponse implements Validable{
   public StackVersionResponse(String stackVersion, String minUpgradeVersion,
                               boolean active, String parentVersion,
                               Map<String, Map<String, Map<String, String>>> configTypes,
-                              File stackKerberosDescriptorFile,
                               Collection<File> serviceKerberosDescriptorFiles,
                               Set<String> upgradePacks, boolean valid, Collection<String> errorSet, String minJdk, String maxJdk) {
     setStackVersion(stackVersion);
@@ -67,7 +59,6 @@ public class StackVersionResponse implements Validable{
     setActive(active);
     setParentVersion(parentVersion);
     setConfigTypes(configTypes);
-    setKerberosDescriptorFile(stackKerberosDescriptorFile);
     setServiceKerberosDescriptorFiles(serviceKerberosDescriptorFiles);
     setUpgradePacks(upgradePacks);
     setValid(valid);
@@ -173,26 +164,6 @@ public class StackVersionResponse implements Validable{
   public void setConfigTypes(
       Map<String, Map<String, Map<String, String>>> configTypes) {
     this.configTypes = configTypes;
-  }
-
-  /**
-   * Gets a File pointing to the stack-level Kerberos descriptor
-   *
-   * @return a File pointing to the stack-level Kerberos descriptor, or null if no relevant file is
-   * available
-   */
-  @ApiModelProperty(hidden = true)
-  public File getStackKerberosDescriptorFile() {
-    return stackKerberosDescriptorFile;
-  }
-
-  /**
-   * Sets the stack-level Kerberos descriptor File
-   *
-   * @param stackKerberosDescriptorFile a File pointing to the stack-level Kerberos descriptor
-   */
-  public void setKerberosDescriptorFile(File stackKerberosDescriptorFile) {
-    this.stackKerberosDescriptorFile = stackKerberosDescriptorFile;
   }
 
   /**

@@ -1206,7 +1206,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'], 'default')
     self.assertEquals(configurations['yarn-site']['properties']['yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes'],
                       'org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl,org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
-    self.assertEquals(configurations['yarn-site']['properties']['yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath'], '/usr/hdp/${hdp.version}/spark/hdpLib/*')
+    self.assertEquals(configurations['yarn-site']['properties']['yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath'], '/usr/hdp/{{spark_version}}/spark/hdpLib/*')
     self.assertTrue('hive-interactive-env' not in configurations)
     self.assertTrue('property_attributes' not in configurations)
 
@@ -4446,7 +4446,8 @@ class TestHDP25StackAdvisor(TestCase):
           },
         "tez-site": {
           "properties": {
-            "tez.am.resource.memory.mb": "1024"
+            "tez.am.resource.memory.mb": "1024",
+            "tez.runtime.sorter.class": "LEGACY"
           }
         },
       }
@@ -4481,6 +4482,8 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '186368')
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '9830')
+    self.assertEqual(configurations['tez-interactive-site']['properties']['tez.runtime.io.sort.mb'], '1092')
+    self.assertEquals(configurations['tez-interactive-site']['property_attributes']['tez.runtime.io.sort.mb'], {'maximum': '1800'})
 
 
 

@@ -35,6 +35,7 @@ require('views/common/chart/pie');
 require('views/common/chart/linear');
 require('views/common/chart/linear_time');
 require('views/common/modal_popup');
+require('views/common/search_box_view');
 require('views/common/modal_popups/alert_popup');
 require('views/common/modal_popups/edit_dashboard_widget_popup');
 require('views/common/modal_popups/manage_kdc_credentials_popup');
@@ -125,6 +126,7 @@ require('views/main/alert_definitions_view');
 require('views/main/alerts/alert_definition/alert_definition_summary');
 require('views/main/alerts/alert_definition/alert_definition_state');
 require('views/main/alerts/definition_details_view');
+require('views/main/alerts/alert_search_box');
 require('views/main/alerts/alert_definitions_actions_view');
 require('views/main/alerts/definition_configs_view');
 require('views/main/alerts/manage_alert_groups/select_definitions_popup_body_view');
@@ -285,6 +287,7 @@ require('views/main/dashboard/widgets/yarn_memory');
 require('views/main/dashboard/widgets/supervisor_live');
 require('views/main/dashboard/widgets/flume_agent_live');
 require('views/main/dashboard/config_history_view');
+require('views/main/dashboard/config_history_search_box');
 
 
 require('views/main/service');
@@ -348,6 +351,7 @@ require('views/main/charts/heatmap/heatmap_rack');
 require('views/main/charts/heatmap/heatmap_host');
 require('views/main/charts/heatmap/heatmap_host_detail');
 require('views/main/service/info/heatmap_view');
+require('views/main/service/info/metrics_view');
 
 require('views/main/service/widgets/create/wizard_view');
 require('views/main/service/widgets/create/step1_view');

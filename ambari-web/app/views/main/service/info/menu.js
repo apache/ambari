@@ -45,6 +45,13 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
         routing: 'configs'
       });
     }
+    if (this.get('metricTab')) {
+      menuItems.push({
+        label: Em.I18n.t('services.service.info.menu.metrics'),
+        id: 'metrics-service-tab',
+        routing: 'metrics'
+      });
+    }
     return menuItems;
   }.property(),
 

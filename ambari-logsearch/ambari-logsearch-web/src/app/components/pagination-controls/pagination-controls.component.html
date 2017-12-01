@@ -14,10 +14,15 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
-<button class="btn btn-link" [disabled]="currentPage === 0" (click)="updateValue(true)">
-  <span class="pagination-control fa fa-chevron-left"></span>
+<button class="btn btn-link" [disabled]="!hasPreviousPage()" (click)="setFirstPage()">
+  <span class="pagination-control fa fa-angle-double-left"></span>
 </button>
-<button class="btn btn-link" [disabled]="currentPage === pagesCount - 1" (click)="updateValue()">
-  <span class="pagination-control fa fa-chevron-right"></span>
+<button class="btn btn-link" [disabled]="!hasPreviousPage()" (click)="setPreviousPage()">
+  <span class="pagination-control fa fa-angle-left"></span>
+</button>
+<button class="btn btn-link" [disabled]="!hasNextPage()" (click)="setNextPage()">
+  <span class="pagination-control fa fa-angle-right"></span>
+</button>
+<button class="btn btn-link" [disabled]="!hasNextPage()" (click)="setLastPage()">
+  <span class="pagination-control fa fa-angle-double-right"></span>
 </button>

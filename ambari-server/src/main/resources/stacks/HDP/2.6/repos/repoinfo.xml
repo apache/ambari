@@ -33,7 +33,7 @@
   </os>
   <os family="redhat-ppc7">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.0.3</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos7-ppc/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>

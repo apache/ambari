@@ -101,7 +101,7 @@ public class MetricsRetrievalService extends AbstractService {
   /**
    * Logger.
    */
-  protected final static Logger LOG = LoggerFactory.getLogger(MetricsRetrievalService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsRetrievalService.class);
 
   /**
    * The timeout for exceptions which are caught and then cached to prevent log

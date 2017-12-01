@@ -109,4 +109,19 @@
     <deleted>true</deleted>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>atlas.proxyusers</name>
+    <value/>
+    <description>Proxy users for Atlas</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>knox-env</type>
+        <name>knox_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

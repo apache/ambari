@@ -340,7 +340,7 @@ public class HeartbeatMonitor implements Runnable {
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
     commandParams.put(SERVICE_PACKAGE_FOLDER,
        serviceInfo.getServicePackageFolder());
-    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+    commandParams.put(HOOKS_FOLDER, configuration.getProperty(Configuration.HOOKS_FOLDER));
     // Fill host level params
     Map<String, String> hostLevelParams = statusCmd.getHostLevelParams();
     hostLevelParams.put(JDK_LOCATION, ambariManagementController.getJdkResourceUrl());

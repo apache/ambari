@@ -26,7 +26,7 @@ public abstract class MetricsDownsamplingMethod {
   // Allow for 2 minute discrepancy to account for client side buffering,
   // this ensures at least some data is returned in the initial few minutes.
   private static final long OUT_OF_BAND_TIME_ALLOWANCE = 120000;
-  static Logger LOG = LoggerFactory.getLogger(MetricsDownsamplingMethod.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsDownsamplingMethod.class);
 
   // Downsampling methods iterate over the entire metrics result to create output array.
   // Passing down @TemporalInfo avoids re-iterating to filter out out of band data.

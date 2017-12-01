@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
@@ -92,6 +93,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   protected File checksDir;
 
   /**
+   * server side action directory path
+   */
+  protected File serverActionsDir;
+
+  /**
    * service metainfo file object representation
    */
   private ServiceMetainfoXml metaInfoXml;
@@ -115,6 +121,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    * checks directory name
    */
   protected static final String CHECKS_FOLDER_NAME = "checks";
+
+  /**
+   * Server actions directory name
+   */
+  protected static final String SERVER_ACTIONS_FOLDER_NAME = "server_actions";
 
   /**
    * service metainfo file name
@@ -168,6 +179,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   public File getChecksDir() {
     return checksDir;
+  }
+
+  /**
+   * Obtain the server side actions directory path.
+   *
+   * @return server side actions directory path
+   */
+  public File getServerActionsDir() {
+    return serverActionsDir;
   }
 
   /**
@@ -259,7 +279,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
     File af = new File(directory, StackDirectory.SERVICE_ALERT_FILE_NAME);
     alertsFile = af.exists() ? af : null;
 
-    File kdf = new File(directory, StackDirectory.KERBEROS_DESCRIPTOR_FILE_NAME);
+    File kdf = new File(directory, AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME);
     kerberosDescriptorFile = kdf.exists() ? kdf : null;
 
     File rco = new File(directory, StackDirectory.RCO_FILE_NAME);
@@ -302,6 +322,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
 	  calculatePackageDirectory(stack, service);
 	  calculateUpgradesDirectory(stack, service);
 	  calculateChecksDirectory(stack, service);
+	  calculateServerActionsDirectory(stack, service);
   }
 
   /**
@@ -374,6 +395,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   protected void calculateChecksDirectory(String stack, String service) {
     checksDir = resolveDirectory(CHECKS_FOLDER_NAME, stack, service);
+  }
+
+  /**
+   * Sets the serverActionsDir if the dir exists and is not empty
+   * @param stack
+   * @param service
+   */
+  protected void calculateServerActionsDirectory(String stack, String service) {
+    serverActionsDir = resolveDirectory(SERVER_ACTIONS_FOLDER_NAME, stack, service);
   }
 
   /**

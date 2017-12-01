@@ -42,7 +42,6 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     var account = App.RepositoryVersion.find().get('length');
     $('.border-extended-table').width(account * 100 + 100 + "%");
     $('.border-extended-table').css("max-width", account * 100 + 100 + "%");
-    $('.services-section .service-version-info').css('margin-bottom', $(".border-extended-table tr").height() - 25 + "px");
   },
 
   services: function() {
@@ -64,7 +63,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   }.property(),
 
   getNotUpgradable: function(isAvailable, isUpgradable) {
-    return this.get('content.isMaint') && this.get('content.status') !== 'CURRENT' && isAvailable && !isUpgradable;
+    return this.get('content.isMaint') && !this.get('isUpgrading') && this.get('content.status') !== 'CURRENT' && isAvailable && !isUpgradable;
   },
 
 

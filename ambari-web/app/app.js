@@ -131,27 +131,18 @@ module.exports = Em.Application.create({
   }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser', 'upgradeSuspended'),
 
   /**
-   * Options:
-   *  - ignoreWizard: ignore when some wizard is running by another user (default `false`)
-   *
    * @param {string} authRoles
-   * @param {object} options
    * @returns {boolean}
    */
-  isAuthorized: function (authRoles, options) {
-    options = $.extend({ignoreWizard: false}, options);
+  havePermissions: function (authRoles) {
     var result = false;
     authRoles = $.map(authRoles.split(","), $.trim);
 
     // When Upgrade running(not suspended) only operations related to upgrade should be allowed
     if ((!this.get('upgradeSuspended') && !authRoles.contains('CLUSTER.UPGRADE_DOWNGRADE_STACK')) &&
-        !App.get('supports.opsDuringRollingUpgrade') &&
-        !['NOT_REQUIRED', 'COMPLETED'].contains(this.get('upgradeState')) ||
-        !App.auth){
-      return false;
-    }
-
-    if (!options.ignoreWizard && App.router.get('wizardWatcherController.isNonWizardUser')) {
+      !App.get('supports.opsDuringRollingUpgrade') &&
+      !['NOT_REQUIRED', 'COMPLETED'].contains(this.get('upgradeState')) ||
+      !App.auth){
       return false;
     }
 
@@ -160,6 +151,13 @@ module.exports = Em.Application.create({
     });
 
     return result;
+  },
+  /**
+   * @param {string} authRoles
+   * @returns {boolean}
+   */
+  isAuthorized: function (authRoles) {
+    return this.havePermissions(authRoles) && !App.router.get('wizardWatcherController.isNonWizardUser');
   },
 
   isStackServicesLoaded: false,

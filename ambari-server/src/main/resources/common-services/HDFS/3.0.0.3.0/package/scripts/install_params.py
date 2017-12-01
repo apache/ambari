@@ -23,17 +23,7 @@ if OSCheck.is_windows_family():
   exclude_packages = []
 else:
   from resource_management.libraries.functions.default import default
-  from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
   from resource_management.libraries.script.script import Script
 
   _config = Script.get_config()
   stack_version_unformatted = str(_config['hostLevelParams']['stack_version'])
-
-  # The logic for LZO also exists in OOZIE's params.py
-  io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-  lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-  lzo_packages = get_lzo_packages(stack_version_unformatted)
-
-  exclude_packages = []
-  if not lzo_enabled:
-    exclude_packages += lzo_packages

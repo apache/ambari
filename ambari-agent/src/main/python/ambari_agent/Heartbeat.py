@@ -75,13 +75,10 @@ class Heartbeat:
     if int(id) == 0:
       componentsMapped = False
 
-
-
     logger.debug("Building Heartbeat: {responseId = %s, timestamp = %s, "
                 "commandsInProgress = %s, componentsMapped = %s,"
                 "recoveryTimestamp = %s}",
         str(id), str(timestamp), repr(commandsInProgress), repr(componentsMapped), str(recovery_timestamp))
-
 
     logger.debug("Heartbeat: %s", pformat(heartbeat))
 
@@ -93,9 +90,8 @@ class Heartbeat:
       # this must be the last step before returning heartbeat
       hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)
       heartbeat['agentEnv'] = nodeInfo
-      mounts = Hardware.osdisks(self.config)
+      mounts = Hardware(config=self.config, cache_info=False).osdisks()
       heartbeat['mounts'] = mounts
-
 
       logger.debug("agentEnv: %s", str(nodeInfo))
       logger.debug("mounts: %s", str(mounts))
@@ -104,6 +100,7 @@ class Heartbeat:
       heartbeat['alerts'] = self.collector.alerts()
     
     return heartbeat
+
 
 def main(argv=None):
   from ambari_agent.ActionQueue import ActionQueue
@@ -121,6 +118,7 @@ def main(argv=None):
   actionQueue = ActionQueue(cfg, ctl)
   heartbeat = Heartbeat(actionQueue)
   print json.dumps(heartbeat.build('3',3))
+
 
 if __name__ == '__main__':
   main()

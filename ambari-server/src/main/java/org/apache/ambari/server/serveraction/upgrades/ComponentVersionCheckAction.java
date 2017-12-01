@@ -48,7 +48,7 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
 
     String clusterName = getExecutionCommand().getClusterName();
 
-    Cluster cluster = m_clusters.getCluster(clusterName);
+    Cluster cluster = getClusters().getCluster(clusterName);
 
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
     Set<InfoTuple> errors = validateComponentVersions(upgradeContext);

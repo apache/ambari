@@ -47,12 +47,13 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
-from resource_management.libraries.functions.version_select_util import get_component_version_from_symlink
+from resource_management.libraries.functions import version_select_util
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
+from resource_management.libraries.functions.repository_util import CommandRepository
 from resource_management.core.resources.system import Execute
 from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -212,6 +213,12 @@ class Script(object):
     Saves the version of the component for this command to the structured out file. If the
     command is an install command and the repository is trusted, then it will use the version of
     the repository. Otherwise, it will consult the stack-select tool to read the symlink version.
+
+    Under rare circumstances, a component may have a bug which prevents it from reporting a
+    version back after being installed. This is most likely due to the stack-select tool not being
+    invoked by the package's installer. In these rare cases, we try to see if the component
+    should have reported a version and we try to fallback to the "<stack-select> versions" command.
+
     :param command_name: command name
     :return: None
     """
@@ -240,7 +247,17 @@ class Script(object):
     if stack_select_package_name and stack_name:
       # only query for the component version from stack-select if we can't trust the repository yet
       if component_version is None:
-        component_version = get_component_version_from_symlink(stack_name, stack_select_package_name)
+        component_version = version_select_util.get_component_version_from_symlink(stack_name, stack_select_package_name)
+
+      # last ditch effort - should cover the edge case where the package failed to setup its
+      # link and we have to try to see if <stack-select> can help
+      if component_version is None:
+        output, code, versions = stack_select.unsafe_get_stack_versions()
+        if len(versions) == 1:
+          component_version = versions[0]
+          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging. " \
+                         "However, the stack-select tool was able to report a single version installed ({1}). " \
+                         "This is the version that will be reported.".format(stack_select_package_name, component_version))
 
       if component_version:
         self.put_structured_out({"version": component_version})
@@ -252,7 +269,7 @@ class Script(object):
           self.put_structured_out({"repository_version_id": repo_version_id})
       else:
         if not self.is_hook():
-          Logger.error("Component '{0}' did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
+          Logger.error("The '{0}' component did not advertise a version. This may indicate a problem with the component packaging.".format(stack_select_package_name))
 
 
   def should_expose_component_version(self, command_name):
@@ -485,6 +502,7 @@ class Script(object):
       Script.stack_version_from_distro_select = pkg_provider.get_installed_package_version(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
 
+
     return Script.stack_version_from_distro_select
 
 
@@ -509,22 +527,20 @@ class Script(object):
     """
     This function replaces ${stack_version} placeholder with actual version.  If the package
     version is passed from the server, use that as an absolute truth.
-    
+
     :param name name of the package
     :param repo_version actual version of the repo currently installing
     """
-    stack_version_package_formatted = ""
+    if not STACK_VERSION_PLACEHOLDER in name:
+      return name
 
-    if not repo_version:
-      repo_version = self.get_stack_version_before_packages_installed()
+    stack_version_package_formatted = ""
 
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
 
     # repositoryFile is the truth
     # package_version should be made to the form W_X_Y_Z_nnnn
     package_version = default("repositoryFile/repoVersion", None)
-    if package_version is not None:
-      package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
 
     # TODO remove legacy checks
     if package_version is None:
@@ -533,6 +549,17 @@ class Script(object):
     # TODO remove legacy checks
     if package_version is None:
       package_version = default("hostLevelParams/package_version", None)
+
+    package_version = None
+    if (package_version is None or '-' not in package_version) and default('/repositoryFile', None):
+      self.load_available_packages()
+      package_name = self.get_package_from_available(name, self.available_packages_in_repos)
+      if package_name is None:
+        raise Fail("Cannot match package for regexp name {0}. Available packages: {1}".format(name, self.available_packages_in_repos))
+      return package_name
+
+    if package_version is not None:
+      package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
 
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but
@@ -552,6 +579,7 @@ class Script(object):
 
     # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we try to specify it.
     if not package_version or '*' in package_version:
+      repo_version = self.get_stack_version_before_packages_installed()
       stack_version_package_formatted = repo_version.replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
 
     package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
@@ -744,6 +772,18 @@ class Script(object):
     """
     self.install_packages(env)
 
+  def load_available_packages(self):
+    if self.available_packages_in_repos:
+      return self.available_packages_in_repos
+
+    pkg_provider = get_provider("Package")   
+    try:
+      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
+    except Exception as err:
+      Logger.exception("Unable to load available packages")
+      self.available_packages_in_repos = []
+
+
   def install_packages(self, env):
     """
     List of packages that are required< by service is received from the server
@@ -766,17 +806,11 @@ class Script(object):
       package_list_str = config['hostLevelParams']['package_list']
       agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
       agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
-      pkg_provider = get_provider("Package")
-      try:
-        available_packages_in_repos = pkg_provider.get_available_packages_in_repos(config['repositoryFile']['repositories'])
-      except Exception as err:
-        Logger.exception("Unable to load available packages")
-        available_packages_in_repos = []
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           if self.check_package_condition(package):
-            name = self.get_package_from_available(package['name'], available_packages_in_repos)
+            name = self.format_package_name(package['name'])
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.
@@ -972,11 +1006,32 @@ class Script(object):
 
   def configure(self, env, upgrade_type=None, config_dir=None):
     """
-    To be overridden by subclasses
+    To be overridden by subclasses (may invoke save_configs)
     :param upgrade_type: only valid during RU/EU, otherwise will be None
     :param config_dir: for some clients during RU, the location to save configs to, otherwise None
     """
     self.fail_with_error('configure method isn\'t implemented')
+
+  def save_configs(self, env):
+    """
+    To be overridden by subclasses
+    Creates / updates configuration files
+    """
+    self.fail_with_error('save_configs method isn\'t implemented')
+
+  def reconfigure(self, env):
+    """
+    Default implementation of RECONFIGURE action which may be overridden by subclasses
+    """
+    Logger.info("Refresh config files ...")
+    self.save_configs(env)
+
+    config = self.get_config()
+    if "reconfigureAction" in config["commandParams"] and config["commandParams"]["reconfigureAction"] is not None:
+      reconfigure_action = config["commandParams"]["reconfigureAction"]
+      Logger.info("Call %s" % reconfigure_action)
+      method = self.choose_method_to_execute(reconfigure_action)
+      method(env)
 
   def generate_configs_get_template_file_content(self, filename, dicts):
     config = self.get_config()
@@ -1076,5 +1131,6 @@ class Script(object):
 
 
   def __init__(self):
+    self.available_packages_in_repos = []
     if Script.instance is not None:
       raise Fail("An instantiation already exists! Use, get_instance() method.")

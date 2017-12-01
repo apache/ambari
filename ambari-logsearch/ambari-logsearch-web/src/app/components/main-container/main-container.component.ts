@@ -17,12 +17,7 @@
  */
 
 import {Component, ContentChild, TemplateRef} from '@angular/core';
-import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
-import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
-import {AuditLogField} from '@app/models/audit-log-field.model';
-import {ServiceLogField} from '@app/models/service-log-field.model';
 
 @Component({
   selector: 'main-container',
@@ -31,10 +26,9 @@ import {ServiceLogField} from '@app/models/service-log-field.model';
 })
 export class MainContainerComponent {
 
-  constructor(private httpClient: HttpClientService, private appState: AppStateService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService) {
-    this.loadColumnsNames();
-    appState.getParameter('isAuthorized').subscribe(value => this.isAuthorized = value);
-    appState.getParameter('isInitialLoading').subscribe(value => this.isInitialLoading = value);
+  constructor(private appState: AppStateService) {
+    appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
+    appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value);
   }
 
   @ContentChild(TemplateRef)
@@ -43,24 +37,5 @@ export class MainContainerComponent {
   isAuthorized: boolean = false;
 
   isInitialLoading: boolean = false;
-
-  private loadColumnsNames(): void {
-    this.httpClient.get('serviceLogsFields').subscribe(response => {
-      const jsonResponse = response.json();
-      if (jsonResponse) {
-        this.serviceLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, ServiceLogField));
-      }
-    });
-    this.httpClient.get('auditLogsFields').subscribe(response => {
-      const jsonResponse = response.json();
-      if (jsonResponse) {
-        this.auditLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, AuditLogField));
-      }
-    });
-  }
-
-  private getColumnsArray(keysObject: any, fieldClass: any): any[] {
-    return Object.keys(keysObject).map(key => new fieldClass(key));
-  }
 
 }

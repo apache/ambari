@@ -29,10 +29,12 @@ import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/aud
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
-import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {ModalComponent} from '@app/components/modal/modal.component';
 
@@ -43,6 +45,14 @@ describe('TimeZonePickerComponent', () => {
   let fixture: ComponentFixture<TimeZonePickerComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [
         TimeZonePickerComponent,
@@ -60,7 +70,9 @@ describe('TimeZonePickerComponent', () => {
           auditLogsFields,
           serviceLogs,
           serviceLogsFields,
-          serviceLogsHistogramData
+          serviceLogsHistogramData,
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
@@ -75,10 +87,15 @@ describe('TimeZonePickerComponent', () => {
         ServiceLogsService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
+        ServiceLogsTruncatedService,
+        TabsService,
         ComponentActionsService,
-        FilteringService,
-        HttpClientService,
-        LogsContainerService
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
+        LogsContainerService,
+        AuthService
       ],
     })
     .compileComponents();

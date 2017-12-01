@@ -439,7 +439,7 @@ with Environment() as env:
   # jar shouldn't be used before (read comment below)
   File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
        mode=0644,
-       content=StaticFile("/var/lib/ambari-agent/cache/stacks/HDP/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar")
+       content=StaticFile("/var/lib/ambari-agent/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar")
   )
   # Create everything in one jar call (this is fast).
   # (! Before everything should be executed with action="create_on_execute/delete_on_execute" for this time-optimization to work)

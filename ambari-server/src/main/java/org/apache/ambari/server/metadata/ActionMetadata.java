@@ -65,6 +65,7 @@ public class ActionMetadata {
     defaultHostComponentCommands.add("CONFIGURE");
     defaultHostComponentCommands.add("CONFIGURE_FUNCTION");
     defaultHostComponentCommands.add("DISABLE_SECURITY");
+    defaultHostComponentCommands.add("RECONFIGURE");
   }
 
   private void fillServiceClients() {

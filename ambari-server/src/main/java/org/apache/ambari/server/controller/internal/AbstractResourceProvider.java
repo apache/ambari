@@ -68,7 +68,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    */
   private final Set<ResourceProviderObserver> observers = new HashSet<>();
 
-  protected final static Logger LOG = LoggerFactory.getLogger(AbstractResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractResourceProvider.class);
   protected final static String PROPERTIES_ATTRIBUTES_REGEX = "properties_attributes/[a-zA-Z][a-zA-Z._-]*$";
   public static Pattern propertiesAttributesPattern = Pattern.compile(".*/" + PROPERTIES_ATTRIBUTES_REGEX);
 

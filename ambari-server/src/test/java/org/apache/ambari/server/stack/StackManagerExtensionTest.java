@@ -69,6 +69,9 @@ public class StackManagerExtensionTest  {
     StackEntity stack3 = new StackEntity();
     stack3.setStackName("HDP");
     stack3.setStackVersion("0.3");
+    StackEntity stack4 = new StackEntity();
+    stack4.setStackName("HDP");
+    stack4.setStackVersion("0.4");
     ExtensionEntity extension1 = new ExtensionEntity();
     extension1.setExtensionName("EXT");
     extension1.setExtensionVersion("0.1");
@@ -78,19 +81,34 @@ public class StackManagerExtensionTest  {
     ExtensionEntity extension3 = new ExtensionEntity();
     extension3.setExtensionName("EXT");
     extension3.setExtensionVersion("0.3");
+    ExtensionEntity extension4 = new ExtensionEntity();
+    extension4.setExtensionName("EXT");
+    extension4.setExtensionVersion("0.4");
+    ExtensionLinkEntity link1 = new ExtensionLinkEntity();
+    link1.setLinkId(new Long(-1));
+    link1.setStack(stack1);
+    link1.setExtension(extension1);
     List<ExtensionLinkEntity> list = new ArrayList<>();
+    List<ExtensionLinkEntity> linkList = new ArrayList<>();
+    linkList.add(link1);
 
     expect(stackDao.find("HDP", "0.1")).andReturn(stack1).atLeastOnce();
     expect(stackDao.find("HDP", "0.2")).andReturn(stack2).atLeastOnce();
     expect(stackDao.find("HDP", "0.3")).andReturn(stack3).atLeastOnce();
+    expect(stackDao.find("HDP", "0.4")).andReturn(stack3).atLeastOnce();
     expect(extensionDao.find("EXT", "0.1")).andReturn(extension1).atLeastOnce();
     expect(extensionDao.find("EXT", "0.2")).andReturn(extension2).atLeastOnce();
     expect(extensionDao.find("EXT", "0.3")).andReturn(extension3).atLeastOnce();
+    expect(extensionDao.find("EXT", "0.4")).andReturn(extension4).atLeastOnce();
 
+    expect(linkDao.findByStack("HDP", "0.1")).andReturn(linkList).atLeastOnce();
     expect(linkDao.findByStack(EasyMock.anyObject(String.class),
             EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
 
     expect(linkDao.findByStackAndExtension("HDP", "0.2", "EXT", "0.2")).andReturn(null).atLeastOnce();
+    expect(linkDao.findByStackAndExtension("HDP", "0.1", "EXT", "0.1")).andReturn(link1).atLeastOnce();
+
+    expect(linkDao.merge(link1)).andReturn(link1).atLeastOnce();
 
     replay(actionMetadata, stackDao, metaInfoDao, osFamily, extensionDao, linkDao); //linkEntity
 
@@ -122,6 +140,9 @@ public class StackManagerExtensionTest  {
     File checks = oozie.getChecksFolder();
     assertNotNull(checks);
     assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
+    File serverActions = oozie.getServerActionsFolder();
+    assertNotNull(serverActions);
+    assertTrue("Server actions dir is " + serverActions.getPath(), serverActions.getPath().contains("extensions/EXT/0.1/services/OOZIE2/server_actions"));
     List<ThemeInfo> themes = oozie.getThemes();
     assertNotNull(themes);
     assertTrue("Number of themes is " + themes.size(), themes.size() == 1);
@@ -132,7 +153,7 @@ public class StackManagerExtensionTest  {
     assertNotNull("EXT 0.2's parent: " + extension.getParentExtensionVersion(), extension.getParentExtensionVersion());
     assertEquals("EXT 0.2's parent: " + extension.getParentExtensionVersion(), "0.1", extension.getParentExtensionVersion());
     assertNotNull(extension.getService("OOZIE2"));
-    assertTrue("Extension is not set to auto link", extension.isAutoLink());
+    assertTrue("Extension is set to auto link", !extension.isAutoLink());
     oozie = extension.getService("OOZIE2");
     assertNotNull("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder());
     assertTrue("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder().contains("extensions/EXT/0.1/services/OOZIE2/package"));
@@ -140,27 +161,47 @@ public class StackManagerExtensionTest  {
     checks = oozie.getChecksFolder();
     assertNotNull(checks);
     assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
+    serverActions = oozie.getServerActionsFolder();
+    assertNotNull(serverActions);
+    assertTrue("Server actions dir is " + serverActions.getPath(), serverActions.getPath().contains("extensions/EXT/0.1/services/OOZIE2/server_actions"));
     themes = oozie.getThemes();
     assertNotNull(themes);
     assertTrue("Number of themes is " + themes.size(), themes.size() == 0);
 
-    StackInfo stack = stackManager.getStack("HDP", "0.2");
+    extension = stackManager.getExtension("EXT", "0.3");
+    assertTrue("Extension is not set to auto link", extension.isAutoLink());
+
+    StackInfo stack = stackManager.getStack("HDP", "0.1");
     assertNotNull(stack.getService("OOZIE2"));
     oozie = stack.getService("OOZIE2");
     assertNotNull("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder());
     assertTrue("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder().contains("extensions/EXT/0.1/services/OOZIE2/package"));
-    assertEquals(oozie.getVersion(), "4.0.0");
-
+    assertEquals(oozie.getVersion(), "3.2.0");
     assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
     extension = stack.getExtensions().iterator().next();
     assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");
-    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.3");
+    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.1");
+
+    ExtensionInfo extensionInfo2 = stackManager.getExtension("EXT", "0.2");
+    helper.updateExtensionLink(stackManager, link1, stack, extension, extensionInfo2);
+    assertEquals(link1.getExtension().getExtensionVersion(), link1.getExtension().getExtensionVersion(), "0.2");
+
+    stack = stackManager.getStack("HDP", "0.2");
+    assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 0);
 
     stack = stackManager.getStack("HDP", "0.3");
     assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
     extension = stack.getExtensions().iterator().next();
+    assertNotNull(extension.getService("OOZIE2"));
+    oozie = extension.getService("OOZIE2");
+    assertEquals(oozie.getVersion(), "4.0.0");
     assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");
-    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.3");
-  }
+    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.4");
 
+    stack = stackManager.getStack("HDP", "0.4");
+    assertTrue("Extensions found: " + stack.getExtensions().size(), stack.getExtensions().size() == 1);
+    extension = stack.getExtensions().iterator().next();
+    assertEquals("Extension name: " + extension.getName(), extension.getName(), "EXT");
+    assertEquals("Extension version: " + extension.getVersion(), extension.getVersion(), "0.4");
+  }
 }

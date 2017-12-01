@@ -21,13 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -45,6 +43,8 @@ import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
@@ -52,7 +52,6 @@ import org.apache.ambari.server.state.repository.Release;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +92,7 @@ import com.google.inject.Provider;
         query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC"),
     @NamedQuery(
         name = "findByServiceDesiredVersion",
-        query = "SELECT DISTINCT sd.desiredRepositoryVersion from ServiceDesiredStateEntity sd WHERE sd.desiredRepositoryVersion IN ?1") })
+        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion IN (SELECT DISTINCT sd1.desiredRepositoryVersion FROM ServiceDesiredStateEntity sd1 WHERE sd1.desiredRepositoryVersion IN ?1)") })
 @StaticallyInject
 public class RepositoryVersionEntity {
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
@@ -130,7 +129,6 @@ public class RepositoryVersionEntity {
   @Enumerated(value = EnumType.STRING)
   private RepositoryType type = RepositoryType.STANDARD;
 
-  @Basic(fetch=FetchType.LAZY)
   @Lob
   @Column(name="version_xml", insertable = true, updatable = true)
   private String versionXml;
@@ -156,6 +154,9 @@ public class RepositoryVersionEntity {
    */
   @Column(name = "resolved", nullable = false)
   private short resolved = 0;
+
+  @Column(name = "legacy", nullable = false)
+  private short isLegacy = 0;
 
   @ManyToOne
   @JoinColumn(name = "parent_id")
@@ -378,26 +379,31 @@ public class RepositoryVersionEntity {
    * {@inheritDoc}
    */
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    RepositoryVersionEntity that = (RepositoryVersionEntity) o;
-    return new EqualsBuilder().append(id, that.id).append(stack, that.stack).append(version,
-        that.version).append(displayName, that.displayName).isEquals();
+  public int hashCode() {
+    return java.util.Objects.hash(stack, version, displayName, operatingSystems);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public int hashCode() {
-    return Objects.hashCode(id, stack, version, displayName);
+  public boolean equals(Object object) {
+    if (null == object) {
+      return false;
+    }
+
+    if (this == object) {
+      return true;
+    }
+
+    if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    RepositoryVersionEntity that = (RepositoryVersionEntity) object;
+    return Objects.equal(stack, that.stack) && Objects.equal(version, that.version)
+        && Objects.equal(displayName, that.displayName)
+        && Objects.equal(operatingSystems, that.operatingSystems);
   }
 
   /**
@@ -485,6 +491,28 @@ public class RepositoryVersionEntity {
    */
   public boolean isResolved() {
     return resolved == 1;
+  }
+
+  /**
+   * Gets whether this repository is legacy
+   *
+   * @return
+   */
+  @Deprecated
+  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
+  public boolean isLegacy(){
+    return isLegacy == 1;
+  }
+
+  /**
+   * Sets whether this repository is legacy. Scoped for moving from old-style repository naming to new
+   *
+   * @param isLegacy
+   */
+  @Deprecated
+  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
+  public void setLegacy(boolean isLegacy){
+    this.isLegacy = isLegacy ? (short) 1 : (short) 0;
   }
 
   /**

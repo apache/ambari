@@ -23,7 +23,6 @@ import {StoreModule} from '@ngrx/store';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
-import {HttpClientService} from '@app/services/http-client.service';
 
 import {MainContainerComponent} from './main-container.component';
 
@@ -46,8 +45,7 @@ describe('MainContainerComponent', () => {
       providers: [
         AppStateService,
         AuditLogsFieldsService,
-        ServiceLogsFieldsService,
-        HttpClientService
+        ServiceLogsFieldsService
       ]
     })
     .compileComponents();

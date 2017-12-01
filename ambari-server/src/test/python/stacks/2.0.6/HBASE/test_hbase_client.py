@@ -223,7 +223,6 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hbase-client', '2.2.1.0-2067'), sudo=True)
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'phoenix-client', '2.2.1.0-2067'), sudo=True)
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
-    self.assertEquals(1, mocks_dict['call'].call_count)
 
 
   @patch("resource_management.core.shell.call")

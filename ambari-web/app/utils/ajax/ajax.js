@@ -791,7 +791,6 @@ var urls = {
           Clusters: {
             desired_config: {
               "type": data.siteName,
-              "tag": 'version' + (new Date).getTime(),
               "properties": data.properties,
               "service_config_version_note": data.service_config_version_note
 
@@ -1456,7 +1455,6 @@ var urls = {
           Clusters: {
             desired_config: {
               "type": data.siteName,
-              "tag": 'version' + (new Date).getTime(),
               "properties": data.properties
             }
           }
@@ -2832,6 +2830,10 @@ var urls = {
         additionalParams: data.additionalParams || ''
       }
     }
+  },
+  'service.serviceConfigVersions.get.suggestions': {
+    real: '/clusters/{clusterName}/configurations/service_config_versions?fields={key}&minimal_response=true',
+    mock: ''
   },
   'service.serviceConfigVersion.revert': {
     'real': '/clusters/{clusterName}',

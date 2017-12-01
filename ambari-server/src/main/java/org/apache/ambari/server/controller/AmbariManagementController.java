@@ -369,18 +369,18 @@ public interface AmbariManagementController {
   void createExtensionLink(ExtensionLinkRequest request) throws AmbariException;
 
   /**
-   * Update a link between an extension and a stack
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
    * @throws AmbariException if we fail to link the extension to the stack
    */
   void updateExtensionLink(ExtensionLinkRequest request) throws AmbariException;
 
   /**
-   * Update a link between an extension and a stack
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
    * @throws AmbariException if we fail to link the extension to the stack
    */
-  void updateExtensionLink(ExtensionLinkEntity linkEntity) throws AmbariException;
+  void updateExtensionLink(ExtensionLinkEntity oldLinkEntity, ExtensionLinkRequest newLinkRequest) throws AmbariException;
 
   /**
    * Delete a link between an extension and a stack

@@ -63,7 +63,13 @@
       <xs:enumeration value="suse12" />
     </xs:restriction>
   </xs:simpleType>
-
+  
+  <xs:simpleType name="tag-type">
+    <xs:restriction base="xs:NMTOKEN">
+      <xs:enumeration value="GPL" />
+    </xs:restriction>
+  </xs:simpleType>
+  
   <xs:complexType name="manifest-service-type">
     <xs:annotation>
       <xs:documentation>
@@ -113,6 +119,20 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
+  
+  <xs:complexType name="tags-type">
+    <xs:annotation>
+      <xs:documentation>
+      Tags are a way to mark a repository for special purposes.  There
+      may be logic surrounding a tag in the code, or used by agents.
+      
+      Tags are NOT meant to be random strings, they must be defined
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="tag" type="tag-type" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
 
   <xs:complexType name="repository-info-type">
     <xs:sequence>
@@ -130,6 +150,7 @@
                   <xs:element name="components" type="xs:string" minOccurs="0" maxOccurs="1" />
                   <xs:element name="mirrorslist" type="xs:string" minOccurs="0" maxOccurs="1" />
                   <xs:element name="unique" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+                  <xs:element name="tags" type="tags-type" minOccurs="0" maxOccurs="1" />
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
