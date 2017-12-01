@@ -29,7 +29,6 @@ import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -501,8 +500,8 @@ public class PersistedStateImpl implements PersistedState {
             if (hostPredicate != null) {
               try {
                 groupInfo.setPredicate(hostPredicate);
-              } catch (InvalidQueryException e) {
-                // log error but proceed with now predicate set
+              } catch (IllegalArgumentException e) {
+                // log error but proceed with no predicate set
                 LOG.error(String.format(
                     "Failed to compile predicate '%s' during request replay: %s", hostPredicate, e), e);
               }

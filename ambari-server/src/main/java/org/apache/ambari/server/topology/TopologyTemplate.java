@@ -32,33 +32,24 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 public class TopologyTemplate {
 
-  private String blueprint = null;
-
-  @JsonProperty("default_password")
-  private String defaultPassword = null;
-
-  @JsonProperty("config_recommendation_strategy")
-  private ConfigRecommendationStrategy configRecommendationStrategy;
-
-  @JsonProperty("provision_action")
-  private ProvisionAction provisionAction;
-
+  private String blueprint;
+  private String defaultPassword;
+  private ConfigRecommendationStrategy configRecommendationStrategy = ConfigRecommendationStrategy.NEVER_APPLY;
+  private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
   private Map<ServiceId, TopologyTemplate.Service> servicesById = Collections.emptyMap();
-
   private Map<String, TopologyTemplate.HostGroup> hostGroups = Collections.emptyMap();
-
-  private Collection<Credential> credentials;
-
-  @JsonProperty("security")
-  private SecurityConfiguration securityConfiguration;
+  private Collection<Credential> credentials = Collections.emptySet();
+  private SecurityConfiguration securityConfiguration = SecurityConfiguration.NONE;
 
   public String getBlueprint() {
     return blueprint;
   }
 
+  @JsonProperty("blueprint")
   public void setBlueprint(String blueprint) {
     this.blueprint = blueprint;
   }
@@ -67,6 +58,7 @@ public class TopologyTemplate {
     return defaultPassword;
   }
 
+  @JsonProperty("default_password")
   public void setDefaultPassword(String defaultPassword) {
     this.defaultPassword = defaultPassword;
   }
@@ -97,6 +89,7 @@ public class TopologyTemplate {
     return securityConfiguration;
   }
 
+  @JsonProperty("security")
   public void setSecurityConfiguration(SecurityConfiguration securityConfiguration) {
     this.securityConfiguration = securityConfiguration;
   }
@@ -105,6 +98,7 @@ public class TopologyTemplate {
     return configRecommendationStrategy;
   }
 
+  @JsonProperty("config_recommendation_strategy")
   public void setConfigRecommendationStrategy(ConfigRecommendationStrategy configRecommendationStrategy) {
     this.configRecommendationStrategy = configRecommendationStrategy;
   }
@@ -113,6 +107,7 @@ public class TopologyTemplate {
     return provisionAction;
   }
 
+  @JsonProperty("provision_action")
   public void setProvisionAction(ProvisionAction provisionAction) {
     this.provisionAction = provisionAction;
   }
@@ -132,23 +127,24 @@ public class TopologyTemplate {
   }
 
   public void validate() throws IllegalStateException {
+    Preconditions.checkArgument(hostGroups != null && !hostGroups.isEmpty(), "At least one host group must be specified");
     getHostGroups().forEach(HostGroup::validate);
+    getServices().forEach(Service::validate);
+    getCredentials().forEach(Credential::validate);
   }
 
   public static class HostGroup implements Configurable {
     private String name;
-    @JsonIgnore
-    private Configuration configuration;
+    private Configuration configuration = Configuration.createEmpty();
     private Collection<Host> hosts = Collections.emptyList();
-    @JsonProperty("host_count")
-    private int hostCount = 0;
-    @JsonProperty("host_predicate")
+    private int hostCount;
     private String hostPredicate;
 
     public String getName() {
       return name;
     }
 
+    @JsonProperty("name")
     public void setName(String name) {
       this.name = name;
     }
@@ -158,6 +154,7 @@ public class TopologyTemplate {
       return configuration;
     }
 
+    @JsonIgnore
     @Override
     public void setConfiguration(Configuration configuration) {
       this.configuration = configuration;
@@ -167,6 +164,7 @@ public class TopologyTemplate {
       return hosts;
     }
 
+    @JsonProperty("hosts")
     public void setHosts(Collection<Host> hosts) {
       this.hosts = hosts;
     }
@@ -175,6 +173,7 @@ public class TopologyTemplate {
       return hostCount;
     }
 
+    @JsonProperty("host_count")
     public void setHostCount(int hostCount) {
       this.hostCount = hostCount;
     }
@@ -183,29 +182,35 @@ public class TopologyTemplate {
       return hostPredicate;
     }
 
+    @JsonProperty("host_predicate")
     public void setHostPredicate(String hostPredicate) {
       this.hostPredicate = hostPredicate;
     }
 
     void validate() throws IllegalStateException {
-      Preconditions.checkState((hostCount == 0 && null == hostPredicate) || getHosts().isEmpty(),
-        "Invalid custer topology template. Host group %s must have either declatere its hosts or " +
-          "hostcount (and optionally host predicate)", name);
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(name), "Host group name must be specified");
+      Preconditions.checkArgument(hostCount > 0 || !hosts.isEmpty(),
+        "Host group '%s' must contain either 'hosts' or 'host_count'", name);
+      Preconditions.checkArgument(hostCount == 0 || hosts.isEmpty(),
+        "Host group '%s' must not contain both 'hosts' and 'host_count'", name);
+      Preconditions.checkArgument(hostPredicate == null || hostCount > 0,
+        "Host group '%s' must not specify 'host_predicate' without 'host_count'", name);
+
+      hosts.forEach(Host::validate);
     }
   }
 
   public static class Service implements Configurable {
     private String name;
-    @JsonProperty("service_group")
     private String serviceGroup;
-    @JsonIgnore
-    private Configuration configuration;
+    private Configuration configuration = Configuration.createEmpty();
 
     @Override
     public Configuration getConfiguration() {
       return configuration;
     }
 
+    @JsonIgnore
     @Override
     public void setConfiguration(Configuration configuration) {
       this.configuration = configuration;
@@ -220,6 +225,7 @@ public class TopologyTemplate {
       return name;
     }
 
+    @JsonProperty("name")
     public void setName(String name) {
       this.name = name;
     }
@@ -228,20 +234,26 @@ public class TopologyTemplate {
       return serviceGroup;
     }
 
+    @JsonProperty("service_group")
     public void setServiceGroup(String serviceGroup) {
       this.serviceGroup = serviceGroup;
+    }
+
+    public void validate() {
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(name), "Service name must be specified");
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(serviceGroup), "Service group name must be specified for service %s", name);
     }
   }
 
   public static class Host {
     private String fqdn;
-    @JsonProperty("rack_info")
-    private String  rackInfo;
+    private String rackInfo;
 
     public String getFqdn() {
       return fqdn;
     }
 
+    @JsonProperty("fqdn")
     public void setFqdn(String fqdn) {
       this.fqdn = fqdn;
     }
@@ -250,8 +262,13 @@ public class TopologyTemplate {
       return rackInfo;
     }
 
+    @JsonProperty("rack_info")
     public void setRackInfo(String rackInfo) {
       this.rackInfo = rackInfo;
+    }
+
+    public void validate() {
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(fqdn), "Host name must be specified");
     }
   }
 

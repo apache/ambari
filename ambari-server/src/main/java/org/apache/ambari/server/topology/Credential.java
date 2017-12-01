@@ -23,6 +23,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreType;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Preconditions;
 
 /**
  * Holds credential info submitted in a cluster create template.
@@ -74,5 +75,12 @@ public class Credential {
 
   public CredentialStoreType getType() {
     return type;
+  }
+
+  public void validate() {
+    Preconditions.checkNotNull(alias, "credential.alias is missing");
+    Preconditions.checkNotNull(principal, "credential.principal is missing");
+    Preconditions.checkNotNull(key, "credential.key is missing");
+    Preconditions.checkNotNull(type, "credential.type is missing or invalid");
   }
 }

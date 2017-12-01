@@ -70,16 +70,6 @@ public class ConfigurationFactory {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static Collection<Map<String, Object>> toBranchMapList(Object o) {
-    return (Collection<Map<String, Object>>) o;
-  }
-
-  @SuppressWarnings("unchecked")
-  public static Collection<Map<String, String>> toLeafMapList(Object o) {
-    return (Collection<Map<String, String>>) o;
-  }
-
   /**
    * The structure of blueprints is evolving where multiple resource
    * structures are to be supported. This class abstracts the population

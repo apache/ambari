@@ -59,7 +59,6 @@ import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ServiceDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
@@ -251,9 +250,8 @@ public class AmbariContext {
 
         if (null == repoVersion) {
           throw new IllegalArgumentException(String.format(
-            "Could not identify repository version with stack %s and version %s for installing services. "
-              + "Specify a valid version with '%s'",
-            stackId, stack.getRepoVersion(), ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+            "Could not identify repository version with stack %s and version %s for installing services.",
+            stackId, stack.getRepoVersion()));
         }
 
         // only use a STANDARD repo when creating a new cluster

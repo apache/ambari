@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.Configuration;
@@ -156,7 +155,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
         validateHostPredicateProperties(predicate);
         try {
           hostGroupInfo.setPredicate(predicate);
-        } catch (InvalidQueryException e) {
+        } catch (IllegalArgumentException e) {
           throw new InvalidTopologyTemplateException(
               String.format("Unable to compile host predicate '%s': %s", predicate, e), e);
         }

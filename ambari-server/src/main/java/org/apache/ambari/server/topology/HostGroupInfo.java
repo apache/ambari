@@ -192,11 +192,17 @@ public class HostGroupInfo {
    * Set the host predicate for the host group.
    *
    * @param predicateString  host predicate as a string
-   * @throws InvalidQueryException if compilation of the predicate fails
+   * @throws IllegalArgumentException if compilation of the predicate fails
    */
-  public void setPredicate(String predicateString) throws InvalidQueryException {
-    this.predicate = PREDICATE_COMPILER.compile(predicateString);
-    this.predicateString = predicateString;
+  public void setPredicate(String predicateString) {
+    if (predicateString != null) {
+      try {
+        this.predicate = PREDICATE_COMPILER.compile(predicateString);
+        this.predicateString = predicateString;
+      } catch (InvalidQueryException e) {
+        throw new IllegalArgumentException(e);
+      }
+    }
   }
 
   /**
