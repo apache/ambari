@@ -407,7 +407,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         // not available
         return App.showConfirmationPopup(
           callback, Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointNA'), null,
-          Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'), true
+          Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'), 'danger'
         );
       } else {
         // still young

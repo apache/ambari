@@ -93,6 +93,7 @@
       <overridable>false</overridable>
       <type>value-list</type>
       <entries>
+        <entries_editable>false</entries_editable>
         <entry>
           <value>New MySQL Database</value>
           <label>New MySQL</label>

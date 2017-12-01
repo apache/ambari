@@ -843,7 +843,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
         function () {
           self._submitProceed();
         },
-        Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
+        Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'), null, null, null, 'warning');
     }
     this._submitProceed();
   },
