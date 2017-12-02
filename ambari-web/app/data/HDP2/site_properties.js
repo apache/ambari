@@ -455,10 +455,6 @@ var hdp2properties = [
       {
         displayName: 'Existing Oracle Database',
         hidden: false
-      },
-      {
-        displayName: 'Existing SQL Anywhere Database',
-        hidden: App.get('currentStackName') !== 'SAPHD' && (App.get('currentStackName') !== 'HDP' || !App.get('isHadoop23Stack'))
       }
     ],
     "displayType": "radio button",
