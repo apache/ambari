@@ -100,12 +100,13 @@ def oozie(is_server=False):
   pass
 
   oozie_ownership()
-  
-  if params.lzo_enabled:
-    install_lzo_if_needed()
-    Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
-      not_if  = no_op_test,
-    )
+
+  # LZO if needed should be installed manually
+  # if params.lzo_enabled:
+  #   install_lzo_if_needed()
+  #   Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
+  #     not_if  = no_op_test,
+  #   )
 
   if is_server:
     oozie_server_specific()

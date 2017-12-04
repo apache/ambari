@@ -115,7 +115,8 @@ def hdfs(name=None):
        content=Template("slaves.j2")
   )
 
-  install_lzo_if_needed()
+  # LZO if needed should be installed manually
+  # install_lzo_if_needed()
 
 def install_snappy():
   import params

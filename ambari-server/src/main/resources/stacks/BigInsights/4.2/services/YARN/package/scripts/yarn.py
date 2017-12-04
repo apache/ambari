@@ -51,8 +51,9 @@ def create_local_dir(dir_name):
 
 def yarn(name = None):
   import params
-  
-  install_lzo_if_needed()
+
+  # LZO if needed should be installed manually
+  # install_lzo_if_needed()
 
   if name == "historyserver":
     if params.yarn_log_aggregation_enabled:
