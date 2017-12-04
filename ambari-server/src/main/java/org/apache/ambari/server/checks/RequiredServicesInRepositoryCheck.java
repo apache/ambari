@@ -18,7 +18,6 @@
 package org.apache.ambari.server.checks;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -66,23 +65,18 @@ public class RequiredServicesInRepositoryCheck extends AbstractCheckDescriptor {
     Cluster cluster = clustersProvider.get().getCluster(clusterName);
 
     VersionDefinitionXml xml = getVersionDefinitionXml(request);
-    Map<String, Set<String>> missingDependencies = xml.getMissingDependencies(cluster);
+    Set<String> missingDependencies = xml.getMissingDependencies(cluster);
 
     if (!missingDependencies.isEmpty()) {
       String failReasonTemplate = getFailReason(prerequisiteCheck, request);
 
-      StringBuilder message = new StringBuilder();
-      for (String failedService : missingDependencies.keySet()) {
-        Set<String> servicesRequired = missingDependencies.get(failedService);
+      String message = String.format(
+          "The following services are also required to be included in this upgrade: %s",
+          StringUtils.join(missingDependencies, ", "));
 
-        message.append(String.format(
-            "%s requires the following services which are not included: %s",
-            failedService, StringUtils.join(servicesRequired, ','))).append(System.lineSeparator());
-      }
-
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(missingDependencies.keySet()));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(missingDependencies));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(String.format(failReasonTemplate, message.toString()));
+      prerequisiteCheck.setFailReason(String.format(failReasonTemplate, message));
       return;
     }
 

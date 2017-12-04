@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.xml.XMLConstants;
@@ -346,9 +345,9 @@ public class VersionDefinitionXml {
    *         an empty map if there are none (never {@code null}).
    * @throws AmbariException
    */
-  public Map<String, Set<String>> getMissingDependencies(Cluster cluster)
+  public Set<String> getMissingDependencies(Cluster cluster)
       throws AmbariException {
-    Map<String, Set<String>> missingDependencies = new TreeMap<>();
+    Set<String> missingDependencies = Sets.newTreeSet();
 
     String stackPackagesJson = cluster.getClusterProperty(
         ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY, null);
@@ -388,6 +387,9 @@ public class VersionDefinitionXml {
       return missingDependencies;
     }
 
+    // the installed services in the cluster
+    Map<String,Service> installedServices = cluster.getServices();
+
     ClusterVersionSummary clusterVersionSummary = getClusterSummary(cluster);
     Set<String> servicesInUpgrade = clusterVersionSummary.getAvailableServiceNames();
     Set<String> servicesInRepository = getAvailableServiceNames();
@@ -399,14 +401,59 @@ public class VersionDefinitionXml {
       }
 
       for (String serviceRequired : servicesRequired) {
-        if (!servicesInRepository.contains(serviceRequired)) {
-          missingDependencies.put(serviceInUpgrade, Sets.newTreeSet(servicesRequired));
-          break;
+        if (!servicesInRepository.contains(serviceRequired) && installedServices.containsKey(serviceRequired)) {
+          missingDependencies.add(serviceRequired);
         }
       }
     }
 
+    // now that we have built the list of missing dependencies based solely on
+    // the services participating in the upgrade, recursively see if any of
+    // those services have dependencies as well
+    missingDependencies = getRecursiveDependencies(missingDependencies, dependencies,
+        servicesInUpgrade, installedServices.keySet());
+
     return missingDependencies;
+  }
+
+  /**
+   * Gets all dependencies required to perform an upgrade, considering that the
+   * original set's depenencies may have dependencies of their own.
+   *
+   * @param missingDependencies
+   *          the set of missing dependencies so far.
+   * @param dependencies
+   *          the master list of dependency associations
+   * @param servicesInUpgrade
+   *          the services which the VDF indicates are going to be in the
+   *          upgrade *
+   * @param installedServices
+   *          the services installed in the cluster
+   * @return a new set including any dependencies of those which were already
+   *         found
+   */
+  Set<String> getRecursiveDependencies(Set<String> missingDependencies,
+      Map<String, List<String>> dependencies, Set<String> servicesInUpgrade,
+      Set<String> installedServices) {
+    Set<String> results = Sets.newHashSet();
+    results.addAll(missingDependencies);
+
+    for (String missingDependency : missingDependencies) {
+      if (dependencies.containsKey(missingDependency)) {
+        List<String> subDependencies = dependencies.get(missingDependency);
+        for (String subDependency : subDependencies) {
+          if (!missingDependencies.contains(subDependency)
+              && installedServices.contains(subDependency)
+              && !servicesInUpgrade.contains(subDependency)) {
+            results.add(subDependency);
+            results.addAll(getRecursiveDependencies(results, dependencies, servicesInUpgrade,
+                installedServices));
+          }
+        }
+      }
+    }
+
+    return results;
   }
 
   /**
