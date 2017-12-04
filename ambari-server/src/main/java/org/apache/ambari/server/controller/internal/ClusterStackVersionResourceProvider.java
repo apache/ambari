@@ -219,7 +219,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Inject
   public ClusterStackVersionResourceProvider(
           AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Type.ClusterStackVersion, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS, RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS, RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK));

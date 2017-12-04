@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +56,8 @@ import org.apache.ambari.server.security.authorization.Users;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 /**
  * Resource provider for user privilege resources.
@@ -103,20 +104,18 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_PERMISSION_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_VIEW_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_INSTANCE_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_TYPE_PROPERTY_ID);
-    propertyIds.add(PRIVILEGE_USER_NAME_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID,
+      PRIVILEGE_PERMISSION_NAME_PROPERTY_ID,
+      PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID,
+      PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID,
+      PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID,
+      PRIVILEGE_VIEW_NAME_PROPERTY_ID,
+      PRIVILEGE_VIEW_VERSION_PROPERTY_ID,
+      PRIVILEGE_INSTANCE_NAME_PROPERTY_ID,
+      PRIVILEGE_CLUSTER_NAME_PROPERTY_ID,
+      PRIVILEGE_TYPE_PROPERTY_ID,
+      PRIVILEGE_USER_NAME_PROPERTY_ID);
 
   /**
    * Static initialization.
@@ -145,11 +144,10 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.User, PRIVILEGE_USER_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.UserPrivilege, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.User, PRIVILEGE_USER_NAME_PROPERTY_ID)
+      .put(Resource.Type.UserPrivilege, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID)
+      .build();
 
   private ThreadLocal<LoadingCache<Long, ClusterEntity>> clusterCache =
       new ThreadLocal<LoadingCache<Long, ClusterEntity>>(){
@@ -237,7 +235,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
    * Constructor.
    */
   public UserPrivilegeResourceProvider() {
-    super(propertyIds, keyPropertyIds, null);
+    super(Resource.Type.UserPrivilege, propertyIds, keyPropertyIds, null);
 
     EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_ASSIGN_ROLES);
     setRequiredCreateAuthorizations(requiredAuthorizations);

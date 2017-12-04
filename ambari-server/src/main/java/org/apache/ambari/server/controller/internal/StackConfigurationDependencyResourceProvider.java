@@ -19,7 +19,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,6 +37,9 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 public class StackConfigurationDependencyResourceProvider extends
     ReadOnlyResourceProvider {
@@ -60,15 +62,31 @@ public class StackConfigurationDependencyResourceProvider extends
   public static final String DEPENDENCY_TYPE_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurationDependency", "dependency_type");
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
-      STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID,
-      PROPERTY_NAME_PROPERTY_ID, DEPENDENCY_NAME_PROPERTY_ID}));
+  /**
+   * The key property ids for a StackConfigurationDependency resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.Stack, STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
+      .put(Type.StackService, SERVICE_NAME_PROPERTY_ID)
+      .put(Type.StackConfiguration, PROPERTY_NAME_PROPERTY_ID)
+      .put(Type.StackLevelConfiguration, PROPERTY_NAME_PROPERTY_ID)
+      .put(Type.StackConfigurationDependency, DEPENDENCY_NAME_PROPERTY_ID)
+      .build();
 
-  protected StackConfigurationDependencyResourceProvider(Set<String> propertyIds,
-                                                         Map<Type, String> keyPropertyIds,
-                                                         AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The property ids for a StackConfigurationDependency resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID,
+      SERVICE_NAME_PROPERTY_ID,
+      PROPERTY_NAME_PROPERTY_ID,
+      DEPENDENCY_NAME_PROPERTY_ID,
+      DEPENDENCY_TYPE_PROPERTY_ID);
+
+  protected StackConfigurationDependencyResourceProvider(AmbariManagementController managementController) {
+    super(Type.StackConfigurationDependency, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -137,7 +155,7 @@ public class StackConfigurationDependencyResourceProvider extends
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

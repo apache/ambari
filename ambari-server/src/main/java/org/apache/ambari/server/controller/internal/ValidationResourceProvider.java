@@ -45,6 +45,9 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 public class ValidationResourceProvider extends StackAdvisorResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(ValidationResourceProvider.class);
@@ -54,20 +57,59 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
   protected static final String VALIDATE_PROPERTY_ID = "validate";
 
   protected static final String ITEMS_PROPERTY_ID = "items";
-  protected static final String ITEMS_TYPE_PROPERTY_ID = "type";
-  protected static final String ITEMS_LEVE_PROPERTY_ID = "level";
-  protected static final String ITEMS_MESSAGE_PROPERTY_ID = "message";
-  protected static final String ITEMS_COMPONENT_NAME_PROPERTY_ID = "component-name";
-  protected static final String ITEMS_HOST_PROPERTY_ID = "host";
-  protected static final String ITEMS_CONFIG_TYPE_PROPERTY_ID = "config-type";
-  protected static final String ITEMS_CONFIG_NAME_PROPERTY_ID = "config-name";
+  protected static final String TYPE_PROPERTY_ID = "type";
+  protected static final String LEVE_PROPERTY_ID = "level";
+  protected static final String MESSAGE_PROPERTY_ID = "message";
+  protected static final String COMPONENT_NAME_PROPERTY_ID = "component-name";
+  protected static final String HOST_PROPERTY_ID = "host";
+  protected static final String CONFIG_TYPE_PROPERTY_ID = "config-type";
+  protected static final String CONFIG_NAME_PROPERTY_ID = "config-name";
+  protected static final String HOST_GROUP_PROPERTY_ID = "host-group";
+  protected static final String HOSTS_PROPERTY_ID = "hosts";
+  protected static final String SERVICES_PROPERTY_ID = "services";
+  protected static final String RECOMMENDATIONS_PROPERTY_ID = "recommendations";
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{VALIDATION_ID_PROPERTY_ID}));
+  protected static final String ITEMS_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, TYPE_PROPERTY_ID);
+  protected static final String ITEMS_LEVE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, LEVE_PROPERTY_ID);
+  protected static final String ITEMS_MESSAGE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, MESSAGE_PROPERTY_ID);
+  protected static final String ITEMS_COMPONENT_NAME_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID);
+  protected static final String ITEMS_HOST_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, HOST_PROPERTY_ID);
+  protected static final String ITEMS_CONFIG_TYPE_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, CONFIG_TYPE_PROPERTY_ID);
+  protected static final String ITEMS_CONFIG_NAME_PROPERTY_ID =  PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, CONFIG_NAME_PROPERTY_ID);
+  protected static final String ITEMS_HOST_GROUP_PROPERTY_ID = PropertyHelper.getPropertyId(ITEMS_PROPERTY_ID, HOST_GROUP_PROPERTY_ID);
 
-  protected ValidationResourceProvider(Set<String> propertyIds, Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The key property ids for a Validation resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.Validation, VALIDATION_ID_PROPERTY_ID)
+      .put(Type.Stack, STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a Validation resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      VALIDATION_ID_PROPERTY_ID,
+      VALIDATE_PROPERTY_ID,
+      ITEMS_PROPERTY_ID,
+      STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID,
+      ITEMS_TYPE_PROPERTY_ID,
+      ITEMS_LEVE_PROPERTY_ID,
+      ITEMS_MESSAGE_PROPERTY_ID,
+      ITEMS_COMPONENT_NAME_PROPERTY_ID,
+      ITEMS_HOST_PROPERTY_ID,
+      ITEMS_CONFIG_TYPE_PROPERTY_ID,
+      ITEMS_CONFIG_NAME_PROPERTY_ID,
+      ITEMS_HOST_GROUP_PROPERTY_ID,
+      HOSTS_PROPERTY_ID,
+      SERVICES_PROPERTY_ID,
+      RECOMMENDATIONS_PROPERTY_ID);
+
+  protected ValidationResourceProvider(AmbariManagementController managementController) {
+    super(Type.Validation, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -105,19 +147,19 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
         Set<ValidationItem> items = response.getItems();
         for (ValidationItem item : items) {
           Map<String, Object> mapItemProps = new HashMap<>();
-          mapItemProps.put(ITEMS_TYPE_PROPERTY_ID, item.getType());
-          mapItemProps.put(ITEMS_LEVE_PROPERTY_ID, item.getLevel());
-          mapItemProps.put(ITEMS_MESSAGE_PROPERTY_ID, item.getMessage());
+          mapItemProps.put(TYPE_PROPERTY_ID, item.getType());
+          mapItemProps.put(LEVE_PROPERTY_ID, item.getLevel());
+          mapItemProps.put(MESSAGE_PROPERTY_ID, item.getMessage());
 
           if (item.getComponentName() != null) {
-            mapItemProps.put(ITEMS_COMPONENT_NAME_PROPERTY_ID, item.getComponentName());
+            mapItemProps.put(COMPONENT_NAME_PROPERTY_ID, item.getComponentName());
           }
           if (item.getHost() != null) {
-            mapItemProps.put(ITEMS_HOST_PROPERTY_ID, item.getHost());
+            mapItemProps.put(HOST_PROPERTY_ID, item.getHost());
           }
           if (item.getConfigType() != null) {
-            mapItemProps.put(ITEMS_CONFIG_TYPE_PROPERTY_ID, item.getConfigType());
-            mapItemProps.put(ITEMS_CONFIG_NAME_PROPERTY_ID, item.getConfigName());
+            mapItemProps.put(CONFIG_TYPE_PROPERTY_ID, item.getConfigType());
+            mapItemProps.put(CONFIG_NAME_PROPERTY_ID, item.getConfigName());
           }
           listItemProps.add(mapItemProps);
         }
@@ -134,7 +176,7 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

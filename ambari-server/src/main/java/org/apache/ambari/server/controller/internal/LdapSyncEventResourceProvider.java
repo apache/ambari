@@ -60,6 +60,9 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * Resource provider for ldap sync events.
  */
@@ -97,33 +100,29 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
   /**
    * The key property ids for a event resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.LdapSyncEvent, EVENT_ID_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.LdapSyncEvent, EVENT_ID_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a event resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-
-  static {
-    propertyIds.add(EVENT_ID_PROPERTY_ID);
-    propertyIds.add(EVENT_STATUS_PROPERTY_ID);
-    propertyIds.add(EVENT_STATUS_DETAIL_PROPERTY_ID);
-    propertyIds.add(EVENT_START_TIME_PROPERTY_ID);
-    propertyIds.add(EVENT_END_TIME_PROPERTY_ID);
-    propertyIds.add(USERS_CREATED_PROPERTY_ID);
-    propertyIds.add(USERS_UPDATED_PROPERTY_ID);
-    propertyIds.add(USERS_REMOVED_PROPERTY_ID);
-    propertyIds.add(USERS_SKIPPED_PROPERTY_ID);
-    propertyIds.add(GROUPS_CREATED_PROPERTY_ID);
-    propertyIds.add(GROUPS_UPDATED_PROPERTY_ID);
-    propertyIds.add(GROUPS_REMOVED_PROPERTY_ID);
-    propertyIds.add(MEMBERSHIPS_CREATED_PROPERTY_ID);
-    propertyIds.add(MEMBERSHIPS_REMOVED_PROPERTY_ID);
-    propertyIds.add(EVENT_SPECS_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      EVENT_ID_PROPERTY_ID,
+      EVENT_STATUS_PROPERTY_ID,
+      EVENT_STATUS_DETAIL_PROPERTY_ID,
+      EVENT_START_TIME_PROPERTY_ID,
+      EVENT_END_TIME_PROPERTY_ID,
+      USERS_CREATED_PROPERTY_ID,
+      USERS_UPDATED_PROPERTY_ID,
+      USERS_REMOVED_PROPERTY_ID,
+      USERS_SKIPPED_PROPERTY_ID,
+      GROUPS_CREATED_PROPERTY_ID,
+      GROUPS_UPDATED_PROPERTY_ID,
+      GROUPS_REMOVED_PROPERTY_ID,
+      MEMBERSHIPS_CREATED_PROPERTY_ID,
+      MEMBERSHIPS_REMOVED_PROPERTY_ID,
+      EVENT_SPECS_PROPERTY_ID);
 
   /**
    * Spec property keys.
@@ -164,7 +163,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
    * Construct a event resource provider.
    */
   public LdapSyncEventResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.LdapSyncEvent, propertyIds, keyPropertyIds, managementController);
 
     EnumSet<RoleAuthorization> roleAuthorizations =
         EnumSet.of(RoleAuthorization.AMBARI_MANAGE_GROUPS, RoleAuthorization.AMBARI_MANAGE_USERS);

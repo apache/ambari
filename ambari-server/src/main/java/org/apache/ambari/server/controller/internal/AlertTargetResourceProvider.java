@@ -130,7 +130,7 @@ public class AlertTargetResourceProvider extends
    */
   @Inject
   AlertTargetResourceProvider() {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS);
+    super(Resource.Type.AlertTarget, PROPERTY_IDS, KEY_PROPERTY_IDS);
 
     EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_ALERT_NOTIFICATIONS);
     setRequiredCreateAuthorizations(requiredAuthorizations);

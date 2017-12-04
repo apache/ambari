@@ -103,7 +103,7 @@ public class ConfigurationResourceProvider extends
    * @param managementController  the associated management controller
    */
   ConfigurationResourceProvider(AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.Configuration, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
 
     // creating configs requires authorizations based on the type of changes being performed, therefore
     // checks need to be performed inline.

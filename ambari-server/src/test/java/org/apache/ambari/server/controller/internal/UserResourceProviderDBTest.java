@@ -91,7 +91,7 @@ public class UserResourceProviderDBTest {
         Set<String> propertyIds    = PropertyHelper.getPropertyIds(userType);
         Map<Resource.Type,String> keyPropertyIds = PropertyHelper.getKeyPropertyIds(userType);
 
-        userResourceProvider = new UserResourceProvider(propertyIds, keyPropertyIds, amc);
+        userResourceProvider = new UserResourceProvider(amc);
     }
 
     /**
