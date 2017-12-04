@@ -52,7 +52,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
-from resource_management.libraries.functions.repository_util import CommandRepository, RepositoryUtil
+from resource_management.libraries.functions.repository_util import CommandRepository
 from resource_management.core.resources.system import Execute
 from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -354,14 +354,6 @@ class Script(object):
     except IOError:
       Logger.logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
-
-    from resource_management.libraries.functions import lzo_utils
-
-    repo_tags_to_skip = set()
-    if not lzo_utils.is_gpl_license_accepted():
-      repo_tags_to_skip.add("GPL")
-
-    Script.repository_util = RepositoryUtil(Script.config, repo_tags_to_skip)
 
     # Run class method depending on a command type
     try:

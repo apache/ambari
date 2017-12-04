@@ -20,13 +20,11 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -258,9 +256,6 @@ public class CommandRepository {
     @SerializedName("mirrorsList")
     private String m_mirrorsList;
 
-    @SerializedName("tags")
-    private Set<RepoTag> m_tags;
-
     @SerializedName("applicableServices")
     @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
       comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
@@ -288,7 +283,6 @@ public class CommandRepository {
       m_mirrorsList = entity.getMirrorsList();
       m_osType = osType;
       m_applicableServices = entity.getApplicableServices();
-      m_tags = entity.getTags();
     }
 
     public void setRepoId(String repoId){

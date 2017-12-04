@@ -19,8 +19,7 @@ limitations under the License.
 
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.resources.repository import Repository
-from resource_management.libraries.functions.repository_util import CommandRepository, UBUNTU_REPO_COMPONENTS_POSTFIX
-from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.repository_util import create_repo_files, CommandRepository, UBUNTU_REPO_COMPONENTS_POSTFIX
 from resource_management.core.logger import Logger
 import ambari_simplejson as json
 
@@ -63,12 +62,12 @@ def install_repos():
   if params.host_sys_prepped:
     return
 
+  template = params.repo_rhel_suse if OSCheck.is_suse_family() or OSCheck.is_redhat_family() else params.repo_ubuntu
+
   # use this newer way of specifying repositories, if available
   if params.repo_file is not None:
-    Script.repository_util.create_repo_files()
+    create_repo_files(template, CommandRepository(params.repo_file))
     return
-
-  template = params.repo_rhel_suse if OSCheck.is_suse_family() or OSCheck.is_redhat_family() else params.repo_ubuntu
 
   _alter_repo("create", params.repo_info, template)
 
