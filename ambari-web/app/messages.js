@@ -636,15 +636,17 @@ Em.I18n.translations = {
   'installer.configureDownload.body.title': 'How do you want to download your products?',
   'installer.configureDownload.body.description': 'Using Public Repository requires an internet connection. Using local repository requires you have configured the software in a repository available on your network.',
   'installer.configureDownload.publicRepo': 'Public Repository',
-  'installer.configureDownload.localRepo': 'Local Repository',
-  'installer.configureDownload.publicRepo.hoverDesc': 'Management Packs will be downloaded using the internet',
-  'installer.configureDownload.localRepo.hoverDesc': 'Management Packs will be downloaded from the specified local repository',
-
+  'installer.configureDownload.customRepo': 'Local Repository',
+  'installer.configureDownload.publicRepo.description': 'Management Packs will be downloaded using the internet',
+  'installer.configureDownload.customRepo.description': 'Management Packs will be downloaded from the specified local repository',
+  'installer.configureDownload.useProxy': 'Use Proxy',
+  'installer.configureDownload.proxyUrl': 'Proxy URL',
+  'installer.configureDownload.proxyUrl.placeholder': 'http://server:port',
+  'installer.configureDownload.proxyAuth': 'Authentication',
+  'installer.configureDownload.useRedHatSatellite': 'Use Red Hat Satellite/Spacewalk',
   'installer.downloadProducts.header': 'Download Products',
   'installer.downloadProducts.body.title': 'Downloading and validating Management Packs',
   'installer.downloadProducts.body.description': 'Ambari is downloading the Management Packs and validating its contents',
-
-
 
   'installer.step1.header':'Select Version',
   'installer.step1.body':'Select the software version and method of delivery for your cluster.',

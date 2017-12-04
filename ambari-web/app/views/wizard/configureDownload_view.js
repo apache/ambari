@@ -23,33 +23,68 @@ App.WizardConfigureDownloadView = Em.View.extend({
 
   templateName: require('templates/wizard/configureDownload'),
 
+  proxyAuthOptions: [
+    Em.Object.create({ value: 0, label: 'None', selected: true }),
+    Em.Object.create({ value: 1, label: 'Option 1', selected: false }),
+    Em.Object.create({ value: 2, label: 'Option 2', selected: false })
+  ],
+
+  proxyUrlPlaceholder: Em.I18n.t('installer.configureDownload.proxyUrl.placeholder'),
+  
   didInsertElement: function () {
     this.get('controller').loadStep();
+    
+    const selectedProxyAuth = this.get('controller.content.downloadConfig.proxyAuth');
+    this.setProxyAuth(selectedProxyAuth, true);
   },
 
-  /**
-   * Radio button for use Public repo
-   *
-   * @type {App.RadioButtonView}
-   */
-  usePublicRepoRadioButton: App.RadioButtonView.extend({
-    checked: Em.computed.alias('controller.content.downloadConfig.usePublicRepo'),
-    change: function () {
-      this.get('controller').usePublicRepo();
-    }
-  }),
+  useRedHatSatelliteChanged: function () {
+    this.set('controller.content.downloadConfig.useProxy', false);
+    const self = this.useProxyChanged ? this : this.get('parentView'); //parentView is actually just this view, but this function gets called from a sub-view on the template so we have to reference this way
+    self.useProxyChanged();
+  },
 
-  /**
-   * Checkbox for use Public repo
-   *
-   * @type {App.RadioButtonView}
-   */
-  useLocalRepoRadioButton: App.RadioButtonView.extend({
-    checked: Em.computed.alias('controller.content.downloadConfig.useLocalRepo'),
-    disabled: true,
-    change: function () {
-      this.get('controller').useLocalRepo();
-    }
-  })
+  useProxyChanged: function () {
+    this.set('controller.content.downloadConfig.proxyUrl', null);
+    const self = this.setProxyAuth ? this : this.get('parentView'); //parentView is actually just this view, but this function gets called from a sub-view on the template so we have to reference this way
+    self.setProxyAuth(0);
+    this.get('controller').proxySettingsChanged();
+  },
 
+  proxyUrlChanged: function () {
+    this.get('controller').proxySettingsChanged();
+  },
+
+  setProxyAuth: function (value, doNotUpdateController) {
+    const optionToSelect = this.get('proxyAuthOptions').filter(option => option.get('value') == value);
+    
+    if (optionToSelect.length > 0) {
+      let proxyAuthOptions = this.get('proxyAuthOptions');
+      proxyAuthOptions.forEach(option => {
+        if (option.get('value') == value) {
+          option.set('selected', true);
+        } else {
+          option.set('selected', false);
+        }
+      });
+
+      if (!doNotUpdateController) {
+        this.get('controller').setProxyAuth(value);
+      }  
+    }
+  },
+
+  proxyAuthChanged: function (event) {
+    const selected = event.target.value;
+    this.setProxyAuth(selected);
+    this.get('controller').proxySettingsChanged();
+  },
+
+  isSubmitDisabled: function () {
+    if (this.get('controller.content.downloadConfig.useProxy') && !this.get('controller.content.downloadConfig.proxyTestPassed')) {
+      return true;
+    }
+
+    return false;
+  }.property('controller.content.downloadConfig.useProxy', 'controller.content.downloadConfig.proxyTestPassed')
 });

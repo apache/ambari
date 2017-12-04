@@ -242,7 +242,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         var wizardStep3Controller = router.get('wizardStep3Controller');
         controller.saveConfirmedHosts(wizardStep3Controller);
         if (!wizardStep3Controller.get('isSaved')) {
-          App.router.get('wizardSelectMpacksController').clearSelection();
+          var wizardSelectMpacksController = App.router.get('wizardSelectMpacksController');
+          wizardSelectMpacksController.set('wizardController', controller);
+          wizardSelectMpacksController.clearSelection();
           controller.set('content.selectedServices', undefined);
           controller.set('content.selectedServiceNames', undefined);
           controller.set('content.selectedMpacks', undefined);

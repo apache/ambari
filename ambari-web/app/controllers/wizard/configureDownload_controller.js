@@ -22,63 +22,41 @@ App.WizardConfigureDownloadController = Em.Controller.extend({
 
   name: 'wizardConfigureDownloadController',
 
-  optionsToSelect: {
-    'usePublicRepo': {
-      index: 0,
-      isSelected: true
-    },
-    'useLocalRepo': {
-      index: 1,
-      isSelected: false,
-      'uploadFile': {
-        index: 0,
-        name: 'uploadFile',
-        file: '',
-        hasError: false,
-        isSelected: true
-      },
-      'enterUrl': {
-        index: 1,
-        name: 'enterUrl',
-        url: '',
-        placeholder: Em.I18n.t('installer.step1.useLocalRepo.enterUrl.placeholder'),
-        hasError: false,
-        isSelected: false
-      }
+  loadStep: function () {
+    let downloadConfig = this.get('content.downloadConfig');
+    if (!downloadConfig) {
+      this.set('content.downloadConfig', {
+        useRedHatSatellite: false,
+        useCustomRepo: false,
+        useProxy: false,
+        proxyUrl: null,
+        proxyAuth: null,
+        proxyTestPassed: false
+      });
     }
   },
 
-  loadStep: function () {
-    let downloadConfig = this.get('content.downloadConfig');
-    //if (!this.get('content.downloadConfig')) {
-      //let downloadConfig = this.get('wizardController').getDBProperty('downloadConfig');
-
-      if (!downloadConfig) {
-        downloadConfig = {
-          useRedhatSatellite: false,
-          usePublicRepo: true
-        };
-      }
-
-      this.set('content.downloadConfig', downloadConfig);
-    //}
-  },
-
-  /**
-   * Restore base urls for selected stack when user select to use public repository
-   */
   usePublicRepo: function () {
-    this.set('content.downloadConfig', {
-      useRedhatSatellite: false,
-      usePublicRepo: true
-    });
+    this.set('content.downloadConfig.useCustomRepo', false);
+    this.set('content.downloadConfig.useRedHatSatellite', false);
   },
 
-  useLocalRepo: function () {
-    this.set('content.downloadConfig', {
-      useRedhatSatellite: false,
-      usePublicRepo: false
-    });
+  useCustomRepo: function () {
+    this.set('content.downloadConfig.useCustomRepo', true);
+  },
+
+  setProxyAuth: function (authType) {
+    this.set('content.downloadConfig.proxyAuth', authType);
+    this.proxySettingsChanged();
+  },
+
+  proxySettingsChanged: function () {
+    this.set('content.downloadConfig.proxyTestPassed', false);
+  },
+
+  proxyTest: function () {
+    //TODO: mpacks - implement test proxy connection
+    this.set('content.downloadConfig.proxyTestPassed', true);
   },
 
   /**
@@ -90,8 +68,6 @@ App.WizardConfigureDownloadController = Em.Controller.extend({
     if (App.get('router.nextBtnClickInProgress')) {
       return;
     }
-
-    //this.get('wizardController').setDBProperty('downloadConfig', this.get('content.downloadConfig'));
 
     App.router.send('next');
   }

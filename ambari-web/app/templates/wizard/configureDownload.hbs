@@ -21,35 +21,57 @@
   <div class="panel panel-default">
     <div class="panel-body">
       {{#if App.router.nextBtnClickInProgress}}
-        {{view App.SpinnerView}}
+      {{view App.SpinnerView}}
       {{else}}
-        <form id="repoVersionInfoForm" class="form-horizontal" role="form" name="localVersionInfoForm" novalidate>
-          <div class="panel panel-default repos-panel">
-            <div class="step-title">
-              <p>{{t installer.configureDownload.body.title}}</p>
+      <div class="panel panel-default repos-panel">
+        <div class="step-title">
+          <p>{{t installer.configureDownload.body.title}}</p>
+        </div>
+        <p class="step-description">{{t installer.configureDownload.body.description}}</p>
+        <div class="panel-body version-contents-body">
+          <div class="row radio-group">
+            {{! Public Repo radio button }}
+            <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text controller.content.downloadConfig.usePublicRepo:repo-selected:repo-not-selected"}} {{action usePublicRepo target="controller"}}>
+              {{view App.RadioButtonView checkboxClassNames="repo-checkbox" selectionBinding="controller.content.downloadConfig.useCustomRepo" valueBinding="App.False"}}
+              <p>{{t installer.configureDownload.publicRepo.description}}</p>
+              <span class="glyphicon glyphicon-cloud-download icon"></span>
+              <div class="repo-group">{{t installer.configureDownload.publicRepo}}</div>
             </div>
-            <p class="step-description">{{t installer.configureDownload.body.description}}</p>
-            <div class="panel-body version-contents-body">
-              <div class="row radio-group">
-                {{! Public Repository radio }}
-                <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text controller.content.downloadConfig.usePublicRepo:repo-selected:repo-not-selected"}} {{action usePublicRepo target="controller"}}>
-                  {{view view.usePublicRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-public-repo"}}
-                  <p>{{t installer.configureDownload.publicRepo.hoverDesc}}</p>
-                  <i class="icon icon-cloud-download"></i>
-                  <div class="repo-group">{{t installer.configureDownload.publicRepo}}</div>
-                </div>
-                {{!--Local repo radio--}}
-                {{!--Not allowing any action on Local Repository for the first iteration. Will use action useLocalRepo later when this option is allowed--}}
-                <div {{bindAttr class=":col-sm-4 :radio :big-radio :local-radio :wizard-plain-text controller.content.downloadConfig.usePublicRepo:repo-not-selected:repo-selected"}}>
-                  {{view view.useLocalRepoRadioButton classNames="repo-checkbox" labelIdentifier="use-local-repo"}}
-                  <p>{{t installer.configureDownload.localRepo.hoverDesc}}</p>
-                  <i class="icon icon-tasks"></i>
-                  <div class="repo-group">{{t installer.configureDownload.localRepo}}</div>
-                </div>
-              </div>
+            {{! Custom Repo radio button }}
+            <div {{bindAttr class=":col-sm-4 :radio :big-radio :local-radio :wizard-plain-text controller.content.downloadConfig.usePublicRepo:repo-not-selected:repo-selected"}} {{action useCustomRepo target="controller"}}>
+              {{view App.RadioButtonView checkboxClassNames="repo-checkbox" selectionBinding="controller.content.downloadConfig.useCustomRepo" valueBinding="App.True"}}
+              <p>{{t installer.configureDownload.customRepo.description}}</p>
+              <span class="glyphicon glyphicon-tasks icon"></span>
+              <div class="repo-group">{{t installer.configureDownload.customRepo}}</div>
             </div>
           </div>
-        </form>
+          {{! Red Hat Satellite checkbox }}
+          {{#if controller.content.downloadConfig.useCustomRepo}}
+          {{view App.CheckboxView id="useRedHat" checkedBinding="controller.content.downloadConfig.useRedHatSatellite" labelTranslate="installer.configureDownload.useRedHatSatellite" changeBinding="view.useRedHatSatelliteChanged"}}
+          {{/if}}
+          {{! Use Proxy checkbox }}
+          {{#unless controller.content.downloadConfig.useRedHatSatellite}}
+          {{view App.CheckboxView id="useProxy" checkedBinding="controller.content.downloadConfig.useProxy" labelTranslate="installer.configureDownload.useProxy" changeBinding="view.useProxyChanged"}}
+          {{#if controller.content.downloadConfig.useProxy}}
+          <form id="proxySettings">
+            <div class="form-group">
+              <label for="proxyUrl" class="control-label required">{{t installer.configureDownload.proxyUrl}}</label>
+              {{view Em.TextField id="proxyUrl" class="form-control" placeholderBinding="view.proxyUrlPlaceholder" valueBinding="controller.content.downloadConfig.proxyUrl" changeBinding="view.proxyUrlChanged"}}
+            </div>
+            <div class="form-group">
+              <label for="proxyAuth" class="required">{{t installer.configureDownload.proxyAuth}}</label>
+              <select id="proxyAuth" class="form-control" {{action proxyAuthChanged on="change" target="view"}}>
+                {{#each option in view.proxyAuthOptions}}
+                <option {{bindAttr value="option.value" selected="option.selected"}}>{{option.label}}</option>
+                {{/each}}
+              </select>
+            </div>
+            <button type="button" id="proxyTest" class="btn btn-default" {{bindAttr disabled="controller.content.downloadConfig.proxyTestPassed"}} {{action proxyTest target="controller"}}>Test Connection</button>
+          </form>
+          {{/if}}
+          {{/unless}}
+        </div>
+      </div>
       {{/if}}
     </div>
   </div>
