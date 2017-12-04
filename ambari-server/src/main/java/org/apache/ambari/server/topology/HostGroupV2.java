@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -61,6 +62,7 @@ public interface HostGroupV2 {
    * @return collection of component instances
    */
   Collection<ComponentV2> getComponents();
+  Map<Service, List<ComponentV2>> getComponentsByService();
 
   /**
    * Get all of the host group component names
@@ -88,9 +90,9 @@ public interface HostGroupV2 {
    *
    * @return collection of component names for the specified service; will not return null
    */
-  Collection<ComponentV2> getComponentsByServiceId(ServiceId serviceId);
+  Collection<ComponentV2> getComponentsForService(ServiceId serviceId);
 
-  Collection<ComponentV2> getComponents(Service serviceId);
+  Collection<ComponentV2> getComponentsForService(Service service);
 
   /**
    * Determine if the host group contains a master component.

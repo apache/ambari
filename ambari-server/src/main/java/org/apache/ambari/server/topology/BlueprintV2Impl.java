@@ -248,7 +248,7 @@ public class BlueprintV2Impl implements BlueprintV2 {
   @Override
   @JsonIgnore
   public Collection<HostGroupV2> getHostGroupsForService(ServiceId serviceId) {
-    return getHostGroups().values().stream().filter(hg -> !hg.getComponentsByServiceId(serviceId).isEmpty()).collect(toList());
+    return getHostGroups().values().stream().filter(hg -> !hg.getComponentsForService(serviceId).isEmpty()).collect(toList());
   }
 
   @Override

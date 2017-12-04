@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationContext;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
@@ -408,8 +409,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   private static Map<String, String> getDefaultClusterSettings() { // TODO temporary
-    return AmbariContext.getController().getAmbariMetaInfo().getClusterProperties().stream()
-      .collect(toMap(PropertyInfo::getName, PropertyInfo::getValue));
+    AmbariManagementController controller = AmbariContext.getController();
+    return controller != null
+      ? controller.getAmbariMetaInfo().getClusterProperties().stream()
+        .collect(toMap(PropertyInfo::getName, PropertyInfo::getValue))
+      : Collections.emptyMap();
   }
 
 }

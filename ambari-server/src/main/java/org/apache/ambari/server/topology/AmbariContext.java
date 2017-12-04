@@ -302,7 +302,7 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariHostResources(long  clusterId, String hostName, Map<Service, Collection<ComponentV2>> components)  {
+  public void createAmbariHostResources(long clusterId, String hostName, Map<Service, ? extends Iterable<ComponentV2>> components)  {
     Host host;
     try {
       host = getController().getClusters().getHost(hostName);
@@ -312,7 +312,7 @@ public class AmbariContext {
           "Unable to obtain host instance '%s' when persisting host resources", hostName));
     }
 
-    Cluster cluster = null;
+    Cluster cluster;
     try {
       cluster = getController().getClusters().getClusterById(clusterId);
     } catch (AmbariException e) {
@@ -336,7 +336,7 @@ public class AmbariContext {
 
     final Set<ServiceComponentHostRequest> requests = new HashSet<>();
 
-    for (Map.Entry<Service, Collection<ComponentV2>> entry : components.entrySet()) {
+    for (Map.Entry<Service, ? extends Iterable<ComponentV2>> entry : components.entrySet()) {
       Service service = entry.getKey();
       for (ComponentV2 component : entry.getValue()) {
         //todo: handle this in a generic manner.  These checks are all over the code

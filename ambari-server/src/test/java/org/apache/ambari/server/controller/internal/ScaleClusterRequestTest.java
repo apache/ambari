@@ -30,7 +30,6 @@ import static org.powermock.api.easymock.PowerMock.createStrictMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -39,11 +38,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.HostGroupV2;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.junit.After;
@@ -53,7 +52,6 @@ import org.junit.Test;
 /**
  * Unit tests for ScaleClusterRequest.
  */
-@SuppressWarnings("unchecked")
 public class ScaleClusterRequestTest {
 
   private static final String CLUSTER_NAME = "cluster_name";
@@ -65,22 +63,16 @@ public class ScaleClusterRequestTest {
   private static final String GROUP3_NAME = "group3";
   private static final String PREDICATE = "test/prop=foo";
 
-  private static final BlueprintFactory blueprintFactory = createStrictMock(BlueprintFactory.class);
-  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
+  private static final BlueprintV2Factory blueprintFactory = createStrictMock(BlueprintV2Factory.class);
+  private static final BlueprintV2 blueprint = createNiceMock(BlueprintV2.class);
   private static final ResourceProvider hostResourceProvider = createMock(ResourceProvider.class);
-  private static final HostGroup hostGroup1 = createNiceMock(HostGroup.class);
-  private static final Configuration blueprintConfig = new Configuration(
-      Collections.emptyMap(),
-      Collections.emptyMap());
+  private static final HostGroupV2 hostGroup1 = createNiceMock(HostGroupV2.class);
+  private static final Configuration blueprintConfig = Configuration.createEmpty();
 
   @Before
   public void setUp() throws Exception {
-    ScaleClusterRequest.init(null);
-    // set host resource provider field
-    Class clazz = BaseClusterRequest.class;
-    Field f = clazz.getDeclaredField("hostResourceProvider");
-    f.setAccessible(true);
-    f.set(null, hostResourceProvider);
+    BaseClusterRequest.setBlueprintFactory(blueprintFactory);
+    BaseClusterRequest.setHostResourceProvider(hostResourceProvider);
 
     expect(blueprintFactory.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(blueprintConfig).anyTimes();
@@ -304,7 +296,7 @@ public class ScaleClusterRequestTest {
   }
 
 
-  @Test(expected = InvalidTopologyTemplateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testInvalidPredicateProperty() throws Exception {
     reset(hostResourceProvider);
     // checkPropertyIds() returns invalid property names

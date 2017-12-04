@@ -17,9 +17,11 @@
  */
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,6 +68,13 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
 
   @Override
   @JsonIgnore
+  public Map<Service, List<ComponentV2>> getComponentsByService() {
+    return components.stream()
+      .collect(groupingBy(ComponentV2::getService));
+  }
+
+  @Override
+  @JsonIgnore
   public Collection<String> getComponentNames() {
     return components.stream()
       .map(ComponentV2::getName)
@@ -82,12 +91,12 @@ public class HostGroupV2Impl implements HostGroupV2, Configurable {
   }
 
   @Override
-  public Collection<ComponentV2> getComponents(Service service) {
-    return getComponentsByServiceId(service.getId());
+  public Collection<ComponentV2> getComponentsForService(Service service) {
+    return getComponentsForService(service.getId());
   }
 
   @Override
-  public Collection<ComponentV2> getComponentsByServiceId(ServiceId serviceId) {
+  public Collection<ComponentV2> getComponentsForService(ServiceId serviceId) {
     return components.stream().filter(c -> c.getServiceId().equals(serviceId)).collect(toList());
   }
 

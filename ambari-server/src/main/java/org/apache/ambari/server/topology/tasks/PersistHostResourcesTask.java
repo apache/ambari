@@ -17,9 +17,7 @@
  */
 package org.apache.ambari.server.topology.tasks;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -52,12 +50,8 @@ public class PersistHostResourcesTask extends TopologyHostTask  {
     LOG.info("HostRequest: Executing RESOURCE_CREATION task for host: {}", hostRequest.getHostName());
 
     HostGroupV2 group = hostRequest.getHostGroup();
-    Map<Service, Collection<ComponentV2>> serviceComponents = new HashMap<>();
-    for (Service service : group.getServices()) {
-      serviceComponents.put(service, new HashSet(group.getComponents(service)));
-    }
-    clusterTopology.getAmbariContext().createAmbariHostResources(hostRequest.getClusterId(),
-      hostRequest.getHostName(), serviceComponents);
+    Map<Service, List<ComponentV2>> serviceComponents = group.getComponentsByService();
+    clusterTopology.getAmbariContext().createAmbariHostResources(hostRequest.getClusterId(), hostRequest.getHostName(), serviceComponents);
 
     LOG.info("HostRequest: Exiting RESOURCE_CREATION task for host: {}", hostRequest.getHostName());
   }
