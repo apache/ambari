@@ -61,8 +61,6 @@ public class AbstractControllerResourceProviderTest {
     AbstractResourceProvider provider =
         (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
             Resource.Type.Service,
-            null,
-            null,
             managementController);
 
     Assert.assertTrue(provider instanceof ServiceResourceProvider);
@@ -73,7 +71,7 @@ public class AbstractControllerResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        Resource.Type.StackArtifact, null, null, managementController);
+        Resource.Type.StackArtifact, managementController);
 
     assertEquals(StackArtifactResourceProvider.class, provider.getClass());
   }
@@ -85,7 +83,7 @@ public class AbstractControllerResourceProviderTest {
     replay(managementController);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        Resource.Type.RoleAuthorization, null, null, managementController);
+        Resource.Type.RoleAuthorization, managementController);
 
     verify(managementController);
 
@@ -99,7 +97,7 @@ public class AbstractControllerResourceProviderTest {
     replay(managementController);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        Resource.Type.UserAuthorization, null, null, managementController);
+        Resource.Type.UserAuthorization, managementController);
 
     verify(managementController);
 
@@ -113,7 +111,7 @@ public class AbstractControllerResourceProviderTest {
     replay(managementController);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        Resource.Type.ClusterKerberosDescriptor, null, null, managementController);
+        Resource.Type.ClusterKerberosDescriptor, managementController);
 
     verify(managementController);
 

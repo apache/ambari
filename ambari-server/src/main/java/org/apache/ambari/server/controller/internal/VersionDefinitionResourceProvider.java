@@ -184,7 +184,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * Constructor.
    */
   VersionDefinitionResourceProvider() {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS);
+    super(Resource.Type.VersionDefinition, PROPERTY_IDS, KEY_PROPERTY_IDS);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
     setRequiredGetAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));

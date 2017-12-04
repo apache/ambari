@@ -298,7 +298,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    */
   @Inject
   public UpgradeResourceProvider(@Assisted AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.Upgrade, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

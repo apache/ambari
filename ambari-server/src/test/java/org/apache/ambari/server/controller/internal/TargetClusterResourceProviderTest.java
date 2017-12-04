@@ -89,9 +89,7 @@ public class TargetClusterResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
-    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRTargetCluster));
+    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service);
 
     provider.createResources(request);
 
@@ -136,9 +134,7 @@ public class TargetClusterResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
-    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRTargetCluster));
+    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service);
 
     Set<Resource> resources = provider.getResources(request, null);
 
@@ -185,9 +181,7 @@ public class TargetClusterResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(propertySet, Collections.emptyMap());
 
-    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRTargetCluster));
+    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service);
 
     provider.updateResources(request, null);
 
@@ -219,9 +213,7 @@ public class TargetClusterResourceProviderTest {
     replay(service);
 
 
-    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.DRTargetCluster));
+    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service);
 
     Predicate predicate = new PredicateBuilder().property(TargetClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster1").toPredicate();
 
@@ -231,16 +223,4 @@ public class TargetClusterResourceProviderTest {
     verify(service);
   }
 
-  @Test
-  public void testGetKeyPropertyIds() throws Exception {
-    IvoryService service = createMock(IvoryService.class);
-
-    Map<Resource.Type, String> keyPropertyIds = PropertyHelper.getKeyPropertyIds(Resource.Type.DRTargetCluster);
-
-    TargetClusterResourceProvider provider = new TargetClusterResourceProvider(service,
-        PropertyHelper.getPropertyIds(Resource.Type.DRTargetCluster),
-        keyPropertyIds);
-
-    Assert.assertEquals(keyPropertyIds, provider.getKeyPropertyIds());
-  }
 }

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -43,6 +42,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 /**
@@ -68,16 +69,32 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
   public static final String EXTENSION_VERSION_PROPERTY_ID = PropertyHelper
       .getPropertyId("ExtensionLink", "extension_version");
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{LINK_ID_PROPERTY_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID, EXTENSION_NAME_PROPERTY_ID, EXTENSION_VERSION_PROPERTY_ID}));
+  /**
+   * The key property ids for a ExtensionLink resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.ExtensionLink, LINK_ID_PROPERTY_ID)
+      .put(Type.Stack, STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
+      .put(Type.Extension, EXTENSION_NAME_PROPERTY_ID)
+      .put(Type.ExtensionVersion, EXTENSION_VERSION_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a ExtensionLink resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      LINK_ID_PROPERTY_ID,
+      STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID,
+      EXTENSION_NAME_PROPERTY_ID,
+      EXTENSION_VERSION_PROPERTY_ID);
 
   @Inject
   private static ExtensionLinkDAO dao;
 
-  protected ExtensionLinkResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  protected ExtensionLinkResourceProvider(AmbariManagementController managementController) {
+    super(Type.ExtensionLink, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -259,6 +276,6 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 }

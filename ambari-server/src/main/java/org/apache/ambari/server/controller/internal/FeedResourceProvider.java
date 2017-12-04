@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,6 +37,9 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 /**
  * DR feed resource provider.
@@ -62,20 +64,39 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
   protected static final String FEED_TARGET_CLUSTER_ACTION_PROPERTY_ID = PropertyHelper.getPropertyId("Feed/targetCluster/retention", "action");
   protected static final String FEED_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Feed", "properties");
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      FEED_NAME_PROPERTY_ID}));
+  /**
+   * The key property ids for a Feed resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.DRFeed, FEED_NAME_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a Feed resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      FEED_NAME_PROPERTY_ID,
+      FEED_DESCRIPTION_PROPERTY_ID,
+      FEED_STATUS_PROPERTY_ID,
+      FEED_SCHEDULE_PROPERTY_ID,
+      FEED_SOURCE_CLUSTER_NAME_PROPERTY_ID,
+      FEED_SOURCE_CLUSTER_START_PROPERTY_ID,
+      FEED_SOURCE_CLUSTER_END_PROPERTY_ID,
+      FEED_SOURCE_CLUSTER_LIMIT_PROPERTY_ID,
+      FEED_SOURCE_CLUSTER_ACTION_PROPERTY_ID,
+      FEED_TARGET_CLUSTER_NAME_PROPERTY_ID,
+      FEED_TARGET_CLUSTER_START_PROPERTY_ID,
+      FEED_TARGET_CLUSTER_END_PROPERTY_ID,
+      FEED_TARGET_CLUSTER_LIMIT_PROPERTY_ID,
+      FEED_TARGET_CLUSTER_ACTION_PROPERTY_ID,
+      FEED_PROPERTIES_PROPERTY_ID);
 
   /**
    * Construct a provider.
    *
    * @param ivoryService    the ivory service
-   * @param propertyIds     the properties associated with this provider
-   * @param keyPropertyIds  the key property ids
    */
-  public FeedResourceProvider(IvoryService ivoryService,
-                              Set<String> propertyIds,
-                              Map<Resource.Type, String> keyPropertyIds) {
+  public FeedResourceProvider(IvoryService ivoryService) {
     super(propertyIds, keyPropertyIds, ivoryService);
   }
 
@@ -201,7 +222,7 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 
