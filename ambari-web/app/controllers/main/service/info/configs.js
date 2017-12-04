@@ -43,6 +43,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
 
   selectedConfigGroup: null,
 
+  /**
+   * currently displayed service config version
+   */
+  displayedVersion: null,
+
   groupsStore: App.ServiceConfigGroup.find(),
 
   /**
