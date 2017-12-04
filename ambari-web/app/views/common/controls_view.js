@@ -762,11 +762,14 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     var shouldAdditionalViewsBeSet = currentDB && checkDatabase && handledProperties.contains(this.get('serviceConfig.name')),
       driver = this.getDefaultPropertyValue('sql_jar_connector') ? this.getDefaultPropertyValue('sql_jar_connector').split("/").pop() : 'driver.jar',
       dbType = this.getDefaultPropertyValue('db_type'),
+      dbName = this.getDefaultPropertyValue('db_name'),
+      driverName = this.getDefaultPropertyValue('driver_name'),
+      driverDownloadUrl = this.getDefaultPropertyValue('driver_download_url'),
       additionalView1 = shouldAdditionalViewsBeSet && !this.get('isNewDb') ? App.CheckDBConnectionView.extend({databaseName: dbType}) : null,
       additionalView2 = shouldAdditionalViewsBeSet ? Ember.View.extend({
         template: Ember.Handlebars.compile('<div class="alert alert-warning">{{{view.message}}}</div>'),
         message: function() {
-          return Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(dbType, driver);
+          return Em.I18n.t('services.service.config.database.msg.jdbcSetup.detailed').format(dbName, dbType, driver, driverDownloadUrl, driverName);
         }.property()
       }) : null;
     if (propertyAppendTo1) {

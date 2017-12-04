@@ -185,8 +185,6 @@ public class HostStackVersionResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(Collections.emptySet(), null);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
             type,
-            PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type),
             managementController);
 
     expect(hostVersionDAOMock.findByClusterAndHost(clustername, hostname)).andReturn(Collections.singletonList(hostVersionEntityMock));
@@ -234,7 +232,7 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
             EasyMock.anyObject(), anyObject(String.class))).andReturn(packages).anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -270,8 +268,6 @@ public class HostStackVersionResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     injector.injectMembers(provider);
@@ -330,7 +326,7 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
       anyObject(Map.class), anyObject(String.class))).andReturn(packages).anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+    expect(resourceProviderFactory.getHostResourceProvider(
       eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -358,8 +354,6 @@ public class HostStackVersionResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     injector.injectMembers(provider);
@@ -428,7 +422,7 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
             EasyMock.anyObject(), anyObject(String.class))).andReturn(packages).anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -464,8 +458,6 @@ public class HostStackVersionResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
             type,
-            PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type),
             managementController);
 
     injector.injectMembers(provider);

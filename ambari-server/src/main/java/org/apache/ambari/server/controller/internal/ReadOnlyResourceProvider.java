@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
@@ -36,12 +35,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 public abstract class ReadOnlyResourceProvider extends AbstractControllerResourceProvider {
 
   private static final String READ_ONLY_MSG = "Read-only resource";
-
-  protected ReadOnlyResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
-  }
 
   /**
    * Create a new resource provider for the given management controller. This

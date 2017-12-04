@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +38,9 @@ import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.ParameterConfig;
 import org.apache.ambari.view.ViewDefinition;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 /**
  * Resource provider for view versions.
@@ -66,32 +68,29 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a view resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.View, VIEW_NAME_PROPERTY_ID)
+      .put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a view resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(VIEW_NAME_PROPERTY_ID);
-    propertyIds.add(VIEW_VERSION_PROPERTY_ID);
-    propertyIds.add(VIEW_BUILD_PROPERTY_ID);
-    propertyIds.add(LABEL_PROPERTY_ID);
-    propertyIds.add(DESCRIPTION_PROPERTY_ID);
-    propertyIds.add(MIN_AMBARI_VERSION_PROPERTY_ID);
-    propertyIds.add(MAX_AMBARI_VERSION_PROPERTY_ID);
-    propertyIds.add(PARAMETERS_PROPERTY_ID);
-    propertyIds.add(ARCHIVE_PROPERTY_ID);
-    propertyIds.add(MASKER_CLASS_PROPERTY_ID);
-    propertyIds.add(VIEW_STATUS_PROPERTY_ID);
-    propertyIds.add(VIEW_STATUS_DETAIL_PROPERTY_ID);
-    propertyIds.add(CLUSTER_CONFIG_PROPERTY_ID);
-    propertyIds.add(SYSTEM_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      VIEW_NAME_PROPERTY_ID,
+      VIEW_VERSION_PROPERTY_ID,
+      VIEW_BUILD_PROPERTY_ID,
+      LABEL_PROPERTY_ID,
+      DESCRIPTION_PROPERTY_ID,
+      MIN_AMBARI_VERSION_PROPERTY_ID,
+      MAX_AMBARI_VERSION_PROPERTY_ID,
+      PARAMETERS_PROPERTY_ID,
+      ARCHIVE_PROPERTY_ID,
+      MASKER_CLASS_PROPERTY_ID,
+      VIEW_STATUS_PROPERTY_ID,
+      VIEW_STATUS_DETAIL_PROPERTY_ID,
+      CLUSTER_CONFIG_PROPERTY_ID,
+      SYSTEM_PROPERTY_ID);
 
 
   // ----- Constructors ------------------------------------------------------

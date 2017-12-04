@@ -58,7 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -116,10 +116,14 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   public static final String USER_USER_TYPE_PROPERTY_ID = USER_RESOURCE_CATEGORY + "/" + USER_TYPE_PROPERTY_ID;
   /* ******************************************************* */
 
-  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(
-      USER_USERNAME_PROPERTY_ID
-  );
-  private static final Set<String> PROPERTY_IDS = ImmutableSet.of(
+  /**
+   * The key property ids for a User resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.User, USER_USERNAME_PROPERTY_ID)
+      .build();
+
+  private static Set<String> propertyIds = Sets.newHashSet(
       USER_USERNAME_PROPERTY_ID,
       USER_DISPLAY_NAME_PROPERTY_ID,
       USER_LOCAL_USERNAME_PROPERTY_ID,
@@ -133,9 +137,6 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       USER_USER_TYPE_PROPERTY_ID,
       USER_ADMIN_PROPERTY_ID
   );
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.of(
-      Resource.Type.User, USER_USERNAME_PROPERTY_ID
-  );
 
   @Inject
   private Users users;
@@ -145,7 +146,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
    */
   @AssistedInject
   UserResourceProvider(@Assisted AmbariManagementController managementController) {
-    super(Resource.Type.User, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.User, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS));
@@ -313,7 +314,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return PK_PROPERTY_IDS;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   private UserRequest getRequest(Map<String, Object> properties) {
@@ -507,8 +508,6 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   private void addOrUpdateLocalAuthenticationSource(boolean asUserAdministrator, UserEntity subjectUserEntity, String password, String oldPassword)
       throws AuthorizationException, AmbariException {
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(Resource.Type.UserAuthenticationSource,
-        PropertyHelper.getPropertyIds(Resource.Type.UserAuthenticationSource),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.UserAuthenticationSource),
         getManagementController());
 
     if (provider != null) {

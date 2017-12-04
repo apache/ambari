@@ -337,8 +337,6 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
     return AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.ActiveWidgetLayout,
-        PropertyHelper.getPropertyIds(Resource.Type.ActiveWidgetLayout),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.ActiveWidgetLayout),
         managementController);
   }
 

@@ -105,7 +105,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
    */
   @AssistedInject
   public CredentialResourceProvider(@Assisted AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Type.Credential, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
 
     EnumSet<RoleAuthorization> authorizations = EnumSet.of(
         RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,

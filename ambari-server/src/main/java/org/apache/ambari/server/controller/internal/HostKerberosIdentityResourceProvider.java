@@ -125,7 +125,7 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
    */
   @AssistedInject
   HostKerberosIdentityResourceProvider(@Assisted AmbariManagementController managementController) {
-    super(PROPERTY_IDS, PK_PROPERTY_MAP, managementController);
+    super(Resource.Type.HostKerberosIdentity, PROPERTY_IDS, PK_PROPERTY_MAP, managementController);
   }
 
 

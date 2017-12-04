@@ -172,8 +172,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
@@ -220,9 +218,7 @@ public class RequestResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     replay(managementController, clusters, cluster);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
-      PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
-      managementController);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type, managementController);
 
     Map<String, String> requestInfoProperties = new HashMap<>();
     Request request;
@@ -314,8 +310,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -366,8 +360,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -419,8 +411,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -480,8 +470,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -547,8 +535,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -601,8 +587,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -672,8 +656,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -753,8 +735,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -835,8 +815,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // TEST CASE: Check update request validation (abort reason not specified)
@@ -921,8 +899,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).
@@ -1014,8 +990,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     provider.createResources(request);
@@ -1117,8 +1091,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // Neither action nor commands are specified
@@ -1219,8 +1191,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     provider.createResources(request);
@@ -1334,8 +1304,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     requestInfoProperties.put(RequestOperationLevel.OPERATION_CLUSTER_ID, c1);
@@ -1526,8 +1494,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
     provider.createResources(request);
     ExecuteActionRequest capturedRequest = actionRequest.getValue();
@@ -1582,8 +1548,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -1636,8 +1600,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -1754,8 +1716,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = ImmutableSet.of(

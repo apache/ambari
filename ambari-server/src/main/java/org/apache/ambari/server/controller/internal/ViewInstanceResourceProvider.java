@@ -50,6 +50,8 @@ import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.validation.Validator;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
@@ -91,37 +93,34 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   /**
    * The key property ids for a view instance resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ViewInstance, INSTANCE_NAME_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.View, VIEW_NAME_PROPERTY_ID)
+      .put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID)
+      .put(Resource.Type.ViewInstance, INSTANCE_NAME_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a view instance resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(VIEW_NAME_PROPERTY_ID);
-    propertyIds.add(VIEW_VERSION_PROPERTY_ID);
-    propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
-    propertyIds.add(LABEL_PROPERTY_ID);
-    propertyIds.add(DESCRIPTION_PROPERTY_ID);
-    propertyIds.add(VISIBLE_PROPERTY_ID);
-    propertyIds.add(ICON_PATH_ID);
-    propertyIds.add(ICON64_PATH_ID);
-    propertyIds.add(PROPERTIES_PROPERTY_ID);
-    propertyIds.add(DATA_PROPERTY_ID);
-    propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
-    propertyIds.add(STATIC_PROPERTY_ID);
-    propertyIds.add(CLUSTER_HANDLE_PROPERTY_ID);
-    propertyIds.add(CLUSTER_TYPE_PROPERTY_ID);
-    propertyIds.add(SHORT_URL_PROPERTY_ID);
-    propertyIds.add(SHORT_URL_NAME_PROPERTY_ID);
-    propertyIds.add(VALIDATION_RESULT_PROPERTY_ID);
-    propertyIds.add(PROPERTY_VALIDATION_RESULTS_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      VIEW_NAME_PROPERTY_ID,
+      VIEW_VERSION_PROPERTY_ID,
+      INSTANCE_NAME_PROPERTY_ID,
+      LABEL_PROPERTY_ID,
+      DESCRIPTION_PROPERTY_ID,
+      VISIBLE_PROPERTY_ID,
+      ICON_PATH_ID,
+      ICON64_PATH_ID,
+      PROPERTIES_PROPERTY_ID,
+      DATA_PROPERTY_ID,
+      CONTEXT_PATH_PROPERTY_ID,
+      STATIC_PROPERTY_ID,
+      CLUSTER_HANDLE_PROPERTY_ID,
+      CLUSTER_TYPE_PROPERTY_ID,
+      SHORT_URL_PROPERTY_ID,
+      SHORT_URL_NAME_PROPERTY_ID,
+      VALIDATION_RESULT_PROPERTY_ID,
+      PROPERTY_VALIDATION_RESULTS_PROPERTY_ID);
 
   // ----- Constructors ------------------------------------------------------
 
@@ -130,7 +129,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
    */
   @Inject
   public ViewInstanceResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+    super(Resource.Type.ViewInstance, propertyIds, keyPropertyIds);
 
     EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_VIEWS);
     setRequiredCreateAuthorizations(requiredAuthorizations);

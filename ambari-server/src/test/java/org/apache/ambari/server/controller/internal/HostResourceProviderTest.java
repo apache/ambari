@@ -153,8 +153,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     expect(managementController.getClusters()).andReturn(clusters).atLeastOnce();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     // replay
@@ -164,8 +163,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
@@ -244,8 +241,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents(EasyMock.anyObject()))
         .andReturn(Collections.emptySet()).anyTimes();
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-            EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).
         andReturn(hostResourceProvider).anyTimes();
 
@@ -277,8 +273,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
 
@@ -358,8 +352,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     Set<String> propertyIds = new HashSet<>();
@@ -378,8 +371,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     Set<Resource> resources = provider.getResources(request, predicate);
@@ -453,8 +444,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     Set<String> propertyIds = new HashSet<>();
@@ -473,8 +463,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
 
@@ -550,8 +538,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     Set<String> propertyIds = new HashSet<>();
@@ -570,8 +557,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     Set<Resource> resources = provider.getResources(request, predicate);
@@ -624,8 +609,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getStatus()).andReturn(HealthStatus.UNKNOWN.name()).anyTimes();
     expect(hostResponse1.getHealthReport()).andReturn("UNKNOWN").anyTimes();
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     Set<String> propertyIds = new HashSet<>();
@@ -644,8 +628,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     Set<Resource> resources = provider.getResources(request, predicate);
@@ -728,8 +710,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
     expect(componentInfo.getCategory()).andReturn("SLAVE").anyTimes();
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
 
@@ -750,8 +731,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     Set<Resource> resources = provider.getResources(request, predicate);
@@ -824,8 +803,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
     expect(componentInfo.getCategory()).andReturn("SLAVE").anyTimes();
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
 
@@ -845,8 +823,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
 
@@ -920,8 +896,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthReport()).andReturn("HEALTHY").anyTimes();
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     // replay
@@ -945,8 +920,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Host,
-        PropertyHelper.getPropertyIds(Resource.Type.Host),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Host),
         managementController);
 
     provider.updateResources(request, predicate);
@@ -1008,8 +981,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthReport()).andReturn("HEALTHY").anyTimes();
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     // replay
@@ -1019,8 +991,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     // add the property map to a set for the request.
@@ -1106,8 +1076,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
   public static HostResourceProvider getHostProvider(AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.Host;
 
-    return new HostResourceProvider(PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
+    return new HostResourceProvider(
         managementController);
   }
 

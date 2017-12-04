@@ -161,8 +161,6 @@ public class HostComponentProcessResourceProviderTest {
     
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         amc);
     
     return provider;

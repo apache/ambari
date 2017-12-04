@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,6 +38,9 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * DR target cluster resource provider.
  */
@@ -52,20 +54,29 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   protected static final String CLUSTER_LOCATIONS_PROPERTY_ID  = PropertyHelper.getPropertyId("Cluster", "locations");
   protected static final String CLUSTER_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Cluster", "properties");
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      CLUSTER_NAME_PROPERTY_ID}));
+  /**
+   * The key property ids for a TargetCluster resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a TargetCluster resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      CLUSTER_NAME_PROPERTY_ID,
+      CLUSTER_COLO_PROPERTY_ID,
+      CLUSTER_INTERFACES_PROPERTY_ID,
+      CLUSTER_LOCATIONS_PROPERTY_ID,
+      CLUSTER_PROPERTIES_PROPERTY_ID);
 
   /**
    * Construct a provider.
    *
    * @param ivoryService    the ivory service
-   * @param propertyIds     the properties associated with this provider
-   * @param keyPropertyIds  the key property ids
    */
-  public TargetClusterResourceProvider(IvoryService ivoryService,
-                                       Set<String> propertyIds,
-                                       Map<Resource.Type, String> keyPropertyIds) {
+  public TargetClusterResourceProvider(IvoryService ivoryService) {
     super(propertyIds, keyPropertyIds, ivoryService);
   }
 
@@ -151,7 +162,7 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 

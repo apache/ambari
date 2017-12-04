@@ -126,7 +126,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
    *
    */
   public ActiveWidgetLayoutResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Type.ActiveWidgetLayout, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

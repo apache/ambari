@@ -360,6 +360,7 @@ Em.I18n.translations = {
   'common.express.downgrade': 'Express Downgrade',
   'common.views': 'Views',
   'common.critical.error': 'Critical',
+  'common.with': 'with',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -2260,8 +2261,11 @@ Em.I18n.translations = {
   'services.service.config.configHistory.leftArrow.tooltip': 'Show later versions',
   'services.service.config.configHistory.dismissIcon.tooltip': 'Dismiss',
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
-  'services.service.config.configHistory.comparing': 'Comparing',
+  'services.service.config.configHistory.comparing': 'Comparing Changes',
   'services.service.config.setRecommendedValue': 'Set Recommended',
+  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with Hive, you must <a href="{3}" target="_blank">' +
+    'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
+    '<b>ambari-server setup --jdbc-db={1} --jdbc-driver=/path/to/{1}/{2}</b>',
 
   'services.service.widgets.list-widget.nothingSelected': 'Nothing selected',
 

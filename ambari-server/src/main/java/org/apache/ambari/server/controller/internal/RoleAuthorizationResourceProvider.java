@@ -100,7 +100,7 @@ public class RoleAuthorizationResourceProvider extends ReadOnlyResourceProvider 
    * Create a new resource provider.
    */
   public RoleAuthorizationResourceProvider(AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Type.RoleAuthorization, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   @Override

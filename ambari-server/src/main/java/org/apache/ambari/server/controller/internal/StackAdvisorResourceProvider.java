@@ -39,6 +39,7 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.ChangedConfigInfo;
@@ -93,9 +94,9 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     configuration = serverConfig;
   }
 
-  protected StackAdvisorResourceProvider(Set<String> propertyIds, Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  protected StackAdvisorResourceProvider(Resource.Type type, Set<String> propertyIds, Map<Type, String> keyPropertyIds,
+                                         AmbariManagementController managementController) {
+    super(type, propertyIds, keyPropertyIds, managementController);
   }
 
   protected abstract String getRequestTypePropertyId();

@@ -184,7 +184,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
    * @param managementController ambari controller
    */
   protected StackArtifactResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.StackArtifact, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

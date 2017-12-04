@@ -26,6 +26,14 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>tez.am.launch.cmd-opts</name>
+    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC{{heap_dump_opts}}</value>
+    <description>Java options for the Tez AppMaster process. The Xmx value is derived based on tez.am.resource.memory.mb and is 80% of the value by default.
+      Used only if the value is not specified explicitly by the DAG definition.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>tez.history.logging.timeline-cache-plugin.old-num-dags-per-group</name>
     <value>5</value>
     <description>DAGs per group</description>

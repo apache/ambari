@@ -81,7 +81,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
   private RootServiceComponentConfigurationHandlerFactory rootServiceComponentConfigurationHandlerFactory;
 
   public RootServiceComponentConfigurationResourceProvider() {
-    super(PROPERTIES, PK_PROPERTY_MAP);
+    super(Resource.Type.RootServiceComponentConfiguration, PROPERTIES, PK_PROPERTY_MAP);
 
     Set<RoleAuthorization> authorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION);
     setRequiredCreateAuthorizations(authorizations);
