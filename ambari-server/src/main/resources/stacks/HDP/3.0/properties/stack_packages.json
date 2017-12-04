@@ -871,12 +871,6 @@
           "current_dir": "{0}/current/atlas-client/conf"
         }
       ],
-      "beacon": [
-        {
-          "conf_dir": "/etc/beacon/conf",
-          "current_dir": "{0}/current/beacon-client/conf"
-        }
-      ],
       "druid": [
         {
           "conf_dir": "/etc/druid/conf",
@@ -1070,9 +1064,6 @@
       },
       "ATLAS": {
         "packages": ["atlas"]
-      },
-      "BEACON": {
-        "packages": ["beacon"]
       },
       "DRUID": {
         "packages": ["druid", "superset"]
