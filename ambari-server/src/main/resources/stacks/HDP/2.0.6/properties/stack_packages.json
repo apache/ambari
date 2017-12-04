@@ -1268,6 +1268,7 @@
       }
     },
     "upgrade-dependencies" : {
+      "ATLAS": ["STORM"],
       "HIVE": ["TEZ", "MAPREDUCE2"],
       "TEZ": ["HIVE"],
       "MAPREDUCE2": ["HIVE"],
