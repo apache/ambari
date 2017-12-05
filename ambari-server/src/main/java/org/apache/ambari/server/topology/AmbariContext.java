@@ -756,7 +756,7 @@ public class AmbariContext {
 
   private synchronized ServiceGroupDependencyResourceProvider getServiceGroupDependencyResourceProvider() {
     if (serviceGroupDependencyResourceProvider == null) {
-      serviceGroupResourceProvider = (ServiceGroupResourceProvider) ClusterControllerHelper.
+      serviceGroupDependencyResourceProvider = (ServiceGroupDependencyResourceProvider) ClusterControllerHelper.
               getClusterController().ensureResourceProvider(Resource.Type.ServiceGroupDependency);
     }
     return serviceGroupDependencyResourceProvider;
