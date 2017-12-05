@@ -306,12 +306,11 @@ def oozie_server_specific(upgrade_type):
     Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
       not_if  = no_op_test)
 
-  # LZO if needed should be installed manually
-  # if params.lzo_enabled:
-  #   install_lzo_if_needed()
-  #   Execute(format('{sudo} cp /usr/lib/hadoop-lzo/lib/hadoop-lzo*.jar {oozie_lib_dir}'),
-  #     not_if  = no_op_test,
-  #   )
+  if params.lzo_enabled:
+    install_lzo_if_needed()
+    Execute(format('{sudo} cp /usr/lib/hadoop-lzo/lib/hadoop-lzo*.jar {oozie_lib_dir}'),
+      not_if  = no_op_test,
+    )
 
   prepare_war(params)
 

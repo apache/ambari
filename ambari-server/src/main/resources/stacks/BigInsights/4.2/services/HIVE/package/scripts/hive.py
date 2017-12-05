@@ -49,8 +49,7 @@ from ambari_commons import OSConst
 def hive(name=None):
   import params
 
-  # LZO if needed should be installed manually
-  # install_lzo_if_needed()
+  install_lzo_if_needed()
   
   XmlConfig("hive-site.xml",
             conf_dir = params.hive_conf_dir,
