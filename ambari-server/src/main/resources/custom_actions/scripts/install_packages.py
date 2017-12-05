@@ -37,7 +37,7 @@ from resource_management.libraries.functions.repo_version_history \
 from resource_management.core.providers import get_provider
 from resource_management.core.resources.system import Link
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.repository_util import create_repo_files, CommandRepository
+from resource_management.libraries.functions.repository_util import CommandRepository
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.resources.repository import Repository
 from resource_management.libraries.script.script import Script
@@ -71,10 +71,6 @@ class InstallPackages(Script):
       command_repository = CommandRepository(config['repositoryFile'])
     except KeyError:
       raise Fail("The command repository indicated by 'repositoryFile' was not found")
-
-    repo_rhel_suse = config['configurations']['cluster-env']['repo_suse_rhel_template']
-    repo_ubuntu = config['configurations']['cluster-env']['repo_ubuntu_template']
-    template = repo_rhel_suse if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else repo_ubuntu
 
     # Handle a SIGTERM and SIGINT gracefully
     signal.signal(signal.SIGTERM, self.abort_handler)
@@ -112,7 +108,7 @@ class InstallPackages(Script):
       else:
         Logger.info(
           "Will install packages for repository version {0}".format(self.repository_version))
-        new_repo_files = create_repo_files(template, command_repository)
+        new_repo_files = Script.repository_util.create_repo_files()
         self.repo_files.update(new_repo_files)
     except Exception as err:
       Logger.logger.exception("Cannot install repository files. Error: {0}".format(str(err)))

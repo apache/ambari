@@ -51,6 +51,9 @@ def get_lzo_packages():
     
   return lzo_packages
 
+def is_gpl_license_accepted():
+  return default("/hostLevelParams/gpl_license_accepted", False)
+
 def should_install_lzo():
   """
   Return true if lzo is enabled via core-site.xml and GPL license (required for lzo) is accepted.
@@ -64,8 +67,7 @@ def should_install_lzo():
     if not lzo_enabled:
       return False
 
-    is_gpl_license_accepted = default("/hostLevelParams/gpl_license_accepted", False)
-    if not is_gpl_license_accepted:
+    if not is_gpl_license_accepted():
       Logger.warning(INSTALLING_LZO_WITHOUT_GPL)
       return False
   else:
@@ -80,6 +82,9 @@ def install_lzo_if_needed():
   """
   if not should_install_lzo():
     return
+
+  # If user has just accepted GPL license. GPL repository can not yet be present.
+  Script.repository_util.create_repo_files()
 
   lzo_packages = get_lzo_packages()
 
