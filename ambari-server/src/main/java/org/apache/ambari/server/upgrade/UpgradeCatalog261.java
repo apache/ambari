@@ -18,13 +18,20 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +48,9 @@ public class UpgradeCatalog261 extends AbstractUpgradeCatalog {
   private static final String LZO_ENABLED_JSON_KEY = "lzo_enabled";
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog261.class);
+
+  @Inject
+  private RepositoryVersionHelper repositoryVersionHelper;
 
   /**
    * Constructor.
@@ -80,6 +90,7 @@ public class UpgradeCatalog261 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
+    updateRepoVersionOperatingSystem();
   }
 
   /**
@@ -115,5 +126,68 @@ public class UpgradeCatalog261 extends AbstractUpgradeCatalog {
       }
     }
     return false;
+  }
+
+  /**
+   * Update the redhat operating system type for PowerPC repos
+   * in case any uses redhat7 while the new Ambari version expects redhat-ppc7
+   * */
+  void updateRepoVersionOperatingSystem() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+          Collection<Host> hosts = cluster.getHosts();
+          String osArch = null;
+          for (Host host: hosts) {
+            osArch = host.getOsArch();
+            break; //All hosts have the same os arch, use the os info from the first host element.
+          }
+          if ("ppc64le".equals(osArch)){
+            LOG.info("Current cluster is on PowerPC");
+
+            RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+            List<RepositoryVersionEntity> repositoryVersions = repositoryVersionDAO.findAll();
+
+            for (RepositoryVersionEntity repositoryVersion : repositoryVersions) {
+              OperatingSystemEntity operatingSystem = null;
+              List<OperatingSystemEntity> operatingSystems = repositoryVersion.getOperatingSystems();
+
+              for(OperatingSystemEntity osEntity: operatingSystems) {
+                String osType = osEntity.getOsType();
+                LOG.debug(String.format("OS Type: %s" , osType));
+                if ("redhat-ppc7".equals(osType)) {
+                  // Found it, no need to fix anything
+                  LOG.info("Repositories contain redhat-ppc7 already. No need to fix anything. Discard changes yet to be applied.");
+                  operatingSystem = null; // Discard local changes if there is any
+                  break; // Move on to examine the next RepositoryVersionEntity
+                } else if("redhat7".equals(osType)) {
+                  LOG.info("Update redhat-ppc7 repo");
+                  operatingSystem = new OperatingSystemEntity();
+                  operatingSystem.setOsType("redhat-ppc7");
+                  operatingSystem.setAmbariManagedRepos(osEntity.isAmbariManagedRepos());
+                  /*
+                   * Repo urls are not distinguishable between X and P,
+                   * set them to be the same as redhat7,
+                   * so users still have the option to fix them manually via Ambari web UI
+                   * */
+                   operatingSystem.setRepositories(osEntity.getRepositories());
+                }
+              }
+              if (operatingSystem != null) {
+                operatingSystems.add(operatingSystem);
+                String operatingSystemJson = repositoryVersionHelper.serializeOperatingSystemEntities(operatingSystems);
+                LOG.info(String.format("About to update repoversion with: %s", operatingSystemJson));
+                repositoryVersion.setOperatingSystems(operatingSystemJson);
+                repositoryVersionDAO.merge(repositoryVersion);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
