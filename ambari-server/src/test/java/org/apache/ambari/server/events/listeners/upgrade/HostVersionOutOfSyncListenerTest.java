@@ -514,8 +514,8 @@ public class HostVersionOutOfSyncListenerTest {
 
         ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
             c1.getClusterId(), clusterStackId.getStackName(), clusterStackId.getStackVersion(),
-            "HDFS", "", "", "DATANODE", sch.getHostName(), false, null);
 
+            "HDFS", "", "", "DATANODE", sch.getHostName(), false, null);
         m_eventPublisher.publish(event);
       }
     }

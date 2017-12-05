@@ -74,10 +74,14 @@ SCHEMA_UPGRADE_DEBUG = False
 
 SUSPEND_START_MODE = False
 
-INSALLED_LZO_WITHOUT_GPL_TEXT = "By saying no, Ambari will not automatically install LZO on any  new host in the cluster." + \
-"It is up to you to ensure LZO is installed and configured appropriately." + \
-"Without LZO being installed and configured data compressed with LZO will not be readable. " + \
-"Are you sure you want to proceed? [y/n] (n)?"
+INSTALLED_LZO_WITHOUT_GPL_TEXT = "By saying no, Ambari will not automatically install LZO on any new host in the cluster.  " \
+                                "It is up to you to ensure LZO is installed and configured appropriately.  " \
+                                "Without LZO being installed and configured, data compressed with LZO will not be readable.  " \
+                                "Are you sure you want to proceed? [y/n] (n)? "
+
+LZO_ENABLED_GPL_TEXT = "GPL License for LZO: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html\n" \
+                       "Your cluster is configured to use LZO which is GPL software. " \
+                       "You must agree to enable Ambari to continue downloading and installing LZO  [y/n] (n)? "
 
 def load_stack_values(version, filename):
   import xml.etree.ElementTree as ET
@@ -175,7 +179,7 @@ def check_gpl_license_approved(upgrade_response):
   if 'lzo_enabled' not in upgrade_response or upgrade_response['lzo_enabled'].lower() != "true":
     return
 
-  while not write_gpl_license_accepted() and not get_YN_input(INSALLED_LZO_WITHOUT_GPL_TEXT, False):
+  while not write_gpl_license_accepted(text = LZO_ENABLED_GPL_TEXT) and not get_YN_input(INSTALLED_LZO_WITHOUT_GPL_TEXT, False):
     pass
 
 #

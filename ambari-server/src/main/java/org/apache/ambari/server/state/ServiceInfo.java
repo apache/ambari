@@ -87,7 +87,7 @@ public class ServiceInfo implements Validable, Cloneable {
     JAVA
   }
   @XmlElement(name="service_advisor_type")
-  private ServiceAdvisorType serviceAdvisorType = null;
+  private ServiceAdvisorType serviceAdvisorType = ServiceAdvisorType.PYTHON;
 
   @XmlTransient
   private List<PropertyInfo> properties;

@@ -19,11 +19,15 @@ package org.apache.ambari.server.state.services;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -36,27 +40,39 @@ import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.Executor;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.dispatchers.AmbariSNMPDispatcher;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.alert.TargetType;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
@@ -68,6 +84,7 @@ import org.snmp4j.smi.GenericAddress;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.TimeTicks;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 
@@ -75,11 +92,12 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.util.Modules;
 
 /**
  * Tests the {@link AlertNoticeDispatchService}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ AmbariSNMPDispatcher.class, ManagementFactory.class })
 public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
   final static String ALERT_NOTICE_UUID_1 = UUID.randomUUID().toString();
@@ -92,6 +110,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   private DispatchFactory m_dispatchFactory = null;
   private AlertDispatchDAO m_dao = null;
   private Injector m_injector;
+  private RuntimeMXBean m_runtimeMXBean;
 
   List<AlertDefinitionEntity> m_definitions = new ArrayList<>();
   List<AlertHistoryEntity> m_histories = new ArrayList<>();
@@ -103,8 +122,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     m_metaInfo = createNiceMock(AmbariMetaInfo.class);
 
     // create an injector which will inject the mocks
-    m_injector = Guice.createInjector(Modules.override(
-        new InMemoryDefaultTestModule()).with(new MockModule()));
+    m_injector = Guice.createInjector(new MockModule());
 
     Assert.assertNotNull(m_injector);
 
@@ -150,7 +168,17 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
         m_histories.add(history);
       }
     }
-  }
+
+    // mock out the uptime to be a while (since most tests are not testing
+    // system uptime)
+    m_runtimeMXBean = EasyMock.createNiceMock(RuntimeMXBean.class);
+    PowerMock.mockStatic(ManagementFactory.class);
+    expect(ManagementFactory.getRuntimeMXBean()).andReturn(m_runtimeMXBean).atLeastOnce();
+    PowerMock.replay(ManagementFactory.class);
+    expect(m_runtimeMXBean.getUptime()).andReturn(360000L).atLeastOnce();
+
+    replay( m_runtimeMXBean);
+    }
 
   /**
    * Tests the parsing of the {@link AlertHistoryEntity} list into
@@ -381,7 +409,8 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
     List<Vector> expectedTrapVectors = new LinkedList<>();
     Vector firstVector = new Vector();
-    firstVector.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID)));
+    firstVector.add(new VariableBinding(SnmpConstants.sysUpTime, new TimeTicks(360000L)));
+    firstVector.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID)));    
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID), new Integer32(new BigDecimal(1L).intValueExact())));
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID), new OctetString("alert-definition-1")));
     firstVector.add(new VariableBinding(new OID(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_HASH_OID), new OctetString("1")));
@@ -762,9 +791,20 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
      */
     @Override
     public void configure(Binder binder) {
+      Cluster cluster = EasyMock.createNiceMock(Cluster.class);
       binder.bind(AlertDispatchDAO.class).toInstance(m_dao);
       binder.bind(DispatchFactory.class).toInstance(m_dispatchFactory);
+      binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(m_metaInfo);
+      binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+      binder.bind(Cluster.class).toInstance(cluster);
+      binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
+      binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
+      binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+
+      binder.bind(AlertNoticeDispatchService.class).toInstance(new AlertNoticeDispatchService());
 
       EasyMock.expect(m_metaInfo.getServerVersion()).andReturn("2.0.0").anyTimes();
       EasyMock.replay(m_metaInfo);
@@ -782,6 +822,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
       receivedTrapsVectors = new LinkedList<>();
 
       CommandResponder trapPrinter = new CommandResponder() {
+        @Override
         public synchronized void processPdu(CommandResponderEvent e){
           PDU command = e.getPDU();
           if (command != null) {

@@ -21,11 +21,13 @@ package org.apache.ambari.server.topology;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -106,13 +108,14 @@ public class BlueprintImplTest {
 
   @Test
   public void testValidateConfigurations__basic_positive() throws Exception {
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
     expect(group1.getCardinality()).andReturn("1").atLeastOnce();
     expect(group1.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c2"))).atLeastOnce();
     expect(group2.getCardinality()).andReturn("1").atLeastOnce();
     expect(group2.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c3"))).atLeastOnce();
     expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
 
-    replay(stack, group1, group2);
+    replay(stack, group1, group2, serverConfig);
 
     Map<String, String> category2Props = new HashMap<>();
     properties.put("category2", category2Props);
@@ -123,7 +126,7 @@ public class BlueprintImplTest {
     blueprint.validateRequiredProperties();
     BlueprintEntity entity = blueprint.toEntity();
 
-    verify(stack, group1, group2);
+    verify(stack, group1, group2, serverConfig);
     assertTrue(entity.getSecurityType() == SecurityType.KERBEROS);
     assertTrue(entity.getSecurityDescriptorReference().equals("testRef"));
   }
@@ -134,6 +137,8 @@ public class BlueprintImplTest {
     Map<String, String> group2Category2Props = new HashMap<>();
     group2Props.put("category2", group2Category2Props);
     group2Category2Props.put("prop2", "val");
+
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
     // set config for group2 which contains a required property
     Configuration group2Configuration = new Configuration(group2Props, EMPTY_ATTRIBUTES, configuration);
     expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
@@ -155,11 +160,11 @@ public class BlueprintImplTest {
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP:group1%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP:group2%");
-    replay(stack, group1, group2);
+    replay(stack, group1, group2, serverConfig);
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
     blueprint.validateRequiredProperties();
     BlueprintEntity entity = blueprint.toEntity();
-    verify(stack, group1, group2);
+    verify(stack, group1, group2, serverConfig);
     assertTrue(entity.getSecurityType() == SecurityType.NONE);
     assertTrue(entity.getSecurityDescriptorReference() == null);
   }
@@ -277,17 +282,73 @@ public class BlueprintImplTest {
     verify(stack, group1, group2);
   }
   @Test(expected = InvalidTopologyException.class)
-  public void testValidateConfigurations__secretReference() throws InvalidTopologyException {
+  public void testValidateConfigurations__secretReference() throws InvalidTopologyException,
+      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
     Map<String, Map<String, String>> group2Props = new HashMap<>();
     Map<String, String> group2Category2Props = new HashMap<>();
+
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
     group2Props.put("category2", group2Category2Props);
     group2Category2Props.put("prop2", "val");
     hdfsProps.put("secret", "SECRET:hdfs-site:1:test");
-    replay(stack, group1, group2);
+    replay(stack, group1, group2, serverConfig);
 
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
     blueprint.validateRequiredProperties();
-    verify(stack, group1, group2);
+    verify(stack, group1, group2, serverConfig);
+  }
+
+  @Test(expected = GPLLicenseNotAcceptedException.class)
+  public void testValidateConfigurations__gplIsNotAllowedCodecsProperty() throws InvalidTopologyException,
+      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
+    Map<String, Map<String, String>> lzoProperties = new HashMap<>();
+    lzoProperties.put("core-site", new HashMap<String, String>(){{
+      put(BlueprintValidatorImpl.CODEC_CLASSES_PROPERTY_NAME, "OtherCodec, " + BlueprintValidatorImpl.LZO_CODEC_CLASS);
+    }});
+    Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
+
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(false);
+    replay(stack, group1, group2, serverConfig);
+
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
+    blueprint.validateRequiredProperties();
+    verify(stack, group1, group2, serverConfig);
+  }
+
+  @Test(expected = GPLLicenseNotAcceptedException.class)
+  public void testValidateConfigurations__gplIsNotAllowedLZOProperty() throws InvalidTopologyException,
+      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
+    Map<String, Map<String, String>> lzoProperties = new HashMap<>();
+    lzoProperties.put("core-site", new HashMap<String, String>(){{
+      put(BlueprintValidatorImpl.LZO_CODEC_CLASS_PROPERTY_NAME, BlueprintValidatorImpl.LZO_CODEC_CLASS);
+    }});
+    Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
+
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(false);
+    replay(stack, group1, group2, serverConfig);
+
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
+    blueprint.validateRequiredProperties();
+    verify(stack, group1, group2, serverConfig);
+  }
+
+  @Test
+  public void testValidateConfigurations__gplISAllowed() throws InvalidTopologyException,
+      GPLLicenseNotAcceptedException, NoSuchFieldException, IllegalAccessException {
+    Map<String, Map<String, String>> lzoProperties = new HashMap<>();
+    lzoProperties.put("core-site", new HashMap<String, String>(){{
+      put(BlueprintValidatorImpl.LZO_CODEC_CLASS_PROPERTY_NAME, BlueprintValidatorImpl.LZO_CODEC_CLASS);
+      put(BlueprintValidatorImpl.CODEC_CLASSES_PROPERTY_NAME, "OtherCodec, " + BlueprintValidatorImpl.LZO_CODEC_CLASS);
+    }});
+    Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
+
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
+    expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
+    replay(stack, group1, group2, serverConfig);
+
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
+    blueprint.validateRequiredProperties();
+    verify(stack, group1, group2, serverConfig);
   }
 
   @Test
@@ -312,6 +373,18 @@ public class BlueprintImplTest {
 
     assertFalse(blueprint.shouldSkipFailure());
     verify(stack, setting);
+  }
+
+  public static org.apache.ambari.server.configuration.Configuration setupConfigurationWithGPLLicense(boolean isGPLAllowed)
+      throws NoSuchFieldException, IllegalAccessException {
+    org.apache.ambari.server.configuration.Configuration serverConfig =
+        mock(org.apache.ambari.server.configuration.Configuration.class);
+    expect(serverConfig.getGplLicenseAccepted()).andReturn(isGPLAllowed).atLeastOnce();
+
+    Field field = BlueprintValidatorImpl.class.getDeclaredField("configuration");
+    field.setAccessible(true);
+    field.set(null, serverConfig);
+    return serverConfig;
   }
 
   //todo: ensure coverage for these existing tests

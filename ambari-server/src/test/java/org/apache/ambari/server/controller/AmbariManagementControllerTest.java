@@ -157,7 +157,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -196,6 +195,7 @@ public class AmbariManagementControllerTest {
   private static final String NEW_STACK_VERSION = "2.0.6";
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-1.1.1.16";
+  private static final String REPO_NAME = "HDP";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
   private static final String FAKE_SERVICE_NAME = "FAKENAGIOS";
@@ -7008,11 +7008,11 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetRepositories() throws Exception {
 
-    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null);
+    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, null, REPO_NAME);
     Set<RepositoryResponse> responses = controller.getRepositories(Collections.singleton(request));
     Assert.assertEquals(REPOS_CNT, responses.size());
 
-    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    RepositoryRequest requestWithParams = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, REPO_NAME);
     requestWithParams.setClusterVersionId(525L);
     Set<RepositoryResponse> responsesWithParams = controller.getRepositories(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
@@ -7021,7 +7021,7 @@ public class AmbariManagementControllerTest {
       Assert.assertEquals(525L, responseWithParams.getClusterVersionId().longValue());
     }
 
-    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE);
+    RepositoryRequest invalidRequest = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, NON_EXT_VALUE, REPO_NAME);
     try {
       controller.getRepositories(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
@@ -8008,7 +8008,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testDeleteHostComponentWithForce() throws Exception {
+  public void testDeleteHostWithComponent() throws Exception {
     String cluster1 = getUniqueName();
 
     createCluster(cluster1);
@@ -8052,51 +8052,39 @@ public class AmbariManagementControllerTest {
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
 
-    // Case 1: Attempt delete when components still exist
+    // Case 1: Attempt delete when some components are STARTED
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
     requests.add(new HostRequest(host1, cluster1));
-    try {
-      HostResourceProviderTest.deleteHosts(controller, requests, false, false);
-      fail("Expect failure deleting hosts when components exist and have not been deleted.");
-    } catch (Exception e) {
-      LOG.info("Exception is - " + e.getMessage());
-      Assert.assertTrue(e.getMessage().contains("these components must be stopped if running, and then deleted"));
-    }
 
     Service s = cluster.getService(serviceName);
     s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.STARTED);
     try {
-      HostResourceProviderTest.deleteHosts(controller, requests, false, true);
+      HostResourceProviderTest.deleteHosts(controller, requests, false);
       fail("Expect failure deleting hosts when components exist and have not been stopped.");
     } catch (Exception e) {
       LOG.info("Exception is - " + e.getMessage());
-      Assert.assertTrue(e.getMessage().contains("these components must be stopped:"));
+      Assert.assertTrue(e.getMessage().contains("these components are not in the removable state:"));
     }
 
+    // Case 2: Attempt delete dryRun = true
     DeleteStatusMetaData data = null;
-    try {
-      data = HostResourceProviderTest.deleteHosts(controller, requests, true, true);
-      Assert.assertTrue(data.getDeletedKeys().size() == 0);
-    } catch (Exception e) {
-      LOG.info("Exception is - " + e.getMessage());
-      fail("Do not expect failure deleting hosts when components exist and are stopped.");
-    }
 
     LOG.info("Test dry run of delete with all host components");
     s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.INSTALLED);
     try {
-      data = HostResourceProviderTest.deleteHosts(controller, requests, true, true);
+      data = HostResourceProviderTest.deleteHosts(controller, requests, true);
       Assert.assertTrue(data.getDeletedKeys().size() == 1);
     } catch (Exception e) {
       LOG.info("Exception is - " + e.getMessage());
       fail("Do not expect failure deleting hosts when components exist and are stopped.");
     }
 
+    // Case 3: Attempt delete dryRun = false
     LOG.info("Test successful delete with all host components");
     s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.INSTALLED);
     try {
-      data = HostResourceProviderTest.deleteHosts(controller, requests, false, true);
+      data = HostResourceProviderTest.deleteHosts(controller, requests, false);
       Assert.assertNotNull(data);
       Assert.assertTrue(4 == data.getDeletedKeys().size());
       Assert.assertTrue(0 == data.getExceptionForKeys().size());
@@ -8161,17 +8149,11 @@ public class AmbariManagementControllerTest {
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
 
-    // Case 1: Attempt delete when components still exist
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
     requests.add(new HostRequest(host1, cluster1));
-    try {
-      HostResourceProviderTest.deleteHosts(controller, requests);
-      fail("Expect failure deleting hosts when components exist and have not been deleted.");
-    } catch (Exception e) {
-    }
 
-    // Case 2: Delete host that is still part of cluster, but do not specify the cluster_name in the request
+    // Case 1: Delete host that is still part of cluster, but do not specify the cluster_name in the request
     Set<ServiceComponentHostRequest> schRequests = new HashSet<>();
     // Disable HC for non-clients
     schRequests.add(new ServiceComponentHostRequest(cluster1, "", serviceName, componentName1, host1, "DISABLED"));
@@ -8208,7 +8190,7 @@ public class AmbariManagementControllerTest {
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByHostId(firstHostId);
     assertEquals(0, tasks.size());
 
-    // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
+    // Case 2: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();
     requests.add(new HostRequest(host2, cluster1));
     try {
@@ -8221,7 +8203,7 @@ public class AmbariManagementControllerTest {
     Assert.assertFalse(clusters.getClustersForHost(host2).contains(cluster));
     Assert.assertNull(topologyHostInfoDAO.findByHostname(host2));
 
-    // Case 4: Attempt to delete a host that has already been deleted
+    // Case 3: Attempt to delete a host that has already been deleted
     requests.clear();
     requests.add(new HostRequest(host1, null));
     try {
@@ -8239,7 +8221,7 @@ public class AmbariManagementControllerTest {
       // expected
     }
 
-    // Case 5: Attempt to delete a host that was never added to the cluster
+    // Case 4: Attempt to delete a host that was never added to the cluster
     requests.clear();
     requests.add(new HostRequest(host3, null));
     try {

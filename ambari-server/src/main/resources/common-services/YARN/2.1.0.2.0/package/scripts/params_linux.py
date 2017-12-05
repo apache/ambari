@@ -84,6 +84,12 @@ stack_supports_timeline_state_store = check_stack_feature(StackFeature.TIMELINE_
 # It cannot be used during the initial Cluser Install because the version is not yet known.
 version = default("/commandParams/version", None)
 
+# these are used to render the classpath for picking up Spark classes
+# in the event that spark is not installed, then we must default to the vesrion of YARN installed
+# since it will still load classes from its own spark version
+spark_version = component_version.get_component_repository_version(service_name =  "SPARK", component_name = "SPARK_CLIENT", default_value = version)
+spark2_version = component_version.get_component_repository_version(service_name = "SPARK2", component_name = "SPARK2_CLIENT", default_value = version)
+
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 

@@ -77,6 +77,10 @@ export class UtilsService {
     return event.keyCode === 13;
   }
 
+  isBackSpacePressed(event: KeyboardEvent): boolean {
+    return event.keyCode === 8;
+  }
+
   isDifferentDates(dateA, dateB, timeZone): boolean {
     const momentA = moment(dateA).tz(timeZone),
       momentB = moment(dateB).tz(timeZone);

@@ -17,12 +17,13 @@
  */
 
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
+import {LogsType} from '@app/classes/string';
 
 export interface AppState {
   isAuthorized: boolean;
   isInitialLoading: boolean;
   isLoginInProgress: boolean;
-  activeLogsType?: string;
+  activeLogsType?: LogsType;
   isServiceLogsFileView: boolean;
   isServiceLogContextView: boolean;
   activeLog: ActiveServiceLogEntry | null;

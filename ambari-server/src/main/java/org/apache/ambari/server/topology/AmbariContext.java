@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceGroupRequest;
@@ -345,9 +346,10 @@ public class AmbariContext {
       for (ComponentV2 component : entry.getValue()) {
         //todo: handle this in a generic manner.  These checks are all over the code
         try {
-          if (cluster.getService(service.getName()) != null && !component.getType().equals("AMBARI_SERVER")) {
+          if (cluster.getService(service.getName()) != null && !RootComponent.AMBARI_SERVER.name().equals("AMBARI_SERVER")) {
             requests.add(new ServiceComponentHostRequest(clusterName, service.getServiceGroup().getName(),
               service.getName(), component.getName(), hostName, null));
+
           }
         } catch(AmbariException se) {
           LOG.warn("Service already deleted from cluster: {}", service);

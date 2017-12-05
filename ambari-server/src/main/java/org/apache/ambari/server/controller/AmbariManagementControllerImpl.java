@@ -3628,15 +3628,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               + ", hostname=" + request.getHostname()
               + ", request=" + request);
     }
-
-    // Only allow removing master/slave components in DISABLED/UNKNOWN/INSTALL_FAILED/INIT state without stages
-    // generation.
-    // Clients may be removed without a state check.
-    if (!component.isClientComponent() &&
-            !componentHost.getState().isRemovableState()) {
-      throw new AmbariException("To remove master or slave components they must be in " +
-              "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
-    }
   }
 
   @Override
@@ -4700,8 +4691,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
     usp.setSetupTruststoreForHttps(false);
 
-    RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(request.getStackName(), request.getStackVersion(), request.getOsType(), request.getRepoId());
-    String repoName = repositoryInfo.getRepoName();
+    String repoName = request.getRepoName();
+    if (StringUtils.isEmpty(repoName)) {
+      throw new IllegalArgumentException("repo_name is required to verify repository");
+    }
 
     String errorMessage = null;
     Exception e = null;

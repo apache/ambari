@@ -15,12 +15,13 @@
   limitations under the License.
 -->
 
-<dropdown-button class="pull-right" label="logs.columns" [options]="columns" [isRightAlign]="true"
+<dropdown-button class="pull-right" label="{{'logs.columns' | translate}}" [options]="columns" [isRightAlign]="true"
                  [isMultipleChoice]="true" action="updateSelectedColumns"
                  [additionalArgs]="logsTypeMapObject.fieldsModel"></dropdown-button>
 <form *ngIf="logs && logs.length" [formGroup]="filtersForm" class="row pull-right">
-  <filter-dropdown class="col-md-12" [label]="filters.serviceLogsSorting.label" formControlName="serviceLogsSorting"
-                   [options]="filters.serviceLogsSorting.options" [isRightAlign]="true"></filter-dropdown>
+  <filter-dropdown class="col-md-12" label="{{filters.serviceLogsSorting.label | translate}}"
+                   formControlName="serviceLogsSorting" [options]="filters.serviceLogsSorting.options"
+                   [isRightAlign]="true"></filter-dropdown>
 </form>
 <div class="panel panel-default">
   <div class="panel-body">

@@ -80,7 +80,7 @@
 
 .dropdown-list-default {
   line-height: 1;
-  border-radius: 2px;
+  border-radius: @dropdown-border-radius;
   font-size: 14px;
   min-width: @dropdown-min-width;
   background: #FFF;
@@ -137,6 +137,23 @@
 
   &.unknown {
     color: @unknown-color;
+  }
+}
+
+.grey {
+  color: @grey-color;
+}
+
+.collapsed-form-control {
+  width: 0;
+  padding: 0;
+}
+
+.inherited-color {
+  color: inherit;
+
+  &:hover {
+    color: inherit;
   }
 }
 

@@ -106,8 +106,8 @@ public class DefaultLdapConfigurationService implements LdapConfigurationService
       userDn = ldapConnectionTemplateFactory.create(ambariLdapConfiguration).searchFirst(new Dn(ambariLdapConfiguration.userSearchBase()), filter, SearchScope.SUBTREE, getUserDnNameEntryMapper(ambariLdapConfiguration));
 
       if (null == userDn) {
-        LOGGER.info("Could not find user based on the provided configuration. User attributes are not complete ");
-        throw new AmbariLdapException("User attribute configuration incomplete");
+        LOGGER.info("Could not find test user based on the provided configuration. User attributes may not be complete or the user may not exist.");
+        throw new AmbariLdapException("Could not find test user based on the provided configuration. User attributes may not be complete or the user may not exist.");
       }
       LOGGER.info("Attribute validation succeeded. Filter: [{}]", filter);
 

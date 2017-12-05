@@ -25,7 +25,7 @@
   </div>
 </div>
 <div class="container-fluid">
-  <filters-panel class="row" [filtersForm]="filtersForm"></filters-panel>
+  <filters-panel class="row" [filtersForm]="filtersForm" [logsType]="logsType"></filters-panel>
   <div class="row">
     <div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
       <div class="auto-refresh-message pull-right">

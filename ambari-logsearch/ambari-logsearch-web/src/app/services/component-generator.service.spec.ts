@@ -17,6 +17,7 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
@@ -60,7 +61,8 @@ describe('ComponentGeneratorService', () => {
           components,
           serviceLogsTruncated,
           tabs
-        })
+        }),
+        ...TranslationModules
       ],
       providers: [
         ComponentGeneratorService,

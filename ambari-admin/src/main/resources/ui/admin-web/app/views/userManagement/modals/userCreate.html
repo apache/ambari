@@ -18,9 +18,10 @@
 
 <form id="create-user-form" role="form" novalidate name="form.userCreateForm">
   <div class="modal-header">
-    <h1 class="modal-title">
+    <h1 class="modal-title col-sm-8">
       {{'users.create' | translate}}
     </h1>
+    <a class="close" aria-hidden="true" ng-click="cancel()">&times;</a>
   </div>
   <div class="modal-body">
     <div class="form-group"
@@ -125,7 +126,9 @@
         <i class="fa fa-question-circle" aria-hidden="true"></i>
       </label>
       <div>
-        <toggle-switch model="formData.isAdmin" on-label="{{'common.yes' | translate}}" off-label="{{'common.no' | translate}}" class="switch-primary" data-off-color="danger"></toggle-switch>
+        <toggle-switch model="formData.isAdmin" class="switch-success" data-off-color="danger"></toggle-switch>
+        <span ng-if="formData.isAdmin" class="switch-option-label">{{'common.yes' | translate}}</span>
+        <span ng-if="!formData.isAdmin" class="switch-option-label">{{'common.no' | translate}}</span>
       </div>
     </div>
 
@@ -135,7 +138,9 @@
         <i class="fa fa-question-circle" aria-hidden="true"></i>
       </label>
       <div>
-        <toggle-switch model="formData.isActive" on-label="{{'users.active' | translate}}" off-label="{{'users.inactive' | translate}}" class="switch-primary" data-off-color="danger"></toggle-switch>
+        <toggle-switch model="formData.isActive" class="switch-success" data-off-color="danger"></toggle-switch>
+        <span ng-if="formData.isActive" class="switch-option-label">{{'users.active' | translate}}</span>
+        <span ng-if="!formData.isActive" class="switch-option-label">{{'users.inactive' | translate}}</span>
       </div>
     </div>
 

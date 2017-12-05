@@ -1,7 +1,11 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,10 +22,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationFactory;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
@@ -56,9 +60,6 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
   private Provider<AmbariConfigurationDAO> ambariConfigurationDAOProvider;
 
   @Inject
-  private AmbariLdapConfigurationFactory ldapConfigurationFactory;
-
-  @Inject
   public AmbariLdapConfigurationProvider() {
   }
 
@@ -81,11 +82,11 @@ public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfi
     List<AmbariConfigurationEntity> configEntities;
 
     LOGGER.info("Loading LDAP configuration ...");
-    configEntities = ambariConfigurationDAOProvider.get().findByCategory("ldap-configuration");
+    configEntities = ambariConfigurationDAOProvider.get().findByCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName());
 
     if (configEntities != null) {
       Map<String, String> properties = toProperties(configEntities);
-      instance = ldapConfigurationFactory.createLdapConfiguration(properties);
+      instance = new AmbariLdapConfiguration(properties);
     }
 
     LOGGER.info("Loaded LDAP configuration instance: [ {} ]", instance);

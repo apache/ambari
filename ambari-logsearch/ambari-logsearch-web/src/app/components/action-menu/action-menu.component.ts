@@ -30,7 +30,6 @@ export class ActionMenuComponent {
     {
       iconClass: 'fa fa-arrow-left',
       label: 'topMenu.undo',
-      labelClass: 'unstyled-link',
       action: 'undo',
       subItems: [
         {
@@ -50,7 +49,6 @@ export class ActionMenuComponent {
     {
       iconClass: 'fa fa-arrow-right',
       label: 'topMenu.redo',
-      labelClass: 'unstyled-link',
       action: 'redo',
       subItems: [
         {
@@ -67,13 +65,11 @@ export class ActionMenuComponent {
     {
       iconClass: 'fa fa-refresh',
       label: 'topMenu.refresh',
-      labelClass: 'unstyled-link',
       action: 'refresh'
     },
     {
       iconClass: 'fa fa-history',
       label: 'topMenu.history',
-      labelClass: 'unstyled-link',
       action: 'openHistory',
       isRightAlign: true,
       subItems: [

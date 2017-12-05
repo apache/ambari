@@ -24,6 +24,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.controller.internal.OperationStatusMetaData;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -79,6 +80,11 @@ public class UpdateHandler extends BaseManagementHandler {
       return null;
     }
 
-    throw new UnsupportedOperationException();
+    if (requestStatusMetaData.getClass() == OperationStatusMetaData.class) {
+      return (OperationStatusMetaData) requestStatusMetaData;
+    } else {
+      throw new IllegalArgumentException(String.format("RequestStatusDetails is of an expected type: %s",
+          requestStatusMetaData.getClass().getName()));
+    }
   }
 }

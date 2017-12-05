@@ -30,6 +30,7 @@ import {BarGraph} from '@app/classes/models/bar-graph';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {HistogramOptions} from '@app/classes/histogram-options';
 import {ListItem} from '@app/classes/list-item';
+import {LogsType} from '@app/classes/string';
 
 @Component({
   selector: 'logs-container',
@@ -43,7 +44,7 @@ export class LogsContainerComponent {
     private tabsStorage: TabsService, private logsContainer: LogsContainerService
   ) {
     this.logsContainer.loadColumnsNames();
-    appState.getParameter('activeLogsType').subscribe((value: string) => this.logsType = value);
+    appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
     serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
       this.histogramData = this.logsContainer.getHistogramData(data);
     });
@@ -56,7 +57,7 @@ export class LogsContainerComponent {
     return this.logsContainer.filtersForm;
   };
 
-  private logsType: string;
+  private logsType: LogsType;
 
   get totalCount(): number {
     return this.logsContainer.totalCount;

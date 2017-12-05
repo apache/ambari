@@ -20,10 +20,6 @@
 
 @inactive-input-width: 1px;
 @label-margin: 2px;
-.collapsed-form-control {
-  width: 0;
-  padding: 0;
-}
 
 :host {
   display: flex;
@@ -35,15 +31,12 @@
   cursor: text;
 
   .parameter-label {
-    // TODO implement actual styles
     margin: @label-margin;
-    padding: @label-margin;
-    background-color: @main-background-color;
+    border-radius: @dropdown-border-radius;
+    padding: @search-parameter-padding;
+    background-color: @grey-color;
+    color: @base-font-color;
     font-size: 0.8em;
-
-    .exclude-icon {
-      color: @exclude-color;
-    }
 
     .parameter-value {
       font-weight: normal;
@@ -94,12 +87,20 @@
       }
 
       &.value {
-        /deep/ .ng2-auto-complete-wrapper, .parameter-input {
-          display: none;
+        .parameter-input-wrapper {
+          /deep/ .ng2-auto-complete-wrapper {
+            display: none;
+          }
         }
 
         .value-input {
           width: 100%;
+        }
+      }
+
+      .no-options {
+        /deep/ .ng2-auto-complete {
+          display: none;
         }
       }
     }

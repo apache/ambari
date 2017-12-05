@@ -331,9 +331,7 @@ public class VersionDefinitionXml {
         versionToCompare = manifest.releaseVersion;
         summaryReleaseVersion = manifest.releaseVersion;
       }
-
       summary.setVersions(manifest.version, summaryReleaseVersion);
-
       if (RepositoryType.STANDARD == release.repositoryType) {
         summary.setUpgrade(true);
       } else {

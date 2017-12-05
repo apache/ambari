@@ -47,6 +47,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -78,7 +79,6 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private static final String GET_HOSTS_INFO_URI = "/api/v1/hosts"
       + "?fields=Hosts/*&Hosts/host_name.in(%s)";
-  static final String LDAP_CONFIGURATION_PROPERTY = "ldap-configuration";
 
   private static final String GET_SERVICES_INFO_URI = "/api/v1/stacks/%s/versions/%s/"
       + "?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version"
@@ -91,11 +91,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       + "&services/StackServices/service_name.in(%s)";
 
   private static final String GET_AMBARI_LDAP_CONFIG_URI = String.format("/api/v1/services/%s/components/%s/configurations?%s=%s&fields=%s",
-    RootService.AMBARI.name(),
-    RootComponent.AMBARI_SERVER.name(),
-    RootServiceComponentConfigurationResourceProvider.CONFIGURATION_CATEGORY_PROPERTY_ID,
-    LDAP_CONFIGURATION_PROPERTY,
-    RootServiceComponentConfigurationResourceProvider.CONFIGURATION_PROPERTIES_PROPERTY_ID);
+      RootService.AMBARI.name(),
+      RootComponent.AMBARI_SERVER.name(),
+      RootServiceComponentConfigurationResourceProvider.CONFIGURATION_CATEGORY_PROPERTY_ID,
+      AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(),
+      RootServiceComponentConfigurationResourceProvider.CONFIGURATION_PROPERTIES_PROPERTY_ID);
 
   private static final String SERVICES_PROPERTY = "services";
   private static final String SERVICES_COMPONENTS_PROPERTY = "components";
@@ -107,6 +107,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
   private static final String USER_CONTEXT_PROPERTY = "user-context";
+  private static final String GPL_LICENSE_ACCEPTED = "gpl-license-accepted";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
 
   private File recommendationsDir;
@@ -229,7 +230,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
         throw new StackAdvisorException("Unexpected JSON document encountered: missing the Configuration/properties object");
       }
 
-      root.put(LDAP_CONFIGURATION_PROPERTY, ldapConfigurationProperties);
+      root.put(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), ldapConfigurationProperties);
     } else if (numConfigs > 1) {
       throw new StackAdvisorException(String.format("Multiple (%s) LDAP configs are found in the DB.", numConfigs));
     }
@@ -269,6 +270,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     JsonNode userContext = mapper.valueToTree(request.getUserContext());
     root.put(USER_CONTEXT_PROPERTY, userContext);
+    root.put(GPL_LICENSE_ACCEPTED, request.getGplLicenseAccepted());
   }
 
   private void populateConfigGroups(ObjectNode root,
