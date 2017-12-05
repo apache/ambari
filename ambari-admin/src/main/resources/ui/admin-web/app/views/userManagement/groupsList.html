@@ -61,7 +61,7 @@
           <span>{{group.group_name}}</span>
         </td>
         <td class="col-sm-2">{{group.groupTypeName | translate}}</td>
-        <td class="col-sm-2">{{'groups.membersPlural' | translate: '{n: group.members && group.members.length || 0}'}}</td>
+        <td class="col-sm-2">{{'groups.membersPlural' | translate:{n: group.members && group.members.length || 0} }}</td>
         <td class="entity-actions">
           <link-to route="userManagement.editGroup" class="link-to-group" id="{{group.group_name}}">
             <i class="fa fa-pencil"></i>
@@ -77,11 +77,11 @@
     <i class="fa fa-2x fa-spinner fa-spin" aria-hidden="true"></i>
   </div>
   <div class="alert empty-table-alert col-sm-12" ng-show="!groups.length && !isLoading">
-    {{'common.alerts.nothingToDisplay' | translate: '{term: constants.groups}'}}
+    {{'common.alerts.nothingToDisplay' | translate:{term: constants.groups} }}
   </div>
   <div class="col-sm-12 table-bar" ng-show="totalGroups > minRowsToShowPagination">
     <div class="pull-left filtered-info">
-      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: constants.groups}'}}</span>
+      <span>{{'common.filterInfo' | translate:{showed: tableInfo.showed, total: tableInfo.total, term: constants.groups} }}</span>
       <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
     </div>
     <div class="pull-right left-margin">
