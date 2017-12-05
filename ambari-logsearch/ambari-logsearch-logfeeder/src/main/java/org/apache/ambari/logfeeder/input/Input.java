@@ -137,6 +137,10 @@ public abstract class Input extends ConfigBlock implements Runnable, Cloneable {
     }
   }
 
+  public void setFirstFilter(Filter firstFilter) {
+    this.firstFilter = firstFilter;
+  }
+
   public void addOutput(Output output) {
     outputList.add(output);
   }
@@ -200,10 +204,39 @@ public abstract class Input extends ConfigBlock implements Runnable, Cloneable {
       clonedObject.setLogFileDetacherThread(null);
       clonedObject.setLogFilePathUpdaterThread(null);
       clonedObject.setInputChildMap(new HashMap<String, InputFile>());
+      copyFilters(clonedObject, firstFilter);
       Thread thread = new Thread(threadGroup, clonedObject, "file=" + fullPathWithWildCard);
       clonedObject.setThread(thread);
       inputChildMap.put(fullPathWithWildCard, clonedObject);
       thread.start();
+    }
+  }
+
+  private void copyFilters(InputFile clonedInput, Filter firstFilter) {
+    if (firstFilter != null) {
+      try {
+        LOG.info("Cloning filters for input=" + clonedInput.logPath);
+        Filter newFilter = (Filter) firstFilter.clone();
+        newFilter.setInput(clonedInput);
+        clonedInput.setFirstFilter(newFilter);
+        Filter actFilter = firstFilter;
+        Filter actClonedFilter = newFilter;
+        while (actFilter != null) {
+          if (actFilter.getNextFilter() != null) {
+            actFilter = actFilter.getNextFilter();
+            Filter newClonedFilter = (Filter) actFilter.clone();
+            newClonedFilter.setInput(clonedInput);
+            actClonedFilter.setNextFilter(newClonedFilter);
+            actClonedFilter = newClonedFilter;
+          } else {
+            actClonedFilter.setNextFilter(null);
+            actFilter = null;
+          }
+        }
+        LOG.info("Cloning filters has finished for input=" + clonedInput.logPath);
+      } catch (Exception e) {
+        LOG.error("Could not clone filters for input=" + clonedInput.logPath);
+      }
     }
   }
 

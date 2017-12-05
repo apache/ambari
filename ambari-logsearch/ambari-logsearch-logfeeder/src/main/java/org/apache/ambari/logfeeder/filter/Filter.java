@@ -36,7 +36,8 @@ import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
 
-public abstract class Filter extends ConfigBlock {
+public abstract class Filter extends ConfigBlock implements Cloneable {
+
   private static final Logger LOG = Logger.getLogger(Filter.class);
 
   protected Input input;
@@ -53,6 +54,11 @@ public abstract class Filter extends ConfigBlock {
     if (nextFilter != null) {
       nextFilter.init();
     }
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
   }
 
   @SuppressWarnings("unchecked")

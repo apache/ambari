@@ -62,6 +62,7 @@ public class FilterGrok extends Filter {
 
   private String sourceField = null;
   private boolean removeSourceField = true;
+  private boolean skipOnError = false;
 
   private Set<String> namedParamList = new HashSet<String>();
   private Set<String> multiLineamedParamList = new HashSet<String>();
@@ -80,6 +81,8 @@ public class FilterGrok extends Filter {
       sourceField = getStringValue("source_field");
       removeSourceField = getBooleanValue("remove_source_field",
         removeSourceField);
+      skipOnError = getBooleanValue("skip_on_error", false);
+
 
       LOG.info("init() done. grokPattern=" + messagePattern + ", multilinePattern=" + multilinePattern + ", " +
       getShortDescription());
@@ -181,7 +184,7 @@ public class FilterGrok extends Filter {
 
     if (grokMultiline != null) {
       String jsonStr = grokMultiline.capture(inputStr);
-      if (!"{}".equals(jsonStr)) {
+      if (!"{}".equals(jsonStr) || skipOnError) {
         if (strBuff != null) {
           Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
           try {
@@ -226,7 +229,7 @@ public class FilterGrok extends Filter {
     String jsonStr = grokMessage.capture(inputStr);
 
     boolean parseError = false;
-    if ("{}".equals(jsonStr)) {
+    if ("{}".equals(jsonStr) && !skipOnError) {
       parseError = true;
       logParseError(inputStr);
 
