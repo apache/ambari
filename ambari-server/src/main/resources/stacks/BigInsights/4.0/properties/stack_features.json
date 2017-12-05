@@ -7,11 +7,6 @@
         "max_version": "4.0.0.0"
       },
       {
-        "name": "lzo",
-        "description": "LZO libraries support",
-        "min_version": "4.1.0.0"
-      },
-      {
         "name": "express_upgrade",
         "description": "Express upgrade support",
         "min_version": "4.2.0.0"
