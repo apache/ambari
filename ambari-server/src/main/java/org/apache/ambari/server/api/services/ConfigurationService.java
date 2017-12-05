@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -77,8 +78,8 @@ public class ConfigurationService extends BaseService {
   }
 
   @Path("service_config_versions")
-  public ServiceConfigVersionService getServiceConfigVersionService() {
-    return new ServiceConfigVersionService(m_clusterName);
+  public ServiceConfigVersionService getServiceConfigVersionService(@Context javax.ws.rs.core.Request request, @PathParam("serviceName") String serviceName) {
+    return new ServiceConfigVersionService(m_clusterName, m_serviceGroupName, serviceName);
   }
 
   /**

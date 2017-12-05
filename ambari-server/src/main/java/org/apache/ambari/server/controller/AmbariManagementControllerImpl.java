@@ -116,6 +116,7 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -124,6 +125,7 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
@@ -332,6 +334,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private AmbariManagementHelper helper;
 
+  @Inject
+  private ClusterServiceDAO clusterServiceDAO;
   @Inject
   private ExtensionDAO extensionDAO;
   @Inject
@@ -5902,4 +5906,194 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return QuickLinkVisibilityControllerFactory.get(quickLinkProfileJson);
   }
 
+  @Override
+  public Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException {
+
+    Set<ServiceConfigVersionResponse> serviceConfigVersionResponses = new HashSet<>();
+    for (ServiceConfigVersionRequest request : requests) {
+      request.setIsCurrent(true);
+      Cluster cluster = getClusters().getCluster(request.getClusterName());
+      //save data to return configurations created
+      List<ConfigurationResponse> configurationResponses =
+              new LinkedList<>();
+      ServiceConfigVersionResponse serviceConfigVersionResponse = null;
+      List<ConfigurationRequest> desiredConfigs = request.getConfigs();
+
+      if (desiredConfigs != null && request.getVersion() != null) {
+        String msg = "Unable to set desired configs and rollback at same time, request = " + request;
+        LOG.error(msg);
+        throw new IllegalArgumentException(msg);
+      }
+
+      //check if desired configs are available in request and they were changed
+      boolean isConfigurationCreationNeeded = false;
+      if (desiredConfigs != null) {
+        for (ConfigurationRequest configurationRequest : desiredConfigs) {
+          Map<String, String> requestConfigProperties = configurationRequest.getProperties();
+          Map<String, Map<String, String>> requestConfigAttributes = configurationRequest.getPropertiesAttributes();
+
+          // processing password properties
+          if (requestConfigProperties != null && !requestConfigProperties.isEmpty()) {
+            Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(
+                    configurationRequest.getType()
+            );
+            for (Entry<String, String> property : requestConfigProperties.entrySet()) {
+              String propertyName = property.getKey();
+              String propertyValue = property.getValue();
+              if ((propertiesTypes.containsKey(PropertyType.PASSWORD) &&
+                      propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) ||
+                      (requestConfigAttributes != null && requestConfigAttributes.containsKey(PASSWORD) &&
+                              requestConfigAttributes.get(PASSWORD).containsKey(propertyName) &&
+                              requestConfigAttributes.get(PASSWORD).get(propertyName).equals("true"))) {
+                if (SecretReference.isSecret(propertyValue)) {
+                  SecretReference ref = new SecretReference(propertyValue, cluster);
+                  requestConfigProperties.put(propertyName, ref.getValue());
+                }
+              }
+            }
+          }
+
+          Config clusterConfig = cluster.getDesiredConfigByType(configurationRequest.getType());
+          Map<String, String> clusterConfigProperties = null;
+          Map<String, Map<String, String>> clusterConfigAttributes = null;
+          if (clusterConfig != null) {
+            clusterConfigProperties = clusterConfig.getProperties();
+            clusterConfigAttributes = clusterConfig.getPropertiesAttributes();
+            if (!isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes)) {
+              isConfigurationCreationNeeded = true;
+              break;
+            }
+          } else {
+            isConfigurationCreationNeeded = true;
+            break;
+          }
+
+          if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
+            Config existingConfig = cluster.getConfig(configurationRequest.getType(), configurationRequest.getVersionTag());
+            if (existingConfig != null) {
+              if (!StringUtils.equals(existingConfig.getTag(), clusterConfig.getTag())) {
+                isConfigurationCreationNeeded = true;
+                break;
+              }
+            }
+          }
+          if (requestConfigProperties != null && clusterConfigProperties != null) {
+            if (requestConfigProperties.size() != clusterConfigProperties.size()) {
+              isConfigurationCreationNeeded = true;
+              break;
+            } else {
+              if (cluster.getServiceByConfigType(clusterConfig.getType()) != null && clusterConfig.getServiceConfigVersions().isEmpty()) {
+                //If there's no service config versions containing this config (except cluster configs), recreate it even if exactly equal
+                LOG.warn("Existing desired config doesn't belong to any service config version, " +
+                                "forcing config recreation, " +
+                                "clusterName={}, type = {}, tag={}", cluster.getClusterName(), clusterConfig.getType(),
+                        clusterConfig.getTag());
+                isConfigurationCreationNeeded = true;
+                break;
+              }
+              for (Entry<String, String> property : requestConfigProperties.entrySet()) {
+                if (!StringUtils.equals(property.getValue(), clusterConfigProperties.get(property.getKey()))) {
+                  isConfigurationCreationNeeded = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // set or create configuration mapping (and optionally create the map of properties)
+      if (isConfigurationCreationNeeded) {
+
+        if (!desiredConfigs.isEmpty()) {
+          Set<Config> configs = new HashSet<>();
+          String note = null;
+
+          for (ConfigurationRequest cr : desiredConfigs) {
+            String configType = cr.getType();
+
+            if (null != cr.getProperties()) {
+              // !!! empty property sets are supported, and need to be able to use
+              // previously-defined configs (revert)
+              Map<String, Config> all = cluster.getConfigsByType(configType);
+              if (null == all ||                              // none set
+                      !all.containsKey(cr.getVersionTag()) ||     // tag not set
+                      cr.getProperties().size() > 0) {            // properties to set
+
+                cr.setClusterName(cluster.getClusterName());
+
+                ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByName(cluster.getClusterName(), request.getServiceGroupName(), request.getServiceName());
+                cr.setServiceId(clusterServiceEntity.getServiceId());
+                cr.setServiceGroupId(clusterServiceEntity.getServiceGroupId());
+                configurationResponses.add(createConfiguration(cr));
+
+                LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
+                        cr.getVersionTag(),
+                        request.getClusterName(),
+                        configType));
+              }
+            }
+            note = request.getNote();
+            Config config = cluster.getConfig(configType, cr.getVersionTag());
+            if (null != config) {
+              configs.add(config);
+            }
+          }
+          if (!configs.isEmpty()) {
+            Map<String, Config> existingConfigTypeToConfig = new HashMap<String, Config>();
+            for (Config config : configs) {
+              Config existingConfig = cluster.getDesiredConfigByType(config.getType());
+              existingConfigTypeToConfig.put(config.getType(), existingConfig);
+            }
+
+            String authName = getAuthName();
+            serviceConfigVersionResponse = cluster.addDesiredConfig(authName, configs, note);
+            if (serviceConfigVersionResponse != null) {
+              List<String> hosts = serviceConfigVersionResponse.getHosts();
+              int numAffectedHosts = null != hosts ? hosts.size() : 0;
+              configChangeLog.info("(configchange) Changing default config. cluster: '{}', changed by: '{}', service_name: '{}', config_group: '{}', num affected hosts during creation: '{}', note: '{}'",
+                      request.getClusterName(), authName, serviceConfigVersionResponse.getServiceName(),
+                      serviceConfigVersionResponse.getGroupName(), numAffectedHosts, serviceConfigVersionResponse.getNote());
+
+              for (Config config : configs) {
+                configChangeLog.info("(configchange)    type: '{}', tag: '{}', version: '{}'", config.getType(), config.getTag(), config.getVersion());
+
+                Map<String, String> configKeyToAction = getConfigKeyDeltaToAction(existingConfigTypeToConfig.get(config.getType()), config.getProperties());
+                Map<String, List<String>> actionToListConfigKeys = inverseMapByValue(configKeyToAction);
+
+                if (!actionToListConfigKeys.isEmpty()) {
+                  String configOutput = getActionToConfigListAsString(actionToListConfigKeys);
+                  configChangeLog.info("(configchange)    Config type '{}' was modified with the following keys, {}", config.getType(), configOutput);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (request.getVersion() != null) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
+          throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
+        }
+
+        if (StringUtils.isEmpty(request.getServiceName())) {
+          String msg = "Service name and version should be specified in service config version";
+          LOG.error(msg);
+          throw new IllegalArgumentException(msg);
+        }
+        serviceConfigVersionResponse = cluster.setServiceConfigVersion(
+                cluster.getService(request.getServiceGroupName(), request.getServiceName()).getServiceId(),
+                request.getVersion(), getAuthName(),
+                request.getNote());
+      }
+
+      if (serviceConfigVersionResponse != null) {
+        if (!configurationResponses.isEmpty()) {
+          serviceConfigVersionResponse.setConfigurations(configurationResponses);
+        }
+      }
+      serviceConfigVersionResponses.add(serviceConfigVersionResponse);
+    }
+    return serviceConfigVersionResponses;
+  }
 }

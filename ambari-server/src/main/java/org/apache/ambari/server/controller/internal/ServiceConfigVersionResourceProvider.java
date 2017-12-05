@@ -25,6 +25,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionRequest;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
@@ -45,6 +47,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 public class ServiceConfigVersionResourceProvider extends
@@ -58,10 +61,10 @@ public class ServiceConfigVersionResourceProvider extends
   public static final String SERVICE_CONFIG_VERSION_SERVICE_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_id");
   public static final String SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "createtime");
   public static final String SERVICE_CONFIG_VERSION_USER_PROPERTY_ID = PropertyHelper.getPropertyId(null, "user");
-  public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version_note");
+  public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceConfigVersion", "service_config_version_note");
   public static final String SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_id");
   public static final String SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_name");
-  public static final String SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "stack_id");
+  public static final String SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceConfigVersion", "stack_id");
   public static final String SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "is_current");
   public static final String SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "is_cluster_compatible");
   public static final String SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "hosts");
@@ -92,11 +95,13 @@ public class ServiceConfigVersionResourceProvider extends
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Service,SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Cluster,SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.ServiceConfigVersion,SERVICE_CONFIG_VERSION_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceConfigVersion, SERVICE_CONFIG_VERSION_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceGroup, SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID);
   }
 
 
@@ -106,7 +111,7 @@ public class ServiceConfigVersionResourceProvider extends
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID,
-      SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID}));
+      SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID, SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID}));
 
 
   // ----- Constructors ------------------------------------------------------
@@ -133,7 +138,63 @@ public class ServiceConfigVersionResourceProvider extends
 
   @Override
   public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException("Cannot explicitly create service config version");
+    final Set<ServiceConfigVersionRequest> requests = new HashSet<>();
+    Set<ServiceConfigVersionResponse> responses = new HashSet<>();
+
+    for (Map<String, Object> propertyMap : request.getProperties()) {
+      requests.add(createRequest(propertyMap));
+    }
+    responses = createResources(new Command<Set<ServiceConfigVersionResponse>>() {
+      @Override
+      public Set<ServiceConfigVersionResponse> invoke() throws AmbariException, AuthorizationException {
+        return getManagementController().createServiceConfigVersion(requests);
+      }
+    });
+
+    Set<Resource> associatedResources = new HashSet<>();
+    for (ServiceConfigVersionResponse serviceConfigVersionResponse : responses) {
+      Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID,
+              serviceConfigVersionResponse.getServiceGroupName());
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_ID_PROPERTY_ID,
+              serviceConfigVersionResponse.getServiceGroupId());
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
+              serviceConfigVersionResponse.getServiceName());
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_ID_PROPERTY_ID,
+              serviceConfigVersionResponse.getServiceId());
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
+              serviceConfigVersionResponse.getVersion());
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,
+              serviceConfigVersionResponse.getNote());
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID,
+              serviceConfigVersionResponse.getGroupId());
+      resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID,
+              serviceConfigVersionResponse.getGroupName());
+      if (serviceConfigVersionResponse.getConfigurations() != null) {
+        resource.setProperty(
+                ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID,
+                serviceConfigVersionResponse.getConfigurations());
+      }
+      associatedResources.add(resource);
+    }
+
+    return getRequestStatus(null, associatedResources);
+  }
+
+  private List<ConfigurationRequest> getConfigurationRequests(Set<Map<String, Object>>  configurations) {
+    List<ConfigurationRequest> configs = new LinkedList<>();
+    for (Map<String, Object> value: configurations) {
+      ConfigurationRequest newConfig = new ConfigurationRequest();
+      for (Map.Entry<String, Object> e : value.entrySet()) {
+        String propName =
+                PropertyHelper.getPropertyName("Config" + '/' + e.getKey());
+        String absCatategory =
+                PropertyHelper.getPropertyCategory("Config" + '/' + e.getKey());
+        parseProperties(newConfig, absCatategory, propName, e.getValue() == null ? null : e.getValue().toString());
+      }
+      configs.add(newConfig);
+    }
+    return configs;
   }
 
   @Override
@@ -159,6 +220,7 @@ public class ServiceConfigVersionResourceProvider extends
       Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
       resource.setProperty(SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName);
       resource.setProperty(SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
+      resource.setProperty(SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID, response.getServiceGroupName());
       resource.setProperty(SERVICE_CONFIG_VERSION_USER_PROPERTY_ID, response.getUserName());
       resource.setProperty(SERVICE_CONFIG_VERSION_PROPERTY_ID, response.getVersion());
       resource.setProperty(SERVICE_CONFIG_VERSION_CREATE_TIME_PROPERTY_ID, response.getCreateTime());
@@ -186,36 +248,6 @@ public class ServiceConfigVersionResourceProvider extends
     throw new UnsupportedOperationException("Cannot delete service config version");
   }
 
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    propertyIds = super.checkPropertyIds(propertyIds);
-
-    if (propertyIds.isEmpty()) {
-      return propertyIds;
-    }
-    Set<String> unsupportedProperties = new HashSet<>();
-
-    for (String propertyId : propertyIds) {
-      if (!propertyId.equals("cluster_name") && !propertyId.equals("service_config_version") &&
-          !propertyId.equals("service_group_name")&&
-          !propertyId.equals("service_name") && !propertyId.equals("createtime") &&
-          !propertyId.equals("appliedtime") && !propertyId.equals("user") &&
-          !propertyId.equals("service_config_version_note") &&
-          !propertyId.equals("group_id") &&
-          !propertyId.equals("group_name") &&
-          !propertyId.equals("stack_id") &&
-          !propertyId.equals("is_current") &&
-          !propertyId.equals("is_cluster_compatible") &&
-          !propertyId.equals("hosts")) {
-
-        unsupportedProperties.add(propertyId);
-
-      }
-    }
-    return unsupportedProperties;
-  }
-
-
   private ServiceConfigVersionRequest createRequest(Map<String, Object> properties) {
     String clusterName = (String) properties.get(SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
     String serviceGroupName = (String) properties.get(SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID);
@@ -224,8 +256,16 @@ public class ServiceConfigVersionResourceProvider extends
     Boolean isCurrent = Boolean.valueOf((String) properties.get(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID));
     Object versionObject = properties.get(SERVICE_CONFIG_VERSION_PROPERTY_ID);
     Long version = versionObject == null ? null : Long.valueOf(versionObject.toString());
-
-    return new ServiceConfigVersionRequest(clusterName, serviceGroupName, serviceName, version, null, null, user, isCurrent);
+    String note = (String) properties.get(SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID);
+    String stackId = (String) properties.get(SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID);
+    ServiceConfigVersionRequest scvr = new ServiceConfigVersionRequest(clusterName, serviceGroupName, serviceName, version, null, null, user, isCurrent, note, stackId);
+    if(version == null && properties.containsKey("configurations")) {
+      List<ConfigurationRequest> configRequests = getConfigurationRequests((Set<Map<String, Object>>) properties.get("configurations"));
+      if (!configRequests.isEmpty()) {
+        scvr.setConfigs(configRequests);
+      }
+    }
+    return scvr;
   }
 
   private List<Map<String, Object>> convertToSubResources(final String clusterName, List<ConfigurationResponse> configs) {

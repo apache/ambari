@@ -1016,5 +1016,18 @@ public interface AmbariManagementController {
    */
   void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException;
 
+  /**
+   * Creates serviceconfigversions and corresponding new configurations if it is an initial request
+   * OR
+   * Rollbacks to an existing serviceconfigversion if request specifies.
+   * @param requests
+   *
+   * @return
+   *
+   * @throws AmbariException
+   *
+   * @throws AuthorizationException
+   */
+  Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException;
 }
 
