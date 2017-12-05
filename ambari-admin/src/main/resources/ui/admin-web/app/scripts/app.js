@@ -60,7 +60,7 @@ angular.module('ambariAdminConsole', [
     };
   }]);
 
-  $httpProvider.interceptors.push(['$rootScope', '$q', function (scope, $q) {
+  $httpProvider.responseInterceptors.push(['$rootScope', '$q', function (scope, $q) {
     function success(response) {
       return response;
     }
