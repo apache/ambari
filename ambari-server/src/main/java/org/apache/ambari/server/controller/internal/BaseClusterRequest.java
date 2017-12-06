@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.QueryLexer;
@@ -40,8 +42,6 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyRequest;
-
-import com.google.inject.Inject;
 
 /**
  * Provides common cluster request functionality.

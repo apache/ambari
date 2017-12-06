@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -36,8 +38,6 @@ import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Inject;
 
 public class StackV2Factory {
   private final static Logger LOG = LoggerFactory.getLogger(StackV2Factory.class);
