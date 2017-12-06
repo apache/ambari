@@ -38,19 +38,13 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import com.google.inject.Inject;
 
 public class RootServiceComponentConfigurationResourceProvider extends AbstractAuthorizedResourceProvider {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(RootServiceComponentConfigurationResourceProvider.class);
 
   static final String RESOURCE_KEY = "Configuration";
 
@@ -84,11 +78,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
   }
 
   @Inject
-  private AmbariEventPublisher publisher;
-
-  @Inject
   private RootServiceComponentConfigurationHandlerFactory rootServiceComponentConfigurationHandlerFactory;
-
 
   public RootServiceComponentConfigurationResourceProvider() {
     super(PROPERTIES, PK_PROPERTY_MAP);
