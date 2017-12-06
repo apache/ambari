@@ -234,7 +234,9 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           var configsByService = allConfigs.filter(function (c) {
             return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
           });
-          self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+          if (App.config.get('preDefinedServiceConfigs').someProperty('serviceName', serviceName)) {
+            self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+          }
         });
 
         self.set('isServiceConfigsLoaded', true);
