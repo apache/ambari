@@ -249,7 +249,7 @@ def setup_hiveserver2():
                          group=params.hdfs_user,
                          mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
 
-  if params.hive_repl_cmrootdir is not None:
+  if params.hive_repl_cmrootdir:
     params.HdfsResource(params.hive_repl_cmrootdir,
                         type = "directory",
                         action = "create_on_execute",
@@ -328,7 +328,7 @@ def setup_metastore():
                  create_parents = True,
                  mode=0777)
 
-  if params.hive_repl_cmrootdir is not None:
+  if params.hive_repl_cmrootdir:
     params.HdfsResource(params.hive_repl_cmrootdir,
                         type = "directory",
                         action = "create_on_execute",
@@ -342,7 +342,7 @@ def setup_metastore():
                         owner = params.hive_user,
                         group=params.user_group,
                         mode = 0700)
-  if params.hive_repl_cmrootdir is not None or params.hive_repl_rootdir is not None:
+  if params.hive_repl_cmrootdir or params.hive_repl_rootdir:
     params.HdfsResource(None, action="execute")
 
 def create_metastore_schema():
