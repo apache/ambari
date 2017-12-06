@@ -338,17 +338,18 @@ public class AmbariContext {
 
     for (Map.Entry<Service, ? extends Iterable<ComponentV2>> entry : components.entrySet()) {
       Service service = entry.getKey();
-      for (ComponentV2 component : entry.getValue()) {
-        //todo: handle this in a generic manner.  These checks are all over the code
-        try {
-          if (cluster.getService(service.getName()) != null && !RootComponent.AMBARI_SERVER.name().equals("AMBARI_SERVER")) {
-            requests.add(new ServiceComponentHostRequest(clusterName, service.getServiceGroup().getName(),
-              service.getName(), component.getName(), hostName, null));
-
+      try {
+        if (cluster.getService(service.getName()) != null) {
+          for (ComponentV2 component : entry.getValue()) {
+            //todo: handle this in a generic manner.  These checks are all over the code
+            if (!RootComponent.AMBARI_SERVER.name().equals(component.getType())) {
+              requests.add(new ServiceComponentHostRequest(clusterName, service.getServiceGroup().getName(),
+                service.getName(), component.getName(), hostName, null));
+            }
           }
-        } catch(AmbariException se) {
-          LOG.warn("Service already deleted from cluster: {}", service);
         }
+      } catch(AmbariException se) {
+        LOG.warn("Service already deleted from cluster: {}", service);
       }
     }
     try {
