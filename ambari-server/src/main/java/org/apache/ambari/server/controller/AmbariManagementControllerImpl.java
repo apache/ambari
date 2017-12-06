@@ -3031,6 +3031,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           continue;
         }
 
+        if (StringUtils.isBlank(stage.getHostParamsStage())) {
+          RepositoryVersionEntity repositoryVersion = component.getDesiredRepositoryVersion();
+          stage.setHostParamsStage(StageUtils.getGson().toJson(
+              customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
+        }
+
         customCommandExecutionHelper.addServiceCheckAction(stage, clientHost, smokeTestRole,
             nowTimestamp, serviceName, componentName, null, false, false);
       }
