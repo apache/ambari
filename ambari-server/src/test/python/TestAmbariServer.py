@@ -132,6 +132,17 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
 
 CURR_AMBARI_VERSION = "2.0.0"
 
+def restore_sys_argv(fn):
+    def wrapped(*args, **kwargs):
+      old_sys_argv = sys.argv
+      try:
+        sys.argv = []
+        return fn(*args, **kwargs)
+      finally:
+        sys.argv = old_sys_argv
+
+    return wrapped
+
 @patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir", new = MagicMock(return_value = "/var/lib/pgsql/data"))
 @patch("ambari_server.dbConfiguration_linux.get_postgre_running_status", new = MagicMock(return_value = "running"))
@@ -7987,6 +7998,7 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, result)
     pass
 
+  @restore_sys_argv
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.serverConfiguration.write_property")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
