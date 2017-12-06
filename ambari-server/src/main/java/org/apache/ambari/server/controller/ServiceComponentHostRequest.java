@@ -37,7 +37,7 @@ public class ServiceComponentHostRequest {
 
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceGroupName,
-                                     String serviceDisplayName,
+                                     String serviceName,
                                      String componentName,
                                      String hostname,
                                      String desiredState) {
