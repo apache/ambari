@@ -129,6 +129,14 @@ public class HostVersionOutOfSyncListener {
         // stack, but become versionAdvertised in some future (installed, but not yet upgraded to) stack
         String serviceName = event.getServiceName();
         String componentName = event.getComponentName();
+
+        // Skip lookup if stack does not contain the component
+        if (!ami.get().isValidServiceComponent(hostStackId.getStackName(),
+            hostStackId.getStackVersion(), serviceName, componentName)) {
+          LOG.debug("Component not found is host stack, stack={}, version={}, service={}, component={}",
+              hostStackId.getStackName(), hostStackId.getStackVersion(), serviceName, componentName);
+          continue;
+        }
         ComponentInfo component = ami.get().getComponent(hostStackId.getStackName(),
                 hostStackId.getStackVersion(), serviceName, componentName);
 
@@ -215,6 +223,14 @@ public class HostVersionOutOfSyncListener {
     Collection<HostComponentDesiredStateEntity> hostComponents = host.getHostComponentDesiredStateEntities();
 
     for (HostComponentDesiredStateEntity hostComponent : hostComponents) {
+      // Skip lookup if stack does not contain the component
+      if (!ami.get().isValidServiceComponent(stackId.getStackName(),
+          stackId.getStackVersion(), hostComponent.getServiceName(), hostComponent.getComponentName())) {
+        LOG.debug("Component not found is host stack, stack={}, version={}, service={}, component={}",
+            stackId.getStackName(), stackId.getStackVersion(),
+            hostComponent.getServiceName(), hostComponent.getComponentName());
+        continue;
+      }
       ComponentInfo ci = ami.get().getComponent(stackId.getStackName(), stackId.getStackVersion(),
           hostComponent.getServiceName(), hostComponent.getComponentName());
 
@@ -260,6 +276,14 @@ public class HostVersionOutOfSyncListener {
           String serviceName = event.getServiceName();
           for (ServiceComponent comp : affectedHosts.get(hostName)) {
             String componentName = comp.getName();
+
+            // Skip lookup if stack does not contain the component
+            if (!ami.get().isValidServiceComponent(repositoryVersion.getStackName(),
+                repositoryVersion.getStackVersion(), serviceName, componentName)) {
+              LOG.debug("Component not found is host stack, stack={}, version={}, service={}, component={}",
+                  repositoryVersion.getStackName(), repositoryVersion.getStackVersion(), serviceName, componentName);
+              continue;
+            }
             ComponentInfo component = ami.get().getComponent(repositoryVersion.getStackName(),
                     repositoryVersion.getStackVersion(), serviceName, componentName);
             if (component.isVersionAdvertised()) {
