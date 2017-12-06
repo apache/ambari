@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.topology.BlueprintV2;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroupV2;
 import org.apache.ambari.server.topology.HostGroupV2Impl;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.Service;
@@ -81,7 +82,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   private Collection<String> bpServices = new HashSet<>();
   private Collection<Service> slaveHostGroupServices = new HashSet<>();
   private Collection<Service> masterHostGroupServices = new HashSet<>();
-  private Map<String, HostGroupV2Impl> hostGroups = new HashMap<>();
+  private Map<String, HostGroupV2> hostGroups = new HashMap<>();
 
   private Map<String, Collection<String>> missingProps = new TreeMap<>();
 
@@ -103,7 +104,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
 
     EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
 
-    EasyMock.expect((Map<String, HostGroupV2Impl>)blueprintMock.getHostGroups()).andReturn(hostGroups);
+    EasyMock.expect(blueprintMock.getHostGroups()).andReturn(hostGroups);
 
     EasyMock.expect(masterHostGroupMock.getName()).andReturn("master").anyTimes();
     EasyMock.expect(masterHostGroupMock.getConfiguration()).andReturn(masterHostGroupConfigurationMock).anyTimes();
