@@ -732,7 +732,8 @@ public class Users {
             String dn = user.getDn();
             String authenticationKey = authenticationEntity.getAuthenticationKey();
 
-            if (StringUtils.isEmpty(dn) || StringUtils.isEmpty(authenticationKey) || dn.equals(authenticationKey)) {
+            // DN's are case-insensitive.
+            if (StringUtils.isEmpty(dn) || StringUtils.isEmpty(authenticationKey) || dn.equalsIgnoreCase(authenticationKey)) {
               authenticationEntitiesToRemove.add(authenticationEntity);
             }
             iterator.remove();
@@ -768,6 +769,22 @@ public class Users {
       UserEntity userEntity = userDAO.findUserByName(userName);
       if (userEntity != null) {
         LOG.trace("Enabling LDAP authentication for the user account with the username {}.", userName);
+
+        if (configuration.getLdapSyncCollisionHandlingBehavior() == Configuration.LdapUsernameCollisionHandlingBehavior.CONVERT) {
+          // If converting the user to only an LDAP user, then remove all other authentication methods
+          Collection<UserAuthenticationEntity> existingEntities = userEntity.getAuthenticationEntities();
+          if(existingEntities != null) {
+            Iterator<UserAuthenticationEntity> iterator = existingEntities.iterator();
+            while(iterator.hasNext()) {
+              UserAuthenticationEntity userAuthenticationEntity = iterator.next();
+              if(userAuthenticationEntity.getAuthenticationType() != UserAuthenticationType.LDAP) {
+                removeAuthentication(userEntity, userAuthenticationEntity.getUserAuthenticationId());
+                iterator.remove();
+              }
+            }
+          }
+        }
+
         try {
           addLdapAuthentication(userEntity, user.getDn(), false);
           userEntitiesToUpdate.add(userEntity);
@@ -1122,7 +1139,32 @@ public class Users {
    * @return a collection of the requested {@link UserAuthenticationEntity}s
    */
   public Collection<UserAuthenticationEntity> getUserAuthenticationEntities(String username, UserAuthenticationType authenticationType) {
-    if (StringUtils.isEmpty(username)) {
+    UserEntity userEntity;
+
+    if (!StringUtils.isEmpty(username)) {
+      userEntity = userDAO.findUserByName(username);
+
+      if (userEntity == null) {
+        // The requested user was not found, return null
+        return null;
+      }
+    } else {
+      // The request is for all users
+      userEntity = null;
+    }
+
+    return getUserAuthenticationEntities(userEntity, authenticationType);
+  }
+
+  /**
+   * Gets the collection of {@link UserAuthenticationEntity}s for a given user.
+   *
+   * @param userEntity         the user; if null assumes all users
+   * @param authenticationType the authentication type, if null assumes all
+   * @return a collection of the requested {@link UserAuthenticationEntity}s
+   */
+  public Collection<UserAuthenticationEntity> getUserAuthenticationEntities(UserEntity userEntity, UserAuthenticationType authenticationType) {
+    if (userEntity == null) {
       if (authenticationType == null) {
         // Get all
         return userAuthenticationDAO.findAll();
@@ -1131,36 +1173,32 @@ public class Users {
         return userAuthenticationDAO.findByType(authenticationType);
       }
     } else {
-      UserEntity entity = userDAO.findUserByName(username);
+      List<UserAuthenticationEntity> authenticationEntities = userAuthenticationDAO.findByUser(userEntity);
 
-      if (entity == null) {
-        return null;
+      if (authenticationType == null) {
+        // Get all for the specified user
+        return authenticationEntities;
       } else {
-        List<UserAuthenticationEntity> authenticationEntities = entity.getAuthenticationEntities();
-
-        if (authenticationType == null) {
-          // Get for the specified user
-          return authenticationEntities;
-        } else {
-          // Get for the specified user and type
-          List<UserAuthenticationEntity> pruned = new ArrayList<>();
-          for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
-            if (authenticationEntity.getAuthenticationType() == authenticationType) {
-              pruned.add(authenticationEntity);
-            }
+        // Get for the specified user and type
+        List<UserAuthenticationEntity> pruned = new ArrayList<>();
+        for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+          if (authenticationEntity.getAuthenticationType() == authenticationType) {
+            pruned.add(authenticationEntity);
           }
-
-          return pruned;
         }
+
+        return pruned;
       }
     }
   }
 
   /**
+   * Find the {@link UserAuthenticationEntity} items for a specific {@link UserAuthenticationType}
+   * and key value.
    *
-   * @param authenticationType
-   * @param key
-   * @return
+   * @param authenticationType the authentication type
+   * @param key                the key value
+   * @return the found collection of {@link UserAuthenticationEntity} values
    */
   public Collection<UserAuthenticationEntity> getUserAuthenticationEntities(UserAuthenticationType authenticationType, String key) {
     return userAuthenticationDAO.findByTypeAndKey(authenticationType, key);
@@ -1472,7 +1510,7 @@ public class Users {
   public void addLdapAuthentication(UserEntity userEntity, String dn, boolean persist) throws AmbariException {
     addAuthentication(userEntity,
         UserAuthenticationType.LDAP,
-        dn,
+        StringUtils.lowerCase(dn), // DNs are case-insensitive and are stored internally as the bytes of lowercase characters
         new Validator() {
           public void validate(UserEntity userEntity, String key) throws AmbariException {
             List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
@@ -1509,7 +1547,7 @@ public class Users {
 
     validator.validate(userEntity, key);
 
-    List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+    List<UserAuthenticationEntity> authenticationEntities = userAuthenticationDAO.findByUser(userEntity);
 
     UserAuthenticationEntity authenticationEntity = new UserAuthenticationEntity();
     authenticationEntity.setUser(userEntity);

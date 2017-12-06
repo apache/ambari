@@ -525,9 +525,6 @@ public class TestUsers {
     users.removeAuthentication(userEntity, pamAuthenticationId);
     assertEquals(3, users.getUserAuthenticationEntities("user", null).size());
 
-    // UserEntity2 needs to be refreshed...
-    assertEquals(5, userEntity2.getAuthenticationEntities().size());
-    userEntity2 = userDAO.findUserByName("user");
     assertEquals(3, userEntity2.getAuthenticationEntities().size());
   }
 

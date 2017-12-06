@@ -28,7 +28,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
-import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class AmbariLdapConfigurationProvider implements Provider<AmbariLdapConfiguration> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AmbariLdapConfigurationProvider.class);
   private AmbariLdapConfiguration instance;
 
   @Inject

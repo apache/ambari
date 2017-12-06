@@ -58,6 +58,7 @@ public class LdapServerProperties {
 
   private String groupSearchFilter;
   private String userSearchFilter;
+  private boolean alternateUserSearchFilterEnabled;
   private String alternateUserSearchFilter; // alternate user search filter to be used when users use their alternate login id (e.g. User Principal Name)
 
   private String syncUserMemberFilter = "";
@@ -241,6 +242,14 @@ public class LdapServerProperties {
     this.userSearchFilter = userSearchFilter;
   }
 
+  public void setAlternateUserSearchFilterEnabled(boolean alternateUserSearchFilterEnabled) {
+    this.alternateUserSearchFilterEnabled = alternateUserSearchFilterEnabled;
+  }
+
+  public boolean isAlternateUserSearchFilterEnabled() {
+    return alternateUserSearchFilterEnabled;
+  }
+
   public void setAlternateUserSearchFilter(String alternateUserSearchFilter) {
     this.alternateUserSearchFilter = alternateUserSearchFilter;
   }
@@ -385,6 +394,7 @@ public class LdapServerProperties {
     if (paginationEnabled != that.isPaginationEnabled()) return false;
 
     if (userSearchFilter != null ? !userSearchFilter.equals(that.userSearchFilter) : that.userSearchFilter != null) return false;
+    if (alternateUserSearchFilterEnabled != that.alternateUserSearchFilterEnabled) return false;
     if (alternateUserSearchFilter != null ? !alternateUserSearchFilter.equals(that.alternateUserSearchFilter) : that.alternateUserSearchFilter != null) return false;
     if (adminGroupMappingMemberAttr != null ? !adminGroupMappingMemberAttr.equals(that.adminGroupMappingMemberAttr) : that.adminGroupMappingMemberAttr != null) return false;
 
@@ -418,6 +428,7 @@ public class LdapServerProperties {
     result = 31 * result + (syncGroupMemberFilter != null ? syncGroupMemberFilter.hashCode() : 0);
     result = 31 * result + (referralMethod != null ? referralMethod.hashCode() : 0);
     result = 31 * result + (userSearchFilter != null ? userSearchFilter.hashCode() : 0);
+    result = 31 * result + (alternateUserSearchFilterEnabled ? 1 : 0);
     result = 31 * result + (alternateUserSearchFilter != null ? alternateUserSearchFilter.hashCode() : 0);
     result = 31 * result + (adminGroupMappingMemberAttr != null ? adminGroupMappingMemberAttr.hashCode() : 0);
     return result;

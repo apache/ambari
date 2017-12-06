@@ -186,29 +186,6 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
   }
 
   @Test
-  public void testLoginAliasAuthName() throws Exception {
-
-    reset(servletRequestAttributes);
-
-    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
-    expect(servletRequestAttributes.getAttribute(eq("user1@domain.com"), eq(RequestAttributes.SCOPE_SESSION)))
-      .andReturn("user1").atLeastOnce(); // user1@domain.com is a login alias for user1
-
-    replay(servletRequestAttributes);
-
-    Authentication auth = new UsernamePasswordAuthenticationToken("user1@domain.com", null);
-    SecurityContextHolder.getContext().setAuthentication(new AmbariAuthentication(auth, 0));
-
-    String user = AuthorizationHelper.getAuthenticatedName();
-    Assert.assertEquals("user1", user);
-
-    SecurityContextHolder.getContext().setAuthentication(null); // clean up security context
-
-    verify(servletRequestAttributes);
-
-  }
-
-  @Test
   public void testIsAuthorized() {
 
     Provider viewInstanceDAOProvider = createNiceMock(Provider.class);

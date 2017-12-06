@@ -696,10 +696,10 @@ public class Configuration {
    */
   @Markdown(
       description = "Determines how to handle username collision while updating from LDAP.",
-      examples = { "skip", "convert" }
+      examples = {"skip", "convert", "add"}
   )
   public static final ConfigurationProperty<String> LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR = new ConfigurationProperty<>(
-      "ldap.sync.username.collision.behavior", "convert");
+      "ldap.sync.username.collision.behavior", "add");
 
   /**
    * The location on the Ambari Server where stack extensions exist.
@@ -2826,12 +2826,38 @@ public class Configuration {
 
   /**
    * Ldap username collision handling behavior.
-   * CONVERT - convert existing local users to LDAP users.
+   * ADD - append the new LDAP entry to the set of existing authentication methods.
+   * CONVERT - remove all authentication methods except for the new LDAP entry.
    * SKIP - skip existing local users.
    */
   public enum LdapUsernameCollisionHandlingBehavior {
+    ADD,
     CONVERT,
-    SKIP
+    SKIP;
+
+    /**
+     * Safely translates a user-supplied behavior name to a {@link LdapUsernameCollisionHandlingBehavior}.
+     * <p>
+     * If the user-supplied value is empty or invalid, the default value is returned.
+     *
+     * @param value        a user-supplied behavior name value
+     * @param defaultValue the default value
+     * @return a {@link LdapUsernameCollisionHandlingBehavior}
+     */
+    public static LdapUsernameCollisionHandlingBehavior translate(String value, LdapUsernameCollisionHandlingBehavior defaultValue) {
+      String processedValue = StringUtils.upperCase(StringUtils.trim(value));
+
+      if (StringUtils.isEmpty(processedValue)) {
+        return defaultValue;
+      } else {
+        try {
+          return valueOf(processedValue);
+        } catch (IllegalArgumentException e) {
+          LOG.warn("Invalid LDAP username collision value ({}), using the default value ({})", value, defaultValue.name().toLowerCase());
+          return defaultValue;
+        }
+      }
+    }
   }
 
   /**
@@ -4109,6 +4135,7 @@ public class Configuration {
 
   /**
    * Gets parameters of LDAP server to connect to
+   *
    * @return LdapServerProperties object representing connection parameters
    */
   public LdapServerProperties getLdapServerProperties() {
@@ -4145,6 +4172,7 @@ public class Configuration {
     ldapServerProperties.setAdminGroupMappingRules(getProperty(LDAP_ADMIN_GROUP_MAPPING_RULES));
     ldapServerProperties.setAdminGroupMappingMemberAttr(getProperty(LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT));
     ldapServerProperties.setUserSearchFilter(getProperty(LDAP_USER_SEARCH_FILTER));
+    ldapServerProperties.setAlternateUserSearchFilterEnabled(Boolean.parseBoolean(getProperty(LDAP_ALT_USER_SEARCH_ENABLED)));
     ldapServerProperties.setAlternateUserSearchFilter(getProperty(LDAP_ALT_USER_SEARCH_FILTER));
     ldapServerProperties.setGroupSearchFilter(getProperty(LDAP_GROUP_SEARCH_FILTER));
     ldapServerProperties.setReferralMethod(getProperty(LDAP_REFERRAL));
@@ -5012,8 +5040,6 @@ public class Configuration {
   }
 
   /**
-
-  /**
    * Gets the default KDC port to use when no port is specified in KDC hostname
    *
    * @return the default KDC port to use.
@@ -5057,10 +5083,9 @@ public class Configuration {
    * @return true if ambari need to skip existing user during LDAP sync.
    */
   public LdapUsernameCollisionHandlingBehavior getLdapSyncCollisionHandlingBehavior() {
-    if (getProperty(LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR).toLowerCase().equals("skip")) {
-      return LdapUsernameCollisionHandlingBehavior.SKIP;
-    }
-    return LdapUsernameCollisionHandlingBehavior.CONVERT;
+    return LdapUsernameCollisionHandlingBehavior.translate(
+        getProperty(LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR),
+        LdapUsernameCollisionHandlingBehavior.ADD);
   }
 
   /**

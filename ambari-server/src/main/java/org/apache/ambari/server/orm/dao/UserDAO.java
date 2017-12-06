@@ -105,7 +105,7 @@ public class UserDAO {
 
   @Transactional
   public void create(Set<UserEntity> users) {
-    for (UserEntity user: users) {
+    for (UserEntity user : users) {
       entityManagerProvider.get().persist(user);
     }
   }

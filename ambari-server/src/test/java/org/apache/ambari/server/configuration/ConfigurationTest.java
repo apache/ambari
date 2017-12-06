@@ -457,6 +457,9 @@ public class ConfigurationTest {
     ambariProperties.setProperty(Configuration.LDAP_GROUP_NAMING_ATTR.getKey(), "14");
     ambariProperties.setProperty(Configuration.LDAP_ADMIN_GROUP_MAPPING_RULES.getKey(), "15");
     ambariProperties.setProperty(Configuration.LDAP_GROUP_SEARCH_FILTER.getKey(), "16");
+    ambariProperties.setProperty(Configuration.LDAP_USER_SEARCH_FILTER.getKey(), "17");
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_FILTER.getKey(), "18");
 
     final LdapServerProperties ldapProperties = configuration.getLdapServerProperties();
 
@@ -476,6 +479,9 @@ public class ConfigurationTest {
     Assert.assertEquals("14", ldapProperties.getGroupNamingAttr());
     Assert.assertEquals("15", ldapProperties.getAdminGroupMappingRules());
     Assert.assertEquals("16", ldapProperties.getGroupSearchFilter());
+    Assert.assertEquals("17", ldapProperties.getUserSearchFilter(false));
+    Assert.assertEquals(true, ldapProperties.isAlternateUserSearchFilterEnabled());
+    Assert.assertEquals("18", ldapProperties.getUserSearchFilter(true));
   }
 
   @Test

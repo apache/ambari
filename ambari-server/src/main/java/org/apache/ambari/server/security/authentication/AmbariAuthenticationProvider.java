@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.security.authentication;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -68,6 +69,42 @@ public abstract class AmbariAuthenticationProvider implements AuthenticationProv
     }
 
     return null;
+  }
+
+  /**
+   * Finds the specific set of {@link UserAuthenticationEntity} instances from the collection of
+   * authentication methods available to the specified {@link UserEntity}.
+   *
+   * @param userEntity a {@link UserEntity}
+   * @param type       the {@link UserAuthenticationType} to retrieve
+   * @return a collection {@link UserAuthenticationEntity} if found; otherwise null
+   */
+  protected Collection<UserAuthenticationEntity> getAuthenticationEntities(UserEntity userEntity, UserAuthenticationType type) {
+    Collection<UserAuthenticationEntity> foundAuthenticationEntities = null;
+
+    Collection<UserAuthenticationEntity> authenticationEntities = (userEntity == null) ? null : userEntity.getAuthenticationEntities();
+    if (authenticationEntities != null) {
+      foundAuthenticationEntities = new ArrayList<>();
+      for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+        if (authenticationEntity.getAuthenticationType() == type) {
+          foundAuthenticationEntities.add(authenticationEntity);
+        }
+      }
+    }
+
+    return foundAuthenticationEntities;
+  }
+
+  /**
+   * Finds the specific set of {@link UserAuthenticationEntity} instances from the collection of
+   * authentication methods available to the specified {@link UserEntity}.
+   *
+   * @param type the {@link UserAuthenticationType} to retrieve
+   * @param key  the key to match on
+   * @return a collection {@link UserAuthenticationEntity} if found; otherwise null
+   */
+  protected Collection<UserAuthenticationEntity> getAuthenticationEntities(UserAuthenticationType type, String key) {
+    return users.getUserAuthenticationEntities(type, key);
   }
 
   protected Users getUsers() {

@@ -34,6 +34,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
@@ -88,7 +89,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   @Inject
   private Users users;
   @Inject
-  Configuration configuration;
+  private Configuration configuration;
 
   @Before
   public void setUp() {
@@ -118,7 +119,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
             .addMockedMethod("loadLdapAuthenticationProvider")
             .addMockedMethod("isLdapEnabled")
-            .withConstructor(configuration, authoritiesPopulator, userDAO).createMock();
+            .withConstructor(users, authoritiesPopulator, configuration).createMock();
     // Create the last thrown exception
     org.springframework.security.core.AuthenticationException exception =
             createNiceMock(org.springframework.security.core.AuthenticationException.class);
@@ -154,7 +155,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
             .addMockedMethod("loadLdapAuthenticationProvider")
             .addMockedMethod("isLdapEnabled")
-            .withConstructor(configuration, authoritiesPopulator, userDAO).createMock();
+            .withConstructor(users, authoritiesPopulator, configuration).createMock();
     // Create the cause
     org.springframework.ldap.AuthenticationException cause =
             createNiceMock(org.springframework.ldap.AuthenticationException.class);
@@ -190,11 +191,11 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     UserEntity ldapUser = userDAO.findUserByName("allowedUser");
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
 
-    AmbariAuthentication result = (AmbariAuthentication) authenticationProvider.authenticate(authentication);
+    AmbariUserAuthentication result = (AmbariUserAuthentication)authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());
     assertEquals(ldapUser.getUserId(), result.getUserId());
 
-    result = (AmbariAuthentication) authenticationProvider.authenticate(authentication);
+    result = (AmbariUserAuthentication) authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());
     assertEquals(ldapUser.getUserId(), result.getUserId());
   }
