@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.predicate.Token;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
@@ -41,9 +41,12 @@ import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyRequest;
 
+import com.google.inject.Inject;
+
 /**
  * Provides common cluster request functionality.
  */
+@StaticallyInject
 public abstract class BaseClusterRequest implements TopologyRequest {
   /**
    * Support for controlling whether Install and Start tasks are created on
@@ -51,6 +54,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    */
   public static final String PROVISION_ACTION_PROPERTY = "provision_action";
 
+  @Inject
   private static BlueprintV2Factory blueprintFactory;
 
   /**
@@ -69,10 +73,6 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   protected BlueprintV2 blueprint;
   protected SecurityConfiguration securityConfiguration;
   protected Collection<Service> serviceConfigs;
-
-  public static void init(AmbariManagementController controller) {
-    setBlueprintFactory(BlueprintV2Factory.create(controller));
-  }
 
   @Override
   public Long getClusterId() {

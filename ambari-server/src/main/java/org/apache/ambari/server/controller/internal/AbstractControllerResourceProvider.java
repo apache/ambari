@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.Cluster;
 public abstract class AbstractControllerResourceProvider extends AbstractAuthorizedResourceProvider {
 
   private static ResourceProviderFactory resourceProviderFactory;
+
   /**
    * The management controller to delegate to.
    */

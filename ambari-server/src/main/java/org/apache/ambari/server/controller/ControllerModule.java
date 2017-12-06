@@ -166,6 +166,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintV2Factory;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
@@ -531,13 +532,14 @@ public class ControllerModule extends AbstractModule {
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
     bind(BlueprintFactory.class);
+    bind(BlueprintV2Factory.class);
+    bind(StackV2Factory.class);
 
     install(new FactoryModuleBuilder().implement(AmbariEvent.class, Names.named("userCreated"), UserCreatedEvent.class).build(AmbariEventFactory.class));
     install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class).build(HookContextFactory.class));
     install(new FactoryModuleBuilder().implement(CollectionPersisterService.class, CsvFilePersisterService.class).build(CollectionPersisterServiceFactory.class));
 
     install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
-
   }
 
   /**

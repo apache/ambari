@@ -25,12 +25,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintV2DAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.BlueprintV2Entity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
@@ -71,29 +69,19 @@ public class BlueprintV2Factory {
 
 //  protected static final String SETTINGS_PROPERTY_ID = "settings";
 
-  private static BlueprintV2DAO blueprintDAO;
-  private static RepositoryVersionDAO repositoryVersionDAO;
+  private BlueprintV2DAO blueprintDAO;
 
   private StackV2Factory stackFactory;
 
   private ObjectMapper objectMapper;
 
-  protected BlueprintV2Factory() {
-    createObjectMapper();
-  }
-
-  protected BlueprintV2Factory(StackV2Factory stackFactory) {
+  @Inject
+  public BlueprintV2Factory(StackV2Factory stackFactory, BlueprintV2DAO blueprintDAO) {
     this.stackFactory = stackFactory;
+    this.blueprintDAO = blueprintDAO;
     createObjectMapper();
   }
 
-  public static BlueprintV2Factory create(AmbariManagementController controller) {
-    return new BlueprintV2Factory(new StackV2Factory(controller, repositoryVersionDAO));
-  }
-
-  public static BlueprintV2Factory create(StackV2Factory factory) {
-    return new BlueprintV2Factory(factory);
-  }
 
   public BlueprintV2 getBlueprint(String blueprintName) throws NoSuchStackException, NoSuchBlueprintException, IOException {
     BlueprintV2Entity entity =
@@ -202,14 +190,4 @@ public class BlueprintV2Factory {
     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
   }
 
-  /**
-   * Static initialization.
-   *
-   * @param blueprintV2DAO  blueprint data access object
-   */
-  @Inject
-  public static void init(BlueprintV2DAO blueprintV2DAO, RepositoryVersionDAO repoVersionDAO) {
-    blueprintDAO = blueprintV2DAO;
-    repositoryVersionDAO = repoVersionDAO;
-  }
 }

@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -81,9 +83,8 @@ public class BlueprintFactory {
     this.stackFactory = stackFactory;
   }
 
-  public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
+  public @Nullable Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
-    //todo: just return null?
     return entity == null ? null : new BlueprintImpl(entity);
   }
 

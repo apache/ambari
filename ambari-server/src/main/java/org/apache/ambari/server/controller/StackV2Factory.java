@@ -37,15 +37,15 @@ import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 public class StackV2Factory {
   private final static Logger LOG = LoggerFactory.getLogger(StackV2Factory.class);
 
+  private RepositoryVersionDAO repositoryVersionDAO;
 
-  private final AmbariManagementController controller;
-  private final RepositoryVersionDAO repositoryVersionDAO;
-
-  public StackV2Factory(AmbariManagementController controller, RepositoryVersionDAO repositoryVersionDAO) {
-    this.controller = controller;
+  @Inject
+  public StackV2Factory(RepositoryVersionDAO repositoryVersionDAO) {
     this.repositoryVersionDAO = repositoryVersionDAO;
   }
 
@@ -58,7 +58,7 @@ public class StackV2Factory {
   }
 
   public StackV2 create(String name, String version, String repositoryVersion) throws AmbariException {
-    Set<StackServiceResponse> stackServices = controller.getStackServices(
+    Set<StackServiceResponse> stackServices = getController().getStackServices(
       Collections.singleton(new StackServiceRequest(name, version, null)));
 
     StackData stackData = new StackData(name, version);
@@ -97,7 +97,7 @@ public class StackV2Factory {
   private void getComponentInfos(StackData stackData) {
     stackData.componentService.forEach( (componentName, serviceName) -> {
       try {
-        ComponentInfo componentInfo = controller.getAmbariMetaInfo().getComponent(stackData.stackName, stackData.stackVersion, serviceName, componentName);
+        ComponentInfo componentInfo = getController().getAmbariMetaInfo().getComponent(stackData.stackName, stackData.stackVersion, serviceName, componentName);
         if (null != componentInfo) {
           stackData.componentInfos.put(componentName, componentInfo);
         } else {
@@ -127,9 +127,9 @@ public class StackV2Factory {
     stackData.serviceConfigurations.put(service, mapServiceConfig);
     stackData.requiredServiceConfigurations.put(service, mapRequiredServiceConfig);
 
-    Set<ReadOnlyConfigurationResponse> serviceConfigs = controller.getStackConfigurations(
+    Set<ReadOnlyConfigurationResponse> serviceConfigs = getController().getStackConfigurations(
       Collections.singleton(new StackConfigurationRequest(stackData.stackName, stackData.stackVersion, service, null)));
-    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
+    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = getController().getStackLevelConfigurations(
       Collections.singleton(new StackLevelConfigurationRequest(stackData.stackName, stackData.stackVersion, null)));
     serviceConfigs.addAll(stackLevelConfigs);
 
@@ -160,7 +160,7 @@ public class StackV2Factory {
   }
 
   private void parseStackConfigurations (StackData stackData) throws AmbariException {
-    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
+    Set<ReadOnlyConfigurationResponse> stackLevelConfigs = getController().getStackLevelConfigurations(
       Collections.singleton(new StackLevelConfigurationRequest(stackData.stackName, stackData.stackVersion, null)));
 
     for (ReadOnlyConfigurationResponse config : stackLevelConfigs) {
@@ -185,7 +185,7 @@ public class StackV2Factory {
   private void parseComponents(StackData stackData, String service) throws AmbariException{
     Collection<String> componentSet = new HashSet<>();
 
-    Set<StackServiceComponentResponse> components = controller.getStackComponents(
+    Set<StackServiceComponentResponse> components = getController().getStackComponents(
       Collections.singleton(new StackServiceComponentRequest(stackData.stackName, stackData.stackVersion, service, null)));
 
     // stack service components
@@ -204,7 +204,7 @@ public class StackV2Factory {
 
       // populate component dependencies
       //todo: remove usage of AmbariMetaInfo
-      Collection<DependencyInfo> componentDependencies = controller.getAmbariMetaInfo().getComponentDependencies(
+      Collection<DependencyInfo> componentDependencies = getController().getAmbariMetaInfo().getComponentDependencies(
         stackData.stackName, stackData.stackVersion, service, componentName);
 
       if (componentDependencies != null && ! componentDependencies.isEmpty()) {
@@ -260,4 +260,9 @@ public class StackV2Factory {
     final Map<String, Map<String, StackV2.ConfigProperty>> stackConfigurations = new HashMap<>();
     final Map<String, ComponentInfo> componentInfos = new HashMap<>();
   }
+
+  private AmbariManagementController getController() {
+    return AmbariServer.getController();
+  }
+
 }

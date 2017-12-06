@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.StackV2Factory;
+import org.apache.ambari.server.orm.dao.BlueprintV2DAO;
 import org.apache.ambari.server.state.StackId;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -63,7 +64,7 @@ public class BlueprintV2FactoryTest {
         new HashMap<>(), new HashMap<>(), new HashMap<>(),
         new HashMap<>(), new HashMap<>(), new HashMap<>());
     });
-    blueprintFactory = BlueprintV2Factory.create(stackFactory);
+    blueprintFactory = new BlueprintV2Factory(stackFactory, mock(BlueprintV2DAO.class));
     blueprintFactory.setPrettyPrintJson(true);
   }
 
