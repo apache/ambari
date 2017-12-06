@@ -20,14 +20,15 @@ limitations under the License.
 
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import File, Execute
+from resource_management.libraries.functions import get_user_call_output
 import threading
 
 def livy2_service(name, upgrade_type=None, action=None):
   import params
 
+  livyserver_no_op_test = format(
+    'ls {livy2_server_pid_file} >/dev/null 2>&1 && ps -p `cat {livy2_server_pid_file}` >/dev/null 2>&1')
   if action == 'start':
-    livyserver_no_op_test = format(
-      'ls {livy2_server_pid_file} >/dev/null 2>&1 && ps -p `cat {livy2_server_pid_file}` >/dev/null 2>&1')
     Execute(format('{livy2_server_start}'),
             user=params.livy2_user,
             environment={'JAVA_HOME': params.java_home},
@@ -35,8 +36,14 @@ def livy2_service(name, upgrade_type=None, action=None):
     )
 
   elif action == 'stop':
+    pid = get_user_call_output.get_user_call_output(
+      format("! test -f {livy2_server_pid_file} ||  cat {livy2_server_pid_file}"), user=params.livy2_user)[1]
+    pid = pid.replace("\n", " ")
     Execute(format('{livy2_server_stop}'),
             user=params.livy2_user,
+            only_if=livyserver_no_op_test,
+            timeout=10,
+            on_timeout=format("! ( {livyserver_no_op_test} ) || {sudo} -H -E kill -9 {pid}"),
             environment={'JAVA_HOME': params.java_home}
             )
     File(params.livy2_server_pid_file,

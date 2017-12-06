@@ -96,10 +96,10 @@
                 <span class="dot">.</span>
                 <div class="form-group" ng-class="{'has-error' : versionRegForm.version.$error.pattern}">
                   <input class="form-control" name="version" type="text" ng-model="activeStackVersion.editableDisplayName" ng-pattern="activeStackVersion.subVersionPattern"
-                         placeholder="{{'versions.placeholder' | translate: '{pattern: activeStackVersion.pattern}'}}" ng-change="updateCurrentVersionInput()" required/>
+                         placeholder="{{'versions.placeholder' | translate:{pattern: activeStackVersion.pattern} }}" ng-change="updateCurrentVersionInput()" required/>
                 </div>
                 <div class="text-danger" ng-show="versionRegForm.version.$error.pattern">
-                  &nbsp{{'common.alerts.isInvalid' | translate: '{term: activeStackVersion.displayName}'}}
+                  &nbsp{{'common.alerts.isInvalid' | translate:{term: activeStackVersion.displayName} }}
                 </div>
               </div>
             </div>
