@@ -51,12 +51,21 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
 
       var stackService = originalServices.findProperty('name', service.get('serviceName'));
       var isAvailable = this.isStackServiceAvailable(stackService);
+
+      var notUpgradable = false;
+      if (!stackService) {
+        console.error(stackService + " definition does not exist in the stack.")
+        notUpgradable = true;
+      } else {
+        notUpgradable = this.getNotUpgradable(isAvailable, stackService.get('isUpgradable'));
+      }
+
       return Em.Object.create({
         displayName: service.get('displayName'),
         name: service.get('serviceName'),
         latestVersion: stackService ? stackService.get('latestVersion') : '',
         isVersionInvisible: !stackService,
-        notUpgradable: this.getNotUpgradable(isAvailable, stackService.get('isUpgradable')),
+        notUpgradable: notUpgradable,
         isAvailable: isAvailable
       });
     }, this);
