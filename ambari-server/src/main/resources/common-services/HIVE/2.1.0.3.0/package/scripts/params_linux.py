@@ -106,6 +106,7 @@ component_directory = status_params.component_directory
 component_directory_interactive = status_params.component_directory_interactive
 
 hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 hive_bin = format('{stack_root}/current/{component_directory}/bin')
 hive_cmd = os.path.join(hive_bin, "hive")
