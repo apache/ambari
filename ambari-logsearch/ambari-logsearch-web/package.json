@@ -34,8 +34,7 @@
     "jquery": "^1.12.4",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.13",
-    "ng2-auto-complete": "^0.12.0",
-    "ngx-bootstrap": "^1.6.6",
+    "ngx-bootstrap": "^1.9.3",
     "rxjs": "^5.4.3",
     "zone.js": "^0.8.4"
   },

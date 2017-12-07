@@ -24,7 +24,6 @@ import 'rxjs/add/observable/from';
 import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {LogsType} from '@app/classes/string';
-import {CommonEntry} from '@app/classes/models/common-entry';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
@@ -63,38 +62,22 @@ export class FiltersPanelComponent implements OnChanges {
 
   searchBoxItems: Observable<ListItem[]>;
 
-  get searchBoxItemsTranslated(): CommonEntry[] {
-    switch (this.logsType) {
-      case 'auditLogs':
-        return this.logsContainer.auditLogsColumnsTranslated;
-      case 'serviceLogs':
-        return this.logsContainer.serviceLogsColumnsTranslated;
-      default:
-        return [];
-    }
-  }
-
   get filters(): {[key: string]: FilterCondition} {
     return this.logsContainer.filters;
   }
 
   /**
    * Object with options for search box parameter values
-   * @returns {[key: string]: CommonEntry[]}
+   * @returns {[key: string]: ListItem[]}
    */
-  get options(): {[key: string]: CommonEntry[]} {
+  get options(): {[key: string]: ListItem[]} {
     return Object.keys(this.filters).filter((key: string): boolean => {
       const condition = this.filters[key];
       return Boolean(condition.fieldName && condition.options);
     }).reduce((currentValue, currentKey) => {
       const condition = this.filters[currentKey];
       return Object.assign(currentValue, {
-        [condition.fieldName]: condition.options.map((option: ListItem): CommonEntry => {
-          return {
-            name: option.value,
-            value: option.value
-          }
-        })
+        [condition.fieldName]: condition.options
       });
     }, {});
   }
