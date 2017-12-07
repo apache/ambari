@@ -22,7 +22,7 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -1387,7 +1387,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
           clusterId, stackName, stackVersion, serviceName, componentName,
-          hostName, recoveryEnabled, masterComponent);
+          hostName, recoveryEnabled, masterComponent, host.getHostId());
 
       eventPublisher.publish(event);
       deleteMetaData.addDeletedHostComponent(componentName,

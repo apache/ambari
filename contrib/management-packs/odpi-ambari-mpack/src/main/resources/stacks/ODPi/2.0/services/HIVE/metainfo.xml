@@ -307,16 +307,6 @@
     <metricsFileName>metrics.json</metricsFileName>
     <osSpecifics>
         <osSpecific>
-            <osFamily>any</osFamily>
-            <packages>
-                <package>
-                    <name>mysql-connector-java</name>
-                    <condition>should_install_mysql_connector</condition>
-                    <skipUpgrade>true</skipUpgrade>
-                </package>
-            </packages>
-        </osSpecific>
-        <osSpecific>
             <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
             <packages>
                 <package>

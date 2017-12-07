@@ -194,6 +194,9 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("upgradeSummary")
   private UpgradeSummary upgradeSummary;
 
+  @SerializedName("roleParameters")
+  private Map<String, Object> roleParameters;
+
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
   }
@@ -269,6 +272,10 @@ public class ExecutionCommand extends AgentCommand {
     return roleParams;
   }
 
+  /**
+   * Sets the roleParams for the command.  Consider instead using {@link #setRoleParameters}
+   * @param roleParams
+   */
   public void setRoleParams(Map<String, String> roleParams) {
     this.roleParams = roleParams;
   }
@@ -366,11 +373,11 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   public String getServiceType() {
-	return serviceType;
+    return serviceType;
   }
 
   public void setServiceType(String serviceType) {
-	this.serviceType = serviceType;
+    this.serviceType = serviceType;
   }
 
   /**
@@ -455,6 +462,23 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
+   * Gets the object-based role parameters for the command.
+   */
+  public Map<String, Object> getRoleParameters() {
+    return roleParameters;
+  }
+
+  /**
+   * Sets the role parameters for the command.  This is preferred over {@link #setRoleParams(Map)},
+   * as this form will pass values as structured data, as opposed to unstructured, escaped json.
+   *
+   * @param params
+   */
+  public void setRoleParameters(Map<String, Object> params) {
+    roleParameters = params;
+  }
+
+  /**
    * Contains key name strings. These strings are used inside maps
    * incapsulated inside command.
    */
@@ -474,6 +498,7 @@ public class ExecutionCommand extends AgentCommand {
     String PACKAGE_LIST = "package_list";
     String JDK_LOCATION = "jdk_location";
     String JAVA_HOME = "java_home";
+    String GPL_LICENSE_ACCEPTED = "gpl_license_accepted";
     String AMBARI_JAVA_HOME = "ambari_java_home";
     String AMBARI_JDK_NAME = "ambari_jdk_name";
     String AMBARI_JCE_NAME = "ambari_jce_name";
@@ -492,6 +517,7 @@ public class ExecutionCommand extends AgentCommand {
     @Deprecated
     @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_INFO = "repo_info";
+
     String DB_NAME = "db_name";
     String GLOBAL = "global";
     String AMBARI_DB_RCA_URL = "ambari_db_rca_url";
@@ -554,6 +580,12 @@ public class ExecutionCommand extends AgentCommand {
         feature = ExperimentalFeature.PATCH_UPGRADES,
         comment = "Change this to reflect the component version")
     String VERSION = "version";
+
+
+    /**
+     * When installing packages, includes what services will be included in the upgrade
+     */
+    String CLUSTER_VERSION_SUMMARY = "cluster_version_summary";
   }
 
   /**

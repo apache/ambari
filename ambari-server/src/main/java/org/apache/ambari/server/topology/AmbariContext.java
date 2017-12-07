@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
@@ -402,7 +403,7 @@ public class AmbariContext {
       for (String component : entry.getValue()) {
         //todo: handle this in a generic manner.  These checks are all over the code
         try {
-          if (cluster.getService(service) != null && !component.equals("AMBARI_SERVER")) {
+          if (cluster.getService(service) != null && !component.equals(RootComponent.AMBARI_SERVER.name())) {
             requests.add(new ServiceComponentHostRequest(clusterName, service, component, hostName, null));
           }
         } catch(AmbariException se) {

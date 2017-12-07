@@ -42,8 +42,12 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ValidationResourceProvider extends StackAdvisorResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ValidationResourceProvider.class);
 
   protected static final String VALIDATION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
       "Validation", "id");

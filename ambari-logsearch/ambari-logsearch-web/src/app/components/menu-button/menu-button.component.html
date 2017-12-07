@@ -15,14 +15,15 @@
   limitations under the License.
 -->
 
-<div #dropdown [ngClass]="{'dropdown': hasSubItems, 'text-center': true}">
-  <a [ngClass]="iconClass + ' icon'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)"
-     (click)="$event.stopPropagation()"></a>
-  <a #dropdownToggle class="dropdown-toggle caret" data-toggle="dropdown" *ngIf="hasCaret"></a>
-  <br>
-  <a *ngIf="label" (mousedown)="onMouseDown($event)" [ngClass]="labelClass" (mouseup)="onMouseUp($event)"
-     (click)="$event.stopPropagation()">{{label}}</a>
-  <ul data-component="dropdown-list" *ngIf="hasSubItems" [items]="subItems" (selectedItemChange)="updateValue($event)"
+<div #dropdown [ngClass]="{'dropdown': hasSubItems, 'text-center': true, 'open': dropdownIsOpen}">
+  <a class="dropdown-toggle" [ngClass]="(labelClass || '') + (hasCaret ? ' has-caret' : '')"
+    (click)="onMouseClick($event)"
+    (mousedown)="onMouseDown($event)">
+    <i *ngIf="iconClass" [ngClass]="['icon', iconClass]"></i>
+    <i *ngIf="hasCaret" [ngClass]="['fa ', caretClass ]"></i>
+    <span *ngIf="label" class="menu-button-label">{{label}}</span>
+  </a>
+  <ul data-component="dropdown-list" *ngIf="hasSubItems" [items]="subItems" (selectedItemChange)="onDropdownItemChange($event)"
       [isMultipleChoice]="isMultipleChoice" [additionalLabelComponentSetter]="additionalLabelComponentSetter"
       [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"></ul>
 </div>

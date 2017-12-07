@@ -16,81 +16,98 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnChanges, SimpleChanges, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
+import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
-import {TranslateService} from '@ngx-translate/core';
+import {FilterCondition} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {LogsType} from '@app/classes/string';
 import {CommonEntry} from '@app/classes/models/common-entry';
-import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {AppStateService} from '@app/services/storage/app-state.service';
 
 @Component({
   selector: 'filters-panel',
   templateUrl: './filters-panel.component.html',
   styleUrls: ['./filters-panel.component.less']
 })
-export class FiltersPanelComponent {
+export class FiltersPanelComponent implements OnChanges {
 
-  constructor(private translate: TranslateService, private filtering: FilteringService, private logsContainer: LogsContainerService, private appState: AppStateService) {
-    appState.getParameter('activeLogsType').subscribe(value => {
-      this.logsType = value;
-      logsContainer.logsTypeMap[value].fieldsModel.getAll().subscribe(fields => {
-        if (fields.length) {
-          const items = fields.filter(field => this.excludedParameters.indexOf(field.name) === -1).map(field => {
-              return {
-                name: field.displayName || field.name,
-                value: field.name
-              };
-            }),
-            labelKeys = items.map(item => item.name);
-          this.searchBoxItems = items.map(item => {
-            return {
-              label: item.name,
-              value: item.value
-            };
-          });
-          translate.get(labelKeys).first().subscribe(translation => this.searchBoxItemsTranslated = items.map(item => {
-            return {
-              name: translation[item.name],
-              value: item.value
-            };
-          }));
-        }
-      })
-    });
-    filtering.loadClusters();
-    filtering.loadComponents();
-    filtering.loadHosts();
+  constructor(private logsContainer: LogsContainerService) {
   }
 
-  private readonly excludedParameters = ['cluster', 'host', 'level', 'type', 'logtime'];
-
-  private logsType: string; // TODO implement setting the parameter depending on user's navigation
-
-  searchBoxItems: ListItem[] = [];
-
-  searchBoxItemsTranslated: CommonEntry[] = [];
-
-  get filters(): any {
-    return this.filtering.filters;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.hasOwnProperty('logsType')) {
+      let result;
+      switch (changes.logsType.currentValue) {
+        case 'auditLogs':
+          result = this.logsContainer.auditLogsColumns;
+          break;
+        case 'serviceLogs':
+          result = this.logsContainer.serviceLogsColumns;
+          break;
+      }
+      this.searchBoxItems = result;
+    }
   }
 
-  get filtersForm(): FormGroup {
-    return this.filtering.filtersForm;
+  @Input()
+  filtersForm: FormGroup;
+
+  @Input()
+  logsType: LogsType;
+
+  searchBoxItems: Observable<ListItem[]>;
+
+  get searchBoxItemsTranslated(): CommonEntry[] {
+    switch (this.logsType) {
+      case 'auditLogs':
+        return this.logsContainer.auditLogsColumnsTranslated;
+      case 'serviceLogs':
+        return this.logsContainer.serviceLogsColumnsTranslated;
+    }
+  }
+
+  get filters(): {[key: string]: FilterCondition} {
+    return this.logsContainer.filters;
+  }
+
+  /**
+   * Object with options for search box parameter values
+   * @returns {[key: string]: CommonEntry[]}
+   */
+  get options(): {[key: string]: CommonEntry[]} {
+    return Object.keys(this.filters).filter((key: string): boolean => {
+      const condition = this.filters[key];
+      return Boolean(condition.fieldName && condition.options);
+    }).reduce((currentValue, currentKey) => {
+      const condition = this.filters[currentKey];
+      return Object.assign(currentValue, {
+        [condition.fieldName]: condition.options.map((option: ListItem): CommonEntry => {
+          return {
+            name: option.value,
+            value: option.value
+          }
+        })
+      });
+    }, {});
   }
 
   get queryParameterNameChange(): Subject<any> {
-    return this.filtering.queryParameterNameChange;
+    return this.logsContainer.queryParameterNameChange;
   }
 
   get queryParameterAdd(): Subject<any> {
-    return this.filtering.queryParameterAdd;
+    return this.logsContainer.queryParameterAdd;
   }
 
   get captureSeconds(): number {
-    return this.filtering.captureSeconds;
+    return this.logsContainer.captureSeconds;
+  }
+
+  isFilterConditionDisplayed(key: string): boolean {
+    return this.logsContainer.logsTypeMap[this.logsType].listFilters.indexOf(key) > -1
+      && Boolean(this.filtersForm.controls[key]);
   }
 
 }

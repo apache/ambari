@@ -79,6 +79,8 @@ import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -88,6 +90,9 @@ import com.google.inject.assistedinject.AssistedInject;
  * Resource provider for service resources.
  */
 public class ServiceResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ServiceResourceProvider.class);
+
   public static final String SERVICE_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
       "ServiceInfo", "cluster_name");
 
@@ -439,7 +444,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (repositoryVersion.getType() != RepositoryType.STANDARD
           && cluster.getProvisioningState() == State.INIT) {
         throw new AmbariException(String.format(
-            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: $s",
+            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: %s",
             request.getServiceName(), cluster.getClusterName(), RepositoryType.STANDARD,
             repositoryVersion));
       }

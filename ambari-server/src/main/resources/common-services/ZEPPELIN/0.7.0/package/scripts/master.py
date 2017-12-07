@@ -257,7 +257,6 @@ class Master(Script):
     if not glob.glob(params.conf_dir + "/interpreter.json") and \
       not os.path.exists(params.conf_dir + "/interpreter.json"):
       self.create_interpreter_json()
-      self.update_zeppelin_interpreter()
 
     if params.zeppelin_interpreter_config_upgrade == True:
       self.reset_interpreter_settings()
@@ -598,6 +597,16 @@ class Master(Script):
          owner=params.zeppelin_user,
          group=params.zeppelin_group,
          mode=0664)
+
+    if params.conf_stored_in_hdfs:
+      params.HdfsResource(self.get_zeppelin_conf_FS(params),
+                          type="file",
+                          action="create_on_execute",
+                          source=format("{params.conf_dir}/interpreter.json"),
+                          owner=params.zeppelin_user,
+                          recursive_chown=True,
+                          recursive_chmod=True,
+                          replace_existing_files=True)
 
   def get_zeppelin_spark_dependencies(self):
     import params

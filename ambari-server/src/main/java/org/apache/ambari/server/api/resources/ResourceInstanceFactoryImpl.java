@@ -237,6 +237,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RootServiceComponentResourceDefinition();
         break;
 
+      case RootServiceComponentConfiguration:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.RootServiceComponentConfiguration,
+            "configuration", "configurations");
+        break;
+
       case RootServiceHostComponent:
         resourceDefinition = new RootServiceHostComponentResourceDefinition();
         break;

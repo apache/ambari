@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.alerts.AlertRunnable;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
+import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -133,7 +133,7 @@ public class AmbariServerAlertService extends AbstractScheduledService {
   /**
    * {@inheritDoc}
    * <p/>
-   * Compares all known {@link Components#AMBARI_SERVER} alerts with those that
+   * Compares all known {@link RootComponent#AMBARI_SERVER} alerts with those that
    * are scheduled. If any are not scheduled or have their intervals changed,
    * then reschedule those.
    */

@@ -582,7 +582,6 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     CommandRepository commandRepo = ambariMetaInfo.getCommandRepository(cluster, componentRM, host);
 
-    Assert.assertEquals(0, commandRepo.getRepositories().size());
 
     RepositoryInfo ri = new RepositoryInfo();
     ri.setBaseUrl("http://foo");
@@ -608,7 +607,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     componentEntity.setDesiredRepositoryVersion(repositoryVersion);
     componentEntity.addVersion(componentVersionEntity);
-    componentEntity = componentDAO.merge(componentEntity);
+    componentDAO.merge(componentEntity);
 
     // !!! make sure the override is set
     commandRepo = ambariMetaInfo.getCommandRepository(cluster, componentRM, host);

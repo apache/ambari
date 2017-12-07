@@ -300,7 +300,7 @@ public class VersionDefinitionXml {
         continue;
       }
 
-      ServiceVersionSummary summary = new ServiceVersionSummary(service.getDisplayName());
+      ServiceVersionSummary summary = new ServiceVersionSummary();
       summaries.put(service.getName(), summary);
 
       String serviceVersion = service.getDesiredRepositoryVersion().getVersion();
@@ -308,13 +308,26 @@ public class VersionDefinitionXml {
       // !!! currently only one version is supported (unique service names)
       ManifestService manifest = manifests.get(serviceName);
 
-      summary.setVersions(manifest.version, StringUtils.isEmpty(manifest.releaseVersion) ?
-          release.version : manifest.releaseVersion);
+      final String versionToCompare;
+      final String summaryReleaseVersion;
+      if (StringUtils.isEmpty(manifest.releaseVersion)) {
+        versionToCompare = release.getFullVersion();
+        summaryReleaseVersion = release.version;
+      } else {
+        versionToCompare = manifest.releaseVersion;
+        summaryReleaseVersion = manifest.releaseVersion;
+      }
 
-      // !!! installed service already meets the release version, then nothing to upgrade
-      // !!! TODO should this be using the release compatible-with field?
-      if (VersionUtils.compareVersions(summary.getReleaseVersion(), serviceVersion, 4) > 0) {
+      summary.setVersions(manifest.version, summaryReleaseVersion);
+
+      if (RepositoryType.STANDARD == release.repositoryType) {
         summary.setUpgrade(true);
+      } else {
+        // !!! installed service already meets the release version, then nothing to upgrade
+        // !!! TODO should this be using the release compatible-with field?
+        if (VersionUtils.compareVersionsWithBuild(versionToCompare, serviceVersion, 4) > 0) {
+          summary.setUpgrade(true);
+        }
       }
     }
 

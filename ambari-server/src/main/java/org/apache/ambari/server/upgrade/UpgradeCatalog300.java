@@ -47,6 +47,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.commons.collections.MapUtils;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -68,21 +69,21 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String STAGE_DISPLAY_STATUS_COLUMN = "display_status";
   protected static final String REQUEST_TABLE = "request";
   protected static final String REQUEST_DISPLAY_STATUS_COLUMN = "display_status";
-  protected static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
-  protected static final String CLUSTER_CONFIG_SELECTED_COLUMN = "selected";
-  protected static final String CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
-  protected static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
   protected static final String COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
   protected static final String COMPONENT_STATE_TABLE = "hostcomponentstate";
   protected static final String COMPONENT_LAST_STATE_COLUMN = "last_live_state";
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
   protected static final String SECURITY_STATE_COLUMN = "security_state";
 
+  protected static final String AMBARI_CONFIGURATION_TABLE = "ambari_configuration";
+  protected static final String AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN = "category_name";
+  protected static final String AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN = "property_name";
+  protected static final String AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN = "property_value";
+
   @Inject
   DaoUtils daoUtils;
-
 
   // ----- Constructors ------------------------------------------------------
 
@@ -126,6 +127,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateStageTable();
     addOpsDisplayNameColumnToHostRoleCommand();
     removeSecurityState();
+    addAmbariConfigurationTable();
     addHostComponentLastStateTable();
   }
 
@@ -136,6 +138,16 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
     dbAccessor.addColumn(REQUEST_TABLE,
         new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+  }
+
+  protected void addAmbariConfigurationTable() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, String.class, 100, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, String.class, 100, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 255, null, true));
+
+    dbAccessor.createTable(AMBARI_CONFIGURATION_TABLE, columns);
+    dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
   }
 
   protected void addHostComponentLastStateTable() throws SQLException {
@@ -159,6 +171,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     showHcatDeletedUserMessage();
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
+    updateKerberosConfigurations();
     updateHostComponentLastStateTable();
   }
 
@@ -352,6 +365,30 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
                 "      \"type\": \"audit\",\n");
 
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-output-config", Collections.singletonMap("content", content), true, true);
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateKerberosConfigurations() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (!MapUtils.isEmpty(clusterMap)) {
+        for (Cluster cluster : clusterMap.values()) {
+          Config config = cluster.getDesiredConfigByType("kerberos-env");
+
+          if (config != null) {
+            Map<String, String> properties = config.getProperties();
+            if (properties.containsKey("group")) {
+              // Covert kerberos-env/group to kerberos-env/ipa_user_group
+              updateConfigurationPropertiesForCluster(cluster, "kerberos-env",
+                  Collections.singletonMap("ipa_user_group", properties.get("group")), Collections.singleton("group"),
+                  true, false);
+            }
           }
         }
       }

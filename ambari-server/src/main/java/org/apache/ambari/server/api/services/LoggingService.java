@@ -51,6 +51,8 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -62,6 +64,8 @@ import com.google.inject.Inject;
  *
  */
 public class LoggingService extends BaseService {
+
+  private final static Logger LOG = LoggerFactory.getLogger(LoggingService.class);
 
   /**
    * The user of authorizations for which a user must have one of in order to access LogSearch data

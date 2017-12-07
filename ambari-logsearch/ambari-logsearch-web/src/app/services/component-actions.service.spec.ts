@@ -17,6 +17,7 @@
  */
 
 import {TestBed, inject} from '@angular/core/testing';
+import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
@@ -29,9 +30,10 @@ import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/aud
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
-import {FilteringService} from '@app/services/filtering.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {ComponentActionsService} from './component-actions.service';
 
@@ -59,8 +61,10 @@ describe('ComponentActionsService', () => {
           auditLogsFields,
           serviceLogsFields,
           serviceLogsHistogramData,
-          serviceLogsTruncated
-        })
+          serviceLogsTruncated,
+          tabs
+        }),
+        ...TranslationModules
       ],
       providers: [
         ComponentActionsService,
@@ -75,12 +79,13 @@ describe('ComponentActionsService', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
-        FilteringService,
+        TabsService,
         {
           provide: HttpClientService,
           useValue: httpClient
         },
-        LogsContainerService
+        LogsContainerService,
+        AuthService
       ]
     });
   });

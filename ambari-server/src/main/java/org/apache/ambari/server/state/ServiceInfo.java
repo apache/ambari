@@ -87,7 +87,7 @@ public class ServiceInfo implements Validable{
     JAVA
   }
   @XmlElement(name="service_advisor_type")
-  private ServiceAdvisorType serviceAdvisorType = null;
+  private ServiceAdvisorType serviceAdvisorType = ServiceAdvisorType.PYTHON;
 
   @XmlTransient
   private List<PropertyInfo> properties;
@@ -304,6 +304,12 @@ public class ServiceInfo implements Validable{
    */
   @XmlTransient
   private File checksFolder;
+
+  /**
+   * Stores the path to the server actions folder which contains server actions jars for the given service.
+   */
+  @XmlTransient
+  private File serverActionsFolder;
 
   public boolean isDeleted() {
     return isDeleted;
@@ -794,6 +800,14 @@ public class ServiceInfo implements Validable{
 
   public void setChecksFolder(File checksFolder) {
     this.checksFolder = checksFolder;
+  }
+
+  public File getServerActionsFolder() {
+    return serverActionsFolder;
+  }
+
+  public void setServerActionsFolder(File serverActionsFolder) {
+    this.serverActionsFolder = serverActionsFolder;
   }
 
   /**

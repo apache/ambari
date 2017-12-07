@@ -47,6 +47,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.view.ReadRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An SPI resource provider implementation used to adapt a
@@ -54,6 +56,8 @@ import org.apache.ambari.view.ReadRequest;
  * sub-resources.
  */
 public class ViewSubResourceProvider extends AbstractResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ViewSubResourceProvider.class);
 
   private static final String VIEW_NAME_PROPERTY_ID     = "view_name";
   private static final String VIEW_VERSION_PROPERTY_ID  = "version";

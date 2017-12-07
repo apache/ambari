@@ -72,19 +72,6 @@
               <name>snappy-devel</name>
             </package>
             <package>
-              <name>lzo</name>
-              <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_lzo</condition>
-            </package>
-            <package>
-              <name>hadooplzo_${stack_version}</name>
-              <condition>should_install_lzo</condition>
-            </package>
-            <package>
-              <name>hadooplzo_${stack_version}-native</name>
-              <condition>should_install_lzo</condition>
-            </package>
-            <package>
               <name>hadoop_${stack_version}-libhdfs</name>
             </package>
             <package>
@@ -107,19 +94,6 @@
             </package>
             <package>
               <name>snappy-devel</name>
-            </package>
-            <package>
-              <name>liblzo2-2</name>
-              <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_lzo</condition>
-            </package>
-            <package>
-              <name>hadooplzo_${stack_version}</name>
-              <condition>should_install_lzo</condition>
-            </package>
-            <package>
-              <name>hadooplzo_${stack_version}-native</name>
-              <condition>should_install_lzo</condition>
             </package>
             <package>
               <name>hadoop_${stack_version}-libhdfs</name>
@@ -153,10 +127,6 @@
             </package>
             <package>
               <name>libsnappy-dev</name>
-            </package>
-            <package>
-              <name>hadooplzo-${stack_version}</name>
-              <condition>should_install_lzo</condition>
             </package>
             <package>
               <name>libhdfs0-${stack_version}</name>

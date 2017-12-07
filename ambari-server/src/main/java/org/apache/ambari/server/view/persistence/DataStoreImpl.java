@@ -119,7 +119,7 @@ public class DataStoreImpl implements DataStore {
   /**
    * The logger.
    */
-  protected final static Logger LOG = LoggerFactory.getLogger(DataStoreImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DataStoreImpl.class);
 
   /**
    * Max length of entity string field.

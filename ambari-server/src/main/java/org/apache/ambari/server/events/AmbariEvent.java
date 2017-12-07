@@ -155,7 +155,12 @@ public abstract class AmbariEvent {
     /**
      * Received new heartbeat with host info.
      */
-    HOST_HEARTBEAT_UPDATED;
+    HOST_HEARTBEAT_UPDATED,
+
+    /**
+     * Ambari configuration changed event;
+     */
+    AMBARI_CONFIGURATION_CHANGED;
   }
 
   /**
@@ -166,8 +171,7 @@ public abstract class AmbariEvent {
   /**
    * Constructor.
    *
-   * @param eventType
-   *          the type of event (not {@code null}).
+   * @param eventType the type of event (not {@code null}).
    */
   public AmbariEvent(AmbariEventType eventType) {
     m_eventType = eventType;

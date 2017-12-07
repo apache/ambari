@@ -22,9 +22,11 @@
     <div class="well">
       <fieldset>
         <div class="form-group">
-          <label class="col-sm-2 control-label">{{'common.loginActivities.status' | translate}}</label>
+          <label class="col-sm-2 switch-inline-label">{{'common.loginActivities.status' | translate}}</label>
           <div class="col-sm-10">
-            <toggle-switch ng-click="changeStatus();" model="status" on-label="{{'common.enabled' | translate}}" off-label="{{'common.disabled' | translate}}" class="switch-primary userstatus" data-off-color="disabled"></toggle-switch>
+            <toggle-switch ng-click="changeStatus();" model="status" class="switch-success" data-off-color="disabled"></toggle-switch>
+            <span ng-if="status" class="switch-option-label">{{'common.enabled' | translate}}</span>
+            <span ng-if="!status" class="switch-option-label">{{'common.disabled' | translate}}</span>
           </div>
           <input type="checkbox" name="status" class="hidden" ng-model="status">
         </div>

@@ -71,7 +71,8 @@ HADOOP_DIR_DEFAULTS = {
   "libexec": "/usr/lib/hadoop/libexec",
   "sbin": "/usr/lib/hadoop/sbin",
   "bin": "/usr/bin",
-  "lib": "/usr/lib/hadoop/lib"
+  "lib": "/usr/lib/hadoop/lib",
+  "conf": "/etc/hadoop/conf"
 }
 
 PACKAGE_SCOPE_INSTALL = "INSTALL"

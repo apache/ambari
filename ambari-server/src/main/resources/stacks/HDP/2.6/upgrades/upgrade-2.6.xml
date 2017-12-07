@@ -34,6 +34,7 @@
     <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
     <check>org.apache.ambari.server.checks.DruidHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.LZOCheck</check>
 
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
@@ -675,6 +676,8 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
+          
+          <task xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library" supports-patch="true"/>
         </pre-upgrade>
 
         <pre-downgrade copy-upgrade="true" />
@@ -687,6 +690,10 @@
 
     <service name="YARN">
       <component name="APP_TIMELINE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_yarn_spark_versioned_classpaths" supports-patch="true"/>
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -757,6 +764,8 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
             <summary>Verifying LZO codec path for Tez</summary>
           </task>
+          
+          <task xsi:type="configure" id="hdp_2_6_tez_tarball_ld_library" supports-patch="true"/>
         </pre-upgrade>
 
         <pre-downgrade copy-upgrade="true" />

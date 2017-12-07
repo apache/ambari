@@ -125,6 +125,17 @@ CREATE TABLE clusterconfig (
 END
 
 
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('ambari_configuration') AND type = 'U')
+BEGIN
+CREATE TABLE ambari_configuration (
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name)
+)
+END
+
+
 IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('serviceconfig') AND type = 'U')
 BEGIN
 CREATE TABLE serviceconfig (
@@ -223,6 +234,7 @@ CREATE TABLE repo_version (
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved BIT NOT NULL DEFAULT 0,
+  legacy BIT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml VARCHAR(MAX),
   version_xsd VARCHAR(512),
@@ -1272,14 +1284,27 @@ CREATE TABLE kerberos_principal (
 END
 
 
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('kerberos_keytab') AND type = 'U')
+BEGIN
+CREATE TABLE kerberos_keytab (
+  keytab_path VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_krb_keytab_path_host_id PRIMARY KEY CLUSTERED (keytab_path)
+)
+END
+
+
 IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('kerberos_principal_host') AND type = 'U')
 BEGIN
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
+  keytab_path VARCHAR(255) NOT NULL,
+  is_distributed SMALLINT NOT NULL DEFAULT 0,
   host_id BIGINT NOT NULL,
-  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY CLUSTERED (principal_name, host_id),
+  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY CLUSTERED (principal_name, keytab_path, host_id),
   CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name))
+  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
+  CONSTRAINT FK_krb_pr_host_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path)
+)
 END
 
 
@@ -1633,6 +1658,7 @@ BEGIN TRANSACTION
     SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' UNION ALL
     SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' UNION ALL
     SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage settings' UNION ALL
+    SELECT 'AMBARI.MANAGE_CONFIGURATION', 'Manage ambari configuration' UNION ALL
     SELECT 'AMBARI.MANAGE_USERS', 'Manage users' UNION ALL
     SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' UNION ALL
     SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' UNION ALL
@@ -1838,6 +1864,7 @@ BEGIN TRANSACTION
     SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+    SELECT permission_id, 'AMBARI.MANAGE_CONFIGURATION' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

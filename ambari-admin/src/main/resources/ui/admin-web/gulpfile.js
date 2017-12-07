@@ -24,10 +24,10 @@ var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 
 gulp.task('styles', function () {
-  return gulp.src('app/styles/*.css')
+  return gulp.src('app/styles/**/*.css')
     .pipe($.order([
-      'app/styles/main.css',
-      'app/styles/custom-admin-ui.css'   // This should always be the last stylesheet. So it can be dropped and be effective on build time
+      'app/styles/theme/bootstrap-ambari.css',
+      'app/styles/main.css'
     ], { base: './' }))
     .pipe($.concat('main.css'))
     .pipe($.autoprefixer('last 1 version'))
@@ -64,8 +64,8 @@ gulp.task('images', function () {
 });
 
 gulp.task('fonts', function () {
-  return $.bowerFiles()
-    .pipe($.filter('**/*.{eot,svg,ttf,woff}'))
+  return gulp.src('app/bower_components/**/fonts/*.{eot,svg,ttf,woff}')
+    .pipe($.addSrc('app/assets/fonts/*'))
     .pipe($.flatten())
     .pipe(gulp.dest('dist/fonts'))
     .pipe($.size());

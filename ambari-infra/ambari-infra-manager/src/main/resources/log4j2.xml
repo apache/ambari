@@ -17,7 +17,7 @@
 -->
 <Configuration monitorinterval="30" status="info" strict="true">
   <Properties>
-    <Property name="logging.file">out/infra-manager.log</Property>
+    <Property name="logging.file">target/log/infra-manager.log</Property>
   </Properties>
   <Appenders>
     <Appender type="Console" name="Console">

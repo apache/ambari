@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<repository-version xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="version_definition.xsd">
+  <release>
+    <type>STANDARD</type>
+    <stack-id>PERF-2.0</stack-id>
+    <version>2.0.2.0</version>
+    <build>205</build>
+    <compatible-with>2.0.[0-9]+</compatible-with>
+    <release-notes>http://example.com</release-notes>
+    <display>PERF-2.0.2.0</display>
+  </release>
+  <manifest>
+    <service id="ZEPPELIN-072" name="ZEPPELIN" version="0.7.2"/>
+    <service id="SLIDER-0920" name="SLIDER" version="0.92.0"/>
+    <service id="HDFS-273" name="HDFS" version="2.7.3"/>
+    <service id="YARN-273" name="YARN" version="2.7.3"/>
+    <service id="MAPREDUCE2-273" name="MAPREDUCE2" version="2.7.3"/>
+    <service id="ZOOKEEPER-346" name="ZOOKEEPER" version="3.4.6"/>
+    <service id="SQOOP-146" name="SQOOP" version="1.4.6"/>
+    <service id="OOZIE-420" name="OOZIE" version="4.2.0"/>
+    <service id="RANGER-070" name="RANGER" version="0.7.0"/>
+    <service id="RANGER_KMS-070" name="RANGER_KMS" version="0.7.0"/>
+    <service id="SPARK-163" name="SPARK" version="1.6.3"/>
+    <service id="STORM-110" name="STORM" version="1.1.0"/>
+    <service id="ATLAS-080" name="ATLAS" version="0.8.0"/>
+    <service id="HIVE-121000" name="HIVE" version="1.2.1000"/>
+    <service id="DRUID-092" name="DRUID" version="0.9.2"/>
+    <service id="KAFKA-0101" name="KAFKA" version="0.10.1"/>
+    <service id="TEZ-070" name="TEZ" version="0.7.0"/>
+    <service id="SPARK2-211" name="SPARK2" version="2.1.1"/>
+    <service id="KNOX-0120" name="KNOX" version="0.12.0"/>
+    <service id="FALCON-0100" name="FALCON" version="0.10.0"/>
+    <service id="FLUME-152" name="FLUME" version="1.5.2"/>
+    <service id="PIG-0160" name="PIG" version="0.16.0"/>
+    <service id="MAHOUT-090" name="MAHOUT" version="0.9.0"/>
+    <service id="ACCUMULO-170" name="ACCUMULO" version="1.7.0"/>
+    <service id="HBASE-112" name="HBASE" version="1.1.2"/>
+  </manifest>
+  <available-services/>
+  <repository-info>
+    <os family="redhat6">
+      <package-version>2_6_2_0_*</package-version>
+      <repo>
+        <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.2.0</baseurl>
+        <repoid>PERF-2.0</repoid>
+        <reponame>PERF</reponame>
+        <unique>true</unique>
+      </repo>
+      <repo>
+        <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6</baseurl>
+        <repoid>PERF-UTILS-2.0</repoid>
+        <reponame>PERF-UTILS</reponame>
+        <unique>false</unique>
+      </repo>
+    </os>
+  </repository-info>
+</repository-version>
+

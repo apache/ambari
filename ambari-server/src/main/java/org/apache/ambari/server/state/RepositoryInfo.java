@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.RepositoryResponse;
+import org.apache.ambari.server.state.stack.RepoTag;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -36,6 +40,7 @@ public class RepositoryInfo {
   private boolean repoSaved = false;
   private boolean unique = false;
   private boolean ambariManagedRepositories = true;
+  private Set<RepoTag> tags = new HashSet<>();
 
   /**
    * @return the baseUrl
@@ -207,7 +212,8 @@ public class RepositoryInfo {
   public RepositoryResponse convertToResponse()
   {
     return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
-            getRepoName(), getDistribution(), getComponents(), getMirrorsList(), getDefaultBaseUrl());
+            getRepoName(), getDistribution(), getComponents(), getMirrorsList(), getDefaultBaseUrl(),
+            getTags());
   }
 
   /**
@@ -259,4 +265,19 @@ public class RepositoryInfo {
   public void setAmbariManagedRepositories(boolean ambariManagedRepositories) {
     this.ambariManagedRepositories = ambariManagedRepositories;
   }
+
+  /**
+   * @return the tags for this repository
+   */
+  public Set<RepoTag> getTags() {
+    return tags;
+  }
+
+  /**
+   * @param repoTags the tags for this repository
+   */
+  public void setTags(Set<RepoTag> repoTags) {
+    tags = repoTags;
+  }
+
 }

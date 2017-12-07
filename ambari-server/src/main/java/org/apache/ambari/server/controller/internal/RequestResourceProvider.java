@@ -71,6 +71,8 @@ import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -80,6 +82,8 @@ import com.google.inject.Inject;
  */
 @StaticallyInject
 public class RequestResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RequestResourceProvider.class);
 
   @Inject
   private static RequestDAO s_requestDAO = null;

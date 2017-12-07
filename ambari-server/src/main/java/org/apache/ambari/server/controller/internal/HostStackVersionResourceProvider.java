@@ -65,6 +65,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -75,6 +77,8 @@ import com.google.inject.Provider;
  */
 @StaticallyInject
 public class HostStackVersionResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(HostStackVersionResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -442,8 +446,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             Collections.singletonList(filter),
             roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
+    actionContext.setRepositoryVersion(repoVersionEnt);
 
-    repoVersionHelper.addCommandRepository(actionContext, repoVersionEnt, osEntity);
+    repoVersionHelper.addCommandRepositoryToContext(actionContext, osEntity);
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);

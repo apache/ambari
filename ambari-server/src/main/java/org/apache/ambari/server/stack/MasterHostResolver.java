@@ -310,7 +310,7 @@ public class MasterHostResolver {
         if (!componentHosts.contains(hp.host)){
           //This may happen when NN HA is configured on dual network card machines with public/private FQDNs.
           LOG.error(
-              String.format(
+              MessageFormat.format(
                   "Hadoop NameNode HA configuration {0} contains host {1} that does not exist in the NameNode hosts list {3}",
                   key, hp.host, componentHosts.toString()));
         }

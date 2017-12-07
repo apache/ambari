@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
  */
 public class BlueprintConfigurationProcessor {
 
-  protected final static Logger LOG = LoggerFactory.getLogger(BlueprintConfigurationProcessor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BlueprintConfigurationProcessor.class);
 
   private final static String COMMAND_RETRY_ENABLED_PROPERTY_NAME = "command_retry_enabled";
 

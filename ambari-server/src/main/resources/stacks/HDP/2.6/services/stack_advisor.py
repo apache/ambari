@@ -640,6 +640,9 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         else:
             druid_broker_host_port = "localhost:8083"
 
+        druid_metadata_uri = ""
+        druid_metadata_user = ""
+        druid_metadata_type = ""
         if 'druid-common' in services['configurations']:
             druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
             druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']

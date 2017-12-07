@@ -67,22 +67,7 @@ public abstract class KerberosOperationHandler {
   /**
    * Kerberos-env configuration property name: group
    */
-  public final static String KERBEROS_ENV_USER_PRINCIPAL_GROUP = "group";
-
-  /**
-   * Kerberos-env configuration property name: password_chat_timeout
-   */
-  public final static String KERBEROS_ENV_PASSWORD_CHAT_TIMEOUT = "password_chat_timeout";
-
-  /**
-   * Default timeout for password chat
-   */
-  public final static int DEFAULT_PASSWORD_CHAT_TIMEOUT = 5;
-
-  /**
-   * Kerberos-env configuration property name: set_password_expiry
-   */
-  public final static String KERBEROS_ENV_SET_PASSWORD_EXPIRY = "set_password_expiry";
+  public final static String KERBEROS_ENV_USER_PRINCIPAL_GROUP = "ipa_user_group";
 
   /**
    * Kerberos-env configuration property name: ad_create_attributes_template
@@ -232,16 +217,26 @@ public abstract class KerberosOperationHandler {
    * @param defaultRealm            a String declaring the default Kerberos realm (or domain)
    * @param kerberosConfiguration   a Map of key/value pairs containing data from the kerberos-env configuration set
    */
-  public abstract void open(PrincipalKeyCredential administratorCredential, String defaultRealm, Map<String, String> kerberosConfiguration)
-      throws KerberosOperationException;
+  public void open(PrincipalKeyCredential administratorCredential, String defaultRealm, Map<String, String> kerberosConfiguration)
+      throws KerberosOperationException {
+
+    setAdministratorCredential(administratorCredential);
+    setDefaultRealm(defaultRealm);
+
+    if (kerberosConfiguration != null) {
+      setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
+      setExecutableSearchPaths(kerberosConfiguration.get(KERBEROS_ENV_EXECUTABLE_SEARCH_PATHS));
+    }
+  }
 
   /**
    * Closes and cleans up any resources used by this KerberosOperationHandler
    * <p/>
    * It is expected that this KerberosOperationHandler will not be used after this call.
    */
-  public abstract void close()
-      throws KerberosOperationException;
+  public void close() throws KerberosOperationException {
+    setOpen(false);
+  }
 
   /**
    * Test to see if the specified principal exists in a previously configured KDC
@@ -249,10 +244,11 @@ public abstract class KerberosOperationHandler {
    * The implementation is specific to a particular type of KDC.
    *
    * @param principal a String containing the principal to test
+   * @param service   a boolean value indicating whether the principal is for a service or not
    * @return true if the principal exists; false otherwise
    * @throws KerberosOperationException
    */
-  public abstract boolean principalExists(String principal)
+  public abstract boolean principalExists(String principal, boolean service)
       throws KerberosOperationException;
 
   /**
@@ -277,11 +273,12 @@ public abstract class KerberosOperationHandler {
    *
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
+   * @param service   a boolean value indicating whether the principal is for a service or not
    * @return an Integer declaring the new key number
    * @throws KerberosOperationException
    * @throws KerberosPrincipalDoesNotExistException if the principal does not exist
    */
-  public abstract Integer setPrincipalPassword(String principal, String password)
+  public abstract Integer setPrincipalPassword(String principal, String password, boolean service)
       throws KerberosOperationException;
 
   /**
@@ -290,10 +287,11 @@ public abstract class KerberosOperationHandler {
    * The implementation is specific to a particular type of KDC.
    *
    * @param principal a String containing the principal to remove
+   * @param service   a boolean value indicating whether the principal is for a service or not
    * @return true if the principal was successfully removed; otherwise false
    * @throws KerberosOperationException
    */
-  public abstract boolean removePrincipal(String principal)
+  public abstract boolean removePrincipal(String principal, boolean service)
       throws KerberosOperationException;
 
   /**
@@ -313,7 +311,7 @@ public abstract class KerberosOperationHandler {
     if (credential == null) {
       throw new KerberosOperationException("Missing KDC administrator credential");
     } else {
-      return principalExists(credential.getPrincipal());
+      return principalExists(credential.getPrincipal(), false);
     }
   }
 
@@ -568,11 +566,11 @@ public abstract class KerberosOperationHandler {
    * @param keyEncryptionTypes a Set of EncryptionKey values or null to indicate the default set
    */
   public void setKeyEncryptionTypes(Set<EncryptionType> keyEncryptionTypes) {
-    this.keyEncryptionTypes = new HashSet<>(
-      (keyEncryptionTypes == null)
-        ? DEFAULT_CIPHERS
-        : keyEncryptionTypes
-    );
+    this.keyEncryptionTypes = Collections.unmodifiableSet(new HashSet<>(
+        (keyEncryptionTypes == null)
+            ? DEFAULT_CIPHERS
+            : keyEncryptionTypes
+    ));
   }
 
 
@@ -713,8 +711,8 @@ public abstract class KerberosOperationHandler {
    * <p/>
    * See {@link org.apache.ambari.server.utils.ShellCommandUtil#runCommand(String[], Map<String,String>)}
    *
-   * @param command an array of String value representing the command and its arguments
-   * @param envp a map of string, string of environment variables
+   * @param command            an array of String value representing the command and its arguments
+   * @param envp               a map of string, string of environment variables
    * @param interactiveHandler a handler to provide responses to queries from the command,
    *                           or null if no queries are expected
    * @return a ShellCommandUtil.Result declaring the result of the operation
@@ -751,7 +749,7 @@ public abstract class KerberosOperationHandler {
    * @see #executeCommand(String[], Map, ShellCommandUtil.InteractiveHandler)
    */
   protected ShellCommandUtil.Result executeCommand(String[] command)
-          throws KerberosOperationException {
+      throws KerberosOperationException {
     return executeCommand(command, null);
   }
 
@@ -760,7 +758,7 @@ public abstract class KerberosOperationHandler {
    * <p/>
    * See {@link org.apache.ambari.server.utils.ShellCommandUtil#runCommand(String[])}
    *
-   * @param command an array of String value representing the command and its arguments
+   * @param command            an array of String value representing the command and its arguments
    * @param interactiveHandler a handler to provide responses to queries from the command,
    *                           or null if no queries are expected
    * @return a ShellCommandUtil.Result declaring the result of the operation

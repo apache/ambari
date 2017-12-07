@@ -186,3 +186,15 @@ class TestConfSelect(RMFTestCase):
     conf_select.convert_conf_directories_to_symlinks("hadoop", "2.3.0.0-1234", packages["hadoop"])
 
     self.assertEqual(pprint.pformat(self.env.resource_list), "[]")
+
+
+  def test_restrictions(self):
+
+    Script.config.update({'roleParameters': {'cluster_version_summary': {'services': {'HIVE': {'upgrade': True}}}}})
+
+    restricted = conf_select.get_restricted_packages()
+    self.assertTrue("hive" in restricted)
+    self.assertTrue("hive-hcatalog" in restricted)
+    self.assertTrue("hive2" in restricted)
+    self.assertTrue("tez_hive2" in restricted)
+    self.assertTrue("hadoop" not in restricted)

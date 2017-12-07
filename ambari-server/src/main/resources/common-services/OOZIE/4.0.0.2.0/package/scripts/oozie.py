@@ -35,9 +35,9 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.functions.copy_tarball import get_current_version
 from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.core.resources.packaging import Package
 from resource_management.core.shell import as_user, as_sudo, call, checked_call
 from resource_management.core.exceptions import Fail
@@ -190,6 +190,11 @@ def oozie(is_server=False, upgrade_type=None):
 
   oozie_ownership()
   
+  if params.lzo_enabled:
+    install_lzo_if_needed()
+    Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
+    )
+  
   if is_server:
     oozie_server_specific(upgrade_type)
   
@@ -238,14 +243,14 @@ def get_oozie_ext_zip_source_paths(upgrade_type, params):
 
 def oozie_server_specific(upgrade_type):
   import params
-  
+
   no_op_test = as_user(format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.oozie_user)
-  
+
   File(params.pid_file,
     action="delete",
     not_if=no_op_test
   )
-  
+
   oozie_server_directories = [format("{oozie_home}/{oozie_tmp_dir}"), params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
   Directory( oozie_server_directories,
     owner = params.oozie_user,
@@ -254,25 +259,25 @@ def oozie_server_specific(upgrade_type):
     create_parents = True,
     cd_access="a",
   )
-  
+
   Directory(params.oozie_libext_dir,
             create_parents = True,
   )
-  
+
   hashcode_file = format("{oozie_home}/.hashcode")
   skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share")
 
   untar_sharelib = ('tar','-xvf',format('{oozie_home}/oozie-sharelib.tar.gz'),'-C',params.oozie_home)
 
   Execute( untar_sharelib,    # time-expensive
-    not_if  = format("{no_op_test} || {skip_recreate_sharelib}"), 
+    not_if  = format("{no_op_test} || {skip_recreate_sharelib}"),
     sudo = True,
   )
 
   configure_cmds = []
   # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip as the first path
   source_ext_zip_paths = get_oozie_ext_zip_source_paths(upgrade_type, params)
-  
+
   # Copy the first oozie ext-2.2.zip file that is found.
   # This uses a list to handle the cases when migrating from some versions of BigInsights to HDP.
   if source_ext_zip_paths is not None:
@@ -286,8 +291,8 @@ def oozie_server_specific(upgrade_type):
                 sudo=True,
                 )
         break
-  
-  
+
+
   Directory(params.oozie_webapps_conf_dir,
             owner = params.oozie_user,
             group = params.user_group,
@@ -305,15 +310,6 @@ def oozie_server_specific(upgrade_type):
 
     Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
       not_if  = no_op_test)
-
-  if params.lzo_enabled:
-    all_lzo_packages = get_lzo_packages(params.stack_version_unformatted)
-    Package(all_lzo_packages,
-            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
-            retry_count=params.agent_stack_retry_count)
-    Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
-      not_if  = no_op_test,
-    )
 
   prepare_war(params)
 
@@ -365,7 +361,7 @@ def oozie_server_specific(upgrade_type):
   Directory(params.oozie_server_dir,
     owner = params.oozie_user,
     group = params.user_group,
-    recursive_ownership = True,  
+    recursive_ownership = True,
   )
   if params.security_enabled:
     File(os.path.join(params.conf_dir, 'zkmigrator_jaas.conf'),
@@ -410,7 +406,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
   effective_version = params.stack_version_formatted if upgrade_type is None else format_stack_version(params.version)
   if not check_stack_feature(StackFeature.ATLAS_HOOK_SUPPORT, effective_version):
     return
-    
+
   # Important that oozie_server_hostnames is sorted by name so that this only runs on a single Oozie server.
   if not (len(params.oozie_server_hostnames) > 0 and params.hostname == params.oozie_server_hostnames[0]):
     Logger.debug("Will not attempt to copy Atlas Hive hook to DFS since this is not the first Oozie Server "

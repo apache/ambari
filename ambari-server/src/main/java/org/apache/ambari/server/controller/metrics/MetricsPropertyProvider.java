@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
-  protected final static Logger LOG =
+  private static final Logger LOG =
     LoggerFactory.getLogger(MetricsPropertyProvider.class);
 
   protected static final Pattern questionMarkPattern = Pattern.compile("\\?");

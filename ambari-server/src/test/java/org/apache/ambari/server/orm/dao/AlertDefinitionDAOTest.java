@@ -31,7 +31,8 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -148,8 +149,8 @@ public class AlertDefinitionDAOTest {
     for (; i < 15; i++) {
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
       definition.setDefinitionName("Alert Definition " + i);
-      definition.setServiceName(RootServiceResponseFactory.Services.AMBARI.name());
-      definition.setComponentName(RootServiceResponseFactory.Components.AMBARI_AGENT.name());
+      definition.setServiceName(RootService.AMBARI.name());
+      definition.setComponentName(RootComponent.AMBARI_AGENT.name());
       definition.setClusterId(clusterId);
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(60);

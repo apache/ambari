@@ -22,6 +22,7 @@ import org.apache.ambari.logsearch.model.response.ServiceLogData;
 import org.apache.solr.client.solrj.beans.Field;
 
 import java.util.Date;
+import java.util.Map;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.*;
 
@@ -47,6 +48,9 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
 
   @Field(HOST)
   private String host;
+
+  @Field(SDI_DYNAMIC_FIELDS)
+  private Map<String, Object> sdiDynamicFields;
 
   @Override
   public String getPath() {
@@ -116,5 +120,18 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
   @Override
   public void setLevel(String level) {
     this.level = level;
+  }
+
+  public void setSdiDynamicFields(Map<String, Object> sdiDynamicFields) {
+    this.sdiDynamicFields = sdiDynamicFields;
+  }
+
+  @Override
+  public Map<String, Object> getAllDynamicFields() {
+    Map<String, Object> dynamicFieldsMap = super.getAllDynamicFields();
+    if (sdiDynamicFields != null) {
+      dynamicFieldsMap.putAll(sdiDynamicFields);
+    }
+    return dynamicFieldsMap;
   }
 }

@@ -63,6 +63,8 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -74,6 +76,8 @@ import com.google.inject.persist.Transactional;
  * Resource provider for component resources.
  */
 public class ComponentResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ComponentResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

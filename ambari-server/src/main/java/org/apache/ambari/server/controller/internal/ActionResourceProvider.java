@@ -43,8 +43,12 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ActionResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ActionResourceProvider.class);
 
   public static final String ACTION_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "action_name");

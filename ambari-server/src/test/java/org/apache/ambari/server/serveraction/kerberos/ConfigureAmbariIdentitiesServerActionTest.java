@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
@@ -75,13 +78,11 @@ public class ConfigureAmbariIdentitiesServerActionTest extends EasyMockSupport {
     Injector injector = createInjector();
 
     HostEntity hostEntity;
-
     if (ambariServerHasAgent) {
       KerberosPrincipalHostDAO kerberosPrincipalHostDAO = injector.getInstance(KerberosPrincipalHostDAO.class);
-      expect(kerberosPrincipalHostDAO.exists(principal, 1L)).andReturn(false).once();
-      kerberosPrincipalHostDAO.create(principal, 1L);
-      expectLastCall().once();
-
+      expect(kerberosPrincipalHostDAO.exists(eq(principal), eq(1L), anyString())).andReturn(false).anyTimes();
+      kerberosPrincipalHostDAO.create(anyObject());
+      expectLastCall().anyTimes();
       hostEntity = createMock(HostEntity.class);
       expect(hostEntity.getHostId()).andReturn(1L).once();
     } else {

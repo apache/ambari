@@ -58,7 +58,7 @@ import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
@@ -2103,7 +2103,7 @@ public class ClusterImpl implements Cluster {
       // server-side events either don't have a service name or are AMBARI;
       // either way they are not handled by this method since it expects a
       // real service and component
-      if (StringUtils.isBlank(serviceName) || Services.AMBARI.name().equals(serviceName)) {
+      if (StringUtils.isBlank(serviceName) || RootService.AMBARI.name().equals(serviceName)) {
         continue;
       }
 

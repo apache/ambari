@@ -42,6 +42,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import utils
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
+from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from ambari_commons.constants import SERVICE
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -50,6 +51,8 @@ from ambari_commons import OSConst
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive(name=None):
   import params
+  
+  install_lzo_if_needed()
 
   hive_client_conf_path = format("{stack_root}/current/{component_directory}/conf")
   # Permissions 644 for conf dir (client) files, and 600 for conf.server

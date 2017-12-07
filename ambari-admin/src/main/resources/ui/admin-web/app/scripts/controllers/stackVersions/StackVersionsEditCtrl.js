@@ -33,6 +33,15 @@ angular.module('ambariAdminConsole')
     display_name: ''
   };
   $scope.defaulfOSRepos = {}; // a copy of initial loaded repo info for "changed" check later
+  $scope.isGPLAccepted = false;
+
+  $scope.isGPLRepo = function (repository) {
+    return repository.Repositories.tags.indexOf('GPL') >= 0;
+  };
+
+  $scope.showRepo = function (repository) {
+    return $scope.isGPLAccepted || !$scope.isGPLRepo(repository);
+  };
 
   $scope.loadStackVersionInfo = function () {
     return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
@@ -67,6 +76,9 @@ angular.module('ambariAdminConsole')
       // load supported os type base on stack version
       $scope.afterStackVersionRead();
 
+      // Load GPL license accepted value
+      $scope.fetchGPLLicenseAccepted();
+
       // if user reach here from UI click, repo status should be cached
       // otherwise re-fetch repo status from cluster end point.
       $scope.repoStatus = Cluster.repoStatusCache[$scope.id];
@@ -82,6 +94,15 @@ angular.module('ambariAdminConsole')
         $scope.deleteEnabled = $scope.isDeletable();
       }
     });
+  };
+
+  /**
+   * Load GPL License Accepted value
+   */
+  $scope.fetchGPLLicenseAccepted = function () {
+    Stack.getGPLLicenseAccepted().then(function (data) {
+      $scope.isGPLAccepted = data === 'true';
+    })
   };
 
   /**
@@ -170,7 +191,11 @@ angular.module('ambariAdminConsole')
 
   $scope.updateRepoVersions = function () {
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
-    return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
+    // Filter out repositories that are not shown in the UI
+    var osList = Object.assign([], $scope.osList).map(function(os) {
+      return Object.assign({}, os, {repositories: os.repositories.filter(function(repo) { return $scope.showRepo(repo); })});
+    });
+    return Stack.validateBaseUrls(skip, osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         Stack.updateRepo($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version, $scope.id, $scope.updateObj).then(function () {
           Alert.success($t('versions.alerts.versionEdited', {

@@ -58,6 +58,9 @@ class HostInfo(object):
     self.config = config
     self.reportFileHandler = HostCheckReportFileHandler(config)
 
+  def register(self, dict_obj, componentsMapped=True, commandsInProgress=True):
+    raise NotImplementedError()
+
   def dirType(self, path):
     if not os.path.exists(path):
       return 'not_exist'
@@ -172,7 +175,7 @@ class HostInfoLinux(HostInfo):
     "hue", "yarn", "tez", "storm", "falcon", "kafka", "knox", "ams",
     "hadoop", "spark", "accumulo", "atlas", "mahout", "ranger", "kms", "zeppelin"
   ]
-  
+
   # Default set of directories that are checked for existence of files and folders
   DEFAULT_BASEDIRS = [
     "/etc", "/var/run", "/var/log", "/usr/lib", "/var/lib", "/var/tmp", "/tmp", "/var",
@@ -246,21 +249,20 @@ class HostInfoLinux(HostInfo):
         cmd = cmd.replace('\0', ' ')
         if not 'AmbariServer' in cmd:
           if 'java' in cmd:
-            dict = {}
-            dict['pid'] = int(pid)
-            dict['hadoop'] = False
+            metrics = {}
+            metrics['pid'] = int(pid)
+            metrics['hadoop'] = False
             for filter in self.PROC_FILTER:
               if filter in cmd:
-                dict['hadoop'] = True
-            dict['command'] = unicode(cmd.strip(), errors='ignore')
+                metrics['hadoop'] = True
+            metrics['command'] = unicode(cmd.strip(), errors='ignore')
             for line in open(os.path.join('/proc', pid, 'status')):
               if line.startswith('Uid:'):
                 uid = int(line.split()[1])
-                dict['user'] = pwd.getpwuid(uid).pw_name
-            list.append(dict)
+                metrics['user'] = pwd.getpwuid(uid).pw_name
+            list.append(metrics)
     except:
       logger.exception("Checking java processes failed")
-    pass
 
   def getTransparentHugePage(self):
     thp_regex = "\[(.+)\]"
@@ -313,52 +315,52 @@ class HostInfoLinux(HostInfo):
       logger.exception('Unable to get information about JCE')
       return None
 
-  def register(self, dict, runExpensiveChecks=False, checkJavaProcs=False):
+  def register(self, metrics, runExpensiveChecks=False, checkJavaProcs=False):
     """ Return various details about the host"""
 
-    dict['hostHealth'] = {}
+    metrics['hostHealth'] = {}
 
     if checkJavaProcs:
       java = []
       self.javaProcs(java)
-      dict['hostHealth']['activeJavaProcs'] = java
+      metrics['hostHealth']['activeJavaProcs'] = java
 
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
-    dict['hostHealth']['liveServices'] = liveSvcs
+    metrics['hostHealth']['liveServices'] = liveSvcs
 
-    dict['umask'] = str(self.getUMask())
+    metrics['umask'] = str(self.getUMask())
 
-    dict['transparentHugePage'] = self.getTransparentHugePage()
-    dict['firewallRunning'] = self.checkFirewall()
-    dict['firewallName'] = self.getFirewallName()
-    dict['reverseLookup'] = self.checkReverseLookup()
-    dict['hasUnlimitedJcePolicy'] = self.checkUnlimitedJce()
+    metrics['transparentHugePage'] = self.getTransparentHugePage()
+    metrics['firewallRunning'] = self.checkFirewall()
+    metrics['firewallName'] = self.getFirewallName()
+    metrics['reverseLookup'] = self.checkReverseLookup()
+    metrics['hasUnlimitedJcePolicy'] = self.checkUnlimitedJce()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
     if not runExpensiveChecks:
-      dict['alternatives'] = []
-      dict['stackFoldersAndFiles'] = []
-      dict['existingUsers'] = []
+      metrics['alternatives'] = []
+      metrics['stackFoldersAndFiles'] = []
+      metrics['existingUsers'] = []
 
     else:
       etcs = []
       self.etcAlternativesConf(self.DEFAULT_PROJECT_NAMES, etcs)
-      dict['alternatives'] = etcs
+      metrics['alternatives'] = etcs
 
       existingUsers = []
       self.checkUsers(self.DEFAULT_USERS, existingUsers)
-      dict['existingUsers'] = existingUsers
+      metrics['existingUsers'] = existingUsers
 
       dirs = []
       self.checkFolders(self.DEFAULT_BASEDIRS, self.DEFAULT_PROJECT_NAMES, self.EXACT_DIRECTORIES, existingUsers, dirs)
-      dict['stackFoldersAndFiles'] = dirs
+      metrics['stackFoldersAndFiles'] = dirs
 
-      self.reportFileHandler.writeHostCheckFile(dict)
+      self.reportFileHandler.writeHostCheckFile(metrics)
       pass
 
     # The time stamp must be recorded at the end
-    dict['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
+    metrics['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
 
     pass
 
@@ -433,40 +435,39 @@ class HostInfoWindows(HostInfo):
     code, out, err = run_powershell_script(self.SERVICE_STATUS_CMD.format(serivce_name))
     return out, err, code
 
-  def register(self, dict, runExpensiveChecks=False):
+  def register(self, metrics, runExpensiveChecks=False):
     """ Return various details about the host
     """
-    dict['hostHealth'] = {}
+    metrics['hostHealth'] = {}
 
     java = []
     self.javaProcs(java)
-    dict['hostHealth']['activeJavaProcs'] = java
+    metrics['hostHealth']['activeJavaProcs'] = java
 
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
-    dict['hostHealth']['liveServices'] = liveSvcs
+    metrics['hostHealth']['liveServices'] = liveSvcs
 
-    dict['umask'] = str(self.getUMask())
+    metrics['umask'] = str(self.getUMask())
 
-    dict['firewallRunning'] = self.checkFirewall()
-    dict['firewallName'] = self.getFirewallName()
-    dict['reverseLookup'] = self.checkReverseLookup()
+    metrics['firewallRunning'] = self.checkFirewall()
+    metrics['firewallName'] = self.getFirewallName()
+    metrics['reverseLookup'] = self.checkReverseLookup()
 
     if not runExpensiveChecks:
-      dict['alternatives'] = []
-      dict['stackFoldersAndFiles'] = []
-      dict['existingUsers'] = []
+      metrics['alternatives'] = []
+      metrics['stackFoldersAndFiles'] = []
+      metrics['existingUsers'] = []
     else:
       existingUsers = []
       self.checkUsers(self.DEFAULT_USERS, existingUsers)
-      dict['existingUsers'] = existingUsers
+      metrics['existingUsers'] = existingUsers
       # TODO check HDP stack and folders here
-      self.reportFileHandler.writeHostCheckFile(dict)
+      self.reportFileHandler.writeHostCheckFile(metrics)
       pass
 
     # The time stamp must be recorded at the end
-    dict['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
-
+    metrics['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
 
 
 def main(argv=None):

@@ -224,7 +224,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * are going to work unless refactoring is complete.
    */
   @Inject
-  AmbariManagementController managementController;
+  protected AmbariManagementController managementController;
 
   @Inject
   TimelineMetricCacheProvider metricCacheProvider;
@@ -267,7 +267,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   private volatile boolean initialized = false;
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
       LoggerFactory.getLogger(AbstractProviderModule.class);
 
 

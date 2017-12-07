@@ -2836,6 +2836,10 @@ var urls = {
       }
     }
   },
+  'service.serviceConfigVersions.get.suggestions': {
+    real: '/clusters/{clusterName}/configurations/service_config_versions?fields={key}&minimal_response=true',
+    mock: ''
+  },
   'service.serviceConfigVersion.revert': {
     'real': '/clusters/{clusterName}',
     'mock': '',

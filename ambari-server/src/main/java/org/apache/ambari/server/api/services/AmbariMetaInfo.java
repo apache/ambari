@@ -47,7 +47,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
@@ -1194,7 +1194,7 @@ public class AmbariMetaInfo {
         String componentName = definition.getComponentName();
 
         // the AMBARI service is special, skip it here
-        if (Services.AMBARI.name().equals(serviceName)) {
+        if (RootService.AMBARI.name().equals(serviceName)) {
           continue;
         }
 

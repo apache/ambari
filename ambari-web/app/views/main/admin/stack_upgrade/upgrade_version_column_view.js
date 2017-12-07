@@ -42,7 +42,6 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     var account = App.RepositoryVersion.find().get('length');
     $('.border-extended-table').width(account * 100 + 100 + "%");
     $('.border-extended-table').css("max-width", account * 100 + 100 + "%");
-    $('.services-section .service-version-info').css('margin-bottom', $(".border-extended-table tr").height() - 25 + "px");
   },
 
   services: function() {

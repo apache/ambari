@@ -47,7 +47,7 @@ public class MetricsCollectorHAClusterState {
   @Inject
   AmbariManagementController managementController;
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
     LoggerFactory.getLogger(MetricsCollectorHAClusterState.class);
 
   public MetricsCollectorHAClusterState(String clusterName) {

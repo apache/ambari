@@ -79,6 +79,7 @@ import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvid
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -888,7 +889,8 @@ public class AmbariServer {
     PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
-    StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class));
+    StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class),
+        injector.getInstance(Configuration.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
@@ -1042,7 +1044,7 @@ public class AmbariServer {
 
   public static void main(String[] args) throws Exception {
     logStartup();
-    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
+    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule(), new LdapModule());
 
     AmbariServer server = null;
     try {

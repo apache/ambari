@@ -167,6 +167,16 @@ public class AuthPropsConfig {
   )
   private List<String> allowedRoles;
 
+  @Value("${logsearch.auth.redirect.forward:false}")
+  @LogSearchPropertyDescription(
+    name = "logsearch.auth.redirect.forward",
+    description = "Forward redirects for HTTP calls. (useful in case of proxies)",
+    examples = {"true"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private boolean redirectForward;
+
   public boolean isAuthFileEnabled() {
     return authFileEnabled;
   }
@@ -277,5 +287,13 @@ public class AuthPropsConfig {
 
   public void setAllowedRoles(List<String> allowedRoles) {
     this.allowedRoles = allowedRoles;
+  }
+
+  public boolean isRedirectForward() {
+    return redirectForward;
+  }
+
+  public void setRedirectForward(boolean redirectForward) {
+    this.redirectForward = redirectForward;
   }
 }

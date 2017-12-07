@@ -287,7 +287,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.auto.convert.sortmerge.join</name>
-    <value>true</value>
+    <value>false</value>
     <description>Will the join be automatically converted to a sort-merge join, if the joined tables pass
       the criteria for sort-merge join.
     </description>
@@ -480,6 +480,12 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>beacon-env</type>
+        <name>set_hive_configs</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -489,6 +495,12 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>beacon-env</type>
+        <name>set_hive_configs</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -498,6 +510,12 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>beacon-env</type>
+        <name>set_hive_configs</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -507,6 +525,16 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>beacon-env</type>
+        <name>set_hive_configs</name>
+      </property>
+      <property>
+        <type>hive-site</type>
+        <name>hive.metastore.warehouse.dir</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -516,6 +544,16 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>beacon-env</type>
+        <name>set_hive_configs</name>
+      </property>
+      <property>
+        <type>hive-site</type>
+        <name>hive.metastore.warehouse.dir</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

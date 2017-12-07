@@ -107,9 +107,8 @@
         <div class="form-group">
           <div class="col-sm-offset-3 col-sm-10">
             <div class="checkbox">
-              <label>
-                <input type="checkbox" ng-model="settings.visible" ng-class="instancevisibility-input"> {{'views.visible' | translate}}
-              </label>
+              <input type="checkbox" class="form-control" ng-model="settings.visible" id="visible" ng-class="instancevisibility-input">
+              <label for="visible">{{'views.visible' | translate}}</label>
             </div>
           </div>
         </div>
@@ -173,9 +172,8 @@
   </div>
   <div class="panel-body property-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
     <div class="checkbox">
-      <label>
-        <input type="radio" ng-model="data.clusterType" ng-change="enableLocalCluster()" ng-disabled="!clusterConfigurable || editConfigurationDisabled || noLocalClusterAvailible" value="LOCAL_AMBARI" class="visibilityCheckbox"> {{'views.localCluster' | translate}}
-      </label>
+      <input type="radio" id="local-cluster" ng-model="data.clusterType" ng-change="enableLocalCluster()" ng-disabled="!clusterConfigurable || editConfigurationDisabled || noLocalClusterAvailible" value="LOCAL_AMBARI" class="visibilityCheckbox form-control">
+      <label for="local-cluster">{{'views.localCluster' | translate}}</label>
     </div>
     <div class="form-horizontal property-form">
       <div class="form-group">
@@ -189,9 +187,8 @@
     </div>
     <p>&nbsp</p>
       <div class="checkbox">
-        <label>
-          <input type="radio" ng-model="data.clusterType" ng-change="enableLocalCluster()" ng-disabled="!clusterConfigurable || editConfigurationDisabled || noRemoteClusterAvailible" value="REMOTE_AMBARI" class="visibilityCheckbox"> {{'views.remoteCluster' | translate}}
-        </label>
+        <input type="radio" id="remote-cluster" ng-model="data.clusterType" ng-change="enableLocalCluster()" ng-disabled="!clusterConfigurable || editConfigurationDisabled || noRemoteClusterAvailible" value="REMOTE_AMBARI" class="visibilityCheckbox form-control">
+        <label for="remote-cluster">{{'views.remoteCluster' | translate}}</label>
       </div>
       <div class="form-horizontal property-form">
         <div class="form-group">
@@ -205,15 +202,14 @@
       </div>
       <p>&nbsp</p>
     <div class="checkbox" ng-hide="isConfigurationEmpty">
-      <label>
-        <input type="radio"
-         ng-model="data.clusterType"
-         ng-disabled="editConfigurationDisabled"
-         value="NONE"
-         ng-change="disableLocalCluster()"
-         class="visibilityCheckbox">
-        {{'views.custom' | translate}}
-      </label>
+      <input type="radio"
+             id="custom-view"
+             ng-model="data.clusterType"
+             ng-disabled="editConfigurationDisabled"
+             value="NONE"
+             ng-change="disableLocalCluster()"
+             class="visibilityCheckbox">
+      <label for="custom-view">{{'views.custom' | translate}}</label>
     </div>
   </div>
   <div class="panel-body edit-view-custom-wrap">
@@ -289,9 +285,8 @@
       <div class="col-sm-offset-2 col-sm-10">
         <div class="checkbox col-sm-12" ng-repeat="key in permissionRoles">
           <div ng-init="i18nKey = 'views.clusterPermissions.' + key.split('.').join('').toLowerCase()">
-            <label>
-              <input type="checkbox" ng-model="permissionsEdit['VIEW.USER']['ROLE'][key]"> {{i18nKey | translate}}
-            </label>
+            <input ng-attr-id="{{i18nKey}}" type="checkbox" class="form-control" ng-model="permissionsEdit['VIEW.USER']['ROLE'][key]">
+            <label ng-attr-for="{{i18nKey}}">{{i18nKey | translate}}</label>
           </div>
         </div>
         <a href ng-click="checkAllRoles()">{{'common.controls.checkAll' | translate}}</a> | <a href ng-click="clearAllRoles()">{{'common.controls.clearAll' | translate}}</a>

@@ -31,6 +31,7 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     display_name: 'ServiceComponentInfo.display_name',
     service_name: 'ServiceComponentInfo.service_name',
     installed_count: 'ServiceComponentInfo.installed_count',
+    installed_and_maintenance_off_count: 'ServiceComponentInfo.installed_and_maintenance_off_count',
     install_failed_count: 'ServiceComponentInfo.install_failed_count',
     init_count: 'ServiceComponentInfo.init_count',
     unknown_count: 'ServiceComponentInfo.unknown_count',

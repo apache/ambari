@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class HostStatusHelper {
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
     LoggerFactory.getLogger(HostStatusHelper.class);
 
   public static boolean isHostComponentLive(AmbariManagementController managementController,

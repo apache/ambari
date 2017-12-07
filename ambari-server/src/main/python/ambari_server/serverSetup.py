@@ -38,11 +38,11 @@ from ambari_commons.str_utils import compress_backslashes
 from ambari_server.dbConfiguration import DBMSConfigFactory, TAR_GZ_ARCHIVE_TYPE, default_connectors_map, check_jdbc_drivers
 from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
   get_ambari_properties, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, get_missing_properties, \
-  get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
+  get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, write_gpl_license_accepted,\
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
   VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY, JDK_DOWNLOAD_SUPPORTED_PROPERTY, JCE_DOWNLOAD_SUPPORTED_PROPERTY, SETUP_DONE_PROPERTIES, \
-  STACK_JAVA_HOME_PROPERTY, STACK_JDK_NAME_PROPERTY, STACK_JCE_NAME_PROPERTY, STACK_JAVA_VERSION
+  STACK_JAVA_HOME_PROPERTY, STACK_JDK_NAME_PROPERTY, STACK_JCE_NAME_PROPERTY, STACK_JAVA_VERSION, GPL_LICENSE_ACCEPTED_PROPERTY
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
@@ -1181,6 +1181,10 @@ def setup(options):
   except FatalException as e:
     err = 'Downloading or installing JDK failed: {0}. Exiting.'.format(e)
     raise FatalException(e.code, err)
+
+  if not get_silent() or options.accept_gpl:
+    print 'Checking GPL software agreement...'
+    write_gpl_license_accepted()
 
   print 'Completing setup...'
   retcode = configure_os_settings()

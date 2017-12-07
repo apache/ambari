@@ -1346,11 +1346,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     HostResourceProvider provider = getHostProvider(controller);
     HostResourceProvider.setTopologyManager(topologyManager);
-    provider.deleteHosts(requests, false, false);
+    provider.deleteHosts(requests, false);
   }
 
   public static DeleteStatusMetaData deleteHosts(AmbariManagementController controller,
-                                                 Set<HostRequest> requests, boolean dryRun, boolean forceDelete)
+                                                 Set<HostRequest> requests, boolean dryRun)
       throws AmbariException {
     TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
     expect(topologyManager.getRequests(Collections.emptyList())).andReturn(Collections.emptyList()).anyTimes();
@@ -1359,7 +1359,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     HostResourceProvider provider = getHostProvider(controller);
     HostResourceProvider.setTopologyManager(topologyManager);
-    return provider.deleteHosts(requests, dryRun, forceDelete);
+    return provider.deleteHosts(requests, dryRun);
   }
 
   public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)

@@ -141,6 +141,12 @@
       <version>3.4</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
     <!-- Spring dependencies -->
     <dependency>
       <groupId>org.springframework</groupId>
@@ -416,6 +422,11 @@
       <artifactId>guava</artifactId>
       <groupId>com.google.guava</groupId>
       <version>20.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+      <version>1.11.5</version>
     </dependency>
   </dependencies>
 

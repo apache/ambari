@@ -18,263 +18,247 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('CreateViewInstanceCtrl',['$scope', 'View','RemoteCluster' , 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate', function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate) {
+.controller('CreateViewInstanceCtrl',
+['$scope', 'View','RemoteCluster' , 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate', '$modalInstance', 'views', 'instanceClone', '$q',
+function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate, $modalInstance, views, instanceClone, $q) {
+
   var $t = $translate.instant;
+  var viewToVersionMap = {};
+  var instances = {};
   $scope.form = {};
-  $scope.constants = {
-    props: $t('views.properties')
+  $scope.nameValidationPattern = /^\s*\w*\s*$/;
+  $scope.isLoading = false;
+  $scope.clusterType = 'LOCAL_AMBARI'; // LOCAL_AMBARI, REMOTE_AMBARI, NONE
+  $scope.views = views;
+  $scope.instanceClone = instanceClone;
+  $scope.viewOptions = [];
+  $scope.versionOptions = [];
+  $scope.localClusters = [];
+  $scope.remoteClusters = [];
+  $scope.clusterOptions = [];
+  $scope.fieldsWithErrors = [];
+  $scope.isInstanceExists = false;
+  $scope.clusterConfigurable = false;
+  $scope.clusterSettingsCount = 0;
+  $scope.nonClusterSettingsCount = 0;
+  $scope.instanceTemplate = null;
+  $scope.formData = {
+    view: null,
+    version: null,
+    instanceName: '',
+    displayName: '',
+    description: '',
+    clusterName: null,
+    visible: true,
+    settings: []
   };
-  $scope.isClone = $routeParams.instanceId ? true : false;
-  var targetUrl = '';
 
-  function loadMeta(){
-    View.getMeta($routeParams.viewId, $scope.version).then(function(data) {
-      var viewVersion = data.data,
-        parameters;
+  $scope.updateVersionOptions = function () {
+    if (viewToVersionMap[$scope.formData.view.value]) {
+      $scope.versionOptions = viewToVersionMap[$scope.formData.view.value];
+      $scope.formData.version = $scope.versionOptions[0];
+      $scope.updateSettingsList();
+    }
+  };
 
-      $scope.view = viewVersion;
-      parameters = viewVersion.ViewVersionInfo.parameters;
-
-      angular.forEach(parameters, function (item) {
-        item.value = item['defaultValue'];
-        item.clusterConfig = !!item.clusterConfig;
-        item.displayName = item.name.replace(/\./g, '\.\u200B');
-        item.clusterConfig ? $scope.numberOfClusterConfigs++ : $scope.numberOfSettingConfigs++;
-      });
-
-      $scope.clusterConfigurable = viewVersion.ViewVersionInfo.cluster_configurable;
-      $scope.clusterConfigurableErrorMsg = $scope.clusterConfigurable ? "" : $t('views.alerts.cannotUseOption');
-
-      $scope.instance = {
-        view_name: viewVersion.ViewVersionInfo.view_name,
-        version: viewVersion.ViewVersionInfo.version,
-        instance_name: '',
-        label: '',
-        visible: true,
-        icon_path: '',
-        icon64_path: '',
-        properties: parameters,
-        description: '',
-        clusterType: 'NONE'
-      };
-
-      //if cloning view instance, then get the instance data and populate settings and properties
-      if($scope.isClone) {
-        View.getInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId)
-        .then(function(instance) {
-          $scope.instanceClone = instance;
-          $scope.instance.version = instance.ViewInstanceInfo.version;
-          $scope.version =  instance.ViewInstanceInfo.version;
-          $scope.instance.instance_name = instance.ViewInstanceInfo.instance_name + $t('common.copy');
-          $scope.instance.label = instance.ViewInstanceInfo.label + $t('common.copy');
-          $scope.instance.visible = instance.ViewInstanceInfo.visible;
-          $scope.instance.description = instance.ViewInstanceInfo.description;
-          $scope.instance.clusterType=instance.ViewInstanceInfo.cluster_type;
-          
-          initConfigurations(parameters);
-        })
-        .catch(function(data) {
-          Alert.error($t('views.alerts.cannotLoadInstanceInfo'), data.data.message);
+  $scope.updateSettingsList = function() {
+    $scope.formData.settings = [];
+    $scope.clusterSettingsCount = 0;
+    $scope.nonClusterSettingsCount = 0;
+    $scope.instanceTemplate = null;
+    angular.forEach($scope.views, function(view) {
+      if (view.view_name === $scope.formData.view.value) {
+        angular.forEach(view.versionsList, function(version) {
+          if (version.ViewVersionInfo.version === $scope.formData.version.value) {
+            $scope.formData.settings = version.ViewVersionInfo.parameters.map(function(param) {
+              param.value = param['defaultValue'];
+              param.clusterConfig = Boolean(param.clusterConfig);
+              param.displayName = param.name.replace(/\./g, '\.\u200B');
+              $scope.clusterSettingsCount += param.clusterConfig;
+              $scope.nonClusterSettingsCount += !param.clusterConfig;
+              return param;
+            });
+            $scope.clusterConfigurable = version.ViewVersionInfo.cluster_configurable;
+          }
         });
       }
-
-      loadClusters();
-      loadRemoteClusters();
-
     });
-  }
-
-   function initConfigurations(parameters) {
-      var configuration = angular.copy($scope.instanceClone.ViewInstanceInfo.properties);
-
-      //iterate through the view parameters and get the values from the instance being cloned
-      for (var i = 0; i < parameters.length; i++) {
-        parameters[i].value = configuration[parameters[i].name];
-        parameters[i].clusterConfig = !!parameters[i].clusterConfig;
-      }
-    }
-
-  $scope.$watch(function(scope) {
-    return scope.version;
-  }, function(version) {
-    if( version ){
-      loadMeta();
-    }
-  });
-
-  $scope.enableLocalCluster = function () {
-    if($scope.errorKeys.length > 0) {
-      $scope.errorKeys.forEach( function (key) {
-        try {
-          $scope.form.instanceCreateForm[key].validationError = false;
-          $scope.form.instanceCreateForm[key].validationMessage = '';
-        } catch (e) {
-          console.log($t('views.alerts.unableToResetErrorMessage', {key: key}));
-        }
-      });
-      $scope.errorKeys = [];
-    }
   };
 
-  // $scope.view = viewVersion;
-  $scope.isAdvancedClosed = true;
-  $scope.instanceExists = false;
-  $scope.errorKeys = [];
+  $scope.switchClusterType = function(clusterType) {
+    $scope.clusterType = clusterType;
+    if (clusterType === 'LOCAL_AMBARI') {
+      $scope.clusterOptions = $scope.localClusters;
+      resetErrors();
+    } else if (clusterType === 'REMOTE_AMBARI') {
+      $scope.clusterOptions = $scope.remoteClusters;
+      resetErrors();
+    } else {
+      $scope.clusterOptions = [];
+    }
+    $scope.formData.clusterName = $scope.clusterOptions[0];
+  };
 
-  $scope.clusterConfigurable = false;
-  $scope.clusterConfigurableErrorMsg = "";
-  $scope.clusters = [];
-  $scope.remoteClusters = [];
-  $scope.noLocalClusterAvailible = true;
-  $scope.noRemoteClusterAvailible = true;
-  $scope.cluster = null;
-  $scope.data = {};
-  $scope.data.remoteCluster = null;
-  $scope.numberOfClusterConfigs = 0;
-  $scope.numberOfSettingConfigs = 0;
-
-  function loadClusters() {
-       Cluster.getAllClusters().then(function (clusters) {
-         if(clusters.length >0){
-           clusters.forEach(function(cluster) {
-             $scope.clusters.push({
-              "name" : cluster.Clusters.cluster_name,
-              "id" : cluster.Clusters.cluster_id
-             })
-           });
-           $scope.noLocalClusterAvailible = false;
-           //do not set to default Local Cluster configuration when cloning instance
-           if($scope.clusterConfigurable && !$scope.isClone){
-             $scope.instance.clusterType = "LOCAL_AMBARI";
-           }
-         }else{
-           $scope.clusters.push($t('common.noClusters'));
-         }
-         $scope.cluster = $scope.clusters[0];
-       });
-  }
-
-   function loadRemoteClusters() {
-         RemoteCluster.listAll().then(function (clusters) {
-           if(clusters.length >0){
-             clusters.forEach(function(cluster) {
-               $scope.remoteClusters.push({
-                "name" : cluster.ClusterInfo.name,
-                "id" : cluster.ClusterInfo.cluster_id
-               })
-             });
-             $scope.noRemoteClusterAvailible = false;
-           }else{
-             $scope.remoteClusters.push($t('common.noClusters'));
-           }
-           $scope.data.remoteCluster = $scope.remoteClusters[0];
-         });
-   }
-
-
-  $scope.versions = [];
-  $scope.version = null;
-
-  View.getVersions($routeParams.viewId).then(function(versions) {
-    $scope.versions = versions;
-    $scope.version = $scope.versions[$scope.versions.length-1];
-  });
-
-
-  $scope.nameValidationPattern = /^\s*\w*\s*$/;
-
-  $scope.save = function() {
-  if (!$scope.form.instanceCreateForm.isSaving) {
+  $scope.save = function () {
+    var instanceName = $scope.form.instanceCreateForm.instanceName.$viewValue;
     $scope.form.instanceCreateForm.submitted = true;
-    if($scope.form.instanceCreateForm.$valid){
-      $scope.form.instanceCreateForm.isSaving = true;
-
-      switch($scope.instance.clusterType) {
-        case 'LOCAL_AMBARI':
-          console.log($scope.cluster);
-          $scope.instance.clusterId = $scope.cluster.id;
-          break;
-        case 'REMOTE_AMBARI':
-          console.log($scope.data.remoteCluster);
-          $scope.instance.clusterId = $scope.data.remoteCluster.id;
-
-          break;
-        default:
-          $scope.instance.clusterId = null;
-      }
-      console.log($scope.instance.clusterId);
-      View.createInstance($scope.instance)
-        .then(function(data) {
-          Alert.success($t('views.alerts.instanceCreated', {instanceName: $scope.instance.instance_name}));
-          $scope.form.instanceCreateForm.$setPristine();
-          if( targetUrl ){
-            $location.path(targetUrl);
-          } else {
-            $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
-          }
-            $scope.form.instanceCreateForm.isSaving = false;
-            $scope.$root.$emit('instancesUpdate');
+    if ($scope.form.instanceCreateForm.$valid) {
+      View.createInstance({
+        instance_name: instanceName,
+        label: $scope.form.instanceCreateForm.displayName.$viewValue,
+        visible: $scope.form.instanceCreateForm.visible.$viewValue,
+        icon_path: '',
+        icon64_path: '',
+        description: $scope.form.instanceCreateForm.description.$viewValue,
+        view_name: $scope.form.instanceCreateForm.view.$viewValue.value,
+        version: $scope.form.instanceCreateForm.version.$viewValue.value,
+        properties: $scope.formData.settings,
+        clusterId: $scope.formData.clusterName ? $scope.formData.clusterName.id : null,
+        clusterType: $scope.clusterType
+      })
+        .then(function () {
+          $modalInstance.dismiss('created');
+          Alert.success($t('views.alerts.instanceCreated', {instanceName: instanceName}));
+          $location.path('/views/' + $scope.form.instanceCreateForm.view.$viewValue.value +
+            '/versions/' + $scope.form.instanceCreateForm.version.$viewValue.value +
+            '/instances/' + instanceName + '/edit');
         })
         .catch(function (data) {
           var errorMessage = data.message;
-          var showGeneralError = true;
 
-          if (data.status >= 400 && $scope.instance.clusterType == 'NONE') {
+          if (data.status >= 400) {
             try {
               var errorObject = JSON.parse(errorMessage);
               errorMessage = errorObject.detail;
               angular.forEach(errorObject.propertyResults, function (item, key) {
                 $scope.form.instanceCreateForm[key].validationError = !item.valid;
                 if (!item.valid) {
-                  showGeneralError = false;
                   $scope.form.instanceCreateForm[key].validationMessage = item.detail;
-                  $scope.errorKeys.push(key);
+                  $scope.fieldsWithErrors.push(key);
                 }
               });
 
-              if (showGeneralError) {
-                $scope.form.instanceCreateForm.generalValidationError = errorMessage;
-              }
             } catch (e) {
-              console.error($t('views.alerts.unableToParseError', {message: data.message}));
+              console.warn(data.message, e);
             }
           }
           Alert.error($t('views.alerts.cannotCreateInstance'), errorMessage);
-          $scope.form.instanceCreateForm.isSaving = false;
         });
-      }
     }
   };
 
-  $scope.cancel = function() {
-    $scope.form.instanceCreateForm.$setPristine();
-    $location.path('/views');
+  $scope.cancel = function () {
+    unsavedChangesCheck();
   };
 
-  $scope.$on('$locationChangeStart', function(event, __targetUrl) {
-    if( $scope.form.instanceCreateForm.$dirty ){
-      UnsavedDialog().then(function(action) {
-        targetUrl = __targetUrl.split('#').pop();
-        switch(action){
+  $scope.checkIfInstanceExist = function() {
+    $scope.isInstanceExists = Boolean(instances[$scope.formData.instanceName]);
+  };
+
+  function resetErrors() {
+    $scope.fieldsWithErrors.forEach(function(field) {
+      $scope.form.instanceCreateForm[field].validationError = false;
+      $scope.form.instanceCreateForm[field].validationMessage = '';
+    });
+    $scope.fieldsWithErrors = [];
+  }
+
+  function initViewAndVersionSelect () {
+    $scope.viewOptions = [];
+    angular.forEach($scope.views, function(view) {
+      $scope.viewOptions.push({
+        label: view.view_name,
+        value: view.view_name
+      });
+      viewToVersionMap[view.view_name] = view.versionsList.map(function(version) {
+        angular.forEach(version.instances, function(instance) {
+          instances[instance.ViewInstanceInfo.instance_name] = true;
+        });
+        return {
+          label: version.ViewVersionInfo.version,
+          value: version.ViewVersionInfo.version
+        }
+      });
+    });
+    $scope.formData.view = $scope.viewOptions[0];
+    $scope.updateVersionOptions();
+  }
+
+  function loadClusters() {
+    return Cluster.getAllClusters().then(function (clusters) {
+      clusters.forEach(function (cluster) {
+        $scope.localClusters.push({
+          label: cluster.Clusters.cluster_name,
+          value: cluster.Clusters.cluster_name,
+          id: cluster.Clusters.cluster_id
+        });
+      });
+    });
+  }
+
+  function loadRemoteClusters() {
+    return RemoteCluster.listAll().then(function (clusters) {
+      clusters.forEach(function (cluster) {
+        $scope.remoteClusters.push({
+          label: cluster.ClusterInfo.name,
+          value: cluster.ClusterInfo.name,
+          id: cluster.ClusterInfo.cluster_id
+        });
+      });
+    });
+  }
+
+  function loadFormData () {
+    $scope.isLoading = true;
+    initViewAndVersionSelect();
+    $q.all(loadClusters(), loadRemoteClusters()).then(function() {
+      $scope.isLoading = false;
+      $scope.switchClusterType('LOCAL_AMBARI');
+      copyCloneInstanceInfo();
+    });
+  }
+
+  function copyCloneInstanceInfo() {
+    if ($scope.instanceClone) {
+      $scope.formData.view = $scope.viewOptions.filter(function(option) {
+        return option.value === $scope.instanceClone.view_name;
+      })[0];
+      $scope.updateVersionOptions();
+      $scope.formData.version = $scope.versionOptions.filter(function(option) {
+        return option.value === $scope.instanceClone.version;
+      })[0];
+      $scope.formData.instanceName = $scope.instanceClone.instance_name + $t('common.copy');
+      $scope.formData.displayName = $scope.instanceClone.label + $t('common.copy');
+      $scope.formData.description = $scope.instanceClone.description;
+      $scope.formData.visible = $scope.instanceClone.visible;
+      $scope.switchClusterType($scope.instanceClone.cluster_type);
+      $scope.updateSettingsList();
+      $scope.formData.settings.forEach(function (setting) {
+        if ($scope.instanceClone.properties[setting.name]) {
+          setting.value = $scope.instanceClone.properties[setting.name];
+        }
+      });
+    }
+  }
+
+  function unsavedChangesCheck() {
+    if ($scope.form.instanceCreateForm.$dirty) {
+      UnsavedDialog().then(function (action) {
+        switch (action) {
           case 'save':
             $scope.save();
             break;
           case 'discard':
-            $scope.form.instanceCreateForm.$setPristine();
-            $location.path(targetUrl);
+            $modalInstance.close('discard');
             break;
           case 'cancel':
-            targetUrl = '';
             break;
         }
       });
-      event.preventDefault();
+    } else {
+      $modalInstance.close('discard');
     }
-  });
+  }
 
-
-
-
-
-
+  loadFormData();
 }]);
