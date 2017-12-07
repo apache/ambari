@@ -105,7 +105,7 @@ public class AlertNoticeResourceProvider extends AbstractControllerResourceProvi
    * Constructor.
    */
   AlertNoticeResourceProvider(AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.AlertNotice, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   /**

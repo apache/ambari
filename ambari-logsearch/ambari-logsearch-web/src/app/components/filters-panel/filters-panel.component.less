@@ -28,9 +28,14 @@
     align-items: flex-start;
     justify-content: flex-start;
 
-    .btn-success {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
+    .search-button {
+      border: 1px solid @submit-color;
+      height: auto;
+
+      &:last-child {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
     }
 
     .filter-input {

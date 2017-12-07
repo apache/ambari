@@ -360,6 +360,7 @@ Em.I18n.translations = {
   'common.express.downgrade': 'Express Downgrade',
   'common.views': 'Views',
   'common.critical.error': 'Critical',
+  'common.with': 'with',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -1276,9 +1277,9 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.option.ad.condition.4': 'Active Directory administrative credentials with delegated control of “Create, delete, and manage user accounts” on the previously mentioned User container are on-hand.',
   'admin.kerberos.wizard.step1.option.ad.condition.5': 'The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.',
   'admin.kerberos.wizard.step1.option.ipa': 'Existing IPA',
-  'admin.kerberos.wizard.step1.option.ipa.condition.1': 'Cluster hosts are joined to the IPA domain and hosts are registered in DNS',
-  'admin.kerberos.wizard.step1.option.ipa.condition.2': 'A password policy in place that sets no expiry for created principals',
-  'admin.kerberos.wizard.step1.option.ipa.condition.3': 'The ipa managed krb5.conf sets default_ccache_name = /tmp/krb5cc_%{uid}',
+  'admin.kerberos.wizard.step1.option.ipa.condition.1': 'All cluster hosts are joined to the IPA domain and hosts are registered in DNS',
+  'admin.kerberos.wizard.step1.option.ipa.condition.2': 'A password policy is in place that sets no expiry for created principals',
+  'admin.kerberos.wizard.step1.option.ipa.condition.3': 'If you do not plan on using Ambari to manage the krb5.conf, ensure the following is set in each krb5.conf file in your cluster: default_ccache_name = /tmp/krb5cc_%{uid}',
   'admin.kerberos.wizard.step1.option.ipa.condition.4': 'The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.',
   'admin.kerberos.wizard.step1.prerequisites.label': 'Following prerequisites needs to be checked to progress ahead in the wizard.',
   'admin.kerberos.wizard.step2.info.body': 'Please configure kerberos related properties.',
@@ -1313,7 +1314,7 @@ Em.I18n.translations = {
 
   'admin.kerberos.regenerate_keytabs.popup.body': 'Regenerating keytabs for <strong>all</strong> hosts in the cluster is a disruptive operation, and requires all components to be restarted. Optionally, keytabs can be regenerated <strong>only</strong> for missing hosts and components, and this operation requires selectively restarting those affected hosts and services.',
   'admin.kerberos.regenerate_keytabs.checkbox.label': ' Only regenerate keytabs for missing hosts and components',
-  'admin.kerberos.regenerate_keytabs.popup.restart.body': 'After keytab regerate is complete, services relying on them <strong>must</strong> be restarted. This can be done automatically, or manually.',
+  'admin.kerberos.regenerate_keytabs.popup.restart.body': 'After keytab regenerate is complete, services relying on them <strong>must</strong> be restarted. This can be done automatically, or manually.',
   'admin.kerberos.regenerate_keytabs.checkbox.restart.label': 'Automatically restart components after keytab regeneration',
   'admin.kerberos.service.alert.yarn': 'YARN log and local dir will be deleted and ResourceManager state will be formatted as part of Enabling/Disabling Kerberos.',
 
@@ -2263,8 +2264,11 @@ Em.I18n.translations = {
   'services.service.config.configHistory.leftArrow.tooltip': 'Show later versions',
   'services.service.config.configHistory.dismissIcon.tooltip': 'Dismiss',
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
-  'services.service.config.configHistory.comparing': 'Comparing',
+  'services.service.config.configHistory.comparing': 'Comparing Changes',
   'services.service.config.setRecommendedValue': 'Set Recommended',
+  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with Hive, you must <a href="{3}" target="_blank">' +
+    'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
+    '<b>ambari-server setup --jdbc-db={1} --jdbc-driver=/path/to/{1}/{2}</b>',
 
   'services.service.widgets.list-widget.nothingSelected': 'Nothing selected',
 

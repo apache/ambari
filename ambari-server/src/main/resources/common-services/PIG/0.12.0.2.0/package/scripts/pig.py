@@ -19,15 +19,21 @@ Ambari Agent
 
 """
 import os
-from resource_management.core.resources.system import Directory, File
-from resource_management.core.source import InlineTemplate
-from resource_management.libraries.functions.format import format
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+from resource_management.core.resources import Directory
+from resource_management.core.resources import File
+from resource_management.core.source import InlineTemplate
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions import lzo_utils
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def pig():
   import params
+
+  # ensure that matching LZO libraries are installed for Pig
+  lzo_utils.install_lzo_if_needed()
 
   Directory( params.pig_conf_dir,
     create_parents = True,
@@ -49,7 +55,7 @@ def pig():
               content=params.pig_properties
   )
 
-  if (params.log4j_props != None):
+  if (params.log4j_props is not None):
     File(format("{params.pig_conf_dir}/log4j.properties"),
       mode=0644,
       group=params.user_group,
@@ -72,7 +78,7 @@ def pig():
        content=params.pig_properties
   )
 
-  if (params.log4j_props != None):
+  if (params.log4j_props is not None):
     File(os.path.join(params.pig_conf_dir, "log4j.properties"),
          mode='f',
          owner=params.pig_user,

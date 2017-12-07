@@ -20,10 +20,6 @@
 
 @inactive-input-width: 1px;
 @label-margin: 2px;
-.collapsed-form-control {
-  width: 0;
-  padding: 0;
-}
 
 :host {
   display: flex;
@@ -38,7 +34,7 @@
     margin: @label-margin;
     border-radius: @dropdown-border-radius;
     padding: @search-parameter-padding;
-    background-color: @search-parameter-background-color;
+    background-color: @grey-color;
     color: @base-font-color;
     font-size: 0.8em;
 
@@ -97,14 +93,14 @@
           }
         }
 
-        .no-value-options {
-          /deep/ .ng2-auto-complete {
-            display: none;
-          }
-        }
-
         .value-input {
           width: 100%;
+        }
+      }
+
+      .no-options {
+        /deep/ .ng2-auto-complete {
+          display: none;
         }
       }
     }

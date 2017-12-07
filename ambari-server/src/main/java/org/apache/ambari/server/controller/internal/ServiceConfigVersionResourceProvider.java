@@ -115,7 +115,7 @@ public class ServiceConfigVersionResourceProvider extends
    */
   ServiceConfigVersionResourceProvider(
       AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.ServiceConfigVersion, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
 
     setRequiredGetAuthorizations(EnumSet.of(RoleAuthorization.CLUSTER_VIEW_CONFIGS,
         RoleAuthorization.SERVICE_VIEW_CONFIGS,

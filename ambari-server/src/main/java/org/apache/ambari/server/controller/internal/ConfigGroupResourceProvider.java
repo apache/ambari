@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -67,6 +66,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 @StaticallyInject
@@ -102,8 +103,30 @@ public class ConfigGroupResourceProvider extends
   public static final String CONFIGGROUP_VERSION_TAGS_PROPERTY_ID =
     PropertyHelper.getPropertyId("ConfigGroup", "version_tags");
 
-  private static Set<String> pkPropertyIds = new HashSet<>(Arrays
-    .asList(new String[]{CONFIGGROUP_ID_PROPERTY_ID}));
+  /**
+   * The key property ids for a ConfigGroup resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Cluster, CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
+      .put(Resource.Type.ConfigGroup, CONFIGGROUP_ID_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a ConfigGroup resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID,
+      CONFIGGROUP_ID_PROPERTY_ID,
+      CONFIGGROUP_NAME_PROPERTY_ID,
+      CONFIGGROUP_TAG_PROPERTY_ID,
+      CONFIGGROUP_SERVICENAME_PROPERTY_ID,
+      CONFIGGROUP_DESC_PROPERTY_ID,
+      CONFIGGROUP_SCV_NOTE_ID,
+      CONFIGGROUP_HOSTNAME_PROPERTY_ID,
+      CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID,
+      CONFIGGROUP_HOSTS_PROPERTY_ID,
+      CONFIGGROUP_CONFIGS_PROPERTY_ID,
+      CONFIGGROUP_VERSION_TAGS_PROPERTY_ID);
 
   @Inject
   private static HostDAO hostDAO;
@@ -117,14 +140,10 @@ public class ConfigGroupResourceProvider extends
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds          the property ids
-   * @param keyPropertyIds       the key property ids
    * @param managementController the management controller
    */
-  protected ConfigGroupResourceProvider(Set<String> propertyIds,
-       Map<Resource.Type, String> keyPropertyIds,
-       AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  protected ConfigGroupResourceProvider(AmbariManagementController managementController) {
+    super(Resource.Type.ConfigGroup, propertyIds, keyPropertyIds, managementController);
 
     EnumSet<RoleAuthorization> manageGroupsAuthSet =
         EnumSet.of(RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS, RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS);
@@ -141,7 +160,7 @@ public class ConfigGroupResourceProvider extends
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   @Override

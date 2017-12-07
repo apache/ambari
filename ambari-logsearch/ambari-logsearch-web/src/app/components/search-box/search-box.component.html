@@ -30,7 +30,7 @@
            (valueChanged)="changeParameterName({value: $event.value, isExclude: false})"
            (keyup)="onParameterKeyUp($event)">
   </span>
-  <span [ngClass]="{'no-value-options': !activeItemValueOptions.length}">
+  <span [ngClass]="{'no-options': !activeItemValueOptions.length}">
     <input #valueInput auto-complete [(ngModel)]="currentValue" [source]="activeItemValueOptions"
            [list-formatter]="itemsListFormatter" [value-formatter]="itemsValueFormatter" [match-formatted]="true"
            (valueChanged)="onParameterValueChange($event.value)" (keydown)="onParameterValueKeyDown($event)"

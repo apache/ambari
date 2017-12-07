@@ -139,8 +139,6 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
 
       ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         ambariManagementController);
 
       try {

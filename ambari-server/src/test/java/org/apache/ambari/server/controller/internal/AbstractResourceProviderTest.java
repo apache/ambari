@@ -80,45 +80,41 @@ public class AbstractResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    AbstractResourceProvider provider = new HostComponentProcessResourceProvider(propertyIds,
-        keyPropertyIds, managementController);
+    AbstractResourceProvider provider = new HostComponentProcessResourceProvider(managementController);
 
-    Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
+    Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("HostComponentProcess/host_name"));
     Assert.assertTrue(unsupported.isEmpty());
 
     // note that key is not in the set of known property ids.  We allow it if its parent is a known property.
     // this allows for Map type properties where we want to treat the entries as individual properties
-    Assert.assertTrue(provider.checkPropertyIds(Collections.singleton("cat5/subcat5/map/key")).isEmpty());
+    Assert.assertTrue(provider.checkPropertyIds(Collections.singleton("HostComponentProcess/host_name/foo")).isEmpty());
 
     unsupported = provider.checkPropertyIds(Collections.singleton("bar"));
     Assert.assertEquals(1, unsupported.size());
     Assert.assertTrue(unsupported.contains("bar"));
 
-    unsupported = provider.checkPropertyIds(Collections.singleton("cat1/foo"));
+    unsupported = provider.checkPropertyIds(Collections.singleton("HostComponentProcess/status"));
     Assert.assertTrue(unsupported.isEmpty());
 
-    unsupported = provider.checkPropertyIds(Collections.singleton("cat1"));
+    unsupported = provider.checkPropertyIds(Collections.singleton("HostComponentProcess"));
     Assert.assertTrue(unsupported.isEmpty());
   }
 
   @Test
   public void testGetPropertyIds() {
     Set<String> propertyIds = new HashSet<>();
-    propertyIds.add("p1");
-    propertyIds.add("foo");
-    propertyIds.add("cat1/foo");
-    propertyIds.add("cat2/bar");
-    propertyIds.add("cat2/baz");
-    propertyIds.add("cat3/sub1/bam");
-    propertyIds.add("cat4/sub2/sub3/bat");
+    propertyIds.add("HostComponentProcess/name");
+    propertyIds.add("HostComponentProcess/status");
+    propertyIds.add("HostComponentProcess/cluster_name");
+    propertyIds.add("HostComponentProcess/host_name");
+    propertyIds.add("HostComponentProcess/component_name");
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     replay(maintenanceStateHelper, repositoryVersionDAO);
 
-    AbstractResourceProvider provider = new HostComponentProcessResourceProvider(propertyIds,
-        keyPropertyIds, managementController);
+    AbstractResourceProvider provider = new HostComponentProcessResourceProvider(managementController);
 
     Set<String> supportedPropertyIds = provider.getPropertyIds();
     Assert.assertTrue(supportedPropertyIds.containsAll(propertyIds));

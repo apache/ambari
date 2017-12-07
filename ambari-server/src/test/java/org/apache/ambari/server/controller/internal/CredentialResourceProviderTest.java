@@ -43,7 +43,6 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -151,8 +150,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -196,8 +193,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     try {
@@ -236,8 +231,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     try {
@@ -293,8 +286,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
 
@@ -359,8 +350,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     provider.createResources(request);
@@ -435,8 +424,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     provider.createResources(request);
@@ -512,8 +499,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     provider.createResources(request);
@@ -576,8 +561,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
 
@@ -634,8 +617,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     provider.createResources(request);
@@ -728,8 +709,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     provider.createResources(request);
@@ -797,8 +776,6 @@ public class CredentialResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Credential,
-        PropertyHelper.getPropertyIds(Resource.Type.Credential),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
         managementController);
 
     provider.createResources(request);

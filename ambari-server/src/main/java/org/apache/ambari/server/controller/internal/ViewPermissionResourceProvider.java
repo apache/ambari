@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +37,9 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.ViewRegistry;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 /**
  * Resource provider for custom view permissions.
@@ -62,24 +64,21 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a permission resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
-    keyPropertyIds.put(Resource.Type.ViewPermission, PERMISSION_ID_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.View, VIEW_NAME_PROPERTY_ID)
+      .put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID)
+      .put(Resource.Type.ViewPermission, PERMISSION_ID_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a permission resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(VIEW_NAME_PROPERTY_ID);
-    propertyIds.add(VIEW_VERSION_PROPERTY_ID);
-    propertyIds.add(PERMISSION_ID_PROPERTY_ID);
-    propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
-    propertyIds.add(RESOURCE_NAME_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      VIEW_NAME_PROPERTY_ID,
+      VIEW_VERSION_PROPERTY_ID,
+      PERMISSION_ID_PROPERTY_ID,
+      PERMISSION_NAME_PROPERTY_ID,
+      RESOURCE_NAME_PROPERTY_ID);
 
 
   // ----- Constructors ------------------------------------------------------

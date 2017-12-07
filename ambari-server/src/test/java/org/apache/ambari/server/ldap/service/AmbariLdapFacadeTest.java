@@ -17,10 +17,8 @@ package org.apache.ambari.server.ldap.service;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationFactory;
-import org.apache.ambari.server.ldap.domain.TestAmbariLdapConfigurationFactory;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -50,9 +48,6 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
   @Mock(type = MockType.STRICT)
   public LdapAttributeDetectionService ldapAttributeDetectionServiceMock;
 
-  private AmbariLdapConfigurationFactory ambariLdapConfigurationFactory;
-
-
   @TestSubject
   private LdapFacade ldapFacade = new AmbariLdapFacade();
 
@@ -63,8 +58,7 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
 
   @Before
   public void before() {
-    ambariLdapConfigurationFactory = new TestAmbariLdapConfigurationFactory();
-    ambariLdapConfiguration = ambariLdapConfigurationFactory.createLdapConfiguration(Maps.newHashMap());
+    ambariLdapConfiguration = new AmbariLdapConfiguration(Maps.newHashMap());
     ambariLdapConfigurationCapture = Capture.newInstance();
 
 
@@ -90,7 +84,7 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
     // THEN
     // the captured configuration instance is the same the facade method got called with
     Assert.assertEquals("The configuration instance souldn't change before passing it to the service",
-      ambariLdapConfiguration, ambariLdapConfigurationCapture.getValue());
+        ambariLdapConfiguration, ambariLdapConfigurationCapture.getValue());
   }
 
   @Test(expected = AmbariLdapException.class)
@@ -122,10 +116,10 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
     Capture<String> userDnCapture = Capture.newInstance();
 
     EasyMock.expect(ldapConfigurationServiceMock.checkUserAttributes(EasyMock.capture(testUserCapture), EasyMock.capture(testPasswordCapture),
-      EasyMock.capture(ambariLdapConfigurationCapture))).andReturn("userDn");
+        EasyMock.capture(ambariLdapConfigurationCapture))).andReturn("userDn");
 
     EasyMock.expect(ldapConfigurationServiceMock.checkGroupAttributes(EasyMock.capture(userDnCapture),
-      EasyMock.capture(ambariLdapConfigurationCapture))).andReturn(Sets.newHashSet("userGroup"));
+        EasyMock.capture(ambariLdapConfigurationCapture))).andReturn(Sets.newHashSet("userGroup"));
 
     replayAll();
 
@@ -149,7 +143,7 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
     parameters.put(AmbariLdapFacade.Parameters.TEST_USER_PASSWORD.getParameterKey(), "testPassword");
 
     EasyMock.expect(ldapConfigurationServiceMock.checkUserAttributes(EasyMock.anyString(), EasyMock.anyString(),
-      EasyMock.anyObject(AmbariLdapConfiguration.class))).andThrow(new AmbariLdapException("Testing ..."));
+        EasyMock.anyObject(AmbariLdapConfiguration.class))).andThrow(new AmbariLdapException("Testing ..."));
 
     replayAll();
 
@@ -164,23 +158,23 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
 
     // configuration map with user attributes detected
     Map<String, String> userConfigMap = Maps.newHashMap();
-    userConfigMap.put(AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE.key(), "uid");
-    AmbariLdapConfiguration userAttrDecoratedConfig = ambariLdapConfigurationFactory.createLdapConfiguration(userConfigMap);
+    userConfigMap.put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.key(), "uid");
+    AmbariLdapConfiguration userAttrDecoratedConfig = new AmbariLdapConfiguration(userConfigMap);
 
     // configuration map with user+group attributes detected
     Map<String, String> groupConfigMap = Maps.newHashMap(userConfigMap);
-    groupConfigMap.put(AmbariLdapConfigKeys.GROUP_NAME_ATTRIBUTE.key(), "dn");
-    AmbariLdapConfiguration groupAttrDecoratedConfig = ambariLdapConfigurationFactory.createLdapConfiguration(groupConfigMap);
+    groupConfigMap.put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE.key(), "dn");
+    AmbariLdapConfiguration groupAttrDecoratedConfig = new AmbariLdapConfiguration(groupConfigMap);
 
     Capture<AmbariLdapConfiguration> userAttrDetectionConfigCapture = Capture.newInstance();
     Capture<AmbariLdapConfiguration> groupAttrDetectionConfigCapture = Capture.newInstance();
 
     // GIVEN
     EasyMock.expect(ldapAttributeDetectionServiceMock.detectLdapUserAttributes(EasyMock.capture(userAttrDetectionConfigCapture)))
-      .andReturn(userAttrDecoratedConfig);
+        .andReturn(userAttrDecoratedConfig);
 
     EasyMock.expect(ldapAttributeDetectionServiceMock.detectLdapGroupAttributes(EasyMock.capture(groupAttrDetectionConfigCapture)))
-      .andReturn(groupAttrDecoratedConfig);
+        .andReturn(groupAttrDecoratedConfig);
 
     replayAll();
 
@@ -189,10 +183,10 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
 
     // THEN
     Assert.assertEquals("User attribute detection called with the wrong configuration", ambariLdapConfiguration,
-      userAttrDetectionConfigCapture.getValue());
+        userAttrDetectionConfigCapture.getValue());
 
     Assert.assertEquals("Group attribute detection called with the wrong configuration", userAttrDecoratedConfig,
-      groupAttrDetectionConfigCapture.getValue());
+        groupAttrDetectionConfigCapture.getValue());
 
     Assert.assertEquals("Attribute detection returned an invalid configuration", groupAttrDecoratedConfig, detected);
 
@@ -202,7 +196,7 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
   public void testShouldAttributeDetectionFailuresResultInAmbariLdapException() throws Exception {
     // GIVEN
     EasyMock.expect(ldapAttributeDetectionServiceMock.detectLdapUserAttributes(EasyMock.anyObject(AmbariLdapConfiguration.class)))
-      .andThrow(new AmbariLdapException("Testing ..."));
+        .andThrow(new AmbariLdapException("Testing ..."));
 
     replayAll();
 

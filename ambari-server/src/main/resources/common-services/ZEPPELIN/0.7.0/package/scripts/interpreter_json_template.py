@@ -264,7 +264,7 @@ template = '''
       "name": "md",
       "group": "md",
       "properties": {
-        "markdown.parser.type": "pegdown"
+        "markdown.parser.type": "markdown4j"
       },
       "status": "READY",
       "interpreterGroup": [

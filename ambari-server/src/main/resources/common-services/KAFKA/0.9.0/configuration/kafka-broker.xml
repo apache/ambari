@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 -->
-<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude">
   <property>
     <name>listeners</name>
     <value>PLAINTEXT://localhost:6667</value>

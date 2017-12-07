@@ -51,6 +51,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.valueInput.addEventListener('blur', this.onValueInputBlur);
     this.parameterNameChangeSubject.subscribe(this.onParameterNameChange);
     this.parameterAddSubject.subscribe(this.onParameterAdd);
+    this.updateValueSubject.subscribe(this.updateValue);
   }
 
   ngOnDestroy(): void {
@@ -61,6 +62,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
     this.valueInput.removeEventListener('blur', this.onValueInputBlur);
     this.parameterNameChangeSubject.unsubscribe();
     this.parameterAddSubject.unsubscribe();
+    this.updateValueSubject.unsubscribe();
   }
 
   private readonly messageParameterName: string = 'log_message';
@@ -68,8 +70,6 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   private currentId: number = 0;
 
   private isExclude: boolean = false;
-
-  private defaultSubject: Subject<any> = new Subject();
 
   isActive: boolean = false;
 
@@ -86,10 +86,20 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   itemsOptions: {[key: string]: CommonEntry[]};
 
   @Input()
-  parameterNameChangeSubject: Subject<SearchBoxParameterTriggered> = this.defaultSubject;
+  parameterNameChangeSubject: Subject<SearchBoxParameterTriggered> = new Subject();
 
   @Input()
-  parameterAddSubject: Subject<SearchBoxParameter> = this.defaultSubject;
+  parameterAddSubject: Subject<SearchBoxParameter> = new Subject();
+
+  @Input()
+  updateValueSubject: Subject<void> = new Subject();
+
+  /**
+   * Indicates whether form should receive updated value immediately after user adds new search parameter
+   * @type {boolean}
+   */
+  @Input()
+  updateValueImmediately: boolean = true;
 
   @ViewChild('parameterInput')
   parameterInputRef: ElementRef;
@@ -147,7 +157,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   private switchToParameterInput = (): void => {
     this.activeItem = null;
     this.isValueInput = false;
-    setTimeout(() => this.parameterInput.focus());
+    setTimeout(() => this.parameterInput.focus(), 0);
   };
 
   private getItemByValue(name: string): CommonEntry {
@@ -211,7 +221,9 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
         value: value,
         isExclude: this.isExclude
       });
-      this.updateValue();
+      if (this.updateValueImmediately) {
+        this.updateValueSubject.next();
+      }
     }
     this.switchToParameterInput();
   }
@@ -225,7 +237,9 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
       value: options.value,
       isExclude: options.isExclude
     });
-    this.updateValue();
+    if (this.updateValueImmediately) {
+      this.updateValueSubject.next();
+    }
   };
 
   onParameterKeyUp = (event: KeyboardEvent): void => {
@@ -248,20 +262,22 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
 
   removeParameter(event: MouseEvent, id: number): void {
     this.parameters = this.parameters.filter((parameter: SearchBoxParameterProcessed): boolean => parameter.id !== id);
-    this.updateValue();
+    if (this.updateValueImmediately) {
+      this.updateValueSubject.next();
+    }
     event.stopPropagation();
   }
 
-  updateValue(): void {
+  updateValue = (): void => {
     this.currentValue = '';
     if (this.onChange) {
       this.onChange(this.parameters);
     }
-  }
+  };
 
   writeValue(parameters: SearchBoxParameterProcessed[] = []): void {
     this.parameters = parameters;
-    this.updateValue();
+    this.updateValueSubject.next();
   }
 
   registerOnChange(callback: any): void {

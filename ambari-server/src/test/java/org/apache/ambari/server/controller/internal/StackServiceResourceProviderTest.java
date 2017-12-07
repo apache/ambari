@@ -86,8 +86,6 @@ public class StackServiceResourceProviderTest {
     Request request = PropertyHelper.getReadRequest(SERVICE_PROPERTIES_PROPERTY_ID);
 
     ResourceProvider stackServiceResourceProvider = AbstractControllerResourceProvider.getResourceProvider(type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // When
@@ -129,8 +127,6 @@ public class StackServiceResourceProviderTest {
     Request request = PropertyHelper.getReadRequest(SERVICE_PROPERTIES_PROPERTY_ID);
 
     ResourceProvider stackServiceResourceProvider = AbstractControllerResourceProvider.getResourceProvider(type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // When

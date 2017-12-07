@@ -16,7 +16,7 @@ package org.apache.ambari.server.ldap.service.ads.detectors;
 
 import javax.inject.Inject;
 
-import org.apache.ambari.server.ldap.domain.AmbariLdapConfigKeys;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +26,9 @@ public class GroupObjectClassDetector extends OccurrenceAndWeightBasedDetector {
   private static final Logger LOGGER = LoggerFactory.getLogger(GroupObjectClassDetector.class);
 
   private enum ObjectClassValue {
-
     GROUP("group", 1),
-
     GROUP_OF_NAMES("groupOfNames", 1),
-
     POSIX_GROUP("posixGroup", 1),
-
     GROUP_OF_UNIQUE_NAMES("groupOfUniqueNames", 1);
 
     private String ocVal;
@@ -68,6 +64,6 @@ public class GroupObjectClassDetector extends OccurrenceAndWeightBasedDetector {
 
   @Override
   public String detectedProperty() {
-    return AmbariLdapConfigKeys.GROUP_OBJECT_CLASS.key();
+    return AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS.key();
   }
 }

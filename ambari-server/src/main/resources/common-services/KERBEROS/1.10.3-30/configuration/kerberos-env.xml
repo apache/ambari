@@ -354,12 +354,12 @@
     <description>
       The group in IPA user principals should be member of
     </description>
-    <value>ambari-managed-principals</value>
+    <value/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>preconfigure_services</name>
