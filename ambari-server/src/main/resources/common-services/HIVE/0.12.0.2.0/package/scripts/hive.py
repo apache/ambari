@@ -256,7 +256,7 @@ def setup_hiveserver2():
                         owner = params.hive_user,
                         group=params.user_group,
                         mode = 01777)
-  if params.hive_repl_rootdir is not None:
+  if params.hive_repl_rootdir:
     params.HdfsResource(params.hive_repl_rootdir,
                         type = "directory",
                         action = "create_on_execute",
@@ -335,7 +335,7 @@ def setup_metastore():
                         owner = params.hive_user,
                         group=params.user_group,
                         mode = 01777)
-  if params.hive_repl_rootdir is not None:
+  if params.hive_repl_rootdir:
     params.HdfsResource(params.hive_repl_rootdir,
                         type = "directory",
                         action = "create_on_execute",
