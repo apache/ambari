@@ -403,7 +403,7 @@ class Master(Script):
     interpreter_settings = config_data['interpreterSettings']
     for interpreter_setting in interpreter_settings:
       interpreter = interpreter_settings[interpreter_setting]
-      if interpreter['group'] == 'livy' and params.livy_livyserver_host:
+      if interpreter['group'] == 'livy':
         if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
           interpreter['properties']['zeppelin.livy.principal'] = params.zeppelin_kerberos_principal
           interpreter['properties']['zeppelin.livy.keytab'] = params.zeppelin_kerberos_keytab
