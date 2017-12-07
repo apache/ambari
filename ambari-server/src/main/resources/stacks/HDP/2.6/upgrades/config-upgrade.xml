@@ -291,7 +291,7 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_mapreduce_tarball_ld_library">
             <type>mapred-site</type>
-            <set key="mapreduce.admin.user.env" value="LD_LIBRARY_PATH=./mr-framework/hadoop/lib/native:./mr-framework/hadoop/lib/native/Linux-{{architecture}}-64:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64"/>
+            <set key="mapreduce.admin.user.env" value="LD_LIBRARY_PATH=./mr-framework/hadoop/lib/native:./mr-framework/hadoop/lib/native/Linux-{{architecture}}-64:{{hadoop_lib_home}}/native:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64"/>
           </definition>
         </changes>
       </component>
