@@ -85,6 +85,8 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
 
   @Inject
   private AmbariEventPublisher publisher;
+
+  @Inject
   private RootServiceComponentConfigurationHandlerFactory rootServiceComponentConfigurationHandlerFactory;
 
 
