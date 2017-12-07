@@ -65,6 +65,6 @@ export interface SearchBoxParameterProcessed extends SearchBoxParameter {
 }
 
 export interface SearchBoxParameterTriggered {
-  value: string;
+  item: ListItem;
   isExclude: boolean;
 }
