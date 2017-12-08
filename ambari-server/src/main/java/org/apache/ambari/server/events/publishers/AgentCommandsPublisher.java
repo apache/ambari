@@ -90,7 +90,8 @@ public class AgentCommandsPublisher {
         Long hostId = hostEntry.getKey();
         ExecutionCommandEvent executionCommandEvent = new ExecutionCommandEvent(hostEntry.getValue());
         executionCommandEvent.setHostId(hostId);
-        executionCommandEvent.setRequiredConfigTimestamp(agentConfigsHolder.getCurrentData(hostId).getTimestamp());
+        executionCommandEvent.setRequiredConfigTimestamp(agentConfigsHolder
+            .initializeDataIfNeeded(hostId, true).getTimestamp());
         stateUpdateEventPublisher.publish(executionCommandEvent);
       }
     }

@@ -234,6 +234,13 @@ public class CommandRepository {
       this.m_isPreInstalled = isPreInstalled.equalsIgnoreCase("true");
     }
 
+    public Boolean getM_isPreInstalled() {
+      return m_isPreInstalled;
+    }
+
+    public boolean isM_isScoped() {
+      return m_isScoped;
+    }
   }
 
   /**
