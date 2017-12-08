@@ -32,7 +32,6 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaPairReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils;
 import scala.Tuple2;
 
 import java.io.FileInputStream;
@@ -152,90 +151,90 @@ public class MetricSparkConsumer {
     Broadcast<Set<Pattern>> includePatternBroadcast = jssc.sparkContext().broadcast(includeMetricPatterns);
     Broadcast<Set<String>> includedHostBroadcast = jssc.sparkContext().broadcast(includedHosts);
 
-    JavaPairReceiverInputDStream<String, String> messages =
-      KafkaUtils.createStream(jssc, zkQuorum, groupId, Collections.singletonMap(topicName, numThreads));
-
-    //Convert JSON string to TimelineMetrics.
-    JavaDStream<TimelineMetrics> timelineMetricsStream = messages.map(new Function<Tuple2<String, String>, TimelineMetrics>() {
-      @Override
-      public TimelineMetrics call(Tuple2<String, String> message) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TimelineMetrics metrics = mapper.readValue(message._2, TimelineMetrics.class);
-        return metrics;
-      }
-    });
-
-    timelineMetricsStream.print();
-
-    //Group TimelineMetric by AppId.
-    JavaPairDStream<String, TimelineMetrics> appMetricStream = timelineMetricsStream.mapToPair(
-      timelineMetrics -> timelineMetrics.getMetrics().isEmpty()  ?  new Tuple2<>("TEST", new TimelineMetrics()) : new Tuple2<String, TimelineMetrics>(timelineMetrics.getMetrics().get(0).getAppId(), timelineMetrics)
-    );
-
-    appMetricStream.print();
-
-    //Filter AppIds that are not needed.
-    JavaPairDStream<String, TimelineMetrics> filteredAppMetricStream = appMetricStream.filter(new Function<Tuple2<String, TimelineMetrics>, Boolean>() {
-      @Override
-      public Boolean call(Tuple2<String, TimelineMetrics> appMetricTuple) throws Exception {
-        return appIds.contains(appMetricTuple._1);
-      }
-    });
-
-    filteredAppMetricStream.print();
-
-    filteredAppMetricStream.foreachRDD(rdd -> {
-      rdd.foreach(
-        tuple2 -> {
-          long currentTime = System.currentTimeMillis();
-          EmaTechnique ema = emaTechniqueBroadcast.getValue();
-          if (currentTime > pitStartTime + pitTestInterval) {
-            LOG.info("Running Tukeys....");
-            pointInTimeADSystemBroadcast.getValue().runTukeysAndRefineEma(ema, currentTime);
-            pitStartTime = pitStartTime + pitTestInterval;
-          }
-
-          if (currentTime > ksStartTime + ksTestInterval) {
-            LOG.info("Running KS Test....");
-            trendADSystemBroadcast.getValue().runKSTest(currentTime, trendMetrics);
-            ksStartTime = ksStartTime + ksTestInterval;
-          }
-
-          if (currentTime > hdevStartTime + hsdevInterval) {
-            LOG.info("Running HSdev Test....");
-            trendADSystemBroadcast.getValue().runHsdevMethod();
-            hdevStartTime = hdevStartTime + hsdevInterval;
-          }
-
-          TimelineMetrics metrics = tuple2._2();
-          for (TimelineMetric timelineMetric : metrics.getMetrics()) {
-
-            boolean includeHost = includedHostBroadcast.getValue().contains(timelineMetric.getHostName());
-            boolean includeMetric = false;
-            if (includeHost) {
-              if (includePatternBroadcast.getValue().isEmpty()) {
-                includeMetric = true;
-              }
-              for (Pattern p : includePatternBroadcast.getValue()) {
-                Matcher m = p.matcher(timelineMetric.getMetricName());
-                if (m.find()) {
-                  includeMetric = true;
-                }
-              }
-            }
-
-            if (includeMetric) {
-              trendMetrics.add(new TrendMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(),
-                timelineMetric.getHostName()));
-              List<MetricAnomaly> anomalies = ema.test(timelineMetric);
-              metricsCollectorInterfaceBroadcast.getValue().publish(anomalies);
-            }
-          }
-        });
-    });
-
-    jssc.start();
-    jssc.awaitTermination();
+//    JavaPairReceiverInputDStream<String, String> messages =
+//      KafkaUtils.createStream(jssc, zkQuorum, groupId, Collections.singletonMap(topicName, numThreads));
+//
+//    //Convert JSON string to TimelineMetrics.
+//    JavaDStream<TimelineMetrics> timelineMetricsStream = messages.map(new Function<Tuple2<String, String>, TimelineMetrics>() {
+//      @Override
+//      public TimelineMetrics call(Tuple2<String, String> message) throws Exception {
+//        ObjectMapper mapper = new ObjectMapper();
+//        TimelineMetrics metrics = mapper.readValue(message._2, TimelineMetrics.class);
+//        return metrics;
+//      }
+//    });
+//
+//    timelineMetricsStream.print();
+//
+//    //Group TimelineMetric by AppId.
+//    JavaPairDStream<String, TimelineMetrics> appMetricStream = timelineMetricsStream.mapToPair(
+//      timelineMetrics -> timelineMetrics.getMetrics().isEmpty()  ?  new Tuple2<>("TEST", new TimelineMetrics()) : new Tuple2<String, TimelineMetrics>(timelineMetrics.getMetrics().get(0).getAppId(), timelineMetrics)
+//    );
+//
+//    appMetricStream.print();
+//
+//    //Filter AppIds that are not needed.
+//    JavaPairDStream<String, TimelineMetrics> filteredAppMetricStream = appMetricStream.filter(new Function<Tuple2<String, TimelineMetrics>, Boolean>() {
+//      @Override
+//      public Boolean call(Tuple2<String, TimelineMetrics> appMetricTuple) throws Exception {
+//        return appIds.contains(appMetricTuple._1);
+//      }
+//    });
+//
+//    filteredAppMetricStream.print();
+//
+//    filteredAppMetricStream.foreachRDD(rdd -> {
+//      rdd.foreach(
+//        tuple2 -> {
+//          long currentTime = System.currentTimeMillis();
+//          EmaTechnique ema = emaTechniqueBroadcast.getValue();
+//          if (currentTime > pitStartTime + pitTestInterval) {
+//            LOG.info("Running Tukeys....");
+//            pointInTimeADSystemBroadcast.getValue().runTukeysAndRefineEma(ema, currentTime);
+//            pitStartTime = pitStartTime + pitTestInterval;
+//          }
+//
+//          if (currentTime > ksStartTime + ksTestInterval) {
+//            LOG.info("Running KS Test....");
+//            trendADSystemBroadcast.getValue().runKSTest(currentTime, trendMetrics);
+//            ksStartTime = ksStartTime + ksTestInterval;
+//          }
+//
+//          if (currentTime > hdevStartTime + hsdevInterval) {
+//            LOG.info("Running HSdev Test....");
+//            trendADSystemBroadcast.getValue().runHsdevMethod();
+//            hdevStartTime = hdevStartTime + hsdevInterval;
+//          }
+//
+//          TimelineMetrics metrics = tuple2._2();
+//          for (TimelineMetric timelineMetric : metrics.getMetrics()) {
+//
+//            boolean includeHost = includedHostBroadcast.getValue().contains(timelineMetric.getHostName());
+//            boolean includeMetric = false;
+//            if (includeHost) {
+//              if (includePatternBroadcast.getValue().isEmpty()) {
+//                includeMetric = true;
+//              }
+//              for (Pattern p : includePatternBroadcast.getValue()) {
+//                Matcher m = p.matcher(timelineMetric.getMetricName());
+//                if (m.find()) {
+//                  includeMetric = true;
+//                }
+//              }
+//            }
+//
+//            if (includeMetric) {
+//              trendMetrics.add(new TrendMetric(timelineMetric.getMetricName(), timelineMetric.getAppId(),
+//                timelineMetric.getHostName()));
+//              List<MetricAnomaly> anomalies = ema.test(timelineMetric);
+//              metricsCollectorInterfaceBroadcast.getValue().publish(anomalies);
+//            }
+//          }
+//        });
+//    });
+//
+//    jssc.start();
+//    jssc.awaitTermination();
   }
 }
 

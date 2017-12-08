@@ -19,9 +19,8 @@ package org.apache.ambari.metrics.adservice.app
 
 import org.apache.ambari.metrics.adservice.db._
 import org.apache.ambari.metrics.adservice.leveldb.LevelDBDataSource
-import org.apache.ambari.metrics.adservice.metadata.{MetricDefinitionService, MetricDefinitionServiceImpl}
-import org.apache.ambari.metrics.adservice.resource.{AnomalyResource, MetricDefinitionResource, RootResource}
-import org.apache.ambari.metrics.adservice.service.{ADQueryService, ADQueryServiceImpl}
+import org.apache.ambari.metrics.adservice.resource.{AnomalyResource, DetectionResource, MetricDefinitionResource, RootResource}
+import org.apache.ambari.metrics.adservice.service._
 
 import com.codahale.metrics.health.HealthCheck
 import com.google.inject.AbstractModule
@@ -37,11 +36,13 @@ class AnomalyDetectionAppModule(config: AnomalyDetectionAppConfig, env: Environm
     healthCheckBinder.addBinding().to(classOf[DefaultHealthCheck])
     bind(classOf[AnomalyResource])
     bind(classOf[MetricDefinitionResource])
+    bind(classOf[DetectionResource])
     bind(classOf[RootResource])
     bind(classOf[AdMetadataStoreAccessor]).to(classOf[AdMetadataStoreAccessorImpl])
     bind(classOf[ADQueryService]).to(classOf[ADQueryServiceImpl])
     bind(classOf[MetricDefinitionService]).to(classOf[MetricDefinitionServiceImpl])
     bind(classOf[MetadataDatasource]).to(classOf[LevelDBDataSource])
     bind(classOf[AdAnomalyStoreAccessor]).to(classOf[PhoenixAnomalyStoreAccessor])
+    bind(classOf[DetectionService]).to(classOf[DetectionServiceImpl])
   }
 }

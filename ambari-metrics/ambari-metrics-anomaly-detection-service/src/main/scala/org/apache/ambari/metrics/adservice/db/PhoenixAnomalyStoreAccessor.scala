@@ -22,10 +22,11 @@ import java.util.concurrent.TimeUnit.SECONDS
 
 import org.apache.ambari.metrics.adservice.app.AnomalyDetectionAppConfig
 import org.apache.ambari.metrics.adservice.configuration.HBaseConfiguration
-import org.apache.ambari.metrics.adservice.metadata.{MetricDefinitionService, MetricKey}
+import org.apache.ambari.metrics.adservice.metadata.MetricKey
 import org.apache.ambari.metrics.adservice.model.AnomalyDetectionMethod.AnomalyDetectionMethod
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
 import org.apache.ambari.metrics.adservice.model._
+import org.apache.ambari.metrics.adservice.service.MetricDefinitionService
 import org.apache.hadoop.hbase.util.RetryCounterFactory
 import org.slf4j.{Logger, LoggerFactory}
 

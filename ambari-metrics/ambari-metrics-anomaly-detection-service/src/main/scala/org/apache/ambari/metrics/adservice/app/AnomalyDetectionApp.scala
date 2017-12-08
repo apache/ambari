@@ -22,8 +22,7 @@ import javax.ws.rs.container.{ContainerRequestFilter, ContainerResponseFilter}
 
 import org.apache.ambari.metrics.adservice.app.GuiceInjector.{withInjector, wrap}
 import org.apache.ambari.metrics.adservice.db.{AdAnomalyStoreAccessor, MetadataDatasource}
-import org.apache.ambari.metrics.adservice.metadata.MetricDefinitionService
-import org.apache.ambari.metrics.adservice.service.ADQueryService
+import org.apache.ambari.metrics.adservice.service.{ADQueryService, MetricDefinitionService, DetectionService}
 import org.glassfish.jersey.filter.LoggingFilter
 
 import com.codahale.metrics.health.HealthCheck
@@ -53,6 +52,9 @@ class AnomalyDetectionApp extends Application[AnomalyDetectionAppConfig] {
       injector.getInstance(classOf[MetadataDatasource]).initialize
       injector.getInstance(classOf[MetricDefinitionService]).initialize
       injector.getInstance(classOf[ADQueryService]).initialize
+      injector.getInstance(classOf[DetectionService]).initialize
+
+      env.lifecycle().manage(injector.getInstance(classOf[DetectionService]))
     }
     env.jersey.register(jacksonJaxbJsonProvider)
     env.jersey.register(new LoggingFilter)

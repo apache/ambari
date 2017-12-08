@@ -20,7 +20,7 @@ package org.apache.ambari.metrics.adservice.app
 
 import javax.validation.Valid
 
-import org.apache.ambari.metrics.adservice.configuration.{HBaseConfiguration, _}
+import org.apache.ambari.metrics.adservice.configuration.{DetectionServiceConfiguration, HBaseConfiguration, _}
 
 import com.fasterxml.jackson.annotation.{JsonIgnore, JsonIgnoreProperties, JsonProperty}
 
@@ -59,6 +59,12 @@ class AnomalyDetectionAppConfig extends Configuration {
   @Valid
   private val sparkConfiguration = new SparkConfiguration
 
+  /**
+    * Detection Service configurations
+    */
+  @Valid
+  private val detectionServiceConfiguration = new DetectionServiceConfiguration
+
   /*
    AMS HBase Conf
     */
@@ -85,5 +91,8 @@ class AnomalyDetectionAppConfig extends Configuration {
 
   @JsonProperty("spark")
   def getSparkConfiguration: SparkConfiguration = sparkConfiguration
+
+  @JsonProperty("detection")
+  def getDetectionServiceConfiguration: DetectionServiceConfiguration = detectionServiceConfiguration
 
 }

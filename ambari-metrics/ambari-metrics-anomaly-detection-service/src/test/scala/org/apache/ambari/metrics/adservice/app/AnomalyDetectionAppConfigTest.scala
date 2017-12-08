@@ -60,7 +60,10 @@ class AnomalyDetectionAppConfigTest extends FunSuite {
     assert(!config.getMetricDefinitionDBConfiguration.getPerformParanoidChecks)
 
     assert(config.getSparkConfiguration.getMode.equals("standalone"))
-    assert(config.getSparkConfiguration.getMasterHostPort.equals("localhost:7077"))
+    assert(config.getSparkConfiguration.getMaster.equals("spark://localhost:7077"))
+
+    assert(config.getDetectionServiceConfiguration.isPointInTimeSubsystemEnabled)
+    assert(!config.getDetectionServiceConfiguration.isTrendSubsystemEnabled)
 
   }
 

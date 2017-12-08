@@ -20,6 +20,7 @@ package org.apache.ambari.metrics.adservice.metadata
 
 import org.apache.ambari.metrics.adservice.app.AnomalyDetectionAppConfig
 import org.apache.ambari.metrics.adservice.db.AdMetadataStoreAccessor
+import org.apache.ambari.metrics.adservice.service.MetricDefinitionServiceImpl
 import org.easymock.EasyMock.{anyObject, expect, expectLastCall, replay}
 import org.scalatest.FunSuite
 import org.scalatest.easymock.EasyMockSugar

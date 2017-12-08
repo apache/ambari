@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.metadata
+package org.apache.ambari.metrics.adservice.service
 
 import org.apache.ambari.metrics.adservice.app.AnomalyDetectionAppConfig
 import org.apache.ambari.metrics.adservice.db.AdMetadataStoreAccessor
+import org.apache.ambari.metrics.adservice.metadata._
 import org.slf4j.{Logger, LoggerFactory}
 
 import com.google.inject.{Inject, Singleton}
@@ -238,5 +239,14 @@ class MetricDefinitionServiceImpl extends MetricDefinitionService {
       metricKeyMap(definition.definitionName) = metricDefinitionMetricKeyMap.apply(definition)
     }
     metricKeyMap.toMap
+  }
+
+  /**
+    * Return the set of metric keys.
+    *
+    * @return Set of metric keys.
+    */
+  override def getMetricKeyList: Set[MetricKey] = {
+    metricKeys.toSet
   }
 }

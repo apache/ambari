@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.metrics.adservice.metadata
+package org.apache.ambari.metrics.adservice.service
 
-import org.apache.ambari.metrics.adservice.service.AbstractADService
+import org.apache.ambari.metrics.adservice.metadata.{MetricKey, MetricSourceDefinition}
 
 trait MetricDefinitionService extends AbstractADService{
 
@@ -74,5 +74,11 @@ trait MetricDefinitionService extends AbstractADService{
     * @return Map of Metric Source Definition to set of metric keys associated with it.
     */
   def getMetricKeys:  Map[String, Set[MetricKey]]
+
+  /**
+    * Return the set of metric keys.
+    * @return Set of metric keys.
+    */
+  def getMetricKeyList: Set[MetricKey]
 
 }

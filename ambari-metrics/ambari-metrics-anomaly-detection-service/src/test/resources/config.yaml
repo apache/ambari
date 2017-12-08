@@ -32,4 +32,14 @@ metricDefinitionDB:
 
 spark:
   mode: standalone
-  masterHostPort: localhost:7077
+  master: spark://localhost:7077
+  sparkHome: /usr/lib/ambari-metrics-anomaly-detection/spark
+  jarfile: /usr/lib/ambari-metrics-anomaly-detection/ambari-metrics-anomaly-detection-service.jar
+
+detection:
+  trend: false
+  kafkaServers: localhost:6667
+  kafkaTopic: ambari-metrics-ad
+  kafkaConsumerGroup: ambari-metrics-ad-group
+  ema-w: 0.9
+  ema-n: 3

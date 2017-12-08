@@ -105,7 +105,17 @@
 
       spark:
         mode: {{admanager_spark_op_mode}}
-        masterHostPort: {{admanager_spark_hostport}}
+        master: {{admanager_spark_master}}
+        sparkHome: {{ams_admanager_lib_dir}}/spark
+        jarfile: {{ams_admanager_lib_dir}}/ambari-metrics-anomaly-detection-service.jar
+
+      detection
+        trend: false
+        kafkaServers: localhost:6667
+        kafkaTopic: ambari-metrics-ad
+        kafkaConsumerGroup: ambari-metrics-ad-group
+        ema-w: 0.9
+        ema-n: 3
     </value>
     <value-attributes>
       <type>content</type>

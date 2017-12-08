@@ -215,10 +215,10 @@ spark_worker_webui_port = default("/configurations/ams-admanager-spark-env/spark
 spark_daemon_memory = default("/configurations/ams-admanager-spark-env/spark_daemon_memory", 1024)
 
 if admanager_spark_op_mode == 'spark-on-yarn':
-  admanager_spark_hostport = hostname + ":" + spark_master_port #TODO : Fix for spark on yarn mode.
+  admanager_spark_master = "spark://" + hostname + ":" + spark_master_port #TODO : Fix for spark on yarn mode.
   ams_ad_standalone_spark_enabled = False
 else:
-  admanager_spark_hostport = hostname + ":" + spark_master_port
+  admanager_spark_master = "spark://" + hostname + ":" + spark_master_port
   ams_ad_standalone_spark_enabled = True
 
 if (('ams-admanager-log4j' in config['configurations']) and ('content' in config['configurations']['ams-admanager-log4j'])):

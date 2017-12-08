@@ -18,22 +18,29 @@
 
 package org.apache.ambari.metrics.adservice.configuration
 
-import javax.validation.constraints.NotNull
-
 import com.fasterxml.jackson.annotation.JsonProperty
 
 class SparkConfiguration {
 
-  @NotNull
-  private var mode: String = _
+  @JsonProperty("mode")
+  private val mode: String = "standalone"
 
-  @NotNull
-  private var masterHostPort: String = _
+  @JsonProperty("master")
+  private val master: String = "spark://localhost:7077"
 
-  @JsonProperty
+  @JsonProperty("sparkHome")
+  private val sparkHome: String = "/usr/lib/ambari-metrics-anomaly-detection/spark"
+
+  @JsonProperty("jarfile")
+  private val jarfile: String = "/usr/lib/ambari-metrics-anomaly-detection/ambari-metrics-anomaly-detection-service.jar"
+
+
   def getMode: String = mode
 
-  @JsonProperty
-  def getMasterHostPort: String = masterHostPort
+  def getMaster: String = master
+
+  def getSparkHome: String = sparkHome
+
+  def getJarFile: String = jarfile
 
 }

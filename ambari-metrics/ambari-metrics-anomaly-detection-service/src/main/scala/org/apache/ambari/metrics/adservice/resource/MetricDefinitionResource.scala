@@ -21,7 +21,8 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 
-import org.apache.ambari.metrics.adservice.metadata.{MetricDefinitionService, MetricKey, MetricSourceDefinition}
+import org.apache.ambari.metrics.adservice.metadata.{MetricKey, MetricSourceDefinition}
+import org.apache.ambari.metrics.adservice.service.MetricDefinitionService
 import org.apache.commons.lang.StringUtils
 
 import com.google.inject.Inject

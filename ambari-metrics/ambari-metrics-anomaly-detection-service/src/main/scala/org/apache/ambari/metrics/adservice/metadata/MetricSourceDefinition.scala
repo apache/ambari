@@ -22,26 +22,6 @@ import javax.xml.bind.annotation.XmlRootElement
 import org.apache.ambari.metrics.adservice.metadata.MetricSourceDefinitionType.MetricSourceDefinitionType
 import org.apache.ambari.metrics.adservice.model.AnomalyType.AnomalyType
 
-/*
-{
- "definition-name": "host-memory",
- "app-id" : "HOST",
- "hosts" : [“c6401.ambari.apache.org”],
- "metric-definitions" : [
-   {
-       "metric-name": "mem_free",
-       "metric-description" : "Free memory on a Host.",
-       "troubleshooting-info" : "Sudden drop / hike in free memory on a host.",
-       "static-threshold" : 10,
-       “app-id” : “HOST”
-}   ],
-
- "related-definition-names" : ["host-cpu", “host-network”],
- “anomaly-detection-subsystems” : [“point-in-time”, “trend”]
-}
-*/
-
-
 @SerialVersionUID(10001L)
 @XmlRootElement
 class MetricSourceDefinition extends Serializable{
