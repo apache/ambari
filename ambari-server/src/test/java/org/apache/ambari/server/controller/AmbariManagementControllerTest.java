@@ -136,6 +136,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
@@ -3925,8 +3926,9 @@ public class AmbariManagementControllerTest {
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion206;
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
-    Service mapred = cluster.addService(null, "YARN", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service mapred = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -4088,7 +4090,8 @@ public class AmbariManagementControllerTest {
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion207;
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -4195,8 +4198,9 @@ public class AmbariManagementControllerTest {
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
-    Service hive = cluster.addService(null, "HIVE", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service hive = cluster.addService(serviceGroup, "HIVE", "HIVE", repositoryVersion);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -4467,8 +4471,9 @@ public class AmbariManagementControllerTest {
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
-    Service mapReduce = cluster.addService(null, "MAPREDUCE", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service mapReduce = cluster.addService(serviceGroup, "MAPREDUCE", "MAPREDUCE", repositoryVersion);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name());
@@ -6131,8 +6136,9 @@ public class AmbariManagementControllerTest {
         put("key1", "value1");
       }}, new HashMap<>());
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
-    Service mapred = cluster.addService(null, "YARN", "",  repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service mapred = cluster.addService(serviceGroup, "YARN", "YARN",  repositoryVersion);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -6234,8 +6240,9 @@ public class AmbariManagementControllerTest {
         put("key1", "value1");
       }}, new HashMap<>());
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
-    Service mapred = cluster.addService(null, "YARN", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
+    Service mapred = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -9163,7 +9170,8 @@ public class AmbariManagementControllerTest {
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion120;
 
-    Service hdfs = c1.addService(null, "HDFS", "", repositoryVersion);
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    Service hdfs = c1.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     createServiceComponent(cluster1, "HDFS", "NAMENODE", State.INIT);
     createServiceComponent(cluster1, "HDFS", "DATANODE", State.INIT);
     createServiceComponent(cluster1, "HDFS", "HDFS_CLIENT", State.INIT);

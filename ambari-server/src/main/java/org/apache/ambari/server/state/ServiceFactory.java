@@ -44,7 +44,7 @@ public interface ServiceFactory {
    * @return
    */
   Service createNew(Cluster cluster, ServiceGroup serviceGroup,
-                    @Assisted List<ServiceKey> serviceDependencies,
+                    List<ServiceKey> serviceDependencies,
                     @Assisted("serviceName") String serviceName,
                     @Assisted("serviceType") String serviceType,
                     RepositoryVersionEntity desiredRepositoryVersion);

@@ -328,6 +328,22 @@ public class OrmTestHelper {
     return stackEntity;
   }
 
+  //TODO this is hack which should be removed during merge with BP branch
+  @Transactional
+  public StackEntity createStackWithRepoVersion(StackId stackId, String repoVersion) throws AmbariException {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+
+    if (null == stackEntity) {
+      stackEntity = new StackEntity();
+      stackEntity.setStackName(stackId.getStackName());
+      stackEntity.setStackVersion(stackId.getStackVersion());
+      stackEntity.setRepoVersion(repoVersion);
+      stackDAO.create(stackEntity);
+    }
+
+    return stackEntity;
+  }
+
   /**
    * Creates an empty cluster with an ID.
    *
@@ -659,7 +675,7 @@ public class OrmTestHelper {
       String version) {
     StackEntity stackEntity = null;
     try {
-      stackEntity = createStack(stackId);
+      stackEntity = createStackWithRepoVersion(stackId, version);
     } catch (Exception e) {
       LOG.error("Expected successful repository", e);
     }

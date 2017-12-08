@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -173,7 +174,8 @@ public class TestHeartbeatMonitor {
 
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
-    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -275,7 +277,8 @@ public class TestHeartbeatMonitor {
 
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
-    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
     (hostname1);
@@ -382,7 +385,8 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -463,7 +467,8 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
     hdfs.addServiceComponent(Role.NAMENODE.name());
@@ -581,7 +586,8 @@ public class TestHeartbeatMonitor {
 
     clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
-    Service hdfs = cluster.addService(null, serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
 
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);

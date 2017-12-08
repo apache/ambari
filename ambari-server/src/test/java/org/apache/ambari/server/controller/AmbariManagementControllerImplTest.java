@@ -350,8 +350,9 @@ public class AmbariManagementControllerImplTest {
     StackId stackId = createNiceMock(StackId.class);
     ServiceComponent component = createNiceMock(ServiceComponent.class);
 
-    expect(service.getName()).andReturn("service");
+    expect(service.getServiceType()).andReturn("service");
     expect(service.getServiceComponent("component")).andReturn(component);
+    expect(service.getServiceComponents()).andReturn(Collections.singletonMap("component", component)).anyTimes();
     expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
@@ -360,7 +361,7 @@ public class AmbariManagementControllerImplTest {
     ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
     expect(serviceInfo.getClientComponent()).andReturn(compInfo);
     expect(compInfo.getName()).andReturn("component");
-    expect(component.getServiceComponentHosts()).andReturn(new HashMap<String, ServiceComponentHost>());
+    expect(component.getServiceComponentHosts()).andReturn(Collections.singletonMap("host", null)).anyTimes();
     expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
 
     replay(injector, cluster, service, component, serviceInfo, compInfo, ambariMetaInfo, stackId);
@@ -383,7 +384,7 @@ public class AmbariManagementControllerImplTest {
     ServiceComponent component1 = createNiceMock(ServiceComponent.class);
     ServiceComponent component2 = createNiceMock(ServiceComponent.class);
 
-    expect(service.getName()).andReturn("service");
+    expect(service.getServiceType()).andReturn("service");
     expect(service.getServiceComponent("component")).andThrow(
       new ServiceComponentNotFoundException("cluster", "service", "component", "", ""));
     expect(service.getDesiredStackId()).andReturn(stackId);
@@ -394,8 +395,7 @@ public class AmbariManagementControllerImplTest {
     componentsMap.put("component2", component2);
     expect(service.getServiceComponents()).andReturn(componentsMap);
     expect(component1.getServiceComponentHosts()).andReturn(Collections.emptyMap());
-    expect(component2.getServiceComponentHosts()).andReturn(
-      new HashMap<String, ServiceComponentHost>());
+    expect(component2.getServiceComponentHosts()).andReturn(Collections.singletonMap("host", null)).anyTimes();
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
@@ -423,7 +423,7 @@ public class AmbariManagementControllerImplTest {
     ServiceComponent component1 = createNiceMock(ServiceComponent.class);
     ServiceComponent component2 = createNiceMock(ServiceComponent.class);
 
-    expect(service.getName()).andReturn("service");
+    expect(service.getServiceType()).andReturn("service");
     expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
@@ -432,8 +432,7 @@ public class AmbariManagementControllerImplTest {
     componentsMap.put("component2", component2);
     expect(service.getServiceComponents()).andReturn(componentsMap);
     expect(component1.getServiceComponentHosts()).andReturn(Collections.emptyMap());
-    expect(component2.getServiceComponentHosts()).andReturn(
-      new HashMap<String, ServiceComponentHost>());
+    expect(component2.getServiceComponentHosts()).andReturn(Collections.singletonMap("host", null)).anyTimes();
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     expect(serviceInfo.getClientComponent()).andReturn(null);
@@ -1044,7 +1043,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
@@ -1066,9 +1065,9 @@ public class AmbariManagementControllerImplTest {
         }}).anyTimes();
 
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
+    expect(service.getName()).andReturn("service1").anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(service.getName()).andReturn("service1");
     expect(component.getName()).andReturn("component1");
     expect(component.getServiceComponentHosts()).andReturn(
         new HashMap<String, ServiceComponentHost>() {{
@@ -1111,7 +1110,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1133,10 +1132,9 @@ public class AmbariManagementControllerImplTest {
 //    expect(stack.getStackVersion()).andReturn("stackVersion");
 //
 //    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
-    expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
-    expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(service.getName()).andReturn("service1");
+//    expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
+//    expect(service.getServiceComponent("component1")).andReturn(component);
     expect(component.getName()).andReturn("component1").anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(null);
 
@@ -1177,7 +1175,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
     request1.setState("INSTALLED");
 
 
@@ -1209,9 +1207,9 @@ public class AmbariManagementControllerImplTest {
 //    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getClusterName()).andReturn("cl1");
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(service.getName()).andReturn("service1");
+    expect(service.getName()).andReturn("service1").anyTimes();
     expect(component.getName()).andReturn("component1").anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(new HashMap<String, ServiceComponentHost>() {{
       put("host1", componentHost1);
@@ -1254,7 +1252,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
     request1.setMaintenanceState("ON");
 
 
@@ -1281,9 +1279,9 @@ public class AmbariManagementControllerImplTest {
 
     expect(cluster.getClusterName()).andReturn("cl1");
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(service.getName()).andReturn("service1");
+    expect(service.getName()).andReturn("service1").anyTimes();
     expect(component.getName()).andReturn("component1").anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(new HashMap<String, ServiceComponentHost>() {{
       put("host1", componentHost1);
@@ -1338,13 +1336,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", null, null);
+        "cluster1", "CORE", "service1", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", null, null);
+        "cluster1", "CORE", "service1", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1365,7 +1363,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster)).anyTimes();
     expect(cluster.getService("service1")).andReturn(service).times(3);
 
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component1);
     expect(service.getName()).andReturn("service1").anyTimes();
     expect(component1.getName()).andReturn("component1");
@@ -1376,13 +1374,13 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
 
-    expect(cluster.getServiceByComponentName("component2")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component2")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component2")).andReturn(component2);
     expect(component2.getName()).andReturn("component2");
     expect(component2.getServiceComponentHosts()).andReturn(null);
     expect(componentHost2.getHostName()).andReturn("host1");
 
-    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
     expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(
@@ -1437,13 +1435,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", null, null);
+        "cluster1", "CORE", "service2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", null, null);
+        "cluster1", "CORE", "service1", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1471,8 +1469,7 @@ public class AmbariManagementControllerImplTest {
 
 //    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
-    expect(service.getName()).andReturn("service1").atLeastOnce();
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component1);
     expect(component1.getName()).andReturn("component1");
     expect(component1.getServiceComponentHosts()).andReturn(new
@@ -1482,10 +1479,11 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost1.getHostName()).andReturn("host1");
 
-    expect(cluster.getServiceByComponentName("component2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));
+    expect(cluster.getService("service2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));
 
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
+    expect(service.getName()).andReturn("service1").anyTimes();
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
     expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(new
@@ -1543,13 +1541,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", null, null);
+        "cluster1", "CORE", "service2", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", null, null);
+        "cluster1", "CORE", "service1", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1577,9 +1575,8 @@ public class AmbariManagementControllerImplTest {
 
 //    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(service.getName()).andReturn("service1").anyTimes();
     expect(component.getName()).andReturn("component1");
     expect(component.getServiceComponentHosts()).andReturn(ImmutableMap.<String, ServiceComponentHost>builder()
         .put("host1", componentHost1)
@@ -1589,14 +1586,13 @@ public class AmbariManagementControllerImplTest {
 
 //    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component2")).andReturn("service2");
     expect(cluster.getService("service2")).andReturn(service2);
-    expect(cluster.getServiceByComponentName("component2")).andReturn(service2);
-    expect(service2.getName()).andReturn("service2");
+    expect(cluster.getServiceByComponentName("component2")).andReturn(service2).anyTimes();
     expect(service2.getServiceComponent("component2")).
         andThrow(new ServiceComponentNotFoundException("cluster1", "service2", "component2", "", ""));
 
 //    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component3")).andReturn("service1");
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
 
     expect(component3.getName()).andReturn("component3");
@@ -1653,13 +1649,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", null, null, null);
+        "cluster1", "CORE", "service1", "component1", null, null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host2", null, null);
+        "cluster1", "CORE", "service1", "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", null, null, null);
+        "cluster1", "CORE", "service1", "component3", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1686,7 +1682,7 @@ public class AmbariManagementControllerImplTest {
     expect(stack.getStackVersion()).andReturn("stackVersion").anyTimes();
 
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
     expect(service.getName()).andReturn("service1").anyTimes();
     expect(component.getName()).andReturn("component1");
@@ -1697,7 +1693,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClustersForHost("host2")).andThrow(new HostNotFoundException("host2"));
 
     expect(cluster.getService("service1")).andReturn(service);
-    expect(cluster.getServiceByComponentName("component3")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component3")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component3")).andReturn(component3);
     expect(component3.getName()).andReturn("component3");
     expect(component3.getServiceComponentHosts()).andReturn(Collections.singletonMap("foo", componentHost2));
@@ -1738,13 +1734,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", null, null);
+        "cluster1", "CORE", "service1", "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", null, null);
+        "cluster1", "CORE", "service1", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1793,13 +1789,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", null, null);
+        "cluster1", "CORE", "service1", "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host2", null, null);
+        "cluster1", "CORE", "service1", "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", null, null);
+        "cluster1", "CORE", "service1", "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1858,7 +1854,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", null, null, null);
+        "cluster1", "CORE", "service1", "component1", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();
@@ -1884,10 +1880,10 @@ public class AmbariManagementControllerImplTest {
         }}).anyTimes();
 
     expect(cluster.getService("service1")).andReturn(service);
+    expect(service.getName()).andReturn("service1").anyTimes();
     expect(component.getName()).andReturn("component1").anyTimes();
-    expect(cluster.getServiceByComponentName("component1")).andReturn(service);
+    expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
-    expect(service.getName()).andReturn("service1");
     expect(component.getServiceComponentHosts()).andReturn(mapHostComponents);
     expect(componentHost1.convertToResponse(null)).andReturn(response1);
     expect(componentHost2.convertToResponse(null)).andReturn(response2);
@@ -1938,7 +1934,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, null, null, null, null);
+        "cluster1", "CORE", null, null, null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<>();

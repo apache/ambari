@@ -42,6 +42,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
@@ -108,7 +109,8 @@ public class TestActionSchedulerThreading {
     // add a service
     String serviceName = "ZOOKEEPER";
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(cluster);
-    Service service = cluster.addService(null, serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
     String configType = "zoo.cfg";
 
     Map<String, String> properties = new HashMap<>();

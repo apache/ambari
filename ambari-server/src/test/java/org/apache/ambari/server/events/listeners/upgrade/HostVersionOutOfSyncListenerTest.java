@@ -53,6 +53,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
@@ -548,7 +549,8 @@ public class HostVersionOutOfSyncListenerTest {
       String serviceName, RepositoryVersionEntity repositoryVersionEntity) throws AmbariException {
     StackId stackIdObj = new StackId(stackId);
     cl.setDesiredStackVersion(stackIdObj);
-    cl.addService(null, serviceName, "", repositoryVersionEntity);
+    ServiceGroup serviceGroup = cl.addServiceGroup("CORE");
+    cl.addService(serviceGroup, serviceName, serviceName, repositoryVersionEntity);
 
     for (Map.Entry<String, List<Integer>> component : topology.entrySet()) {
 

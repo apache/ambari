@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -214,7 +215,7 @@ public class ClusterImplTest {
     String stackVersion = "HDP-2.1.1";
     String repoVersion = "2.1.1-1234";
     StackId stackId = new StackId(stackVersion);
-    ormTestHelper.createStack(stackId);
+    ormTestHelper.createStackWithRepoVersion(stackId, "");
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -233,7 +234,8 @@ public class ClusterImplTest {
 
     clusters.mapAndPublishHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.addServiceComponentHost(hostName1);
@@ -246,7 +248,7 @@ public class ClusterImplTest {
     hdfsClient.addServiceComponentHost(hostName1);
     hdfsClient.addServiceComponentHost(hostName2);
 
-    Service tez = cluster.addService(null, serviceToDelete, "", repositoryVersion);
+    Service tez = cluster.addService(serviceGroup, serviceToDelete, serviceToDelete, repositoryVersion);
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
@@ -275,7 +277,7 @@ public class ClusterImplTest {
     String hostToDelete = hostName2;
     StackId stackId = new StackId("HDP-2.1.1");
 
-    ormTestHelper.createStack(stackId);
+    ormTestHelper.createStackWithRepoVersion(stackId, "");
     clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);
@@ -315,7 +317,7 @@ public class ClusterImplTest {
     String clusterName = "TEST_CLUSTER_SIZE";
     String hostName1 = "host1", hostName2 = "host2";
     StackId stackId = new StackId("HDP", "2.1.1");
-    ormTestHelper.createStack(stackId);
+    ormTestHelper.createStackWithRepoVersion(stackId, "");
     clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);

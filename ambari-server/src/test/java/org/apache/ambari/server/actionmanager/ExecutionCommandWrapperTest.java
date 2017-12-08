@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -115,7 +116,8 @@ public class ExecutionCommandWrapperTest {
 
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster1);
-    cluster1.addService(null, "HDFS", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster1.addServiceGroup("CORE");
+    cluster1.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     SERVICE_SITE_CLUSTER = new HashMap<>();
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);

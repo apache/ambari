@@ -65,6 +65,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -144,7 +145,7 @@ public class ClustersTest {
   public void testAddAndGetCluster() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStack(stackId);
+    helper.createStackWithRepoVersion(stackId,"");
 
     String c1 = "foo";
     String c2 = "foo";
@@ -198,7 +199,7 @@ public class ClustersTest {
   public void testAddAndGetClusterWithSecurityType() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStack(stackId);
+    helper.createStackWithRepoVersion(stackId, "");
 
     String c1 = "foo";
     SecurityType securityType = SecurityType.KERBEROS;
@@ -265,7 +266,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createStackWithRepoVersion(stackId, "");
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -351,7 +352,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createStackWithRepoVersion(stackId, "");
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -384,7 +385,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
+    helper.createStackWithRepoVersion(stackId, "");
 
     clusters.addCluster(c1, stackId);
 
@@ -426,7 +427,8 @@ public class ClustersTest {
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
 
-    Service hdfs = cluster.addService(null, "HDFS", "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     //Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 

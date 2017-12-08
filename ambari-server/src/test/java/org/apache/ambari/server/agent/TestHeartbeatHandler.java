@@ -91,6 +91,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -1339,6 +1340,9 @@ public class TestHeartbeatHandler {
     componentMap.put("NAMENODE", nnComponent);
 
     expect(service.getServiceComponents()).andReturn(componentMap);
+    expect(service.getServiceId()).andReturn(1L).atLeastOnce();
+    expect(service.getServiceType()).andReturn("HDFS").atLeastOnce();
+    expect(service.getDesiredStackId()).andReturn(dummyStackId).atLeastOnce();
 
     replay(service, nnComponent);
 
@@ -1575,7 +1579,8 @@ public class TestHeartbeatHandler {
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    return cluster.addService(null, serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    return cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
   }
 
 }

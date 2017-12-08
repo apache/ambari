@@ -55,6 +55,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -158,9 +159,10 @@ public class ConfigHelperTest {
       cr2.setType("flume-conf");
       cr2.setVersionTag("version1");
 
-      cluster.addService(null, "", "FLUME", repositoryVersion);
-      cluster.addService(null, "", "OOZIE", repositoryVersion);
-      cluster.addService(null, "", "HDFS", repositoryVersion);
+      ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+      cluster.addService(serviceGroup, "FLUME", "FLUME", repositoryVersion);
+      cluster.addService(serviceGroup, "OOZIE", "OOZIE", repositoryVersion);
+      cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -984,8 +986,9 @@ public class ConfigHelperTest {
       expect(sch.getHostName()).andReturn("h1").anyTimes();
       expect(sch.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
       expect(sch.getServiceName()).andReturn("FLUME").anyTimes();
+      expect(sch.getServiceType()).andReturn("FLUME").anyTimes();
       expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").anyTimes();
-      expect(sch.getServiceComponent()).andReturn(sc).anyTimes();
+      expect(sch.getServiceComponent()).andReturn(sc).anyTimes(); //
 
       replay(sc, sch);
       // Cluster level config changes
@@ -1059,6 +1062,7 @@ public class ConfigHelperTest {
     expect(sch.getHostName()).andReturn("h1").anyTimes();
     expect(sch.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(sch.getServiceType()).andReturn("HDFS").anyTimes();
     expect(sch.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
     expect(sch.getServiceComponent()).andReturn(sc).anyTimes();
 
@@ -1102,6 +1106,7 @@ public class ConfigHelperTest {
           bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactory.class));
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
           bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+          bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
         }
       });
 
@@ -1131,6 +1136,7 @@ public class ConfigHelperTest {
 
       expect(mockCluster.getService("SERVICE")).andReturn(mockService).once();
       expect(mockService.getDesiredStackId()).andReturn(mockStackVersion).once();
+      expect(mockService.getServiceType()).andReturn("SERVICE").once();
       expect(mockStackVersion.getStackName()).andReturn("HDP").once();
       expect(mockStackVersion.getStackVersion()).andReturn("2.2").once();
 

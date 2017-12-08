@@ -46,6 +46,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.ServiceGroupKey;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -1227,6 +1228,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
   private Cluster makeCluster(boolean clean, Set<String> additionalServices) throws AmbariException, AuthorizationException {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
 
@@ -1258,11 +1260,12 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "YARN", "", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HIVE", "", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "OOZIE", "", repositoryVersion));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "YARN", "YARN", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HIVE", "HIVE", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "OOZIE", "OOZIE", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1366,7 +1369,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
 
     for(String service : additionalServices) {
-      c.addService(null, service, "", repositoryVersion);
+      c.addService(serviceGroup, service, service, repositoryVersion);
       if (service.equals("HBASE")) {
         type = new HostsType();
         type.hosts.addAll(Arrays.asList("h1", "h2"));
@@ -1453,6 +1456,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
 
@@ -1478,7 +1482,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1528,6 +1533,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
   public void testResolverWithFailedUpgrade() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
 
@@ -1550,7 +1556,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repositoryVersion2110));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion2110));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
@@ -1591,6 +1598,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
   public void testResolverCaseInsensitive() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
     String version = "2.1.1.0-1234";
@@ -1617,7 +1625,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion211));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion211));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1661,6 +1670,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
   public void testResolverBadJmx() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
     String version = "2.1.1.0-1234";
@@ -1686,7 +1696,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HDFS", "", repositoryVersion211));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HDFS", "HDFS", repositoryVersion211));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1777,6 +1788,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
   public void testOrchestrationNoServerSideOnDowngrade() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
 
@@ -1806,7 +1818,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add storm
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "STORM", "", repoVersion211));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "STORM", "STORM", repoVersion211));
 
     Service s = c.getService("STORM");
     ServiceComponent sc = s.addServiceComponent("NIMBUS");
@@ -1880,6 +1893,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     // !!! make a two node cluster with just ZK
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
 
@@ -1911,7 +1925,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repositoryVersion));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repositoryVersion));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
@@ -2066,6 +2081,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
   public void testHostGroupingOrchestration() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+    ServiceGroupFactory serviceGroupFactory = injector.getInstance(ServiceGroupFactory.class);
 
     String clusterName = "c1";
 
@@ -2096,8 +2112,9 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     // add ZK Server to both hosts, and then Nimbus to only 1 - this will test
     // how the HOU breaks out dependencies into stages
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "ZOOKEEPER", "", repoVersion211));
-    c.addService(serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), "HBASE", "", repoVersion211));
+    ServiceGroup serviceGroup = serviceGroupFactory.createNew(c, "service_group", new HashSet<ServiceGroupKey>());
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "ZOOKEEPER", "ZOOKEEPER", repoVersion211));
+    c.addService(serviceFactory.createNew(c, serviceGroup, new ArrayList<ServiceKey>(), "HBASE", "HBASE", repoVersion211));
     Service zookeeper = c.getService("ZOOKEEPER");
     Service hbase = c.getService("HBASE");
     ServiceComponent zookeeperServer = zookeeper.addServiceComponent("ZOOKEEPER_SERVER");

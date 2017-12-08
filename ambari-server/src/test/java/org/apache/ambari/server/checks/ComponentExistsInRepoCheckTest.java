@@ -133,6 +133,8 @@ public class ComponentExistsInRepoCheckTest extends EasyMockSupport {
     ZK_SERVICE_COMPONENTS.put("ZOOKEEPER_SERVER", m_zookeeperServer);
     FOO_SERVICE_COMPONENTS.put("FOO_COMPONENT", m_fooComponent);
 
+    expect(m_zookeeperService.getServiceType()).andReturn("ZOOKEEPER").anyTimes();
+    expect(m_fooService.getServiceType()).andReturn("FOO_SERVICE").anyTimes();
     expect(m_zookeeperService.getServiceComponents()).andReturn(ZK_SERVICE_COMPONENTS).anyTimes();
     expect(m_fooService.getServiceComponents()).andReturn(FOO_SERVICE_COMPONENTS).anyTimes();
 

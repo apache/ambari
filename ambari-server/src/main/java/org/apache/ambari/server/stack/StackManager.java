@@ -307,6 +307,9 @@ public class StackManager {
         stackEntity.setStackName(stackName);
         stackEntity.setStackVersion(stackVersion);
 
+        //TODO this is hack which should be removed during merge with BP branch
+        stackEntity.setRepoVersion("");
+
         stackDao.create(stackEntity);
       }
     }
