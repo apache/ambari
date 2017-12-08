@@ -76,19 +76,19 @@ public class ServiceConfigEntity {
   private Long clusterId;
 
   @Basic
-  @Column(name = "service_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "service_id", nullable = false)
   private Long serviceId;
 
   @Basic
-  @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false)
+  @Column(name = "service_group_id", nullable = false)
   private Long serviceGroupId;
 
   @ManyToOne
   @JoinColumns(
       {
           @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
-          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
-          @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", insertable = false, updatable = false, nullable = false),
+          @JoinColumn(name = "service_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
       })
   private ClusterServiceEntity clusterServiceEntity;
 

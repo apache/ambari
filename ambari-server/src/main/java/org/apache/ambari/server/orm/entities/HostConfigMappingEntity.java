@@ -43,7 +43,7 @@ import javax.persistence.Table;
 public class HostConfigMappingEntity {
 
   @Id
-  @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
+  @Column(name = "cluster_id", nullable = false)
   private Long clusterId;
 
   @Id
@@ -61,18 +61,18 @@ public class HostConfigMappingEntity {
   @Column(name = "version_tag", insertable = true, updatable = false, nullable = false)
   private String versionTag;
 
-  @Column(name = "service_id", insertable = false, updatable = false, nullable = false)
+  @Column(name = "service_id")
   private Long serviceId;
 
-  @Column(name = "service_group_id", insertable = false, updatable = false, nullable = false)
+  @Column(name = "service_group_id")
   private Long serviceGroupId;
 
   @ManyToOne
   @JoinColumns(
       {
-          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
-          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", nullable = false),
-          @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
+          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", insertable = false, updatable = false,  nullable = false),
+          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", insertable = false, updatable = false, nullable = false),
+          @JoinColumn(name = "service_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
       })
   private ClusterServiceEntity clusterServiceEntity;
 
