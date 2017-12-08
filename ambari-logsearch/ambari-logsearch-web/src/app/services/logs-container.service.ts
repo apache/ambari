@@ -476,9 +476,9 @@ export class LogsContainerService {
   };
 
   readonly colors = {
-    WARN: '#FF8916',
-    ERROR: '#E81D1D',
     FATAL: '#830A0A',
+    ERROR: '#E81D1D',
+    WARN: '#FF8916',
     INFO: '#2577B5',
     DEBUG: '#65E8FF',
     TRACE: '#888',
