@@ -215,7 +215,7 @@ public class ClusterImplTest {
     String stackVersion = "HDP-2.1.1";
     String repoVersion = "2.1.1-1234";
     StackId stackId = new StackId(stackVersion);
-    ormTestHelper.createStackWithRepoVersion(stackId, "");
+    ormTestHelper.createStack(stackId);
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -277,7 +277,7 @@ public class ClusterImplTest {
     String hostToDelete = hostName2;
     StackId stackId = new StackId("HDP-2.1.1");
 
-    ormTestHelper.createStackWithRepoVersion(stackId, "");
+    ormTestHelper.createStack(stackId);
     clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);
@@ -317,7 +317,7 @@ public class ClusterImplTest {
     String clusterName = "TEST_CLUSTER_SIZE";
     String hostName1 = "host1", hostName2 = "host2";
     StackId stackId = new StackId("HDP", "2.1.1");
-    ormTestHelper.createStackWithRepoVersion(stackId, "");
+    ormTestHelper.createStack(stackId);
     clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);

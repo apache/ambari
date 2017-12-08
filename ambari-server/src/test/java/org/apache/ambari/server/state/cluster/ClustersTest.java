@@ -145,7 +145,7 @@ public class ClustersTest {
   public void testAddAndGetCluster() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStackWithRepoVersion(stackId,"");
+    helper.createStack(stackId);
 
     String c1 = "foo";
     String c2 = "foo";
@@ -199,7 +199,7 @@ public class ClustersTest {
   public void testAddAndGetClusterWithSecurityType() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStackWithRepoVersion(stackId, "");
+    helper.createStack(stackId);
 
     String c1 = "foo";
     SecurityType securityType = SecurityType.KERBEROS;
@@ -266,7 +266,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStackWithRepoVersion(stackId, "");
+    helper.createStack(stackId);
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -352,7 +352,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStackWithRepoVersion(stackId, "");
+    helper.createStack(stackId);
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -385,7 +385,7 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStackWithRepoVersion(stackId, "");
+    helper.createStack(stackId);
 
     clusters.addCluster(c1, stackId);
 
