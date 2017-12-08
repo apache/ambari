@@ -18,8 +18,9 @@
 <form [formGroup]="filtersForm">
   <div class="form-inline filter-input-container col-md-8">
     <search-box [parameterAddSubject]="queryParameterAdd" [parameterNameChangeSubject]="queryParameterNameChange"
-                formControlName="query" [items]="searchBoxItemsTranslated" [itemsOptions]="options"
-                [updateValueImmediately]="false" [updateValueSubject]="searchBoxValueUpdate" class="filter-input"></search-box>
+                class="filter-input" formControlName="query" [items]="searchBoxItems | async" [itemsOptions]="options"
+                [updateValueImmediately]="false" [updateValueSubject]="searchBoxValueUpdate"
+                defaultParameterName="log_message"></search-box>
     <time-range-picker *ngIf="isFilterConditionDisplayed('timeRange')" formControlName="timeRange"
                        class="filter-input"></time-range-picker>
     <timezone-picker class="filter-input"></timezone-picker>

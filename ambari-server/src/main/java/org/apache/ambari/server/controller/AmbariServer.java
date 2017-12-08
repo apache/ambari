@@ -567,6 +567,9 @@ public class AmbariServer {
        */
       server.start();
 
+      //views initialization will reset inactive interval with default value, so we should set it after
+      configureMaxInactiveInterval();
+
       serverForAgent.start();
       LOG.info("********* Started Server **********");
 
@@ -857,10 +860,13 @@ public class AmbariServer {
     if (configs.getApiSSLAuthentication()) {
       sessionManager.getSessionCookieConfig().setSecure(true);
     }
+  }
 
+  protected void configureMaxInactiveInterval() {
     // each request that does not use AMBARISESSIONID will create a new
     // HashedSession in Jetty; these MUST be reaped after inactivity in order
     // to prevent a memory leak
+
     int sessionInactivityTimeout = configs.getHttpSessionInactiveTimeout();
     sessionManager.setMaxInactiveInterval(sessionInactivityTimeout);
   }

@@ -116,8 +116,6 @@ export class LogsContainerService {
         this.loadLogs();
       });
     });
-    this.auditLogsColumns.subscribe(this.getTranslationKeysSubscriber('auditLogsColumnsTranslated'));
-    this.serviceLogsColumns.subscribe(this.getTranslationKeysSubscriber('serviceLogsColumnsTranslated'));
   }
 
   private readonly paginationOptions: string[] = ['10', '25', '50', '100'];
@@ -478,9 +476,9 @@ export class LogsContainerService {
   };
 
   readonly colors = {
-    WARN: '#FF8916',
-    ERROR: '#E81D1D',
     FATAL: '#830A0A',
+    ERROR: '#E81D1D',
+    WARN: '#FF8916',
     INFO: '#2577B5',
     DEBUG: '#65E8FF',
     TRACE: '#888',
@@ -572,29 +570,9 @@ export class LogsContainerService {
     }
   }
 
-  private getTranslationKeysSubscriber = (propertyName: string): (items: ListItem[]) => void  => {
-    return (items: ListItem[]): void => {
-      const keys = items.map((item: ListItem): string => item.label);
-      if (keys.length) {
-        this.translate.get(keys).first().subscribe((translation: {[key: string]: string}): void => {
-          this[propertyName] = items.map((item: ListItem): CommonEntry => {
-            return {
-              name: translation[item.label],
-              value: item.value
-            };
-          });
-        });
-      }
-    };
-  };
-
   auditLogsColumns: Observable<ListItem[]> = this.auditLogsFieldsStorage.getAll().map(this.columnsMapper);
 
-  auditLogsColumnsTranslated: CommonEntry[] = [];
-
   serviceLogsColumns: Observable<ListItem[]> = this.serviceLogsFieldsStorage.getAll().map(this.columnsMapper);
-
-  serviceLogsColumnsTranslated: CommonEntry[] = [];
 
   serviceLogs: Observable<ServiceLog[]> = Observable.combineLatest(this.serviceLogsStorage.getAll(), this.serviceLogsColumns).map(this.logsMapper);
 

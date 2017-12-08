@@ -70,11 +70,6 @@
       .collapsed-form-control;
     }
 
-    .search-item-text {
-      visibility: hidden;
-      padding: 0 @input-padding;
-    }
-
     &.active {
       min-width: @dropdown-min-width;
 
@@ -87,35 +82,24 @@
       }
 
       &.value {
-        .parameter-input-wrapper {
-          /deep/ .ng2-auto-complete-wrapper {
-            display: none;
-          }
+        .parameter-input {
+          display: none;
         }
 
         .value-input {
           width: 100%;
         }
       }
-
-      .no-options {
-        /deep/ .ng2-auto-complete {
-          display: none;
-        }
-      }
     }
 
-    /deep/ .ng2-auto-complete {
-      cursor: pointer;
+    /deep/ typeahead-container .dropdown-menu {
       .dropdown-list-default;
 
-      > ul {
-        border: none;
+      > li {
+        .dropdown-item-default;
 
-        li {
-          border: none;
-          background-color: initial;
-          .dropdown-item-default;
+        > a{
+          .dropdown-item-child-default;
         }
       }
     }

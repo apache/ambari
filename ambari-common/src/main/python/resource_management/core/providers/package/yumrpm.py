@@ -52,8 +52,8 @@ YUM_TR_PREFIX = "transaction-"
 
 YUM_REPO_LOCATION = "/etc/yum.repos.d"
 REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean', 'metadata']
-ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed", "--noplugins"]
-ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available", "--noplugins"]
+ALL_INSTALLED_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "installed"]
+ALL_AVAILABLE_PACKAGES_CMD = [AMBARI_SUDO_BINARY, "yum", "list", "available"]
 VERIFY_DEPENDENCY_CMD = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'dependencies']
 
 # base command output sample:
@@ -191,7 +191,14 @@ class YumProvider(RPMBasedPackageProvider):
       for line in lines[skip_index:]:
         items = items + line.strip(' \t\n\r').split()
 
-      for i in range(0, len(items), 3):
+      items_count = len(items)
+
+      for i in range(0, items_count, 3):
+
+        # check if we reach the end
+        if i+3 > items_count:
+          break
+
         if '.' in items[i]:
           items[i] = items[i][:items[i].rindex('.')]
         if items[i + 2].find('@') == 0:
