@@ -19,7 +19,7 @@
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics</artifactId>
-  <version>2.6.0.0.0</version>
+  <version>2.6.1.0.0</version>
   <packaging>pom</packaging>
   <modules>
     <module>../utility</module>
@@ -47,7 +47,7 @@
     <hbase.winpkg.folder>hbase-0.98.4.2.2.4.2-0002-hadoop2</hbase.winpkg.folder>
     <hadoop.winpkg.zip>https://msibuilds.blob.core.windows.net/hdp/2.x/2.2.4.2/2/hadoop-2.6.0.2.2.4.2-0002.winpkg.zip</hadoop.winpkg.zip>
     <hadoop.winpkg.folder>hadoop-2.6.0.2.2.4.2-0002</hadoop.winpkg.folder>
-    <grafana.folder>grafana-2.6.0</grafana.folder>
+    <grafana.folder>grafana-2.6.1</grafana.folder>
     <grafana.tar>https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz</grafana.tar>
     <phoenix.tar>http://private-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.4.0-3347/tars/phoenix-4.4.0.2.3.4.0-3347.tar.gz</phoenix.tar>
     <phoenix.folder>phoenix-4.4.0.2.3.4.0-3347</phoenix.folder>
