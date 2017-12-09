@@ -900,13 +900,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-    Long service = null;
-
+    Service service = null;
     try {
-      service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-    } catch (IllegalArgumentException e) {
-      // Ignore this since we may have hit a config type that spans multiple services. This may
-      // happen in unit test cases but should not happen with later versions of stacks.
+      service = cluster.getServiceByConfigType(configType);
+    } catch (IndexOutOfBoundsException e) {
+      // may happen for cluster-wide config types
     }
 
     // Get the changes so that the user's intention can be determined. For example, maybe
@@ -1014,13 +1012,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackId stackId = null;
     if (null != service) {
-      try {
-        Service svc = cluster.getService(service);
-        stackId = svc.getDesiredStackId();
-      } catch (AmbariException ambariException) {
-        LOG.warn("Adding configurations for {} even though its parent service {} is not installed",
-            configType, service);
-      }
+      stackId = service.getDesiredStackId();
     }
 
     if (null == stackId) {
