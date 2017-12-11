@@ -2808,4 +2808,35 @@ public class ClusterImpl implements Cluster {
     // suspended goes in role params
     roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, Map<String, String>> getComponentVersionMap() {
+    Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
+
+    for (Service service : getServices().values()) {
+      Map<String, String> componentMap = new HashMap<>();
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        // skip components which don't advertise a version
+        if (!component.isVersionAdvertised()) {
+          continue;
+        }
+
+        // if the repo isn't resolved, then we can't trust the version
+        if (!component.getDesiredRepositoryVersion().isResolved()) {
+          continue;
+        }
+
+        componentMap.put(component.getName(), component.getDesiredVersion());
+      }
+
+      if (!componentMap.isEmpty()) {
+        componentVersionMap.put(service.getName(), componentMap);
+      }
+    }
+
+    return componentVersionMap;
+  }
 }

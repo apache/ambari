@@ -21,6 +21,7 @@ Ambari Agent
 import os
 
 from resource_management.core import sudo
+from resource_management.core.logger import Logger
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import component_version
@@ -84,11 +85,45 @@ stack_supports_timeline_state_store = check_stack_feature(StackFeature.TIMELINE_
 # It cannot be used during the initial Cluser Install because the version is not yet known.
 version = default("/commandParams/version", None)
 
+def get_spark_version(service_name, component_name, yarn_version):
+  """
+  Attempts to calculate the correct version placeholder value for spark or spark2 based on
+  what is installed in the cluster. If Spark is not installed, then this value will need to be
+  that of YARN so it can still find the correct shuffle class.
+
+  On cluster installs, we have not yet calcualted any versions and all known values could be None.
+  This doesn't affect daemons, but it does affect client-only hosts where they will never receive
+  a start command after install. Therefore, this function will attempt to use stack-select as a
+  last resort to get a value value.
+  :param service_name:  the service name (SPARK, SPARK2, etc)
+  :param component_name:  the component name (SPARK_CLIENT, etc)
+  :param yarn_version:  the default version of Yarn to use if no spark is installed
+  :return:  a value for the version placeholder in shuffle classpath properties
+  """
+  # start off seeing if we need to populate a default value for YARN
+  if yarn_version is None:
+    yarn_version = component_version.get_component_repository_version(service_name = "YARN",
+      component_name = "YARN_CLIENT")
+
+  # now try to get the version of spark/spark2, defaulting to the version if YARN
+  shuffle_classpath_version = component_version.get_component_repository_version(service_name = service_name,
+    component_name = component_name, default_value = yarn_version)
+
+  # even with the default of using YARN's version, on an install this might be None since we haven't
+  # calculated the version of YARN yet - use stack_select as a last ditch effort
+  if shuffle_classpath_version is None:
+    try:
+      shuffle_classpath_version = stack_select.get_role_component_current_stack_version()
+    except:
+      Logger.exception("Unable to query for the correct shuffle classpath")
+
+  return shuffle_classpath_version
+
 # these are used to render the classpath for picking up Spark classes
 # in the event that spark is not installed, then we must default to the vesrion of YARN installed
 # since it will still load classes from its own spark version
-spark_version = component_version.get_component_repository_version(service_name =  "SPARK", component_name = "SPARK_CLIENT", default_value = version)
-spark2_version = component_version.get_component_repository_version(service_name = "SPARK2", component_name = "SPARK2_CLIENT", default_value = version)
+spark_version = get_spark_version("SPARK", "SPARK_CLIENT", version)
+spark2_version = get_spark_version("SPARK2", "SPARK2_CLIENT", version)
 
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
@@ -541,5 +576,3 @@ if enable_ranger_yarn and is_supported_yarn_ranger:
 
 # need this to capture cluster name from where ranger yarn plugin is enabled
 cluster_name = config['clusterName']
-
-# ranger yarn plugin end section

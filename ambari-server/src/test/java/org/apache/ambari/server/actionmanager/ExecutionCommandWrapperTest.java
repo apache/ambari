@@ -291,7 +291,12 @@ public class ExecutionCommandWrapperTest {
     Cluster cluster = clusters.getCluster(CLUSTER1);
 
     StackId stackId = cluster.getDesiredStackVersion();
+    
+    // set the repo version resolved state to verify that the version is not sent
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+    repositoryVersion.setResolved(false);
+    ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
+
     Service service = cluster.getService("HDFS");
     service.setDesiredRepositoryVersion(repositoryVersion);
 

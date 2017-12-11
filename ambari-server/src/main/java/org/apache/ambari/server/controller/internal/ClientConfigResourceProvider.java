@@ -448,6 +448,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("clusterName", cluster.getClusterName());
         jsonContent.put("serviceName", serviceName);
         jsonContent.put("role", componentName);
+        jsonContent.put("componentVersionMap", cluster.getComponentVersionMap());
+
         jsonConfigurations = gson.toJson(jsonContent);
 
         File tmpDirectory = new File(TMP_PATH);

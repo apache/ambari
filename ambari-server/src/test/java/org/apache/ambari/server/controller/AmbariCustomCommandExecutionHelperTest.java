@@ -564,6 +564,52 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertTrue(command.getComponentVersionMap().containsKey("ZOOKEEPER"));
   }
 
+  /**
+   * Tests that if a component's repository is not resolved, then the repo
+   * version map does not get populated.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAvailableServicesMapIsEmptyWhenRepositoriesNotResolved() throws Exception {
+
+    // set all repos to resolve=false to verify that we don't get a
+    // component version map
+    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    List<RepositoryVersionEntity> repoVersions = repositoryVersionDAO.findAll();
+    for (RepositoryVersionEntity repoVersion : repoVersions) {
+      repoVersion.setResolved(false);
+      repositoryVersionDAO.merge(repoVersion);
+    }
+
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put(REQUEST_CONTEXT_PROPERTY, "Refresh YARN Capacity Scheduler");
+        put("command", "REFRESHQUEUES");
+      }
+    };
+
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "REFRESHQUEUES",
+        new HashMap<String, String>() {
+          {
+            put("forceRefreshConfigTags", "capacity-scheduler");
+          }
+        }, false);
+
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER",
+        Collections.singletonList("c1-c6401")));
+
+    EasyMock.replay(hostRoleCommand, actionManager, configHelper);
+
+    ambariManagementController.createAction(actionRequest, requestProperties);
+    Request request = requestCapture.getValue();
+    Stage stage = request.getStages().iterator().next();
+    List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c1-c6401");
+    ExecutionCommand command = commands.get(0).getExecutionCommand();
+
+    Assert.assertTrue(MapUtils.isEmpty(command.getComponentVersionMap()));
+  }
+
   @Test
   public void testCommandRepository() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
