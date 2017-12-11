@@ -674,6 +674,9 @@ public class OrmTestHelper {
 
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
+
+        repositoryVersion.setResolved(true);
+        repositoryVersion = repositoryVersionDAO.merge(repositoryVersion);
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
 

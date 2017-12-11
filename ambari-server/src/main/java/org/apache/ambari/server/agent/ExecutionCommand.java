@@ -29,8 +29,6 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -553,30 +551,21 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
-   * Used to set a map of {service -> { component -> version}}.  This is necessary when performing
-   * an upgrade to correct build paths of required binaries.
-   * @param cluster the cluster from which to build the map
+   * Used to set a map of {service -> { component -> version}}. This is
+   * necessary when performing an upgrade to correct build paths of required
+   * binaries. This method will only set the version information for a component
+   * if:
+   * <ul>
+   * <li>The component advertises a version</li>
+   * <li>The repository for the component has been resolved and the version can
+   * be trusted</li>
+   * </ul>
+   *
+   * @param cluster
+   *          the cluster from which to build the map
    */
   public void setComponentVersions(Cluster cluster) throws AmbariException {
-    Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
-
-    for (Service service : cluster.getServices().values()) {
-      Map<String, String> componentMap = new HashMap<>();
-
-      boolean shouldSet = false;
-      for (ServiceComponent component : service.getServiceComponents().values()) {
-        if (component.isVersionAdvertised()) {
-          shouldSet = true;
-          componentMap.put(component.getName(), component.getDesiredVersion());
-        }
-      }
-
-      if (shouldSet) {
-        componentVersionMap.put(service.getName(), componentMap);
-      }
-    }
-
-    this.componentVersionMap = componentVersionMap;
+    componentVersionMap = cluster.getComponentVersionMap();
   }
 
   /**
