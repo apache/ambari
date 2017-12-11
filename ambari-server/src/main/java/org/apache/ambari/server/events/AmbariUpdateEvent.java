@@ -59,6 +59,7 @@ public abstract class AmbariUpdateEvent {
     HOST("events.hosts"),
     UI_ALERT_DEFINITIONS("events.alert_definitions"),
     ALERT_DEFINITIONS("alert_definitions"),
+    UPGRADE("events.upgrade"),
     COMMAND("events.commands");
 
     /**

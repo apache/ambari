@@ -197,14 +197,14 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
 
       if (!id.equals(that.id)) return false;
       if (!requestId.equals(that.requestId)) return false;
-      return hostName.equals(that.hostName);
+      return hostName != null ? hostName.equals(that.hostName) : that.hostName == null;
     }
 
     @Override
     public int hashCode() {
       int result = id.hashCode();
       result = 31 * result + requestId.hashCode();
-      result = 31 * result + hostName.hashCode();
+      result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
       return result;
     }
   }
