@@ -30,9 +30,10 @@
     </button>
     <ul class="dropdown-menu">
       {{#each column in view.columns}}
-          <li>
-              <a href="#" {{action selectFilterColumn column target="view"}}>
-                <i {{bindAttr class="column.selected:glyphicon-ok-sign:glyphicon-placeholder :glyphicon :text-success"}}></i>
+          <li {{bindAttr class="column.isDisabled:disabled"}}>
+              <a href="#" {{action selectFilterColumn column target="view"}}
+                {{bindAttr class="column.isDisabled:disabled"}}>
+                <i {{bindAttr class="column.isDisabled:disabled column.selected:glyphicon-ok-sign:glyphicon-placeholder :glyphicon :text-success"}}></i>
                 {{column.name}}
               </a>
           </li>

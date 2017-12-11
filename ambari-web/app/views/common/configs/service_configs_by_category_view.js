@@ -188,13 +188,22 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
    * @type {boolean}
    */
   isShowBlock: function () {
-    var isCustomPropertiesCategory = this.get('category.customCanAddProperty');
-    var hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {
+    const isFilterEmpty = this.get('controller.filter') === '';
+    const isFilterActive = this.get('mainView.columns').someProperty('selected');
+    const isCustomPropertiesCategory = this.get('category.customCanAddProperty');
+    const isCompareMode = this.get('controller.isCompareMode');
+    const hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {
         return config.get('isHiddenByFilter') === false && Em.isNone(config.get('widget'));
       }, this).length > 0;
-    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('mainView.columns').someProperty('selected')) ||
+    return (isCustomPropertiesCategory && !isCompareMode && isFilterEmpty && !isFilterActive) ||
       hasFilteredAdvancedConfigs;
-  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'mainView.columns.@each.selected'),
+  }.property(
+    'category.customCanAddProperty',
+    'categoryConfigs.@each.isHiddenByFilter',
+    'categoryConfigs.@each.widget',
+    'controller.filter',
+    'controller.isCompareMode',
+    'mainView.columns.@each.selected'),
 
   /**
    * Re-order the configs to list content displayType properties at last in the category

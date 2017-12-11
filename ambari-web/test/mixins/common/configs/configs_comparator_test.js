@@ -109,11 +109,6 @@ describe('App.ConfigsComparator', function() {
         expect(mixin.initCompareConfig.calledWith([config], {})).to.be.true;
       });
 
-      it("compareServiceVersion should be null", function() {
-        mixin.loadCompareVersionConfigs([config]);
-        expect(mixin.get('compareServiceVersion')).to.be.null;
-      });
-
       it("isCompareMode should be true", function() {
         mixin.loadCompareVersionConfigs([config]);
         expect(mixin.get('isCompareMode')).to.be.true;

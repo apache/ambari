@@ -43,11 +43,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
 
   selectedConfigGroup: null,
 
-  /**
-   * currently displayed service config version
-   */
-  displayedVersion: null,
-
   groupsStore: App.ServiceConfigGroup.find(),
 
   /**
@@ -74,6 +69,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   configGroups: function() {
     return this.get('groupsStore').filterProperty('serviceName', this.get('content.serviceName'));
   }.property('content.serviceName', 'groupsStore.@each.serviceName'),
+
+  defaultGroup: function() {
+    return this.get('configGroups').findProperty('isDefault');
+  }.property('configGroups'),
+
+  isNonDefaultGroupSelectedInCompare: function() {
+    return this.get('isCompareMode') && this.get('selectedConfigGroup') && !this.get('selectedConfigGroup.isDefault');
+  }.property('selectedConfigGroup', 'isCompareMode'),
 
   dependentConfigGroups: function() {
     if (this.get('dependentServiceNames.length') === 0) return [];
@@ -103,6 +106,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    * version selected to view
    */
   selectedVersion: null,
+
+  /**
+   * currently displayed service config version
+   * @type {App.ServiceConfigVersion}
+   */
+  selectedVersionRecord: function() {
+    return App.ServiceConfigVersion.find().findProperty('version', this.get('selectedVersion'));
+  }.property('selectedVersion'),
 
   /**
    * note passed on configs save
@@ -187,7 +198,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     {
       attributeName: 'isOverridden',
       attributeValue: true,
-      caption: 'common.combobox.dropdown.overridden'
+      caption: 'common.combobox.dropdown.overridden',
+      dependentOn: 'isNonDefaultGroupSelectedInCompare',
+      disabledOnCondition: 'isNonDefaultGroupSelectedInCompare'
     },
     {
       attributeName: 'isFinal',
@@ -198,7 +211,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       attributeName: 'hasCompareDiffs',
       attributeValue: true,
       caption: 'common.combobox.dropdown.changed',
-      dependentOn: 'isCompareMode'
+      dependentOn: 'isCompareMode',
+      canBeExcluded: true
     },
     {
       attributeName: 'hasIssues',
@@ -215,17 +229,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     var filterColumns = [];
 
     this.get('propertyFilters').forEach(function(filter) {
-      if (Em.isNone(filter.dependentOn) || this.get(filter.dependentOn)) {
-        filterColumns.push(Ember.Object.create({
-          attributeName: filter.attributeName,
-          attributeValue: filter.attributeValue,
-          name: this.t(filter.caption),
-          selected: filter.dependentOn ? this.get(filter.dependentOn) : false
-        }));
+      if (this.get('canBeExcluded') && !(Em.isNone(filter.dependentOn) || this.get(filter.dependentOn))) {
+        return; // exclude column
       }
+      filterColumns.push(Ember.Object.create({
+        attributeName: filter.attributeName,
+        attributeValue: filter.attributeValue,
+        name: this.t(filter.caption),
+        selected: filter.dependentOn ? this.get(filter.dependentOn) : false,
+        isDisabled: filter.disabledOnCondition ? this.get(filter.disabledOnCondition) : false
+      }));
     }, this);
     return filterColumns;
-  }.property('propertyFilters', 'isCompareMode'),
+  }.property('propertyFilters', 'isCompareMode', 'isNonDefaultGroupSelectedInCompare'),
 
   /**
    * Detects of some of the `password`-configs has not default value

@@ -50,7 +50,6 @@ App.ConfigsComparator = Em.Mixin.create({
       this.getCompareVersionConfigs(compareServiceVersions).done(function (json) {
         allConfigs.setEach('isEditable', false);
         self.initCompareConfig(allConfigs, json);
-        self.set('compareServiceVersion', null);
         dfd.resolve(true);
       }).fail(function () {
         self.set('compareServiceVersion', null);

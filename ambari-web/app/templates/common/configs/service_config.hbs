@@ -58,7 +58,7 @@
     {{/if}}
   </div>
   {{#if view.supportsHostOverrides}}
-    <div {{bindAttr class="controller.isCompareMode:pull-bottom :pull-top :config-manage-nav :pull-right"}}>
+    <div {{bindAttr class="controller.isCompareMode:pull-bottom :pull-top controller.isHostsConfigsPage:pull-bottom :config-manage-nav :pull-right"}}>
       {{#if controller.isHostsConfigsPage}}
         {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
           &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
@@ -138,16 +138,40 @@
     </ul>
     <div class="tab-content service-config-tab-content">
       {{#each tab in view.tabs}}
-        <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
+        <div {{bindAttr class=":tab-pane tab.isActive:active isCompareMode:settings-compare-layout tab.id"}}>
           {{#if tab.isAdvanced}}
             {{#if tab.isRendered}}
+              {{#if isCompareMode}}
+                <div class="row bottom-border comparison-table-header">
+                  <div class="col-md-3 property-name-column">{{t common.propertyName}}</div>
+                  <div class="col-md-4 property-value-column">
+                    {{t common.version}}&nbsp;{{selectedVersionRecord.version}}
+                    {{#if selectedVersionRecord.isCurrent}}
+                      <span class="label label-success">{{t common.current}}</span>
+                    {{/if}}
+                  </div>
+                  <div class="col-md-4 col-md-offset-1 property-value-column">
+                    {{t common.version}}&nbsp;{{compareServiceVersion.version}}
+                    {{#if compareServiceVersion.isCurrent}}
+                      <span class="label label-success">{{t common.current}}</span>
+                    {{/if}}
+                  </div>
+                </div>
+              {{/if}}
               {{view App.ConfigCategoryContainerView categoriesBinding="selectedService.configCategories" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
             {{else}}
               {{view App.SpinnerView}}
             {{/if}}
           {{else}}
               {{! Render Enhanced Config Section }}
-              {{view App.ServiceConfigLayoutTabView contentBinding="tab" canEditBinding="view.canEdit" }}
+              {{#if isCompareMode}}
+                {{view App.ServiceConfigLayoutTabCompareView
+                       contentBinding="tab"
+                       primaryCompareVersionBinding="selectedVersionRecord"
+                       secondaryCompareVersionBinding="compareServiceVersion"}}
+              {{else}}
+                {{view App.ServiceConfigLayoutTabView contentBinding="tab" canEditBinding="view.canEdit" }}
+              {{/if}}
           {{/if}}
         </div>
       {{/each}}
