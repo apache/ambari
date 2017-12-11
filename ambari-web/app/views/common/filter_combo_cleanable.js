@@ -49,7 +49,9 @@ App.FilterComboCleanableView = Ember.View.extend({
    */
   selectFilterColumn: function(event){
     var column = event.context;
-    column.set('selected', !column.get('selected'));
+    if (!column.get('isDisabled')) {
+      column.set('selected', !column.get('selected'));
+    }
   },
 
   filterNotEmpty: Em.computed.gt('filter.length', 0),
@@ -66,7 +68,7 @@ App.FilterComboCleanableView = Ember.View.extend({
    * @method clearFilterColumn
    */
   clearFilterColumn: function() {
-    this.get('columns').setEach('selected', false);
+    this.get('columns').filterProperty('isDisabled', false).setEach('selected', false);
   },
 
   /**

@@ -63,8 +63,11 @@ App.ServiceConfigView = Em.View.extend({
   }.property('controller.name', 'controller.selectedService'),
 
   showSavePanel: function() {
-    return this.get('isOnTheServicePage') && !this.get('controller.isCompareMode') && this.get('controller.displayedVersion.isCurrent');
-  }.property('isOnTheServicePage', 'controller.isCompareMode', 'controller.displayedVersion.isCurrent'),
+    return this.get('isOnTheServicePage') &&
+           !this.get('controller.isCompareMode') &&
+           this.get('controller.selectedVersionRecord.isCurrent') &&
+           !this.get('controller.isHostsConfigsPage');
+  }.property('isOnTheServicePage', 'controller.isCompareMode', 'controller.selectedVersionRecord.isCurrent', 'controller.isHostsConfigsPage'),
 
   /**
    * Determines if user is on the service configs page

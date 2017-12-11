@@ -361,6 +361,7 @@ Em.I18n.translations = {
   'common.views': 'Views',
   'common.critical.error': 'Critical',
   'common.with': 'with',
+  'common.propertyName': 'Property Name',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",

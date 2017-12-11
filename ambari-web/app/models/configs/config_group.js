@@ -101,6 +101,14 @@ App.ServiceConfigGroup = DS.Model.extend({
    */
   displayNameHosts: Em.computed.format('{0} ({1})', 'displayName', 'hosts.length'),
 
+  switchGroupTextShort: function() {
+    return  Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(this.get('displayName'));
+  }.property('displayName'),
+
+  switchGroupTextFull: function() {
+    return  Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(this.get('displayName'));
+  }.property('displayName'),
+
   /**
    * Provides hosts which are available for inclusion in
    * non-default configuration groups.
