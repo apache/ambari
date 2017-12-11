@@ -25,37 +25,6 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   // we are declaring this from configs.hbs ( we are initializing this from UI )
   categoryConfigs: null, // just declared as viewClass need it
 
-  init: function () {
-    this._super();
-    if (this.get('controller.name') != 'mainServiceInfoConfigsController') {
-      this.addObserver('isDefaultGroupSelected', this, 'setSwitchText');
-    }
-  },
-
-  didInsertElement: function () {
-    this.setSwitchText();
-  },
-
-  willDestroyElement: function () {
-    if (this.get('controller.name') != 'mainServiceInfoConfigsController') {
-      this.removeObserver('isDefaultGroupSelected', this, 'setSwitchText');
-    }
-  },
-
-  setSwitchText: function () {
-    if (this.get('isDefaultGroupSelected')) {
-      var overrides = this.get('serviceConfigProperty.overrides');
-      if (!overrides) return;
-      overrides.forEach(function(overriddenSCP) {
-        overriddenSCP.get('group').set('switchGroupTextShort',
-            Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(overriddenSCP.get('group.displayName')));
-        overriddenSCP.get('group').set('switchGroupTextFull',
-            Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(overriddenSCP.get('group.displayName')));
-      });
-      this.set('serviceConfigProperty.overrides', overrides);
-    }
-  },
-
   toggleFinalFlag: function (event) {
     var override = event.contexts[0];
     if (override.get('isNotEditable')) {

@@ -17,25 +17,15 @@
  */
 
 var App = require('app');
-require('views/common/configs/overriddenProperty_view');
 
-describe('App.ServiceConfigView.SCPOverriddenRowsView', function () {
+App.ServiceConfigLayoutTabCompareView = App.ServiceConfigLayoutTabView.extend({
+  templateName: require('templates/common/configs/service_config_layout_tab_compare'),
 
-  var view = App.ServiceConfigView.SCPOverriddenRowsView.create();
+  canEdit: false,
+  primaryCompareVersion: null,
+  secondaryCompareVersion: null,
 
-  describe('#didInsertElement', function () {
-
-    beforeEach(function () {
-      sinon.stub(App, 'tooltip', Em.K);
-    });
-
-    afterEach(function () {
-      App.tooltip.restore();
-    });
-
-    it('setSwitchLinks method should be executed', function () {
-      view.didInsertElement();
-    });
-
-  });
+  onToggleBlock: function(event) {
+    event.context.toggleProperty('isCollapsed');
+  }
 });
