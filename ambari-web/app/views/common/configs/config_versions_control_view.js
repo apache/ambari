@@ -137,6 +137,10 @@ App.ConfigVersionsControlView = Em.View.extend({
     controller.loadCompareVersionConfigs(controller.get('allConfigs')).done(function() {
       controller.onLoadOverrides(controller.get('allConfigs'));
     });
+    if ($(event.currentTarget).hasClass('compare-button')) {
+      // after entering Compare mode compare button should be destroyed before "focusOut" event, otherwise JS error will be thrown
+      event.view.destroy();
+    }
   },
 
   removeCompareVersionBar: function () {
