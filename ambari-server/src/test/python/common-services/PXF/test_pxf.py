@@ -60,7 +60,7 @@ class TestPxf(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'pxf-site.xml',
                               conf_dir='/etc/pxf/conf',
                               configurations=self.getConfig()['configurations']['pxf-site'],
-                              configuration_attributes=self.getConfig()['configuration_attributes']['pxf-site'])
+                              configuration_attributes=self.getConfig()['configurationAttributes']['pxf-site'])
 
     self.assertResourceCalled('Execute', 'service pxf-service init',
                               timeout=self.DEFAULT_TIMEOUT,

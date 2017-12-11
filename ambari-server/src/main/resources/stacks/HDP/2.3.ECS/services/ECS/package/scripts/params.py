@@ -38,7 +38,7 @@ jdk_location = config['hostLevelParams']['jdk_location']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = functions.get_kinit_path()
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_unformatted = str(config['clusterLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 

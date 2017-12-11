@@ -53,7 +53,7 @@ class Test(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               conf_dir = '/tmp/123',
                               mode=0600,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'],
+                              configuration_attributes = self.getConfig()['configurationAttributes']['hdfs-site'],
                               configurations = self.getConfig()['configurations']['hdfs-site'],
                               )
     self.assertResourceCalled('File', '/tmp/123/hadoop-env.sh',

@@ -48,7 +48,7 @@ def hive(name=None):
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_config_dir,
             configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configuration_attributes']['hive-site'],
+            configuration_attributes=params.config['configurationAttributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
             mode=0644)
@@ -119,7 +119,7 @@ def fill_conf_dir(component_conf_dir):
   XmlConfig("mapred-site.xml",
             conf_dir=component_conf_dir,
             configurations=params.config['configurations']['mapred-site'],
-            configuration_attributes=params.config['configuration_attributes']['mapred-site'],
+            configuration_attributes=params.config['configurationAttributes']['mapred-site'],
             owner=params.hive_user,
             group=params.user_group,
             mode=0644)

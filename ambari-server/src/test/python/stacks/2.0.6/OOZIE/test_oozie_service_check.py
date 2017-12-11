@@ -40,7 +40,7 @@ class TestOozieServiceCheck(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = 'HDP'
-    json_content['hostLevelParams']['stack_version'] = '2.3'
+    json_content['clusterLevelParams']['stack_version'] = '2.3'
     json_content['configurations']['oozie-env']['service_check_job_name'] = 'map-reduce'
 
     mocks_dict = {}

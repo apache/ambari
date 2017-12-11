@@ -314,7 +314,7 @@ class TestRangerAdmin(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = ranger_admin_site_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-admin-site'],
       mode = 0644
     )
 
@@ -348,7 +348,7 @@ class TestRangerAdmin(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       mode = 0644
     )
 
@@ -470,7 +470,7 @@ class TestRangerAdmin(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = ranger_admin_site_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-admin-site'],
       mode = 0644
     )
 
@@ -504,6 +504,6 @@ class TestRangerAdmin(RMFTestCase):
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       mode = 0644
     )    

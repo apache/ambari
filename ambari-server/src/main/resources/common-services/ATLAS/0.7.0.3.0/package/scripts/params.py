@@ -102,7 +102,7 @@ if security_enabled:
 version = default("/commandParams/version", None)
 
 # stack version
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 metadata_home = format('{stack_root}/current/atlas-server')
@@ -382,11 +382,11 @@ if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
 
   ranger_plugin_properties = config['configurations']['ranger-atlas-plugin-properties']
   ranger_atlas_audit = config['configurations']['ranger-atlas-audit']
-  ranger_atlas_audit_attrs = config['configuration_attributes']['ranger-atlas-audit']
+  ranger_atlas_audit_attrs = config['configurationAttributes']['ranger-atlas-audit']
   ranger_atlas_security = config['configurations']['ranger-atlas-security']
-  ranger_atlas_security_attrs = config['configuration_attributes']['ranger-atlas-security']
+  ranger_atlas_security_attrs = config['configurationAttributes']['ranger-atlas-security']
   ranger_atlas_policymgr_ssl = config['configurations']['ranger-atlas-policymgr-ssl']
-  ranger_atlas_policymgr_ssl_attrs = config['configuration_attributes']['ranger-atlas-policymgr-ssl']
+  ranger_atlas_policymgr_ssl_attrs = config['configurationAttributes']['ranger-atlas-policymgr-ssl']
 
   policy_user = config['configurations']['ranger-atlas-plugin-properties']['policy_user']
 

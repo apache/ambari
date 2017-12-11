@@ -208,7 +208,7 @@ def metadata(type='server'):
       XmlConfig("core-site.xml",
         conf_dir=params.conf_dir,
         configurations=params.config['configurations']['core-site'],
-        configuration_attributes=params.config['configuration_attributes']['core-site'],
+        configuration_attributes=params.config['configurationAttributes']['core-site'],
         owner=params.metadata_user,
         group=params.user_group,
         mode=0644

@@ -85,7 +85,7 @@ class TestKnoxGateway(RMFTestCase):
                               group = 'knox',
                               conf_dir = '/usr/hdp/current/knox-server/conf',
                               configurations = self.getConfig()['configurations']['gateway-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['gateway-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['gateway-site']
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/gateway-log4j.properties',
@@ -385,7 +385,7 @@ class TestKnoxGateway(RMFTestCase):
                               group = 'knox',
                               conf_dir = '/usr/hdp/current/knox-server/conf',
                               configurations = self.getConfig()['configurations']['gateway-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['gateway-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['gateway-site']
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/gateway-log4j.properties',

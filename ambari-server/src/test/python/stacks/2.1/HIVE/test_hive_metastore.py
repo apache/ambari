@@ -484,7 +484,7 @@ class TestHiveMetastore(RMFTestCase):
 
     json_content['commandParams']['version'] = '2.3.0.0-1234'
     json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
-    json_content['hostLevelParams']['stack_version'] = '2.3.0.0-0'
+    json_content['clusterLevelParams']['stack_version'] = '2.3.0.0-0'
 
     # now try it in an upgrade
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
@@ -540,7 +540,7 @@ class TestHiveMetastore(RMFTestCase):
     version = '2.4.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
-    json_content['hostLevelParams']['stack_version'] = "2.4"
+    json_content['clusterLevelParams']['stack_version'] = "2.4"
     json_content["upgradeSummary"] = {
       "services":{
         "HIVE":{
@@ -763,7 +763,7 @@ class TestHiveMetastore(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     # trigger the code to think it needs to copy the JAR
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "sap.jdbc4.sqlanywhere.IDriver"

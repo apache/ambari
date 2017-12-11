@@ -49,7 +49,7 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 stack_name = default("/clusterLevelParams/stack_name", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']

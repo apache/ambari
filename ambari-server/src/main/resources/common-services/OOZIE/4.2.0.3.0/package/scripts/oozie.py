@@ -63,7 +63,7 @@ def oozie(is_server=False):
             configurations=params.config['configurations']['oozie-site'],
             owner=params.oozie_user,
             mode='f',
-            configuration_attributes=params.config['configuration_attributes']['oozie-site']
+            configuration_attributes=params.config['configurationAttributes']['oozie-site']
   )
 
   File(os.path.join(params.oozie_conf_dir, "oozie-env.cmd"),
@@ -127,7 +127,7 @@ def oozie(is_server=False):
   XmlConfig("oozie-site.xml",
     conf_dir = params.conf_dir,
     configurations = params.oozie_site,
-    configuration_attributes=params.config['configuration_attributes']['oozie-site'],
+    configuration_attributes=params.config['configurationAttributes']['oozie-site'],
     owner = params.oozie_user,
     group = params.user_group,
     mode = 0664
@@ -304,7 +304,7 @@ def oozie_server_specific():
       XmlConfig("hive-site.xml",
         conf_dir=params.hive_conf_dir,
         configurations=hive_site_config,
-        configuration_attributes=params.config['configuration_attributes']['hive-site'],
+        configuration_attributes=params.config['configurationAttributes']['hive-site'],
         owner=params.oozie_user,
         group=params.user_group,
         mode=0644
@@ -313,7 +313,7 @@ def oozie_server_specific():
       XmlConfig( "tez-site.xml",
         conf_dir = params.hive_conf_dir,
         configurations = params.config['configurations']['tez-site'],
-        configuration_attributes=params.config['configuration_attributes']['tez-site'],
+        configuration_attributes=params.config['configurationAttributes']['tez-site'],
         owner = params.oozie_user,
         group = params.user_group,
         mode = 0664

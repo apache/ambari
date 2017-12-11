@@ -114,7 +114,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = plugin_audit_properties_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-audit']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-audit']
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-security.xml',
@@ -123,7 +123,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['ranger-kms-security'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-security']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-security']
     )
 
     ranger_kms_policymgr_ssl_copy = {}
@@ -139,7 +139,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = ranger_kms_policymgr_ssl_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-policymgr-ssl']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-policymgr-ssl']
     )
 
     self.assertResourceCalled('Execute', ('/usr/hdp/current/ranger-kms/ranger_credential_helper.py', '-l', '/usr/hdp/current/ranger-kms/cred/lib/*', '-f', '/etc/ranger/c1_kms/cred.jceks', '-k', 'sslKeyStore', '-v', 'myKeyFilePassword', '-c', '1'),
@@ -451,7 +451,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = dbks_site_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['dbks-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['dbks-site']
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-site.xml',
@@ -460,7 +460,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['ranger-kms-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-site']
     )
 
     self.assertResourceCalled('XmlConfig', 'kms-site.xml',
@@ -469,7 +469,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['kms-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['kms-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['kms-site']
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/kms-log4j.properties',
@@ -554,7 +554,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = plugin_audit_properties_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-audit']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-audit']
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-security.xml',
@@ -563,7 +563,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['ranger-kms-security'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-security']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-security']
     )
 
     ranger_kms_policymgr_ssl_copy = {}
@@ -579,7 +579,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = ranger_kms_policymgr_ssl_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-policymgr-ssl']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-policymgr-ssl']
     )
 
     self.assertResourceCalled('Execute', ('/usr/hdp/current/ranger-kms/ranger_credential_helper.py', '-l', '/usr/hdp/current/ranger-kms/cred/lib/*', '-f', '/etc/ranger/c1_kms/cred.jceks', '-k', 'sslKeyStore', '-v', 'myKeyFilePassword', '-c', '1'),
@@ -874,7 +874,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = dbks_site_copy,
-      configuration_attributes = self.getConfig()['configuration_attributes']['dbks-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['dbks-site']
     )
 
     self.assertResourceCalled('XmlConfig', 'ranger-kms-site.xml',
@@ -883,7 +883,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['ranger-kms-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['ranger-kms-site']
     )
 
     self.assertResourceCalled('XmlConfig', 'kms-site.xml',
@@ -892,7 +892,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['kms-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['kms-site']
+      configuration_attributes = self.getConfig()['configurationAttributes']['kms-site']
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/kms-log4j.properties',
@@ -907,7 +907,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
       configurations = self.getConfig()['configurations']['core-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+      configuration_attributes = self.getConfig()['configurationAttributes']['core-site'],
       mode = 0644
     )
 

@@ -47,7 +47,7 @@ retryAble = default("/commandParams/command_retry_enabled", False)
 # Version being upgraded/downgraded to
 version = default("/commandParams/version", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
@@ -239,11 +239,11 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
 
   ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
   ranger_kafka_audit = config['configurations']['ranger-kafka-audit']
-  ranger_kafka_audit_attrs = config['configuration_attributes']['ranger-kafka-audit']
+  ranger_kafka_audit_attrs = config['configurationAttributes']['ranger-kafka-audit']
   ranger_kafka_security = config['configurations']['ranger-kafka-security']
-  ranger_kafka_security_attrs = config['configuration_attributes']['ranger-kafka-security']
+  ranger_kafka_security_attrs = config['configurationAttributes']['ranger-kafka-security']
   ranger_kafka_policymgr_ssl = config['configurations']['ranger-kafka-policymgr-ssl']
-  ranger_kafka_policymgr_ssl_attrs = config['configuration_attributes']['ranger-kafka-policymgr-ssl']
+  ranger_kafka_policymgr_ssl_attrs = config['configurationAttributes']['ranger-kafka-policymgr-ssl']
 
   policy_user = config['configurations']['ranger-kafka-plugin-properties']['policy_user']
 

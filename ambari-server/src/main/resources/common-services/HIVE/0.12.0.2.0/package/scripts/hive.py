@@ -394,7 +394,7 @@ def fill_conf_dir(component_conf_dir):
     XmlConfig("mapred-site.xml",
               conf_dir=component_conf_dir,
               configurations=params.config['configurations']['mapred-site'],
-              configuration_attributes=params.config['configuration_attributes']['mapred-site'],
+              configuration_attributes=params.config['configurationAttributes']['mapred-site'],
               owner=params.hive_user,
               group=params.user_group,
               mode=mode_identified_for_file)

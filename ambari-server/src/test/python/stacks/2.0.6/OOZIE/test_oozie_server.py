@@ -788,7 +788,7 @@ class TestOozieServer(RMFTestCase):
                               mode = 0664,
                               conf_dir = '/etc/oozie/conf',
                               configurations = self.getConfig()['configurations']['oozie-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['oozie-site']
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
                               owner = 'oozie',
@@ -987,7 +987,7 @@ class TestOozieServer(RMFTestCase):
                               mode = 0664,
                               conf_dir = '/etc/oozie/conf',
                               configurations = expected_oozie_site,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
+                              configuration_attributes = self.getConfig()['configurationAttributes']['oozie-site']
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
                               owner = 'oozie',
@@ -1159,7 +1159,7 @@ class TestOozieServer(RMFTestCase):
     with open(config_file, "r") as f:
       default_json = json.load(f)
 
-    default_json['hostLevelParams']['stack_version']= '2.2'
+    default_json['clusterLevelParams']['stack_version']= '2.2'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                      classname = "OozieServer",
                      command = "configure",
@@ -1254,7 +1254,7 @@ class TestOozieServer(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
@@ -1315,7 +1315,7 @@ class TestOozieServer(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
     json_content['upgradeSummary'] = {
       'services': { 'OOZIE': { 'sourceStackId': 'HDP-2.3' }},
       'direction': 'UPGRADE',
@@ -1403,7 +1403,7 @@ class TestOozieServer(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = "HDP"
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server_upgrade.py",
       classname = "OozieUpgrade", command = "upgrade_oozie_database_and_sharelib",
@@ -1466,7 +1466,7 @@ class TestOozieServer(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_name'] = "HDP"
-    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     # use mysql external database
     json_content['configurations']['oozie-site']['oozie.service.JPAService.jdbc.driver'] = "com.mysql.jdbc.Driver"

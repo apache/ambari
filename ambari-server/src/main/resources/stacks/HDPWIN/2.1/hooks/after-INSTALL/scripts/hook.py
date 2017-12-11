@@ -43,7 +43,7 @@ class AfterInstallHook(Hook):
               configurations=params.config['configurations']['core-site'],
               owner=params.hdfs_user,
               mode="f",
-              configuration_attributes=params.config['configuration_attributes']['core-site']
+              configuration_attributes=params.config['configurationAttributes']['core-site']
     )
 
     File(format("{params.hadoop_install_root}/cluster.properties"),

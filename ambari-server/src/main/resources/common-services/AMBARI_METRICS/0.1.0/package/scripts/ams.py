@@ -172,7 +172,7 @@ def ams(name=None):
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
               )
@@ -396,7 +396,7 @@ def ams(name=None, action=None):
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_monitor_conf_dir,
               configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              configuration_attributes=params.config['configurationAttributes']['ams-site'],
               owner=params.ams_user,
               group=params.user_group
               )

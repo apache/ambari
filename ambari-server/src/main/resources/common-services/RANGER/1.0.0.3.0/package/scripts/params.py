@@ -48,7 +48,7 @@ stack_root = Script.get_stack_root()
 stack_name = default("/clusterLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 
-stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_unformatted = config['clusterLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")

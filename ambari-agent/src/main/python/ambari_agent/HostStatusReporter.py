@@ -38,6 +38,7 @@ class HostStatusReporter(threading.Thread):
     self.config = initializer_module.config
     self.host_info = HostInfo(initializer_module.config)
     self.last_report = {}
+    self.hardware = Hardware(config=initializer_module.config, cache_info=False)
     threading.Thread.__init__(self)
 
   def run(self):
@@ -68,7 +69,7 @@ class HostStatusReporter(threading.Thread):
 
     report = {
       'agentEnv': host_info_dict,
-      'mounts': Hardware.osdisks(self.config),
+      'mounts': self.hardware.osdisks(),
     }
 
     return report

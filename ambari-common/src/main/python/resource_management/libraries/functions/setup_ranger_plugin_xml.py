@@ -244,7 +244,7 @@ def setup_core_site_for_required_plugins(component_user, component_group, create
   XmlConfig('core-site.xml',
     conf_dir=create_core_site_path,
     configurations=config['configurations']['core-site'],
-    configuration_attributes=config['configuration_attributes']['core-site'],
+    configuration_attributes=config['configurationAttributes']['core-site'],
     owner=component_user,
     group=component_group,
     mode=0644
