@@ -22,7 +22,6 @@ import static org.apache.ambari.server.controller.spi.Resource.InternalType.Comp
 import static org.apache.ambari.server.controller.spi.Resource.InternalType.HostComponent;
 import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
 
-import com.google.common.collect.Maps;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -37,8 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-
 import java.util.stream.Collectors;
+
 import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
@@ -98,6 +97,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
