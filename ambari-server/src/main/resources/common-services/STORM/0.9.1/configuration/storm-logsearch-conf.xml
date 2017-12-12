@@ -65,46 +65,92 @@
       "type":"storm_ui",
       "rowtype":"service",
       "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/ui.log"
-    },
-    {
+    }
+    {#
+    ,{
       "type":"storm_worker",
       "rowtype":"service",
-      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/*worker*.log"
+      "path":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/workers-artifacts/*/*/worker.log",
+      "init_default_fields": "true"
     }
+    #}
    ],
-  "filter":[
-    {
-      "filter":"grok",
-      "conditions":{
-        "fields":{
-          "type":[
-            "storm_drpc",
-            "storm_logviewer",
-            "storm_nimbus",
-            "storm_supervisor",
-            "storm_ui",
-            "storm_worker"
-          ]
+   "filter":[
+       {
+         "filter":"grok",
+         "sort_order": 1,
+         "conditions":{
+           "fields":{
+             "type":[
+               "storm_nimbus",
+               "storm_supervisor",
+               "storm_logviewer",
+               "storm_drpc",
+               "storm_ui",
+               "storm_worker"
+             ]
+           }
+         },
+         "log4j_format":"",
+         "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+         "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{JAVACLASS:logger_name}\\s%{GREEDYDATA:thread_name}\\s\\[%{LOGLEVEL:level}\\]\\s%{GREEDYDATA:log_message}",
+         "post_map_values":{
+           "logtime":{
+             "map_date":{
+               "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
+             }
+           }
          }
        },
-      "log4j_format":"",
-      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
-      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\[%{LOGLEVEL:level}\\]%{SPACE}%{SPACE}%{GREEDYDATA:log_message}",
-      "post_map_values":{
-        "logtime":{
-          "map_date":{
-            "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
-          }
-         }
+       {
+         "filter":"grok",
+         "sort_order": 2,
+         "conditions":{
+           "fields":{
+             "type":[
+               "storm_worker"
+             ]
+           }
+         },
+         "source_field": "thread_name",
+         "remove_source_field": "false",
+         "message_pattern":"(Thread\\-[0-9]+\\-[0-9]+\\-%{DATA:sdi_streamline_component_name}\\-executor%{DATA}|%{DATA:thread_name})"
+       },
+       {
+         "filter":"grok",
+         "sort_order": 3,
+         "conditions":{
+           "fields":{
+             "type":[
+               "storm_worker"
+             ]
+           }
+         },
+         "source_field": "path",
+         "remove_source_field": "false",
+         "message_pattern":"{{default('/configurations/storm-env/storm_log_dir', '/var/log/storm')}}/workers-artifacts/%{DATA:sdi_storm_topology_id}/%{DATA:sdi_storm_worker_port}/worker\\.log"
+       },
+       {
+         "filter":"grok",
+         "sort_order": 4,
+         "conditions":{
+           "fields":{
+             "type":[
+               "storm_worker"
+             ]
+           }
+         },
+         "source_field": "sdi_storm_topology_id",
+         "remove_source_field": "false",
+         "message_pattern":"(streamline\\-%{DATA:sdi_streamline_topology_id}\\-%{DATA:sdi_streamline_topology_name}\\-[0-9]+\\-[0-9]+)|(%{DATA:sdi_storm_topology_id})"
        }
-     }
-   ]
- }
+     ]
+   }
     </value>
     <value-attributes>
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="true" update="true"/>
   </property>
 </configuration>
