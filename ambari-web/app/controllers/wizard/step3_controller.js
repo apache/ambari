@@ -201,7 +201,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
         'hosts': this.getBootstrapHosts(),
         'user': this.get('content.installOptions.sshUser'),
         'sshPort': this.get('content.installOptions.sshPort'),
-        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root'
+        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root',
+        'ambariRepoUrls': "null"
     });
     App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
       if (requestId == '0') {
@@ -400,7 +401,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
         'hosts': hosts.mapProperty('name'),
         'user': this.get('content.installOptions.sshUser'),
         'sshPort': this.get('content.installOptions.sshPort'),
-        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root'
+        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root',
+        'ambariRepoUrls': "null"
       });
     this.set('numPolls', 0);
     this.set('registrationStartedAt', null);
@@ -662,7 +664,60 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
    * @method bootstrapWithAmbariRepoUrl
    */
   bootstrapWithAmbariRepoUrl : function() {
+    var self = this;
+    var tmpNewAmbariOsTypes = [];
+    var tmpBootstrapHosts = [];
+    self.newAmbariOsTypes.forEach(function(os) {
+      if (os.ambari_repo != "") {
+        tmpNewAmbariOsTypes.pushObject(os);
+        self.newAmbariOsTypes.removeObject(os);
+      }
+    });
+    if (self.newAmbariOsTypes.length <= 0) {
+      this.set('promptAmbariRepoUrl', false);
+    }
+    tmpNewAmbariOsTypes.forEach(function(os) {
+      os.hosts.forEach(function(host) {
+        tmpBootstrapHosts.push(host);
+      });
+    });
+    var bootStrapData = JSON.stringify({
+      'verbose' : true,
+      'sshKey' : this.get('content.installOptions.sshKey'),
+      'hosts' : tmpBootstrapHosts,
+      'user' : this.get('content.installOptions.sshUser'),
+      'sshPort' : this.get('content.installOptions.sshPort'),
+      'userRunAs' : App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root',
+      'ambariRepoUrls' : JSON.stringify(tmpNewAmbariOsTypes)
+    });
+    this.set('numPolls', 0);
+    this.set('registrationStartedAt', null);
+    this.set('isHostsWarningsLoaded', false);
+    this.set('stopChecking', false);
+    this.set('isSubmitDisabled', true);
+    this.set('bootstrapInProgress',true);
+    var selectedHosts = this.get('bootHosts');
+    selectedHosts.forEach(function(_host) {
+      var bootHostName = _host.get('name');
+      for (var i = 0; i < tmpNewAmbariOsTypes.length; i++) {
+        if (tmpNewAmbariOsTypes[i] == bootHostName) {
+          _host.set('bootStatus', 'DONE');
+          _host.set('bootLog', 'Retrying ...');
+        }
+      }
+    }, this);
 
+    App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData,function(requestId) {
+      if (requestId == '0') {
+        self.startBootstrap();
+      } else if (requestId) {
+        self.set('content.installOptions.bootRequestId',
+            requestId);
+        App.router.get(self.get('content.controllerName'))
+        .save('installOptions');
+        self.startBootstrap();
+      }
+    });
   },
 
   /**

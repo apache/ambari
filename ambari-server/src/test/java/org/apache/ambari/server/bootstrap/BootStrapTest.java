@@ -92,6 +92,7 @@ public class BootStrapTest extends TestCase {
     info.setHosts(hosts);
     info.setUser("user");
     info.setPassword("passwd");
+    info.setAmbariRepoUrls("null");
     BSResponse response = impl.runBootStrap(info);
     LOG.info("Response id from bootstrap " + response.getRequestId());
     /* do a query */
@@ -168,6 +169,7 @@ public class BootStrapTest extends TestCase {
     info.setUser("user");
     info.setUserRunAs("root");
     info.setPassword("passwd");
+    info.setAmbariRepoUrls("null");
     BSResponse response = impl.runBootStrap(info);
     long requestId = response.getRequestId();
     LOG.info("Response id from bootstrap " + requestId);
