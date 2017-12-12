@@ -17,18 +17,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from urlparse import urlparse
+
 import os
-import sys
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.xml_config import XmlConfig
-from resource_management.libraries.resources.template_config import TemplateConfig
-from resource_management.libraries.functions.format import format
-from resource_management.core.source import Template, InlineTemplate
-from resource_management.core.resources import Package
-from resource_management.core.resources.service import ServiceConfig
-from resource_management.core.resources.system import Directory, Execute, File
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.resources import Directory
+from resource_management.core.resources import Execute
+from resource_management.core.resources import File
+from resource_management.core.resources import Package
+from resource_management.core.resources import ServiceConfig
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
+from resource_management.libraries import Script
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions import lzo_utils
+from resource_management.libraries.resources import TemplateConfig
+from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 
@@ -54,6 +60,9 @@ def hbase(name=None):
 def hbase(name=None):
   import params
 
+  # ensure that matching LZO libraries are installed for HBase
+  lzo_utils.install_lzo_if_needed()
+
   Directory( params.etc_prefix_dir,
       mode=0755
   )
@@ -63,7 +72,7 @@ def hbase(name=None):
       group = params.user_group,
       create_parents = True
   )
-   
+
   Directory(params.java_io_tmpdir,
       create_parents = True,
       mode=0777
@@ -83,7 +92,7 @@ def hbase(name=None):
           create_parents = True,
           mode = 0755
       )
-  
+
   parent_dir = os.path.dirname(params.tmp_dir)
   # In case if we have several placeholders in path
   while ("${" in parent_dir):
@@ -136,7 +145,7 @@ def hbase(name=None):
             group = params.user_group
     )
   # Manually overriding ownership of file installed by hadoop package
-  else: 
+  else:
     File( format("{params.hbase_conf_dir}/hbase-policy.xml"),
       owner = params.hbase_user,
       group = params.user_group
@@ -147,14 +156,14 @@ def hbase(name=None):
        content=InlineTemplate(params.hbase_env_sh_template),
        group = params.user_group,
   )
-  
+
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
             create_parents = True,
             owner='root',
             group='root'
             )
-  
+
   File(os.path.join(params.limits_conf_dir, 'hbase.conf'),
        owner='root',
        group='root',
@@ -174,7 +183,7 @@ def hbase(name=None):
       cd_access = "a",
       mode = 0755,
     )
-  
+
     Directory (params.log_dir,
       owner = params.hbase_user,
       create_parents = True,
