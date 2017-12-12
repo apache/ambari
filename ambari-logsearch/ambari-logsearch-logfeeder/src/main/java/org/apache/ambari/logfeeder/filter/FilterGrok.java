@@ -35,6 +35,7 @@ import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.exception.GrokException;
 
 import org.apache.ambari.logfeeder.common.LogFeederException;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
@@ -73,13 +74,13 @@ public class FilterGrok extends Filter {
   private MetricData grokErrorMetric = new MetricData("filter.error.grok", false);
 
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
 
     try {
       messagePattern = escapePattern(((FilterGrokDescriptor)filterDescriptor).getMessagePattern());
       multilinePattern = escapePattern(((FilterGrokDescriptor)filterDescriptor).getMultilinePattern());
-      sourceField = ((FilterGrokDescriptor)filterDescriptor).getSourceField();
+      sourceField = filterDescriptor.getSourceField();
       removeSourceField = BooleanUtils.toBooleanDefaultIfNull(filterDescriptor.isRemoveSourceField(), removeSourceField);
 
       LOG.info("init() done. grokPattern=" + messagePattern + ", multilinePattern=" + multilinePattern + ", " +

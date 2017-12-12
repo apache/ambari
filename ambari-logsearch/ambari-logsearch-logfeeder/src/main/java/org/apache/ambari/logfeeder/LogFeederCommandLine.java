@@ -30,14 +30,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class LogFeederCommandLine {
 
   private static final Logger LOG = LoggerFactory.getLogger(LogFeederCommandLine.class);
-
-  private static final String MONITOR_COMMAND = "monitor";
   
   private static final String TEST_COMMAND = "test";
   private static final String TEST_LOG_ENTRY_OPTION = "test-log-entry";
@@ -58,11 +55,6 @@ public class LogFeederCommandLine {
     Option helpOption = Option.builder("h")
       .longOpt("help")
       .desc("Print commands")
-      .build();
-
-    Option monitorOption = Option.builder("m")
-      .longOpt(MONITOR_COMMAND)
-      .desc("Monitor log files")
       .build();
 
     Option testOption = Option.builder("t")
@@ -95,7 +87,6 @@ public class LogFeederCommandLine {
       .build();
 
     options.addOption(helpOption);
-    options.addOption(monitorOption);
     options.addOption(testOption);
     options.addOption(testLogEntryOption);
     options.addOption(testShipperConfOption);
@@ -111,21 +102,14 @@ public class LogFeederCommandLine {
         System.exit(0);
       }
       String command = "";
-      if (cli.hasOption("m")) {
-        command = MONITOR_COMMAND;
-      } else if (cli.hasOption("t")) {
+      if (cli.hasOption("t")) {
         command = TEST_COMMAND;
         validateRequiredOptions(cli, command, testLogEntryOption, testShipperConfOption);
       } else {
-        List<String> commands = Arrays.asList(MONITOR_COMMAND, TEST_COMMAND);
-        helpFormatter.printHelp(COMMAND_LINE_SYNTAX, options);
-        LOG.error(String.format("One of the supported commands is required (%s)", StringUtils.join(commands, "|")));
-        System.exit(1);
+        LOG.info("Start application in monitor mode ");
       }
     } catch (Exception e) {
-      LOG.error("Error parsing command line parameters", e);
-      helpFormatter.printHelp(COMMAND_LINE_SYNTAX, options);
-      System.exit(1);
+      LOG.info("Error parsing command line parameters: {}. LogFeeder will be started in monitoring mode.", e.getMessage());
     }
   }
 
@@ -142,12 +126,8 @@ public class LogFeederCommandLine {
     }
   }
   
-  public boolean isMonitor() {
-    return cli.hasOption('m');
-  }
-  
   public boolean isTest() {
-    return cli.hasOption('t');
+    return cli != null && cli.hasOption('t');
   }
   
   public String getTestLogEntry() {

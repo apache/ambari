@@ -30,10 +30,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.ambari.logfeeder.conf.InputSimulateConfig;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.filter.FilterJSON;
 import org.apache.ambari.logfeeder.output.Output;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterJsonDescriptorImpl;
@@ -65,32 +66,37 @@ public class InputSimulate extends Input {
   }
   
   private final Random random = new Random(System.currentTimeMillis());
-  
-  private final List<String> types;
-  private final String level;
-  private final int numberOfWords;
-  private final int minLogWords;
-  private final int maxLogWords;
-  private final long sleepMillis;
-  private final String host;
-  
-  public InputSimulate() throws Exception {
+
+  private InputSimulateConfig conf;
+  private List<String> types;
+  private String level;
+  private int numberOfWords;
+  private int minLogWords;
+  private int maxLogWords;
+  private long sleepMillis;
+  private String host;
+
+  @Override
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
+    conf = logFeederProps.getInputSimulateConfig();
     this.types = getSimulatedLogTypes();
-    this.level = LogFeederPropertiesUtil.getSimulateLogLevel();
-    this.numberOfWords = LogFeederPropertiesUtil.getSimulateNumberOfWords();
-    this.minLogWords = LogFeederPropertiesUtil.getSimulateMinLogWords();
-    this.maxLogWords = LogFeederPropertiesUtil.getSimulateMaxLogWords();
-    this.sleepMillis = LogFeederPropertiesUtil.getSimulateSleepMilliseconds();
+    this.level = conf.getSimulateLogLevel();
+    this.numberOfWords = conf.getSimulateNumberOfWords();
+    this.minLogWords = conf.getSimulateMinLogWords();
+    this.maxLogWords = conf.getSimulateMaxLogWords();
+    this.sleepMillis = conf.getSimulateSleepMilliseconds();
     this.host = "#" + hostNumber.incrementAndGet() + "-" + LogFeederUtil.hostName;
-    
+
     Filter filter = new FilterJSON();
     filter.loadConfig(new FilterJsonDescriptorImpl());
     filter.setInput(this);
     addFilter(filter);
+
   }
-  
+
   private List<String> getSimulatedLogTypes() {
-    String logsToSimulate = LogFeederPropertiesUtil.getSimulateLogIds();
+    String logsToSimulate = conf.getSimulateLogIds();
     return (logsToSimulate == null) ?
       inputTypes :
       Arrays.asList(logsToSimulate.split(","));

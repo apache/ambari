@@ -16,20 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder.conf;
 
-package org.apache.ambari.logfeeder.util;
-
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.nio.charset.Charset;
 
-public class SSLUtil {
-  private static final Logger LOG = Logger.getLogger(SSLUtil.class);
+public class LogFeederSecurityConfig {
+
+  private static final Logger LOG = LoggerFactory.getLogger(LogFeederSecurityConfig.class);
 
   private static final String KEYSTORE_LOCATION_ARG = "javax.net.ssl.keyStore";
   private static final String TRUSTSTORE_LOCATION_ARG = "javax.net.ssl.trustStore";
@@ -44,70 +48,121 @@ public class SSLUtil {
 
   private static final String LOGFEEDER_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
   private static final String LOGFEEDER_STORE_DEFAULT_PASSWORD = "bigdata";
-  
-  private SSLUtil() {
-    throw new UnsupportedOperationException();
-  }
-  
-  public static String getKeyStoreLocation() {
+
+  private static final String CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY = "hadoop.security.credential.provider.path";
+
+  @LogSearchPropertyDescription(
+    name = CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY,
+    description = "The jceks file that provides passwords.",
+    examples = {"jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder.jceks"},
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${"+ CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY + ":}")
+  private String credentialStoreProviderPath;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_JAAS_FILE_PROPERTY,
+    description = "The jaas file used for solr.",
+    examples = {"/etc/ambari-logsearch-logfeeder/conf/logfeeder_jaas.conf"},
+    defaultValue = LogFeederConstants.DEFAULT_SOLR_JAAS_FILE,
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${" + LogFeederConstants.SOLR_JAAS_FILE_PROPERTY + ":" + LogFeederConstants.DEFAULT_SOLR_JAAS_FILE + "}")
+  private String solrJaasFile;
+
+  @LogSearchPropertyDescription(
+    name = LogFeederConstants.SOLR_KERBEROS_ENABLE_PROPERTY,
+    description = "Enables using kerberos for accessing solr.",
+    examples = {"true"},
+    defaultValue = LogFeederConstants.DEFAULT_SOLR_KERBEROS_ENABLE + "",
+    sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
+  )
+  @Value("${"+ LogFeederConstants.SOLR_KERBEROS_ENABLE_PROPERTY + ":" + LogFeederConstants.DEFAULT_SOLR_KERBEROS_ENABLE + "}")
+  private Boolean solrKerberosEnabled;
+
+  public String getKeyStoreLocation() {
     return System.getProperty(KEYSTORE_LOCATION_ARG);
   }
-  
-  public static String getKeyStoreType() {
+
+  public String getKeyStoreType() {
     return System.getProperty(KEYSTORE_TYPE_ARG);
   }
-  
-  public static String getKeyStorePassword() {
+
+  public String getKeyStorePassword() {
     return System.getProperty(KEYSTORE_PASSWORD_ARG);
   }
-  
-  public static String getTrustStoreLocation() {
+
+  public String getTrustStoreLocation() {
     return System.getProperty(TRUSTSTORE_LOCATION_ARG);
   }
-  
-  public static String getTrustStoreType() {
+
+  public String getTrustStoreType() {
     return System.getProperty(TRUSTSTORE_TYPE_ARG);
   }
-  
-  public static String getTrustStorePassword() {
+
+  public String getTrustStorePassword() {
     return System.getProperty(TRUSTSTORE_PASSWORD_ARG);
   }
-  
-  public static void ensureStorePasswords() {
+
+  public String getCredentialStoreProviderPath() {
+    return credentialStoreProviderPath;
+  }
+
+  public void setCredentialStoreProviderPath(String credentialStoreProviderPath) {
+    this.credentialStoreProviderPath = credentialStoreProviderPath;
+  }
+
+  public String getSolrJaasFile() {
+    return solrJaasFile;
+  }
+
+  public void setSolrJaasFile(String solrJaasFile) {
+    this.solrJaasFile = solrJaasFile;
+  }
+
+  public boolean isSolrKerberosEnabled() {
+    return solrKerberosEnabled;
+  }
+
+  public void setSolrKerberosEnabled(Boolean solrKerberosEnabled) {
+    this.solrKerberosEnabled = solrKerberosEnabled;
+  }
+
+  @PostConstruct
+  public void ensureStorePasswords() {
     ensureStorePassword(KEYSTORE_LOCATION_ARG, KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_PROPERTY_NAME, KEYSTORE_PASSWORD_FILE);
     ensureStorePassword(TRUSTSTORE_LOCATION_ARG, TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_PROPERTY_NAME, TRUSTSTORE_PASSWORD_FILE);
   }
-  
-  private static void ensureStorePassword(String locationArg, String pwdArg, String propertyName, String fileName) {
+
+  private void ensureStorePassword(String locationArg, String pwdArg, String propertyName, String fileName) {
     if (StringUtils.isNotEmpty(System.getProperty(locationArg)) && StringUtils.isEmpty(System.getProperty(pwdArg))) {
       String password = getPassword(propertyName, fileName);
       System.setProperty(pwdArg, password);
     }
   }
 
-  private static String getPassword(String propertyName, String fileName) {
+  private String getPassword(String propertyName, String fileName) {
     String credentialStorePassword = getPasswordFromCredentialStore(propertyName);
     if (credentialStorePassword != null) {
       return credentialStorePassword;
     }
-    
+
     String filePassword = getPasswordFromFile(fileName);
     if (filePassword != null) {
       return filePassword;
     }
-    
+
     return LOGFEEDER_STORE_DEFAULT_PASSWORD;
   }
-  
-  private static String getPasswordFromCredentialStore(String propertyName) {
+
+  private String getPasswordFromCredentialStore(String propertyName) {
     try {
-      String providerPath = LogFeederPropertiesUtil.getCredentialStoreProviderPath();
-      if (providerPath == null) {
+      if (StringUtils.isEmpty(credentialStoreProviderPath)) {
         return null;
       }
-      
-      Configuration config = new Configuration();
-      config.set(LogFeederPropertiesUtil.CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY, providerPath);
+
+      org.apache.hadoop.conf.Configuration config = new org.apache.hadoop.conf.Configuration();
+      config.set(CREDENTIAL_STORE_PROVIDER_PATH_PROPERTY, credentialStoreProviderPath);
       char[] passwordChars = config.getPassword(propertyName);
       return (ArrayUtils.isNotEmpty(passwordChars)) ? new String(passwordChars) : null;
     } catch (Exception e) {
@@ -116,7 +171,7 @@ public class SSLUtil {
     }
   }
 
-  private static String getPasswordFromFile(String fileName) {
+  private String getPasswordFromFile(String fileName) {
     try {
       File pwdFile = new File(LOGFEEDER_CERT_DEFAULT_FOLDER, fileName);
       if (!pwdFile.exists()) {

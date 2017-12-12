@@ -35,9 +35,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputSolrProperties;
@@ -109,8 +109,8 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   }
   
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
     initParams();
     setupSecurity();
     createOutgoingBuffer();
@@ -175,8 +175,8 @@ public class OutputSolr extends Output implements CollectionStateWatcher {
   }
 
   private void setupSecurity() {
-    String jaasFile = LogFeederPropertiesUtil.getSolrJaasFile();
-    boolean securityEnabled = LogFeederPropertiesUtil.isSolrKerberosEnabled();
+    String jaasFile = getLogFeederProps().getLogFeederSecurityConfig().getSolrJaasFile();
+    boolean securityEnabled = getLogFeederProps().getLogFeederSecurityConfig().isSolrKerberosEnabled();
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
       HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
