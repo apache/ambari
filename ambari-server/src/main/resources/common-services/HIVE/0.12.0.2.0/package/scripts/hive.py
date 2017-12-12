@@ -509,7 +509,7 @@ def jdbc_connector(target, hive_previous_jdbc_jar):
   if not params.jdbc_jar_name:
     return
 
-  if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
+  if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }

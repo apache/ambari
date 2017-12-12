@@ -256,9 +256,16 @@ class TestHiveMetastore(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
+    self.assertResourceCalled('Execute', ('rm', '-f',
+                                          '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+                              path=["/bin", "/usr/bin/"],
+                              sudo = True,
+                              )
+    self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'))
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
-                                          '/usr/share/java/mysql-connector-java.jar',
+                                          '/tmp/mysql-connector-java.jar',
                                           '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
@@ -363,9 +370,16 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Execute', ('rm', '-f',
+                                          '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+                              path=["/bin", "/usr/bin/"],
+                              sudo = True,
+                              )
+    self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'))
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
-                                          '/usr/share/java/mysql-connector-java.jar',
+                                          '/tmp/mysql-connector-java.jar',
                                           '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
@@ -658,13 +672,20 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
       mode = 0755, create_parents = True, cd_access = 'a')
 
+    self.assertResourceCalled('Execute', ('rm', '-f',
+                                          '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
+                              path=["/bin", "/usr/bin/"],
+                              sudo = True,
+                              )
+    self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
+                              content = DownloadSource('http://10.0.0.13:8080/resources//mysql-connector-java.jar'))
     self.assertResourceCalled('Execute', ('cp',
-     '--remove-destination',
-     '/usr/share/java/mysql-connector-java.jar',
-     '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar'),
-        path = ['/bin', '/usr/bin/'],
-        sudo = True,
-    )
+                                          '--remove-destination',
+                                          '/tmp/mysql-connector-java.jar',
+                                          '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar'),
+                              path = ['/bin', '/usr/bin/'],
+                              sudo = True,
+                              )
     self.assertResourceCalled('File', '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar',
         mode = 0644,
     )
