@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.namespace.QName;
 
@@ -54,7 +53,6 @@ public class RootLevelSettingsManager {
   private String clusterSettingsConfigType;
   private static File clusterSettingsFile;
   private final static Logger LOG = LoggerFactory.getLogger(RootLevelSettingsManager.class);
-  private Map<String, Map<String, PropertyInfo>> clusterSettingsMap = new ConcurrentHashMap<>();
   private Map<String, ConfigurationModule> configurationModules = new HashMap<>();
 
   @AssistedInject

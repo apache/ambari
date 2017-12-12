@@ -54,6 +54,12 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("clusterName")
   private String clusterName;
 
+  @SerializedName("clusterSettings")
+  private Map<String, String> clusterSettings;
+
+  @SerializedName("stackSettings")
+  private Map<String, String> stackSettings;
+
   @SerializedName("requestId")
   private long requestId;
 
@@ -276,6 +282,23 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setHostLevelParams(Map<String, String> params) {
     hostLevelParams = params;
+  }
+
+  public Map<String, String> getClusterSettings() {
+    return clusterSettings;
+  }
+
+  public void setClusterSettings(Map<String, String> clusterSettings) {
+    this.clusterSettings = clusterSettings;
+  }
+
+
+  public Map<String, String> getStackSettings() {
+    return stackSettings;
+  }
+
+  public void setStackSettings(Map<String, String> stackSettings) {
+    this.stackSettings = stackSettings;
   }
 
   public Map<String, Set<String>> getClusterHostInfo() {

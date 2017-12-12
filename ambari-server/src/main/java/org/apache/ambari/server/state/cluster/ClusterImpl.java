@@ -1233,6 +1233,16 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public Map<String, String> getClusterSettingsNameValueMap() throws AmbariException {
+    Map<String, ClusterSetting> clusterSettings = getClusterSettings();
+    if (clusterSettings != null) {
+      return clusterSettings.values().stream().collect(
+              Collectors.toMap(ClusterSetting::getClusterSettingName, ClusterSetting::getClusterSettingValue));
+    }
+    return Maps.newHashMap();
+  }
+
+  @Override
   public StackId getDesiredStackVersion() {
     return desiredStackVersion;
   }

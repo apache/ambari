@@ -65,6 +65,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.persistence.RollbackException;
 
@@ -162,6 +163,7 @@ import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSetting;
 import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -230,6 +232,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -2669,6 +2672,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String userGroups = gson.toJson(userGroupsMap);
     hostParams.put(USER_GROUPS, userGroups);
+
+    // Set exec command with 'ClusterSettings' map
+    execCmd.setClusterSettings(cluster.getClusterSettingsNameValueMap());
+
+    // Set exec command with 'StackSettings' map
+    execCmd.setStackSettings(ambariMetaInfo.getStackSettingsNameValueMap(stackId));
 
     Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String groupList = gson.toJson(groupSet);

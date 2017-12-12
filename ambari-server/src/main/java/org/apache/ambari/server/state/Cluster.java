@@ -215,6 +215,14 @@ public interface Cluster {
   Map<String, ClusterSetting> getClusterSettings() throws AmbariException;
 
   /**
+   * Get all cluster settings name and value as Map.
+   * If cluster settings are not fonud, returns an Empty Map.
+   *
+   * @return
+   */
+  Map<String, String> getClusterSettingsNameValueMap() throws AmbariException;
+
+  /**
    * Get all ServiceComponentHosts on a given host
    *
    * @param hostname
