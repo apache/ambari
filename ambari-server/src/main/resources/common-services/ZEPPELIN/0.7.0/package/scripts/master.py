@@ -450,16 +450,6 @@ class Master(Script):
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
 
-    if 'spark2-defaults' in params.config['configurations']:
-      spark2_config = self.get_spark2_interpreter_config()
-      config_id = spark2_config["id"]
-      interpreter_settings[config_id] = spark2_config
-
-    if params.livy2_livyserver_host:
-      livy2_config = self.get_livy2_interpreter_config()
-      config_id = livy2_config["id"]
-      interpreter_settings[config_id] = livy2_config
-
     if params.zeppelin_interpreter:
       settings_to_delete = []
       for settings_key, interpreter in interpreter_settings.items():
@@ -611,18 +601,6 @@ class Master(Script):
   def get_zeppelin_spark_dependencies(self):
     import params
     return glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies*.jar')
-
-  def get_spark2_interpreter_config(self):
-    import spark2_config_template
-    import json
-
-    return json.loads(spark2_config_template.template)
-
-  def get_livy2_interpreter_config(self):
-    import livy2_config_template
-    import json
-
-    return json.loads(livy2_config_template.template)
 
 if __name__ == "__main__":
   Master().execute()
