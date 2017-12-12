@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.logfeeder.common.LogFeederException;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
@@ -41,8 +42,8 @@ public class FilterKeyValue extends Filter {
   private MetricData errorMetric = new MetricData("filter.error.keyvalue", false);
 
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
 
     sourceField = filterDescriptor.getSourceField();
     valueSplit = StringUtils.defaultString(((FilterKeyValueDescriptor)filterDescriptor).getValueSplit(), valueSplit);

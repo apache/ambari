@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.csv.CSVFormat;
@@ -41,8 +42,8 @@ public class OutputFile extends Output {
   private String codec;
 
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
 
     filePath = getStringValue("path");
     if (StringUtils.isEmpty(filePath)) {

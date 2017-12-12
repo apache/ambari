@@ -37,12 +37,13 @@ public class LogSearchConfigFactory {
    * @param properties The properties of the component for which the configuration is created. If the properties contain the
    *                  "logsearch.config.class" entry than the class defined there would be used instead of the default class.
    * @param defaultClass The default configuration class to use if not specified otherwise.
+   * @param init initialize the properties and zookeeper client
    * @return The Log Search Configuration instance.
    * @throws Exception Throws exception if the defined class does not implement LogSearchConfigServer, or doesn't have an empty
    *                   constructor, or throws an exception in it's init method.
    */
   public static LogSearchConfigServer createLogSearchConfigServer(Map<String, String> properties,
-      Class<? extends LogSearchConfigServer> defaultClass) throws Exception {
+      Class<? extends LogSearchConfigServer> defaultClass, boolean init) throws Exception {
     try {
       LogSearchConfigServer logSearchConfig = null;
       String configClassName = properties.get("logsearch.config.server.class");
@@ -57,8 +58,9 @@ public class LogSearchConfigFactory {
       } else {
         logSearchConfig = defaultClass.newInstance();
       }
-      
-      logSearchConfig.init(properties);
+      if (init) {
+        logSearchConfig.init(properties);
+      }
       return logSearchConfig;
     } catch (Exception e) {
       LOG.error("Could not initialize logsearch config.", e);
@@ -74,12 +76,13 @@ public class LogSearchConfigFactory {
    *                  "logsearch.config.class" entry than the class defined there would be used instead of the default class.
    * @param clusterName The name of the cluster.
    * @param defaultClass The default configuration class to use if not specified otherwise.
+   * @param init initialize the properties and zookeeper client
    * @return The Log Search Configuration instance.
    * @throws Exception Throws exception if the defined class does not implement LogSearchConfigLogFeeder, or doesn't have an empty
    *                   constructor, or throws an exception in it's init method.
    */
   public static LogSearchConfigLogFeeder createLogSearchConfigLogFeeder(Map<String, String> properties, String clusterName,
-      Class<? extends LogSearchConfigLogFeeder> defaultClass) throws Exception {
+      Class<? extends LogSearchConfigLogFeeder> defaultClass, boolean init) throws Exception {
     try {
       LogSearchConfigLogFeeder logSearchConfig = null;
       String configClassName = properties.get("logsearch.config.logfeeder.class");
@@ -94,12 +97,46 @@ public class LogSearchConfigFactory {
       } else {
         logSearchConfig = defaultClass.newInstance();
       }
-      
-      logSearchConfig.init(properties, clusterName);
+      if (init) {
+        logSearchConfig.init(properties, clusterName);
+      }
       return logSearchConfig;
     } catch (Exception e) {
       LOG.error("Could not initialize logsearch config.", e);
       throw e;
     }
+  }
+
+  /**
+   * Creates a Log Search Configuration instance for the Log Search Server that implements
+   * {@link org.apache.ambari.logsearch.config.api.LogSearchConfigServer}.
+   *
+   * @param properties The properties of the component for which the configuration is created. If the properties contain the
+   *                  "logsearch.config.class" entry than the class defined there would be used instead of the default class.
+   * @param defaultClass The default configuration class to use if not specified otherwise.
+   * @return The Log Search Configuration instance.
+   * @throws Exception Throws exception if the defined class does not implement LogSearchConfigServer, or doesn't have an empty
+   *                   constructor, or throws an exception in it's init method.
+   */
+  public static LogSearchConfigServer createLogSearchConfigServer(Map<String, String> properties,
+                                                                  Class<? extends LogSearchConfigServer> defaultClass) throws Exception {
+    return createLogSearchConfigServer(properties, defaultClass, true);
+  }
+
+  /**
+   * Creates a Log Search Configuration instance for the Log Search Server that implements
+   * {@link org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder}.
+   *
+   * @param properties The properties of the component for which the configuration is created. If the properties contain the
+   *                  "logsearch.config.class" entry than the class defined there would be used instead of the default class.
+   * @param clusterName The name of the cluster.
+   * @param defaultClass The default configuration class to use if not specified otherwise.
+   * @return The Log Search Configuration instance.
+   * @throws Exception Throws exception if the defined class does not implement LogSearchConfigLogFeeder, or doesn't have an empty
+   *                   constructor, or throws an exception in it's init method.
+   */
+  public static LogSearchConfigLogFeeder createLogSearchConfigLogFeeder(Map<String, String> properties, String clusterName,
+      Class<? extends LogSearchConfigLogFeeder> defaultClass) throws Exception {
+    return createLogSearchConfigLogFeeder(properties, clusterName, defaultClass, true);
   }
 }
