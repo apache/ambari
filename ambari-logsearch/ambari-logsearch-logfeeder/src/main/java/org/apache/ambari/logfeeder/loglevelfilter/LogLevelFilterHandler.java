@@ -21,7 +21,6 @@ package org.apache.ambari.logfeeder.loglevelfilter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -29,19 +28,28 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 public class LogLevelFilterHandler implements LogLevelFilterMonitor {
-  private static final Logger LOG = Logger.getLogger(LogLevelFilterHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LogLevelFilterHandler.class);
 
   private static final String TIMEZONE = "GMT";
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+  private static final boolean DEFAULT_VALUE = true;
   
   private static ThreadLocal<DateFormat> formatter = new ThreadLocal<DateFormat>() {
     protected DateFormat initialValue() {
@@ -50,16 +58,19 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
       return dateFormat;
     }
   };
-  
-  private static LogSearchConfig config;
-  private static boolean filterEnabled;
-  private static List<String> defaultLogLevels;
-  private static Map<String, LogLevelFilter> filters = new HashMap<>();
 
-  public static void init(LogSearchConfig config_) {
-    config = config_;
-    filterEnabled = LogFeederPropertiesUtil.isLogFilterEnabled();
-    defaultLogLevels = Arrays.asList(LogFeederPropertiesUtil.getIncludeDefaultLevel().split(","));
+  @Inject
+  private LogFeederProps logFeederProps;
+
+  private LogSearchConfig config;
+  private Map<String, LogLevelFilter> filters = new HashMap<>();
+
+  public LogLevelFilterHandler(LogSearchConfig config) {
+    this.config = config;
+  }
+
+  @PostConstruct
+  public void init() {
     TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
   }
 
@@ -77,8 +88,8 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     }
   }
 
-  public static boolean isAllowed(String hostName, String logId, String level) {
-    if (!filterEnabled) {
+  public boolean isAllowed(String hostName, String logId, String level) {
+    if (!logFeederProps.isLogLevelFilterEnabled()) {
       return true;
     }
     
@@ -87,7 +98,43 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     return allowedLevels.isEmpty() || allowedLevels.contains(level);
   }
 
-  private static synchronized LogLevelFilter findLogFilter(String logId) {
+  public boolean isAllowed(String jsonBlock, InputMarker inputMarker) {
+    if (org.apache.commons.lang3.StringUtils.isEmpty(jsonBlock)) {
+      return DEFAULT_VALUE;
+    }
+    Map<String, Object> jsonObj = LogFeederUtil.toJSONObject(jsonBlock);
+    return isAllowed(jsonObj, inputMarker);
+  }
+
+  public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker) {
+    if ("audit".equals(inputMarker.input.getInputDescriptor().getRowtype()))
+      return true;
+
+    boolean isAllowed = applyFilter(jsonObj);
+    if (!isAllowed) {
+      LOG.trace("Filter block the content :" + LogFeederUtil.getGson().toJson(jsonObj));
+    }
+    return isAllowed;
+  }
+
+
+  public boolean applyFilter(Map<String, Object> jsonObj) {
+    if (MapUtils.isEmpty(jsonObj)) {
+      LOG.warn("Output jsonobj is empty");
+      return DEFAULT_VALUE;
+    }
+
+    String hostName = (String) jsonObj.get(LogFeederConstants.SOLR_HOST);
+    String logId = (String) jsonObj.get(LogFeederConstants.SOLR_COMPONENT);
+    String level = (String) jsonObj.get(LogFeederConstants.SOLR_LEVEL);
+    if (org.apache.commons.lang3.StringUtils.isNotBlank(hostName) && org.apache.commons.lang3.StringUtils.isNotBlank(logId) && org.apache.commons.lang3.StringUtils.isNotBlank(level)) {
+      return isAllowed(hostName, logId, level);
+    } else {
+      return DEFAULT_VALUE;
+    }
+  }
+
+  private synchronized LogLevelFilter findLogFilter(String logId) {
     LogLevelFilter logFilter = filters.get(logId);
     if (logFilter != null) {
       return logFilter;
@@ -96,10 +143,10 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     LOG.info("Filter is not present for log " + logId + ", creating default filter");
     LogLevelFilter defaultFilter = new LogLevelFilter();
     defaultFilter.setLabel(logId);
-    defaultFilter.setDefaultLevels(defaultLogLevels);
+    defaultFilter.setDefaultLevels(logFeederProps.getIncludeDefaultLogLevels());
 
     try {
-      config.createLogLevelFilter(LogFeederPropertiesUtil.getClusterName(), logId, defaultFilter);
+      config.createLogLevelFilter(logFeederProps.getClusterName(), logId, defaultFilter);
       filters.put(logId, defaultFilter);
     } catch (Exception e) {
       LOG.warn("Could not persist the default filter for log " + logId, e);
@@ -108,7 +155,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     return defaultFilter;
   }
 
-  private static List<String> getAllowedLevels(String hostName, LogLevelFilter componentFilter) {
+  private List<String> getAllowedLevels(String hostName, LogLevelFilter componentFilter) {
     String componentName = componentFilter.getLabel();
     List<String> hosts = componentFilter.getHosts();
     List<String> defaultLevels = componentFilter.getDefaultLevels();
@@ -134,7 +181,7 @@ public class LogLevelFilterHandler implements LogLevelFilterMonitor {
     return defaultLevels;
   }
 
-  private static boolean isFilterExpired(LogLevelFilter logLevelFilter) {
+  private boolean isFilterExpired(LogLevelFilter logLevelFilter) {
     if (logLevelFilter == null)
       return false;
 

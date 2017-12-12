@@ -28,8 +28,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.util.FileUtil;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
 import org.apache.commons.lang.ObjectUtils;
@@ -55,6 +55,8 @@ public abstract class AbstractInputFile extends Input {
   private Map<String, Map<String, Object>> jsonCheckPoints = new HashMap<>();
   private Map<String, InputMarker> lastCheckPointInputMarkers = new HashMap<>();
 
+  private LogFeederProps logFeederProps;
+
   @Override
   protected String getStatMetricName() {
     return "input.files.read_lines";
@@ -66,10 +68,11 @@ public abstract class AbstractInputFile extends Input {
   }
   
   @Override
-  public void init() throws Exception {
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    this.logFeederProps = logFeederProps;
     LOG.info("init() called");
     
-    checkPointExtension = LogFeederPropertiesUtil.getCheckPointExtension();
+    checkPointExtension = logFeederProps.getCheckPointExtension();
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);
@@ -86,7 +89,7 @@ public abstract class AbstractInputFile extends Input {
 
     LOG.info("File to monitor " + logPath + ", tail=" + tail + ", isReady=" + isFileReady);
 
-    super.init();
+    super.init(logFeederProps);
   }
 
   protected void processFile(File logPathFile, boolean follow) throws FileNotFoundException, IOException {

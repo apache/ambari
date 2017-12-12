@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputKafka.KafkaCallBack;
@@ -69,7 +70,7 @@ public class OutputKafkaTest {
     config.put("topic", TEST_TOPIC);
 
     outputKafka.loadConfig(config);
-    outputKafka.init();
+    outputKafka.init(new LogFeederProps());
 
     @SuppressWarnings("unchecked")
     Future<RecordMetadata> mockFuture = EasyMock.mock(Future.class);
@@ -103,7 +104,7 @@ public class OutputKafkaTest {
     config.put("topic", TEST_TOPIC);
 
     outputKafka.loadConfig(config);
-    outputKafka.init();
+    outputKafka.init(new LogFeederProps());
   }
 
   @Test
@@ -117,7 +118,7 @@ public class OutputKafkaTest {
     config.put("broker_list", "some broker list");
 
     outputKafka.loadConfig(config);
-    outputKafka.init();
+    outputKafka.init(new LogFeederProps());
   }
 
   @After
