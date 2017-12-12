@@ -111,7 +111,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, MPACKS_STAGING_PATH_PROPERTY, STACK_JAVA_VERSION
                 from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
                 from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
-                  download_and_install_jdk, prompt_db_properties, setup, \
+                  download_and_install_jdk, prompt_db_properties, update_ambari_repo, setup, \
                   AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file, check_ambari_java_version_is_valid
                 from ambari_server.serverUpgrade import upgrade, change_objects_owner, \
                   run_schema_upgrade, move_user_custom_actions, find_and_copy_custom_services
@@ -3683,6 +3683,30 @@ class TestAmbariServer(TestCase):
       self.assertTrue(True)
     pass
 
+
+  @patch("ambari_server.serverConfiguration.update_properties")
+  @patch("ambari_server.userInput.get_validated_string_input",return_value = MagicMock(return_value="redhat-ppc7"))
+  @patch("__builtin__.raw_input")
+  def test_update_ambari_repo(self, raw_input_method, get_validated_string_input_method, update_properties_mock):
+    args = MagicMock()
+    args.ambari_repo = "http://repourl"
+
+    # When os_type is not None
+    raw_input_method.return_value = "redhat-ppc7"
+    res = update_ambari_repo(args)
+    self.assertTrue(1, get_validated_string_input_method.call_count)
+    self.assertTrue(1, update_properties_mock.call_count)
+
+    # When Os_type is None
+    raw_input_method.return_value = ""
+    try:
+      res = update_ambari_repo(args)
+      self.fail("Should throw an exception")
+    except FatalException as fe:
+      self.assertTrue("OS type cannot be empty" in fe.reason)
+    pass
+
+
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("pwd.getpwnam")
@@ -3719,7 +3743,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
   @patch("ambari_server.serverSetup.write_gpl_license_accepted")
-  def test_setup_linux(self, write_gpl_license_accepted_mock, expand_jce_zip_file_mock, read_ambari_user_mock,
+  @patch("ambari_server.serverSetup.update_ambari_repo")
+  def test_setup_linux(self, update_ambari_repo_mock, write_gpl_license_accepted_mock, expand_jce_zip_file_mock, read_ambari_user_mock,
                  service_setup_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
@@ -3751,6 +3776,7 @@ class TestAmbariServer(TestCase):
     del args.database_password
 
     args.silent = False
+    args.ambari_repo = None
 
     failed = False
     properties = Properties()
@@ -3810,6 +3836,7 @@ class TestAmbariServer(TestCase):
       args.jdbc_db = None
 
       args.silent = False
+      args.ambari_repo = None
       args.skip_view_extraction = False
 
       return args
@@ -3840,6 +3867,24 @@ class TestAmbariServer(TestCase):
     self.assertTrue(check_ambari_user_mock.called)
     self.assertEqual(1, run_os_command_mock.call_count)
     self.assertTrue(extract_views_mock.called)
+
+    # Ambari repo url is passed in argument
+    args.ambari_repo = "http://repourl"
+    update_ambari_repo_mock.return_value = True
+    result = setup(args)
+    self.assertEqual(None, result)
+    self.assertTrue(check_ambari_user_mock.called)
+    self.assertTrue(update_ambari_repo_mock.called)
+    self.assertEqual(2, run_os_command_mock.call_count)
+    self.assertTrue(extract_views_mock.called)
+
+    # Ambari repo not in proper format
+    args.ambari_repo = "http://"
+    try:
+      result = setup(args)
+      self.fail("Should throw an exception")
+    except FatalException as fe:
+      self.assertTrue("Ambari repo URL format is invalid" in fe.reason)
 
     # test view extraction is skipped on-demand
     args = reset_mocks()
@@ -6238,6 +6283,7 @@ class TestAmbariServer(TestCase):
     args.jdbc_driver = None
     args.jdbc_db = None
     args.silent = False
+    args.ambari_repo = None
 
     del args.dbms
     del args.database_index
