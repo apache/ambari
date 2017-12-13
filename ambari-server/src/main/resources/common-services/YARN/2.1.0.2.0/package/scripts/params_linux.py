@@ -89,16 +89,20 @@ def get_spark_version(service_name, component_name, yarn_version):
   """
   Attempts to calculate the correct version placeholder value for spark or spark2 based on
   what is installed in the cluster. If Spark is not installed, then this value will need to be
-  that of YARN so it can still find the correct shuffle class.
+  that of YARN so it can still find the correct spark class.
 
   On cluster installs, we have not yet calcualted any versions and all known values could be None.
   This doesn't affect daemons, but it does affect client-only hosts where they will never receive
   a start command after install. Therefore, this function will attempt to use stack-select as a
   last resort to get a value value.
+
+  ATS needs this since it relies on packages installed by Spark. Some classes, like the shuffle
+  classes, are not provided by spark, but by a dependent RPM to YARN, so they do not use this
+  value.
   :param service_name:  the service name (SPARK, SPARK2, etc)
   :param component_name:  the component name (SPARK_CLIENT, etc)
   :param yarn_version:  the default version of Yarn to use if no spark is installed
-  :return:  a value for the version placeholder in shuffle classpath properties
+  :return:  a value for the version placeholder in spark classpath properties
   """
   # start off seeing if we need to populate a default value for YARN
   if yarn_version is None:
@@ -106,18 +110,19 @@ def get_spark_version(service_name, component_name, yarn_version):
       component_name = "YARN_CLIENT")
 
   # now try to get the version of spark/spark2, defaulting to the version if YARN
-  shuffle_classpath_version = component_version.get_component_repository_version(service_name = service_name,
+  spark_classpath_version = component_version.get_component_repository_version(service_name = service_name,
     component_name = component_name, default_value = yarn_version)
 
   # even with the default of using YARN's version, on an install this might be None since we haven't
   # calculated the version of YARN yet - use stack_select as a last ditch effort
-  if shuffle_classpath_version is None:
+  if spark_classpath_version is None:
     try:
-      shuffle_classpath_version = stack_select.get_role_component_current_stack_version()
+      spark_classpath_version = stack_select.get_role_component_current_stack_version()
     except:
-      Logger.exception("Unable to query for the correct shuffle classpath")
+      Logger.exception("Unable to query for the correct spark version to use when building classpaths")
 
-  return shuffle_classpath_version
+  return spark_classpath_version
+
 
 # these are used to render the classpath for picking up Spark classes
 # in the event that spark is not installed, then we must default to the vesrion of YARN installed
