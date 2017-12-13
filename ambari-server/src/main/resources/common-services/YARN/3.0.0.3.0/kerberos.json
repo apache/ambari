@@ -15,7 +15,7 @@
       "configurations": [
         {
           "yarn-site": {
-            "yarn.timeline-service.enabled": "true",
+            "yarn.timeline-service.enabled": "false",
             "yarn.timeline-service.http-authentication.type": "kerberos",
             "yarn.acl.enable": "true",
             "yarn.admin.acl": "${yarn-env/yarn_user},dr.who",
