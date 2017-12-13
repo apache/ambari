@@ -54,14 +54,16 @@
                     <span class="control-group control-label-span col-md-3"> </span>
                   {{/unless}}
                 {{/if}}
+                {{#if configData.isOriginalSCP}}
+                  {{#if configData.rightSideLabel}}
+                    <span {{bindAttr class="configData.isEditable::muted :col-md-3 :clear-left :form-group :control-label-span"}}>{{formatWordBreak configData.displayName}}</span>
+                  {{/if}}
+                {{/if}}
                 <div class="col-md-9">
                   {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
                   {{#if configData.isOriginalSCP}}
                     <div {{bindAttr class="configData.errorMessage:has-error: configData.warnMessage:has-warning: :form-group"}} {{QAAttr "property-form-group"}}>
                       {{view configData.viewClass serviceConfigBinding="configData" categoryConfigsAllBinding="view.categoryConfigsAll" }}
-                      {{#if configData.rightSideLabel}}
-                        <span {{bindAttr class="configData.isEditable::muted"}}>{{formatWordBreak configData.displayName}}</span>
-                      {{/if}}
                       {{#if configData.hintMessage}}
                         <a class="icon-question-sign glyphicon glyphicon-blue" href="#"
                            data-toggle="tooltip" {{bindAttr data-original-title="configData.hintMessage"}}></a>
