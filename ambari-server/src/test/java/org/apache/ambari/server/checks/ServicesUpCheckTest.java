@@ -276,9 +276,9 @@ public class ServicesUpCheckTest {
     allHostComponentSummaries.add(hcsMetricsCollector);
     allHostComponentSummaries.add(hcsMetricsMonitor);
 
-    long clusterId = 1;
-    long serviceGroupId = 1;
-    long serviceId = 1;
+    long clusterId = 0;
+    long serviceGroupId = 0;
+    long serviceId = 0;
 
     // Mock the static method
     Mockito.when(HostComponentSummary.getHostComponentSummaries(clusterId, serviceGroupId, serviceId, "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));

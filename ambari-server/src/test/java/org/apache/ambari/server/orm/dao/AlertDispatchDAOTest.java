@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -82,6 +83,7 @@ public class AlertDispatchDAOTest {
 
   private Clusters m_clusters;
   private Cluster m_cluster;
+  private ServiceGroup serviceGroup;
   private Injector m_injector;
   private AlertDispatchDAO m_dao;
   private AlertDefinitionDAO m_definitionDao;
@@ -118,6 +120,7 @@ public class AlertDispatchDAOTest {
     EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
 
     m_cluster = m_clusters.getClusterById(m_helper.createCluster());
+    serviceGroup = m_cluster.addServiceGroup("CORE");
     m_helper.initializeClusterWithStack(m_cluster);
   }
 
@@ -564,8 +567,8 @@ public class AlertDispatchDAOTest {
   @Test
   public void testAlertNoticePredicate() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
+    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     m_alertHelper.populateData(m_cluster);
 
@@ -643,8 +646,8 @@ public class AlertDispatchDAOTest {
   @Test
   public void testAlertNoticePagination() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
+    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     m_alertHelper.populateData(m_cluster);
 
@@ -685,8 +688,8 @@ public class AlertDispatchDAOTest {
   @Test
   public void testAlertNoticeSorting() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
+    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     m_alertHelper.populateData(m_cluster);
 
@@ -750,7 +753,7 @@ public class AlertDispatchDAOTest {
   @Test
   public void testDefaultGroupAutomaticCreation() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
     //m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
 
     AlertGroupEntity hdfsGroup = m_dao.findDefaultServiceGroup(
@@ -788,7 +791,7 @@ public class AlertDispatchDAOTest {
   public void testDefaultGroupInvalidServiceNoCreation() throws Exception {
     initTestData();
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
     //m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
 
     assertEquals(3, m_dao.findAllGroups().size());
@@ -823,7 +826,7 @@ public class AlertDispatchDAOTest {
     // install YARN (which doesn't have any alerts defined in the test JSON)
     // so that the definitions get created correctly
     m_helper.installYarnService(m_cluster, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOSTNAME);
+        m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     List<AlertDefinitionEntity> alertDefinitionEntities = new ArrayList<>();
 

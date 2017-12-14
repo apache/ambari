@@ -41,6 +41,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
@@ -360,6 +361,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
       binder.bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
       binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
       binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+      binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
     }
   }
 }

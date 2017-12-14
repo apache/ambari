@@ -200,6 +200,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   private void createCluster(String clusterName, String stackName) throws AmbariException, AuthorizationException {
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, stackName, null);
     controller.createCluster(r);
+    clusters.getCluster(clusterName).addServiceGroup("CORE");
   }
 
   private void createService(String clusterName,
@@ -213,7 +214,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
         new StackId("HDP-2.0.7"), "2.0.7-1234");
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName,
+    ServiceRequest r1 = new ServiceRequest(clusterName, "CORE", serviceName,
         repositoryVersion.getId(), dStateStr, null);
 
     Set<ServiceRequest> requests = new HashSet<>();
@@ -230,7 +231,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "CORE",
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<>();
@@ -244,7 +245,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "CORE",
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
       new HashSet<>();

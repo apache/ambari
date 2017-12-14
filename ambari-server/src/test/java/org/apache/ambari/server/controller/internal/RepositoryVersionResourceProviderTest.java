@@ -188,6 +188,7 @@ public class RepositoryVersionResourceProviderTest {
     StackEntity stackEntity = new StackEntity();
     stackEntity.setStackName("HDP");
     stackEntity.setStackVersion("1.1");
+    stackEntity.setRepoVersion("");                                //TODO REMOVE AFTER MERGE WITH BP BRANCH
     stackDAO.create(stackEntity);
 
     Clusters clusters = injector.getInstance(Clusters.class);

@@ -81,6 +81,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -262,6 +263,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
 
         requestStaticInjection(KerberosChecker.class);
       }
@@ -3496,6 +3498,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
 
       expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+      expect(cluster.getClusterId()).andReturn(1L).anyTimes();
       expect(cluster.getServices())
           .andReturn(new HashMap<String, Service>() {
             {

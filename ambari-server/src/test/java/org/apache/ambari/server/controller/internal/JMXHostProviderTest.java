@@ -124,7 +124,7 @@ public class JMXHostProviderTest {
       dStateStr = desiredState.toString();
     }
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName, m_repositoryVersion.getId(), dStateStr, null);
+    ServiceRequest r1 = new ServiceRequest(clusterName, "CORE", serviceName, m_repositoryVersion.getId(), dStateStr, null);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
@@ -140,7 +140,7 @@ public class JMXHostProviderTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "CORE",
       serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<>();
@@ -168,6 +168,7 @@ public class JMXHostProviderTest {
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
     controller.createCluster(r);
     Cluster cluster = clusters.getCluster(clusterName);
+    cluster.addServiceGroup("CORE");
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
@@ -240,6 +241,7 @@ public class JMXHostProviderTest {
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.6", null);
     controller.createCluster(r);
     Cluster cluster = clusters.getCluster(clusterName);
+    cluster.addServiceGroup("CORE");
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceName = "HDFS";
     String serviceName2 = "YARN";

@@ -65,6 +65,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -86,6 +87,7 @@ public class AlertsDAOTest {
 
   private Clusters m_clusters;
   private Cluster m_cluster;
+  private ServiceGroup serviceGroup;
   private Injector m_injector;
   private OrmTestHelper m_helper;
   private AlertsDAO m_dao;
@@ -121,10 +123,11 @@ public class AlertsDAOTest {
     // install YARN so there is at least 1 service installed and no
     // unexpected alerts since the test YARN service doesn't have any alerts
     m_cluster = m_clusters.getClusterById(m_helper.createCluster());
+    serviceGroup = m_cluster.addServiceGroup("CORE");
     m_helper.initializeClusterWithStack(m_cluster);
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
     m_helper.installYarnService(m_cluster, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOSTNAME);
+        m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     // create 5 definitions
     for (int i = 0; i < 5; i++) {
@@ -1030,7 +1033,7 @@ public class AlertsDAOTest {
   @Test
   public void testMaintenanceMode() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOSTNAME);
+        m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     List<AlertCurrentEntity> currents = m_dao.findCurrent();
     for (AlertCurrentEntity current : currents) {
@@ -1219,7 +1222,7 @@ public class AlertsDAOTest {
   @Test
   public void testAlertHistoryPredicate() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOSTNAME);
+        m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
     m_alertHelper.populateData(m_cluster);
 
     Predicate clusterPredicate = null;
@@ -1312,7 +1315,7 @@ public class AlertsDAOTest {
   @Test
   public void testAlertHistoryPagination() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOSTNAME);
+        m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
     m_alertHelper.populateData(m_cluster);
 
     AlertHistoryRequest request = new AlertHistoryRequest();
@@ -1352,7 +1355,7 @@ public class AlertsDAOTest {
   @Test
   public void testAlertHistorySorting() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOSTNAME);
+        m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
     m_alertHelper.populateData(m_cluster);
 
     List<SortRequestProperty> sortProperties = new ArrayList<>();

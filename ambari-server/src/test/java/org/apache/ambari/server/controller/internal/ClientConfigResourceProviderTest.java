@@ -218,7 +218,7 @@ public class ClientConfigResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    String clusterName = "C1";
+    String clusterName = "c1";
     String serviceName = "PIG";
     String componentName = "PIG";
     String displayName = "Pig Client";
@@ -248,7 +248,7 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "", 1L, serviceName, "", 1L,
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
         componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
         null);
 
@@ -323,6 +323,7 @@ public class ClientConfigResourceProviderTest {
     expect(clusters.getHost(hostName)).andReturn(host);
 
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
     expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
@@ -475,7 +476,7 @@ public class ClientConfigResourceProviderTest {
       and().property(ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID).equals("PIG").
       toPredicate();
 
-    String clusterName = "C1";
+    String clusterName = "c1";
     String serviceName = "PIG";
     String componentName = "PIG";
     String displayName = "Pig Client";
@@ -506,7 +507,7 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "", 1L, serviceName, "", 1L,
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
         componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
         null);
 
@@ -582,6 +583,7 @@ public class ClientConfigResourceProviderTest {
     expect(clusters.getHost(hostName)).andReturn(host);
 
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
     expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 

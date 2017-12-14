@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Assert;
@@ -94,6 +95,7 @@ public class DBInconsistencyTests {
     Assert.assertNotNull(clusterId);
 
     Cluster cluster = clusters.getCluster(OrmTestHelper.CLUSTER_NAME);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     Assert.assertNotNull(cluster);
 
     helper.addHost(clusters, cluster, "h1");
@@ -101,7 +103,7 @@ public class DBInconsistencyTests {
     helper.initializeClusterWithStack(cluster);
 
     helper.installHdfsService(cluster, serviceFactory,
-      serviceComponentFactory, serviceComponentHostFactory, "h1");
+      serviceComponentFactory, serviceComponentHostFactory, "h1", serviceGroup);
 
     Collection<ServiceComponentHost> schList = clusters.getCluster(
       OrmTestHelper.CLUSTER_NAME).getServiceComponentHosts("HDFS", "DATANODE");

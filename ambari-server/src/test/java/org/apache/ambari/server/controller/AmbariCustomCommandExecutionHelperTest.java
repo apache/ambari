@@ -70,6 +70,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -638,31 +639,32 @@ public class AmbariCustomCommandExecutionHelperTest {
     addHost(hostC6402, clusterName);
 
     Cluster cluster = clusters.getCluster(clusterName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     Assert.assertNotNull(cluster);
 
-    createService(clusterName, "YARN", repositoryVersion);
-    createService(clusterName, "GANGLIA", repositoryVersion);
-    createService(clusterName, "ZOOKEEPER", repositoryVersion);
-    createService(clusterName, "FLUME", repositoryVersion);
+    createService(clusterName, "YARN", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
+    createService(clusterName, "GANGLIA", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
+    createService(clusterName, "ZOOKEEPER", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
+    createService(clusterName, "FLUME", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
 
-    createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT);
-    createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT);
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_SERVER", State.INIT);
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_MONITOR", State.INIT);
-    createServiceComponent(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT);
+    createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_SERVER", State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_MONITOR", State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponent(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT, serviceGroup.getServiceGroupName());
 
     // this component should be not installed on any host
-    createServiceComponent(clusterName, "FLUME", "FLUME_HANDLER", State.INIT);
+    createServiceComponent(clusterName, "FLUME", "FLUME_HANDLER", State.INIT, serviceGroup.getServiceGroupName());
 
-    createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null);
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
-    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT, serviceGroup.getServiceGroupName());
 
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6402, null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT);
-    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
+    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6402, null, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT, serviceGroup.getServiceGroupName());
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
@@ -687,11 +689,11 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   private void createService(String clusterName, String serviceName,
-      RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException {
+      RepositoryVersionEntity repositoryVersion, String serviceGroupName, StackId stackId) throws AmbariException, AuthorizationException {
 
 
-    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName,
-        repositoryVersion.getId(), null, null);
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName,
+        repositoryVersion.getId(), null, stackId);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
@@ -701,13 +703,13 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   private void createServiceComponent(String clusterName,
-      String serviceName, String componentName, State desiredState)
+      String serviceName, String componentName, State desiredState, String serviceGroupName)
       throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName,
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<>();
@@ -715,13 +717,14 @@ public class AmbariCustomCommandExecutionHelperTest {
     ComponentResourceProviderTest.createComponents(ambariManagementController, requests);
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState)
+  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname,
+                                          State desiredState, String serviceGroupName)
       throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName,
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
       new HashSet<>();

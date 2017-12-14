@@ -170,6 +170,7 @@ public class ComponentResourceProviderTest {
     // add properties to the request map
     properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
+    properties.put(ComponentResourceProvider.COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "CORE");
     properties.put(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
 
     propertySet.add(properties);
@@ -244,13 +245,13 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component100", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", "Component100", stackId, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component100 Client", null, null));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component101", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", "Component101", stackId, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", 1L, "", 1L, "Service100", "", "Component102", stackId, "", serviceComponentStateCountMap,
+      new ServiceComponentResponse(100L, "Cluster100", 1L, "CORE", 1L, "Service100", "Service100", "Component102", stackId, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component102 Client", "1.1", RepositoryVersionState.CURRENT));
 
     expect(ambariMetaInfo.getComponent("FOO", "1.0", null, "Component100")).andReturn(

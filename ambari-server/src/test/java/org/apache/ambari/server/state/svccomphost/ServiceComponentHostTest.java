@@ -32,6 +32,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.api.services.ServiceGroupKey;
 import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -63,6 +64,8 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
@@ -109,11 +112,14 @@ public class ServiceComponentHostTest {
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
   private HostComponentStateDAO hostComponentStateDAO;
+  @Inject
+  private ServiceGroupFactory serviceGroupFactory;
 
   private String clusterName = "c1";
   private String hostName1 = "h1";
   private Map<String, String> hostAttributes = new HashMap<>();
   private RepositoryVersionEntity repositoryVersion;
+  private ServiceGroup serviceGroup;
 
 
   @Before
@@ -125,10 +131,11 @@ public class ServiceComponentHostTest {
     EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
 
     StackId stackId = new StackId("HDP-2.0.6");
-    createCluster(stackId, clusterName);
-
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    createCluster(stackId, clusterName, repositoryVersion.getVersion());
 
+
+    serviceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "test_group", new HashSet<ServiceGroupKey>());
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     Set<String> hostNames = new HashSet<>();
@@ -142,8 +149,8 @@ public class ServiceComponentHostTest {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
-  private ClusterEntity createCluster(StackId stackId, String clusterName) throws AmbariException {
-    helper.createStack(stackId);
+  private ClusterEntity createCluster(StackId stackId, String clusterName, String repoVersion) throws AmbariException {
+    helper.createStackWithRepoVersion(stackId, repoVersion);
     clusters.addCluster(clusterName, stackId);
     ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
     Assert.assertNotNull(clusterEntity);
@@ -172,14 +179,15 @@ public class ServiceComponentHostTest {
       String hostName, boolean isClient) throws AmbariException{
     Cluster c = clusters.getCluster(clusterName);
     Assert.assertNotNull(c.getConfigGroups());
-    return createNewServiceComponentHost(c, svc, svcComponent, hostName);
+    return createNewServiceComponentHost(c, svc, svcComponent, hostName, serviceGroup);
   }
 
   private ServiceComponentHost createNewServiceComponentHost(
       Cluster c,
       String svc,
       String svcComponent,
-      String hostName) throws AmbariException{
+      String hostName,
+      ServiceGroup customServiceGroup) throws AmbariException{
 
     Service s = null;
 
@@ -188,7 +196,7 @@ public class ServiceComponentHostTest {
     } catch (ServiceNotFoundException e) {
       LOG.debug("Calling service create, serviceName={}", svc);
 
-      s = serviceFactory.createNew(c, null, new ArrayList<ServiceKey>(), svc, "", repositoryVersion);
+      s = serviceFactory.createNew(c, customServiceGroup, new ArrayList<ServiceKey>(), svc, svc, repositoryVersion);
       c.addService(s);
     }
 
@@ -705,7 +713,9 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName);
+    createCluster(stackId, clusterName, "");
+
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<ServiceGroupKey>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -720,9 +730,9 @@ public class ServiceComponentHostTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
-    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
 
     sch1.getServiceComponent().setDesiredRepositoryVersion(repositoryVersion);
 
@@ -896,7 +906,9 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName);
+    createCluster(stackId, clusterName, "");
+
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<ServiceGroupKey>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -907,9 +919,9 @@ public class ServiceComponentHostTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
-    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
 
     sch1.getServiceComponent().setDesiredRepositoryVersion(repositoryVersion);
 
@@ -1023,7 +1035,9 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName);
+    createCluster(stackId, clusterName, "");
+
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<ServiceGroupKey>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -1037,9 +1051,9 @@ public class ServiceComponentHostTest {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     Assert.assertNotNull(hostEntity);
 
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-    //ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
-    //ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
 
     HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByIndex(
       cluster.getClusterId(),

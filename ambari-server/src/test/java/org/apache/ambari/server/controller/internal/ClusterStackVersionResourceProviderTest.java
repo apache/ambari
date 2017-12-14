@@ -256,12 +256,15 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+    expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+    expect(schNamenode.getServiceType()).andReturn("NAMENODE").anyTimes();
     final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
     expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
     expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    expect(schAMS.getServiceType()).andReturn("METRICS_COLLECTOR").anyTimes();
     // First host contains versionable components
     final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schAMS);
     // Second host does not contain versionable components
@@ -437,18 +440,22 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+    expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
 
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+    expect(schNamenode.getServiceType()).andReturn("NAMENODE").anyTimes();
 
     final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
     expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
     expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    expect(schAMS.getServiceType()).andReturn("METRICS_COLLECTOR").anyTimes();
 
     final ServiceComponentHost schHBM = createMock(ServiceComponentHost.class);
     expect(schHBM.getServiceName()).andReturn("HBASE").anyTimes();
     expect(schHBM.getServiceComponentName()).andReturn("HBASE_MASTER").anyTimes();
+    expect(schHBM.getServiceType()).andReturn("HBASE_MASTER").anyTimes();
 
     // First host contains versionable components
     final List<ServiceComponentHost> schsH1 = Arrays.asList(schDatanode, schNamenode, schAMS);
@@ -661,14 +668,17 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+    expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
 
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+    expect(schNamenode.getServiceType()).andReturn("NAMENODE").anyTimes();
 
     final ServiceComponentHost schHBM = createMock(ServiceComponentHost.class);
     expect(schHBM.getServiceName()).andReturn("HBASE").anyTimes();
     expect(schHBM.getServiceComponentName()).andReturn("HBASE_MASTER").anyTimes();
+    expect(schHBM.getServiceType()).andReturn("HBASE_MASTER").anyTimes();
 
     // First host contains versionable components
     final List<ServiceComponentHost> schsH1 = Arrays.asList(schDatanode, schNamenode);
@@ -897,14 +907,17 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+     expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
 
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+    expect(schNamenode.getServiceType()).andReturn("NAMENODE").anyTimes();
 
     final ServiceComponentHost schHBM = createMock(ServiceComponentHost.class);
     expect(schHBM.getServiceName()).andReturn("HBASE").anyTimes();
     expect(schHBM.getServiceComponentName()).andReturn("HBASE_MASTER").anyTimes();
+    expect(schHBM.getServiceType()).andReturn("HBASE_MASTER").anyTimes();
 
     // First host contains versionable components
     final List<ServiceComponentHost> schsH1 = Arrays.asList(schDatanode, schNamenode);
@@ -1120,12 +1133,15 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+    expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+    expect(schNamenode.getServiceType()).andReturn("NAMENODE").anyTimes();
     final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
     expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
     expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    expect(schAMS.getServiceType()).andReturn("METRICS_COLLECTOR").anyTimes();
     // First host contains versionable components
     final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schAMS);
     // Second host does not contain versionable components
@@ -1340,6 +1356,7 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+    expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
 
     final List<ServiceComponentHost> serviceComponentHosts = Arrays.asList(schDatanode);
 
@@ -1496,12 +1513,15 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+    expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+    expect(schNamenode.getServiceType()).andReturn("NAMENODE").anyTimes();
     final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
     expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
     expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    expect(schAMS.getServiceType()).andReturn("METRICS_COLLECTOR").anyTimes();
     // First host contains versionable components
     final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schAMS);
     // Second host does not contain versionable components
@@ -2015,14 +2035,17 @@ public class ClusterStackVersionResourceProviderTest {
      final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
      expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
      expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+     expect(schDatanode.getServiceType()).andReturn("DATANODE").anyTimes();
 
      final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
      expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
      expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
+     expect(schNamenode.getServiceType()).andReturn("NAMENODE").anyTimes();
 
      final ServiceComponentHost schHBM = createMock(ServiceComponentHost.class);
      expect(schHBM.getServiceName()).andReturn("HBASE").anyTimes();
      expect(schHBM.getServiceComponentName()).andReturn("HBASE_MASTER").anyTimes();
+     expect(schHBM.getServiceType()).andReturn("HBASE_MASTER").anyTimes();
 
      // First host contains versionable components
      final List<ServiceComponentHost> schsH1 = Arrays.asList(schDatanode, schNamenode);
