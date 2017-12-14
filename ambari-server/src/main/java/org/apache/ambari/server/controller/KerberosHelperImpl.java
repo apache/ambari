@@ -3976,17 +3976,17 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     @Override
     public SecurityState getNewDesiredSCHSecurityState() {
-      return null;
+      return SecurityState.SECURED_KERBEROS;
     }
 
     @Override
     public SecurityState getNewSCHSecurityState() {
-      return null;
+      return SecurityState.SECURING;
     }
 
     @Override
     public SecurityState getNewServiceSecurityState() {
-      return null;
+      return SecurityState.SECURED_KERBEROS;
     }
 
     @Override
