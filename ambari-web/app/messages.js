@@ -1267,6 +1267,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.option.kdc.condition.1': 'Ambari Server and cluster hosts have network access to both the KDC and KDC admin hosts.',
   'admin.kerberos.wizard.step1.option.kdc.condition.2': 'KDC administrative credentials are on-hand.',
   'admin.kerberos.wizard.step1.option.kdc.condition.3': 'The Java Cryptography Extensions (JCE) have been setup on the Ambari Server host and all hosts in the cluster.',
+  'admin.kerberos.wizard.step1.option.kdc.condition.4': 'The Isilon administrator has setup all appropriate principals in OneFS',
   'admin.kerberos.wizard.step1.option.manual': 'Manage Kerberos principals and keytabs manually',
   'admin.kerberos.wizard.step1.option.manual.condition.1': 'Cluster hosts have network access to the KDC',
   'admin.kerberos.wizard.step1.option.manual.condition.2': 'Kerberos client utilities (such as kinit) have been installed on every cluster host',

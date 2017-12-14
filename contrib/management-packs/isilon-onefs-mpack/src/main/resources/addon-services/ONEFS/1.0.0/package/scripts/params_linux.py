@@ -32,24 +32,16 @@ config = Script.get_config()
 hostname = config["hostname"]
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 user_group = config['configurations']['cluster-env']['user_group']
 hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-namenode_host = default("/clusterHostInfo/namenode_host", [])
-journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", [])
-zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", [])
-
-has_journalnode_hosts = not len(journalnode_hosts)  == 0
-has_zkfc_hosts = not len(zkfc_hosts)  == 0
-is_namenode_master = hostname in namenode_host
-
 dfs_type = default("/commandParams/dfs_type", "")
-hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
