@@ -15,26 +15,24 @@
   limitations under the License.
 -->
 
+<ng-template #listItemTemplate let-item="item">
+  {{item.label | translate}}
+</ng-template>
 <label class="parameter-label" *ngFor="let parameter of parameters">
   <span *ngIf="parameter.isExclude" class="fa fa-search-minus"></span>
   {{parameter.label | translate}}:
   <span class="parameter-value">{{parameter.value}}</span>
   <span class="fa fa-times remove-parameter" (click)="removeParameter($event, parameter.id)"></span>
 </label>
-<span class="active-parameter-label" *ngIf="isActive && activeItem">{{activeItem.name | translate}}:</span>
+<span class="active-parameter-label" *ngIf="isActive && activeItem">{{activeItem.label | translate}}:</span>
 <div [ngClass]="{'search-item-container': true, 'active': isActive, 'value': isValueInput}">
-  <span class="parameter-input-wrapper">
-    <input #parameterInput auto-complete class="search-item-input parameter-input form-control"
-           [(ngModel)]="currentValue" [source]="items" display-property-name="name"
-           [list-formatter]="itemsListFormatter" [value-formatter]="itemsValueFormatter" [match-formatted]="true"
-           (valueChanged)="changeParameterName({value: $event.value, isExclude: false})"
-           (keyup)="onParameterKeyUp($event)">
-  </span>
-  <span [ngClass]="{'no-options': !activeItemValueOptions.length}">
-    <input #valueInput auto-complete [(ngModel)]="currentValue" [source]="activeItemValueOptions"
-           [list-formatter]="itemsListFormatter" [value-formatter]="itemsValueFormatter" [match-formatted]="true"
-           (valueChanged)="onParameterValueChange($event.value)" (keydown)="onParameterValueKeyDown($event)"
-           (keyup)="onParameterValueKeyUp($event)" class="search-item-input value-input form-control">
-  </span>
-  <div class="search-item-text">{{currentValue}}</div>
+  <input #parameterInput [(ngModel)]="currentValue" [typeahead]="items" typeaheadOptionField="value"
+         [typeaheadItemTemplate]="listItemTemplate" (typeaheadNoResults)="setParameterNameMatchFlag($event)"
+         (typeaheadOnSelect)="changeParameterName({item: $event.item, isExclude: false})"
+         (focus)="onParameterInputFocus()" (keyup)="onParameterKeyUp($event)"
+         class="search-item-input parameter-input form-control">
+  <input #valueInput [(ngModel)]="currentValue" [typeahead]="activeItemValueOptions" typeaheadOptionField="value"
+         [typeaheadItemTemplate]="listItemTemplate" (typeaheadNoResults)="setParameterValueMatchFlag($event)"
+         (typeaheadOnSelect)="onParameterValueChange($event.value)" (keydown)="onParameterValueKeyDown($event)"
+         (keyup)="onParameterValueKeyUp($event)" class="search-item-input value-input form-control">
 </div>

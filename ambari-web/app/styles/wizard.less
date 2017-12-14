@@ -259,8 +259,25 @@
       opacity: 0.2;
     }
   }
+  #confirm-configuration{
+    .pre-scrollable{
+      margin-top: 10px;
+    }
+  }
+  #kerberos-wizard-step6, #kerberos-wizard-step8{
+    #common-progress-page{
+      .item{
+        i{
+          position:relative;
+          top: 5px;
+          &.glyphicon-ok{
+            top: 3px;
+          }
+        }
+      }
+    }
+  }
   #deploy {
-
     .page-bar {
       border: none;
     }

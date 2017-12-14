@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.ConfigItem;
 import org.apache.ambari.logfeeder.common.LogFeederException;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.mapper.Mapper;
@@ -56,12 +57,12 @@ public abstract class Filter extends ConfigItem {
   }
 
   @Override
-  public void init() throws Exception {
-    super.init();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
 
     initializePostMapValues();
     if (nextFilter != null) {
-      nextFilter.init();
+      nextFilter.init(logFeederProps);
     }
   }
 

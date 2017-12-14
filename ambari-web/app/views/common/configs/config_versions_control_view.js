@@ -23,14 +23,9 @@ App.ConfigVersionsControlView = Em.View.extend({
 
   serviceName: Em.computed.alias('controller.content.serviceName'),
 
-  /**
-   * @type {?App.ServiceConfigVersion}
-   */
-  compareServiceVersion: null,
-
   displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
 
-  isCompareMode: Em.computed.notEqual('compareServiceVersion', null),
+  isCompareMode: Em.computed.notEqual('controller.compareServiceVersion', null),
 
   allServiceVersions: function() {
     return App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
@@ -40,12 +35,8 @@ App.ConfigVersionsControlView = Em.View.extend({
     const isDefaultGroupSelected = this.get('controller.selectedConfigGroup.isDefault');
     const groupId = this.get('controller.selectedConfigGroup.id');
 
-    this.get('allServiceVersions').forEach(function (version) {
-      version.set('isDisabled', !(version.get('groupId') === groupId || isDefaultGroupSelected && version.get('groupName') === App.ServiceConfigGroup.defaultGroupName));
-    }, this);
-
     const serviceVersions = this.get('allServiceVersions').filter(function(s) {
-      return s.get('groupId') === groupId || s.get('groupName') === App.ServiceConfigGroup.defaultGroupName;
+      return (s.get('groupId') === groupId || isDefaultGroupSelected && s.get('groupName') === App.ServiceConfigGroup.defaultGroupName);
     });
 
     if (!serviceVersions.findProperty('isDisplayed')) {
@@ -59,11 +50,11 @@ App.ConfigVersionsControlView = Em.View.extend({
   }.property('serviceName', 'controller.selectedConfigGroup.name'),
 
   primaryServiceVersionsInCompare: function() {
-    return this.get('serviceVersions').filter((sv) => sv.get('version') !== this.get('compareServiceVersion.version'));
-  }.property('serviceVersions', 'compareServiceVersion'),
+    return this.get('serviceVersions').filter((sv) => sv.get('version') !== this.get('controller.compareServiceVersion.version'));
+  }.property('serviceVersions', 'controller.compareServiceVersion'),
 
   secondaryServiceVersionsInCompare: function() {
-    if (this.get('compareServiceVersion')) {
+    if (this.get('controller.compareServiceVersion')) {
       return this.get('serviceVersions')
         .filter((serviceVersion) => !serviceVersion.get('isDisplayed'))
         .map((serviceVersion) => {
@@ -75,13 +66,13 @@ App.ConfigVersionsControlView = Em.View.extend({
           fullNotes: serviceVersion.get('fullNotes'),
           isCurrent: serviceVersion.get('isCurrent'),
         });
-        copy.set('isDisplayed', serviceVersion.get('version') === this.get('compareServiceVersion.version'));
+        copy.set('isDisplayed', serviceVersion.get('version') === this.get('controller.compareServiceVersion.version'));
         return copy;
       });
     } else {
       return [];
     }
-  }.property('serviceVersions', 'compareServiceVersion'),
+  }.property('serviceVersions', 'controller.compareServiceVersion'),
 
   willInsertElement: function () {
     this.setDisplayVersion();
@@ -93,7 +84,6 @@ App.ConfigVersionsControlView = Em.View.extend({
     serviceVersions.forEach(function (serviceVersion) {
       serviceVersion.set('isDisplayed', selectedVersion === serviceVersion.get('version'));
     });
-    this.set('controller.displayedVersion', this.get('serviceVersions').findProperty('isDisplayed'));
   },
 
   onChangeConfigGroup: function () {
@@ -118,7 +108,7 @@ App.ConfigVersionsControlView = Em.View.extend({
   /**
    * switch configs view version to chosen
    */
-  switchVersion: function (event) {
+  switchVersion: function (event, stayInCompare) {
     const version = event.contexts[0];
     if (this.get('serviceVersions').filterProperty('isDisplayed').someProperty('version', version)) {
       return;
@@ -127,13 +117,11 @@ App.ConfigVersionsControlView = Em.View.extend({
     this.get('serviceVersions').forEach(function (serviceVersion) {
       serviceVersion.set('isDisplayed', serviceVersion.get('version') === version);
     });
-    this.get('controller').loadSelectedVersion(version);
-    this.set('controller.displayedVersion', this.get('serviceVersions').findProperty('isDisplayed'));
+    this.get('controller').loadSelectedVersion(version, null, true);
   },
 
   switchPrimaryInCompare: function(event) {
-    this.switchVersion({contexts: [event.contexts[0].get('version')]});
-    this.set('controller.compareServiceVersion', this.get('compareServiceVersion'));
+    this.switchVersion({contexts: [event.contexts[0].get('version')]}, true);
   },
 
   /**
@@ -143,20 +131,21 @@ App.ConfigVersionsControlView = Em.View.extend({
   compare: function (event) {
     const serviceConfigVersion = event.contexts[0];
     this.set('controller.compareServiceVersion', serviceConfigVersion);
-    this.set('compareServiceVersion', serviceConfigVersion);
 
     const controller = this.get('controller');
     controller.get('stepConfigs').clear();
     controller.loadCompareVersionConfigs(controller.get('allConfigs')).done(function() {
       controller.onLoadOverrides(controller.get('allConfigs'));
     });
+    if ($(event.currentTarget).hasClass('compare-button')) {
+      // after entering Compare mode compare button should be destroyed before "focusOut" event, otherwise JS error will be thrown
+      event.view.destroy();
+    }
   },
 
   removeCompareVersionBar: function () {
     const displayedVersion = this.get('displayedServiceVersion.version');
 
-    this.set('compareServiceVersion', null);
-    this.set('controller.compareServiceVersion', null);
     this.get('serviceVersions').forEach(function (serviceVersion) {
       serviceVersion.set('isDisplayed', serviceVersion.get('version') === displayedVersion);
     });

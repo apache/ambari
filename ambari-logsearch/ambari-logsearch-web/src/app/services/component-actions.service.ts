@@ -29,9 +29,8 @@ import {ListItem} from '@app/classes/list-item';
 export class ComponentActionsService {
 
   constructor(
-    private appSettings: AppSettingsService, private tabsStorage: TabsService,
-    private logsContainer: LogsContainerService,
-    private authService: AuthService
+    private appSettings: AppSettingsService, private tabsStorage: TabsService, private authService: AuthService,
+    private logsContainer: LogsContainerService
   ) {
   }
 
@@ -132,7 +131,9 @@ export class ComponentActionsService {
   }
 
   proceedWithExclude = (item: string): void => this.logsContainer.queryParameterNameChange.next({
-    value: item,
+    item: {
+      value: item
+    },
     isExclude: true
   });
 

@@ -27,60 +27,76 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
+import org.apache.ambari.logfeeder.common.ConfigHandler;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
-import org.apache.log4j.Logger;
 
 import com.google.common.io.Files;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 public class InputConfigUploader extends Thread {
-  protected static final Logger LOG = Logger.getLogger(InputConfigUploader.class);
+
+  protected static final Logger LOG = LoggerFactory.getLogger(InputConfigUploader.class);
 
   private static final long SLEEP_BETWEEN_CHECK = 2000;
 
-  private final File configDir;
-  private final FilenameFilter inputConfigFileFilter = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.startsWith("input.config-") && name.endsWith(".json");
-    }
-  };
+  private File configDir;
+  private final FilenameFilter inputConfigFileFilter = (dir, name) -> name.startsWith("input.config-") && name.endsWith(".json");
   private final Set<String> filesHandled = new HashSet<>();
   private final Pattern serviceNamePattern = Pattern.compile("input.config-(.+).json");
-  private final LogSearchConfigLogFeeder config;
-  
-  public static void load(LogSearchConfigLogFeeder config) {
-    new InputConfigUploader(config).start();
-  }
-  
-  private InputConfigUploader(LogSearchConfigLogFeeder config) {
+
+  @Inject
+  private LogSearchConfigLogFeeder config;
+
+  @Inject
+  private LogFeederProps logFeederProps;
+
+  @Inject
+  private LogLevelFilterHandler logLevelFilterHandler;
+
+  @Inject
+  private ConfigHandler configHandler;
+
+  public InputConfigUploader() {
     super("Input Config Loader");
     setDaemon(true);
-    
-    this.configDir = new File(LogFeederPropertiesUtil.getConfigDir());
-    this.config = config;
+  }
+
+  @PostConstruct
+  public void init() throws Exception {
+    this.configDir = new File(logFeederProps.getConfDir());
+    this.start();
+    config.monitorInputConfigChanges(configHandler, logLevelFilterHandler, logFeederProps.getClusterName());
   }
   
   @Override
   public void run() {
     while (true) {
       File[] inputConfigFiles = configDir.listFiles(inputConfigFileFilter);
-      for (File inputConfigFile : inputConfigFiles) {
-        if (!filesHandled.contains(inputConfigFile.getAbsolutePath())) {
-          try {
-            Matcher m = serviceNamePattern.matcher(inputConfigFile.getName());
-            m.find();
-            String serviceName = m.group(1);
-            String inputConfig = Files.toString(inputConfigFile, Charset.defaultCharset());
-            
-            if (!config.inputConfigExists(serviceName)) {
-              config.createInputConfig(LogFeederPropertiesUtil.getClusterName(), serviceName, inputConfig);
+      if (inputConfigFiles != null) {
+        for (File inputConfigFile : inputConfigFiles) {
+          if (!filesHandled.contains(inputConfigFile.getAbsolutePath())) {
+            try {
+              Matcher m = serviceNamePattern.matcher(inputConfigFile.getName());
+              m.find();
+              String serviceName = m.group(1);
+              String inputConfig = Files.toString(inputConfigFile, Charset.defaultCharset());
+              if (!config.inputConfigExists(serviceName)) {
+                config.createInputConfig(logFeederProps.getClusterName(), serviceName, inputConfig);
+              }
+              filesHandled.add(inputConfigFile.getAbsolutePath());
+            } catch (Exception e) {
+              LOG.warn("Error handling file " + inputConfigFile.getAbsolutePath(), e);
             }
-            filesHandled.add(inputConfigFile.getAbsolutePath());
-          } catch (Exception e) {
-            LOG.warn("Error handling file " + inputConfigFile.getAbsolutePath(), e);
           }
         }
+      } else {
+        LOG.warn("Cannot find input config files in config dir ({})", logFeederProps.getConfDir());
       }
       
       try {

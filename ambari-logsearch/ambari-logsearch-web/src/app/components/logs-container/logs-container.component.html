@@ -17,7 +17,7 @@
 
 <div class="tabs-container container-fluid">
   <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-12 tabs-menu-container">
       <tabs class="pull-left" [items]="tabs | async" (tabSwitched)="onSwitchTab($event)"
             (tabClosed)="onCloseTab($event[0], $event[1])"></tabs>
       <action-menu class="pull-right"></action-menu>

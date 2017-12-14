@@ -54,7 +54,6 @@ describe('App.ConfigVersionsControlView', function () {
       view.switchVersion(event);
       expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([false, true]);
       expect(view.get('controller').loadSelectedVersion.calledWith(2)).to.be.true;
-      expect(view.get('controller.displayedVersion')).to.be.eql(view.get('serviceVersions')[1]);
     });
 
     it('Choose displayed version', function () {

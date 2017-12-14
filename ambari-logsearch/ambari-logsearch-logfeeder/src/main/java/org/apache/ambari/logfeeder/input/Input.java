@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogEntryCacheConfig;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.cache.LRUCache;
 import org.apache.ambari.logfeeder.common.ConfigItem;
 import org.apache.ambari.logfeeder.common.LogFeederException;
@@ -31,7 +33,6 @@ import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.output.OutputManager;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Conditions;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.Fields;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
@@ -49,7 +50,7 @@ public abstract class Input extends ConfigItem implements Runnable {
   
   protected InputManager inputManager;
   protected OutputManager outputManager;
-  private List<Output> outputList = new ArrayList<Output>();
+  private List<Output> outputList = new ArrayList<>();
 
   private Thread thread;
   private String type;
@@ -128,15 +129,15 @@ public abstract class Input extends ConfigItem implements Runnable {
   }
 
   @Override
-  public void init() throws Exception {
-    super.init();
-    initCache();
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    super.init(logFeederProps);
+    initCache(logFeederProps.getLogEntryCacheConfig());
     tail = BooleanUtils.toBooleanDefaultIfNull(inputDescriptor.isTail(), DEFAULT_TAIL);
     useEventMD5 = BooleanUtils.toBooleanDefaultIfNull(inputDescriptor.isUseEventMd5AsId(), DEFAULT_USE_EVENT_MD5);
     genEventMD5 = BooleanUtils.toBooleanDefaultIfNull(inputDescriptor.isGenEventMd5(), DEFAULT_GEN_EVENT_MD5);
 
     if (firstFilter != null) {
-      firstFilter.init();
+      firstFilter.init(logFeederProps);
     }
 
   }
@@ -239,28 +240,28 @@ public abstract class Input extends ConfigItem implements Runnable {
     }
   }
 
-  private void initCache() {
+  private void initCache(LogEntryCacheConfig cacheConfig) {
     boolean cacheEnabled = inputDescriptor.isCacheEnabled() != null
       ? inputDescriptor.isCacheEnabled()
-      : LogFeederPropertiesUtil.isCacheEnabled();
+      : cacheConfig.isCacheEnabled();
     if (cacheEnabled) {
       String cacheKeyField = inputDescriptor.getCacheKeyField() != null
         ? inputDescriptor.getCacheKeyField()
-        : LogFeederPropertiesUtil.getCacheKeyField();
+        : cacheConfig.getCacheKeyField();
 
       setCacheKeyField(cacheKeyField);
 
       int cacheSize = inputDescriptor.getCacheSize() != null
         ? inputDescriptor.getCacheSize()
-        : LogFeederPropertiesUtil.getCacheSize();
+        : cacheConfig.getCacheSize();
 
       boolean cacheLastDedupEnabled = inputDescriptor.getCacheLastDedupEnabled() != null
         ? inputDescriptor.getCacheLastDedupEnabled()
-        : LogFeederPropertiesUtil.isCacheLastDedupEnabled();
+        : cacheConfig.isCacheLastDedupEnabled();
 
       long cacheDedupInterval = inputDescriptor.getCacheDedupInterval() != null
         ? inputDescriptor.getCacheDedupInterval()
-        : Long.parseLong(LogFeederPropertiesUtil.getCacheDedupInterval());
+        : Long.parseLong(cacheConfig.getCacheDedupInterval());
 
       setCache(new LRUCache(cacheSize, filePath, cacheDedupInterval, cacheLastDedupEnabled));
     }

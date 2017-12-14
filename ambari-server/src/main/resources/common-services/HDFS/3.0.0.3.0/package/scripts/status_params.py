@@ -42,7 +42,7 @@ else:
   snamenode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid")
   journalnode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
   zkfc_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
-  nfsgateway_pid_file = format("{hadoop_pid_dir_prefix}/root/hadoop_privileged_nfs3.pid")
+  nfsgateway_pid_file = format("{hadoop_pid_dir_prefix}/privileged-root-nfs3.pid")
 
   # Security related/required params
   hostname = config['hostname']
