@@ -2133,12 +2133,13 @@ public class ClusterImpl implements Cluster {
 
     for (Long serviceId : serviceConfigTypes.keySet()) {
       Set<String> configTypesForServiceId = serviceConfigTypes.get(serviceId);
-      if (configTypesForServiceId.containsAll(configTypes) && configTypesForServiceId.size() == configTypes.size()) {
+      if (configTypesForServiceId.containsAll(configTypes)) {
           resultingServiceIds.add(serviceId);
       }
     }
     if (resultingServiceIds.isEmpty()) {
       LOG.warn("Can't find serviceIds for {}, there is a problem if there's no cluster-env", configTypes);
+      return null;
     } else {
       LOG.info("Service {} returning", getServiceOrNull(resultingServiceIds.get(0)));
     }
@@ -2155,6 +2156,10 @@ public class ClusterImpl implements Cluster {
       if (serviceConfigTypes.get(serviceId).contains(configType)) {
         resultingServiceIds.add(serviceId);
       }
+    }
+    if (resultingServiceIds.isEmpty()) {
+      LOG.warn("Can't find service for {}", configType);
+      return null;
     }
     //TODO this needs to be reworked to support multiple instance of same service
     return getServiceOrNull(resultingServiceIds.get(0));
