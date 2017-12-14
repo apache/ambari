@@ -19,35 +19,157 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {TranslationModules} from '@app/test-config.spec';
+import {MomentModule} from 'angular2-moment';
+import {MomentTimezoneModule} from 'angular-moment-timezone';
+import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 
+import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {TimeHistogramComponent} from './time-histogram.component';
+import {LogsContainerService} from '@app/services/logs-container.service';
+import {HttpClientService} from "@app/services/http-client.service";
+import {AppStateService} from "@app/services/storage/app-state.service";
+import {AuditLogsService} from "@app/services/storage/audit-logs.service";
+import {AuditLogsFieldsService} from "@app/services/storage/audit-logs-fields.service";
+import {ServiceLogsService} from "@app/services/storage/service-logs.service";
+import {ServiceLogsFieldsService} from "@app/services/storage/service-logs-fields.service";
+import {ServiceLogsTruncatedService} from "@app/services/storage/service-logs-truncated.service";
+import {TabsService} from "@app/services/storage/tabs.service";
+import {ClustersService} from "@app/services/storage/clusters.service";
+import {ComponentsService} from "@app/services/storage/components.service";
+import {HostsService} from "@app/services/storage/hosts.service";
 
 describe('TimeHistogramComponent', () => {
   let component: TimeHistogramComponent;
   let fixture: ComponentFixture<TimeHistogramComponent>;
+  let histogramData: any;
+  let customOptions: any;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {}
+        }
+      }
+    };
+    histogramData = {
+      "1512476481940": {
+        "FATAL": 0,
+        "ERROR": 1000,
+        "WARN": 700,
+        "INFO": 0,
+        "DEBUG": 0,
+        "TRACE": 0,
+        "UNKNOWN": 0
+      }, "1512472881940": {"FATAL": 0, "ERROR": 2000, "WARN": 900, "INFO": 0, "DEBUG": 0, "TRACE": 0, "UNKNOWN": 0}
+    };
+    customOptions = {
+      keysWithColors: {
+        FATAL: '#830A0A',
+        ERROR: '#E81D1D',
+        WARN: '#FF8916',
+        INFO: '#2577B5',
+        DEBUG: '#65E8FF',
+        TRACE: '#888',
+        UNKNOWN: '#BDBDBD'
+      }
+    };
     TestBed.configureTestingModule({
-      declarations: [TimeHistogramComponent],
+      declarations: [TimeHistogramComponent, TimeZoneAbbrPipe],
       imports: [
         StoreModule.provideStore({
           appSettings
-        })
+        }),
+        ...TranslationModules,
+        MomentModule,
+        MomentTimezoneModule
       ],
       providers: [
-        AppSettingsService
+        AppSettingsService,
+        ServiceLogsHistogramDataService,
+        LogsContainerService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
+        AppStateService,
+        AuditLogsService,
+        AuditLogsFieldsService,
+        ServiceLogsService,
+        ServiceLogsFieldsService,
+        ServiceLogsHistogramDataService,
+        ServiceLogsTruncatedService,
+        TabsService,
+        ClustersService,
+        ComponentsService,
+        HostsService
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(TimeHistogramComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+      fixture = TestBed.createComponent(TimeHistogramComponent);
+      component = fixture.componentInstance;
+      component.customOptions = customOptions;
+      component.svgId = "HistogramSvg";
+      component.data = histogramData;
+      fixture.detectChanges();
+    });
 
   it('should create component', () => {
     expect(component).toBeTruthy();
   });
+
+  const getTimeGapTestCases = [{
+    startDate: new Date(2017, 0, 1),
+    endDate: new Date(2017, 0, 8),
+    expected: {
+      unit: 'week',
+      value: 1,
+      label: 'histogram.gap.week'
+    }
+  }, {
+    startDate: new Date(2017, 0, 1),
+    endDate: new Date(2017, 0, 2),
+    expected: {
+      unit: 'day',
+      value: 1,
+      label: 'histogram.gap.day'
+    }
+  }, {
+    startDate: new Date(2017, 0, 1, 1),
+    endDate: new Date(2017, 0, 1, 2),
+    expected: {
+      unit: 'hour',
+      value: 1,
+      label: 'histogram.gap.hour'
+    }
+  }, {
+    startDate: new Date(2017, 0, 1, 1, 1),
+    endDate: new Date(2017, 0, 1, 1, 2),
+    expected: {
+      unit: 'minute',
+      value: 1,
+      label: 'histogram.gap.minute'
+    }
+  }, {
+    startDate: new Date(2017, 0, 1, 1, 1, 1),
+    endDate: new Date(2017, 0, 1, 1, 1, 11),
+    expected: {
+      unit: 'second',
+      value: 10,
+      label: 'histogram.gap.seconds'
+    }
+  }];
+
+  getTimeGapTestCases.forEach((test) => {
+    it(`should the getTimeGap return with the proper time gap obj for ${test.expected.value} ${test.expected.unit} difference`, () => {
+      const getTimeGap: (startDate: Date, endDate: Date) => {value: number, unit: string} = component['getTimeGap'];
+      const gap = getTimeGap(test.startDate, test.endDate);
+      expect(gap).toEqual(test.expected);
+    });
+  });
+
 });

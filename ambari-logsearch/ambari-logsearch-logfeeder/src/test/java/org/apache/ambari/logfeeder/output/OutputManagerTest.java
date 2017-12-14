@@ -29,8 +29,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.Test;
@@ -63,10 +65,11 @@ public class OutputManagerTest {
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
-    
-    output1.init(); expectLastCall();
-    output2.init(); expectLastCall();
-    output3.init(); expectLastCall();
+
+    LogFeederProps logFeederProps = new LogFeederProps();
+    output1.init(logFeederProps); expectLastCall();
+    output2.init(logFeederProps); expectLastCall();
+    output3.init(logFeederProps); expectLastCall();
     
     replay(output1, output2, output3);
     
@@ -74,6 +77,7 @@ public class OutputManagerTest {
     manager.add(output1);
     manager.add(output2);
     manager.add(output3);
+    manager.setLogFeederProps(logFeederProps);
     
     manager.init();
     
@@ -98,11 +102,14 @@ public class OutputManagerTest {
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
+
+    LogLevelFilterHandler mockFilter = strictMock(LogLevelFilterHandler.class);
     
     expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
-    expect(mockInput.isUseEventMD5()).andReturn(false);
-    expect(mockInput.isGenEventMD5()).andReturn(false);
-    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
+    expect(mockInput.isUseEventMD5()).andReturn(false).anyTimes();
+    expect(mockInput.isGenEventMD5()).andReturn(false).anyTimes();
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor).anyTimes();
+    expect(mockFilter.isAllowed(jsonObj, inputMarker)).andReturn(true).anyTimes();
     expect(mockInput.getCache()).andReturn(null);
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
 
@@ -110,9 +117,10 @@ public class OutputManagerTest {
     output2.write(jsonObj, inputMarker); expectLastCall();
     output3.write(jsonObj, inputMarker); expectLastCall();
     
-    replay(output1, output2, output3, mockInput);
+    replay(output1, output2, output3, mockFilter, mockInput);
     
     OutputManager manager = new OutputManager();
+    manager.setLogLevelFilterHandler(mockFilter);
     manager.add(output1);
     manager.add(output2);
     manager.add(output3);
@@ -133,17 +141,21 @@ public class OutputManagerTest {
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
+
+    LogLevelFilterHandler mockFilter = strictMock(LogLevelFilterHandler.class);
     
-    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor).anyTimes();
+    expect(mockFilter.isAllowed(jsonString, inputMarker)).andReturn(true).anyTimes();
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
     
     output1.write(jsonString, inputMarker); expectLastCall();
     output2.write(jsonString, inputMarker); expectLastCall();
     output3.write(jsonString, inputMarker); expectLastCall();
     
-    replay(output1, output2, output3, mockInput);
+    replay(output1, output2, output3, mockInput, mockFilter);
     
     OutputManager manager = new OutputManager();
+    manager.setLogLevelFilterHandler(mockFilter);
     manager.add(output1);
     manager.add(output2);
     manager.add(output3);

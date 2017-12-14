@@ -112,7 +112,7 @@ class InstallPackages(Script):
           "Will install packages for repository version {0}".format(self.repository_version))
         new_repo_files = create_repo_files(template, command_repository)
         self.repo_files.update(new_repo_files)
-    except Exception, err:
+    except Exception as err:
       Logger.logger.exception("Cannot install repository files. Error: {0}".format(str(err)))
       num_errors += 1
 
@@ -123,6 +123,14 @@ class InstallPackages(Script):
     }
 
     self.put_structured_out(self.structured_output)
+
+    try:
+      # check package manager non-completed transactions
+      if self.pkg_provider.check_uncompleted_transactions():
+        self.pkg_provider.print_uncompleted_transaction_hint()
+        num_errors += 1
+    except Exception as e:  # we need to ignore any exception
+      Logger.warning("Failed to check for uncompleted package manager transactions: " + str(e))
 
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
@@ -139,7 +147,7 @@ class InstallPackages(Script):
         is_package_install_successful = True
       else:
         num_errors += 1
-    except Exception, err:
+    except Exception as err:
       num_errors += 1
       Logger.logger.exception("Could not install packages. Error: {0}".format(str(err)))
 

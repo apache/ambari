@@ -226,7 +226,8 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         (String) properties.get(REPOSITORY_STACK_NAME_PROPERTY_ID),
         (String) properties.get(REPOSITORY_STACK_VERSION_PROPERTY_ID),
         (String) properties.get(REPOSITORY_OS_TYPE_PROPERTY_ID),
-        (String) properties.get(REPOSITORY_REPO_ID_PROPERTY_ID));
+        (String) properties.get(REPOSITORY_REPO_ID_PROPERTY_ID),
+        (String) properties.get(REPOSITORY_REPO_NAME_PROPERTY_ID));
 
     if (properties.containsKey(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID)) {
       request.setRepositoryVersionId(Long.parseLong(properties.get(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID).toString()));

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.commands;
 
-import static org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.LDAP_CONFIGURATION_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -56,6 +55,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequestExc
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.JsonNode;
@@ -318,7 +318,7 @@ public class StackAdvisorCommandTest {
     command.populateLdapConfiguration((ObjectNode)servicesRootNode);
 
     JsonNode expectedLdapConfig = json(
-      map(LDAP_CONFIGURATION_PROPERTY, ldapConfigData)
+      map(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), ldapConfigData)
     );
 
     assertEquals(expectedLdapConfig, servicesRootNode);

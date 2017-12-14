@@ -48,9 +48,14 @@ public class SessionHandlerConfigurer {
       sessionHandler.getSessionCookieConfig().setSecure(true);
     }
 
+    configureMaxInactiveInterval(sessionHandler);
+  }
+
+  protected void configureMaxInactiveInterval(SessionHandler sessionHandler) {
     // each request that does not use AMBARISESSIONID will create a new
     // HashedSession in Jetty; these MUST be reaped after inactivity in order
     // to prevent a memory leak
+
     int sessionInactivityTimeout = configuration.getHttpSessionInactiveTimeout();
     sessionHandler.setMaxInactiveInterval(sessionInactivityTimeout);
   }

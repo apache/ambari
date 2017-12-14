@@ -15,16 +15,14 @@
 
 package org.apache.ambari.server.ldap.domain;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-
-import javax.inject.Inject;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.assistedinject.Assisted;
 
 /**
  * This class is an immutable representation of all the LDAP related configurationMap entries.
@@ -35,142 +33,145 @@ public class AmbariLdapConfiguration {
 
   private final Map<String, String> configurationMap;
 
-  private Object configValue(AmbariLdapConfigKeys ambariLdapConfigKeys) {
+  private Object configValue(AmbariLdapConfigurationKeys ambariLdapConfigurationKeys) {
     Object value = null;
-    if (configurationMap.containsKey(ambariLdapConfigKeys.key())) {
-      value = configurationMap.get(ambariLdapConfigKeys.key());
+    if (configurationMap.containsKey(ambariLdapConfigurationKeys.key())) {
+      value = configurationMap.get(ambariLdapConfigurationKeys.key());
     } else {
-      LOGGER.warn("Ldap configuration property [{}] hasn't been set", ambariLdapConfigKeys.key());
+      LOGGER.warn("Ldap configuration property [{}] hasn't been set", ambariLdapConfigurationKeys.key());
     }
     return value;
   }
 
-  public void setValueFor(AmbariLdapConfigKeys ambariLdapConfigKeys, String value) {
-    configurationMap.put(ambariLdapConfigKeys.key(), value);
+  public void setValueFor(AmbariLdapConfigurationKeys ambariLdapConfigurationKeys, String value) {
+    configurationMap.put(ambariLdapConfigurationKeys.key(), value);
   }
 
-  // intentionally package private, instances to be created through the factory
-  @Inject
-  AmbariLdapConfiguration(@Assisted Map<String, String> configuration) {
+  public AmbariLdapConfiguration(Map<String, String> configuration) {
     this.configurationMap = configuration;
   }
 
   public boolean ldapEnabled() {
-    return Boolean.valueOf((String) configValue(AmbariLdapConfigKeys.LDAP_ENABLED));
+    return Boolean.valueOf((String) configValue(AmbariLdapConfigurationKeys.LDAP_ENABLED));
   }
 
   public String serverHost() {
-    return (String) configValue(AmbariLdapConfigKeys.SERVER_HOST);
+    return (String) configValue(AmbariLdapConfigurationKeys.SERVER_HOST);
   }
 
   public int serverPort() {
-    return Integer.valueOf((String) configValue(AmbariLdapConfigKeys.SERVER_PORT));
+    return Integer.valueOf((String) configValue(AmbariLdapConfigurationKeys.SERVER_PORT));
   }
 
   public boolean useSSL() {
-    return Boolean.valueOf((String) configValue(AmbariLdapConfigKeys.USE_SSL));
+    return Boolean.valueOf((String) configValue(AmbariLdapConfigurationKeys.USE_SSL));
   }
 
   public String trustStore() {
-    return (String) configValue(AmbariLdapConfigKeys.TRUST_STORE);
+    return (String) configValue(AmbariLdapConfigurationKeys.TRUST_STORE);
   }
 
   public String trustStoreType() {
-    return (String) configValue(AmbariLdapConfigKeys.TRUST_STORE_TYPE);
+    return (String) configValue(AmbariLdapConfigurationKeys.TRUST_STORE_TYPE);
   }
 
   public String trustStorePath() {
-    return (String) configValue(AmbariLdapConfigKeys.TRUST_STORE_PATH);
+    return (String) configValue(AmbariLdapConfigurationKeys.TRUST_STORE_PATH);
   }
 
   public String trustStorePassword() {
-    return (String) configValue(AmbariLdapConfigKeys.TRUST_STORE_PASSWORD);
+    return (String) configValue(AmbariLdapConfigurationKeys.TRUST_STORE_PASSWORD);
   }
 
   public boolean anonymousBind() {
-    return Boolean.valueOf((String) configValue(AmbariLdapConfigKeys.ANONYMOUS_BIND));
+    return Boolean.valueOf((String) configValue(AmbariLdapConfigurationKeys.ANONYMOUS_BIND));
   }
 
   public String bindDn() {
-    return (String) configValue(AmbariLdapConfigKeys.BIND_DN);
+    return (String) configValue(AmbariLdapConfigurationKeys.BIND_DN);
   }
 
   public String bindPassword() {
-    return (String) configValue(AmbariLdapConfigKeys.BIND_PASSWORD);
+    return (String) configValue(AmbariLdapConfigurationKeys.BIND_PASSWORD);
   }
 
   public String attributeDetection() {
-    return (String) configValue(AmbariLdapConfigKeys.ATTR_DETECTION);
+    return (String) configValue(AmbariLdapConfigurationKeys.ATTR_DETECTION);
   }
 
   public String dnAttribute() {
-    return (String) configValue(AmbariLdapConfigKeys.DN_ATTRIBUTE);
+    return (String) configValue(AmbariLdapConfigurationKeys.DN_ATTRIBUTE);
   }
 
   public String userObjectClass() {
-    return (String) configValue(AmbariLdapConfigKeys.USER_OBJECT_CLASS);
+    return (String) configValue(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS);
   }
 
   public String userNameAttribute() {
-    return (String) configValue(AmbariLdapConfigKeys.USER_NAME_ATTRIBUTE);
+    return (String) configValue(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE);
   }
 
   public String userSearchBase() {
-    return (String) configValue(AmbariLdapConfigKeys.USER_SEARCH_BASE);
+    return (String) configValue(AmbariLdapConfigurationKeys.USER_SEARCH_BASE);
   }
 
   public String groupObjectClass() {
-    return (String) configValue(AmbariLdapConfigKeys.GROUP_OBJECT_CLASS);
+    return (String) configValue(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS);
   }
 
   public String groupNameAttribute() {
-    return (String) configValue(AmbariLdapConfigKeys.GROUP_NAME_ATTRIBUTE);
+    return (String) configValue(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE);
   }
 
   public String groupMemberAttribute() {
-    return (String) configValue(AmbariLdapConfigKeys.GROUP_MEMBER_ATTRIBUTE);
+    return (String) configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE);
   }
 
   public String groupSearchBase() {
-    return (String) configValue(AmbariLdapConfigKeys.GROUP_SEARCH_BASE);
+    return (String) configValue(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE);
   }
 
   public String userSearchFilter() {
-    return (String) configValue(AmbariLdapConfigKeys.USER_SEARCH_FILTER);
+    return (String) configValue(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER);
   }
 
   public String userMemberReplacePattern() {
-    return (String) configValue(AmbariLdapConfigKeys.USER_MEMBER_REPLACE_PATTERN);
+    return (String) configValue(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN);
   }
 
   public String userMemberFilter() {
-    return (String) configValue(AmbariLdapConfigKeys.USER_MEMBER_FILTER);
+    return (String) configValue(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER);
   }
 
   public String groupSearchFilter() {
-    return (String) configValue(AmbariLdapConfigKeys.GROUP_SEARCH_FILTER);
+    return (String) configValue(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER);
   }
 
   public String groupMemberReplacePattern() {
-    return (String) configValue(AmbariLdapConfigKeys.GROUP_MEMBER_REPLACE_PATTERN);
+    return (String) configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN);
   }
 
   public String groupMemberFilter() {
-    return (String) configValue(AmbariLdapConfigKeys.GROUP_MEMBER_FILTER);
+    return (String) configValue(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER);
   }
 
   public boolean forceLowerCaseUserNames() {
-    return Boolean.valueOf((String) configValue(AmbariLdapConfigKeys.FORCE_LOWERCASE_USERNAMES));
+    return Boolean.valueOf((String) configValue(AmbariLdapConfigurationKeys.FORCE_LOWERCASE_USERNAMES));
   }
 
   public boolean paginationEnabled() {
-    return Boolean.valueOf((String) configValue(AmbariLdapConfigKeys.PAGINATION_ENABLED));
+    return Boolean.valueOf((String) configValue(AmbariLdapConfigurationKeys.PAGINATION_ENABLED));
   }
 
   public String referralHandling() {
-    return (String) configValue(AmbariLdapConfigKeys.REFERRAL_HANDLING);
+    return (String) configValue(AmbariLdapConfigurationKeys.REFERRAL_HANDLING);
   }
 
+  public Map<String, String> toMap() {
+    return (configurationMap == null)
+        ? Collections.emptyMap()
+        : new HashMap<>(configurationMap);
+  }
 
   @Override
   public String toString() {

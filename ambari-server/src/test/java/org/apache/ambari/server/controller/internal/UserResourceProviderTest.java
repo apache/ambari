@@ -540,8 +540,6 @@ public class UserResourceProviderTest extends EasyMockSupport {
   private ResourceProvider getResourceProvider(AmbariManagementController managementController) {
     return AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.User,
-        PropertyHelper.getPropertyIds(Resource.Type.User),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.User),
         managementController);
   }
 }

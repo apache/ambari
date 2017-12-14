@@ -44,7 +44,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -667,9 +666,7 @@ public class JMXHostProviderTest {
         maintenanceStateHelper, repositoryVersionDAO);
 
     ResourceProvider hostCompResourceProvider = new
-      HostComponentResourceProvider(PropertyHelper.getPropertyIds(Resource
-      .Type.HostComponent), PropertyHelper.getKeyPropertyIds(Resource.Type
-      .HostComponent), controller, injector);
+      HostComponentResourceProvider(controller, injector);
 
     ResourceProvider configResourceProvider = new ConfigurationResourceProvider(
         controller);

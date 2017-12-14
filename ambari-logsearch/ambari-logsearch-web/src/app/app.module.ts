@@ -21,13 +21,12 @@ import {NgModule, CUSTOM_ELEMENTS_SCHEMA, Injector} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HttpModule, Http, XHRBackend, BrowserXhr, ResponseOptions, XSRFStrategy} from '@angular/http';
 import {InMemoryBackendService} from 'angular-in-memory-web-api';
-import {AlertModule} from 'ngx-bootstrap';
+import {TypeaheadModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
-import {Ng2AutoCompleteModule} from 'ng2-auto-complete';
 
 import {environment} from '@envs/environment';
 
@@ -150,7 +149,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FormsModule,
     ReactiveFormsModule,
     HttpModule,
-    AlertModule.forRoot(),
+    TypeaheadModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -160,8 +159,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     }),
     StoreModule.provideStore(reducer),
     MomentModule,
-    MomentTimezoneModule,
-    Ng2AutoCompleteModule
+    MomentTimezoneModule
   ],
   providers: [
     HttpClientService,

@@ -80,7 +80,7 @@ public class KerberosDescriptorResourceProviderTest {
     EasyMock.replay(request);
 
     kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, Collections.emptySet(), Collections.emptyMap(), null);
+        kerberosDescriptorFactory, null);
 
     // WHEN
     kerberosDescriptorResourceProvider.createResources(request);
@@ -97,7 +97,7 @@ public class KerberosDescriptorResourceProviderTest {
     EasyMock.replay(request);
 
     kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, Collections.emptySet(), Collections.emptyMap(), null);
+        kerberosDescriptorFactory, null);
 
     // WHEN
     kerberosDescriptorResourceProvider.createResources(request);
@@ -112,7 +112,7 @@ public class KerberosDescriptorResourceProviderTest {
 
     // GIVEN
     kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, Collections.emptySet(), Collections.emptyMap(), null);
+        kerberosDescriptorFactory, null);
 
     EasyMock.expect(request.getProperties())
         .andReturn(requestPropertySet(KERBEROS_DESCRIPTORS_KERBEROS_DESCRIPTOR_NAME, TEST_KERBEROS_DESCRIPTOR_NAME))

@@ -27,8 +27,7 @@ export interface HistogramStyleOptions {
   margin?: HistogramMarginOptions;
   height?: number;
   tickPadding?: number;
-  columnWidth?: number;
-  dragAreaColor?: string;
+  columnWidth?: {[key:string]: number};
 }
 
 export interface HistogramOptions extends HistogramStyleOptions {

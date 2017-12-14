@@ -559,6 +559,9 @@ public class AmbariServer {
       server.start();
       handlerList.shareSessionCacheToViews(sessionHandler.getSessionCache());
 
+      //views initialization will reset inactive interval with default value, so we should set it after
+      sessionHandlerConfigurer.configureMaxInactiveInterval(sessionHandler);
+
       serverForAgent.start();
       LOG.info("********* Started Server **********");
 

@@ -35,6 +35,7 @@ import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -60,6 +62,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import junit.framework.Assert;
 
 public class RootServiceComponentConfigurationResourceProviderTest extends EasyMockSupport {
@@ -74,30 +77,55 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
 
   @Test
   public void testCreateResources_Administrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createAdministrator());
+    testCreateResources(TestAuthenticationFactory.createAdministrator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResources_ClusterAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResources_ClusterOperator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createClusterOperator());
+    testCreateResources(TestAuthenticationFactory.createClusterOperator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResources_ServiceAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResources_ServiceOperator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createServiceOperator());
+    testCreateResources(TestAuthenticationFactory.createServiceOperator(), null);
   }
 
-  private void testCreateResources(Authentication authentication) throws Exception {
+  @Test
+  public void testCreateResourcesWithDirective_Administrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithDirective_ClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithDirective_ClusterOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterOperator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithDirective_ServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithDirective_ServiceOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceOperator(), "test-directive");
+  }
+
+  private void testCreateResources(Authentication authentication, String opDirective) throws Exception {
     Injector injector = createInjector();
 
     ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
@@ -110,38 +138,79 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties1));
 
     Map<String, String> properties2 = new HashMap<>();
-    properties2.put("property1b", "value1");
-    properties2.put("property2b", "value2");
-    propertySets.add(toRequestProperties(CATEGORY_NAME_2, properties2));
+    if (opDirective == null) {
+      properties2.put("property1b", "value1");
+      properties2.put("property2b", "value2");
+      propertySets.add(toRequestProperties(CATEGORY_NAME_2, properties2));
+    }
+
+    Map<String, String> requestInfoProperties;
+    if (opDirective == null) {
+      requestInfoProperties = Collections.emptyMap();
+    } else {
+      requestInfoProperties = Collections.singletonMap(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION, opDirective);
+    }
 
     Request request = createMock(Request.class);
     expect(request.getProperties()).andReturn(propertySets).once();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).once();
 
     Capture<Map<String, String>> capturedProperties1 = newCapture();
     Capture<Map<String, String>> capturedProperties2 = newCapture();
 
-    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
-    expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(true)))
-        .andReturn(true)
-        .once();
-    expect(dao.reconcileCategory(eq(CATEGORY_NAME_2), capture(capturedProperties2), eq(true)))
-        .andReturn(true)
-        .once();
+    if (opDirective == null) {
+      AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
+      expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(true)))
+          .andReturn(true)
+          .once();
+      expect(dao.reconcileCategory(eq(CATEGORY_NAME_2), capture(capturedProperties2), eq(true)))
+          .andReturn(true)
+          .once();
 
-    AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
-    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
-    expectLastCall().times(2);
+
+      AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
+      publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+      expectLastCall().times(2);
+    }
+
+    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
+    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
+        .andReturn(new AmbariServerConfigurationHandler())
+        .once();
+    if (opDirective == null) {
+      expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_2))
+          .andReturn(new AmbariServerConfigurationHandler())
+          .once();
+    }
 
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    resourceProvider.createResources(request);
+    try {
+      resourceProvider.createResources(request);
+      if (opDirective != null) {
+        Assert.fail("Expected SystemException to be thrown");
+      }
+    } catch (AuthorizationException e) {
+      throw e;
+    } catch (SystemException e) {
+      if (opDirective == null) {
+        Assert.fail("Unexpected exception: " + e.getMessage());
+      } else {
+        Assert.assertEquals("The requested operation is not supported for this category: " + CATEGORY_NAME_1, e.getMessage());
+      }
+    }
 
     verifyAll();
 
-    validateCapturedProperties(properties1, capturedProperties1);
-    validateCapturedProperties(properties2, capturedProperties2);
+    if (opDirective == null) {
+      validateCapturedProperties(properties1, capturedProperties1);
+      validateCapturedProperties(properties2, capturedProperties2);
+    } else {
+      Assert.assertFalse(capturedProperties1.hasCaptured());
+      Assert.assertFalse(capturedProperties2.hasCaptured());
+    }
   }
 
   @Test
@@ -184,6 +253,11 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
     publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
     expectLastCall().once();
+
+    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
+    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
+        .andReturn(new AmbariServerConfigurationHandler())
+        .once();
 
     replayAll();
 
@@ -236,6 +310,11 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
     expect(dao.findByCategory(CATEGORY_NAME_1)).andReturn(createEntities(CATEGORY_NAME_1, properties)).once();
 
+    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
+    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
+        .andReturn(new AmbariServerConfigurationHandler())
+        .once();
+
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -265,30 +344,55 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
 
   @Test
   public void testUpdateResources_Administrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createAdministrator());
+    testUpdateResources(TestAuthenticationFactory.createAdministrator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_ClusterAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_ClusterOperator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createClusterOperator());
+    testUpdateResources(TestAuthenticationFactory.createClusterOperator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_ServiceAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator(), null);
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_ServiceOperator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createServiceOperator());
+    testUpdateResources(TestAuthenticationFactory.createServiceOperator(), null);
   }
 
-  private void testUpdateResources(Authentication authentication) throws Exception {
+  @Test
+  public void testUpdateResourcesWithDirective_Administrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithDirective_ClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithDirective_ClusterOperator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterOperator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithDirective_ServiceAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator(), "test-directive");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithDirective_ServiceOperator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceOperator(), "test-directive");
+  }
+
+  private void testUpdateResources(Authentication authentication, String opDirective) throws Exception {
     Injector injector = createInjector();
 
     ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
@@ -302,29 +406,62 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     properties1.put("property2a", "value2");
     propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties1));
 
+    Map<String, String> requestInfoProperties;
+    if (opDirective == null) {
+      requestInfoProperties = Collections.emptyMap();
+    } else {
+      requestInfoProperties = Collections.singletonMap(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION, opDirective);
+    }
+
     Request request = createMock(Request.class);
     expect(request.getProperties()).andReturn(propertySets).once();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).once();
 
     Capture<Map<String, String>> capturedProperties1 = newCapture();
 
-    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
-    expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(false)))
-        .andReturn(true)
-        .once();
+    if (opDirective == null) {
+      AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
+      expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(false)))
+          .andReturn(true)
+          .once();
 
-    AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
-    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
-    expectLastCall().times(1);
+      AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
+      publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+      expectLastCall().times(1);
+    }
+
+    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
+    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
+        .andReturn(new AmbariServerConfigurationHandler())
+        .once();
 
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    resourceProvider.updateResources(request, predicate);
+    try {
+      resourceProvider.updateResources(request, predicate);
+
+      if (opDirective != null) {
+        Assert.fail("Expected SystemException to be thrown");
+      }
+    } catch (AuthorizationException e) {
+      throw e;
+    } catch (SystemException e) {
+      if (opDirective == null) {
+        Assert.fail("Unexpected exception: " + e.getMessage());
+      } else {
+        Assert.assertEquals("The requested operation is not supported for this category: " + CATEGORY_NAME_1, e.getMessage());
+      }
+    }
 
     verifyAll();
 
-    validateCapturedProperties(properties1, capturedProperties1);
+    if (opDirective == null) {
+      validateCapturedProperties(properties1, capturedProperties1);
+    } else {
+      Assert.assertFalse(capturedProperties1.hasCaptured());
+    }
   }
 
   private Predicate createPredicate(String serviceName, String componentName, String categoryName) {
@@ -387,6 +524,9 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(AmbariConfigurationDAO.class).toInstance(createMock(AmbariConfigurationDAO.class));
         bind(AmbariEventPublisher.class).toInstance(createMock(AmbariEventPublisher.class));
+        bind(RootServiceComponentConfigurationHandlerFactory.class).toInstance(createMock(RootServiceComponentConfigurationHandlerFactory.class));
+
+        binder().requestStaticInjection(AmbariServerConfigurationHandler.class);
       }
     });
   }

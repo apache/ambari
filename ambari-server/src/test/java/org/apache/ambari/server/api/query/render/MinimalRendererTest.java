@@ -40,10 +40,13 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
+import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.spi.SchemaFactory;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 /**
@@ -496,6 +499,9 @@ public class MinimalRendererTest {
 
     // host 1 : ambari host
     Resource hostResource = new ResourceImpl(Resource.Type.Host);
+
+    PropertyHelper.setKeyPropertyIds(Resource.Type.Host,HostResourceProvider.keyPropertyIds);
+    PropertyHelper.setKeyPropertyIds(Resource.Type.HostComponent, HostComponentResourceProvider.keyPropertyIds);
     hostResource.setProperty("Hosts/host_name", "testHost");
     hostResource.setProperty("Hosts/cluster_name", "testCluster");
     hostResource.setProperty("foo", "bar");

@@ -170,7 +170,6 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
@@ -1588,70 +1587,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // We have to allow for multiple requests to account for multiple
     // configuration updates (create multiple configuration resources)...
     for (ClusterRequest request : requests) {
-      // TODO : Is there ever a real world case where we could have multiple non-null responses?
-
-      // ***************************************************
-      // set any session attributes for this cluster request
-      Cluster cluster;
-      if (request.getClusterId() == null) {
-        cluster = clusters.getCluster(request.getClusterName());
-      } else {
-        cluster = clusters.getClusterById(request.getClusterId());
-      }
-
-      if (cluster == null) {
-        throw new AmbariException("The cluster may not be null");
-      }
-
-      Map<String, Object> sessionAttributes = request.getSessionAttributes();
-
-      // TODO: Once the UI uses the Credential Resource API, remove this block to _clean_ the
-      // TODO: session attributes and store any KDC administrator credentials in the secure
-      // TODO: credential provider facility.
-      // For now, to keep things backwards compatible, get and remove the KDC administrator credentials
-      // from the session attributes and store them in the CredentialsProvider. The KDC administrator
-      // credentials are prefixed with kdc_admin/. The following attributes are expected, if setting
-      // the KDC administrator credentials:
-      //    kerberos_admin/principal
-      //    kerberos_admin/password
-      if((sessionAttributes != null) && !sessionAttributes.isEmpty()) {
-        Map<String, Object> cleanedSessionAttributes = new HashMap<>();
-        String principal = null;
-        char[] password = null;
-
-        for(Map.Entry<String,Object> entry: sessionAttributes.entrySet()) {
-          String name = entry.getKey();
-          Object value = entry.getValue();
-
-          if ("kerberos_admin/principal".equals(name)) {
-            if(value instanceof String) {
-              principal = (String)value;
-            }
-          }
-          else if ("kerberos_admin/password".equals(name)) {
-            if(value instanceof String) {
-              password = ((String) value).toCharArray();
-            }
-          } else {
-            cleanedSessionAttributes.put(name, value);
-          }
-        }
-
-        if(principal != null) {
-          // The KDC admin principal exists... set the credentials in the credentials store
-          credentialStoreService.setCredential(cluster.getClusterName(),
-              KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS,
-              new PrincipalKeyCredential(principal, password), CredentialStoreType.TEMPORARY);
-        }
-
-        sessionAttributes = cleanedSessionAttributes;
-      }
-      // TODO: END
-
-      cluster.addSessionAttributes(sessionAttributes);
-      //
-      // ***************************************************
-
       response = updateCluster(request, requestProperties);
     }
     return response;
@@ -3206,6 +3141,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           continue;
         }
 
+        if (StringUtils.isBlank(stage.getHostParamsStage())) {
+          RepositoryVersionEntity repositoryVersion = component.getDesiredRepositoryVersion();
+          stage.setHostParamsStage(StageUtils.getGson().toJson(
+              customCommandExecutionHelper.createDefaultHostParams(cluster, repositoryVersion.getStackId())));
+        }
+
         customCommandExecutionHelper.addServiceCheckAction(stage, clientHost, smokeTestRole,
             nowTimestamp, serviceName, componentName, null, false, false);
       }
@@ -4640,8 +4581,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
     usp.setSetupTruststoreForHttps(false);
 
-    RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(request.getStackName(), request.getStackVersion(), request.getOsType(), request.getRepoId());
-    String repoName = repositoryInfo.getRepoName();
+    String repoName = request.getRepoName();
+    if (StringUtils.isEmpty(repoName)) {
+      throw new IllegalArgumentException("repo_name is required to verify repository");
+    }
 
     String errorMessage = null;
     Exception e = null;

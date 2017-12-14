@@ -22,14 +22,11 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.RootComponent;
-import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -41,21 +38,13 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
-import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 public class RootServiceComponentConfigurationResourceProvider extends AbstractAuthorizedResourceProvider {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(RootServiceComponentConfigurationResourceProvider.class);
 
   static final String RESOURCE_KEY = "Configuration";
 
@@ -89,13 +78,10 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
   }
 
   @Inject
-  private AmbariConfigurationDAO ambariConfigurationDAO;
-
-  @Inject
-  private AmbariEventPublisher publisher;
+  private RootServiceComponentConfigurationHandlerFactory rootServiceComponentConfigurationHandlerFactory;
 
   public RootServiceComponentConfigurationResourceProvider() {
-    super(PROPERTIES, PK_PROPERTY_MAP);
+    super(Resource.Type.RootServiceComponentConfiguration, PROPERTIES, PK_PROPERTY_MAP);
 
     Set<RoleAuthorization> authorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_CONFIGURATION);
     setRequiredCreateAuthorizations(authorizations);
@@ -113,9 +99,20 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
   public RequestStatus createResourcesAuthorized(Request request)
       throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
-    createOrAddProperties(null, null, null, request.getProperties(), true);
+    OperationStatusMetaData operationStatusMetadata = null;
 
-    return getRequestStatus(null);
+    Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
+    if (requestInfoProperties.containsKey(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION)) {
+      String operationType = requestInfoProperties.get(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION);
+      Map<String, Object> operationParameters = getOperationParameters(requestInfoProperties);
+
+      operationStatusMetadata = performOperation(null, null, null, request.getProperties(),
+          false, operationType, operationParameters);
+    } else {
+      createOrAddProperties(null, null, null, request.getProperties(), true);
+    }
+
+    return getRequestStatus(null, null, operationStatusMetadata);
   }
 
   @Override
@@ -163,7 +160,6 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     });
   }
 
-
   @Override
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate) throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
@@ -172,7 +168,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     String componentName = (String) PredicateHelper.getProperties(predicate).get(CONFIGURATION_COMPONENT_NAME_PROPERTY_ID);
     String categoryName = (String) PredicateHelper.getProperties(predicate).get(CONFIGURATION_CATEGORY_PROPERTY_ID);
 
-    ConfigurationHandler handler = getConfigurationHandler(serviceName, componentName);
+    RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(serviceName, componentName, categoryName);
     if (handler != null) {
       handler.removeConfiguration(categoryName);
     } else {
@@ -190,9 +186,20 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     String componentName = (String) PredicateHelper.getProperties(predicate).get(CONFIGURATION_COMPONENT_NAME_PROPERTY_ID);
     String categoryName = (String) PredicateHelper.getProperties(predicate).get(CONFIGURATION_CATEGORY_PROPERTY_ID);
 
-    createOrAddProperties(serviceName, componentName, categoryName, request.getProperties(), false);
+    OperationStatusMetaData operationStatusMetadata = null;
 
-    return getRequestStatus(null);
+    Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
+    if (requestInfoProperties.containsKey(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION)) {
+      String operationType = requestInfoProperties.get(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION);
+      Map<String, Object> operationParameters = getOperationParameters(requestInfoProperties);
+
+      operationStatusMetadata = performOperation(serviceName, componentName, categoryName, request.getProperties(),
+          true, operationType, operationParameters);
+    } else {
+      createOrAddProperties(serviceName, componentName, categoryName, request.getProperties(), false);
+    }
+
+    return getRequestStatus(null, null, operationStatusMetadata);
   }
 
   private Resource toResource(String serviceName, String componentName, String categoryName, Map<String, String> properties, Set<String> requestedIds) {
@@ -211,7 +218,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
    * value and one or more property (<code>AmbariConfiguration/properties/property.name</code>) values.
    * If a category cannot be determined from the propery set, the default category value (passed in)
    * is used.  If a default category is set, it is assumed that it was parsed from the request predicate
-   * (if availabe).
+   * (if available).
    *
    * @param defaultServiceName             the default service name to use if needed
    * @param defaultComponentName           the default component name to use if needed
@@ -229,8 +236,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
       for (Map<String, Object> resourceProperties : requestProperties) {
         RequestDetails requestDetails = parseProperties(defaultServiceName, defaultComponentName, defaultCategoryName, resourceProperties);
 
-        ConfigurationHandler handler = getConfigurationHandler(requestDetails.serviceName, requestDetails.componentName);
-
+        RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(requestDetails.serviceName, requestDetails.componentName, requestDetails.categoryName);
         if (handler != null) {
           handler.updateCategory(requestDetails.categoryName, requestDetails.properties, removePropertiesIfNotSpecified);
         } else {
@@ -238,6 +244,49 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
         }
       }
     }
+  }
+
+  /**
+   * Performs the requested operation on the set of data for the specified configration data.
+   *
+   * @param defaultServiceName      the default service name to use if needed
+   * @param defaultComponentName    the default component name to use if needed
+   * @param defaultCategoryName     the default category to use if needed
+   * @param requestProperties       a collection of property maps parsed from the request
+   * @param mergeExistingProperties <code>true</code> to use the the set of existing properties along with the specified set of properties;
+   *                                <code>false</code>  to use set of specified properties only
+   * @param operationType           the operation to perform
+   * @param operationParameters     parameters to supply the name operation
+   * @return an {@link OperationStatusMetaData}
+   * @throws SystemException if an error occurs while performing the operation
+   */
+  private OperationStatusMetaData performOperation(String defaultServiceName, String defaultComponentName, String defaultCategoryName,
+                                                   Set<Map<String, Object>> requestProperties, boolean mergeExistingProperties,
+                                                   String operationType, Map<String, Object> operationParameters)
+      throws SystemException {
+
+    OperationStatusMetaData metaData = new OperationStatusMetaData();
+
+    // set of resource properties (each entry in the set belongs to a different resource)
+    if (requestProperties != null) {
+      for (Map<String, Object> resourceProperties : requestProperties) {
+        RequestDetails requestDetails = parseProperties(defaultServiceName, defaultComponentName, defaultCategoryName, resourceProperties);
+
+        RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(requestDetails.serviceName, requestDetails.componentName, requestDetails.categoryName);
+        if (handler != null) {
+          RootServiceComponentConfigurationHandler.OperationResult operationResult = handler.performOperation(requestDetails.categoryName, requestDetails.properties, mergeExistingProperties, operationType, operationParameters);
+          if (operationResult == null) {
+            throw new SystemException(String.format("An unexpected error has occurred while handling an operation for the %s component of the root service, %s", requestDetails.serviceName, requestDetails.componentName));
+          }
+
+          metaData.addResult(operationResult.getId(), operationResult.isSuccess(), operationResult.getMessage(), operationResult.getResponse());
+        } else {
+          throw new SystemException(String.format("Operations may not be performed on configurations for the %s component of the root service, %s", requestDetails.serviceName, requestDetails.componentName));
+        }
+      }
+    }
+
+    return metaData;
   }
 
   /**
@@ -300,7 +349,31 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
   }
 
   /**
-   * Retrieves the requested configration resources
+   * Creates a map of the operation parameters from the data in the request info map.
+   * <p>
+   * Operation parmaters are set under the "parameters" category.
+   *
+   * @param requestInfoProperties a map of request info properties
+   * @return a map of operation request parameters
+   */
+  private Map<String, Object> getOperationParameters(Map<String, String> requestInfoProperties) {
+    Map<String, Object> operationParameters = new HashMap<>();
+
+    for (Map.Entry<String, String> entry : requestInfoProperties.entrySet()) {
+      String propertyCategory = PropertyHelper.getPropertyCategory(entry.getKey());
+      if ((propertyCategory != null) && propertyCategory.equals("parameters")) {
+        String name = PropertyHelper.getPropertyName(entry.getKey());
+        Object value = entry.getValue();
+        operationParameters.put(name, (value == null) ? null : value.toString());
+      }
+    }
+
+    return operationParameters;
+  }
+
+
+  /**
+   * Retrieves the requested configuration resources
    *
    * @param requestedIds the requested properties ids
    * @param propertyMap  the request properties
@@ -312,11 +385,11 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
 
     String serviceName = getStringProperty(propertyMap, CONFIGURATION_SERVICE_NAME_PROPERTY_ID);
     String componentName = getStringProperty(propertyMap, CONFIGURATION_COMPONENT_NAME_PROPERTY_ID);
+    String categoryName = getStringProperty(propertyMap, CONFIGURATION_CATEGORY_PROPERTY_ID);
 
-    ConfigurationHandler handler = getConfigurationHandler(serviceName, componentName);
+    RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(serviceName, componentName, categoryName);
 
     if (handler != null) {
-      String categoryName = getStringProperty(propertyMap, CONFIGURATION_CATEGORY_PROPERTY_ID);
       Map<String, Map<String, String>> configurations = handler.getConfigurations(categoryName);
 
       if (configurations != null) {
@@ -329,24 +402,6 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     return resources;
   }
 
-  /**
-   * Returns the internal configuration handler used to support various configuration storage facilites.
-   *
-   * @param serviceName   the service name
-   * @param componentName the component name
-   * @return
-   */
-  private ConfigurationHandler getConfigurationHandler(String serviceName, String componentName) {
-    if (RootService.AMBARI.name().equals(serviceName)) {
-      if (RootComponent.AMBARI_SERVER.name().equals(componentName)) {
-        return new AmbariServerConfigurationHandler();
-      }
-    }
-
-    return null;
-  }
-
-
   private String getStringProperty(Map<String, Object> propertyMap, String propertyId) {
     String value = null;
 
@@ -358,102 +413,6 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     }
 
     return value;
-  }
-
-  /**
-   * ConfigurationHandler is an interface to be implemented to support the relevant types of storage
-   * used to persist root-level component configurations.
-   */
-  private abstract class ConfigurationHandler {
-    /**
-     * Retrieve the request configurations.
-     *
-     * @param categoryName the category name (or <code>null</code> for all)
-     * @return a map of category names to properties (name/value pairs).
-     * @throws NoSuchResourceException if the requested data is not found
-     */
-    public abstract Map<String, Map<String, String>> getConfigurations(String categoryName) throws NoSuchResourceException;
-
-    /**
-     * Delete the requested configuration.
-     *
-     * @param categoryName the category name
-     * @throws NoSuchResourceException if the requested category does not exist
-     */
-    public abstract void removeConfiguration(String categoryName) throws NoSuchResourceException;
-
-    /**
-     * Set or update a configuration category with the specified properties.
-     * <p>
-     * If <code>removePropertiesIfNotSpecified</code> is <code>true</code>, the persisted category is to include only the specified properties.
-     * <p>
-     * If <code>removePropertiesIfNotSpecified</code> is <code>false</code>, the persisted category is to include the union of the existing and specified properties.
-     * <p>
-     * In any case, existing property values will be overwritten by the one specified in the property map.
-     *
-     * @param categoryName                   the category name
-     * @param properties                     a map of properties to set
-     * @param removePropertiesIfNotSpecified <code>true</code> to ensure the set of properties are only those that have be explicitly specified;
-     *                                       <code>false</code> to update the set of exising properties with the specified set of properties, adding missing properties but not removing any properties
-     */
-    public abstract void updateCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified);
-  }
-
-  /**
-   * AmbariServerConfigurationHandler handle Ambari server specific configuration properties.
-   */
-  private class AmbariServerConfigurationHandler extends ConfigurationHandler {
-    @Override
-    public Map<String, Map<String, String>> getConfigurations(String categoryName)
-        throws NoSuchResourceException {
-      Map<String, Map<String, String>> configurations = null;
-
-      List<AmbariConfigurationEntity> entities = (categoryName == null)
-          ? ambariConfigurationDAO.findAll()
-          : ambariConfigurationDAO.findByCategory(categoryName);
-
-      if (entities != null) {
-        configurations = new HashMap<>();
-
-        for (AmbariConfigurationEntity entity : entities) {
-          String category = entity.getCategoryName();
-          Map<String, String> properties = configurations.get(category);
-
-          if (properties == null) {
-            properties = new TreeMap<>();
-            configurations.put(category, properties);
-          }
-
-          properties.put(entity.getPropertyName(), entity.getPropertyValue());
-        }
-      }
-
-      return configurations;
-    }
-
-    @Override
-    public void removeConfiguration(String categoryName) throws NoSuchResourceException {
-      if (null == categoryName) {
-        LOGGER.debug("No resource id provided in the request");
-      } else {
-        LOGGER.debug("Deleting Ambari configuration with id: {}", categoryName);
-        try {
-          if (ambariConfigurationDAO.removeByCategory(categoryName) > 0) {
-            publisher.publish(new AmbariConfigurationChangedEvent(categoryName));
-          }
-        } catch (IllegalStateException e) {
-          throw new NoSuchResourceException(e.getMessage());
-        }
-      }
-    }
-
-    @Override
-    public void updateCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) {
-      if (ambariConfigurationDAO.reconcileCategory(categoryName, properties, removePropertiesIfNotSpecified)) {
-        // notify subscribers about the configuration changes
-        publisher.publish(new AmbariConfigurationChangedEvent(categoryName));
-      }
-    }
   }
 
   /**

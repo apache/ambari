@@ -24,10 +24,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
+import org.apache.ambari.logfeeder.conf.LogFeederSecurityConfig;
+import org.apache.ambari.logfeeder.conf.MetricsCollectorConfig;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 public class MetricsManager {
   private static final Logger LOG = Logger.getLogger(MetricsManager.class);
@@ -40,13 +45,20 @@ public class MetricsManager {
 
   private int publishIntervalMS = 60 * 1000;
   private int maxMetricsBuffer = 60 * 60 * 1000; // If AMS is down, we should not keep the metrics in memory forever
-  private HashMap<String, TimelineMetric> metricsMap = new HashMap<String, TimelineMetric>();
+  private HashMap<String, TimelineMetric> metricsMap = new HashMap<>();
   private LogFeederAMSClient amsClient = null;
 
+  @Inject
+  private MetricsCollectorConfig metricsCollectorConfig;
+
+  @Inject
+  private LogFeederSecurityConfig logFeederSecurityConfig;
+
+  @PostConstruct
   public void init() {
     LOG.info("Initializing MetricsManager()");
     if (amsClient == null) {
-      amsClient = new LogFeederAMSClient();
+      amsClient = new LogFeederAMSClient(metricsCollectorConfig, logFeederSecurityConfig);
     }
 
     if (amsClient.getCollectorUri(null) != null) {

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,6 +37,9 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.AutoDeployInfo;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 public class StackServiceComponentResourceProvider extends
     ReadOnlyResourceProvider {
@@ -102,15 +104,43 @@ public class StackServiceComponentResourceProvider extends
   private static final String AUTO_DEPLOY_LOCATION_ID = PropertyHelper.getPropertyId(
       "auto_deploy", "location");
 
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
-      STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID,
-      COMPONENT_NAME_PROPERTY_ID}));
+  /**
+   * The key property ids for a StackServiceComponent resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.Stack, STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, STACK_VERSION_PROPERTY_ID)
+      .put(Type.StackService, SERVICE_NAME_PROPERTY_ID)
+      .put(Type.StackServiceComponent, COMPONENT_NAME_PROPERTY_ID)
+      .build();
 
-  protected StackServiceComponentResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The property ids for a StackServiceComponent resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID,
+      SERVICE_NAME_PROPERTY_ID,
+      COMPONENT_NAME_PROPERTY_ID,
+      COMPONENT_DISPLAY_NAME_PROPERTY_ID,
+      COMPONENT_CATEGORY_PROPERTY_ID,
+      IS_CLIENT_PROPERTY_ID,
+      IS_MASTER_PROPERTY_ID,
+      CARDINALITY_ID,
+      ADVERTISE_VERSION_ID,
+      DECOMISSION_ALLOWED_ID,
+      REASSIGN_ALLOWED_ID,
+      CUSTOM_COMMANDS_PROPERTY_ID,
+      HAS_BULK_COMMANDS_PROPERTY_ID,
+      BULK_COMMANDS_DISPLAY_NAME_PROPERTY_ID,
+      BULK_COMMANDS_MASTER_COMPONENT_NAME_PROPERTY_ID,
+      RECOVERY_ENABLED,
+      ROLLING_RESTART_SUPPORTED,
+      AUTO_DEPLOY_ENABLED_ID,
+      AUTO_DEPLOY_LOCATION_ID);
+
+  protected StackServiceComponentResourceProvider(AmbariManagementController managementController) {
+    super(Type.StackServiceComponent, propertyIds, keyPropertyIds, managementController);
   }
 
 
@@ -222,7 +252,7 @@ public class StackServiceComponentResourceProvider extends
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

@@ -26,8 +26,8 @@
     </li>
   </ol>
   <div class="pull-right top-margin-4" ng-switch="instance.ViewInstanceInfo.static">
-    <button ng-switch-when="true" class="btn disabled btn-default btn-delete-instance" tooltip="{{'views.alerts.cannotDeleteStaticInstance' | translate}}">{{'common.delete' | translate: '{term: instanceType}'}}</button>
-    <button ng-switch-when="false" class="btn btn-danger" ng-click="deleteInstance(instance)">{{'common.delete' | translate: '{term: constants.instance}'}}</button>
+    <button ng-switch-when="true" class="btn disabled btn-default btn-delete-instance" tooltip="{{'views.alerts.cannotDeleteStaticInstance' | translate}}">{{'common.delete' | translate:{term: instanceType} }}</button>
+    <button ng-switch-when="false" class="btn btn-danger" ng-click="deleteInstance(instance)">{{'common.delete' | translate:{term: constants.instance} }}</button>
   </div>
 </div>
 <hr>
@@ -241,7 +241,7 @@
       </fieldset>
     </form>
     <div ng-show="isConfigurationEmpty && !clusterConfigurable">
-      <div class="alert alert-info">{{'views.alerts.notDefined' | translate: '{term: constants.props}'}}</div>
+      <div class="alert alert-info">{{'views.alerts.notDefined' | translate:{term: constants.props} }}</div>
     </div>
   </div>
 </div>
@@ -296,7 +296,7 @@
       <span translate="views.clusterPermissions.nonLocalClusterMessage"></span>
     </div>
     <div ng-show="isPermissionsEmpty">
-      <div class="alert alert-info">{{'views.alerts.notDefined' | translate: '{term: constants.perms}'}}</div>
+      <div class="alert alert-info">{{'views.alerts.notDefined' | translate:{term: constants.perms} }}</div>
     </div>
   </div>
 </div>

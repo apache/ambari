@@ -103,6 +103,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -123,11 +125,24 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
   private final Gson gson;
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
+  /**
+   * The key property ids for a ClientConfig resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Cluster, COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+      .put(Resource.Type.Service, COMPONENT_SERVICE_NAME_PROPERTY_ID)
+      .put(Resource.Type.Component, COMPONENT_COMPONENT_NAME_PROPERTY_ID)
+      .put(Resource.Type.Host, HOST_COMPONENT_HOST_NAME_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a ClientConfig resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
       COMPONENT_CLUSTER_NAME_PROPERTY_ID,
       COMPONENT_SERVICE_NAME_PROPERTY_ID,
-      COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
+      COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+      HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
 
   private MaintenanceStateHelper maintenanceStateHelper;
   private static final Logger LOG = LoggerFactory.getLogger(ClientConfigResourceProvider.class);
@@ -137,15 +152,11 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds          the property ids
-   * @param keyPropertyIds       the key property ids
    * @param managementController the management controller
    */
   @AssistedInject
-  ClientConfigResourceProvider(@Assisted Set<String> propertyIds,
-                               @Assisted Map<Resource.Type, String> keyPropertyIds,
-                               @Assisted AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  ClientConfigResourceProvider(@Assisted AmbariManagementController managementController) {
+    super(Resource.Type.ClientConfig, propertyIds, keyPropertyIds, managementController);
     gson = new Gson();
   }
 
@@ -447,6 +458,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("clusterName", cluster.getClusterName());
         jsonContent.put("serviceName", serviceName);
         jsonContent.put("role", componentName);
+        jsonContent.put("componentVersionMap", cluster.getComponentVersionMap());
+
         jsonConfigurations = gson.toJson(jsonContent);
 
         File tmpDirectory = new File(TMP_PATH);
@@ -890,7 +903,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 

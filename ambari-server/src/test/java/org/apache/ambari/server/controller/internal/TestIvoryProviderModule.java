@@ -40,11 +40,11 @@ public class TestIvoryProviderModule extends DefaultProviderModule{
 
     switch (type.getInternalType()) {
       case DRFeed:
-        return new FeedResourceProvider(service, propertyIds, keyPropertyIds);
+        return new FeedResourceProvider(service);
       case DRTargetCluster:
-        return new TargetClusterResourceProvider(service, propertyIds, keyPropertyIds);
+        return new TargetClusterResourceProvider(service);
       case DRInstance:
-        return new InstanceResourceProvider(service, propertyIds, keyPropertyIds);
+        return new InstanceResourceProvider(service);
     }
     return super.createResourceProvider(type);
   }

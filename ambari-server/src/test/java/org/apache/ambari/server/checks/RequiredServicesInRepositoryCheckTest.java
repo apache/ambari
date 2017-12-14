@@ -19,8 +19,6 @@ package org.apache.ambari.server.checks;
 
 import static org.mockito.Mockito.mock;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -60,7 +58,7 @@ public class RequiredServicesInRepositoryCheckTest {
   /**
    * Used to return the missing dependencies for the test.
    */
-  private Map<String, Set<String>> m_missingDependencies = new HashMap<>();
+  private Set<String> m_missingDependencies = Sets.newTreeSet();
 
   @Before
   public void setUp() throws Exception {
@@ -106,7 +104,7 @@ public class RequiredServicesInRepositoryCheckTest {
     PrereqCheckRequest request = new PrereqCheckRequest(CLUSTER_NAME);
     request.setTargetRepositoryVersion(m_repositoryVersion);
 
-    m_missingDependencies.put("FOO", Sets.newHashSet("BAR"));
+    m_missingDependencies.add("BAR");
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     m_requiredServicesCheck.perform(check, request);

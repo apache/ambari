@@ -20,10 +20,10 @@ import {Component, OnChanges, SimpleChanges, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
-import {FilterCondition} from '@app/classes/filtering';
+import 'rxjs/add/observable/from';
+import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
 import {LogsType} from '@app/classes/string';
-import {CommonEntry} from '@app/classes/models/common-entry';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
@@ -46,6 +46,9 @@ export class FiltersPanelComponent implements OnChanges {
         case 'serviceLogs':
           result = this.logsContainer.serviceLogsColumns;
           break;
+        default:
+          result = Observable.from([]);
+          break;
       }
       this.searchBoxItems = result;
     }
@@ -59,45 +62,31 @@ export class FiltersPanelComponent implements OnChanges {
 
   searchBoxItems: Observable<ListItem[]>;
 
-  get searchBoxItemsTranslated(): CommonEntry[] {
-    switch (this.logsType) {
-      case 'auditLogs':
-        return this.logsContainer.auditLogsColumnsTranslated;
-      case 'serviceLogs':
-        return this.logsContainer.serviceLogsColumnsTranslated;
-    }
-  }
-
   get filters(): {[key: string]: FilterCondition} {
     return this.logsContainer.filters;
   }
 
   /**
    * Object with options for search box parameter values
-   * @returns {[key: string]: CommonEntry[]}
+   * @returns {[key: string]: ListItem[]}
    */
-  get options(): {[key: string]: CommonEntry[]} {
+  get options(): {[key: string]: ListItem[]} {
     return Object.keys(this.filters).filter((key: string): boolean => {
       const condition = this.filters[key];
       return Boolean(condition.fieldName && condition.options);
     }).reduce((currentValue, currentKey) => {
       const condition = this.filters[currentKey];
       return Object.assign(currentValue, {
-        [condition.fieldName]: condition.options.map((option: ListItem): CommonEntry => {
-          return {
-            name: option.value,
-            value: option.value
-          }
-        })
+        [condition.fieldName]: condition.options
       });
     }, {});
   }
 
-  get queryParameterNameChange(): Subject<any> {
+  get queryParameterNameChange(): Subject<SearchBoxParameterTriggered> {
     return this.logsContainer.queryParameterNameChange;
   }
 
-  get queryParameterAdd(): Subject<any> {
+  get queryParameterAdd(): Subject<SearchBoxParameter> {
     return this.logsContainer.queryParameterAdd;
   }
 
@@ -105,9 +94,14 @@ export class FiltersPanelComponent implements OnChanges {
     return this.logsContainer.captureSeconds;
   }
 
+  searchBoxValueUpdate: Subject<void> = new Subject();
+
   isFilterConditionDisplayed(key: string): boolean {
-    return this.logsContainer.logsTypeMap[this.logsType].listFilters.indexOf(key) > -1
-      && Boolean(this.filtersForm.controls[key]);
+    return this.logsContainer.isFilterConditionDisplayed(key);
+  }
+
+  updateSearchBoxValue(): void {
+    this.searchBoxValueUpdate.next();
   }
 
 }

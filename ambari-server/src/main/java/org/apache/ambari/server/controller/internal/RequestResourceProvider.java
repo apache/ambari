@@ -23,7 +23,6 @@ import static org.apache.ambari.server.controller.internal.HostComponentResource
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +73,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -135,13 +135,18 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String EXLUSIVE_ID = "exclusive";
   public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      REQUEST_ID_PROPERTY_ID}));
-
   private PredicateCompiler predicateCompiler = new PredicateCompiler();
 
+  /**
+   * The key property ids for a Request resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Request, REQUEST_ID_PROPERTY_ID)
+      .put(Resource.Type.Cluster, REQUEST_CLUSTER_NAME_PROPERTY_ID)
+      .build();
+
   static Set<String> PROPERTY_IDS = Sets.newHashSet(
+    REQUEST_ID_PROPERTY_ID,
     REQUEST_CLUSTER_NAME_PROPERTY_ID,
     REQUEST_CLUSTER_ID_PROPERTY_ID,
     REQUEST_STATUS_PROPERTY_ID,
@@ -175,14 +180,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds          the property ids
-   * @param keyPropertyIds       the key property ids
    * @param managementController the management controller
    */
-  RequestResourceProvider(Set<String> propertyIds,
-                          Map<Resource.Type, String> keyPropertyIds,
-                          AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  RequestResourceProvider(AmbariManagementController managementController) {
+    super(Resource.Type.Request, PROPERTY_IDS, keyPropertyIds, managementController);
   }
 
   // ----- ResourceProvider ------------------------------------------------
@@ -424,7 +425,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(Collections.singletonList(REQUEST_ID_PROPERTY_ID));
   }
 
 

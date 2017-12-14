@@ -1182,9 +1182,8 @@ def setup(options):
     err = 'Downloading or installing JDK failed: {0}. Exiting.'.format(e)
     raise FatalException(e.code, err)
 
-  if not get_silent() or options.accept_gpl:
-    print 'Checking GPL software agreement...'
-    write_gpl_license_accepted()
+  print 'Checking GPL software agreement...'
+  write_gpl_license_accepted(default_prompt_value=options.accept_gpl)
 
   print 'Completing setup...'
   retcode = configure_os_settings()

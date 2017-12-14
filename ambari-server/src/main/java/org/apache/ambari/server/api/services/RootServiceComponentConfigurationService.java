@@ -34,6 +34,7 @@ package org.apache.ambari.server.api.services;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -48,9 +49,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.ambari.server.api.resources.BaseResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.http.HttpStatus;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -90,6 +95,16 @@ public class RootServiceComponentConfigurationService extends BaseService {
 
   private static final String REQUEST_TYPE =
       "org.apache.ambari.server.api.services.RootServiceComponentConfigurationRequestSwagger";
+
+  public static final String DIRECTIVE_OPERATION = "op";
+
+  private static final Set<String> DIRECTIVES = Sets.newHashSet(DIRECTIVE_OPERATION);
+
+  public static final Map<BaseResourceDefinition.DirectiveType, Set<String>> DIRECTIVES_MAP =
+      ImmutableMap.<BaseResourceDefinition.DirectiveType, Set<String>>builder()
+          .put(BaseResourceDefinition.DirectiveType.CREATE, DIRECTIVES)
+          .put(BaseResourceDefinition.DirectiveType.UPDATE, DIRECTIVES)
+          .build();
 
   private final String serviceName;
   private final String componentName;

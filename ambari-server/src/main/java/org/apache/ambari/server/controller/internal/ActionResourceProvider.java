@@ -19,7 +19,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +45,9 @@ import org.apache.ambari.server.customactions.ActionDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 public class ActionResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(ActionResourceProvider.class);
@@ -66,13 +68,29 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       .getPropertyId("Actions", "target_type");
   public static final String DEFAULT_TIMEOUT_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "default_timeout");
-  private static Set<String> pkPropertyIds = new HashSet<>(
-    Arrays.asList(new String[]{ACTION_NAME_PROPERTY_ID}));
 
-  public ActionResourceProvider(Set<String> propertyIds,
-                                Map<Type, String> keyPropertyIds,
-                                AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The key property ids for a Action resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.Action, ACTION_NAME_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a Action resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      ACTION_NAME_PROPERTY_ID,
+      ACTION_TYPE_PROPERTY_ID,
+      INPUTS_PROPERTY_ID,
+      TARGET_SERVICE_PROPERTY_ID,
+      TARGET_COMPONENT_PROPERTY_ID,
+      DESCRIPTION_PROPERTY_ID,
+      TARGET_HOST_PROPERTY_ID,
+      DEFAULT_TIMEOUT_PROPERTY_ID);
+
+  public ActionResourceProvider(AmbariManagementController managementController) {
+    super(Type.Action, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -168,7 +186,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   public Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   private ActionManager getActionManager() {

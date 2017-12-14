@@ -21,6 +21,7 @@ package org.apache.ambari.logfeeder.common;
 
 import java.util.List;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.log4j.Logger;
@@ -30,6 +31,7 @@ public abstract class ConfigItem {
 
   protected static final Logger LOG = Logger.getLogger(ConfigBlock.class);
   private boolean drain = false;
+  private LogFeederProps logFeederProps;
   public MetricData statMetric = new MetricData(getStatMetricName(), false);
 
   public ConfigItem() {
@@ -59,7 +61,8 @@ public abstract class ConfigItem {
   /**
    * This method needs to be overwritten by deriving classes.
    */
-  public void init() throws Exception {
+  public void init(LogFeederProps logFeederProps) throws Exception {
+    this.logFeederProps = logFeederProps;
   }
 
   public abstract boolean isEnabled();
@@ -94,4 +97,7 @@ public abstract class ConfigItem {
     this.drain = drain;
   }
 
+  public LogFeederProps getLogFeederProps() {
+    return logFeederProps;
+  }
 }

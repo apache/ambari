@@ -18,6 +18,7 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.spool.LogSpooler;
@@ -93,7 +94,7 @@ public class OutputS3FileTest {
       }
     };
     outputS3File.loadConfig(configMap);
-    outputS3File.init();
+    outputS3File.init(new LogFeederProps());
     outputS3File.write("log event block", inputMarker);
     verify(spooler);
   }
@@ -130,7 +131,7 @@ public class OutputS3FileTest {
       }
     };
     outputS3File.loadConfig(configMap);
-    outputS3File.init();
+    outputS3File.init(new LogFeederProps());
     outputS3File.write("log event block1", inputMarker);
     outputS3File.write("log event block2", inputMarker);
     verify(spooler);
@@ -149,7 +150,7 @@ public class OutputS3FileTest {
     OutputS3File outputS3File = new OutputS3File();
     configMap.put(S3OutputConfiguration.ROLLOVER_SIZE_THRESHOLD_BYTES_KEY, thresholdSize);
     outputS3File.loadConfig(configMap);
-    outputS3File.init();
+    outputS3File.init(new LogFeederProps());
 
     assertTrue(outputS3File.shouldRollover(logSpoolerContext));
   }
@@ -166,7 +167,7 @@ public class OutputS3FileTest {
     OutputS3File outputS3File = new OutputS3File();
     configMap.put(S3OutputConfiguration.ROLLOVER_SIZE_THRESHOLD_BYTES_KEY, thresholdSize);
     outputS3File.loadConfig(configMap);
-    outputS3File.init();
+    outputS3File.init(new LogFeederProps());
 
     assertFalse(outputS3File.shouldRollover(logSpoolerContext));
   }

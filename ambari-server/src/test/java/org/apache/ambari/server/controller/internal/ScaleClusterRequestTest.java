@@ -102,12 +102,17 @@ public class ScaleClusterRequestTest {
 
   @Test
   public void test_basic_hostName() throws Exception {
+    Map<String, Object> props = createScaleClusterPropertiesGroup1_HostName(CLUSTER_NAME, BLUEPRINT_NAME);
+    addSingleHostByName(props);
+    addSingleHostByName(replaceWithPlainHostNameKey(props));
+  }
+
+  private void addSingleHostByName(Map<String, Object> props) throws InvalidTopologyTemplateException {
     // reset default host resource provider expectations to none since no host predicate is used
     reset(hostResourceProvider);
     replay(hostResourceProvider);
 
-    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(Collections.singleton(
-        createScaleClusterPropertiesGroup1_HostName(CLUSTER_NAME, BLUEPRINT_NAME)));
+    ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(Collections.singleton(props));
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "1"),
@@ -129,13 +134,21 @@ public class ScaleClusterRequestTest {
 
   @Test
   public void testMultipleHostNames() throws Exception {
-    // reset default host resource provider expectations to none since no host predicate is used
-    reset(hostResourceProvider);
-    replay(hostResourceProvider);
-
     Set<Map<String, Object>> propertySet = new HashSet<>();
     propertySet.add(createScaleClusterPropertiesGroup1_HostName(CLUSTER_NAME, BLUEPRINT_NAME));
     propertySet.add(createScaleClusterPropertiesGroup1_HostName2(CLUSTER_NAME, BLUEPRINT_NAME));
+    addMultipleHostsByName(propertySet);
+
+    for (Map<String, Object> props : propertySet) {
+      replaceWithPlainHostNameKey(props);
+    }
+    addMultipleHostsByName(propertySet);
+  }
+
+  private void addMultipleHostsByName(Set<Map<String, Object>> propertySet) throws InvalidTopologyTemplateException {
+    // reset default host resource provider expectations to none since no host predicate is used
+    reset(hostResourceProvider);
+    replay(hostResourceProvider);
 
     ScaleClusterRequest scaleClusterRequest = new ScaleClusterRequest(propertySet);
 
@@ -294,7 +307,7 @@ public class ScaleClusterRequestTest {
   public void test_NoHostNameOrHostCount() throws Exception {
     Map<String, Object> properties = createScaleClusterPropertiesGroup1_HostName(CLUSTER_NAME, BLUEPRINT_NAME);
     // remove host name
-    properties.remove("host_name");
+    properties.remove(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID);
 
     // reset default host resource provider expectations to none
     reset(hostResourceProvider);
@@ -336,8 +349,15 @@ public class ScaleClusterRequestTest {
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
     properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP1_NAME);
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, HOST1_NAME);
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, HOST1_NAME);
 
+    return properties;
+  }
+
+  // include host name under "host_name" key instead of "Hosts/host_name"
+  private static Map<String, Object> replaceWithPlainHostNameKey(Map<String, Object> properties) {
+    Object value = properties.remove(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID);
+    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, value);
     return properties;
   }
 
@@ -381,7 +401,7 @@ public class ScaleClusterRequestTest {
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
     properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP1_NAME);
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, HOST2_NAME);
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, HOST2_NAME);
 
     return properties;
   }

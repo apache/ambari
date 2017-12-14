@@ -128,7 +128,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
    * Create a new resource provider.
    */
   public UserAuthorizationResourceProvider(AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Type.UserAuthorization, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
 
     clusterController = ClusterControllerHelper.getClusterController();
   }

@@ -20,6 +20,7 @@ package org.apache.ambari.logfeeder.filter;
 
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputManager;
@@ -52,7 +53,7 @@ public class FilterGrokTest {
     filterGrok.loadConfig(filterGrokDescriptor);
     filterGrok.setOutputManager(mockOutputManager);
     filterGrok.setInput(EasyMock.mock(Input.class));
-    filterGrok.init();
+    filterGrok.init(new LogFeederProps());
   }
 
   @Test

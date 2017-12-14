@@ -196,14 +196,8 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
                        "- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
                        "Refer to the Ambari documentation for more information on setup and upgrade."
 
-GPL_LICENSE_PROMPT_TEXT = """To download GPL licensed products like lzo you must accept the license terms below:
-LICENSE_LINE_1
-LICENSE_LINE_2
-LICENSE_LINE_3
-LICENSE_LINE_4
-LICENSE_LINE_5
-LICENSE_LINE_6
-Do you accept the GPL License Agreement [y/n] (y)?"""
+GPL_LICENSE_PROMPT_TEXT = """GPL License for LZO: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+Enable Ambari Server to download and install GPL Licensed LZO packages [y/n] (n)? """
 
 DEFAULT_DB_NAME = "ambari"
 
@@ -1151,8 +1145,9 @@ def update_ambari_env():
     return -1
 
   return 0
-  
-def write_gpl_license_accepted():
+ 
+# default should be false / not accepted 
+def write_gpl_license_accepted(default_prompt_value = False, text = GPL_LICENSE_PROMPT_TEXT):
   properties = get_ambari_properties()
   if properties == -1:
     err = "Error getting ambari properties"
@@ -1162,7 +1157,7 @@ def write_gpl_license_accepted():
   if GPL_LICENSE_ACCEPTED_PROPERTY in properties.keys() and properties.get_property(GPL_LICENSE_ACCEPTED_PROPERTY).lower() == "true":
     return True
 
-  result = get_YN_input(GPL_LICENSE_PROMPT_TEXT, True)
+  result = get_YN_input(text, default_prompt_value)
 
   properties.process_pair(GPL_LICENSE_ACCEPTED_PROPERTY, str(result).lower())
   update_properties(properties)

@@ -27,7 +27,6 @@ import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 
 /**
@@ -43,20 +42,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
 
 
   // ----- Constructors ------------------------------------------------------
-
-  /**
-   * Create a  new resource provider for the given management controller.
-   *
-   * @param propertyIds          the property ids
-   * @param keyPropertyIds       the key property ids
-   * @param managementController the management controller
-   */
-  protected AbstractControllerResourceProvider(Set<String> propertyIds,
-                                               Map<Resource.Type, String> keyPropertyIds,
-                                               AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds);
-    this.managementController = managementController;
-  }
 
   /**
    * Create a new resource provider for the given management controller. This
@@ -75,9 +60,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
    */
   AbstractControllerResourceProvider(Resource.Type type, Set<String> propertyIds,
       Map<Resource.Type, String> keyPropertyIds, AmbariManagementController managementController) {
-    this(propertyIds, keyPropertyIds, managementController);
-    PropertyHelper.setPropertyIds(type, propertyIds);
-    PropertyHelper.setKeyPropertyIds(type, keyPropertyIds);
+    super(type, propertyIds, keyPropertyIds);
+    this.managementController = managementController;
   }
 
   public static void init(ResourceProviderFactory factory) {
@@ -139,14 +123,11 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
    * Factory method for obtaining a resource provider based on a given type and management controller.
    *
    * @param type                  the resource type
-   * @param propertyIds           the property ids
    * @param managementController  the management controller
    *
    * @return a new resource provider
    */
   public static ResourceProvider getResourceProvider(Resource.Type type,
-                                                     Set<String> propertyIds,
-                                                     Map<Resource.Type, String> keyPropertyIds,
                                                      AmbariManagementController managementController) {
 
     switch (type.getInternalType()) {
@@ -157,75 +138,75 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case Component:
         return resourceProviderFactory.getComponentResourceProvider(managementController);
       case Host:
-        return resourceProviderFactory.getHostResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getHostResourceProvider(managementController);
       case HostComponent:
-        return resourceProviderFactory.getHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getHostComponentResourceProvider(managementController);
       case Configuration:
         return new ConfigurationResourceProvider(managementController);
       case ServiceConfigVersion:
         return new ServiceConfigVersionResourceProvider(managementController);
       case Action:
-        return new ActionResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ActionResourceProvider(managementController);
       case Request:
-        return new RequestResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new RequestResourceProvider(managementController);
       case Task:
-        return new TaskResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new TaskResourceProvider(managementController);
       case User:
-        return new UserResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new UserResourceProvider(managementController);
       case Group:
-        return new GroupResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new GroupResourceProvider(managementController);
       case Member:
-        return resourceProviderFactory.getMemberResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getMemberResourceProvider(managementController);
       case Upgrade:
         return resourceProviderFactory.getUpgradeResourceProvider(managementController);
       case Stack:
-        return new StackResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackResourceProvider(managementController);
       case StackVersion:
-        return new StackVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackVersionResourceProvider(managementController);
       case ClusterStackVersion:
         return resourceProviderFactory.getClusterStackVersionResourceProvider(managementController);
       case HostStackVersion:
         return new HostStackVersionResourceProvider(managementController);
       case StackService:
-        return new StackServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackServiceResourceProvider(managementController);
       case StackServiceComponent:
-        return new StackServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackServiceComponentResourceProvider(managementController);
       case StackConfiguration:
-        return new StackConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackConfigurationResourceProvider(managementController);
       case StackConfigurationDependency:
-        return new StackConfigurationDependencyResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackConfigurationDependencyResourceProvider(managementController);
       case StackLevelConfiguration:
-        return new StackLevelConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new StackLevelConfigurationResourceProvider(managementController);
       case ExtensionLink:
-          return new ExtensionLinkResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ExtensionLinkResourceProvider(managementController);
       case Extension:
-        return new ExtensionResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ExtensionResourceProvider(managementController);
       case ExtensionVersion:
-        return new ExtensionVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ExtensionVersionResourceProvider(managementController);
       case RootService:
-        return new RootServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new RootServiceResourceProvider(managementController);
       case RootServiceComponent:
-        return new RootServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new RootServiceComponentResourceProvider(managementController);
       case RootServiceComponentConfiguration:
         return resourceProviderFactory.getRootServiceHostComponentConfigurationResourceProvider();
       case RootServiceHostComponent:
-        return new RootServiceHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new RootServiceHostComponentResourceProvider(managementController);
       case ConfigGroup:
-        return new ConfigGroupResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ConfigGroupResourceProvider(managementController);
       case RequestSchedule:
-        return new RequestScheduleResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new RequestScheduleResourceProvider(managementController);
       case HostComponentProcess:
-        return new HostComponentProcessResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new HostComponentProcessResourceProvider(managementController);
       case Blueprint:
-        return new BlueprintResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new BlueprintResourceProvider(managementController);
       case KerberosDescriptor:
-        return resourceProviderFactory.getKerberosDescriptorResourceProvider(managementController, propertyIds, keyPropertyIds);
+        return resourceProviderFactory.getKerberosDescriptorResourceProvider(managementController);
       case Recommendation:
-        return new RecommendationResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new RecommendationResourceProvider(managementController);
       case Validation:
-        return new ValidationResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ValidationResourceProvider(managementController);
       case ClientConfig:
-        return new ClientConfigResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ClientConfigResourceProvider(managementController);
       case RepositoryVersion:
         return resourceProviderFactory.getRepositoryVersionResourceProvider();
       case CompatibleRepositoryVersion:
@@ -255,7 +236,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case ClusterKerberosDescriptor:
         return new ClusterKerberosDescriptorResourceProvider(managementController);
       case LoggingQuery:
-        return new LoggingResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new LoggingResourceProvider(managementController);
       case AlertTarget:
         return resourceProviderFactory.getAlertTargetResourceProvider();
       case ViewInstance:

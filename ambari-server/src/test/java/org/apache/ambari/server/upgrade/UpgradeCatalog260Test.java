@@ -341,6 +341,10 @@ public class UpgradeCatalog260Test {
                                        Capture<DBColumnInfo> orchestration, Capture<DBColumnInfo> revertAllowed)
       throws SQLException {
 
+    dbAccessor.clearTableColumn(eq(UpgradeCatalog260.CLUSTERS_TABLE), eq(UpgradeCatalog260.UPGRADE_ID_COLUMN),
+        eq(null));
+    expectLastCall().once();
+
     dbAccessor.clearTable(eq(UpgradeCatalog260.UPGRADE_TABLE));
     expectLastCall().once();
 

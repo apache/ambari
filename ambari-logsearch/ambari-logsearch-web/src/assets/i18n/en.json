@@ -26,7 +26,7 @@
   "filter.clusters": "Clusters",
   "filter.components": "Components",
   "filter.levels": "Levels",
-  "filter.excluded": "Excluded",
+  "filter.exclude": "Exclude",
   "filter.hosts": "Hosts",
 
   "filter.capture": "Capture",
@@ -158,5 +158,16 @@
   "logs.totalEventFound": "{{totalCount}} events found",
   "logs.noEventFound": "No event found",
   "logs.hideGraph": "Hide Graph",
-  "logs.showGraph": "Show Graph"
+  "logs.showGraph": "Show Graph",
+
+  "histogram.gap": "gap",
+  "histogram.gaps": "gaps",
+  "histogram.gap.second": "second",
+  "histogram.gap.seconds": "seconds",
+  "histogram.gap.minute": "minute",
+  "histogram.gap.minutes": "minutes",
+  "histogram.gap.hour": "hour",
+  "histogram.gap.hours": "hours",
+  "histogram.gap.day": "day",
+  "histogram.gap.days": "days"
 }

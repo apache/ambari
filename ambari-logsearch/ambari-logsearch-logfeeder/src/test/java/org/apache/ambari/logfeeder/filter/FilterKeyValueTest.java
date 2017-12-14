@@ -20,6 +20,7 @@ package org.apache.ambari.logfeeder.filter;
 
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterKeyValueDescriptor;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterKeyValueDescriptorImpl;
@@ -49,7 +50,7 @@ public class FilterKeyValueTest {
     filterKeyValue = new FilterKeyValue();
     filterKeyValue.loadConfig(filterKeyValueDescriptor);
     filterKeyValue.setOutputManager(mockOutputManager);
-    filterKeyValue.init();
+    filterKeyValue.init(new LogFeederProps());
   }
 
   @Test
