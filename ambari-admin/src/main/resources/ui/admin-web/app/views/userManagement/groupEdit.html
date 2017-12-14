@@ -50,7 +50,7 @@
         <editable-list items-source="group.editingUsers" resource-type="User" editable="group.group_type == 'LOCAL'"></editable-list>
       </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-show="cluster">
       <label for="role" class="col-sm-2 roles-label">
         {{'groups.role' | translate}}
         <i class="fa fa-question-circle" aria-hidden="true" ng-click="showHelpPage()"></i>
