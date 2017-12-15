@@ -532,7 +532,8 @@
             "oozie-server"
           ],
           "PATCH": [
-            "oozie-server"
+            "oozie-server",
+            "oozie-client"
           ],
           "STANDARD": [
             "oozie-client",
