@@ -198,7 +198,6 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>LogFeeder</finalName>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -222,40 +221,10 @@
           <target>${jdk.version}</target>
         </configuration>
       </plugin>
-
-      <!-- Exec main class plugin -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.apache.ambari.logfeeder.LogFeeder</mainClass>
-          <arguments>
-            <argument>--monitor</argument>
-          </arguments>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
-        <configuration>
-          <classifier>exec</classifier>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <!-- copy-dependencies -->
       <plugin>

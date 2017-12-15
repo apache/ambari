@@ -20,9 +20,10 @@ export LOGSEARCH_PATH=/root/ambari/ambari-logsearch/ambari-logsearch-server/targ
 
 export LOGSEARCH_CONF_DIR=/root/config/logsearch
 
-export LOGFILE=/var/log/ambari-logsearch-portal/logsearch-app.log
+export LOG_PATH=/var/log/ambari-logsearch-portal
+export LOG_FILE=logsearch-app.log
 
-export PID_FILE=/var/run/ambari-logsearch-portal/logsearch.pid
+export LOGSEARCH_PID_FILE=/var/run/ambari-logsearch-portal/logsearch.pid
 
 export JAVA_HOME=/usr/java/default
 
