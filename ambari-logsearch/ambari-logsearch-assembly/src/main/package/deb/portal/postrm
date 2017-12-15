@@ -13,3 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+
+LOGSEARCH_SCRIPT_LINK_NAME="/usr/bin/logsearch"
+LOGSEARCH_CONF_DIR_LINK="/etc/ambari-logsearch-portal/conf"
+
+rm -f $LOGSEARCH_SCRIPT_LINK_NAME
+rm -f $LOGSEARCH_CONF_DIR_LINK

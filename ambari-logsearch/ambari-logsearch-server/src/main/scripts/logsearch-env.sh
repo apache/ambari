@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,20 +14,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cluster.name=cl1
-logfeeder.checkpoint.folder=/root/checkpoints
-logfeeder.metrics.collector.hosts=
-logfeeder.config.dir=/root/config/logfeeder/shipper-conf/
-logfeeder.config.files=shipper-conf/global.config.json,\
-  shipper-conf/output.config.json
-logfeeder.log.filter.enable=true
-logfeeder.solr.config.interval=5
-logfeeder.solr.core.config.name=history
-logfeeder.solr.zk_connect_string=localhost:9983
-logfeeder.cache.enabled=true
-logfeeder.cache.size=100
-logfeeder.cache.key.field=log_message
-logfeeder.cache.dedup.interval=1000
-logfeeder.cache.last.dedup.enabled=true
-logsearch.config.zk_connect_string=localhost:9983
-logfeeder.include.default.level=FATAL,ERROR,WARN,INFO,DEBUG,TRACE,UNKNOWN
+# Log Search extra options
+export LOGSEARCH_JAVA_OPTS=${LOGSEARCH_JAVA_OPTS:-""}
+
+# Log Search debug options
+# export LOGSEARCH_DEBUG=true
+# exoprt LOGSEARCH_DEBUG_SUSPEND=n
+export LOGSEARCH_DEBUG_PORT=5005
+
+# Log Search memory
+# export LOGSEARCH_JAVA_MEM="--Xmx1024m"
+
+# export LOG_PATH=/var/log/ambari-logsearch-logfeeder/
+# export LOG_FILE=logsearch.log
+
+# Pid file of the application
+# export LOGSEARCH_PID_DIR=/var/run/ambari-logsearch-logfeeder
+# export LOGSEARCH_PID_FILE=logfeeder.pid
+
+# SSL settings"
+# export LOGSEARCH_SSL="true"
+# export LOGSEARCH_KEYSTORE_LOCATION="/my/path/keystore.jks"
+# export LOGSEARCH_KEYSTORE_TYPE="jks"
+# export LOGSEARCH_TRUSTSTORE_LOCATION="/my/path/trutstore.jks"
+# export LOGSEARCH_TRUSTSTORE_TYPE="jks"

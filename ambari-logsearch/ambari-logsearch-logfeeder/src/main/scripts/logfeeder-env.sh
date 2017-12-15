@@ -14,31 +14,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-curr_dir=`pwd`
-cd `dirname $0`; script_dir=`pwd`; cd $curr_dir
+# Log Feeder extra options
+export LOGFEEDER_JAVA_OPTS=${LOGFEEDER_JAVA_OPTS:-""}
 
-if [ "$PID_FILE" = "" ]; then
-    LOGSEARCH_PID_DIR=$HOME
-    PID_FILE=$LOGSEARCH_PID_DIR/logsearch-search-$USER.pid
-fi
+# Log Feeder debug options
+# export LOGFEEDER_DEBUG=true
+# exoprt LOGFEEDER_DEBUG_SUSPEND=n
+export LOGFEEDER_DEBUG_PORT=5006
 
-if [ -f ${PID_FILE} ]; then
-    PID=`cat ${PID_FILE}`
-    if kill -0 $PID 2>/dev/null; then
-	echo "logsearch running with process id (${PID}). Killing..."
-	kill $PID 2>/dev/null
-	sleep 5
-	if kill -0 $PID 2>/dev/null; then
-	    echo "logsearch still running. Will kill process forcefully in another 10 seconds..."
-	    sleep 10
-	    kill -9 $PID 2>/dev/null
-	    sleep 2
-	fi
-    fi
+# Log Feeder memory
+# export LOGFEEDER_JAVA_MEM="-Xmx512m"
 
-    if kill -0 $PID 2>/dev/null; then
-	echo "ERROR: Even after all efforts to stop logsearch, it is still running. pid=$PID. Please manually kill the service and try again."
-	exit 1
-    fi
-fi
+# export LOG_PATH=/var/log/ambari-logsearch-logfeeder/
+# export LOG_FILE=logfeeder.log
 
+# Pid file of the application
+# export LOGFEEDER_PID_DIR=/var/run/ambari-logsearch-logfeeder
+# export LOGFEEDER_PID_FILE=logfeeder.pid
+
+# SSL settings"
+# export LOGFEEDER_SSL="true"
+# export LOGFEEDER_KEYSTORE_LOCATION="/my/path/keystore.jks"
+# export LOGFEEDER_KEYSTORE_TYPE="jks"
+# export LOGFEEDER_TRUSTSTORE_LOCATION="/my/path/trutstore.jks"
+# export LOGFEEDER_TRUSTSTORE_TYPE="jks"
