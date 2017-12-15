@@ -44,9 +44,9 @@ import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CredentialStoreInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.ServicePropertyInfo;
 import org.junit.Test;
 
@@ -231,8 +231,8 @@ public class ServiceModuleTest {
 
   @Test
   public void testResolve_OsSpecifics() throws Exception {
-    Map<String, ServiceOsSpecific> osSpecifics = new HashMap<>();
-    osSpecifics.put("foo", new ServiceOsSpecific());
+    Map<String, OsSpecific> osSpecifics = new HashMap<>();
+    osSpecifics.put("foo", new OsSpecific());
 
     // specified in child only
     ServiceInfo info = new ServiceInfo();
@@ -250,8 +250,8 @@ public class ServiceModuleTest {
     assertEquals(osSpecifics, service.getModuleInfo().getOsSpecifics());
 
     // specified in both
-    Map<String, ServiceOsSpecific> osSpecifics2 = new HashMap<>();
-    osSpecifics.put("bar", new ServiceOsSpecific());
+    Map<String, OsSpecific> osSpecifics2 = new HashMap<>();
+    osSpecifics.put("bar", new OsSpecific());
 
     info.setOsSpecifics(osSpecifics);
     parentInfo.setOsSpecifics(osSpecifics2);

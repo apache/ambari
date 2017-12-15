@@ -97,6 +97,7 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -105,7 +106,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -2003,39 +2003,49 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
-  public void testPopulateServicePackagesInfo() throws Exception {
+  public void testPopulatePackagesInfo() throws Exception {
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
     Map<String, String> hostParams = new HashMap<>();
     String osFamily = "testOSFamily";
 
-    Map<String, ServiceOsSpecific> osSpecifics = new HashMap<>();
+    Map<String, OsSpecific> osSpecificsService = new HashMap<>();
+    Map<String, OsSpecific> osSpecificsStack = new HashMap<>();
 
-    ServiceOsSpecific.Package package1 = new ServiceOsSpecific.Package();
+    OsSpecific.Package package1 = new OsSpecific.Package();
     package1.setName("testrpm1");
-    ServiceOsSpecific.Package package2 = new ServiceOsSpecific.Package();
+    OsSpecific.Package package2 = new OsSpecific.Package();
     package2.setName("testrpm2");
-    ServiceOsSpecific.Package package3 = new ServiceOsSpecific.Package();
+    OsSpecific.Package package3 = new OsSpecific.Package();
     package3.setName("testrpm3");
+    OsSpecific.Package packageStack = new OsSpecific.Package();
+    package3.setName("testrpmStack");
 
-    List<ServiceOsSpecific.Package> packageList1 = new ArrayList<>();
+    List<OsSpecific.Package> packageList1 = new ArrayList<>();
     packageList1.add(package1);
-    List<ServiceOsSpecific.Package> packageList2 = new ArrayList<>();
+    List<OsSpecific.Package> packageList2 = new ArrayList<>();
     packageList2.add(package2);
     packageList2.add(package3);
+    List<OsSpecific.Package> packageListStack = new ArrayList<>();
+    packageListStack.add(packageStack);
 
-    ServiceOsSpecific osSpecific1 = new ServiceOsSpecific("testOSFamily");
+    OsSpecific osSpecific1 = new OsSpecific("testOSFamily");
     osSpecific1.addPackages(packageList1);
-    ServiceOsSpecific osSpecific2 = new ServiceOsSpecific("testOSFamily1,testOSFamily,testOSFamily2");
+    OsSpecific osSpecific2 = new OsSpecific("testOSFamily1,testOSFamily,testOSFamily2");
     osSpecific2.addPackages(packageList2);
+    OsSpecific osSpecificStack = new OsSpecific("testOSFamily");
+    osSpecificStack.addPackages(packageListStack);
 
-    osSpecifics.put("testOSFamily", osSpecific1);
-    osSpecifics.put("testOSFamily1,testOSFamily,testOSFamily2", osSpecific2);
+    osSpecificsService.put("testOSFamily", osSpecific1);
+    osSpecificsService.put("testOSFamily1,testOSFamily,testOSFamily2", osSpecific2);
+    osSpecificsStack.put("testOSFamily", osSpecificStack);
 
-    expect(serviceInfo.getOsSpecifics()).andReturn(osSpecifics);
+    expect(serviceInfo.getOsSpecifics()).andReturn(osSpecificsService);
+    expect(stackInfo.getOsSpecifics()).andReturn(osSpecificsStack);
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
@@ -2044,14 +2054,18 @@ public class AmbariManagementControllerImplTest {
     OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
     EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
-    replay(maintHelper, injector, clusters, serviceInfo, osFamilyMock);
+    replay(maintHelper, injector, clusters, stackInfo, serviceInfo, osFamilyMock);
 
     AmbariManagementControllerImplTest.NestedTestClass nestedTestClass = this.new NestedTestClass(null, clusters,
         injector, osFamilyMock);
 
-    ServiceOsSpecific serviceOsSpecific = nestedTestClass.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+    OsSpecific osSpecific = nestedTestClass.populatePackagesInfo(stackInfo.getOsSpecifics(), hostParams, osFamily);
 
-    assertEquals(3, serviceOsSpecific.getPackages().size());
+    assertEquals(1, osSpecific.getPackages().size());
+
+    osSpecific = nestedTestClass.populatePackagesInfo(serviceInfo.getOsSpecifics(), hostParams, osFamily);
+
+    assertEquals(3, osSpecific.getPackages().size());
   }
 
   @Test

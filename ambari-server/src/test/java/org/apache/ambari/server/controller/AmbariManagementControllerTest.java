@@ -128,6 +128,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -138,7 +139,6 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -10331,32 +10331,35 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testGetPackagesForServiceHost() throws Exception {
-    ServiceInfo service = ambariMetaInfo.getStack("HDP", "2.0.1").getService("HIVE");
+  public void testGetPackagesForStackServiceHost() throws Exception {
+    StackInfo stack = ambariMetaInfo.getStack("HDP", "2.0.1");
+    ServiceInfo service = stack.getService("HIVE");
     HashMap<String, String> hostParams = new HashMap<>();
 
-    Map<String, ServiceOsSpecific.Package> packages = new HashMap<>();
-    String [] packageNames = {"hive", "mysql-connector-java", "mysql", "mysql-server", "mysql-client"};
+    Map<String, OsSpecific.Package> packages = new HashMap<>();
+    String [] packageNames = {"stack_any_package", "hive", "mysql-connector-java", "mysql", "mysql-server", "mysql-client"};
     for (String packageName : packageNames) {
-      ServiceOsSpecific.Package pkg = new ServiceOsSpecific.Package();
+      OsSpecific.Package pkg = new OsSpecific.Package();
       pkg.setName(packageName);
       packages.put(packageName, pkg);
     }
 
-    List<ServiceOsSpecific.Package> rhel5Packages = controller.getPackagesForServiceHost(service, hostParams, "redhat5");
-    List<ServiceOsSpecific.Package> expectedRhel5 = Arrays.asList(
+    List<OsSpecific.Package> rhel5Packages = controller.getPackagesForStackServiceHost(stack, service, hostParams, "redhat5");
+    List<OsSpecific.Package> expectedRhel5 = Arrays.asList(
+            packages.get("stack_any_package"),
             packages.get("hive"),
             packages.get("mysql-connector-java"),
             packages.get("mysql"),
             packages.get("mysql-server")
     );
 
-    List<ServiceOsSpecific.Package> sles11Packages = controller.getPackagesForServiceHost(service, hostParams, "suse11");
-    List<ServiceOsSpecific.Package> expectedSles11 = Arrays.asList(
+    List<OsSpecific.Package> sles11Packages = controller.getPackagesForStackServiceHost(stack, service, hostParams, "suse11");
+    List<OsSpecific.Package> expectedSles11 = Arrays.asList(
+            packages.get("stack_any_package"),
             packages.get("hive"),
             packages.get("mysql-connector-java"),
-            packages.get("mysql"),
-            packages.get("mysql-client")
+            packages.get("mysql-client"),
+            packages.get("mysql")
     );
     assertThat(rhel5Packages, is(expectedRhel5));
     assertThat(sles11Packages, is(expectedSles11));

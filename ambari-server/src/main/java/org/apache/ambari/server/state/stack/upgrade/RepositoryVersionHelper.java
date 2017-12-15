@@ -45,13 +45,14 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -334,10 +335,11 @@ public class RepositoryVersionHelper {
 
     StackId stackId = repoVersion.getStackId();
 
-    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
+    List<OsSpecific.Package> packages = new ArrayList<>();
 
     for (String serviceName : servicesOnHost) {
-      ServiceInfo info;
+      ServiceInfo serviceInfo;
+      StackInfo stackInfo;
 
       try {
         if (ami.get().isServiceRemovedInStack(stackId.getStackName(), stackId.getStackVersion(), serviceName)) {
@@ -345,17 +347,17 @@ public class RepositoryVersionHelper {
           continue; //No need to calculate install packages for removed services
         }
 
-        info = ami.get().getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
+        stackInfo = ami.get().getStack(stackId);
+        serviceInfo = ami.get().getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
       } catch (AmbariException e) {
         throw new SystemException(String.format("Cannot obtain stack information for %s-%s", stackId.getStackName(), stackId.getStackVersion()), e);
       }
 
-      List<ServiceOsSpecific.Package> packagesForService = amc.getPackagesForServiceHost(info,
+      List<OsSpecific.Package> packagesForStackService = amc.getPackagesForStackServiceHost(stackInfo, serviceInfo,
         new HashMap<>(), osFamily);
 
       List<String> blacklistedPackagePrefixes = configuration.get().getRollingUpgradeSkipPackagesPrefixes();
-
-      for (ServiceOsSpecific.Package aPackage : packagesForService) {
+      for (OsSpecific.Package aPackage : packagesForStackService) {
         if (!aPackage.getSkipUpgrade()) {
           boolean blacklisted = false;
           for (String prefix : blacklistedPackagePrefixes) {

@@ -32,15 +32,15 @@ import com.google.gson.annotations.SerializedName;
  * Represents <code>osSpecific</code>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ServiceOsSpecific {
+public class OsSpecific {
 
   private String osFamily;
   private Repo repo;
 
-  public ServiceOsSpecific() {
+  public OsSpecific() {
   }
 
-  public ServiceOsSpecific(String osFamily) {
+  public OsSpecific(String osFamily) {
     this.osFamily = osFamily;
   }
 
@@ -72,7 +72,7 @@ public class ServiceOsSpecific {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    ServiceOsSpecific that = (ServiceOsSpecific) o;
+    OsSpecific that = (OsSpecific) o;
 
     if (osFamily != null ? !osFamily.equals(that.osFamily) : that.osFamily != null) return false;
     if (packages != null ? !packages.equals(that.packages) : that.packages != null) return false;
@@ -94,6 +94,7 @@ public class ServiceOsSpecific {
    * <link>org.apache.ambari.server.state.RepositoryInfo</link>,
    * that's why we need another class
    */
+  //TODO this looks deprecated. Need to investigate if it's actually used
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Repo {
 

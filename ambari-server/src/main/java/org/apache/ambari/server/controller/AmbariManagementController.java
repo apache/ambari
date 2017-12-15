@@ -57,6 +57,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -65,8 +66,8 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
@@ -870,13 +871,14 @@ public interface AmbariManagementController {
   Set<ReadOnlyConfigurationResponse> getResourceLevelClusterSettings(Set<RootClusterSettingRequest> requests) throws AmbariException;
 
   /**
+   * @param stackInfo stack info for a given service stack
    * @param serviceInfo service info for a given service
    * @param hostParams parameter map. May be changed during method execution
    * @param osFamily os family for host
-   * @return a full list of package dependencies for a service that should be
+   * @return a full list of package dependencies for a stack service that should be
    * installed on a host
    */
-  List<ServiceOsSpecific.Package> getPackagesForServiceHost(ServiceInfo serviceInfo,
+  List<OsSpecific.Package> getPackagesForStackServiceHost(StackInfo stackInfo, ServiceInfo serviceInfo,
                                                             Map<String, String> hostParams, String osFamily);
 
   /**

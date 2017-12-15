@@ -175,6 +175,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -190,7 +191,6 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -2653,8 +2653,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       hostParams.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
     }
 
-    List<ServiceOsSpecific.Package> packages =
-            getPackagesForServiceHost(serviceInfo, hostParams, osFamily);
+    List<OsSpecific.Package> packages =
+        getPackagesForStackServiceHost(ambariMetaInfo.getStack(stackId), serviceInfo, hostParams, osFamily);
     String packageList = gson.toJson(packages);
     hostParams.put(PACKAGE_LIST, packageList);
 
@@ -2742,59 +2742,64 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   /**
-   * Computes os-dependent packages for service/host. Does not take into
+   * Computes os-dependent packages for osSpecificMap. Does not take into
    * account package dependencies for ANY_OS. Instead of this method
-   * you should use getPackagesForServiceHost()
+   * you should use getPackagesForStackServiceHost()
    * because it takes into account both os-dependent and os-independent lists
-   * of packages for service.
+   * of packages for stack service.
    * @param hostParams may be modified (appended SERVICE_REPO_INFO)
    * @return a list of os-dependent packages for host
    */
-  protected ServiceOsSpecific populateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
+  protected OsSpecific populatePackagesInfo(Map<String, OsSpecific> osSpecificMap, Map<String, String> hostParams,
                                                         String osFamily) {
-    ServiceOsSpecific hostOs = new ServiceOsSpecific(osFamily);
-    List<ServiceOsSpecific> foundOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
+    OsSpecific hostOs = new OsSpecific(osFamily);
+    List<OsSpecific> foundOSSpecifics = getOSSpecificsByFamily(osSpecificMap, osFamily);
     if (!foundOSSpecifics.isEmpty()) {
-      for (ServiceOsSpecific osSpecific : foundOSSpecifics) {
+      for (OsSpecific osSpecific : foundOSSpecifics) {
         hostOs.addPackages(osSpecific.getPackages());
       }
+
+      //TODO this looks deprecated. Need to investigate if it's actually used
       // Choose repo that is relevant for host
-      ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
-      if (serviceRepo != null) {
-        String serviceRepoInfo = gson.toJson(serviceRepo);
+      OsSpecific.Repo repos = hostOs.getRepo();
+      if (repos != null) {
+        String serviceRepoInfo = gson.toJson(repos);
         hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
       }
     }
     return hostOs;
   }
 
-  @Override
-  public List<ServiceOsSpecific.Package> getPackagesForServiceHost(ServiceInfo serviceInfo, Map<String, String> hostParams, String osFamily) {
-    // Write down os specific info for the service
-    ServiceOsSpecific anyOs = null;
+  public List<OsSpecific.Package> getPackagesForStackServiceHost(StackInfo stackInfo, ServiceInfo serviceInfo, Map<String, String> hostParams, String osFamily) {
+    List<OsSpecific.Package> packages = new ArrayList<>();
+    //add all packages for ANY_OS
+    if (stackInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
+      packages.addAll(stackInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS).getPackages());
+    }
+
     if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
-      anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
+      packages.addAll(serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS).getPackages());
     }
 
-    ServiceOsSpecific hostOs = populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+    //Each call for populatePackagesInfo might set SERVICE_REPO_INFO in hostParams, we assume service might override
+    // those set on stack level. That's why we first call the stack level and then the service.
+    OsSpecific stackHostOs = populatePackagesInfo(stackInfo.getOsSpecifics(), hostParams, osFamily);
+    OsSpecific serviceHostOs = populatePackagesInfo(serviceInfo.getOsSpecifics(), hostParams, osFamily);
 
-    // Build package list that is relevant for host
-    List<ServiceOsSpecific.Package> packages =
-            new ArrayList<>();
-    if (anyOs != null) {
-      packages.addAll(anyOs.getPackages());
+    if (stackHostOs != null) {
+      packages.addAll(stackHostOs.getPackages());
     }
 
-    if (hostOs != null) {
-      packages.addAll(hostOs.getPackages());
+    if (serviceHostOs != null) {
+      packages.addAll(serviceHostOs.getPackages());
     }
 
     return packages;
   }
 
-  private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {
-    List<ServiceOsSpecific> foundOSSpecifics = new ArrayList<>();
-    for (Entry<String, ServiceOsSpecific> osSpecific : osSpecifics.entrySet()) {
+  private List<OsSpecific> getOSSpecificsByFamily(Map<String, OsSpecific> osSpecifics, String osFamily) {
+    List<OsSpecific> foundOSSpecifics = new ArrayList<>();
+    for (Entry<String, OsSpecific> osSpecific : osSpecifics.entrySet()) {
       String[] osFamilyNames = osSpecific.getKey().split("\\s*,\\s*");
 
       for(String osFamilyName:osFamilyNames) {

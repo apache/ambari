@@ -566,6 +566,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setMinJdk(smx.getMinJdk());
       stackInfo.setMaxJdk(smx.getMaxJdk());
       stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
+      stackInfo.setOsSpecifics(smx.getOsSpecifics());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());

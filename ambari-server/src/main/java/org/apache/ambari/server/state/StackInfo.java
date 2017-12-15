@@ -97,6 +97,25 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
 
   private RefreshCommandConfiguration refreshCommandConfiguration = new RefreshCommandConfiguration();
 
+  /**
+   * Map of of os-specific details that is exposed (and initialised from list)
+   * at getter.
+   * Added at schema ver 2
+   */
+  private volatile Map<String, OsSpecific> stackOsSpecificsMap;
+
+  /**
+   * Exposes  map of os-specific details.
+   * @return  map of OS specific details keyed by family
+   */
+  public Map<String, OsSpecific> getOsSpecifics() {
+    return stackOsSpecificsMap;
+  }
+
+  public void setOsSpecifics(Map<String, OsSpecific> serviceOsSpecificsMap) {
+    this.stackOsSpecificsMap = serviceOsSpecificsMap;
+  }
+
   public String getMinJdk() {
     return minJdk;
   }

@@ -29,7 +29,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
@@ -62,7 +61,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -85,12 +83,13 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -351,6 +350,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         }
 
         Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
+        StackInfo stackInfo = managementController.getAmbariMetaInfo().getStack(stackId);
         ServiceInfo serviceInfo = managementController.getAmbariMetaInfo().getService(stackId.getStackName(),
           stackId.getStackVersion(), response.getServiceType());
         try {
@@ -379,24 +379,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
         hostLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
 
-        // Write down os specific info for the service
-        ServiceOsSpecific anyOs = null;
-        if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
-          anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
-        }
-
-        ServiceOsSpecific hostOs = populateServicePackagesInfo(serviceInfo, hostLevelParams, osFamily);
-
-        // Build package list that is relevant for host
-        List<ServiceOsSpecific.Package> packages =
-          new ArrayList<>();
-        if (anyOs != null) {
-          packages.addAll(anyOs.getPackages());
-        }
-
-        if (hostOs != null) {
-          packages.addAll(hostOs.getPackages());
-        }
+        //may set SERVICE_REPO_INFO in hostLevelParams inside the method
+        List<OsSpecific.Package> packages = managementController.getPackagesForStackServiceHost(stackInfo, serviceInfo, hostLevelParams, osFamily);
         String packageList = gson.toJson(packages);
         hostLevelParams.put(PACKAGE_LIST, packageList);
 
@@ -921,35 +905,4 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
             (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
             null);
   }
-
-
-  protected ServiceOsSpecific populateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
-                                                          String osFamily) {
-    ServiceOsSpecific hostOs = new ServiceOsSpecific(osFamily);
-    List<ServiceOsSpecific> foundedOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
-    if (!foundedOSSpecifics.isEmpty()) {
-      for (ServiceOsSpecific osSpecific : foundedOSSpecifics) {
-        hostOs.addPackages(osSpecific.getPackages());
-      }
-      // Choose repo that is relevant for host
-      ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
-      if (serviceRepo != null) {
-        String serviceRepoInfo = gson.toJson(serviceRepo);
-        hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
-      }
-    }
-
-    return hostOs;
-  }
-
-  private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {
-    List<ServiceOsSpecific> foundedOSSpecifics = new ArrayList<>();
-    for (Map.Entry<String, ServiceOsSpecific> osSpecific : osSpecifics.entrySet()) {
-      if (osSpecific.getKey().indexOf(osFamily) != -1) {
-        foundedOSSpecifics.add(osSpecific.getValue());
-      }
-    }
-    return foundedOSSpecifics;
-  }
-
 }
