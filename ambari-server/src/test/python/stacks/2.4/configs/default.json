@@ -315,7 +315,7 @@
         "logsearch.roles.allowed": "AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR"
       },
       "logfeeder-properties": {
-        "logfeeder.checkpoint.folder" : "/etc/ambari-logsearch-logfeeder/conf/checkpoints",
+        "logfeeder.checkpoint.folder" : "/usr/lib/ambari-logsearch-logfeeder/conf/checkpoints",
         "logfeeder.metrics.collector.hosts" : "{metrics_collector_hosts}",
         "logfeeder.config.files" : "{default_config_files}"
       },

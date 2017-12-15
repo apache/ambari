@@ -13,3 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+
+LOGFEEDER_SCRIPT_LINK_NAME="/usr/bin/logfeeder"
+LOGFEEDER_CONF_DIR_LINK="/etc/ambari-logsearch-logfeeder/conf"
+
+rm -f $LOGFEEDER_SCRIPT_LINK_NAME
+rm -f $LOGFEEDER_CONF_DIR_LINK

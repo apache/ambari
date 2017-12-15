@@ -33,7 +33,7 @@ Then you can start Log Search server from maven
 cd ambari/ambari-logsearch/ambari-logsearch-server
 ./run.sh
 # or
-mvn clean spring-boot:run
+mvn clean package -DskipTests spring-boot:run
 ```
 
 You can also start Log Search server from an IDE as well. One thing is important: the config set location that the server tries to upload to ZooKeeper. By default config sets are located at `${LOGSEARCH_SERVER_RELATIVE_LOCATION:}src/main/configsets` in `logsearch.properties`. Based or from where you run `LogSearch.java`, you need to set `LOGSEARCH_SERVER_RELATIVE_LOCATION` env variable properly. 

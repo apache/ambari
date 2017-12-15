@@ -21,12 +21,12 @@ package org.apache.ambari.logfeeder.common;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +62,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -146,6 +147,10 @@ public class ConfigHandler implements InputConfigMonitor {
 
   private void loadConfigsUsingClassLoader(String configFileName) throws Exception {
     try (BufferedInputStream fis = (BufferedInputStream) this.getClass().getClassLoader().getResourceAsStream(configFileName)) {
+      ClassPathResource configFile = new ClassPathResource(configFileName);
+      if (!configFile.exists()) {
+        throw new FileNotFoundException(configFileName);
+      }
       String configData = IOUtils.toString(fis, Charset.defaultCharset());
       loadConfigs(configData);
     }
