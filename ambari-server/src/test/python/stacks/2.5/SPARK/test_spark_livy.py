@@ -25,6 +25,7 @@ from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch("resource_management.libraries.functions.get_stack_version", new=MagicMock(return_value="2.5.0.0-1597"))
+@patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0,'12345','')))
 class TestSparkClient(RMFTestCase):
     COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.1/package"
     STACK_VERSION = "2.5"
@@ -146,6 +147,6 @@ class TestSparkClient(RMFTestCase):
                                   )
         self.assertResourceCalled('Execute', '/usr/hdp/current/livy-server/bin/livy-server start',
                                   environment = {'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
-                                  not_if = 'ls /var/run/livy/livy-livy-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/livy/livy-livy-server.pid` >/dev/null 2>&1',
+                                  not_if = 'ls /var/run/livy/livy-livy-server.pid >/dev/null 2>&1 && ps -p 12345 >/dev/null 2>&1',
                                   user = 'livy'
                                   )
