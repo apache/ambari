@@ -137,9 +137,15 @@ class Master(Script):
     self.chown_zeppelin_pid_dir(env)
 
     # write out zeppelin-site.xml
+    my_map = {}
+    for key, value in params.config['configurations']['zeppelin-config'].iteritems():
+      my_map[key]=value
+    my_map['zeppelin.server.kerberos.keytab']=params.zeppelin_kerberos_keytab
+    my_map['zeppelin.server.kerberos.principal']=params.zeppelin_kerberos_principal
+
     XmlConfig("zeppelin-site.xml",
               conf_dir=params.conf_dir,
-              configurations=params.config['configurations']['zeppelin-config'],
+              configurations=my_map,
               owner=params.zeppelin_user,
               group=params.zeppelin_group
               )
