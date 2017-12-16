@@ -162,14 +162,9 @@ def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
   import params
 
   stack_root = Script.get_stack_root()
-  atlas_home_dir = os.path.join(stack_root, "current", "atlas-server")
-
-  # if this is an upgrade/downagrade, then we must link in the correct version
-  # which may not be "current", so change the home directory location
-  upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
-  if upgrade_type is not None:
-    version_dir_segment = stack_features.get_stack_feature_version(Script.get_config())
-    atlas_home_dir = os.path.join(stack_root, version_dir_segment, "atlas")
+  atlas_component_name = "atlas"
+  stack_version = stack_features.get_stack_feature_version(Script.get_config())
+  atlas_home_dir = os.path.join(stack_root, stack_version, atlas_component_name)
 
   # Will only exist if this host contains Atlas Server
   atlas_hook_dir = os.path.join(atlas_home_dir, "hook", hook_name)
