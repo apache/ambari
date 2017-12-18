@@ -119,27 +119,26 @@ function spinner() {
 }
 
 function status() {
-  echo "Checking Log Feeder status ..."
+  echo "Checking Log Feeder status ..." >&2
   if [ -f "$LOGFEEDER_PID_FILE" ]; then
     LOGFEEDER_PID=`cat "$LOGFEEDER_PID_FILE"`
   else
-    echo "Log Feeder pid not exists. (probably the process is not running)"
-    exit 1
+    echo "Log Feeder pid not exists. (probably the process is not running)" >&2
+    return 1
   fi
 
   if ps -p $LOGFEEDER_PID > /dev/null
    then
-   echo "Log Feeder process is running. (pid: $LOGFEEDER_PID)"
-   exit 0
+   echo "Log Feeder process is running. (pid: $LOGFEEDER_PID)" >&2
+   return 0
   else
-   echo "Log Feeder process is not running."
-   exit 1
+   echo "Log Feeder process is not running." >&2
+   return 1
   fi
 }
 
 function start() {
-  (status);
-  exit_status=$(echo $?)
+  exit_status=$(status; echo $?)
   if [ "$exit_status" = "0" ]; then
     echo "Skipping start process."
     exit 0
