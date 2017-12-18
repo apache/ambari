@@ -169,5 +169,7 @@
   "histogram.gap.hour": "hour",
   "histogram.gap.hours": "hours",
   "histogram.gap.day": "day",
-  "histogram.gap.days": "days"
+  "histogram.gap.days": "days",
+  "histogram.gap.week": "week",
+  "histogram.gap.weeks": "weeks"
 }
