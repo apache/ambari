@@ -182,10 +182,10 @@ class InstallPackages(Script):
     from resource_management.libraries.functions import stack_select
     package_dirs = conf_select.get_package_dirs()
     if package_name in package_dirs:
-      Logger.info("Attempting to fix the default conf links for {0}".format(package_name))
+      Logger.info("Determining if the default conf links for {0} need to be fixed".format(package_name))
 
       directories = package_dirs[package_name]
-      Logger.info("The following directories will be fixed for {0}: {1}".format(package_name,
+      Logger.info("The following directories will be checked for {0}: {1}".format(package_name,
         str(directories)))
 
       stack_version = stack_select.get_stack_version_before_install(component_name)
