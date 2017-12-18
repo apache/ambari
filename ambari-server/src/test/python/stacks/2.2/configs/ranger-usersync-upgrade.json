@@ -1,5 +1,5 @@
 {
-    "configuration_attributes": {
+    "configurationAttributes": {
         "spark-defaults": {}, 
         "mapred-site": {}, 
         "krb5-conf": {}, 
@@ -994,7 +994,7 @@
         "rm_host": [
             "c6408.ambari.apache.org"
         ], 
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "c6408.ambari.apache.org", 
             "c6407.ambari.apache.org", 
             "c6409.ambari.apache.org"

@@ -300,7 +300,7 @@
       "xml_configurations_supported" : "true"
     }
   },
-  "configuration_attributes": {
+  "configurationAttributes": {
     "yarn-site": {
       "final": {
         "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
@@ -402,7 +402,7 @@
     "infra_solr_hosts": [
       "c6401.ambari.apache.org"
     ],
-    "zookeeper_hosts": [
+    "zookeeper_server_hosts": [
       "c6401.ambari.apache.org"
     ],
     "atlas_server_hosts": [

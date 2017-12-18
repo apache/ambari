@@ -165,7 +165,7 @@ ranger_db_password = unicode(config['configurations']['admin-properties']['db_pa
 oracle_home = default("/configurations/ranger-env/oracle_home", "-")
 
 #For curl command in ranger to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 jdbc_jar_name = None
 previous_jdbc_jar_name = None

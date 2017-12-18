@@ -932,7 +932,7 @@
             "content": "\n"
         }
     },
-    "configuration_attributes": {
+    "configurationAttributes": {
         "ams-hbase-env": {},
         "ams-hbase-security-site": {},
         "ams-log4j": {},
@@ -1145,7 +1145,7 @@
         "webhcat_server_host": [
             "c6402.ambari.apache.org"
         ],
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "c6401.ambari.apache.org",
             "c6402.ambari.apache.org"
         ],

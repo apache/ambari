@@ -11,7 +11,7 @@
         "RANGER_TAGSYNC",
         "RANGER_KMS_SERVER"
     ],
-    "configuration_attributes": {
+    "configurationAttributes": {
         "ranger-hdfs-audit": {},
         "ssl-client": {},
         "ranger-admin-site": {},
@@ -268,7 +268,7 @@
         "ambari_server_host": [
             "c6401.ambari.apache.org"
         ],
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "c6401.ambari.apache.org"
         ],
         "ranger_kms_server_hosts": [

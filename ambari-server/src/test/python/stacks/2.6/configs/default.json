@@ -471,7 +471,7 @@
       "SUPERSET_DATABASE_TYPE" : "sqllite"
     }
   },
-  "configuration_attributes": {
+  "configurationAttributes": {
     "sqoop-site": {},
     "yarn-site": {
       "final": {
@@ -582,7 +582,7 @@
     "infra_solr_hosts": [
       "c6401.ambari.apache.org"
     ],
-    "zookeeper_hosts": [
+    "zookeeper_server_hosts": [
       "c6401.ambari.apache.org"
     ],
     "ranger_tagsync_hosts": [

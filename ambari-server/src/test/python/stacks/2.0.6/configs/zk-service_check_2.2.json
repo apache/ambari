@@ -68,7 +68,7 @@
             "c6401.ambari.apache.org", 
             "c6402.ambari.apache.org"
         ], 
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "c6403.ambari.apache.org", 
             "c6401.ambari.apache.org", 
             "c6402.ambari.apache.org"

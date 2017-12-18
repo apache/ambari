@@ -12,7 +12,7 @@
         "LOGSEARCH_SOLR",
         "LOGSEARCH_SOLR_CLIENT"
     ],
-    "configuration_attributes": {
+    "configurationAttributes": {
         "ranger-hdfs-audit": {},
         "ssl-client": {},
         "ranger-admin-site": {},
@@ -250,7 +250,7 @@
         "ambari_server_host": [
             "c6401.ambari.apache.org"
         ],
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "c6401.ambari.apache.org"
         ],
         "infra_solr_hosts": [

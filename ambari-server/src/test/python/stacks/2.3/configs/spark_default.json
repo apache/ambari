@@ -396,7 +396,7 @@
             "debug_num_logs": "10"
         }
     },
-    "configuration_attributes": {
+    "configurationAttributes": {
         "yarn-site": {
             "final": {
                 "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
@@ -485,7 +485,7 @@
       "kafka_broker_hosts": [
         "c6401.ambari.apache.org"
       ],
-       "zookeeper_hosts": [
+       "zookeeper_server_hosts": [
          "c6401.ambari.apache.org"
       ],
       "spark_thriftserver_hosts": [

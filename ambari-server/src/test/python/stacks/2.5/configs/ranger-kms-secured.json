@@ -12,7 +12,7 @@
         "KERBEROS_CLIENT",
         "RANGER_KMS_SERVER"
     ],
-    "configuration_attributes": {
+    "configurationAttributes": {
         "ranger-kms-site": {},
         "ranger-hdfs-audit": {},
         "ssl-client": {},
@@ -281,7 +281,7 @@
         "ambari_server_host": [
             "c6401.ambari.apache.org"
         ],
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "c6401.ambari.apache.org"
         ]
     },

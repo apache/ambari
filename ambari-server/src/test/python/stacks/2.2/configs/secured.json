@@ -200,7 +200,7 @@
             "knox_user": "knox"
         }
     },
-    "configuration_attributes": {},
+    "configurationAttributes": {},
     "configurationTags": {
         "slider-client": {
             "tag": "version1"

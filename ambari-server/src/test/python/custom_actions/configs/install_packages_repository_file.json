@@ -1,5 +1,5 @@
 {
-    "configuration_attributes": {}, 
+    "configurationAttributes": {}, 
     "roleCommand": "ACTIONEXECUTE", 
     "clusterName": "cc", 
     "hostname": "0b3.vm", 
@@ -94,7 +94,7 @@
         "ambari_server_host": [
             "0b3.vm"
         ], 
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "0b3.vm"
         ], 
         "hs_host": [

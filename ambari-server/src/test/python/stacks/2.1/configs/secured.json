@@ -23,7 +23,7 @@
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/service_check.py", 
         "hooks_folder": "stack-hooks", 
-        "version": "2.2.1.0-2067", 
+        "version": "2.1.1.0-2067", 
         "command_timeout": "300", 
         "script_type": "PYTHON"
     },
@@ -922,7 +922,7 @@
             "XAAUDIT.SOLR.MAX_QUEUE_SIZE": "1"
         }
     },
-    "configuration_attributes": {
+    "configurationAttributes": {
       "yarn-site": {
         "final": {
           "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",

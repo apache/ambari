@@ -61,7 +61,7 @@
             "user_group": "hadoop"
         }
     },
-    "configuration_attributes": {
+    "configurationAttributes": {
         "pxf-site": {
             "final": {
                 "a": "true"

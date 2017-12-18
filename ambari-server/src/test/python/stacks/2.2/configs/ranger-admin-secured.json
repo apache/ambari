@@ -152,7 +152,7 @@
             "content": "envproperties\nline2"
         }
     },
-    "configuration_attributes": {},
+    "configurationAttributes": {},
     "configurationTags": {
         "slider-client": {
             "tag": "version1"
@@ -186,7 +186,7 @@
             "c6401.ambari.apache.org",
             "c6402.ambari.apache.org"
         ],
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
          "c6401.ambari.apache.org"
         ]
     }

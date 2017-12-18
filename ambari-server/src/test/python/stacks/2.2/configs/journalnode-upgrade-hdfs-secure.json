@@ -1,5 +1,5 @@
 {
-    "configuration_attributes": {
+    "configurationAttributes": {
         "mapred-site": {}, 
         "sqoop-env": {}, 
         "pig-env": {}, 
@@ -1252,7 +1252,7 @@
         "ambari_server_host": [
             "c6406.ambari.apache.org"
         ], 
-        "zookeeper_hosts": [
+        "zookeeper_server_hosts": [
             "c6408.ambari.apache.org", 
             "c6407.ambari.apache.org", 
             "c6406.ambari.apache.org"
