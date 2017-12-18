@@ -109,27 +109,26 @@ function spinner() {
 }
 
 function status() {
-  echo "Checking Log Search status ..."
+  echo "Checking Log Search status ..." >&2
   if [ -f "$LOGSEARCH_PID_FILE" ]; then
     LOGSEARCH_PID=`cat "$LOGSEARCH_PID_FILE"`
   else
-    echo "Log Search pid not exists. (probably the process is not running)"
-    exit 1
+    echo "Log Search pid not exists. (probably the process is not running)" >&2
+    return 1
   fi
 
   if ps -p $LOGSEARCH_PID > /dev/null
    then
-   echo "Log Search process is running. (pid: $LOGSEARCH_PID)"
-   exit 0
+   echo "Log Search process is running. (pid: $LOGSEARCH_PID)" >&2
+   return 0
   else
-   echo "Log Search process is not running."
-   exit 1
+   echo "Log Search process is not running." >&2
+   return 1
   fi
 }
 
 function start() {
-  (status);
-  exit_status=$(echo $?)
+  exit_status=$(status; echo $?)
   if [ "$exit_status" = "0" ]; then
     echo "Skipping start process."
     exit 0

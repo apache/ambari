@@ -46,7 +46,7 @@ function create_logfeeder_configs() {
 }
 
 function create_logsearch_configs() {
-  mkdir /root/config/logsearch
+  mkdir -p /root/config/logsearch
   cp /root/test-config/logsearch/log4j.xml /root/config/logsearch/
   cp /root/test-config/logsearch/logsearch-env.sh /root/config/logsearch/
   cp $LOGSEARCH_SERVER_PATH/conf/user_pass.json /root/config/logsearch/user_pass.json
@@ -148,7 +148,7 @@ function main() {
   case $component in
     "solr")
       create_solr_configs
-      echo "Start Solr only.."
+      echo "Start Solr only ..."
       export COMPONENT_LOG="solr"
       generate_keys
       start_solr_d
@@ -156,17 +156,18 @@ function main() {
      ;;
     "logfeeder")
       create_logfeeder_configs
-      echo "Start Log Feeder only.."
+      echo "Start Log Feeder only ..."
       export COMPONENT_LOG="logfeeder"
       generate_keys
       start_logfeeder
      ;;
     "logsearch")
       create_logsearch_configs
-      echo "Start Log Search only.."
+      echo "Start Log Search only ..."
       export COMPONENT_LOG="logsearch"
       generate_keys
       start_logsearch
+      log
      ;;
      *)
       create_configs
