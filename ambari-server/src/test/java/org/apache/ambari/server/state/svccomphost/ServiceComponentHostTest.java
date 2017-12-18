@@ -150,7 +150,7 @@ public class ServiceComponentHostTest {
   }
 
   private ClusterEntity createCluster(StackId stackId, String clusterName, String repoVersion) throws AmbariException {
-    helper.createStackWithRepoVersion(stackId, repoVersion);
+    helper.createStack(stackId);
     clusters.addCluster(clusterName, stackId);
     ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
     Assert.assertNotNull(clusterEntity);

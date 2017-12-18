@@ -39,7 +39,6 @@ CREATE TABLE stack (
   stack_id NUMBER(19) NOT NULL,
   stack_name VARCHAR2(255) NOT NULL,
   stack_version VARCHAR2(255) NOT NULL,
-  repo_version VARCHAR2(255) NOT NULL,
   current_mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
   CONSTRAINT FK_mpacks FOREIGN KEY (current_mpack_id) REFERENCES mpacks(id),
