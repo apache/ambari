@@ -23,14 +23,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -100,7 +99,8 @@ public class ServiceComponentTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         stackId.getStackVersion());
 
-    Service s = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service s = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
     cluster.addService(s);
     service = cluster.getService(serviceName);
     Assert.assertNotNull(service);

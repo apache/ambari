@@ -36,6 +36,7 @@ import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ServiceGroupDAO {
+  public static final String SERVICE_GROUP_BY_CLUSTER_ID_AND_SERVICE_GROUP_NAME = "serviceGroupByClusterIdAndServiceGroupName";
   @Inject
   Provider<EntityManager> entityManagerProvider;
   @Inject
@@ -52,6 +53,20 @@ public class ServiceGroupDAO {
       .createNamedQuery("serviceGroupByClusterAndServiceGroupIds", ServiceGroupEntity.class);
     query.setParameter("clusterId", clusterId);
     query.setParameter("serviceGroupId", serviceGroupId);
+
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  @RequiresSession
+  public ServiceGroupEntity find(Long clusterId, String serviceGroupName) {
+    TypedQuery<ServiceGroupEntity> query = entityManagerProvider.get()
+      .createNamedQuery(SERVICE_GROUP_BY_CLUSTER_ID_AND_SERVICE_GROUP_NAME, ServiceGroupEntity.class);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupName", serviceGroupName);
 
     try {
       return query.getSingleResult();

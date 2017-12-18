@@ -621,7 +621,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (StringUtils.isEmpty(request.getServiceName())) {
-        request.setServiceName(findService(cluster, request.getComponentName()));
+        try {
+          request.setServiceName(findService(cluster, request.getComponentName()));
+        } catch (ServiceNotFoundException e) {
+          // handled below
+        }
         // TODO : What if request.getServiceGroupName() is null ? Get it from service instead.
       }
 
@@ -898,14 +902,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-    Long service = null;
-
-    try {
-      service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-    } catch (IllegalArgumentException e) {
-      // Ignore this since we may have hit a config type that spans multiple services. This may
-      // happen in unit test cases but should not happen with later versions of stacks.
-    }
+    Service service = cluster.getServiceByConfigType(configType);
 
     // Get the changes so that the user's intention can be determined. For example, maybe
     // the user wants to change the run-as user for a service or maybe the the cluster-wide
@@ -1012,13 +1009,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackId stackId = null;
     if (null != service) {
-      try {
-        Service svc = cluster.getService(service);
-        stackId = svc.getDesiredStackId();
-      } catch (AmbariException ambariException) {
-        LOG.warn("Adding configurations for {} even though its parent service {} is not installed",
-            configType, service);
-      }
+      stackId = service.getDesiredStackId();
     }
 
     if (null == stackId) {
@@ -1266,13 +1257,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         // !!! FIXME the assumption that a component is unique across all stacks is a ticking
         // time bomb.  Blueprints are making this assumption.
-        String serviceName = findService(cluster, request.getComponentName());
+        String serviceName = "";
+        try {
+          serviceName = findService(cluster, request.getComponentName());
+        } catch (ServiceNotFoundException e) {
+          // handled below
+        }
 
         if (StringUtils.isBlank(serviceName)) {
           LOG.error("Unable to find service for component {}", request.getComponentName());
           throw new ServiceComponentHostNotFoundException(
               cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
         }
+
         request.setServiceName(serviceName);
       }
     }

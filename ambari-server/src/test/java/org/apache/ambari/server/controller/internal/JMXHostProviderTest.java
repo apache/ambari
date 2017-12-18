@@ -24,7 +24,6 @@ import static org.easymock.EasyMock.replay;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -116,51 +115,24 @@ public class JMXHostProviderTest {
     SecurityContextHolder.getContext().setAuthentication(null);
   }
 
-  private void createService(String clusterName, String serviceName, State desiredState)
+  private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
       throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-
-    ServiceRequest r1 = new ServiceRequest(clusterName, "CORE", serviceName, m_repositoryVersion.getId(), dStateStr, null);
-
-    Set<ServiceRequest> requests = new HashSet<>();
-    requests.add(r1);
-
-    ServiceResourceProviderTest.createServices(controller,
-        injector.getInstance(RepositoryVersionDAO.class), requests);
+    ServiceRequest r = new ServiceRequest(clusterName, serviceGroupName, serviceName, m_repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
+    ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(r));
   }
 
-  private void createServiceComponent(String clusterName,
+  private void createServiceComponent(String clusterName, String serviceGroupName,
                                       String serviceName, String componentName, State desiredState)
       throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "CORE",
-      serviceName, componentName, dStateStr);
-    Set<ServiceComponentRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    ComponentResourceProviderTest.createComponents(controller, requests);
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
-  private void createServiceComponentHost(String clusterName,
+  private void createServiceComponentHost(String clusterName, String serviceGroupName,
                                           String serviceName, String componentName, String hostname,
                                           State desiredState) throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
-      serviceName, componentName, hostname, dStateStr);
-    Set<ServiceComponentHostRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    controller.createHostComponents(requests);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    controller.createHostComponents(Collections.singleton(r));
   }
 
   private void createHDFSServiceConfigs(boolean version1) throws AmbariException, AuthorizationException {
@@ -168,20 +140,18 @@ public class JMXHostProviderTest {
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
     controller.createCluster(r);
     Cluster cluster = clusters.getCluster(clusterName);
-    cluster.addServiceGroup("CORE");
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceGroupName = "CORE";
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
     String serviceName = "HDFS";
-    createService(clusterName, serviceName, null);
+    createService(clusterName, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
 
-    createServiceComponent(clusterName, serviceName, componentName1,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName, componentName2,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName, componentName3,
-      State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName3, State.INIT);
 
     String host1 = "h1";
     clusters.addHost(host1);
@@ -198,16 +168,11 @@ public class JMXHostProviderTest {
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
-    createServiceComponentHost(clusterName, null, componentName1,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName2,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName2,
-      host2, null);
-    createServiceComponentHost(clusterName, serviceName, componentName3,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName3,
-      host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName2, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName3, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName3, host2, null);
 
     // Create configs
     if (version1) {
@@ -241,17 +206,18 @@ public class JMXHostProviderTest {
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.6", null);
     controller.createCluster(r);
     Cluster cluster = clusters.getCluster(clusterName);
-    cluster.addServiceGroup("CORE");
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    String serviceGroupName = "CORE";
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
     String serviceName = "HDFS";
     String serviceName2 = "YARN";
     String serviceName3 = "MAPREDUCE2";
     String serviceName4 = "HBASE";
 
-    createService(clusterName, serviceName, null);
-    createService(clusterName, serviceName2, null);
-    createService(clusterName, serviceName3, null);
-    createService(clusterName, serviceName4, null);
+    createService(clusterName, serviceGroupName, serviceName, null);
+    createService(clusterName, serviceGroupName, serviceName2, null);
+    createService(clusterName, serviceGroupName, serviceName3, null);
+    createService(clusterName, serviceGroupName, serviceName4, null);
 
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
@@ -263,24 +229,15 @@ public class JMXHostProviderTest {
     String componentName8 = "HBASE_MASTER";
     String componentName9 = "HBASE_REGIONSERVER";
 
-    createServiceComponent(clusterName, serviceName, componentName1,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName, componentName2,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName, componentName3,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName2, componentName4,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName, componentName5,
-        State.INIT);
-    createServiceComponent(clusterName, serviceName3, componentName6,
-        State.INIT);
-    createServiceComponent(clusterName, serviceName2, componentName7,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName4, componentName8,
-      State.INIT);
-    createServiceComponent(clusterName, serviceName4, componentName9,
-      State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName3, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName2, componentName4, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName5, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName3, componentName6, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName2, componentName7, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName4, componentName8, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName4, componentName9, State.INIT);
 
     String host1 = "h1";
     clusters.addHost(host1);
@@ -297,30 +254,18 @@ public class JMXHostProviderTest {
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
-    createServiceComponentHost(clusterName, null, componentName1,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName2,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName2,
-      host2, null);
-    createServiceComponentHost(clusterName, serviceName, componentName3,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName5,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName5,
-      host2, null);
-    createServiceComponentHost(clusterName, serviceName, componentName3,
-      host2, null);
-    createServiceComponentHost(clusterName, serviceName2, componentName4,
-      host2, null);
-    createServiceComponentHost(clusterName, serviceName3, componentName6,
-      host2, null);
-    createServiceComponentHost(clusterName, serviceName2, componentName7,
-      host2, null);
-    createServiceComponentHost(clusterName, serviceName4, componentName8,
-      host1, null);
-    createServiceComponentHost(clusterName, serviceName4, componentName9,
-      host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName2, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName3, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName5, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName5, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName3, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName2, componentName4, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName3, componentName6, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName2, componentName7, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName4, componentName8, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName4, componentName9, host2, null);
 
     // Create configs
     Map<String, String> configs = new HashMap<>();
@@ -382,18 +327,17 @@ public class JMXHostProviderTest {
     controller.createCluster(r);
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    String serviceGroupName = "CORE";
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
     String serviceName = "HDFS";
-    createService(clusterName, serviceName, null);
+    createService(clusterName, serviceGroupName, serviceName, null);
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
 
-    createServiceComponent(clusterName, serviceName, componentName1,
-        State.INIT);
-    createServiceComponent(clusterName, serviceName, componentName2,
-        State.INIT);
-    createServiceComponent(clusterName, serviceName, componentName3,
-        State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName, componentName3, State.INIT);
 
     String host1 = "h1";
     clusters.addHost(host1);
@@ -410,18 +354,12 @@ public class JMXHostProviderTest {
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
-    createServiceComponentHost(clusterName, serviceName, componentName1,
-        host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName1,
-        host2, null);
-    createServiceComponentHost(clusterName, serviceName, componentName2,
-        host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName2,
-        host2, null);
-    createServiceComponentHost(clusterName, serviceName, componentName3,
-        host1, null);
-    createServiceComponentHost(clusterName, serviceName, componentName3,
-        host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName1, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName2, host2, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName3, host1, null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName, componentName3, host2, null);
 
     // Create configs
     Map<String, String> configs = new HashMap<>();
@@ -535,7 +473,7 @@ public class JMXHostProviderTest {
     hostComponents.put("host1", null);
 
     expect(managementControllerMock.getClusters()).andReturn(clustersMock).anyTimes();
-    //expect(managementControllerMock.findServiceName(clusterMock, "DATANODE")).andReturn("HDFS");
+    expect(managementControllerMock.findService(clusterMock, "DATANODE")).andReturn("HDFS");
     expect(clustersMock.getCluster("c1")).andReturn(clusterMock).anyTimes();
     expect(clusterMock.getService("HDFS")).andReturn(serviceMock).anyTimes();
     expect(serviceMock.getServiceComponent("DATANODE")).andReturn(serviceComponentMock).anyTimes();

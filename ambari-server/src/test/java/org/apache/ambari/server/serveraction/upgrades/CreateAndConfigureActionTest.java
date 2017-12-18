@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
@@ -145,8 +146,6 @@ public class CreateAndConfigureActionTest {
   /**
    * Tests that a new configuration is created when upgrading across stack when
    * there is no existing configuration with the correct target stack.
-   *
-   * @throws Exception
    */
   @Test
   public void testNewConfigCreatedWhenUpgradingWithoutChaningStack() throws Exception {
@@ -202,8 +201,6 @@ public class CreateAndConfigureActionTest {
 
   /**
    * Creates a cluster using {@link #repoVersion2110} with ZooKeeper installed.
-   *
-   * @throws Exception
    */
   private void makeUpgradeCluster() throws Exception {
     String clusterName = "c1";
@@ -225,9 +222,10 @@ public class CreateAndConfigureActionTest {
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!
-    Service zk = installService(c, "ZOOKEEPER", repoVersion2110);
-    addServiceComponent(c, zk, "ZOOKEEPER_SERVER");
-    addServiceComponent(c, zk, "ZOOKEEPER_CLIENT");
+    ServiceGroup serviceGroup = c.addServiceGroup("CORE");
+    Service zk = installService(c, serviceGroup, "ZOOKEEPER", repoVersion2110);
+    addServiceComponent(zk, "ZOOKEEPER_SERVER");
+    addServiceComponent(zk, "ZOOKEEPER_CLIENT");
     createNewServiceComponentHost(c, "ZOOKEEPER", "ZOOKEEPER_SERVER", hostName);
     createNewServiceComponentHost(c, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostName);
 
@@ -248,29 +246,26 @@ public class CreateAndConfigureActionTest {
 
   /**
    * Installs a service in the cluster.
-   *
-   * @param cluster
-   * @param serviceName
-   * @return
-   * @throws AmbariException
    */
-  private Service installService(Cluster cluster, String serviceName,
-      RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    Service service = null;
+  private Service installService(Cluster cluster, ServiceGroup serviceGroup, String serviceName,
+    RepositoryVersionEntity repositoryVersion
+  ) throws AmbariException {
+    Service service;
 
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, null, null, serviceName, "", repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 
     return service;
   }
 
-  private ServiceComponent addServiceComponent(Cluster cluster, Service service,
-      String componentName) throws AmbariException {
-    ServiceComponent serviceComponent = null;
+  private ServiceComponent addServiceComponent(Service service,
+    String componentName
+  ) throws AmbariException {
+    ServiceComponent serviceComponent;
     try {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {
@@ -286,7 +281,7 @@ public class CreateAndConfigureActionTest {
       String svcComponent, String hostName) throws AmbariException {
     Assert.assertNotNull(cluster.getConfigGroups());
     Service s = cluster.getService(serviceName);
-    ServiceComponent sc = addServiceComponent(cluster, s, svcComponent);
+    ServiceComponent sc = addServiceComponent(s, svcComponent);
 
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc, hostName);
 
@@ -343,7 +338,7 @@ public class CreateAndConfigureActionTest {
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setClusterName("c1");
     executionCommand.setCommandParams(commandParams);
-    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.setRoleParams(new HashMap<>());
     executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
 
     return executionCommand;

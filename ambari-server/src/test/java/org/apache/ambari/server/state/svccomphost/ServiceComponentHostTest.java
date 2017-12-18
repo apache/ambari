@@ -32,8 +32,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.api.services.ServiceGroupKey;
-import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -135,7 +133,7 @@ public class ServiceComponentHostTest {
     createCluster(stackId, clusterName, repositoryVersion.getVersion());
 
 
-    serviceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "test_group", new HashSet<ServiceGroupKey>());
+    serviceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "test_group", new HashSet<>());
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     Set<String> hostNames = new HashSet<>();
@@ -189,18 +187,18 @@ public class ServiceComponentHostTest {
       String hostName,
       ServiceGroup customServiceGroup) throws AmbariException{
 
-    Service s = null;
+    Service s;
 
     try {
       s = c.getService(svc);
     } catch (ServiceNotFoundException e) {
       LOG.debug("Calling service create, serviceName={}", svc);
 
-      s = serviceFactory.createNew(c, customServiceGroup, new ArrayList<ServiceKey>(), svc, svc, repositoryVersion);
+      s = serviceFactory.createNew(c, customServiceGroup, Collections.emptyList(), svc, svc, repositoryVersion);
       c.addService(s);
     }
 
-    ServiceComponent sc = null;
+    ServiceComponent sc;
     try {
       sc = s.getServiceComponent(svcComponent);
     } catch (ServiceComponentNotFoundException e) {
@@ -715,7 +713,7 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     createCluster(stackId, clusterName, "");
 
-    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<ServiceGroupKey>());
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -815,7 +813,7 @@ public class ServiceComponentHostTest {
       new HashMap<>());
 
     host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, 1L, 1L, "HDFS",
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, customServiceGroup.getServiceGroupId(), sch1.getServiceId(), "HDFS",
       "t1", "", new HashMap<String, Config>() {{ put("hdfs-site", c); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);
@@ -871,7 +869,7 @@ public class ServiceComponentHostTest {
     final Config c1 = configFactory.createNew(cluster, "core-site", "version2",
       new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }},
       new HashMap<>());
-    configGroup = configGroupFactory.createNew(cluster, 1L, 1L, "HDFS",
+    configGroup = configGroupFactory.createNew(cluster, customServiceGroup.getServiceGroupId(), sch1.getServiceId(), "HDFS",
       "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);
@@ -908,7 +906,7 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     createCluster(stackId, clusterName, "");
 
-    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<ServiceGroupKey>());
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -1037,7 +1035,7 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     createCluster(stackId, clusterName, "");
 
-    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<ServiceGroupKey>());
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -1057,8 +1055,8 @@ public class ServiceComponentHostTest {
 
     HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByIndex(
       cluster.getClusterId(),
-      1L,
-      1L,
+      customServiceGroup.getServiceGroupId(),
+      sch1.getServiceId(),
       sch1.getServiceComponentName(),
       hostEntity.getHostId()
     );
@@ -1070,8 +1068,8 @@ public class ServiceComponentHostTest {
 
     entity = hostComponentDesiredStateDAO.findByIndex(
       cluster.getClusterId(),
-      1L,
-      1L,
+      customServiceGroup.getServiceGroupId(),
+      sch1.getServiceId(),
       sch1.getServiceComponentName(),
       hostEntity.getHostId()
     );
@@ -1084,8 +1082,6 @@ public class ServiceComponentHostTest {
    * for their own repo versions. This assures that the host version logic is
    * scoped to the repo that is transitioning and is not affected by other
    * components.
-   *
-   * @throws Exception
    */
   @Test
   public void testHostVersionTransitionIsScopedByRepository() throws Exception {

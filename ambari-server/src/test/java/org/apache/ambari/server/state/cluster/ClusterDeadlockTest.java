@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.cluster;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,7 +32,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.testing.DeadlockWarningThread;
@@ -97,7 +98,7 @@ public class ClusterDeadlockTest {
   private OrmTestHelper helper;
 
   private StackId stackId = new StackId("HDP-0.1");
-  private String REPO_VERSION = "0.1-1234";
+  private static final String REPO_VERSION = "0.1-1234";
 
   /**
    * The cluster.
@@ -108,11 +109,10 @@ public class ClusterDeadlockTest {
    *
    */
   private List<String> hostNames = new ArrayList<>(NUMBER_OF_HOSTS);
+  private ServiceGroup serviceGroup;
 
   /**
    * Creates 100 hosts and adds them to the cluster.
-   *
-   * @throws Exception
    */
   @Before
   public void setup() throws Exception {
@@ -143,7 +143,8 @@ public class ClusterDeadlockTest {
       clusters.mapHostToCluster(hostName, "c1");
     }
 
-    Service service = installService("HDFS");
+    serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = installService("HDFS", serviceGroup);
     addServiceComponent(service, "NAMENODE");
     addServiceComponent(service, "DATANODE");
   }
@@ -156,8 +157,6 @@ public class ClusterDeadlockTest {
   /**
    * Tests that concurrent impl serialization and impl writing doesn't cause a
    * deadlock.
-   *
-   * @throws Exception
    */
   @Test()
   public void testDeadlockBetweenImplementations() throws Exception {
@@ -201,8 +200,6 @@ public class ClusterDeadlockTest {
   /**
    * Tests that while serializing a service component, writes to that service
    * component do not cause a deadlock with the global cluster lock.
-   *
-   * @throws Exception
    */
   @Test()
   public void testAddingHostComponentsWhileReading() throws Exception {
@@ -236,8 +233,6 @@ public class ClusterDeadlockTest {
   /**
    * Tests that no deadlock exists while restarting components and reading from
    * the cluster.
-   *
-   * @throws Exception
    */
   @Test()
   public void testDeadlockWhileRestartingComponents() throws Exception {
@@ -284,7 +279,7 @@ public class ClusterDeadlockTest {
   public void testDeadlockWithConfigsUpdate() throws Exception {
     List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-      ClusterDesiredConfigsReaderThread readerThread = null;
+      ClusterDesiredConfigsReaderThread readerThread;
       for (int j = 0; j < NUMBER_OF_THREADS; j++) {
         readerThread = new ClusterDesiredConfigsReaderThread();
         threads.add(readerThread);
@@ -394,17 +389,12 @@ public class ClusterDeadlockTest {
 
     /**
      * Constructor.
-     *
-     * @param serviceComponentHosts
      */
     private ServiceComponentRestartThread(
         List<ServiceComponentHost> serviceComponentHosts) {
       this.serviceComponentHosts = serviceComponentHosts;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void run() {
       try {
@@ -569,7 +559,7 @@ public class ClusterDeadlockTest {
   private ServiceComponentHost createNewServiceComponentHost(String svc,
       String svcComponent, String hostName) throws AmbariException {
     Assert.assertNotNull(cluster.getConfigGroups());
-    Service s = installService(svc);
+    Service s = installService(svc, serviceGroup);
     ServiceComponent sc = addServiceComponent(s, svcComponent);
 
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc,
@@ -582,8 +572,8 @@ public class ClusterDeadlockTest {
     return sch;
   }
 
-  private Service installService(String serviceName) throws AmbariException {
-    Service service = null;
+  private Service installService(String serviceName, ServiceGroup serviceGroup) throws AmbariException {
+    Service service;
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
         stackId, REPO_VERSION);
@@ -591,7 +581,7 @@ public class ClusterDeadlockTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 
@@ -600,7 +590,7 @@ public class ClusterDeadlockTest {
 
   private ServiceComponent addServiceComponent(Service service,
       String componentName) throws AmbariException {
-    ServiceComponent serviceComponent = null;
+    ServiceComponent serviceComponent;
     try {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {

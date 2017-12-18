@@ -39,7 +39,6 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -62,6 +61,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
@@ -1698,8 +1698,6 @@ public class ConfigureActionTest {
 
   /**
    * Creates a cluster using {@link #repoVersion2110} with ZooKeeper installed.
-   *
-   * @throws Exception
    */
   private void makeUpgradeCluster() throws Exception {
     String clusterName = "c1";
@@ -1721,9 +1719,10 @@ public class ConfigureActionTest {
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!
-    Service zk = installService(c, "ZOOKEEPER", repoVersion2110);
-    addServiceComponent(c, zk, "ZOOKEEPER_SERVER");
-    addServiceComponent(c, zk, "ZOOKEEPER_CLIENT");
+    ServiceGroup serviceGroup = c.addServiceGroup("CORE");
+    Service service = installService(c, serviceGroup, "ZOOKEEPER", repoVersion2110);
+    addServiceComponent(c, service, "ZOOKEEPER_SERVER");
+    addServiceComponent(c, service, "ZOOKEEPER_CLIENT");
     createNewServiceComponentHost(c, "ZOOKEEPER", "ZOOKEEPER_SERVER", hostName);
     createNewServiceComponentHost(c, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostName);
 
@@ -1746,18 +1745,20 @@ public class ConfigureActionTest {
    * Installs a service in the cluster.
    *
    * @param cluster
+   * @param serviceGroup
    * @param serviceName
    * @return
    * @throws AmbariException
    */
-  private Service installService(Cluster cluster, String serviceName,
-      RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    Service service = null;
+  private Service installService(Cluster cluster, ServiceGroup serviceGroup, String serviceName,
+    RepositoryVersionEntity repositoryVersion
+  ) throws AmbariException {
+    Service service;
 
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 

@@ -83,6 +83,7 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.inject.Injector;
 
@@ -140,6 +141,7 @@ public class ComponentResourceProviderTest {
 
     expect(service.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(service.getName()).andReturn("Service100").anyTimes();
+    expect(service.getServiceType()).andReturn("Service100").anyTimes();
 
     expect(stackId.getStackName()).andReturn("HDP").anyTimes();
     expect(stackId.getStackVersion()).andReturn("99").anyTimes();
@@ -152,8 +154,11 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponentFactory.createNew(service, "Component100")).andReturn(serviceComponent);
 
+    ServiceComponentResponse componentResponse = createNiceMock(ServiceComponentResponse.class);
+    expect(serviceComponent.convertToResponse()).andReturn(componentResponse);
+
     // replay
-    replay(managementController, response, clusters, cluster, service, stackId, ambariMetaInfo,
+    replay(managementController, response, clusters, cluster, service, stackId, ambariMetaInfo, componentResponse,
         serviceComponentFactory, serviceComponent, componentInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -169,6 +174,7 @@ public class ComponentResourceProviderTest {
 
     // add properties to the request map
     properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ComponentResourceProvider.COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "CORE");
     properties.put(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
     properties.put(ComponentResourceProvider.COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "CORE");
     properties.put(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
@@ -400,6 +406,7 @@ public class ComponentResourceProviderTest {
 
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(service.getName()).andReturn("Service100").anyTimes();
+    expect(service.getServiceType()).andReturn("Service100").anyTimes();
     expect(service.getServiceComponent("Component101")).andReturn(serviceComponent1).anyTimes();
     expect(service.getServiceComponent("Component102")).andReturn(serviceComponent1).anyTimes();
     expect(service.getServiceComponent("Component103")).andReturn(serviceComponent2).anyTimes();
@@ -718,6 +725,7 @@ public class ComponentResourceProviderTest {
 
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(service.getName()).andReturn("Service100").anyTimes();
+    expect(service.getServiceType()).andReturn("Service100").anyTimes();
     expect(service.getServiceComponent("Component101")).andReturn(serviceComponent1).anyTimes();
 
     expect(serviceComponent1.getName()).andReturn("Component101").atLeastOnce();
@@ -799,8 +807,8 @@ public class ComponentResourceProviderTest {
     ServiceComponentResponse response = createNiceMock(ServiceComponentResponse.class);
 
     // requests
-    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null, String.valueOf(true /* recovery enabled */));
+    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "CORE","service1", "component1",
+        null, "true");
 
     Set<ServiceComponentRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
@@ -817,6 +825,7 @@ public class ComponentResourceProviderTest {
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.getService("service1")).andReturn(service);
     expect(service.getName()).andReturn("service1").anyTimes();
+    expect(service.getServiceType()).andReturn("service1").anyTimes();
     expect(service.getServiceComponent("component1")).andReturn(component);
 
     expect(ambariMetaInfo.getComponent("stackName", "1", "service1", "component1")).andReturn(componentInfo);
@@ -859,23 +868,13 @@ public class ComponentResourceProviderTest {
     ServiceComponentResponse response2 = createNiceMock(ServiceComponentResponse.class);
 
     // requests
-    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null, String.valueOf(true /* recovery enabled */));
-    ServiceComponentRequest request2 = new ServiceComponentRequest("cluster1", "service1", "component2",
-        null, String.valueOf(true /* recovery enabled */));
-    ServiceComponentRequest request3 = new ServiceComponentRequest("cluster1", "service1", "component3",
-        null, String.valueOf(true /* recovery enabled */));
-    ServiceComponentRequest request4 = new ServiceComponentRequest("cluster1", "service1", "component4",
-        null, String.valueOf(true /* recovery enabled */));
-    ServiceComponentRequest request5 = new ServiceComponentRequest("cluster1", "service2", null, null,
-              String.valueOf(true /* recovery enabled */));
-
-    Set<ServiceComponentRequest> setRequests = new HashSet<>();
-    setRequests.add(request1);
-    setRequests.add(request2);
-    setRequests.add(request3);
-    setRequests.add(request4);
-    setRequests.add(request5);
+    Set<ServiceComponentRequest> setRequests = ImmutableSet.of(
+      new ServiceComponentRequest("cluster1", "CORE", "service1", "component1", null, "true"),
+      new ServiceComponentRequest("cluster1", "CORE", "service1", "component2", null, "true"),
+      new ServiceComponentRequest("cluster1", "CORE", "service1", "component3", null, "true"),
+      new ServiceComponentRequest("cluster1", "CORE", "service1", "component4", null, "true"),
+      new ServiceComponentRequest("cluster1", "CORE", "service2", null, null, "true")
+    );
 
     // expectations
     // constructor init
@@ -898,8 +897,9 @@ public class ComponentResourceProviderTest {
     expect(component4Info.getCategory()).andReturn(null);
 
     expect(service.getName()).andReturn("service1").anyTimes();
-    expect(service.getServiceComponent("component1")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component1", "", ""));
-    expect(service.getServiceComponent("component2")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component2", "", ""));
+    expect(service.getServiceType()).andReturn("service1").anyTimes();
+    expect(service.getServiceComponent("component1")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "service1", "CORE", "component1"));
+    expect(service.getServiceComponent("component2")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "service1", "CORE", "component2"));
     expect(service.getServiceComponent("component3")).andReturn(component1);
     expect(service.getServiceComponent("component4")).andReturn(component2);
 
@@ -950,8 +950,8 @@ public class ComponentResourceProviderTest {
     Service service = createNiceMock(Service.class);
 
     // requests
-    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null, String.valueOf(true /* recovery enabled */));
+    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "CORE", "service1", "component1",
+        null, "true");
 
     Set<ServiceComponentRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
@@ -967,7 +967,7 @@ public class ComponentResourceProviderTest {
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.getService("service1")).andReturn(service);
     expect(service.getServiceComponent("component1")).andThrow(
-        new ServiceComponentNotFoundException("cluster1", "service1", "component1", "", ""));
+        new ServiceComponentNotFoundException("cluster1", "service1", "service1", "CORE", "component1"));
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, service);
 

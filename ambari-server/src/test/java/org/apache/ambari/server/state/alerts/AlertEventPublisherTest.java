@@ -17,11 +17,10 @@
  */
 package org.apache.ambari.server.state.alerts;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.UUID;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
@@ -41,6 +40,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
 import org.apache.ambari.server.state.alert.AggregateSource;
@@ -79,12 +79,9 @@ public class AlertEventPublisherTest {
   private OrmTestHelper ormHelper;
   private AggregateDefinitionMapping aggregateMapping;
 
-  private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
+  private static final String STACK_VERSION = "2.0.6";
+  private static final String REPO_VERSION = "2.0.6-1234";
 
-  /**
-   *
-   */
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -109,9 +106,6 @@ public class AlertEventPublisherTest {
     Assert.assertNotNull(cluster);
   }
 
-  /**
-   * @throws Exception
-   */
   @After
   public void teardown() throws Exception {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
@@ -121,8 +115,6 @@ public class AlertEventPublisherTest {
   /**
    * Tests that a default {@link AlertGroupEntity} is created when a service is
    * installed.
-   *
-   * @throws Exception
    */
   @Test
   public void testDefaultAlertGroupCreation() throws Exception {
@@ -134,8 +126,6 @@ public class AlertEventPublisherTest {
   /**
    * Tests that a default {@link AlertGroupEntity} is removed when a service is
    * removed.
-   *
-   * @throws Exception
    */
   @Test
   public void testDefaultAlertGroupRemoved() throws Exception {
@@ -149,8 +139,6 @@ public class AlertEventPublisherTest {
   /**
    * Tests that all {@link AlertDefinitionEntity} instances are created for the
    * installed service.
-   *
-   * @throws Exception
    */
   @Test
   public void testAlertDefinitionInsertion() throws Exception {
@@ -162,8 +150,6 @@ public class AlertEventPublisherTest {
   /**
    * Tests that {@link AlertDefinitionChangedEvent} instances are fired when a
    * definition is updated.
-   *
-   * @throws Exception
    */
   @Test
   public void testAlertDefinitionChanged() throws Exception {
@@ -236,7 +222,7 @@ public class AlertEventPublisherTest {
     history.setAlertDefinition(definition);
     history.setAlertLabel(definition.getLabel());
     history.setAlertText(definition.getDefinitionName());
-    history.setAlertTimestamp(Long.valueOf(1L));
+    history.setAlertTimestamp(1L);
     history.setHostName(null);
     history.setAlertState(AlertState.OK);
     alertsDao.create(history);
@@ -248,7 +234,7 @@ public class AlertEventPublisherTest {
     history2.setAlertDefinition(definition);
     history2.setAlertLabel(definition.getLabel());
     history2.setAlertText(definition.getDefinitionName());
-    history2.setAlertTimestamp(Long.valueOf(1L));
+    history2.setAlertTimestamp(1L);
     history2.setHostName(null);
     history2.setAlertState(AlertState.CRITICAL);
 
@@ -275,8 +261,6 @@ public class AlertEventPublisherTest {
   /**
    * Tests that {@link AlertDefinitionDeleteEvent} instances are fired when a
    * definition is removed.
-   *
-   * @throws Exception
    */
   @Test
   public void testAlertDefinitionRemoval() throws Exception {
@@ -314,8 +298,9 @@ public class AlertEventPublisherTest {
         cluster.getCurrentStackVersion(), REPO_VERSION);
 
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
-    service = cluster.getService(serviceName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    Service service = cluster.getService(serviceName);
 
     Assert.assertNotNull(service);
   }

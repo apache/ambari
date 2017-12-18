@@ -43,6 +43,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.internal.ServiceGroupResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -642,29 +643,32 @@ public class AmbariCustomCommandExecutionHelperTest {
     ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     Assert.assertNotNull(cluster);
 
-    createService(clusterName, "YARN", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
-    createService(clusterName, "GANGLIA", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
-    createService(clusterName, "ZOOKEEPER", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
-    createService(clusterName, "FLUME", repositoryVersion, serviceGroup.getServiceGroupName(), stackId);
+    String serviceGroupName = "CORE";
+    ServiceGroupResourceProviderTest.createServiceGroup(ambariManagementController, clusterName, serviceGroupName);
 
-    createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT, serviceGroup.getServiceGroupName());
-    createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT, serviceGroup.getServiceGroupName());
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_SERVER", State.INIT, serviceGroup.getServiceGroupName());
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_MONITOR", State.INIT, serviceGroup.getServiceGroupName());
-    createServiceComponent(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT, serviceGroup.getServiceGroupName());
+    createService(clusterName, serviceGroupName, "YARN", repositoryVersion);
+    createService(clusterName, serviceGroupName, "GANGLIA", repositoryVersion);
+    createService(clusterName, serviceGroupName, "ZOOKEEPER", repositoryVersion);
+    createService(clusterName, serviceGroupName, "FLUME", repositoryVersion);
+
+    createServiceComponent(clusterName, serviceGroupName, "YARN", "RESOURCEMANAGER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "YARN", "NODEMANAGER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_SERVER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_MONITOR", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT);
 
     // this component should be not installed on any host
-    createServiceComponent(clusterName, "FLUME", "FLUME_HANDLER", State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponent(clusterName, serviceGroupName, "FLUME", "FLUME_HANDLER", State.INIT);
 
-    createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null, serviceGroup.getServiceGroupName());
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null, serviceGroup.getServiceGroupName());
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT, serviceGroup.getServiceGroupName());
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT, serviceGroup.getServiceGroupName());
-    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, serviceGroupName, "YARN", "RESOURCEMANAGER", hostC6401, null);
+    createServiceComponentHost(clusterName, serviceGroupName, "YARN", "NODEMANAGER", hostC6401, null);
+    createServiceComponentHost(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT);
 
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6402, null, serviceGroup.getServiceGroupName());
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT, serviceGroup.getServiceGroupName());
-    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT, serviceGroup.getServiceGroupName());
+    createServiceComponentHost(clusterName, serviceGroupName, "YARN", "NODEMANAGER", hostC6402, null);
+    createServiceComponentHost(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
@@ -688,48 +692,26 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariManagementController.createCluster(r);
   }
 
-  private void createService(String clusterName, String serviceName,
-      RepositoryVersionEntity repositoryVersion, String serviceGroupName, StackId stackId) throws AmbariException, AuthorizationException {
-
-
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName,
-        repositoryVersion.getId(), null, stackId);
-
-    Set<ServiceRequest> requests = new HashSet<>();
-    requests.add(r1);
-
+  private void createService(
+    String clusterName, String serviceGroupName, String serviceName, RepositoryVersionEntity repositoryVersion
+  ) throws AmbariException, AuthorizationException {
+    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, repositoryVersion.getId(), null, null, null);
     ServiceResourceProviderTest.createServices(ambariManagementController,
-        injector.getInstance(RepositoryVersionDAO.class), requests);
+        injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(request));
   }
 
-  private void createServiceComponent(String clusterName,
-      String serviceName, String componentName, State desiredState, String serviceGroupName)
-      throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName,
-        serviceName, componentName, dStateStr);
-    Set<ServiceComponentRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    ComponentResourceProviderTest.createComponents(ambariManagementController, requests);
+  private void createServiceComponent(
+    String clusterName, String serviceGroupName, String serviceName, String componentName, State desiredState
+  ) throws AmbariException, AuthorizationException {
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ComponentResourceProviderTest.createComponents(ambariManagementController, Collections.singleton(r));
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname,
-                                          State desiredState, String serviceGroupName)
-      throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName,
-        serviceName, componentName, hostname, dStateStr);
-    Set<ServiceComponentHostRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    ambariManagementController.createHostComponents(requests);
+  private void createServiceComponentHost(
+    String clusterName, String serviceGroupName, String serviceName, String componentName, String hostname, State desiredState
+  ) throws AmbariException, AuthorizationException {
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    ambariManagementController.createHostComponents(Collections.singleton(r));
   }
 
 }

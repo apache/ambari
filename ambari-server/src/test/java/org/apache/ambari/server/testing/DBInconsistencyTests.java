@@ -46,8 +46,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -55,8 +53,6 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 public class DBInconsistencyTests {
-
-  private static final Logger LOG = LoggerFactory.getLogger(DBInconsistencyTests.class);
 
   @Inject
   private Injector injector;

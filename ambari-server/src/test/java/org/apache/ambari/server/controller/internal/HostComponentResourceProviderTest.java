@@ -77,6 +77,9 @@ import com.google.inject.Injector;
  * HostComponentResourceProvider tests.
  */
 public class HostComponentResourceProviderTest {
+
+  private static final String SERVICE_GROUP_NAME = "TEST_GROUP";
+
   @Before
   public void clearAuthentication() {
     SecurityContextHolder.getContext().setAuthentication(null);
@@ -111,9 +114,9 @@ public class HostComponentResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    managementController.createHostComponents(
-        AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
-            "Cluster100", "Service100", "Component100", "Host100", null, null));
+    ServiceComponentHostRequest request = new ServiceComponentHostRequest("Cluster100", SERVICE_GROUP_NAME, "Service100", "Component100", "Host100", null);
+    Set<ServiceComponentHostRequest> expectedRequests = Collections.singleton(request);
+    expect(managementController.createHostComponents(eq(expectedRequests))).andReturn(null).once();
 
     expect(resourceProviderFactory.getHostComponentResourceProvider(EasyMock.anyObject(),
         EasyMock.anyObject(),
@@ -140,17 +143,15 @@ public class HostComponentResourceProviderTest {
 
     // add properties to the request map
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, "TEST_GROUP");
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
 
     propertySet.add(properties);
 
     // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet, null);
-
-    provider.createResources(request);
+    provider.createResources(PropertyHelper.getCreateRequest(propertySet, null));
 
     // verify
     verify(managementController, response, resourceProviderFactory);
@@ -243,6 +244,7 @@ public class HostComponentResourceProviderTest {
     Resource hostsComponentResource1 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
@@ -256,6 +258,7 @@ public class HostComponentResourceProviderTest {
     Resource hostsComponentResource2 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component101");
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
@@ -269,6 +272,7 @@ public class HostComponentResourceProviderTest {
     Resource hostsComponentResource3 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "Host100");
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID, SERVICE_GROUP_NAME);
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, "Service100");
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component102");
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
@@ -359,7 +363,7 @@ public class HostComponentResourceProviderTest {
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    //expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
+    expect(managementController.findService(cluster, "Component100")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
@@ -457,9 +461,8 @@ public class HostComponentResourceProviderTest {
             managementController, injector);
 
     // set expectations
-    expect(managementController.deleteHostComponents(
-        AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
-            null, null, "Component100", "Host100", null, null))).andReturn(deleteStatusMetaData);
+    ServiceComponentHostRequest request = new ServiceComponentHostRequest(null, null, null, "Component100", "Host100", null);
+    expect(managementController.deleteHostComponents(Collections.singleton(request))).andReturn(deleteStatusMetaData);
 
     // replay
     replay(managementController, deleteStatusMetaData);
@@ -561,7 +564,7 @@ public class HostComponentResourceProviderTest {
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    //expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
+    expect(managementController.findService(cluster, "Component100")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();

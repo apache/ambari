@@ -42,7 +42,6 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -406,13 +405,13 @@ public class OrmTestHelper {
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-    ServiceGroup servcieGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     cluster = initializeClusterWithStack(cluster);
 
     addHost(clusters, cluster, hostName);
 
-    installHdfsService(cluster, serviceFactory, componentFactory, schFactory, hostName, servcieGroup);
-    installYarnService(cluster, serviceFactory, componentFactory, schFactory, hostName, servcieGroup);
+    installHdfsService(cluster, serviceFactory, componentFactory, schFactory, hostName, serviceGroup);
+    installYarnService(cluster, serviceFactory, componentFactory, schFactory, hostName, serviceGroup);
     return cluster;
   }
 
@@ -455,8 +454,8 @@ public class OrmTestHelper {
         cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
-    service = cluster.getService(serviceName);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
     ServiceComponent datanode = componentFactory.createNew(service, "DATANODE");
@@ -489,8 +488,8 @@ public class OrmTestHelper {
         cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "YARN";
-    Service service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
-    service = cluster.getService(serviceName);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
     ServiceComponent resourceManager = componentFactory.createNew(service,

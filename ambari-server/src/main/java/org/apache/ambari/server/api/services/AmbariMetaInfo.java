@@ -97,6 +97,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -846,7 +847,8 @@ public class AmbariMetaInfo {
   */
   public Set<PropertyInfo> getStackSettings(String stackName, String version)
           throws AmbariException {
-    return new HashSet<>(getStack(stackName, version).getStackSettings());
+    Collection<PropertyInfo> stackSettings = getStack(stackName, version).getStackSettings();
+    return stackSettings != null ? ImmutableSet.copyOf(stackSettings) : ImmutableSet.of();
   }
 
   /*
@@ -856,7 +858,7 @@ public class AmbariMetaInfo {
   public Map<String, String> getStackSettingsNameValueMap(StackId stackId)
           throws AmbariException {
     Set<PropertyInfo> stackSettings = getStackSettings(stackId.getStackName(), stackId.getStackVersion());
-    if (stackSettings != null) {
+    if (stackSettings != null && !stackSettings.isEmpty()) {
       return stackSettings.stream().collect(
               Collectors.toMap(PropertyInfo::getName, PropertyInfo::getValue));
     }

@@ -1730,7 +1730,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void deleteAllServiceGroups() throws AmbariException {
-
+    // FIXME implement
   }
 
   @Override
@@ -1885,6 +1885,7 @@ public class ClusterImpl implements Cluster {
     try {
       refresh();
       deleteAllServices();
+      deleteAllServiceGroups();
 
       refresh(); // update one-to-many clusterServiceEntities
       removeEntities();

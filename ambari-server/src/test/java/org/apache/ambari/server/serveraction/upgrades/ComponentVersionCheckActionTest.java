@@ -37,7 +37,6 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -64,6 +63,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -209,14 +209,6 @@ public class ComponentVersionCheckActionTest {
   /**
    * Creates a cluster with a running upgrade. The upgrade will have no services
    * attached to it, so those will need to be set after this is called.
-   *
-   * @param sourceStack
-   * @param sourceRepo
-   * @param targetStack
-   * @param targetRepo
-   * @param clusterName
-   * @param hostName
-   * @throws Exception
    */
   private void makeCrossStackUpgradeCluster(StackId sourceStack, String sourceRepo,
       StackId targetStack, String targetRepo, String clusterName, String hostName)
@@ -282,10 +274,6 @@ public class ComponentVersionCheckActionTest {
   /**
    * Creates a new {@link HostVersionEntity} instance in the
    * {@link RepositoryVersionState#INSTALLED} for the specified host.
-   *
-   * @param hostName
-   * @param repositoryVersion
-   * @throws AmbariException
    */
   private void installRepositoryOnHost(String hostName, RepositoryVersionEntity repositoryVersion)
       throws AmbariException {
@@ -341,13 +329,14 @@ public class ComponentVersionCheckActionTest {
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getCluster("c1");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
 
     RepositoryVersionEntity sourceRepoVersion = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_0);
     RepositoryVersionEntity targetRepoVersion = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_1_0);
 
-    Service service = installService(cluster, "HDFS", sourceRepoVersion);
-    addServiceComponent(cluster, service, "NAMENODE");
-    addServiceComponent(cluster, service, "DATANODE");
+    Service service = installService(cluster, serviceGroup, "HDFS", sourceRepoVersion);
+    addServiceComponent(service, "NAMENODE");
+    addServiceComponent(service, "DATANODE");
     createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
     createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
 
@@ -441,6 +430,7 @@ public class ComponentVersionCheckActionTest {
     host.setOsInfo("redhat6");
 
     Cluster cluster = clusters.getCluster("c1");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     clusters.mapHostToCluster("h1", "c1");
 
     RepositoryVersionEntity repositoryVersion2110 = m_helper.getOrCreateRepositoryVersion(
@@ -449,17 +439,17 @@ public class ComponentVersionCheckActionTest {
     RepositoryVersionEntity repositoryVersion2111 = m_helper.getOrCreateRepositoryVersion(
         HDP_21_STACK, HDP_2_1_1_1);
 
-    Service service = installService(cluster, "HDFS", repositoryVersion2110);
-    addServiceComponent(cluster, service, "NAMENODE");
-    addServiceComponent(cluster, service, "DATANODE");
+    Service service = installService(cluster, serviceGroup, "HDFS", repositoryVersion2110);
+    addServiceComponent(service, "NAMENODE");
+    addServiceComponent(service, "DATANODE");
 
     ServiceComponentHost sch = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
     sch.setVersion(HDP_2_1_1_0);
     sch = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
     sch.setVersion(HDP_2_1_1_0);
 
-    service = installService(cluster, "ZOOKEEPER", repositoryVersion2111);
-    addServiceComponent(cluster, service, "ZOOKEEPER_SERVER");
+    service = installService(cluster, serviceGroup, "ZOOKEEPER", repositoryVersion2111);
+    addServiceComponent(service, "ZOOKEEPER_SERVER");
 
     sch = createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
     sch.setVersion(HDP_2_1_1_1);
@@ -488,7 +478,7 @@ public class ComponentVersionCheckActionTest {
                                                              String svcComponent, String hostName) throws AmbariException {
     Assert.assertNotNull(cluster.getConfigGroups());
     Service s = cluster.getService(svc);
-    ServiceComponent sc = addServiceComponent(cluster, s, svcComponent);
+    ServiceComponent sc = addServiceComponent(s, svcComponent);
 
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc, hostName);
 
@@ -499,15 +489,14 @@ public class ComponentVersionCheckActionTest {
     return sch;
   }
 
-  private Service installService(Cluster cluster, String serviceName, RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    Service service = serviceFactory.createNew(cluster, null, new ArrayList<ServiceKey>(), serviceName, "", repositoryVersion);
+  private Service installService(Cluster cluster, ServiceGroup serviceGroup, String serviceName, RepositoryVersionEntity repositoryVersion) throws AmbariException {
+    Service service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<>(), serviceName, serviceName, repositoryVersion);
     cluster.addService(service);
     return service;
   }
 
-  private ServiceComponent addServiceComponent(Cluster cluster, Service service,
-                                               String componentName) throws AmbariException {
-    ServiceComponent serviceComponent = null;
+  private ServiceComponent addServiceComponent(Service service, String componentName) throws AmbariException {
+    ServiceComponent serviceComponent;
     try {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {

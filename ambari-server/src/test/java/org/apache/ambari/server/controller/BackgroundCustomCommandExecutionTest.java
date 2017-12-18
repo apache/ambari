@@ -22,10 +22,8 @@ import static org.mockito.Matchers.any;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -38,6 +36,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.internal.ServiceGroupResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -81,9 +80,9 @@ public class BackgroundCustomCommandExecutionTest {
   @Captor ArgumentCaptor<Request> requestCapture;
   @Mock ActionManager am;
 
-  private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
-  private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
+  private static final String STACK_VERSION = "2.0.6";
+  private static final String REPO_VERSION = "2.0.6-1234";
+  private static final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
   private RepositoryVersionEntity m_repositoryVersion;
 
   @Before
@@ -177,17 +176,21 @@ public class BackgroundCustomCommandExecutionTest {
   }
 
   private void createClusterFixture() throws AmbariException, AuthorizationException {
-    createCluster("c1");
-    addHost("c6401","c1");
-    addHost("c6402","c1");
+    String clusterName = "c1";
+    createCluster(clusterName);
+    addHost("c6401", clusterName);
+    addHost("c6402", clusterName);
 
-    clusters.getCluster("c1");
-    createService("c1", "HDFS", null);
+    clusters.getCluster(clusterName);
+    String serviceGroupName = "CORE";
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
+    createService(clusterName, serviceGroupName, "HDFS", null);
 
-    createServiceComponent("c1","HDFS","NAMENODE", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "HDFS","NAMENODE", State.INIT);
 
-    createServiceComponentHost("c1","HDFS","NAMENODE","c6401", null);
+    createServiceComponentHost(clusterName, serviceGroupName, "HDFS","NAMENODE","c6401", null);
   }
+
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
@@ -196,6 +199,7 @@ public class BackgroundCustomCommandExecutionTest {
       clusters.mapHostToCluster(hostname, clusterName);
     }
   }
+
   private void setOsFamily(Host host, String osFamily, String osVersion) {
     Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", osFamily);
@@ -211,49 +215,23 @@ public class BackgroundCustomCommandExecutionTest {
     controller.createCluster(r);
   }
 
-  private void createService(String clusterName,
-      String serviceName, State desiredState) throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceRequest r1 = new ServiceRequest(clusterName, "", serviceName,
-        m_repositoryVersion.getId(), dStateStr, null);
-
-    Set<ServiceRequest> requests = new HashSet<>();
-    requests.add(r1);
-
-    ServiceResourceProviderTest.createServices(controller,
-        injector.getInstance(RepositoryVersionDAO.class), requests);
+  private void createService(String clusterName, String serviceGroupName, String serviceName, State desiredState)
+      throws AmbariException, AuthorizationException {
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceGroupName, serviceName, m_repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
+    ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(r1));
   }
 
-  private void createServiceComponent(String clusterName,
+  private void createServiceComponent(String clusterName, String serviceGroupName,
       String serviceName, String componentName, State desiredState)
       throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, "",
-        serviceName, componentName, dStateStr);
-    Set<ServiceComponentRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    ComponentResourceProviderTest.createComponents(controller, requests);
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState)
+  private void createServiceComponentHost(String clusterName, String serviceGroupName, String serviceName, String componentName, String hostname, State desiredState)
       throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, "",
-        serviceName, componentName, hostname, dStateStr);
-    Set<ServiceComponentHostRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    controller.createHostComponents(requests);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    controller.createHostComponents(Collections.singleton(r));
   }
 
 }

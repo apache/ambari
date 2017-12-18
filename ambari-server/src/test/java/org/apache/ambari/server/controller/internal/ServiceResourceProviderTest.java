@@ -629,7 +629,7 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service0);
+    expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service0.getServiceComponents()).andReturn(Collections.emptyMap()).anyTimes();
@@ -642,6 +642,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
     expect(service0.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(service0.getName()).andReturn("Service102").anyTimes();
+    expect(service0.getServiceType()).andReturn("Service102").anyTimes();
     expect(serviceInfo.isCredentialStoreSupported()).andReturn(true).anyTimes();
     expect(serviceInfo.isCredentialStoreEnabled()).andReturn(false).anyTimes();
     expect(ambariMetaInfo.getService("HDP", "2.5", "Service102")).andReturn(serviceInfo).anyTimes();
@@ -693,7 +694,7 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, maintenanceStateHelper,
-        service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse, stackId, serviceInfo);
+      service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse, stackId, serviceInfo);
   }
 
   @Test

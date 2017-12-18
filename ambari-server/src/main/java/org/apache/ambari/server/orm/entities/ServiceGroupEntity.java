@@ -34,6 +34,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
+
 
 @IdClass(ServiceGroupEntityPK.class)
 @Table(name = "servicegroups")
@@ -42,7 +44,11 @@ import javax.persistence.TableGenerator;
     "SELECT serviceGroup " +
       "FROM ServiceGroupEntity serviceGroup " +
       "JOIN serviceGroup.clusterEntity cluster " +
-      "WHERE serviceGroup.serviceGroupId=:serviceGroupId AND cluster.clusterId=:clusterId")
+      "WHERE serviceGroup.serviceGroupId=:serviceGroupId AND cluster.clusterId=:clusterId"),
+  @NamedQuery(name = ServiceGroupDAO.SERVICE_GROUP_BY_CLUSTER_ID_AND_SERVICE_GROUP_NAME, query =
+    "SELECT serviceGroup " +
+      "FROM ServiceGroupEntity serviceGroup " +
+      "WHERE serviceGroup.serviceGroupName = :serviceGroupName AND serviceGroup.clusterId = :clusterId")
 })
 @Entity
 @TableGenerator(name = "service_group_id_generator",
