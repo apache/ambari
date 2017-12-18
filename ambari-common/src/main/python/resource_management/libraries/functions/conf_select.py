@@ -211,6 +211,13 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
   # determine which directories would be created, if any are needed
   dry_run_directory = create(stack_name, package, version, dry_run = True)
 
+  # if the dry run reported an error, then we must assume that the package does not exist in
+  # the conf-select tool
+  if len(dry_run_directory) == 0:
+    Logger.info("The conf-select tool reported an error for the package {0}. The configuration linking will be skipped.".format(package))
+    return
+
+
   need_dirs = []
   for d in dry_run_directory:
     if not os.path.exists(d):
