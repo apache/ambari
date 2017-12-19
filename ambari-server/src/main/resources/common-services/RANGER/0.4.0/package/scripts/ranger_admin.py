@@ -175,10 +175,11 @@ class RangerAdmin(Script):
     stack_version = upgrade_stack[1]
 
     if params.xml_configurations_supported and params.upgrade_direction == Direction.UPGRADE:
-      Logger.info(format('Setting Ranger database schema, using version {stack_version}'))
+      target_version = upgrade_summary.get_target_version("RANGER", default_version = stack_version)
+      Logger.info(format('Setting Ranger database schema, using version {target_version}'))
 
       from setup_ranger_xml import setup_ranger_db
-      setup_ranger_db(stack_version=stack_version)
+      setup_ranger_db(stack_version = target_version)
 
   def setup_ranger_java_patches(self, env):
     import params
@@ -191,10 +192,11 @@ class RangerAdmin(Script):
     stack_version = upgrade_stack[1]
 
     if params.xml_configurations_supported and params.upgrade_direction == Direction.UPGRADE:
-      Logger.info(format('Applying Ranger java patches, using version {stack_version}'))
+      target_version = upgrade_summary.get_target_version("RANGER", default_version = stack_version)
+      Logger.info(format('Applying Ranger java patches, using version {target_version}'))
 
       from setup_ranger_xml import setup_java_patch
-      setup_java_patch(stack_version=stack_version)
+      setup_java_patch(stack_version = target_version)
 
   def set_pre_start(self, env):
     import params
