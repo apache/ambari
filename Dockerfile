@@ -14,8 +14,8 @@ RUN yum -y install apache-maven
 
 # install python setuptools
 RUN yum -y install wget
-RUN wget https://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11-py2.7.egg
-RUN sh setuptools-0.6c11-py2.7.egg
+RUN wget https://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11-py2.6.egg
+RUN sh setuptools-0.6c11-py2.6.egg
 
 # install gcc packages
 RUN yum -y groupinstall "Development Tools"
