@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, ElementRef, ViewChild, HostListener} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -31,6 +31,7 @@ import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {HistogramOptions} from '@app/classes/histogram-options';
 import {ListItem} from '@app/classes/list-item';
 import {LogsType} from '@app/classes/string';
+import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel.component";
 
 @Component({
   selector: 'logs-container',
@@ -50,6 +51,16 @@ export class LogsContainerComponent {
     });
     appState.getParameter('isServiceLogContextView').subscribe((value: boolean) => this.isServiceLogContextView = value);
   }
+
+  @ViewChild('container') containerRef: ElementRef;
+  @ViewChild('filtersPanel') filtersPanelRef: FiltersPanelComponent;
+
+  @HostListener("window:scroll", ['$event'])
+  onWindowScroll(): void {
+    this.setFixedPositionValue();
+  }
+
+  private isFilterPanelFixedPostioned: boolean = false;
 
   tabs: Observable<Tab[]> = this.tabsStorage.getAll();
 
@@ -113,6 +124,28 @@ export class LogsContainerComponent {
 
   get serviceLogsColumns(): Observable<ListItem[]> {
     return this.logsContainer.serviceLogsColumns;
+  }
+
+  /**
+   * The goal is to set the fixed position of the filter panel when it is scrolled to the top. So that the panel
+   * can be always visible for the user.
+   */
+  private setFixedPositionValue(): void {
+    const el:Element = this.containerRef.nativeElement;
+    const top:number = el.getBoundingClientRect().top;
+    const valueBefore: boolean = this.isFilterPanelFixedPostioned;
+    if (valueBefore != (top <= 0)) {
+      const fpEl:Element = this.filtersPanelRef.containerEl;
+      this.isFilterPanelFixedPostioned = top <= 0;
+      const filtersPanelHeight: number = fpEl.getBoundingClientRect().height;
+      const containerPaddingTop: number = parseFloat(window.getComputedStyle(el).paddingTop);
+      const htmlEl:HTMLElement = this.containerRef.nativeElement;
+      if (this.isFilterPanelFixedPostioned) {
+        htmlEl.style.paddingTop = (containerPaddingTop + filtersPanelHeight) + 'px';
+      } else {
+        htmlEl.style.paddingTop = (containerPaddingTop - filtersPanelHeight) + 'px';
+      }
+    }
   }
 
   setCustomTimeRange(startTime: number, endTime: number): void {
