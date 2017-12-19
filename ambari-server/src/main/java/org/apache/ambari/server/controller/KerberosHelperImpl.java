@@ -3621,7 +3621,7 @@ public class KerberosHelperImpl implements KerberosHelper {
             ActionExecutionContext exec = new ActionExecutionContext(
                 cluster.getClusterName(),
                 "DISABLE_SECURITY",
-                singletonList(new RequestResourceFilter(service.getName(), component.getName(), singletonList(firstHost))),
+                singletonList(new RequestResourceFilter(service.getServiceGroupName(), service.getName(), component.getName(), singletonList(firstHost))),
                 Collections.emptyMap());
             customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.emptyMap(), null);
           }
@@ -3653,7 +3653,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         ActionExecutionContext exec = new ActionExecutionContext(
             cluster.getClusterName(),
             "STOP",
-            singletonList(new RequestResourceFilter(zookeeper.getName(), component.getName(), new ArrayList<>(hosts))),
+            singletonList(new RequestResourceFilter(zookeeper.getServiceGroupName(), zookeeper.getName(), component.getName(), new ArrayList<>(hosts))),
             Collections.emptyMap());
         customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.emptyMap(), null);
       }
@@ -3688,7 +3688,8 @@ public class KerberosHelperImpl implements KerberosHelper {
         if (!hostsToUpdate.isEmpty()) {
           Map<String, String> requestParams = new HashMap<>();
           List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
-          RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", hostsToUpdate);
+          //TODO figure kerberos service group if any
+          RequestResourceFilter reqResFilter = new RequestResourceFilter("", "KERBEROS", "KERBEROS_CLIENT", hostsToUpdate);
           requestResourceFilters.add(reqResFilter);
 
           ActionExecutionContext actionExecContext = new ActionExecutionContext(
@@ -3792,7 +3793,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     private List<RequestResourceFilter> createRequestResourceFilters(List<String> hostsToInclude) {
       List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
-      RequestResourceFilter reqResFilter = new RequestResourceFilter(Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToInclude);
+      //TODO figure kerberos service group if any
+      RequestResourceFilter reqResFilter = new RequestResourceFilter("", Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToInclude);
       requestResourceFilters.add(reqResFilter);
       return requestResourceFilters;
     }

@@ -56,6 +56,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       .getPropertyId("Actions", "action_type");
   public static final String INPUTS_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "inputs");
+  public static final String TARGET_SERVICE_GROUP_PROPERTY_ID = PropertyHelper
+      .getPropertyId("Actions", "target_service_group");
   public static final String TARGET_SERVICE_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "target_service");
   public static final String TARGET_COMPONENT_PROPERTY_ID = PropertyHelper
@@ -130,6 +132,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
           response.getActionType(), requestedIds);
       setResourceProperty(resource, INPUTS_PROPERTY_ID,
           response.getInputs(), requestedIds);
+      setResourceProperty(resource, TARGET_SERVICE_GROUP_PROPERTY_ID,
+          response.getTargetServiceGroup(), requestedIds);
       setResourceProperty(resource, TARGET_SERVICE_PROPERTY_ID,
           response.getTargetService(), requestedIds);
       setResourceProperty(resource, TARGET_COMPONENT_PROPERTY_ID,
@@ -157,6 +161,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
         (String) properties.get(ACTION_NAME_PROPERTY_ID),
         (String) properties.get(ACTION_TYPE_PROPERTY_ID),
         (String) properties.get(INPUTS_PROPERTY_ID),
+        (String) properties.get(TARGET_SERVICE_GROUP_PROPERTY_ID),
         (String) properties.get(TARGET_SERVICE_PROPERTY_ID),
         (String) properties.get(TARGET_COMPONENT_PROPERTY_ID),
         (String) properties.get(DESCRIPTION_PROPERTY_ID),

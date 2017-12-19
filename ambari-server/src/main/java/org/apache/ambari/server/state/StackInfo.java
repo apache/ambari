@@ -62,7 +62,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private Map<String, Map<String, Map<String, String>>> configTypes;
 
   // Gets information from stacks/<stack-name>/<version>/settings.xml
-  private List<PropertyInfo> stackSettings;
+  private List<PropertyInfo> stackSettings = new ArrayList<>();
   private Map<String, Map<String, Map<String, String>>> stackSettingsConfigTypes;
 
   private Map<String, UpgradePack> upgradePacks;

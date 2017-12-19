@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
 
 import java.util.ArrayList;
@@ -127,6 +128,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = REQUESTS + "/pending_host_request_count";
   public static final String COMMAND_ID = "command";
   public static final String SERVICE_ID = "service_name";
+  public static final String SERVICE_GROUP_ID = "service_group_name";
   public static final String COMPONENT_ID = "component_name";
   public static final String HOSTS_ID = "hosts"; // This is actually a list of hosts
   public static final String HOSTS_PREDICATE = "hosts_predicate";
@@ -507,6 +509,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
     List<RequestResourceFilter> resourceFilterList = new ArrayList<>();
 
+    String serviceGroupName = (String) resourceMap.get(SERVICE_GROUP_ID);
     String serviceName = (String) resourceMap.get(SERVICE_ID);
     String componentName = (String) resourceMap.get(COMPONENT_ID);
     String hostsPredicate = (String) resourceMap.get(HOSTS_PREDICATE);
@@ -517,7 +520,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       for (String hostName : ((String) hostListStr).split(",")) {
         hostList.add(hostName.trim());
       }
-      resourceFilterList.add(new RequestResourceFilter(serviceName, componentName, hostList));
+      resourceFilterList.add(new RequestResourceFilter(serviceGroupName, serviceName, componentName, hostList));
     } else if (hostsPredicate != null) {
         // Parse the predicate as key=value and apply to the ResourceProvider predicate
       Predicate filterPredicate;
@@ -553,10 +556,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           for (Resource resource : resources) {
             String hostnameStr = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
             if (hostnameStr != null) {
+              String computedServiceGroupName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_GROUP_NAME_PROPERTY_ID);
               String computedServiceName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
               String computedComponentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
               ServiceComponentTuple duple =
-                new ServiceComponentTuple(computedServiceName, computedComponentName);
+                new ServiceComponentTuple(computedServiceGroupName, computedServiceName, computedComponentName);
 
               if (!dupleListMap.containsKey(duple)) {
                 hostList = new ArrayList<>();
@@ -570,6 +574,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           if (!dupleListMap.isEmpty()) {
             for (Map.Entry<ServiceComponentTuple, List<String>> entry : dupleListMap.entrySet()) {
               resourceFilterList.add(new RequestResourceFilter(
+                entry.getKey().getServiceGroupName(),
                 entry.getKey().getServiceName(),
                 entry.getKey().getComponentName(),
                 entry.getValue()
@@ -583,7 +588,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           ", hostPredicate" + " = " + hostsPredicate, e);
       }
     } else {
-      resourceFilterList.add(new RequestResourceFilter(serviceName, componentName, hostList));
+      resourceFilterList.add(new RequestResourceFilter(serviceGroupName, serviceName, componentName, hostList));
     }
 
     return resourceFilterList;
@@ -593,12 +598,18 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
    * Represent a map key as a ServiceComponent
    */
   class ServiceComponentTuple {
+    final String serviceGroupName;
     final String serviceName;
     final String componentName;
 
-    ServiceComponentTuple(String serviceName, String componentName) {
+    ServiceComponentTuple(String serviceGroupName, String serviceName, String componentName) {
+      this.serviceGroupName = serviceGroupName;
       this.serviceName = serviceName;
       this.componentName = componentName;
+    }
+
+    public String getServiceGroupName() {
+      return serviceGroupName;
     }
 
     public String getServiceName() {
@@ -620,6 +631,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
       ServiceComponentTuple that = (ServiceComponentTuple) o;
 
+      if (serviceGroupName != null ? !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null) {
+        return false;
+      }
+
       if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) {
         return false;
       }
@@ -629,7 +644,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
     @Override
     public int hashCode() {
-      int result = serviceName != null ? serviceName.hashCode() : 0;
+      int result = serviceGroupName != null ? serviceGroupName.hashCode() : 0;
+      result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
       result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
       return result;
     }

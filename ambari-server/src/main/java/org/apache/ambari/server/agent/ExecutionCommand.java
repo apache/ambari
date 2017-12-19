@@ -105,6 +105,9 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("commandParams")
   private Map<String, String> commandParams = new HashMap<>();
 
+  @SerializedName("serviceGroupName")
+  private String serviceGroupName;
+
   @SerializedName("serviceName")
   private String serviceName;
 
@@ -359,6 +362,14 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public void setServiceGroupName(String serviceGroupName) {
+    this.serviceGroupName = serviceGroupName;
   }
 
   public String getServiceType() {

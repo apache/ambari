@@ -865,7 +865,7 @@ public class TestHeartbeatHandler {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
         DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-          DummyCluster, "HDFS", false, false);
+          DummyCluster, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);

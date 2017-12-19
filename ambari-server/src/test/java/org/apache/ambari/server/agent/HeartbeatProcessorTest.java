@@ -887,11 +887,11 @@ public class HeartbeatProcessorTest {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-        DummyCluster, "HDFS", false, false);
+        DummyCluster, "core", "HDFS", false, false);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-        DummyCluster, "HDFS", false, false);
+        DummyCluster, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);

@@ -146,7 +146,7 @@ public class BackgroundCustomCommandExecutionTest {
 
       ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
           "REBALANCEHDFS", new HashMap<>(), false);
-      actionRequest.getResourceFilters().add(new RequestResourceFilter("HDFS", "NAMENODE",Collections.singletonList("c6401")));
+      actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "HDFS", "NAMENODE",Collections.singletonList("c6401")));
 
       controller.createAction(actionRequest, requestProperties);
 

@@ -729,7 +729,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         osFamily, servicesOnHost);
 
     // add host to this stage
-    RequestResourceFilter filter = new RequestResourceFilter(null, null,
+    RequestResourceFilter filter = new RequestResourceFilter(null, null, null,
             Collections.singletonList(host.getHostName()));
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),

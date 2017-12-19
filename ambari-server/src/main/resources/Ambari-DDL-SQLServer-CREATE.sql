@@ -503,6 +503,7 @@ CREATE TABLE role_success_criteria (
 CREATE TABLE requestresourcefilter (
   filter_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
+  service_group_name VARCHAR(255),
   service_name VARCHAR(255),
   component_name VARCHAR(255),
   hosts VARBINARY(MAX),
@@ -514,6 +515,7 @@ CREATE TABLE requestoperationlevel (
   request_id BIGINT NOT NULL,
   level_name VARCHAR(255),
   cluster_name VARCHAR(255),
+  service_group_name VARCHAR(255),
   service_name VARCHAR(255),
   host_component_name VARCHAR(255),
   host_id BIGINT NULL,      -- unlike most host_id columns, this one allows NULLs because the request can be at the service level

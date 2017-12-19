@@ -186,7 +186,7 @@ public class AmbariCustomCommandExecutionHelper {
   }
 
   private Boolean isValidCustomCommand(String clusterName,
-      String serviceName, String componentName, String commandName)
+      String serviceGroupName, String serviceName, String componentName, String commandName)
       throws AmbariException {
 
     if (componentName == null) {
@@ -194,7 +194,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     Cluster cluster = clusters.getCluster(clusterName);
-    Service service = cluster.getService(serviceName);
+    Service service = cluster.getService(serviceGroupName, serviceName);
     ServiceComponent component = service.getServiceComponent(componentName);
     StackId stackId = component.getDesiredStackId();
 
@@ -210,6 +210,7 @@ public class AmbariCustomCommandExecutionHelper {
       actionExecutionContext, RequestResourceFilter resourceFilter)
       throws AmbariException {
     String clusterName = actionExecutionContext.getClusterName();
+    String serviceGroupName = resourceFilter.getServiceGroupName();
     String serviceName = resourceFilter.getServiceName();
     String componentName = resourceFilter.getComponentName();
     String commandName = actionExecutionContext.getActionName();
@@ -218,12 +219,13 @@ public class AmbariCustomCommandExecutionHelper {
       return false;
     }
 
-    return isValidCustomCommand(clusterName, serviceName, componentName, commandName);
+    return isValidCustomCommand(clusterName, serviceGroupName, serviceName, componentName, commandName);
   }
 
   private Boolean isValidCustomCommand(ExecuteActionRequest actionRequest,
       RequestResourceFilter resourceFilter) throws AmbariException {
     String clusterName = actionRequest.getClusterName();
+    String serviceGroupName = resourceFilter.getServiceGroupName();
     String serviceName = resourceFilter.getServiceName();
     String componentName = resourceFilter.getComponentName();
     String commandName = actionRequest.getCommandName();
@@ -232,7 +234,7 @@ public class AmbariCustomCommandExecutionHelper {
       return false;
     }
 
-    return isValidCustomCommand(clusterName, serviceName, componentName, commandName);
+    return isValidCustomCommand(clusterName, serviceGroupName, serviceName, componentName, commandName);
   }
 
   private String getReadableCustomCommandDetail(ActionExecutionContext
@@ -266,6 +268,7 @@ public class AmbariCustomCommandExecutionHelper {
   private void addCustomCommandAction(final ActionExecutionContext actionExecutionContext,
       final RequestResourceFilter resourceFilter, Stage stage, Map<String, String> additionalCommandParams,
       String commandDetail, Map<String, String> requestParams) throws AmbariException {
+    final String serviceGroupName = resourceFilter.getServiceGroupName();
     final String serviceName = resourceFilter.getServiceName();
     final String componentName = resourceFilter.getComponentName();
     final String commandName = actionExecutionContext.getActionName();
@@ -286,7 +289,7 @@ public class AmbariCustomCommandExecutionHelper {
               throws AmbariException {
             return !maintenanceStateHelper.isOperationAllowed(
                 cluster, actionExecutionContext.getOperationLevel(),
-                resourceFilter, serviceName, componentName, hostname);
+                resourceFilter, serviceGroupName, serviceName, componentName, hostname);
           }
         }
     );
@@ -317,7 +320,7 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(message);
     }
 
-    Service service = cluster.getService(serviceName);
+    Service service = cluster.getService(serviceGroupName, serviceName);
     StackId stackId = service.getDesiredStackId();
 
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
@@ -339,7 +342,7 @@ public class AmbariCustomCommandExecutionHelper {
       stage.addHostRoleExecutionCommand(hostName, Role.valueOf(componentName),
           RoleCommand.CUSTOM_COMMAND,
           new ServiceComponentHostOpInProgressEvent(componentName, hostName, nowTimestamp),
-          cluster.getClusterName(), serviceName, retryAllowed, autoSkipFailure);
+          cluster.getClusterName(), serviceGroupName, serviceName, retryAllowed, autoSkipFailure);
 
       Map<String, Map<String, String>> configurations =
           new TreeMap<>();
@@ -562,9 +565,11 @@ public class AmbariCustomCommandExecutionHelper {
 
     String clusterName = actionExecutionContext.getClusterName();
     final Cluster cluster = clusters.getCluster(clusterName);
-    final String componentName = actionMetadata.getClient(resourceFilter.getServiceName());
+    final String serviceGroupName = resourceFilter.getServiceGroupName();
     final String serviceName = resourceFilter.getServiceName();
-    String smokeTestRole = actionMetadata.getServiceCheckAction(serviceName);
+    Service service = cluster.getService(serviceGroupName, serviceName);
+    final String componentName = actionMetadata.getClient(service.getServiceType());
+    String smokeTestRole = actionMetadata.getServiceCheckAction(service.getServiceType());
     if (null == smokeTestRole) {
       smokeTestRole = actionExecutionContext.getActionName();
     }
@@ -573,7 +578,7 @@ public class AmbariCustomCommandExecutionHelper {
     final Map<String, ServiceComponentHost> serviceHostComponents;
 
     if (componentName != null) {
-      serviceHostComponents = cluster.getService(serviceName).getServiceComponent(componentName).getServiceComponentHosts();
+      serviceHostComponents = cluster.getService(serviceGroupName, serviceName).getServiceComponent(componentName).getServiceComponentHosts();
 
       if (serviceHostComponents.isEmpty()) {
         throw new AmbariException(MessageFormat.format("No hosts found for service: {0}, component: {1} in cluster: {2}",
@@ -598,7 +603,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
     } else {
       // TODO: This code branch looks unreliable (taking random component, should prefer the clients)
-      Map<String, ServiceComponent> serviceComponents = cluster.getService(serviceName).getServiceComponents();
+      Map<String, ServiceComponent> serviceComponents = cluster.getService(serviceGroupName, serviceName).getServiceComponents();
 
       // Filter components without any HOST
       Iterator<String> serviceComponentNameIterator = serviceComponents.keySet().iterator();
@@ -661,7 +666,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     long nowTimestamp = System.currentTimeMillis();
     Map<String, String> actionParameters = actionExecutionContext.getParameters();
-    addServiceCheckAction(stage, preferredHostName, smokeTestRole, nowTimestamp, serviceName, componentName,
+    addServiceCheckAction(stage, preferredHostName, smokeTestRole, nowTimestamp, serviceGroupName, serviceName, componentName,
         actionParameters, actionExecutionContext.isRetryAllowed(),
         actionExecutionContext.isFailureAutoSkipped());
   }
@@ -712,7 +717,7 @@ public class AmbariCustomCommandExecutionHelper {
    * by service check.
    */
   public void addServiceCheckAction(Stage stage, String hostname, String smokeTestRole,
-      long nowTimestamp, String serviceName, String componentName,
+      long nowTimestamp, String serviceGroupName, String serviceName, String componentName,
       Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure)
           throws AmbariException {
 
@@ -734,7 +739,7 @@ public class AmbariCustomCommandExecutionHelper {
     stage.addHostRoleExecutionCommand(hostname, Role.valueOf(smokeTestRole),
         RoleCommand.SERVICE_CHECK,
         new ServiceComponentHostOpInProgressEvent(componentName, hostname, nowTimestamp),
-        cluster.getClusterName(), serviceName, retryAllowed, autoSkipFailure);
+        cluster.getClusterName(), serviceGroupName, serviceName, retryAllowed, autoSkipFailure);
 
     HostRoleCommand hrc = stage.getHostRoleCommand(hostname, smokeTestRole);
     if (hrc != null) {
@@ -856,6 +861,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     String clusterName = actionExecutionContext.getClusterName();
     final Cluster cluster = clusters.getCluster(clusterName);
+    final String serviceGroupName = resourceFilter.getServiceGroupName();
     final String serviceName = resourceFilter.getServiceName();
     String masterCompType = resourceFilter.getComponentName();
     List<String> hosts = resourceFilter.getHostNames();
@@ -883,7 +889,7 @@ public class AmbariCustomCommandExecutionHelper {
         "as well as exclusion. Hosts: " + cloneSet);
     }
 
-    Service service = cluster.getService(serviceName);
+    Service service = cluster.getService(serviceGroupName, serviceName);
     if (service == null) {
       throw new AmbariException("Specified service " + serviceName +
         " is not a valid/deployed service.");
@@ -956,7 +962,7 @@ public class AmbariCustomCommandExecutionHelper {
                 } else {
                   return !maintenanceStateHelper.isOperationAllowed(
                           cluster, actionExecutionContext.getOperationLevel(),
-                          resourceFilter, serviceName, slaveCompType, hostname);
+                          resourceFilter, serviceGroupName, serviceName, slaveCompType, hostname);
                 }
               }
             };
@@ -1040,7 +1046,7 @@ public class AmbariCustomCommandExecutionHelper {
       (actionExecutionContext, filteredIncludedHosts, listOfExcludedHosts);
 
     for (String hostName : masterSchs.keySet()) {
-      RequestResourceFilter commandFilter = new RequestResourceFilter(serviceName,
+      RequestResourceFilter commandFilter = new RequestResourceFilter(serviceGroupName, serviceName,
         masterComponent.getName(), Collections.singletonList(hostName));
       List<RequestResourceFilter> resourceFilters = new ArrayList<>();
       resourceFilters.add(commandFilter);
@@ -1118,17 +1124,27 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     for (RequestResourceFilter resourceFilter : resourceFilters) {
-      if (resourceFilter.getServiceName() == null
+      if (
+          //TODO uncomment for service group filter validation. Null checks
+//          resourceFilter.getServiceGroupName() == null
+//        || resourceFilter.getServiceGroupName().isEmpty()
+//        ||
+      resourceFilter.getServiceName() == null
         || resourceFilter.getServiceName().isEmpty()
         || actionRequest.getCommandName() == null
         || actionRequest.getCommandName().isEmpty()) {
         throw new AmbariException("Invalid resource filter : " + "cluster = "
-          + actionRequest.getClusterName() + ", service = "
+          + actionRequest.getClusterName() + ", service group = "
+          + resourceFilter.getServiceGroupName() + ", service = "
           + resourceFilter.getServiceName() + ", command = "
           + actionRequest.getCommandName());
       }
+      //can't be null, exception will be thrown if cluster or service is not found
+      Service service = clusters.getCluster(actionRequest.getClusterName()).
+          getService(resourceFilter.getServiceGroupName(), resourceFilter.getServiceName());
 
-      if (!isServiceCheckCommand(actionRequest.getCommandName(), resourceFilter.getServiceName())
+      String serviceType = service.getServiceType();
+      if (!isServiceCheckCommand(actionRequest.getCommandName(), serviceType)
         && !isValidCustomCommand(actionRequest, resourceFilter)) {
         throw new AmbariException(
           "Unsupported action " + actionRequest.getCommandName() +
@@ -1200,9 +1216,10 @@ public class AmbariCustomCommandExecutionHelper {
         RequestOperationLevel operationLevel = actionExecutionContext.getOperationLevel();
         if (operationLevel != null) {
           String clusterName = operationLevel.getClusterName();
+          String serviceGroupName = operationLevel.getServiceGroupName();
           String serviceName = operationLevel.getServiceName();
 
-          if (isTopologyRefreshRequired(actionName, clusterName, serviceName)) {
+          if (isTopologyRefreshRequired(actionName, clusterName, serviceGroupName, serviceName)) {
             extraParams.put(KeyNames.REFRESH_TOPOLOGY, "True");
           }
         }
@@ -1335,23 +1352,24 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionName   the action name (i.e. START, RESTART)
    * @param clusterName  the cluster name
+   * @param serviceGroupName  the service group name
    * @param serviceName  the service name
    *
    * @return true if a topology refresh is required for the action
    */
-  public boolean isTopologyRefreshRequired(String actionName, String clusterName, String serviceName)
+  public boolean isTopologyRefreshRequired(String actionName, String clusterName, String serviceGroupName, String serviceName)
       throws AmbariException {
 
     if (actionName.equals(START_COMMAND_NAME) || actionName.equals(RESTART_COMMAND_NAME)) {
       Cluster cluster = clusters.getCluster(clusterName);
       StackId stackId = null;
+      String serviceType = null;
+//      TODO add service group null checks when the UI is updated
+//      if (serviceGroupName != null) {
       if (serviceName != null) {
-        try {
-          Service service = cluster.getService(serviceName);
-          stackId = service.getDesiredStackId();
-        } catch (AmbariException e) {
-          LOG.debug("Could not load service {}, skipping topology check", serviceName);
-        }
+        Service service = cluster.getService(serviceGroupName, serviceName);
+        stackId = service.getDesiredStackId();
+        serviceType = service.getServiceType();
       }
 
       if (stackId == null) {
@@ -1362,7 +1380,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       if (stack != null) {
-        ServiceInfo serviceInfo = stack.getService(serviceName);
+        ServiceInfo serviceInfo = stack.getService(serviceType);
 
         if (serviceInfo != null) {
           // if there is a chance that this action was triggered by a change in rack info then we want to
@@ -1382,7 +1400,7 @@ public class AmbariCustomCommandExecutionHelper {
                                                 RequestResourceFilter resourceFilter){
     try {
       Cluster cluster = clusters.getCluster(actionExecutionContext.getClusterName());
-      Service service = cluster.getService(resourceFilter.getServiceName());
+      Service service = cluster.getService(resourceFilter.getServiceGroupName(), resourceFilter.getServiceName());
 
       return service.getServiceComponent(resourceFilter.getComponentName());
     } catch (Exception e) {

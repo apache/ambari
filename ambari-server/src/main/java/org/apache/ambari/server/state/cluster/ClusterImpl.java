@@ -1129,7 +1129,7 @@ public class ClusterImpl implements Cluster {
     }
 
     if (null == service) {
-      throw new ServiceNotFoundException(getClusterName(), serviceName);
+      throw new ServiceNotFoundException(getClusterName(), serviceGroupName, serviceName);
     }
 
     return service;

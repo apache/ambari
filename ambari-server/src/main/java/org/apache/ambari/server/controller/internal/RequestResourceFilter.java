@@ -25,6 +25,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class RequestResourceFilter implements ApiModel {
+  private String serviceGroupName;
   private String serviceName;
   private String componentName;
   private final List<String> hostNames = new ArrayList<>();
@@ -33,12 +34,19 @@ public class RequestResourceFilter implements ApiModel {
 
   }
 
-  public RequestResourceFilter(String serviceName, String componentName, List<String> hostNames) {
+  public RequestResourceFilter(String serviceGroupName, String serviceName, String componentName, List<String> hostNames) {
+    this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     if (hostNames != null) {
       this.hostNames.addAll(hostNames);
     }
+  }
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonProperty("service_group_name")
+  public String getServiceGroupName() {
+    return serviceGroupName;
   }
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
@@ -62,7 +70,8 @@ public class RequestResourceFilter implements ApiModel {
   @Override
   public String toString() {
     return "RequestResourceFilter{" +
-      "serviceName='" + serviceName + '\'' +
+      "serviceGroupName='" + serviceGroupName + '\'' +
+      ", serviceName='" + serviceName + '\'' +
       ", componentName='" + componentName + '\'' +
       ", hostNames=" + hostNames +
       '}';

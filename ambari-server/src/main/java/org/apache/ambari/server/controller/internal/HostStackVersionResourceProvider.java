@@ -438,7 +438,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
         osFamily, servicesOnHost);
 
     // Create custom action
-    RequestResourceFilter filter = new RequestResourceFilter(null, null,
+    RequestResourceFilter filter = new RequestResourceFilter(null, null, null,
             Collections.singletonList(hostName));
 
     ActionExecutionContext actionContext = new ActionExecutionContext(

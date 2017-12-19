@@ -126,7 +126,7 @@ public class ActionDefinitionManager {
             }
 
             actionDefinitionMap.put(ad.getActionName(), new ActionDefinition(ad.getActionName(), actionType,
-                ad.getInputs(), ad.getTargetService(), ad.getTargetComponent(), ad.getDescription(), targetType, defaultTimeout,
+                ad.getInputs(), ad.getTargetServiceGroup(), ad.getTargetService(), ad.getTargetComponent(), ad.getDescription(), targetType, defaultTimeout,
                 translatePermissions(ad.getPermissions())));
             LOG.info("Added custom action definition for " + ad.getActionName());
           } else {
@@ -156,9 +156,14 @@ public class ActionDefinitionManager {
         return false;
       }
 
-      if (ad.getTargetService() == null || ad.getTargetService().isEmpty()) {
-        if (ad.getTargetComponent() != null && !ad.getTargetComponent().isEmpty()) {
-          reason.append("Target component cannot be specified unless target service is specified");
+      if (ad.getTargetServiceGroup() == null || ad.getTargetServiceGroup().isEmpty()) {
+        if (ad.getTargetService() == null || ad.getTargetService().isEmpty()) {
+          if (ad.getTargetComponent() != null && !ad.getTargetComponent().isEmpty()) {
+            reason.append("Target component cannot be specified unless target service is specified");
+            return false;
+          }
+        } else {
+          reason.append("Target service cannot be specified unless target service group is specified");
           return false;
         }
       }

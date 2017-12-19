@@ -1055,7 +1055,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
 
     // add each host to this stage
-    RequestResourceFilter filter = new RequestResourceFilter(serviceName, componentName,
+    //TODO pass service group name once upgrade is fixed
+    RequestResourceFilter filter = new RequestResourceFilter("", serviceName, componentName,
         new ArrayList<>(wrapper.getHosts()));
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
@@ -1119,7 +1120,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     for (TaskWrapper tw : wrapper.getTasks()) {
       // add each host to this stage
-      filters.add(new RequestResourceFilter(tw.getService(), tw.getComponent(),
+      //TODO pass service group name once upgrade is fixed
+      filters.add(new RequestResourceFilter("", tw.getService(), tw.getComponent(),
           new ArrayList<>(tw.getHosts())));
     }
 
@@ -1190,7 +1192,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
-      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.emptyList()));
+      //TODO pass service group name once upgrade is fixed
+      filters.add(new RequestResourceFilter("", tw.getService(), "", Collections.emptyList()));
     }
 
     Cluster cluster = context.getCluster();

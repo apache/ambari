@@ -279,6 +279,7 @@ public class AmbariActionExecutionHelper {
     // List of host to select from
     Set<String> candidateHosts = new HashSet<>();
 
+    final String serviceGroupName = actionContext.getExpectedServiceGroupName();
     final String serviceName = actionContext.getExpectedServiceName();
     final String componentName = actionContext.getExpectedComponentName();
 
@@ -291,9 +292,11 @@ public class AmbariActionExecutionHelper {
 
     if (null != cluster) {
 //      StackId stackId = cluster.getCurrentStackVersion();
+//      TODO add service group null checks when the UI is updated
+//      if (serviceGroupName != null && !serviceGroupName.isEmpty()) {
       if (serviceName != null && !serviceName.isEmpty()) {
         if (componentName != null && !componentName.isEmpty()) {
-          Service service = cluster.getService(serviceName);
+          Service service = cluster.getService(serviceGroupName, serviceName);
           ServiceComponent component = service.getServiceComponent(componentName);
           StackId stackId = component.getDesiredStackId();
 
@@ -308,8 +311,8 @@ public class AmbariActionExecutionHelper {
             LOG.error("Did not find service {} and component {} in stack {}.", serviceName, componentName, stackId.getStackName());
           }
         } else {
-          for (String component : cluster.getService(serviceName).getServiceComponents().keySet()) {
-            Map<String, ServiceComponentHost> componentHosts = cluster.getService(serviceName)
+          for (String component : cluster.getService(serviceGroupName, serviceName).getServiceComponents().keySet()) {
+            Map<String, ServiceComponentHost> componentHosts = cluster.getService(serviceGroupName, serviceName)
                 .getServiceComponent(component).getServiceComponentHosts();
             candidateHosts.addAll(componentHosts.keySet());
           }
@@ -328,7 +331,7 @@ public class AmbariActionExecutionHelper {
                         throws AmbariException {
                   return ! maintenanceStateHelper.isOperationAllowed(
                           cluster, actionContext.getOperationLevel(),
-                          resourceFilter, serviceName, componentName, hostname);
+                          resourceFilter, serviceGroupName, serviceName, componentName, hostname);
                 }
               }
       );
@@ -343,7 +346,7 @@ public class AmbariActionExecutionHelper {
     // If request did not specify hosts and there exists no host
     if (resourceFilter.getHostNames().isEmpty() && candidateHosts.isEmpty()) {
       throw new AmbariException("Suitable hosts not found, component="
-              + componentName + ", service=" + serviceName
+              + componentName + ", service=" + serviceName + ", serviceGroup=" + serviceGroupName
               + ((null == cluster) ? "" : ", cluster=" + cluster.getClusterName() + ", ")
               + "actionName=" + actionContext.getActionName());
     }
@@ -355,7 +358,7 @@ public class AmbariActionExecutionHelper {
           if (!candidateHosts.contains(hostname)) {
             throw new AmbariException("Request specifies host " + hostname +
               " but it is not a valid host based on the " +
-              "target service=" + serviceName + " and component=" + componentName);
+              "target serviceGroup=" + serviceGroupName + ", service=" + serviceName + " and component=" + componentName);
           }
         }
       }
@@ -397,7 +400,7 @@ public class AmbariActionExecutionHelper {
           RoleCommand.ACTIONEXECUTE,
           new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(), hostName,
               System.currentTimeMillis()),
-          clusterName, serviceName, actionContext.isRetryAllowed(),
+          clusterName, serviceGroupName, serviceName, actionContext.isRetryAllowed(),
           actionContext.isFailureAutoSkipped());
 
       Map<String, String> commandParams = new TreeMap<>();
@@ -448,6 +451,9 @@ public class AmbariActionExecutionHelper {
       }
 
       execCmd.setConfigurationTags(configTags);
+
+      execCmd.setServiceGroupName(serviceGroupName == null || serviceGroupName.isEmpty() ?
+        resourceFilter.getServiceGroupName() : serviceGroupName);
 
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);

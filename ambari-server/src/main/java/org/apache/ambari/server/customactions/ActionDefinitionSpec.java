@@ -22,6 +22,7 @@ public class ActionDefinitionSpec {
   private String actionName;
   private String actionType;
   private String inputs;
+  private String targetServiceGroup;
   private String targetService;
   private String targetComponent;
   private String description;
@@ -93,6 +94,14 @@ public class ActionDefinitionSpec {
     this.targetService = targetService;
   }
 
+  public String getTargetServiceGroup() {
+    return targetServiceGroup;
+  }
+
+  public void setTargetServiceGroup(String targetServiceGroup) {
+    this.targetServiceGroup = targetServiceGroup;
+  }
+
   public String getPermissions() {
     return permissions;
   }
@@ -139,6 +148,7 @@ public class ActionDefinitionSpec {
         .append(" actionType: ").append(actionType)
         .append(" inputs: ").append(inputs)
         .append(" description: ").append(description)
+        .append(" targetServiceGroup: ").append(targetServiceGroup)
         .append(" targetService: ").append(targetService)
         .append(" targetComponent: ").append(targetComponent)
         .append(" defaultTimeout: ").append(defaultTimeout)

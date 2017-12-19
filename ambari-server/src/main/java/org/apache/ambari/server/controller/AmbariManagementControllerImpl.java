@@ -674,7 +674,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       Service s;
       try {
-        s = cluster.getService(request.getServiceName());
+        s = cluster.getService(request.getServiceGroupName(), request.getServiceName());
       } catch (ServiceNotFoundException e) {
         throw new IllegalArgumentException(
             "The service[" + request.getServiceName() + "] associated with the component[" +
@@ -2256,7 +2256,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return null;
   }
 
-  private Set<String> getServicesForSmokeTests(Cluster cluster,
+  private Set<Service> getServicesForSmokeTests(Cluster cluster,
              Map<State, List<Service>> changedServices,
              Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
              boolean runSmokeTest) throws AmbariException {
@@ -2266,7 +2266,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // are not in a Maintenance state.
     Resource.Type opLvl = Resource.Type.Cluster;
 
-    Set<String> smokeTestServices = new HashSet<>();
+    Set<Service> smokeTestServices = new HashSet<>();
 
     // Adding smoke checks for changed services
     if (changedServices != null) {
@@ -2277,14 +2277,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (Service s : entry.getValue()) {
           if (runSmokeTest && (State.INSTALLED == s.getDesiredState() &&
                   maintenanceStateHelper.isOperationAllowed(opLvl, s))) {
-            smokeTestServices.add(s.getName());
+            smokeTestServices.add(s);
           }
         }
       }
     }
 
     // Adding smoke checks for changed host components
-    Map<String, Map<String, Integer>> changedComponentCount =
+    Map<Long, Map<String, Integer>> changedComponentCount =
       new HashMap<>();
     for (Map<State, List<ServiceComponentHost>> stateScHostMap :
       changedScHosts.values()) {
@@ -2300,17 +2300,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           if (! maintenanceStateHelper.isOperationAllowed(opLvl, sch)) {
             continue;
           }
-          if (!changedComponentCount.containsKey(sch.getServiceName())) {
-            changedComponentCount.put(sch.getServiceName(), new HashMap<>());
+          if (!changedComponentCount.containsKey(sch.getServiceId())) {
+            changedComponentCount.put(sch.getServiceId(), new HashMap<>());
           }
-          if (!changedComponentCount.get(sch.getServiceName())
+          if (!changedComponentCount.get(sch.getServiceId())
             .containsKey(sch.getServiceComponentName())) {
-            changedComponentCount.get(sch.getServiceName())
+            changedComponentCount.get(sch.getServiceId())
               .put(sch.getServiceComponentName(), 1);
           } else {
-            Integer i = changedComponentCount.get(sch.getServiceName())
+            Integer i = changedComponentCount.get(sch.getServiceId())
               .get(sch.getServiceComponentName());
-            changedComponentCount.get(sch.getServiceName())
+            changedComponentCount.get(sch.getServiceId())
               .put(sch.getServiceComponentName(), ++i);
           }
         }
@@ -2319,19 +2319,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // Add service checks for any changed master component hosts or if
     // more then one component has been changed for a service
-    for (Entry<String, Map<String, Integer>> entry :
+    for (Entry<Long, Map<String, Integer>> entry :
       changedComponentCount.entrySet()) {
-      String serviceName = entry.getKey();
-      Service s = cluster.getService(serviceName);
+      Long serviceId = entry.getKey();
+      Service s = cluster.getService(serviceId);
       // smoke test service if more than one component is started
       if (runSmokeTest && (entry.getValue().size() > 1) &&
               maintenanceStateHelper.isOperationAllowed(opLvl, s)) {
-        smokeTestServices.add(serviceName);
+        smokeTestServices.add(cluster.getService(serviceId));
         continue;
       }
       for (String componentName :
-        changedComponentCount.get(serviceName).keySet()) {
-        ServiceComponent sc = cluster.getService(serviceName).
+        changedComponentCount.get(serviceId).keySet()) {
+        ServiceComponent sc = cluster.getService(serviceId).
           getServiceComponent(componentName);
         StackId stackId = sc.getDesiredStackId();
         ComponentInfo compInfo = ambariMetaInfo.getComponent(
@@ -2341,7 +2341,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 // op lvl handling for service component
                 // is the same as for service
                 maintenanceStateHelper.isOperationAllowed(opLvl, s)) {
-          smokeTestServices.add(serviceName);
+          smokeTestServices.add(cluster.getService(serviceId));
         }
         // FIXME if master check if we need to run a smoke test for the master
       }
@@ -2463,10 +2463,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 )
                                 throws AmbariException {
 
+    String serviceGroupName = scHost.getServiceGroupName();
     String serviceName = scHost.getServiceName();
 
     stage.addHostRoleExecutionCommand(scHost.getHost(),
-        Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, serviceName, false, skipFailure);
+        Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, serviceGroupName, serviceName, false, skipFailure);
 
     String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();
@@ -2477,6 +2478,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, Service> services = cluster.getServices();
     Map<String, ServiceInfo> servicesMap = new HashMap<>();
     for(String clusterServiceName : services.keySet() ){
+      //TODO fix matainfo
       servicesMap.put(clusterServiceName, ambariMetaInfo.getService(services.get(clusterServiceName)));
     }
     StackId stackId = scHost.getServiceComponent().getDesiredStackId();
@@ -2497,7 +2499,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setConfigurationTags(configTags);
 
     // Get the value of credential store enabled from the DB
-    Service clusterService = cluster.getService(serviceName);
+    Service clusterService = cluster.getService(serviceGroupName, serviceName);
     execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
 
     ServiceComponent component = clusterService.getServiceComponent(componentName);
@@ -2581,7 +2583,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               retryEnabled = commandMayBeRetried;
             }
           }
-          LOG.info("Auto retry setting for {}-{} on {} is retryEnabled={} and retryMaxTime={}", serviceName, componentName, scHost.getHostName(), retryEnabled, retryMaxTime);
+          LOG.info("Auto retry setting for {}-{}-{} on {} is retryEnabled={} and retryMaxTime={}", serviceGroupName, serviceName, componentName, scHost.getHostName(), retryEnabled, retryMaxTime);
         }
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
@@ -2590,8 +2592,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           scriptCommandTimeout = String.valueOf(script.getTimeout());
         }
       } else {
-        String message = String.format("Component %s of service %s has no " +
-          "command script defined", componentName, serviceName);
+        String message = String.format("Component %s of service %s of % service group has no " +
+          "command script defined", componentName, serviceName, serviceGroupName);
         throw new AmbariException(message);
       }
     }
@@ -2616,7 +2618,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     String clusterName = cluster.getClusterName();
-    if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceName)) {
+    if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceGroupName, serviceName)) {
       commandParams.put(ExecutionCommand.KeyNames.REFRESH_TOPOLOGY, "True");
     }
     StageUtils.useAmbariJdkInCommandParams(commandParams, configs);
@@ -2833,7 +2835,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               new ActionExecutionContext(actionRequest.getClusterName(),
               actionRequest.getActionName(), actionRequest.getResourceFilters(),
               actionRequest.getParameters(), actionDef.getTargetType(),
-              actionDef.getDefaultTimeout(), actionDef.getTargetService(),
+              actionDef.getDefaultTimeout(), actionDef.getTargetServiceGroup(), actionDef.getTargetService(),
               actionDef.getTargetComponent());
       actionExecutionContext.setOperationLevel(operationLevel);
       return actionExecutionContext;
@@ -2876,7 +2878,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     DatabaseType databaseType = configs.getDatabaseType();
 
     // smoke test any service that goes from installed to started
-    Set<String> smokeTestServices = getServicesForSmokeTests(cluster,
+    Set<Service> smokeTestServices = getServicesForSmokeTests(cluster,
       changedServices, changedScHosts, runSmokeTest);
 
     if (reconfigureClients) {
@@ -3241,26 +3243,26 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
 
-      for (String serviceName : smokeTestServices) { // Creates smoke test commands
-        Service s = cluster.getService(serviceName);
+      for (Service service : smokeTestServices) { // Creates smoke test commands
         // find service component host
-        ServiceComponent component = getClientComponentForRunningAction(cluster, s);
+        ServiceComponent component = getClientComponentForRunningAction(cluster, service);
         String componentName = component != null ? component.getName() : null;
-        String clientHost = getClientHostForRunningAction(cluster, s, component);
-        String smokeTestRole = actionMetadata.getServiceCheckAction(serviceName);
+        String clientHost = getClientHostForRunningAction(cluster, service, component);
+        String smokeTestRole = actionMetadata.getServiceCheckAction(service.getServiceType());
 
         if (clientHost == null || smokeTestRole == null) {
           LOG.info("Nothing to do for service check as could not find role or"
               + " or host to run check on"
               + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + serviceName
+              + ", serviceGroupName=" + service.getServiceGroupName()
+              + ", serviceName=" + service.getName()
               + ", clientHost=" + clientHost
               + ", serviceCheckRole=" + smokeTestRole);
           continue;
         }
 
         customCommandExecutionHelper.addServiceCheckAction(stage, clientHost, smokeTestRole,
-            nowTimestamp, serviceName, componentName, null, false, false);
+            nowTimestamp, service.getServiceGroupName(), service.getName(), componentName, null, false, false);
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -3506,7 +3508,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     //keep 2 maps for simpler maintenance
-    Map<String, String> serviceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Map<String, String>> serviceGroupServiceMasterForDecommissionMap = new HashMap<>();
     Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
     for (Map<State, List<ServiceComponentHost>> stateScHostMap :
         changedScHosts.values()) {
@@ -3518,6 +3520,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           //Create map for include/exclude files refresh
           if (masterToSlaveMappingForDecom.containsValue(componentName) &&
             sch.getState() == State.INIT && newState == State.INSTALLED) {
+            String serviceGroupName = sch.getServiceGroupName();
             String serviceName = sch.getServiceName();
             String masterComponentName = null;
             for (Entry<String, String> entrySet : masterToSlaveMappingForDecom.entrySet()) {
@@ -3527,8 +3530,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
             try {
               //Filter services whose masters are not started
-              if (isServiceComponentStartedOnAnyHost(cluster, serviceName, masterComponentName)) {
-                serviceMasterForDecommissionMap.put(serviceName, masterComponentName);
+              if (isServiceComponentStartedOnAnyHost(cluster, serviceGroupName, serviceName, masterComponentName)) {
+                serviceGroupServiceMasterForDecommissionMap.putIfAbsent(serviceGroupName, new HashMap<>());
+                serviceGroupServiceMasterForDecommissionMap.get(serviceGroupName).put(serviceName, masterComponentName);
                 masterSlaveHostsMap.putIfAbsent(masterComponentName, new HashSet<>());
                 masterSlaveHostsMap.get(masterComponentName).add(sch.getHostName());
               } else {
@@ -3546,7 +3550,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     try {
-      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(serviceMasterForDecommissionMap, masterSlaveHostsMap, cluster.getClusterName(), false);
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(serviceGroupServiceMasterForDecommissionMap, masterSlaveHostsMap, cluster.getClusterName(), false);
     } catch (AmbariException e) {
       LOG.error("Exception during refresh include exclude files action : ", e);
     }
@@ -3558,8 +3562,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private boolean isServiceComponentStartedOnAnyHost(Cluster cluster, String serviceName, String masterComponentName) throws AmbariException {
-    Service service = cluster.getService(serviceName);
+  private boolean isServiceComponentStartedOnAnyHost(Cluster cluster, String serviceGroupName, String serviceName, String masterComponentName) throws AmbariException {
+    Service service = cluster.getService(serviceGroupName, serviceName);
     ServiceComponent serviceComponent = service.getServiceComponent(masterComponentName);
     Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
     for (ServiceComponentHost sch : schMap.values()) {
@@ -3793,7 +3797,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     //keep 2 maps for simpler maintenance
-    Map<String, Map<String, String>> clusterServiceMasterForDecommissionMap = new HashMap<>();
+    Map<String, Map<String, Map<String, String>>> clusterServiceGroupServiceMasterForDecommissionMap = new HashMap<>();
     Map<String, Map<String, Set<String>>> clusterMasterSlaveHostsMap = new HashMap<>();
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
@@ -3810,15 +3814,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 masterComponentName = entrySet.getKey();
               }
             }
-            if (clusterServiceMasterForDecommissionMap.containsKey(componentHost.getClusterName())) {
-              clusterServiceMasterForDecommissionMap.get(componentHost.getClusterName()).put(componentHost.getServiceName(), masterComponentName);
+            String clusterName = componentHost.getClusterName();
+            String serviceGroupName = componentHost.getServiceGroupName();
+            String serviceName = componentHost.getServiceName();
+            if (clusterServiceGroupServiceMasterForDecommissionMap.containsKey(clusterName)) {
+              Map<String, Map<String, String>> serviceGroupServiceMasterMap = clusterServiceGroupServiceMasterForDecommissionMap.get(clusterName);
+              serviceGroupServiceMasterMap.putIfAbsent(serviceGroupName, new HashMap<>());
+              serviceGroupServiceMasterMap.get(serviceGroupName).put(serviceName, masterComponentName);
               Map<String, Set<String>> masterSlaveMap  = clusterMasterSlaveHostsMap.get(componentHost.getClusterName());
               masterSlaveMap.putIfAbsent(masterComponentName, new HashSet<>());
               masterSlaveMap.get(masterComponentName).add(componentHost.getHostName());
             } else {
-              Map<String, String> serviceMasterMap = new HashMap<>();
-              serviceMasterMap.put(componentHost.getServiceName(), masterComponentName);
-              clusterServiceMasterForDecommissionMap.put(componentHost.getClusterName(), serviceMasterMap);
+              Map<String, Map<String, String>> serviceGroupServiceMasterMap = new HashMap<>();
+              serviceGroupServiceMasterMap.putIfAbsent(serviceGroupName, new HashMap<>());
+              serviceGroupServiceMasterMap.get(serviceGroupName).put(serviceName, masterComponentName);
+              clusterServiceGroupServiceMasterForDecommissionMap.put(clusterName, serviceGroupServiceMasterMap);
 
               Map<String, Set<String>> masterSlaveHostsMap = new HashMap<>();
               masterSlaveHostsMap.put(masterComponentName, new HashSet<>(Collections.singletonList(componentHost.getHostName())));
@@ -3832,8 +3842,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    for (String cluster : clusterServiceMasterForDecommissionMap.keySet()) {
-      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(clusterServiceMasterForDecommissionMap.get(cluster), clusterMasterSlaveHostsMap.get(cluster), cluster, true);
+    for (String cluster : clusterServiceGroupServiceMasterForDecommissionMap.keySet()) {
+      createAndExecuteRefreshIncludeExcludeFilesActionForMasters(clusterServiceGroupServiceMasterForDecommissionMap.get(cluster), clusterMasterSlaveHostsMap.get(cluster), cluster, true);
     }
 
     //Do not break behavior for existing clients where delete request contains only 1 host component.
@@ -3885,20 +3895,24 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   /**
    * Creates and triggers an action to update include and exclude files for the master components depending on current cluster topology and components state
-   * @param serviceMasterMap
+   * @param serviceGroupServiceMasterMap
    * @param masterSlaveHostsMap
    *@param clusterName  @throws AmbariException
    */
-  private void createAndExecuteRefreshIncludeExcludeFilesActionForMasters(Map<String, String> serviceMasterMap, Map<String, Set<String>> masterSlaveHostsMap, String clusterName, boolean isDecommission) throws AmbariException {
+  private void createAndExecuteRefreshIncludeExcludeFilesActionForMasters(Map<String, Map<String, String>> serviceGroupServiceMasterMap, Map<String, Set<String>> masterSlaveHostsMap, String clusterName, boolean isDecommission) throws AmbariException {
     //Clear include/exclude files or draining list except HBASE
-    serviceMasterMap.remove(Service.Type.HBASE.toString());
+    serviceGroupServiceMasterMap.remove(Service.Type.HBASE.toString());
     //exit if empty
-    if (serviceMasterMap.isEmpty()) {
+    if (serviceGroupServiceMasterMap.isEmpty()) {
       return;
     }
-    LOG.debug("Refresh include/exclude files action will be executed for " + serviceMasterMap);
+    LOG.debug("Refresh include/exclude files action will be executed for " + serviceGroupServiceMasterMap);
     HashMap<String, String> requestProperties = new HashMap<>();
-    requestProperties.put("context", "Update Include/Exclude Files for " + serviceMasterMap.keySet().toString());
+    if (serviceGroupServiceMasterMap.size() == 1) {
+      requestProperties.put("context", "Update Include/Exclude Files for " + serviceGroupServiceMasterMap.get(serviceGroupServiceMasterMap.keySet().iterator().next()).keySet());
+    } else {
+      requestProperties.put("context", "Update Include/Exclude Files for " + serviceGroupServiceMasterMap);
+    }
     HashMap<String, String> params = new HashMap<>();
     params.put(AmbariCustomCommandExecutionHelper.UPDATE_FILES_ONLY, String.valueOf(isDecommission));
 
@@ -3911,9 +3925,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     params.put(AmbariCustomCommandExecutionHelper.IS_ADD_OR_DELETE_SLAVE_REQUEST, "true");
 
     //Create filter for command
-    List<RequestResourceFilter> resourceFilters = new ArrayList<>(serviceMasterMap.size());
-    for (String serviceName : serviceMasterMap.keySet()) {
-      resourceFilters.add(new RequestResourceFilter(serviceName, serviceMasterMap.get(serviceName), null));
+    List<RequestResourceFilter> resourceFilters = new ArrayList<>(serviceGroupServiceMasterMap.size());
+    for (String serviceGroupName : serviceGroupServiceMasterMap.keySet()) {
+      for (String serviceName : serviceGroupServiceMasterMap.get(serviceGroupName).keySet()) {
+        resourceFilters.add(new RequestResourceFilter(serviceGroupName, serviceName,
+            serviceGroupServiceMasterMap.get(serviceGroupName).get(serviceName), null));
+      }
     }
 
     //Create request for command
