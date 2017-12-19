@@ -56,7 +56,7 @@
     "all_ping_ports": [
       "8670"
     ],
-    "rm_host": [
+    "resourcemanager_hosts": [
       "0b3.vm"
     ],
     "all_hosts": [

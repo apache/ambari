@@ -1050,7 +1050,7 @@ class Script(object):
   def generate_configs_get_xml_file_content(self, filename, dict):
     config = self.get_config()
     return {'configurations':config['configurations'][dict],
-            'configurationAttributes':config['configurationAttributes'][dict]}
+            'configuration_attributes':config['configurationAttributes'][dict]}
 
   def generate_configs_get_xml_file_dict(self, filename, dict):
     config = self.get_config()

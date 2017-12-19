@@ -812,7 +812,7 @@
         "hbase_regionserver_hosts": [
             "c6402.ambari.apache.org"
         ], 
-        "webhcat_server_host": [
+        "webhcat_server_hosts": [
             "c6402.ambari.apache.org"
         ], 
         "zookeeper_server_hosts": [

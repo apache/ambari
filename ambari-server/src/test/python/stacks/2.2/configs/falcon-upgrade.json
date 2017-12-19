@@ -406,7 +406,7 @@
         "ambari_server_host": [
             "hw10897.ix"
         ], 
-        "rm_host": [
+        "resourcemanager_hosts": [
             "c6402.ambari.apache.org"
         ], 
         "all_hosts": [
@@ -435,7 +435,7 @@
         "oozie_server": [
             "c6402.ambari.apache.org"
         ], 
-        "webhcat_server_host": [
+        "webhcat_server_hosts": [
             "c6402.ambari.apache.org"
         ], 
         "zookeeper_server_hosts": [
@@ -449,7 +449,7 @@
         "hs_host": [
             "c6402.ambari.apache.org"
         ], 
-        "hive_server_host": [
+        "hive_server_hosts": [
             "c6402.ambari.apache.org"
         ]
     }

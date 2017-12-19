@@ -84,7 +84,7 @@ class TestHBaseMaster(RMFTestCase):
       # the json file is not a "well formed" install command
       json_content['roleCommand'] = 'INSTALL'
       json_content['commandParams']['version'] = version
-      json_content['hostLevelParams']['package_list'] = "[{\"name\":\"hbase_${stack_version}\",\"condition\":\"\",\"skipUpgrade\":false}]"
+      json_content['commandParams']['package_list'] = "[{\"name\":\"hbase_${stack_version}\",\"condition\":\"\",\"skipUpgrade\":false}]"
 
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                          classname = "HbaseMaster",

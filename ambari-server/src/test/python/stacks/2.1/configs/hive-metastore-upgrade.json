@@ -625,7 +625,7 @@
         "hive_metastore_host": [
             "c6402.ambari.apache.org"
         ], 
-        "rm_host": [
+        "resourcemanager_hosts": [
             "c6402.ambari.apache.org"
         ], 
         "all_hosts": [
@@ -642,7 +642,7 @@
         "hive_mysql_host": [
             "c6402.ambari.apache.org"
         ], 
-        "webhcat_server_host": [
+        "webhcat_server_hosts": [
             "c6402.ambari.apache.org"
         ], 
         "all_ipv4_ips": [
@@ -653,7 +653,7 @@
         "ambari_server_host": [
             "10.0.0.13"
         ], 
-        "hive_server_host": [
+        "hive_server_hosts": [
             "c6402.ambari.apache.org"
         ], 
         "all_racks": [

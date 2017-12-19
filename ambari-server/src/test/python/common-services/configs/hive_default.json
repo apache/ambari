@@ -758,7 +758,7 @@
       "8670",
       "8670"
     ],
-    "rm_host": [
+    "resourcemanager_hosts": [
       "c6402.ambari.apache.org"
     ],
     "all_hosts": [

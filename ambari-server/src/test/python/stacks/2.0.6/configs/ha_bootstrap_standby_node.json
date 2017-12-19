@@ -753,7 +753,7 @@
             "c6401.ambari.apache.org", 
             "c6402.ambari.apache.org"
         ], 
-        "rm_host": [
+        "resourcemanager_hosts": [
             "c6402.ambari.apache.org"
         ], 
         "all_hosts": [

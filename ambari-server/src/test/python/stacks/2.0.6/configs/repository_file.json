@@ -1199,7 +1199,7 @@
         "ganglia_server_host": [
             "c6401.ambari.apache.org"
         ],
-        "hive_server_host": [
+        "hive_server_hosts": [
             "c6402.ambari.apache.org"
         ],
         "logviewer_server_hosts": [
@@ -1211,7 +1211,7 @@
         "hbase_rs_hosts": [
             "c6402.ambari.apache.org"
         ],
-        "webhcat_server_host": [
+        "webhcat_server_hosts": [
             "c6402.ambari.apache.org"
         ],
         "zookeeper_server_hosts": [
@@ -1230,7 +1230,7 @@
             "8670",
             "8670"
         ],
-        "rm_host": [
+        "resourcemanager_hosts": [
             "c6402.ambari.apache.org"
         ],
         "all_hosts": [
