@@ -23,6 +23,7 @@ angular.module('ambariAdminConsole')
     $scope.getConstant = function (key) {
       return $t(key).toLowerCase();
     };
+    $scope.minInstanceForPagination = Settings.minRowsToShowPagination;
     $scope.isLoading = false;
     $scope.clusterName = $routeParams.clusterName;
     $scope.filter = {

@@ -18,9 +18,10 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('RemoteClustersListCtrl', ['$scope', '$routeParams', '$translate', 'RemoteCluster', function ($scope, $routeParams, $translate, RemoteCluster) {
+.controller('RemoteClustersListCtrl', ['$scope', '$routeParams', '$translate', 'RemoteCluster', 'Settings', function ($scope, $routeParams, $translate, RemoteCluster, Settings) {
   var $t = $translate.instant;
 
+  $scope.minInstanceForPagination = Settings.minRowsToShowPagination;
   $scope.clusterName = $routeParams.clusterName;
   $scope.isLoading = false;
 
