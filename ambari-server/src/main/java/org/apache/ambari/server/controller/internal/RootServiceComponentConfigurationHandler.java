@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.SystemException;
 
@@ -35,7 +37,7 @@ abstract class RootServiceComponentConfigurationHandler {
    * @return a map of category names to properties (name/value pairs).
    * @throws NoSuchResourceException if the requested data is not found
    */
-  public abstract Map<String, Map<String, String>> getConfigurations(String categoryName) throws NoSuchResourceException;
+  public abstract Map<String, RootServiceComponentConfiguration> getConfigurations(String categoryName) throws NoSuchResourceException;
 
   /**
    * Delete the requested configuration.
@@ -58,8 +60,9 @@ abstract class RootServiceComponentConfigurationHandler {
    * @param properties                     a map of properties to set
    * @param removePropertiesIfNotSpecified <code>true</code> to ensure the set of properties are only those that have be explicitly specified;
    *                                       <code>false</code> to update the set of existing properties with the specified set of properties, adding missing properties but not removing any properties
+   * @throws AmbariException in case an error occurred while updating category's properties
    */
-  public abstract void updateCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified);
+  public abstract void updateCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException;
 
   /**
    * Preform some operation on the set of data for a category.
