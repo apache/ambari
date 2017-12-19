@@ -2774,6 +2774,9 @@ public class Configuration {
   public static final ConfigurationProperty<String> DISPATCH_PROPERTY_SCRIPT_DIRECTORY = new ConfigurationProperty<>(
           "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
 
+  @Markdown(description = "Whether security password encryption is enabled or not. In case it is we store passwords in their own file(s); otherwise we store passwords in the Ambari credential store.")
+  public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<Boolean>("security.passwords.encryption.enabled", false);
+
 
   /**
    * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
@@ -5723,6 +5726,13 @@ public class Configuration {
   }
 
   /**
+   * @return  whether security password encryption is enabled or not (defaults to {@code false})
+   */
+  public boolean isSecurityPasswordEncryptionEnabled() {
+    return Boolean.parseBoolean(getProperty(SECURITY_PASSWORD_ENCRYPTON_ENABLED));
+  }
+
+  /**
    * Generates a markdown table which includes:
    * <ul>
    * <li>Property key name</li>
@@ -5899,7 +5909,6 @@ public class Configuration {
     private ConfigurationProperty(String key, T defaultValue) {
       m_key = key;
       m_defaultValue = defaultValue;
-
     }
 
     /**
