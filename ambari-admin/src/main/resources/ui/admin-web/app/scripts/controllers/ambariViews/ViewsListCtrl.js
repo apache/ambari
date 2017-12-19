@@ -24,6 +24,29 @@ angular.module('ambariAdminConsole')
   $scope.isLoading = false;
   $scope.minInstanceForPagination = Settings.minRowsToShowPagination;
 
+  $scope.filters = [
+    {
+      key: 'short_url_name',
+      label: $t('common.name'),
+      options: []
+    },
+    {
+      key: 'url',
+      label: $t('urls.url'),
+      options: []
+    },
+    {
+      key: 'view_name',
+      label: $t('views.table.viewType'),
+      options: []
+    },
+    {
+      key: 'instance_name',
+      label: $t('urls.viewInstance'),
+      options: []
+    }
+  ];
+
   function checkViewVersionStatus(view, versionObj, versionNumber) {
     var deferred = View.checkViewVersionStatus(view.view_name, versionNumber);
 
@@ -66,25 +89,11 @@ angular.module('ambariAdminConsole')
           $scope.instances.push(instance.ViewInstanceInfo);
         });
       });
-      initTypeFilter();
+      $scope.initFilterOptions();
       $scope.filterInstances();
     }).catch(function (data) {
       Alert.error($t('views.alerts.cannotLoadViews'), data.data.message);
     });
-  }
-
-  function initTypeFilter() {
-    var uniqTypes = $.unique($scope.instances.map(function(instance) {
-      return instance.view_name;
-    }));
-    $scope.typeFilterOptions = [ { label: $t('common.all'), value: '*'} ]
-      .concat(uniqTypes.map(function(type) {
-        return {
-          label: type,
-          value: type
-        };
-      }));
-    $scope.instanceTypeFilter = $scope.typeFilterOptions[0];
   }
 
   function showInstancesOnPage() {
@@ -110,11 +119,7 @@ angular.module('ambariAdminConsole')
   $scope.instances = [];
   $scope.instancesPerPage = 10;
   $scope.currentPage = 1;
-  $scope.instanceNameFilter = '';
-  $scope.instanceUrlFilter = '';
   $scope.maxVisiblePages = 10;
-  $scope.isNotEmptyFilter = true;
-  $scope.instanceTypeFilter = '';
   $scope.tableInfo = {
     filtered: 0,
     showed: 0
@@ -122,23 +127,44 @@ angular.module('ambariAdminConsole')
 
   loadViews();
 
-  $scope.filterInstances = function() {
+  $scope.initFilterOptions = function() {
+    $scope.filters.forEach(function(filter) {
+      filter.options = $.unique($scope.instances.map(function(instance) {
+        if (filter.key === 'url') {
+          return '/main/view/' + instance.view_name + '/' + instance.short_url;
+        }
+        return instance[filter.key];
+      })).map(function(item) {
+        return {
+          key: item,
+          label: item
+        }
+      });
+    });
+  };
+
+  $scope.filterInstances = function(appliedFilters) {
     var filteredCount = 0;
     angular.forEach($scope.instances, function(instance) {
-      if ($scope.instanceNameFilter && instance.short_url_name.indexOf($scope.instanceNameFilter) === -1) {
-        return instance.isFiltered = false;
-      }
-      if ($scope.instanceUrlFilter && ('/main/view/'+ instance.view_name + '/' + instance.short_url).indexOf($scope.instanceUrlFilter) === -1) {
-        return instance.isFiltered = false;
-      }
-      if ($scope.instanceTypeFilter.value !== '*' && instance.view_name.indexOf($scope.instanceTypeFilter.value) === -1) {
-        return instance.isFiltered = false;
-      }
-      filteredCount++;
-      instance.isFiltered = true;
+      instance.isFiltered = !(appliedFilters && appliedFilters.length > 0 && appliedFilters.some(function(filter) {
+        if (filter.key === 'url') {
+          return filter.values.every(function(value) {
+            return ('/main/view/' + instance.view_name + '/' + instance.short_url).indexOf(value) === -1;
+          });
+        }
+        return filter.values.every(function(value) {
+          return instance[filter.key].indexOf(value) === -1;
+        });
+      }));
+
+      filteredCount += ~~instance.isFiltered;
     });
     $scope.tableInfo.filtered = filteredCount;
     $scope.resetPagination();
+  };
+
+  $scope.toggleSearchBox = function() {
+    $('.search-box-button .popup-arrow-up, .search-box-row').toggleClass('hide');
   };
 
   $scope.pageChanged = function() {
@@ -149,22 +175,6 @@ angular.module('ambariAdminConsole')
     $scope.currentPage = 1;
     showInstancesOnPage();
   };
-
-  $scope.clearFilters = function () {
-    $scope.instanceNameFilter = '';
-    $scope.instanceUrlFilter = '';
-    $scope.instanceTypeFilter = $scope.typeFilterOptions[0];
-    $scope.resetPagination();
-  };
-
-  $scope.$watch(
-    function (scope) {
-      return Boolean(scope.instanceNameFilter || scope.instanceUrlFilter || (scope.instanceTypeFilter && scope.instanceTypeFilter.value !== '*'));
-    },
-    function (newValue, oldValue, scope) {
-      scope.isNotEmptyFilter = newValue;
-    }
-  );
 
   $scope.cloneInstance = function(instanceClone) {
     $scope.createInstance(instanceClone);
