@@ -107,7 +107,8 @@ class MetricAlert(BaseAlert):
       
         collect_result = self._get_result(value_list[0] if check_value is None else check_value)
 
-        logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
     
     return (collect_result, value_list)
 
