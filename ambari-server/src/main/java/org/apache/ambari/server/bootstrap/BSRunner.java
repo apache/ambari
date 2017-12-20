@@ -202,7 +202,7 @@ class BSRunner extends Thread {
        sshPort = DEFAULT_SSHPORT;
     }
 
-    String command[] = new String[14];
+    String command[] = new String[13];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
     try {
@@ -242,7 +242,6 @@ class BSRunner extends Thread {
       command[10] = this.serverPort+"";
       command[11] = userRunAs;
       command[12] = (this.passwordFile==null) ? "null" : this.passwordFile.toString();
-      command[13] = this.sshHostInfo.getAmbariRepoUrls();
 
       Map<String, String> envVariables = new HashMap<>();
 

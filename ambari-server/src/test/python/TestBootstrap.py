@@ -44,7 +44,7 @@ class TestBootstrap(TestCase):
 
   def test_getRemoteName(self):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
-                      "setupAgentFile", "ambariServer", "centos6", None, "8440", "root", "null")
+                      "setupAgentFile", "ambariServer", "centos6", None, "8440", "root")
     res = bootstrap_obj = Bootstrap("hostname", shared_state)
     utime1 = 1234
     utime2 = 12345
@@ -67,7 +67,7 @@ class TestBootstrap(TestCase):
   def test_getAmbariPort(self):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     self.assertEquals(bootstrap_obj.getAmbariPort(),"8440")
     shared_state.server_port = None
@@ -83,11 +83,11 @@ class TestBootstrap(TestCase):
   @patch("os.path.realpath")
   def test_bootstrap_main(self, dirname_mock, realpath_mock, run_mock, exit_mock, stderr_mock, subprocess_Popen_mock):
     bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "123", "sshkey_file", "setupAgent.py", "ambariServer", \
-                    "centos6", "1.1.1", "8440", "root", "null", "passwordfile"])
+                    "centos6", "1.1.1", "8440", "root", "passwordfile"])
     self.assertTrue(run_mock.called)
     run_mock.reset_mock()
     bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "123", "sshkey_file", "setupAgent.py", "ambariServer", \
-                    "centos6", "1.1.1", "8440", "root", "null", None])
+                    "centos6", "1.1.1", "8440", "root", None])
     self.assertTrue(run_mock.called)
     run_mock.reset_mock()
     def side_effect(retcode):
@@ -106,7 +106,7 @@ class TestBootstrap(TestCase):
   def test_getRunSetupWithPasswordCommand(self, environ_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     environ_mock.__getitem__.return_value = "TEST_PASSPHRASE"
     bootstrap_obj = Bootstrap("hostname", shared_state)
     utime = 1234
@@ -120,7 +120,7 @@ class TestBootstrap(TestCase):
   def test_generateRandomFileName(self):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     self.assertTrue(bootstrap_obj.generateRandomFileName(None) == bootstrap_obj.getUtime())
 
@@ -131,7 +131,7 @@ class TestBootstrap(TestCase):
   def test_getRepoDir(self, is_suse_family, is_redhat_family):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # Suse
     is_redhat_family.return_value = False
@@ -147,7 +147,7 @@ class TestBootstrap(TestCase):
   def test_getSetupScript(self):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     self.assertEquals(bootstrap_obj.shared_state.script_dir, "scriptDir")
 
@@ -157,7 +157,7 @@ class TestBootstrap(TestCase):
     version = "1.1.1"
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               version, "8440", "root", "null")
+                               version, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     runSetupCommand = bootstrap_obj.getRunSetupCommand("hostname")
     self.assertTrue(runSetupCommand.endswith(version + " 8440"))
@@ -168,7 +168,7 @@ class TestBootstrap(TestCase):
     version = None
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               version, "8440", "root", "null")
+                               version, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     runSetupCommand = bootstrap_obj.getRunSetupCommand("hostname")
     self.assertTrue(runSetupCommand.endswith(" 8440"))
@@ -209,7 +209,7 @@ class TestBootstrap(TestCase):
   def test_SCP(self, popenMock):
     params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",
-                                  "1.2.1", "8440", "root", "null")
+                                  "1.2.1", "8440", "root")
     host_log_mock = MagicMock()
     log = {'text': ""}
     def write_side_effect(text):
@@ -252,7 +252,7 @@ class TestBootstrap(TestCase):
   def test_SSH(self, popenMock):
     params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",
-                                  "1.2.1", "8440", "root", "null")
+                                  "1.2.1", "8440", "root")
     host_log_mock = MagicMock()
     log = {'text': ""}
     def write_side_effect(text):
@@ -308,7 +308,7 @@ class TestBootstrap(TestCase):
   def test_getOsCheckScript(self):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root" ,"null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     ocs = bootstrap_obj.getOsCheckScript()
     self.assertEquals(ocs, "scriptDir/os_check_type.py")
@@ -318,7 +318,7 @@ class TestBootstrap(TestCase):
   def test_getOsCheckScriptRemoteLocation(self, getRemoteName_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     v = "/tmp/os_check_type1374259902.py"
     getRemoteName_mock.return_value = v
@@ -330,7 +330,7 @@ class TestBootstrap(TestCase):
   def test_getRepoFile(self, is_suse_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     is_suse_mock.return_value = False
     rf = bootstrap_obj.getRepoFile()
@@ -344,7 +344,7 @@ class TestBootstrap(TestCase):
                             init_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root" ,"null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     expected = 42
     init_mock.return_value = None
@@ -368,7 +368,7 @@ class TestBootstrap(TestCase):
                     getOsCheckScriptRemoteLocation_mock, getOsCheckScript_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     getOsCheckScript_mock.return_value = "OsCheckScript"
     getOsCheckScriptRemoteLocation_mock.return_value = "OsCheckScriptRemoteLocation"
@@ -391,7 +391,7 @@ class TestBootstrap(TestCase):
   def test_getRepoFile(self, is_redhat_family, is_ubuntu_family, is_suse_family, hasPassword_mock, getRemoteName_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     is_redhat_family.return_value = True
     is_ubuntu_family.return_value = False
     is_suse_family.return_value = False
@@ -439,7 +439,7 @@ class TestBootstrap(TestCase):
 
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     is_redhat_family.return_value = True
     is_ubuntu_family.return_value = False
     is_suse_family.return_value = False
@@ -509,7 +509,7 @@ class TestBootstrap(TestCase):
                             init_mock, getOsCheckScriptRemoteLocation_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     getOsCheckScriptRemoteLocation_mock.return_value = "OsCheckScriptRemoteLocation"
     expected = 42
@@ -531,7 +531,7 @@ class TestBootstrap(TestCase):
                          getRunSetupCommand_mock, init_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     getRunSetupCommand_mock.return_value = "RunSetupCommand"
     expected = 42
@@ -551,7 +551,7 @@ class TestBootstrap(TestCase):
                               hasPassword_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # With password
     hasPassword_mock.return_value = True
@@ -570,7 +570,7 @@ class TestBootstrap(TestCase):
     tmp_dir = tempfile.gettempdir()
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", tmp_dir,
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     done_file = os.path.join(tmp_dir, "hostname.done")
     expected = 42
@@ -589,7 +589,7 @@ class TestBootstrap(TestCase):
   def test_checkSudoPackage(self, write_mock, run_mock, init_mock, is_redhat_family, is_ubuntu_family, is_suse_family):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     expected = 42
     init_mock.return_value = None
@@ -612,7 +612,7 @@ class TestBootstrap(TestCase):
                                   is_redhat_family, is_ubuntu_family, is_suse_family):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "ubuntu12",
-                               None, "8440", "root" ,"null")
+                               None, "8440", "root")
     is_redhat_family.return_value = False
     is_ubuntu_family.return_value = True
     is_suse_family.return_value = False
@@ -634,7 +634,7 @@ class TestBootstrap(TestCase):
                               init_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     expected = 42
     getPasswordFile_mock.return_value = "PasswordFile"
@@ -657,7 +657,7 @@ class TestBootstrap(TestCase):
                             scp_init_mock, getPasswordFile_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null", password_file="PasswordFile")
+                               None, "8440", "root", password_file="PasswordFile")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     getPasswordFile_mock.return_value = "PasswordFile"
      # Testing max retcode return
@@ -690,7 +690,7 @@ class TestBootstrap(TestCase):
                                         run_mock, init_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     expected = 42
     getPasswordFile_mock.return_value = "PasswordFile"
@@ -707,7 +707,7 @@ class TestBootstrap(TestCase):
     expected = 43
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # Normal case
     def act_normal_return_int():
@@ -740,7 +740,7 @@ class TestBootstrap(TestCase):
                hasPassword_mock, try_to_execute_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # Testing workflow without password
     bootstrap_obj.copied_password_file = False
@@ -812,7 +812,7 @@ class TestBootstrap(TestCase):
   def test_interruptBootstrap(self, write_mock, createDoneFile_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     bootstrap_obj.interruptBootstrap()
     self.assertTrue(createDoneFile_mock.called)
@@ -829,7 +829,7 @@ class TestBootstrap(TestCase):
                       info_mock, warn_mock, time_mock, sleep_mock):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root", "null")
+                               None, "8440", "root")
     n = 180
     time = 100500
     time_mock.return_value = time
