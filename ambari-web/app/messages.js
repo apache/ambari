@@ -874,9 +874,6 @@ Em.I18n.translations = {
   'installer.step3.hostLogPopup.copy':'press CTRL+C',
   'installer.step3.hostsTable.selectAll':'Select All Hosts',
   'installer.step3.selectedHosts.popup.header':'Selected Hosts',
-  'ambari.repository.url.os.textbox':'Please enter valid Ambari Repository URLs for the below OS types',
-  'ambari.repository.baseUrl':'Ambari Repository Base URL',
-  'installer.step3.ambariRepoUIError.stringError':'Please enter a valid URL',
 
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',

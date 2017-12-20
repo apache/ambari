@@ -79,13 +79,6 @@ class BSHostStatusCollector {
           if (statusCode.equals("0")) {
             status.setStatus("DONE");
           }
-          //the status code 44 is returned if ambari-repo property isn't set for the host's os_type in ambari.properties file.
-          //'44:<os_type>' is written to the .done file for the respective host.
-          if (statusCode.startsWith("44")) {
-            String[] sc = statusCode.split(":");
-            status.setOsType(sc[1]);
-            statusCode = sc[0];
-          }
           
           updateStatus(status, statusCode);
         } catch (IOException e) {
