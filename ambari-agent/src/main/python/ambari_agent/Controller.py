@@ -164,14 +164,12 @@ class Controller(threading.Thread):
     while not self.isRegistered:
       try:
         data = json.dumps(self.register.build(self.version))
-        prettyData = pprint.pformat(data)
-
         try:
           server_ip = socket.gethostbyname(self.hostname)
-          logger.info("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, prettyData)
+          logger.info("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, data)
         except socket.error:
           logger.warn("Unable to determine the IP address of '%s', agent registration may fail (agent=%s)",
-                      self.hostname, prettyData)
+                      self.hostname, data)
 
         ret = self.sendRequest(self.registerUrl, data)
 
