@@ -68,7 +68,7 @@ class DataCleaner(threading.Thread):
     logger.info('Data cleanup thread killed.')
 
   def cleanup(self):
-    logger.debug("Cleaning up inside directory " + self.data_dir)
+    logger.debug("Cleaning up inside directory %s", self.data_dir)
     now = time.time()
     total_size_bytes = 0
     file_path_to_timestamp = {}
@@ -82,7 +82,7 @@ class DataCleaner(threading.Thread):
             file_age = now - os.path.getmtime(file_path)
             if file_age > self.file_max_age:
               os.remove(os.path.join(file_path))
-              logger.debug('Removed file: ' + file_path)
+              logger.debug('Removed file: %s', file_path)
             else:
               # Since file wasn't deleted in first pass, consider it for the second one with oldest files first
               file_size = os.path.getsize(file_path)

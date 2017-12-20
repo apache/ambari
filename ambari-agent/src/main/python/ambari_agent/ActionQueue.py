@@ -121,7 +121,8 @@ class ActionQueue(threading.Thread):
     for command in commands:
 
       logger.info("Canceling command with taskId = {tid}".format(tid = str(command['target_task_id'])))
-      logger.debug(pprint.pformat(command))
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(pprint.pformat(command))
 
       task_id = command['target_task_id']
       reason = command['reason']
@@ -200,7 +201,7 @@ class ActionQueue(threading.Thread):
   def process_command(self, command):
     # make sure we log failures
     commandType = command['commandType']
-    logger.debug("Took an element of Queue (command type = %s)." % commandType)
+    logger.debug("Took an element of Queue (command type = %s).", commandType)
     try:
       if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND, self.AUTO_EXECUTION_COMMAND]:
         try:
@@ -211,7 +212,7 @@ class ActionQueue(threading.Thread):
           if self.controller.recovery_manager.enabled():
             self.controller.recovery_manager.stop_execution_command()
       else:
-        logger.error("Unrecognized command " + pprint.pformat(command))
+        logger.error("Unrecognized command %s", pprint.pformat(command))
     except Exception:
       logger.exception("Exception while processing {0} command".format(commandType))
 
@@ -475,14 +476,14 @@ class ActionQueue(threading.Thread):
     self.customServiceOrchestrator
 
   def on_background_command_complete_callback(self, process_condensed_result, handle):
-    logger.debug('Start callback: %s' % process_condensed_result)
-    logger.debug('The handle is: %s' % handle)
+    logger.debug('Start callback: %s', process_condensed_result)
+    logger.debug('The handle is: %s', handle)
     status = self.COMPLETED_STATUS if handle.exitCode == 0 else self.FAILED_STATUS
 
     aborted_postfix = self.customServiceOrchestrator.command_canceled_reason(handle.command['taskId'])
     if aborted_postfix:
       status = self.FAILED_STATUS
-      logger.debug('Set status to: %s , reason = %s' % (status, aborted_postfix))
+      logger.debug('Set status to: %s , reason = %s', status, aborted_postfix)
     else:
       aborted_postfix = ''
 
@@ -556,11 +557,9 @@ class ActionQueue(threading.Thread):
 
         result['extra'] = component_extra
 
-      logger.debug("Got live status for component " + component + \
-                   " of service " + str(service) + \
-                   " of cluster " + str(cluster))
-
-      logger.debug(pprint.pformat(result))
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Got live status for component %s of service %s of cluster %s", component, service, cluster)
+        logger.debug(pprint.pformat(result))
       if result is not None:
         self.commandStatuses.put_command_status(command, result)
     except Exception, err:
