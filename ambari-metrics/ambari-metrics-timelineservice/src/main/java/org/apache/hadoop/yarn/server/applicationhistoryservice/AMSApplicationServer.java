@@ -26,9 +26,7 @@ import org.apache.hadoop.http.HttpConfig;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.metrics2.source.JvmMetrics;
 import org.apache.hadoop.service.CompositeService;
-import org.apache.hadoop.service.Service;
 import org.apache.hadoop.util.ExitUtil;
-import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.ShutdownHookManager;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.YarnUncaughtExceptionHandler;
@@ -37,57 +35,42 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.HBaseTimelineMetricsService;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.MemoryTimelineStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.TimelineStore;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.LeveldbTimelineStore;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.AHSWebApp;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.AMSWebApp;
 import org.apache.hadoop.yarn.webapp.WebApp;
 import org.apache.hadoop.yarn.webapp.WebApps;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DISABLE_APPLICATION_TIMELINE_STORE;
-
 /**
- * History server that keeps track of all types of history in the cluster.
- * Application specific history to start with.
+ * Metrics collector web server
  */
-public class ApplicationHistoryServer extends CompositeService {
+public class AMSApplicationServer extends CompositeService {
 
   public static final int SHUTDOWN_HOOK_PRIORITY = 30;
-  private static final Log LOG =
-    LogFactory.getLog(ApplicationHistoryServer.class);
+  private static final Log LOG = LogFactory.getLog(AMSApplicationServer.class);
 
-  ApplicationHistoryClientService ahsClientService;
-  ApplicationHistoryManager historyManager;
-  TimelineStore timelineStore;
   TimelineMetricStore timelineMetricStore;
   private WebApp webApp;
   private TimelineMetricConfiguration metricConfiguration;
 
-  public ApplicationHistoryServer() {
-    super(ApplicationHistoryServer.class.getName());
+  public AMSApplicationServer() {
+    super(AMSApplicationServer.class.getName());
   }
 
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
     metricConfiguration = TimelineMetricConfiguration.getInstance();
     metricConfiguration.initialize();
-    historyManager = createApplicationHistory();
-    ahsClientService = createApplicationHistoryClientService(historyManager);
-    addService(ahsClientService);
-    addService((Service) historyManager);
-    timelineStore = createTimelineStore(conf);
     timelineMetricStore = createTimelineMetricStore(conf);
-    addIfService(timelineStore);
     addIfService(timelineMetricStore);
     super.serviceInit(conf);
   }
 
   @Override
   protected void serviceStart() throws Exception {
-    DefaultMetricsSystem.initialize("ApplicationHistoryServer");
-    JvmMetrics.initSingleton("ApplicationHistoryServer", null);
+    DefaultMetricsSystem.initialize("AmbariMetricsSystem");
+    JvmMetrics.initSingleton("AmbariMetricsSystem", null);
 
     startWebApp();
     super.serviceStart();
@@ -102,64 +85,28 @@ public class ApplicationHistoryServer extends CompositeService {
     DefaultMetricsSystem.shutdown();
     super.serviceStop();
   }
-
-  @Private
-  @VisibleForTesting
-  public ApplicationHistoryClientService getClientService() {
-    return this.ahsClientService;
-  }
-
-  protected ApplicationHistoryClientService createApplicationHistoryClientService(
-          ApplicationHistoryManager historyManager) {
-    return new ApplicationHistoryClientService(historyManager, metricConfiguration);
-  }
-
-  protected ApplicationHistoryManager createApplicationHistory() {
-    return new ApplicationHistoryManagerImpl();
-  }
-
-  protected ApplicationHistoryManager getApplicationHistory() {
-    return this.historyManager;
-  }
-
-  static ApplicationHistoryServer launchAppHistoryServer(String[] args) {
-    Thread
-      .setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
-    StringUtils.startupShutdownMessage(ApplicationHistoryServer.class, args,
-      LOG);
-    ApplicationHistoryServer appHistoryServer = null;
+  
+  static AMSApplicationServer launchAppHistoryServer(String[] args) {
+    Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
+    StringUtils.startupShutdownMessage(AMSApplicationServer.class, args, LOG);
+    AMSApplicationServer amsApplicationServer = null;
     try {
-      appHistoryServer = new ApplicationHistoryServer();
+      amsApplicationServer = new AMSApplicationServer();
       ShutdownHookManager.get().addShutdownHook(
-        new CompositeServiceShutdownHook(appHistoryServer),
+        new CompositeServiceShutdownHook(amsApplicationServer),
         SHUTDOWN_HOOK_PRIORITY);
       YarnConfiguration conf = new YarnConfiguration();
-      appHistoryServer.init(conf);
-      appHistoryServer.start();
+      amsApplicationServer.init(conf);
+      amsApplicationServer.start();
     } catch (Throwable t) {
-      LOG.fatal("Error starting ApplicationHistoryServer", t);
-      ExitUtil.terminate(-1, "Error starting ApplicationHistoryServer");
+      LOG.fatal("Error starting AMSApplicationServer", t);
+      ExitUtil.terminate(-1, "Error starting AMSApplicationServer");
     }
-    return appHistoryServer;
+    return amsApplicationServer;
   }
 
   public static void main(String[] args) {
     launchAppHistoryServer(args);
-  }
-
-  protected ApplicationHistoryManager createApplicationHistoryManager(
-      Configuration conf) {
-    return new ApplicationHistoryManagerImpl();
-  }
-
-  protected TimelineStore createTimelineStore(Configuration conf) {
-    if (conf.getBoolean(DISABLE_APPLICATION_TIMELINE_STORE, true)) {
-      LOG.info("Explicitly disabled application timeline store.");
-      return new MemoryTimelineStore();
-    }
-    return ReflectionUtils.newInstance(conf.getClass(
-        YarnConfiguration.TIMELINE_SERVICE_STORE, LeveldbTimelineStore.class,
-        TimelineStore.class), conf);
   }
 
   protected TimelineMetricStore createTimelineMetricStore(Configuration conf) {
@@ -174,7 +121,7 @@ public class ApplicationHistoryServer extends CompositeService {
     } catch (Exception e) {
       throw new ExceptionInInitializerError("Cannot find bind address");
     }
-    LOG.info("Instantiating AHSWebApp at " + bindAddress);
+    LOG.info("Instantiating metrics collector at " + bindAddress);
     try {
       Configuration conf = metricConfiguration.getMetricsConf();
       conf.set("hadoop.http.max.threads", String.valueOf(metricConfiguration
@@ -184,25 +131,15 @@ public class ApplicationHistoryServer extends CompositeService {
           HttpConfig.Policy.HTTP_ONLY.name()));
       webApp =
           WebApps
-            .$for("applicationhistory", ApplicationHistoryClientService.class,
-              ahsClientService, "ws")
+            .$for("ambarimetrics", null, null, "ws")
             .withHttpPolicy(conf, policy)
             .at(bindAddress)
-            .start(new AHSWebApp(timelineStore, timelineMetricStore,
-              ahsClientService));
+            .start(new AMSWebApp(timelineMetricStore));
     } catch (Exception e) {
       String msg = "AHSWebApp failed to start.";
       LOG.error(msg, e);
       throw new YarnRuntimeException(msg, e);
     }
   }
-
-  /**
-   * @return ApplicationTimelineStore
-   */
-  @Private
-  @VisibleForTesting
-  public TimelineStore getTimelineStore() {
-    return timelineStore;
-  }
+  
 }
