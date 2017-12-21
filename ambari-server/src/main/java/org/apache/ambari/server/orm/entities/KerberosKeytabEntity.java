@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.CascadeType;
@@ -33,54 +34,113 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "kerberos_keytab")
 @NamedQueries({
-    @NamedQuery(name = "KerberosKeytabEntity.findAll", query = "SELECT kk FROM KerberosKeytabEntity kk"),
-    @NamedQuery(name = "KerberosKeytabEntity.findByHost",
-        query = "SELECT kk FROM KerberosKeytabEntity kk JOIN kk.kerberosPrincipalHostEntities he WHERE he.hostId=:hostId")
+  @NamedQuery(name = "KerberosKeytabEntity.findAll", query = "SELECT kk FROM KerberosKeytabEntity kk"),
+  @NamedQuery(
+    name = "KerberosKeytabEntity.findByPrincipalAndHost",
+    query = "SELECT kk FROM KerberosKeytabEntity kk JOIN kk.kerberosKeytabPrincipalEntities kkp WHERE kkp.hostId=:hostId AND kkp.principalName=:principalName"
+  ),
+  @NamedQuery(
+    name = "KerberosKeytabEntity.findByPrincipalAndNullHost",
+    query = "SELECT kk FROM KerberosKeytabEntity kk JOIN kk.kerberosKeytabPrincipalEntities kkp WHERE kkp.hostId IS NULL AND kkp.principalName=:principalName"
+  )
 })
 public class KerberosKeytabEntity {
-    @Id
-    @Column(name = "keytab_path", insertable = true, updatable = false, nullable = false)
-    private String keytabPath = null;
+  @Id
+  @Column(name = "keytab_path", updatable = false, nullable = false)
+  private String keytabPath = null;
 
-    @OneToMany(mappedBy = "keytabEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private Collection<KerberosPrincipalHostEntity> kerberosPrincipalHostEntities;
+  @Column(name = "owner_name")
+  private String ownerName;
+  @Column(name = "owner_access")
+  private String ownerAccess;
+  @Column(name = "group_name")
+  private String groupName;
+  @Column(name = "group_access")
+  private String groupAccess;
+  @Column(name = "is_ambari_keytab")
+  private Integer isAmbariServerKeytab = 0;
+  @Column(name = "write_ambari_jaas")
+  private Integer writeAmbariJaasFile = 0;
 
-    public KerberosKeytabEntity(){
+  @OneToMany(mappedBy = "kerberosKeytabEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+  private Collection<KerberosKeytabPrincipalEntity> kerberosKeytabPrincipalEntities = new ArrayList<>();
 
+  public KerberosKeytabEntity() {
+
+  }
+
+  public KerberosKeytabEntity(String keytabPath) {
+    setKeytabPath(keytabPath);
+  }
+
+  public String getKeytabPath() {
+    return keytabPath;
+  }
+
+  public void setKeytabPath(String keytabPath) {
+    this.keytabPath = keytabPath;
+  }
+
+  public Collection<KerberosKeytabPrincipalEntity> getKerberosKeytabPrincipalEntities() {
+    return kerberosKeytabPrincipalEntities;
+  }
+
+  public void setKerberosKeytabPrincipalEntities(Collection<KerberosKeytabPrincipalEntity> kerberosKeytabPrincipalEntities) {
+    this.kerberosKeytabPrincipalEntities = kerberosKeytabPrincipalEntities;
+  }
+
+  public String getOwnerName() {
+    return ownerName;
+  }
+
+  public void setOwnerName(String ownerName) {
+    this.ownerName = ownerName;
+  }
+
+  public String getOwnerAccess() {
+    return ownerAccess;
+  }
+
+  public void setOwnerAccess(String ownerAccess) {
+    this.ownerAccess = ownerAccess;
+  }
+
+  public String getGroupName() {
+    return groupName;
+  }
+
+  public void setGroupName(String groupName) {
+    this.groupName = groupName;
+  }
+
+  public String getGroupAccess() {
+    return groupAccess;
+  }
+
+  public void setGroupAccess(String groupAccess) {
+    this.groupAccess = groupAccess;
+  }
+
+  public boolean isAmbariServerKeytab() {
+    return isAmbariServerKeytab == 1;
+  }
+
+  public void setAmbariServerKeytab(boolean ambariServerKeytab) {
+    this.isAmbariServerKeytab = (ambariServerKeytab) ? 1 : 0;
+  }
+
+  public boolean isWriteAmbariJaasFile() {
+    return writeAmbariJaasFile == 1;
+  }
+
+  public void setWriteAmbariJaasFile(boolean writeAmbariJaasFile) {
+    this.writeAmbariJaasFile = (writeAmbariJaasFile) ? 1 : 0;
+  }
+
+  public void addKerberosKeytabPrincipal(KerberosKeytabPrincipalEntity kerberosKeytabPrincipalEntity) {
+    if (!kerberosKeytabPrincipalEntities.contains(kerberosKeytabPrincipalEntity)) {
+      kerberosKeytabPrincipalEntities.add(kerberosKeytabPrincipalEntity);
     }
+  }
 
-    public KerberosKeytabEntity(String keytabPath){
-        setKeytabPath(keytabPath);
-    }
-
-    public String getKeytabPath() {
-        return keytabPath;
-    }
-
-    public void setKeytabPath(String keytabPath) {
-        this.keytabPath = keytabPath;
-    }
-
-    public Collection<KerberosPrincipalHostEntity> getKerberosPrincipalHostEntities() {
-        return kerberosPrincipalHostEntities;
-    }
-
-    public void setKerberosPrincipalHostEntities(Collection<KerberosPrincipalHostEntity> kerberosPrincipalHostEntities) {
-        this.kerberosPrincipalHostEntities = kerberosPrincipalHostEntities;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        KerberosKeytabEntity that = (KerberosKeytabEntity) o;
-
-        return keytabPath.equals(that.keytabPath);
-    }
-
-    @Override
-    public int hashCode() {
-        return keytabPath.hashCode();
-    }
 }

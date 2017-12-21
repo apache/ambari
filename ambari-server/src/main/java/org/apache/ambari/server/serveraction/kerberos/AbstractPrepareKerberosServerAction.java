@@ -20,7 +20,6 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +35,7 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
@@ -47,7 +47,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
 public abstract class AbstractPrepareKerberosServerAction extends KerberosServerAction {
@@ -66,7 +65,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
   private KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory;
 
   @Override
-  protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, Map<String, Object> requestSharedDataContext) throws AmbariException {
+  protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, Map<String, Object> requestSharedDataContext) throws AmbariException {
     throw new UnsupportedOperationException();
   }
 
@@ -211,7 +210,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
         // create database records for keytabs that must be presented on cluster
         for (ResolvedKerberosKeytab keytab : resolvedKeytabs.values()) {
-          kerberosHelper.processResolvedKeytab(keytab);
+          kerberosHelper.createResolvedKeytab(keytab);
         }
       } catch (IOException e) {
         String message = String.format("Failed to write index file - %s", identityDataFile.getAbsolutePath());
@@ -232,30 +231,6 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
           }
         }
       }
-    }
-  }
-
-  protected Map<String, ? extends Collection<String>> getServiceComponentFilter() {
-    String serializedValue = getCommandParameterValue(SERVICE_COMPONENT_FILTER);
-
-    if (serializedValue != null) {
-      Type type = new TypeToken<Map<String, ? extends Collection<String>>>() {
-      }.getType();
-      return StageUtils.getGson().fromJson(serializedValue, type);
-    } else {
-      return null;
-    }
-  }
-
-  protected Collection<String> getIdentityFilter() {
-    String serializedValue = getCommandParameterValue(IDENTITY_FILTER);
-
-    if (serializedValue != null) {
-      Type type = new TypeToken<Collection<String>>() {
-      }.getType();
-      return StageUtils.getGson().fromJson(serializedValue, type);
-    } else {
-      return null;
     }
   }
 

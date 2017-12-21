@@ -18,21 +18,17 @@
 
 package org.apache.ambari.server.serveraction.kerberos.stageutils;
 
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Class that represents keytab. Contains principals that mapped to host.
- * Same keytab can have different set of principals on different hosts.
+ * Same keytab can have different set of principals on different hosts for different services.
+ * Each principal identified by host and keytab it belongs to and contain mapping that shows in which services and
+ * components given principal used.
  */
-// TODO This class need to replace {@link org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFile}
-// TODO and all related structures and become main item that {@link org.apache.ambari.server.serveraction.kerberos.KerberosServerAction}
-// TODO operates with instead of identity records.
 public class ResolvedKerberosKeytab {
 
   private String ownerName = null;
@@ -40,43 +36,36 @@ public class ResolvedKerberosKeytab {
   private String groupName = null;
   private String groupAccess = null;
   private String file = null;
-  private Set<Pair<Long, Pair<String, String>>> mappedPrincipals = null;
+  private Set<ResolvedKerberosPrincipal> principals = new HashSet<>();
   private boolean isAmbariServerKeytab = false;
   private boolean mustWriteAmbariJaasFile = false;
 
   public ResolvedKerberosKeytab(
-      String file,
-      String ownerName,
-      String ownerAccess,
-      String groupName,
-      String groupAccess,
-      Set<Pair<Long, Pair<String, String>>> mappedPrincipals,
-      boolean isAmbariServerKeytab,
-      boolean writeAmbariJaasFile
+    String file,
+    String ownerName,
+    String ownerAccess,
+    String groupName,
+    String groupAccess,
+    Set<ResolvedKerberosPrincipal> principals,
+    boolean isAmbariServerKeytab,
+    boolean writeAmbariJaasFile
   ) {
     this.ownerName = ownerName;
     this.ownerAccess = ownerAccess;
     this.groupName = groupName;
     this.groupAccess = groupAccess;
     this.file = file;
-    this.mappedPrincipals = mappedPrincipals;
+    setPrincipals(principals);
     this.isAmbariServerKeytab = isAmbariServerKeytab;
     this.mustWriteAmbariJaasFile = writeAmbariJaasFile;
+
   }
 
   /**
    * Gets the path to the keytab file
-   * <p/>
-   * The value may include variable placeholders to be replaced as needed
-   * <ul>
-   * <li>
-   * ${variable} placeholders are replaced on the server - see
-   * {@link VariableReplacementHelper#replaceVariables(String, Map)}
-   * </li>
-   * </ul>
    *
    * @return a String declaring the keytab file's absolute path
-   * @see VariableReplacementHelper#replaceVariables(String, Map)
+   * @see VariableReplacementHelper#replaceVariables(String, java.util.Map)
    */
   public String getFile() {
     return file;
@@ -175,47 +164,36 @@ public class ResolvedKerberosKeytab {
   /**
    * Gets evaluated host-to-principal set associated with given keytab.
    *
-   * @return a Set with mappedPrincipals associated with given keytab
+   * @return a Set with principals associated with given keytab
    */
-  public Set<Pair<Long, Pair<String, String>>> getMappedPrincipals() {
-    return mappedPrincipals;
+  public Set<ResolvedKerberosPrincipal> getPrincipals() {
+    return principals;
   }
 
   /**
    * Sets evaluated host-to-principal set associated with given keytab.
    *
-   * @param mappedPrincipals a Map with host-to-principal mapping associated with given keytab
+   * @param principals set of principals to add
    */
-  public void setMappedPrincipals(Set<Pair<Long, Pair<String, String>>> mappedPrincipals) {
-    this.mappedPrincipals = mappedPrincipals;
-  }
-
-  /**
-   * Gets set of hosts associated with given keytab.
-   *
-   * @return a Set with hosts
-   */
-  public Set<Long> getHosts() {
-    ImmutableSet.Builder<Long> builder = ImmutableSet.builder();
-    for (Pair<Long, Pair<String, String>> principal : getMappedPrincipals()) {
-      if (principal.getLeft() != null) {
-        builder.add(principal.getLeft());
+  public void setPrincipals(Set<ResolvedKerberosPrincipal> principals) {
+    this.principals = principals;
+    if (principals != null) {
+      for (ResolvedKerberosPrincipal principal : this.principals) {
+        principal.setResolvedKerberosKeytab(this);
       }
     }
-    return builder.build();
   }
 
   /**
-   * Gets a set of principals associated with given keytab.
+   * Add principal to keytab.
    *
-   * @return a Set of principals
+   * @param principal resolved principal to add
    */
-  public Set<Pair<String, String>> getPrincipals() {
-    ImmutableSet.Builder<Pair<String, String>> builder = ImmutableSet.builder();
-    for (Pair<Long, Pair<String, String>> principal : getMappedPrincipals()) {
-      builder.add(principal.getRight());
+  public void addPrincipal(ResolvedKerberosPrincipal principal) {
+    if (!principals.contains(principal)) {
+      principal.setResolvedKerberosKeytab(this);
+      principals.add(principal);
     }
-    return builder.build();
   }
 
   /**
@@ -253,5 +231,38 @@ public class ResolvedKerberosKeytab {
    */
   public void setMustWriteAmbariJaasFile(boolean mustWriteAmbariJaasFile) {
     this.mustWriteAmbariJaasFile = mustWriteAmbariJaasFile;
+  }
+
+  /**
+   * Merge principals from one keytab to given.
+   *
+   * @param otherKeytab keytab to merge principals from
+   */
+  public void mergePrincipals(ResolvedKerberosKeytab otherKeytab) {
+    for (ResolvedKerberosPrincipal rkp : otherKeytab.getPrincipals()) {
+      ResolvedKerberosPrincipal existent = findPrincipal(rkp.getHostId(), rkp.getPrincipal(), rkp.getKeytabPath());
+      if (existent != null) {
+        existent.mergeComponentMapping(rkp);
+      } else {
+        principals.add(rkp);
+      }
+    }
+  }
+
+  private ResolvedKerberosPrincipal findPrincipal(Long hostId, String principal, String keytabPath) {
+    for (ResolvedKerberosPrincipal rkp : principals) {
+      boolean hostIdIsSame;
+      if(hostId != null && rkp.getHostId() != null){
+        hostIdIsSame = hostId.equals(rkp.getHostId());
+      } else if(hostId == null && rkp.getHostId() == null) {
+        hostIdIsSame = true;
+      } else {
+        hostIdIsSame = false;
+      }
+      if (hostIdIsSame && principal.equals(rkp.getPrincipal())&& keytabPath.equals(rkp.getKeytabPath())) {
+        return rkp;
+      }
+    }
+    return null;
   }
 }

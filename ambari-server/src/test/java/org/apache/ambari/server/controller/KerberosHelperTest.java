@@ -79,7 +79,9 @@ import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -97,6 +99,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.serveraction.kerberos.PreconfigureServiceType;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -258,6 +261,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(ArtifactDAO.class).toInstance(createNiceMock(ArtifactDAO.class));
         bind(KerberosPrincipalDAO.class).toInstance(createNiceMock(KerberosPrincipalDAO.class));
+        bind(KerberosKeytabPrincipalDAO.class).toInstance(createNiceMock(KerberosKeytabPrincipalDAO.class));
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
 
@@ -2673,9 +2677,10 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(service1KerberosDescriptor).times(1);
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(service2KerberosDescriptor).times(1);
 
+    Capture<ResolvedKerberosPrincipal> spnegoPrincipalCapture = newCapture(CaptureType.LAST);
+    Capture<ResolvedKerberosPrincipal> ambariPrincipalCapture = newCapture(CaptureType.LAST);
+    String spnegoPrincipalNameExpected = String.format("HTTP/%s@%s", ambariServerHostname, realm);
     if (createAmbariIdentities) {
-      String spnegoPrincipalNameExpected = String.format("HTTP/%s@%s", ambariServerHostname, realm);
-
       ArrayList<KerberosIdentityDescriptor> ambarServerComponent1Identities = new ArrayList<>();
       ambarServerComponent1Identities.add(createMockIdentityDescriptor(
           KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME,
@@ -2687,23 +2692,24 @@ public class KerberosHelperTest extends EasyMockSupport {
           createMockPrincipalDescriptor("HTTP/_HOST@${realm}", KerberosPrincipalType.SERVICE, null, null),
           createMockKeytabDescriptor("spnego.service.keytab", null)));
 
-      KerberosComponentDescriptor ambariServerComponentKerberosDescriptor = createMockComponentDescriptor("AMBARI_SERVER", ambarServerComponent1Identities, null);
+      KerberosComponentDescriptor ambariServerComponentKerberosDescriptor = createMockComponentDescriptor(RootComponent.AMBARI_SERVER.name(), ambarServerComponent1Identities, null);
 
       HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<>();
-      ambariServerComponentDescriptorMap.put("AMBARI_SERVER", ambariServerComponentKerberosDescriptor);
+      ambariServerComponentDescriptorMap.put(RootComponent.AMBARI_SERVER.name(), ambariServerComponentKerberosDescriptor);
 
-      KerberosServiceDescriptor ambariServiceKerberosDescriptor = createMockServiceDescriptor("AMBARI", ambariServerComponentDescriptorMap, null, false);
-      expect(ambariServiceKerberosDescriptor.getComponent("AMBARI_SERVER")).andReturn(ambariServerComponentKerberosDescriptor).once();
+      KerberosServiceDescriptor ambariServiceKerberosDescriptor = createMockServiceDescriptor(RootService.AMBARI.name(), ambariServerComponentDescriptorMap, null, false);
+      expect(ambariServiceKerberosDescriptor.getComponent(RootComponent.AMBARI_SERVER.name())).andReturn(ambariServerComponentKerberosDescriptor).once();
 
-      expect(kerberosDescriptor.getService("AMBARI")).andReturn(ambariServiceKerberosDescriptor).once();
+      expect(kerberosDescriptor.getService(RootService.AMBARI.name())).andReturn(ambariServiceKerberosDescriptor).once();
 
       ConfigureAmbariIdentitiesServerAction configureAmbariIdentitiesServerAction = injector.getInstance(ConfigureAmbariIdentitiesServerAction.class);
-      expect(configureAmbariIdentitiesServerAction.installAmbariServerIdentity(eq(ambariServerPrincipalNameExpected), anyString(), eq(ambariServerKeytabFilePath),
-          eq("user1"), eq(true), eq(true), eq("groupA"), eq(true), eq(false), (ActionLog) eq(null)))
+
+      expect(configureAmbariIdentitiesServerAction.installAmbariServerIdentity(capture(ambariPrincipalCapture), anyString(), eq(ambariServerKeytabFilePath),
+          eq("user1"), eq("rw"), eq("groupA"), eq("r"), (ActionLog) eq(null)))
           .andReturn(true)
           .once();
-      expect(configureAmbariIdentitiesServerAction.installAmbariServerIdentity(eq(spnegoPrincipalNameExpected), anyString(), eq("spnego.service.keytab"),
-          eq("user1"), eq(true), eq(true), eq("groupA"), eq(true), eq(false), (ActionLog) eq(null)))
+      expect(configureAmbariIdentitiesServerAction.installAmbariServerIdentity(capture(spnegoPrincipalCapture), anyString(), eq("spnego.service.keytab"),
+          eq("user1"), eq("rw"), eq("groupA"), eq("r"), (ActionLog) eq(null)))
           .andReturn(true)
           .once();
 
@@ -2764,6 +2770,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     kerberosHelper.ensureHeadlessIdentities(cluster, existingConfigurations, services);
 
     verifyAll();
+
+    if (createAmbariIdentities) {
+      assertEquals(ambariPrincipalCapture.getValue().getPrincipal(), ambariServerPrincipalNameExpected);
+      assertEquals(spnegoPrincipalCapture.getValue().getPrincipal(), spnegoPrincipalNameExpected);
+    }
 
     List<? extends String> capturedPrincipals = capturePrincipal.getValues();
     assertEquals(createAmbariIdentities ? 5 : 3, capturedPrincipals.size());
@@ -3424,6 +3435,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   private void testCreateTestIdentity(final PrincipalKeyCredential PrincipalKeyCredential, Boolean manageIdentities) throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO = injector.getInstance(KerberosKeytabPrincipalDAO.class);
+    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), anyObject(), anyObject())).andReturn(createNiceMock(KerberosKeytabPrincipalEntity.class)).anyTimes();
     boolean managingIdentities = !Boolean.FALSE.equals(manageIdentities);
 
     final Map<String, String> kerberosEnvProperties = new HashMap<>();
@@ -3625,6 +3638,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   private void testDeleteTestIdentity(final PrincipalKeyCredential PrincipalKeyCredential) throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO = injector.getInstance(KerberosKeytabPrincipalDAO.class);
+    expect(kerberosKeytabPrincipalDAO.findOrCreate(anyObject(), anyObject(), anyObject())).andReturn(createNiceMock(KerberosKeytabPrincipalEntity.class)).anyTimes();
     Host host1 = createMock(Host.class);
     expect(host1.getHostId()).andReturn(1l).anyTimes();
 
@@ -4093,13 +4108,13 @@ public class KerberosHelperTest extends EasyMockSupport {
           createMockKeytabDescriptor("spnego.service.keytab", null)));
 
       HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<>();
-      KerberosComponentDescriptor componentDescrptor = createMockComponentDescriptor("AMBARI_SERVER", ambarServerComponent1Identities, null);
-      ambariServerComponentDescriptorMap.put("AMBARI_SERVER", componentDescrptor);
+      KerberosComponentDescriptor componentDescrptor = createMockComponentDescriptor(RootComponent.AMBARI_SERVER.name(), ambarServerComponent1Identities, null);
+      ambariServerComponentDescriptorMap.put(RootComponent.AMBARI_SERVER.name(), componentDescrptor);
 
-      KerberosServiceDescriptor ambariServiceKerberosDescriptor = createMockServiceDescriptor("AMBARI", ambariServerComponentDescriptorMap, null, false);
-      expect(ambariServiceKerberosDescriptor.getComponent("AMBARI_SERVER")).andReturn(componentDescrptor).once();
+      KerberosServiceDescriptor ambariServiceKerberosDescriptor = createMockServiceDescriptor(RootService.AMBARI.name(), ambariServerComponentDescriptorMap, null, false);
+      expect(ambariServiceKerberosDescriptor.getComponent(RootComponent.AMBARI_SERVER.name())).andReturn(componentDescrptor).once();
 
-      expect(kerberosDescriptor.getService("AMBARI")).andReturn(ambariServiceKerberosDescriptor).once();
+      expect(kerberosDescriptor.getService(RootService.AMBARI.name())).andReturn(ambariServiceKerberosDescriptor).once();
     }
 
     replayAll();
