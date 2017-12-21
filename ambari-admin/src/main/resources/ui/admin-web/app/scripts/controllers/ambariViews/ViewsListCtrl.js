@@ -18,7 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$translate', 'Settings', function($scope, View, $modal, Alert, ConfirmationModal, $translate, Settings) {
+.controller('ViewsListCtrl',
+['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$translate', 'Settings', 'Pagination', 'Filters',
+function($scope, View, $modal, Alert, ConfirmationModal, $translate, Settings, Pagination, Filters) {
   var $t = $translate.instant;
   var VIEWS_VERSION_STATUS_TIMEOUT = 5000;
   $scope.isLoading = false;
@@ -33,6 +35,9 @@ angular.module('ambariAdminConsole')
     {
       key: 'url',
       label: $t('urls.url'),
+      customValueConverter: function(item) {
+        return '/main/view/' + item.view_name + '/' + item.short_url;
+      },
       options: []
     },
     {
@@ -46,134 +51,30 @@ angular.module('ambariAdminConsole')
       options: []
     }
   ];
-
-  function checkViewVersionStatus(view, versionObj, versionNumber) {
-    var deferred = View.checkViewVersionStatus(view.view_name, versionNumber);
-
-    deferred.promise.then(function (status) {
-      if (versionNeedStatusUpdate(status)) {
-        setTimeout(function() {
-          checkViewVersionStatus(view, versionObj, versionNumber);
-        }, VIEWS_VERSION_STATUS_TIMEOUT);
-      } else {
-        versionObj.status = status;
-        angular.forEach(view.versions, function (version) {
-          if (version.status === 'DEPLOYED') {
-            view.canCreateInstance = true;
-          }
-        })
-      }
-    });
-  }
-
-  function versionNeedStatusUpdate(status) {
-    return status !== 'DEPLOYED' && status !== 'ERROR';
-  }
-
-  function loadViews() {
-    $scope.isLoading = true;
-    View.all().then(function (views) {
-      $scope.isLoading = false;
-      $scope.views = views;
-      $scope.instances = [];
-      angular.forEach(views, function (view) {
-        angular.forEach(view.versions, function (versionObj, versionNumber) {
-          if (versionNeedStatusUpdate(versionObj.status)) {
-            checkViewVersionStatus(view, versionObj, versionNumber);
-          }
-        });
-        angular.forEach(view.instances, function (instance) {
-          instance.ViewInstanceInfo.short_url_name = instance.ViewInstanceInfo.short_url_name || '';
-          instance.ViewInstanceInfo.short_url = instance.ViewInstanceInfo.short_url || '';
-          instance.ViewInstanceInfo.versionObj = view.versions[instance.ViewInstanceInfo.version] || {};
-          $scope.instances.push(instance.ViewInstanceInfo);
-        });
-      });
-      $scope.initFilterOptions();
-      $scope.filterInstances();
-    }).catch(function (data) {
-      Alert.error($t('views.alerts.cannotLoadViews'), data.data.message);
-    });
-  }
-
-  function showInstancesOnPage() {
-    var startIndex = ($scope.currentPage - 1) * $scope.instancesPerPage + 1;
-    var endIndex = $scope.currentPage * $scope.instancesPerPage;
-    var showedCount = 0;
-    var filteredCount = 0;
-
-    angular.forEach($scope.instances, function(instance) {
-      instance.isShowed = false;
-      if (instance.isFiltered) {
-        filteredCount++;
-        if (filteredCount >= startIndex && filteredCount <= endIndex) {
-          instance.isShowed = true;
-          showedCount++;
-        }
-      }
-    });
-    $scope.tableInfo.showed = showedCount;
-  }
-
   $scope.views = [];
   $scope.instances = [];
-  $scope.instancesPerPage = 10;
-  $scope.currentPage = 1;
-  $scope.maxVisiblePages = 10;
   $scope.tableInfo = {
     filtered: 0,
-    showed: 0
+    showed: 0,
+    total: 0
+  };
+  $scope.pagination = Pagination.create();
+
+  $scope.resetPagination = function() {
+    $scope.pagination.resetPagination($scope.instances, $scope.tableInfo);
   };
 
-  loadViews();
-
-  $scope.initFilterOptions = function() {
-    $scope.filters.forEach(function(filter) {
-      filter.options = $.unique($scope.instances.map(function(instance) {
-        if (filter.key === 'url') {
-          return '/main/view/' + instance.view_name + '/' + instance.short_url;
-        }
-        return instance[filter.key];
-      })).map(function(item) {
-        return {
-          key: item,
-          label: item
-        }
-      });
-    });
+  $scope.pageChanged = function() {
+    $scope.pagination.pageChanged($scope.instances, $scope.tableInfo);
   };
 
   $scope.filterInstances = function(appliedFilters) {
-    var filteredCount = 0;
-    angular.forEach($scope.instances, function(instance) {
-      instance.isFiltered = !(appliedFilters && appliedFilters.length > 0 && appliedFilters.some(function(filter) {
-        if (filter.key === 'url') {
-          return filter.values.every(function(value) {
-            return ('/main/view/' + instance.view_name + '/' + instance.short_url).indexOf(value) === -1;
-          });
-        }
-        return filter.values.every(function(value) {
-          return instance[filter.key].indexOf(value) === -1;
-        });
-      }));
-
-      filteredCount += ~~instance.isFiltered;
-    });
-    $scope.tableInfo.filtered = filteredCount;
-    $scope.resetPagination();
+    $scope.tableInfo.filtered = Filters.filterItems(appliedFilters, $scope.instances, $scope.filters);
+    $scope.pagination.resetPagination($scope.instances, $scope.tableInfo);
   };
 
   $scope.toggleSearchBox = function() {
     $('.search-box-button .popup-arrow-up, .search-box-row').toggleClass('hide');
-  };
-
-  $scope.pageChanged = function() {
-    showInstancesOnPage();
-  };
-
-  $scope.resetPagination = function() {
-    $scope.currentPage = 1;
-    showInstancesOnPage();
   };
 
   $scope.cloneInstance = function(instanceClone) {
@@ -217,4 +118,57 @@ angular.module('ambariAdminConsole')
         });
     });
   };
+
+  loadViews();
+
+  function checkViewVersionStatus(view, versionObj, versionNumber) {
+    var deferred = View.checkViewVersionStatus(view.view_name, versionNumber);
+
+    deferred.promise.then(function (status) {
+      if (versionNeedStatusUpdate(status)) {
+        setTimeout(function() {
+          checkViewVersionStatus(view, versionObj, versionNumber);
+        }, VIEWS_VERSION_STATUS_TIMEOUT);
+      } else {
+        versionObj.status = status;
+        angular.forEach(view.versions, function (version) {
+          if (version.status === 'DEPLOYED') {
+            view.canCreateInstance = true;
+          }
+        })
+      }
+    });
+  }
+
+  function versionNeedStatusUpdate(status) {
+    return status !== 'DEPLOYED' && status !== 'ERROR';
+  }
+
+  function loadViews() {
+    $scope.isLoading = true;
+    View.all().then(function (views) {
+      $scope.isLoading = false;
+      $scope.views = views;
+      $scope.instances = [];
+      angular.forEach(views, function (view) {
+        angular.forEach(view.versions, function (versionObj, versionNumber) {
+          if (versionNeedStatusUpdate(versionObj.status)) {
+            checkViewVersionStatus(view, versionObj, versionNumber);
+          }
+        });
+        angular.forEach(view.instances, function (instance) {
+          instance.ViewInstanceInfo.short_url_name = instance.ViewInstanceInfo.short_url_name || '';
+          instance.ViewInstanceInfo.short_url = instance.ViewInstanceInfo.short_url || '';
+          instance.ViewInstanceInfo.versionObj = view.versions[instance.ViewInstanceInfo.version] || {};
+          $scope.instances.push(instance.ViewInstanceInfo);
+        });
+      });
+      $scope.tableInfo.total = $scope.instances.length;
+      Filters.initFilterOptions($scope.filters, $scope.instances);
+      $scope.filterInstances();
+    }).catch(function (data) {
+      Alert.error($t('views.alerts.cannotLoadViews'), data.data.message);
+    });
+  }
+
 }]);

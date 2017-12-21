@@ -24,6 +24,9 @@ describe('#Cluster', function () {
       module('ambariAdminConsole');
       inject(function($rootScope, $controller) {
         scope = $rootScope.$new();
+        scope.pagination = {
+          resetPagination: angular.noop
+        };
         ctrl = $controller('ViewsListCtrl', {$scope: scope});
       });
       scope.instances = [
@@ -44,68 +47,9 @@ describe('#Cluster', function () {
       ];
     });
 
-    describe('#initFilterOptions()', function () {
-      beforeEach(function() {
-        scope.initFilterOptions();
-      });
-
-      it('should fill short_url_name options', function() {
-        expect(scope.filters[0].options).toEqual([
-          {
-            key: 'sun1',
-            label: 'sun1'
-          },
-          {
-            key: 'sun2',
-            label: 'sun2'
-          }
-        ]);
-      });
-
-      it('should fill url options', function() {
-        expect(scope.filters[1].options).toEqual([
-          {
-            key: '/main/view/vn1/su1',
-            label: '/main/view/vn1/su1'
-          },
-          {
-            key: '/main/view/vn2/su2',
-            label: '/main/view/vn2/su2'
-          }
-        ]);
-      });
-
-      it('should fill view_name options', function() {
-        expect(scope.filters[2].options).toEqual([
-          {
-            key: 'vn1',
-            label: 'vn1'
-          },
-          {
-            key: 'vn2',
-            label: 'vn2'
-          }
-        ]);
-      });
-
-      it('should fill instance_name options', function() {
-        expect(scope.filters[3].options).toEqual([
-          {
-            key: 'in1',
-            label: 'in1'
-          },
-          {
-            key: 'in2',
-            label: 'in2'
-          }
-        ]);
-      });
-    });
-
-
     describe('#filterInstances', function() {
       beforeEach(function() {
-        spyOn(scope, 'resetPagination');
+        spyOn(scope.pagination, 'resetPagination');
       });
 
       it('all should be filtered when filters not applied', function() {
@@ -117,7 +61,7 @@ describe('#Cluster', function () {
 
       it('resetPagination should be called', function() {
         scope.filterInstances();
-        expect(scope.resetPagination).toHaveBeenCalled();
+        expect(scope.pagination.resetPagination).toHaveBeenCalled();
       });
 
       it('one view should be filtered', function() {

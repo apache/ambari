@@ -80,16 +80,10 @@ angular.module('ambariAdminConsole')
         return deferred.promise;
     }
 
-    RemoteCluster.all = function(params) {
+    RemoteCluster.all = function() {
       var deferred = $q.defer();
 
-      $http.get(Settings.baseUrl + "/remoteclusters?"
-          + 'ClusterInfo/name.matches(.*'+params.searchString+'.*)'
-          + '&fields=*'
-          + '&from='+ (params.currentPage-1)*params.groupsPerPage
-          + '&page_size=' + params.groupsPerPage
-          + (params.service === 'Any' ? '' : '&ClusterInfo/services.matches(.*'+params.service+'.*)')
-        )
+      $http.get(Settings.baseUrl + "/remoteclusters")
         .success(function(response) {
           deferred.resolve(response);
         })

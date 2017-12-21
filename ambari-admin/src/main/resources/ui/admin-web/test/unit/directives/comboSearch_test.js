@@ -135,19 +135,6 @@ describe('#comboSearch', function () {
 
   describe('#hideAutocomplete', function() {
 
-    it('showAutoComplete should be false when filter passed', function () {
-      var isoScope = element.isolateScope();
-      var filter = {
-        showAutoComplete: true
-      };
-      jasmine.Clock.useMock();
-
-      isoScope.hideAutocomplete(filter);
-
-      jasmine.Clock.tick(101);
-      expect(filter.showAutoComplete).toBeFalsy();
-    });
-
     it('showAutoComplete should be false when isEditing = false', function () {
       var isoScope = element.isolateScope();
       jasmine.Clock.useMock();

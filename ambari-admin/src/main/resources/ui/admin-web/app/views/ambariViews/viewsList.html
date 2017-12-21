@@ -115,13 +115,12 @@
     <div class="col-sm-12 table-bar" ng-show="instances.length >= minInstanceForPagination">
         <div class="pull-left filtered-info">
             <span>{{'common.filterInfo' | translate:{showed: tableInfo.showed, total: tableInfo.filtered, term: urs.urls} }}</span>
-            <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
         </div>
         <div class="pull-right left-margin">
-            <pagination class="paginator" total-items="tableInfo.filtered" max-size="maxVisiblePages" items-per-page="instancesPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+            <pagination class="paginator" total-items="tableInfo.filtered" max-size="pagination.maxVisiblePages" items-per-page="pagination.itemsPerPage" ng-model="pagination.currentPage" ng-change="pageChanged()"></pagination>
         </div>
         <div class="pull-right">
-            <select class="form-control" ng-model="instancesPerPage" ng-change="resetPagination()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
+            <select class="form-control" ng-model="pagination.itemsPerPage" ng-change="resetPagination()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
         </div>
     </div>
 

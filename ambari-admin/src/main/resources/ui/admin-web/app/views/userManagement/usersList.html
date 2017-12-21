@@ -17,14 +17,27 @@
 -->
 
 <div class="users-pane">
-  <div class="clearfix panel">
-    <button class="btn btn-default createuser-btn pull-right" ng-click="createUser();">
-      {{'users.create' | translate}}
-    </button>
+  <div class="clearfix">
+    <div class="pull-right">
+      <button class="btn btn-default createuser-btn pull-right" ng-click="createUser();">
+        {{'users.create' | translate}}
+      </button>
+    </div>
+    <div class="search-box-button pull-right">
+      <button class="btn btn-default" ng-click="toggleSearchBox()">
+        <i class="fa fa-filter" aria-hidden="true"></i>
+      </button>
+      <div class="popup-arrow-up hide"></div>
+    </div>
   </div>
+
+  <div class="search-box-row hide">
+    <combo-search suggestions="filters" filter-change="filterUsers" placeholder="Search"></combo-search>
+  </div>
+
   <table class="table table-striped table-hover">
     <thead>
-      <tr class="fix-bottom">
+      <tr>
         <th>
           <span>{{'users.username' | translate}}</span>
         </th>
@@ -44,36 +57,9 @@
           <span>{{'common.actions' | translate}}</span>
         </th>
       </tr>
-      <tr class="fix-top">
-        <th>
-          <div class="search-container">
-            <input type="text" class="form-control namefilter" placeholder="{{'common.any' | translate}}" ng-model="filters.name" ng-change="resetPagination()">
-            <button type="button" class="close clearfilter" ng-show="filters.name" ng-click="filters.name=''; resetPagination()">
-              <span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span>
-            </button>
-          </div>
-        </th>
-        <th></th>
-        <th>
-          <select class="form-control statusfilter"
-                  ng-model="filters.status"
-                  ng-options="item.label for item in activeFilterOptions"
-                  ng-change="resetPagination()">
-          </select>
-        </th>
-        <th>
-          <select class="form-control typefilter"
-                  ng-model="filters.type"
-                  ng-options="item.label for item in typeFilterOptions"
-                  ng-change="resetPagination()">
-          </select>
-        </th>
-        <th></th>
-        <th></th>
-      </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="user in users">
+      <tr ng-repeat="user in users | filter : { isShowed: true }">
         <td>
           <span>{{user.Users.user_name}}</span>
         </td>
@@ -101,19 +87,18 @@
   <div ng-if="isLoading" class="spinner-container">
     <i class="fa fa-2x fa-spinner fa-spin" aria-hidden="true"></i>
   </div>
-  <div class="alert empty-table-alert col-sm-12" ng-show="!users.length && !isLoading">
+  <div class="alert empty-table-alert col-sm-12" ng-show="!tableInfo.showed && !isLoading">
     {{'common.alerts.nothingToDisplay' | translate:{term: constants.users} }}
   </div>
-  <div class="col-sm-12 table-bar" ng-show="totalUsers > minRowsToShowPagination">
+  <div class="col-sm-12 table-bar" ng-show="users.length > minRowsToShowPagination">
     <div class="pull-left filtered-info">
       <span>{{'common.filterInfo' | translate:{showed: tableInfo.showed, total: tableInfo.total, term: constants.users} }}</span>
-      <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
     </div>
     <div class="pull-right left-margin">
-      <pagination class="paginator" total-items="totalUsers" max-size="maxVisiblePages" items-per-page="usersPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+      <pagination class="paginator" total-items="tableInfo.filtered" max-size="pagination.maxVisiblePages" items-per-page="pagination.itemsPerPage" ng-model="pagination.currentPage" ng-change="pageChanged()"></pagination>
     </div>
     <div class="pull-right">
-      <select class="form-control" ng-model="usersPerPage" ng-change="usersPerPageChanges()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
+      <select class="form-control" ng-model="pagination.itemsPerPage" ng-change="resetPagination()" ng-options="currOption for currOption in [10, 25, 50, 100]"></select>
     </div>
   </div>
 </div>
