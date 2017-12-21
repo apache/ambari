@@ -292,8 +292,7 @@ angular.module('ambariAdminConsole')
           angular.forEach(hostStatus, function(status) {
             totalHosts += status.length;
           });
-          response.status = currentHosts > 0? 'current' :
-                            installedHosts > 0? 'installed' : '';
+          response.status = data[0].ClusterStackVersions.state;
           response.currentHosts = currentHosts;
           response.installedHosts = installedHosts;
           response.totalHosts = totalHosts;
