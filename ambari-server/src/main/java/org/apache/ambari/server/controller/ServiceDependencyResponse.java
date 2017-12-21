@@ -26,6 +26,7 @@ public class ServiceDependencyResponse {
   private Long dependencyClusterId;
   private Long dependencyServiceId;
   private Long dependencyServiceGroupId;
+  private Long dependencyId;
   private String clusterName;
   private String serviceName;
   private String serviceGroupName;
@@ -36,7 +37,7 @@ public class ServiceDependencyResponse {
   public ServiceDependencyResponse(Long clusterId, String clusterName, Long dependencyClusterId, String dependencyClusterName,
                                    Long dependencyServiceGroupId, String dependencyServiceGroupName, Long dependencyServiceId,
                                    String dependencyServiceName, Long serviceGroupId, String serviceGroupName,
-                                   Long serviceId, String serviceName) {
+                                   Long serviceId, String serviceName, Long dependencyId) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.dependencyClusterId = dependencyClusterId;
@@ -49,6 +50,7 @@ public class ServiceDependencyResponse {
     this.serviceGroupName = serviceGroupName;
     this.serviceId = serviceId;
     this.serviceName = serviceName;
+    this.dependencyId = dependencyId;
   }
 
   public Long getClusterId() {
@@ -145,6 +147,14 @@ public class ServiceDependencyResponse {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public Long getDependencyId() {
+    return dependencyId;
+  }
+
+  public void setDependencyId(Long dependencyId) {
+    this.dependencyId = dependencyId;
   }
 
   @Override

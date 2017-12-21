@@ -22,13 +22,20 @@ public class ServiceDependencyRequest {
   private String clusterName;
   private String serviceName;
   private String serviceGroupName;
-  private Long dependencyServiceId;
+  private String dependentClusterName;
+  private String dependentServiceName;
+  private String dependentServiceGroupName;
+  private Long dependencyId;
 
-  public ServiceDependencyRequest(String clusterName, String serviceName, String serviceGroupName, Long dependencyServiceId) {
+  public ServiceDependencyRequest(String clusterName, String serviceName, String serviceGroupName, String dependentClusterName,
+                                  String dependentServiceGroupName, String dependentServiceName, Long dependencyId) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.serviceGroupName = serviceGroupName;
-    this.dependencyServiceId = dependencyServiceId;
+    this.dependentClusterName = dependentClusterName;
+    this.dependentServiceGroupName = dependentServiceGroupName;
+    this.dependentServiceName = dependentServiceName;
+    this.dependencyId = dependencyId;
   }
 
   public String getClusterName() {
@@ -39,12 +46,36 @@ public class ServiceDependencyRequest {
     this.clusterName = clusterName;
   }
 
-  public Long getDependencyServiceId() {
-    return dependencyServiceId;
+  public Long getDependencyId() {
+    return dependencyId;
   }
 
-  public void setDependencyServiceId(Long dependencyServiceId) {
-    this.dependencyServiceId = dependencyServiceId;
+  public void setDependencyId(Long dependencyId) {
+    this.dependencyId = dependencyId;
+  }
+
+  public String getDependentClusterName() {
+    return dependentClusterName;
+  }
+
+  public void setDependentClusterName(String dependentClusterName) {
+    this.dependentClusterName = dependentClusterName;
+  }
+
+  public String getDependentServiceGroupName() {
+    return dependentServiceGroupName;
+  }
+
+  public void setDependentServiceGroupName(String dependentServiceGroupName) {
+    this.dependentServiceGroupName = dependentServiceGroupName;
+  }
+
+  public String getDependentServiceName() {
+    return dependentServiceName;
+  }
+
+  public void setDependentServiceName(String dependentServiceName) {
+    this.dependentServiceName = dependentServiceName;
   }
 
   public String getServiceGroupName() {
@@ -69,7 +100,10 @@ public class ServiceDependencyRequest {
             "clusterName='" + clusterName + '\'' +
             ", serviceName='" + serviceName + '\'' +
             ", serviceGroupName='" + serviceGroupName + '\'' +
-            ", dependencyServiceId=" + dependencyServiceId +
+            ", dependentClusterName='" + dependentClusterName + '\'' +
+            ", dependentServiceName='" + dependentServiceName + '\'' +
+            ", dependentServiceGroupName='" + dependentServiceGroupName + '\'' +
+            ", dependencyId=" + dependencyId +
             '}';
   }
 }

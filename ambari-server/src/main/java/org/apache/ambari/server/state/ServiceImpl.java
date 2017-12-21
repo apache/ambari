@@ -364,7 +364,7 @@ public class ServiceImpl implements Service {
         responses.add(new ServiceDependencyResponse(cluster.getClusterId(), cluster.getClusterName(),
                  sk.getClusterId(), sk.getClusterName(), sk.getServiceGroupId(), sk.getServiceGroupName(),
                  sk.getServiceId(), sk.getServiceName(), getServiceGroupId(), getServiceGroupName(),
-                 getServiceId(), getName()));
+                 getServiceId(), getName(), sk.getDependencyId()));
       }
     }
     return responses;
@@ -403,6 +403,7 @@ public class ServiceImpl implements Service {
         serviceKey.setClusterId(clusterId);
         serviceKey.setServiceName(dependencyService.getServiceName());
         serviceKey.setServiceId(dependencyService.getServiceId());
+        serviceKey.setDependencyId(sde.getServiceDependencyId());
         serviceDependenciesList.add(serviceKey);
       }
     }

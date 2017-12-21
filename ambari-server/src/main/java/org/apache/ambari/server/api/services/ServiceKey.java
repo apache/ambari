@@ -22,6 +22,7 @@ public class ServiceKey {
   private Long serviceId;
   private Long serviceGroupId;
   private Long clusterId;
+  private Long dependencyId;
   private String serviceName;
   private String serviceGroupName;
   private String clusterName;
@@ -29,13 +30,15 @@ public class ServiceKey {
   public ServiceKey() {
   }
 
-  public ServiceKey(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName, Long serviceId, String serviceName) {
+  public ServiceKey(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName, Long serviceId, String serviceName,
+                    Long dependencyId) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceGroupId = serviceGroupId;
     this.serviceGroupName = serviceGroupName;
     this.serviceId = serviceId;
     this.serviceName = serviceName;
+    this.dependencyId = dependencyId;
   }
 
   public Long getClusterId() {
@@ -84,6 +87,14 @@ public class ServiceKey {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public Long getDependencyId() {
+    return dependencyId;
+  }
+
+  public void setDependencyId(Long dependencyId) {
+    this.dependencyId = dependencyId;
   }
 
   @Override
