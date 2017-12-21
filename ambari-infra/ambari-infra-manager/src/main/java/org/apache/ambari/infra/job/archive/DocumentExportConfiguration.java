@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.job.ObjectSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -26,28 +27,23 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Paths;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-
-import static org.apache.ambari.infra.job.archive.SolrDocumentSource.SOLR_DATETIME_FORMATTER;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Configuration
 public class DocumentExportConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(DocumentExportConfiguration.class);
-  private static final DateTimeFormatter FILENAME_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSSX");
 
   @Inject
-  private DocumentExportProperties properties;
+  private DocumentExportPropertyMap propertyMap;
 
   @Inject
   private StepBuilderFactory steps;
@@ -55,11 +51,26 @@ public class DocumentExportConfiguration {
   @Inject
   private JobBuilderFactory jobs;
 
+  @Inject
+  @Qualifier("exportStep")
+  private Step exportStep;
+
+  @Inject
+  private JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor;
 
 
-  @Bean
-  public Job logExportJob(@Qualifier("exportStep") Step logExportStep) {
-    return jobs.get("solr_data_export").listener(new DocumentExportJobListener()).start(logExportStep).build();
+  @PostConstruct
+  public void createJobs() {
+    propertyMap.getSolrDataExport().values().forEach(DocumentExportProperties::validate);
+
+    propertyMap.getSolrDataExport().keySet().forEach(jobName -> {
+      Job job = logExportJob(jobName, exportStep);
+      jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
+    });
+  }
+
+  private Job logExportJob(String jobName, Step logExportStep) {
+    return jobs.get(jobName).listener(new DocumentExportJobListener(propertyMap)).start(logExportStep).build();
   }
 
   @Bean
@@ -67,16 +78,17 @@ public class DocumentExportConfiguration {
   public Step exportStep(DocumentExporter documentExporter) {
     return steps.get("export")
             .tasklet(documentExporter)
-            .listener(new DocumentExportStepListener(properties))
             .build();
   }
 
   @Bean
   @StepScope
-  public DocumentExporter getDocumentExporter(DocumentItemReader documentItemReader,
-                                              @Value("#{stepExecution.jobExecution.id}") String jobId) {
+  public DocumentExporter documentExporter(DocumentItemReader documentItemReader,
+                                           @Value("#{stepExecution.jobExecution.id}") String jobId,
+                                           @Value("#{stepExecution.jobExecution.executionContext.get('exportProperties')}") DocumentExportProperties properties) {
     File path = Paths.get(
             properties.getDestinationDirectoryPath(),
+            // TODO: jobId should remain the same after continuing job
             String.format("%s_%s", properties.getQuery().getCollection(), jobId)).toFile(); // TODO: add end date
     LOG.info("Destination directory path={}", path);
     if (!path.exists()) {
@@ -86,33 +98,43 @@ public class DocumentExportConfiguration {
     }
 
     CompositeFileAction fileAction = new CompositeFileAction(new TarGzCompressor());
+    properties.s3Properties().ifPresent(s3Properties -> fileAction.add(new S3Uploader(s3Properties)));
 
     return new DocumentExporter(
             documentItemReader,
-            firstDocument -> new LocalDocumentItemWriter(
-                    new File(path, String.format("%s_-_%s.json",
-                            properties.getQuery().getCollection(),
-                            firstDocument.get(properties.getFileNameSuffixColumn()))),
-                    fileAction),
+            firstDocument -> localDocumentItemWriter(properties, path, fileAction, firstDocument),
             properties.getWriteBlockSize());
+  }
+
+  private LocalDocumentItemWriter localDocumentItemWriter(DocumentExportProperties properties, File path, FileAction fileAction, Document firstDocument) {
+    return new LocalDocumentItemWriter(outFile(properties.getQuery().getCollection(), path, firstDocument.get(properties.getFileNameSuffixColumn())),
+            file -> fileAction.perform(file, true));
+  }
+
+  private File outFile(String collection, File directoryPath, String suffix) {
+    // TODO: format date (suffix)
+    File file = new File(directoryPath, String.format("%s_-_%s.json", collection, suffix));
+    LOG.info("Exporting to temp file {}", file.getAbsolutePath());
+    return file;
   }
 
   @Bean
   @StepScope
-  public DocumentItemReader reader(DocumentSource documentSource) {
+  public DocumentItemReader reader(ObjectSource<Document> documentSource,
+                                   @Value("#{stepExecution.jobExecution.executionContext.get('exportProperties')}") DocumentExportProperties properties) {
     return new DocumentItemReader(documentSource, properties.getReadBlockSize());
   }
 
   @Bean
   @StepScope
-  public DocumentSource logSource(@Value("#{jobParameters[endDate]}") String endDateText) {
-    OffsetDateTime endDate = OffsetDateTime.now(ZoneOffset.UTC);
-    if (!isBlank(endDateText))
-      endDate = OffsetDateTime.parse(endDateText);
+  public ObjectSource logSource(@Value("#{jobParameters[start]}") String start,
+                                @Value("#{jobParameters[end]}") String end,
+                                @Value("#{stepExecution.jobExecution.executionContext.get('exportProperties')}") DocumentExportProperties properties) {
 
     return new SolrDocumentSource(
-            properties.getZooKeeperSocket(),
+            properties.getZooKeeperConnectionString(),
             properties.getQuery(),
-            SOLR_DATETIME_FORMATTER.format(endDate));
+            start,
+            end);
   }
 }

@@ -16,38 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.archive;
+package org.apache.ambari.infra.job;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.util.Collections.unmodifiableMap;
-
-public class Document {
-  private final Map<String, String> fieldMap;
-
-  private Document() {
-    fieldMap = new HashMap<>();
-  }
-
-  public Document(Map<String, String> fieldMap) {
-    this.fieldMap = unmodifiableMap(fieldMap);
-  }
-
-  public String get(String key) {
-    return fieldMap.get(key);
-  }
-
-  @JsonAnyGetter
-  private Map<String, String> getFieldMap() {
-    return fieldMap;
-  }
-
-  @JsonAnySetter
-  private void put(String key, String value) {
-    fieldMap.put(key, value);
-  }
+public interface ObjectSource<T> {
+  CloseableIterator<T> open(T current, int rows);
 }

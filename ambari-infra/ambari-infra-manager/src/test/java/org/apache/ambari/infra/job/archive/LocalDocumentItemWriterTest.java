@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -49,12 +49,12 @@ public class LocalDocumentItemWriterTest extends EasyMockSupport {
   private LocalDocumentItemWriter localDocumentItemWriter;
   private File outFile;
   @Mock
-  private FileAction fileAction;
+  private ItemWriterListener itemWriterListener;
 
   @Before
   public void setUp() throws Exception {
     outFile = File.createTempFile("LocalDocumentItemWriterTest", "json.tmp");
-    localDocumentItemWriter = new LocalDocumentItemWriter(outFile, fileAction);
+    localDocumentItemWriter = new LocalDocumentItemWriter(outFile, itemWriterListener);
   }
 
   @After
@@ -65,7 +65,7 @@ public class LocalDocumentItemWriterTest extends EasyMockSupport {
 
   @Test
   public void testWrite() throws Exception {
-    expect(fileAction.perform(outFile)).andReturn(outFile);
+    itemWriterListener.onCompleted(outFile); expectLastCall();
     replayAll();
 
     localDocumentItemWriter.write(DOCUMENT);

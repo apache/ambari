@@ -16,38 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.archive;
+package org.apache.ambari.infra;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
+import org.jbehave.core.steps.ParameterConverters;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
-import static java.util.Collections.unmodifiableMap;
+public class OffsetDateTimeConverter implements ParameterConverters.ParameterConverter {
+  private static final DateTimeFormatter SOLR_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
-public class Document {
-  private final Map<String, String> fieldMap;
-
-  private Document() {
-    fieldMap = new HashMap<>();
+  @Override
+  public boolean accept(Type type) {
+    return type instanceof Class<?> && OffsetDateTime.class.isAssignableFrom((Class<?>) type);
   }
 
-  public Document(Map<String, String> fieldMap) {
-    this.fieldMap = unmodifiableMap(fieldMap);
-  }
-
-  public String get(String key) {
-    return fieldMap.get(key);
-  }
-
-  @JsonAnyGetter
-  private Map<String, String> getFieldMap() {
-    return fieldMap;
-  }
-
-  @JsonAnySetter
-  private void put(String key, String value) {
-    fieldMap.put(key, value);
+  @Override
+  public Object convertValue(String value, Type type) {
+    return OffsetDateTime.parse(value, SOLR_DATETIME_FORMATTER);
   }
 }

@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.solr.client.solrj.SolrQuery.ORDER.asc;
 
 public class SolrQueryBuilder {
@@ -32,6 +33,7 @@ public class SolrQueryBuilder {
   public static final Pattern PARAMETER_PATTERN = Pattern.compile("\\$\\{[a-z]+\\}");
 
   private String queryText;
+  private String startValue;
   private String endValue;
   private String filterQueryText;
   private Document document;
@@ -47,6 +49,12 @@ public class SolrQueryBuilder {
   }
 
   public SolrQueryBuilder setEndValue(String endValue) {
+    this.endValue = endValue;
+    return this;
+  }
+
+  public SolrQueryBuilder setInterval(String startValue, String endValue) {
+    this.startValue = startValue;
     this.endValue = endValue;
     return this;
   }
@@ -71,19 +79,21 @@ public class SolrQueryBuilder {
     SolrQuery solrQuery = new SolrQuery();
 
     String query = queryText;
-    query = setEndValueOn(query);
+    query = setValueOn(query, "${start}", startValue);
+    query = setValueOn(query, "${end}", endValue);
 
     solrQuery.setQuery(query);
 
     if (filterQueryText != null) {
       String filterQuery = filterQueryText;
-      filterQuery = setEndValueOn(filterQuery);
+      filterQuery = setValueOn(filterQuery, "${start}", startValue);
+      filterQuery = setValueOn(filterQuery, "${end}", endValue);
 
       Set<String> paramNames = collectParamNames(filterQuery);
       if (document != null) {
         for (String parameter : paramNames) {
           if (document.get(parameter) != null)
-            filterQuery = filterQuery.replace(String.format("${%s}", parameter), document.get(parameter));
+            filterQuery = filterQuery.replace(String.format("${%s}", parameter), String.format("\"%s\"", document.get(parameter)));
         }
       }
 
@@ -99,10 +109,14 @@ public class SolrQueryBuilder {
     return solrQuery;
   }
 
-  private String setEndValueOn(String query) {
-    if (endValue != null)
-      query = query.replace("${end}", endValue);
-    return query;
+  private String setValueOn(String query, String placeHolder, String value) {
+    if (isBlank(value)) {
+      value = "*";
+    }
+    else {
+      value = '"' + value + '"';
+    }
+    return query.replace(placeHolder, value);
   }
 
   private Set<String> collectParamNames(String filterQuery) {
