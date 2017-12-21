@@ -864,6 +864,20 @@
           ]
         }
       },
+      "SUPERSET": {
+        "SUPERSET": {
+          "STACK-SELECT-PACKAGE": "superset",
+          "INSTALL": [
+            "superset"
+          ],
+          "PATCH": [
+            "superset"
+          ],
+          "STANDARD": [
+            "superset"
+          ]
+        }
+      },
       "TITAN": {
         "TITAN_CLIENT": {
           "STACK-SELECT-PACKAGE": "titan-client",
