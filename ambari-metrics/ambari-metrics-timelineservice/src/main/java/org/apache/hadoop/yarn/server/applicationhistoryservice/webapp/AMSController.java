@@ -15,27 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.hadoop.yarn.server.applicationhistoryservice.webapp;
 
-import static org.apache.hadoop.yarn.util.StringHelper.join;
+import org.apache.hadoop.yarn.webapp.Controller;
 
-import org.apache.hadoop.yarn.server.webapp.ContainerBlock;
-import org.apache.hadoop.yarn.webapp.SubView;
-import org.apache.hadoop.yarn.webapp.YarnWebParams;
+import com.google.inject.Inject;
 
-public class ContainerPage extends AHSView {
+public class AMSController extends Controller {
 
-  @Override
-  protected void preHead(Page.HTML<_> html) {
-    commonPreHead(html);
-
-    String containerId = $(YarnWebParams.CONTAINER_ID);
-    set(TITLE, containerId.isEmpty() ? "Bad request: missing container ID"
-        : join("Container ", $(YarnWebParams.CONTAINER_ID)));
+  @Inject
+  AMSController(RequestContext ctx) {
+    super(ctx);
   }
 
   @Override
-  protected Class<? extends SubView> content() {
-    return ContainerBlock.class;
+  public void index() {
+    setTitle("Ambari Metrics Service");
   }
+
 }

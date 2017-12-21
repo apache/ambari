@@ -25,7 +25,7 @@ HBASE_RS_PID=/var/run/ams-hbase/hbase-${USER}-regionserver.pid
 
 HBASE_DIR=/usr/lib/ams-hbase
 
-DAEMON_NAME=timelineserver
+DAEMON_NAME=ams-metrics-collector
 
 COLLECTOR_CONF_DIR=/etc/ambari-metrics-collector/conf
 HBASE_CONF_DIR=/etc/ams-hbase/conf
@@ -238,7 +238,7 @@ function start()
     echo "$(date) Launching in distributed mode. Assuming Hbase daemons up and running." | tee -a $STARTUPFILE
   fi
 
-	CLASS='org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer'
+	CLASS='org.apache.hadoop.yarn.server.applicationhistoryservice.AMSApplicationServer'
 	# YARN_OPTS="${YARN_OPTS} ${YARN_TIMELINESERVER_OPTS}"
 	# if [[ -n "${YARN_TIMELINESERVER_HEAPSIZE}" ]]; then
 	#   JAVA_HEAP_MAX="-Xmx${YARN_TIMELINESERVER_HEAPSIZE}m"
@@ -263,7 +263,7 @@ function start()
   sleep 2
 
   echo "Verifying ${METRIC_COLLECTOR} process status..." | tee -a $STARTUPFILE
-  if [ -z "`ps ax | grep -w ${PID} | grep ApplicationHistoryServer`" ]; then
+  if [ -z "`ps ax | grep -w ${PID} | grep AMSApplicationServer`" ]; then
     if [ -s ${OUTFILE} ]; then
       echo "ERROR: ${METRIC_COLLECTOR} start failed. For more details, see ${OUTFILE}:" | tee -a $STARTUPFILE
       echo "===================="
