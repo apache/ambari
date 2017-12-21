@@ -50,11 +50,11 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ALTER_METRICS_METADATA_TABLE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ANOMALY_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_ANOMALY_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_INSTANCE_HOST_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_TABLE_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_ANOMALY_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_METADATA_TABLE_SQL;
@@ -74,6 +74,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES_REGEX_PATTERN;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.TREND_ANOMALY_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_AGGREGATE_RECORD_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_ANOMALY_METRICS_SQL;
@@ -103,6 +104,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -116,10 +118,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
+import org.apache.hadoop.hbase.client.ColumnFamilyDescriptorBuilder;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.TableDescriptor;
+import org.apache.hadoop.hbase.client.TableDescriptorBuilder;
 import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
@@ -153,7 +159,6 @@ import org.apache.phoenix.exception.PhoenixIOException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 
@@ -208,7 +213,7 @@ public class PhoenixHBaseAccessor {
   static final String BLOCKING_STORE_FILES_KEY =
     "hbase.hstore.blockingStoreFiles";
 
-  private HashMap<String, String> tableTTL = new HashMap<>();
+  private Map<String, Integer> tableTTL = new HashMap<>();
 
   private final TimelineMetricConfiguration configuration;
   private List<InternalMetricsSource> rawMetricsSources = new ArrayList<>();
@@ -253,15 +258,15 @@ public class PhoenixHBaseAccessor {
     this.timelineMetricsTablesDurability = metricsConf.get(TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY, "");
     this.timelineMetricsPrecisionTableDurability = metricsConf.get(TIMELINE_METRICS_PRECISION_TABLE_DURABILITY, "");
 
-    tableTTL.put(METRICS_RECORD_TABLE_NAME, metricsConf.get(PRECISION_TABLE_TTL, String.valueOf(1 * 86400)));  // 1 day
-    tableTTL.put(CONTAINER_METRICS_TABLE_NAME, metricsConf.get(CONTAINER_METRICS_TTL, String.valueOf(30 * 86400)));  // 30 days
-    tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.get(HOST_MINUTE_TABLE_TTL, String.valueOf(7 * 86400))); //7 days
-    tableTTL.put(METRICS_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.get(HOST_HOUR_TABLE_TTL, String.valueOf(30 * 86400))); //30 days
-    tableTTL.put(METRICS_AGGREGATE_DAILY_TABLE_NAME, metricsConf.get(HOST_DAILY_TABLE_TTL, String.valueOf(365 * 86400))); //1 year
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_TABLE_NAME, metricsConf.get(CLUSTER_SECOND_TABLE_TTL, String.valueOf(7 * 86400))); //7 days
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, String.valueOf(30 * 86400))); //30 days
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.get(CLUSTER_HOUR_TABLE_TTL, String.valueOf(365 * 86400))); //1 year
-    tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, metricsConf.get(CLUSTER_DAILY_TABLE_TTL, String.valueOf(730 * 86400))); //2 years
+    tableTTL.put(METRICS_RECORD_TABLE_NAME, metricsConf.getInt(PRECISION_TABLE_TTL, 1 * 86400));  // 1 day
+    tableTTL.put(CONTAINER_METRICS_TABLE_NAME, metricsConf.getInt(CONTAINER_METRICS_TTL, 30 * 86400));  // 30 days
+    tableTTL.put(METRICS_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.getInt(HOST_MINUTE_TABLE_TTL, 7 * 86400)); //7 days
+    tableTTL.put(METRICS_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.getInt(HOST_HOUR_TABLE_TTL, 30 * 86400)); //30 days
+    tableTTL.put(METRICS_AGGREGATE_DAILY_TABLE_NAME, metricsConf.getInt(HOST_DAILY_TABLE_TTL, 365 * 86400)); //1 year
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_TABLE_NAME, metricsConf.getInt(CLUSTER_SECOND_TABLE_TTL, 7 * 86400)); //7 days
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.getInt(CLUSTER_MINUTE_TABLE_TTL, 30 * 86400)); //30 days
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.getInt(CLUSTER_HOUR_TABLE_TTL, 365 * 86400)); //1 year
+    tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, metricsConf.getInt(CLUSTER_DAILY_TABLE_TTL, 730 * 86400)); //2 years
 
     if (cacheEnabled) {
       LOG.debug("Initialising and starting metrics cache committer thread...");
@@ -495,7 +500,7 @@ public class PhoenixHBaseAccessor {
    * @return @HBaseAdmin
    * @throws IOException
    */
-  HBaseAdmin getHBaseAdmin() throws IOException {
+  Admin getHBaseAdmin() throws IOException {
     return dataSource.getHBaseAdmin();
   }
 
@@ -612,55 +617,85 @@ public class PhoenixHBaseAccessor {
   }
 
   protected void initPoliciesAndTTL() {
-
-    HBaseAdmin hBaseAdmin = null;
+    Admin hBaseAdmin = null;
     try {
       hBaseAdmin = dataSource.getHBaseAdmin();
     } catch (IOException e) {
       LOG.warn("Unable to initialize HBaseAdmin for setting policies.", e);
     }
 
+    TableName[] tableNames = null;
     if (hBaseAdmin != null) {
+      try {
+        tableNames = hBaseAdmin.listTableNames(PHOENIX_TABLES_REGEX_PATTERN, false);
+      } catch (IOException e) {
+        LOG.warn("Unable to get table names from HBaseAdmin for setting policies.", e);
+        return;
+      }
+      if (tableNames == null || tableNames.length == 0) {
+        LOG.warn("Unable to get table names from HBaseAdmin for setting policies.");
+        return;
+      }
       for (String tableName : PHOENIX_TABLES) {
         try {
           boolean modifyTable = false;
-          HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
+          Optional<TableName> tableNameOptional = Arrays.stream(tableNames)
+            .filter(t -> tableName.equals(t.getNameAsString())).findFirst();
+
+          TableDescriptor tableDescriptor = null;
+          if (tableNameOptional.isPresent()) {
+            tableDescriptor = hBaseAdmin.getTableDescriptor(tableNameOptional.get());
+          }
+
+          if (tableDescriptor == null) {
+            LOG.warn("Unable to get table descriptor for " + tableName);
+            continue;
+          }
+
+          // @TableDescriptor is immutable by design
+          TableDescriptorBuilder tableDescriptorBuilder =
+            TableDescriptorBuilder.newBuilder(tableDescriptor);
 
           //Set normalizer preferences
           boolean enableNormalizer = hbaseConf.getBoolean("hbase.normalizer.enabled", false);
           if (enableNormalizer ^ tableDescriptor.isNormalizationEnabled()) {
-            tableDescriptor.setNormalizationEnabled(enableNormalizer);
+            tableDescriptorBuilder.setNormalizationEnabled(enableNormalizer);
             LOG.info("Normalizer set to " + enableNormalizer + " for " + tableName);
             modifyTable = true;
           }
 
           //Set durability preferences
-          boolean durabilitySettingsModified = setDurabilityForTable(tableName, tableDescriptor);
+          boolean durabilitySettingsModified = setDurabilityForTable(tableName, tableDescriptorBuilder);
           modifyTable = modifyTable || durabilitySettingsModified;
 
           //Set compaction policy preferences
           boolean compactionPolicyModified = false;
-          compactionPolicyModified = setCompactionPolicyForTable(tableName, tableDescriptor);
+          compactionPolicyModified = setCompactionPolicyForTable(tableName, tableDescriptorBuilder);
           modifyTable = modifyTable || compactionPolicyModified;
 
           // Change TTL setting to match user configuration
-          HColumnDescriptor[] columnFamilies = tableDescriptor.getColumnFamilies();
-          if (columnFamilies != null) {
-            for (HColumnDescriptor family : columnFamilies) {
-              String ttlValue = family.getValue("TTL");
-              if (StringUtils.isEmpty(ttlValue) ||
-                  !ttlValue.trim().equals(tableTTL.get(tableName))) {
-                family.setValue("TTL", tableTTL.get(tableName));
+          ColumnFamilyDescriptor[] columnFamilyDescriptors = tableDescriptor.getColumnFamilies();
+          if (columnFamilyDescriptors != null) {
+            for (ColumnFamilyDescriptor familyDescriptor : columnFamilyDescriptors) {
+              int ttlValue = familyDescriptor.getTimeToLive();
+              if (ttlValue != tableTTL.get(tableName)) {
+                ColumnFamilyDescriptorBuilder familyDescriptorBuilder =
+                  ColumnFamilyDescriptorBuilder.newBuilder(familyDescriptor);
+
+                familyDescriptorBuilder.setTimeToLive(tableTTL.get(tableName));
+
                 LOG.info("Setting TTL on table: " + tableName + " to : " +
                   tableTTL.get(tableName) + " seconds.");
-                modifyTable = true;
+
+                hBaseAdmin.modifyColumnFamily(tableNameOptional.get(), familyDescriptorBuilder.build());
+                // modifyTable = true;
               }
             }
           }
 
           // Persist only if anything changed
           if (modifyTable) {
-            hBaseAdmin.modifyTable(tableName.getBytes(), tableDescriptor);
+            hBaseAdmin.modifyTable(tableNameOptional.get(), tableDescriptorBuilder.build());
           }
 
         } catch (IOException e) {
@@ -675,10 +710,10 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  private boolean setDurabilityForTable(String tableName, HTableDescriptor tableDescriptor) {
+  private boolean setDurabilityForTable(String tableName, TableDescriptorBuilder tableDescriptor) {
 
     boolean modifyTable = false;
-    //Set WAL preferences
+    // Set WAL preferences
     if (METRICS_RECORD_TABLE_NAME.equals(tableName)) {
       if (!timelineMetricsPrecisionTableDurability.isEmpty()) {
         LOG.info("Setting WAL option " + timelineMetricsPrecisionTableDurability + " for table : " + tableName);
@@ -723,7 +758,9 @@ public class PhoenixHBaseAccessor {
     return modifyTable;
   }
 
-  private boolean setCompactionPolicyForTable(String tableName, HTableDescriptor tableDescriptor) {
+  private boolean setCompactionPolicyForTable(String tableName, TableDescriptorBuilder tableDescriptorBuilder) {
+
+    boolean modifyTable = false;
 
     String compactionPolicyKey = metricsConf.get(TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY,
       HSTORE_ENGINE_CLASS);
@@ -738,38 +775,32 @@ public class PhoenixHBaseAccessor {
         FIFO_COMPACTION_POLICY_CLASS);
       blockingStoreFiles = hbaseConf.getInt(TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES, 1000);
     }
-
-    Map<String, String> config = new HashMap(tableDescriptor.getConfiguration());
-
+    
     if (StringUtils.isEmpty(compactionPolicyKey) || StringUtils.isEmpty(compactionPolicyClass)) {
-      config.remove(HSTORE_COMPACTION_CLASS_KEY);
-      config.remove(HSTORE_ENGINE_CLASS);
-      //Default blockingStoreFiles = 300
-      setHbaseBlockingStoreFiles(tableDescriptor, tableName, 300);
+      // Default blockingStoreFiles = 300
+      modifyTable = setHbaseBlockingStoreFiles(tableDescriptorBuilder, tableName, 300);
     } else {
-      tableDescriptor.setConfiguration(compactionPolicyKey, compactionPolicyClass);
-      setHbaseBlockingStoreFiles(tableDescriptor, tableName, blockingStoreFiles);
+      tableDescriptorBuilder.setValue(compactionPolicyKey, compactionPolicyClass);
+      tableDescriptorBuilder.removeValue(HSTORE_ENGINE_CLASS.getBytes());
+      tableDescriptorBuilder.removeValue(HSTORE_COMPACTION_CLASS_KEY.getBytes());
+      setHbaseBlockingStoreFiles(tableDescriptorBuilder, tableName, blockingStoreFiles);
+      modifyTable = true;
     }
 
-    if (!compactionPolicyKey.equals(HSTORE_ENGINE_CLASS)) {
-      tableDescriptor.removeConfiguration(HSTORE_ENGINE_CLASS);
-    }
-    if (!compactionPolicyKey.equals(HSTORE_COMPACTION_CLASS_KEY)) {
-      tableDescriptor.removeConfiguration(HSTORE_COMPACTION_CLASS_KEY);
-    }
-
-    Map<String, String> newConfig = tableDescriptor.getConfiguration();
-    return !Maps.difference(config, newConfig).areEqual();
+    return modifyTable;
   }
 
-  private void setHbaseBlockingStoreFiles(HTableDescriptor tableDescriptor, String tableName, int value) {
+  private boolean setHbaseBlockingStoreFiles(TableDescriptorBuilder tableDescriptor,
+                                             String tableName, int value) {
     int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, value);
     if (blockingStoreFiles != value) {
       blockingStoreFiles = value;
+      tableDescriptor.setValue(BLOCKING_STORE_FILES_KEY, String.valueOf(value));
+      LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
+        " = " + blockingStoreFiles + " for " + tableName);
+      return true;
     }
-    tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, String.valueOf(value));
-    LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
-      " = " + blockingStoreFiles + " for " + tableName);
+    return false;
   }
 
   protected String getSplitPointsStr(String splitPoints) {

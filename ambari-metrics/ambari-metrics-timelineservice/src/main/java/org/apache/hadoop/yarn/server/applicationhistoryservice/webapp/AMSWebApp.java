@@ -15,41 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.yarn.server.applicationhistoryservice.webapp;
 
-import org.apache.hadoop.yarn.webapp.Controller;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
+import org.apache.hadoop.yarn.webapp.GenericExceptionHandler;
+import org.apache.hadoop.yarn.webapp.WebApp;
+import org.apache.hadoop.yarn.webapp.YarnJacksonJaxbJsonProvider;
+import org.apache.hadoop.yarn.webapp.YarnWebParams;
 
-import com.google.inject.Inject;
+public class AMSWebApp extends WebApp implements YarnWebParams {
+  
+  private final TimelineMetricStore timelineMetricStore;
 
-public class AHSController extends Controller {
-
-  @Inject
-  AHSController(RequestContext ctx) {
-    super(ctx);
+  public AMSWebApp(TimelineMetricStore timelineMetricStore) {
+    this.timelineMetricStore = timelineMetricStore;
   }
 
   @Override
-  public void index() {
-    setTitle("Application History");
-  }
-
-  public void app() {
-    render(AppPage.class);
-  }
-
-  public void appattempt() {
-    render(AppAttemptPage.class);
-  }
-
-  public void container() {
-    render(ContainerPage.class);
-  }
-
-  /**
-   * Render the logs page.
-   */
-  public void logs() {
-    render(AHSLogsPage.class);
+  public void setup() {
+    bind(YarnJacksonJaxbJsonProvider.class);
+    bind(TimelineWebServices.class);
+    bind(GenericExceptionHandler.class);
+    bind(TimelineMetricStore.class).toInstance(timelineMetricStore);
+    route("/", AMSController.class);
   }
 }
