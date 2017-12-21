@@ -19,6 +19,8 @@
 
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.job.CloseableIterator;
+import org.apache.ambari.infra.job.ObjectSource;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -45,11 +47,11 @@ public class DocumentItemReaderTest extends EasyMockSupport {
 
   private DocumentItemReader documentItemReader;
   @Mock
-  private DocumentSource documentSource;
+  private ObjectSource<Document> documentSource;
   @Mock
-  private DocumentIterator documentIterator;
+  private CloseableIterator<Document> documentIterator;
   @Mock
-  private DocumentIterator documentIterator2;
+  private CloseableIterator<Document> documentIterator2;
 
   @Before
   public void setUp() throws Exception {

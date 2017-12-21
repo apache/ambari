@@ -29,10 +29,10 @@ public class LocalDocumentItemWriter implements DocumentItemWriter {
 
   private final File outFile;
   private final BufferedWriter bufferedWriter;
-  private final FileAction fileAction;
+  private final ItemWriterListener itemWriterListener;
 
-  public LocalDocumentItemWriter(File outFile, FileAction fileAction) {
-    this.fileAction = fileAction;
+  public LocalDocumentItemWriter(File outFile, ItemWriterListener itemWriterListener) {
+    this.itemWriterListener = itemWriterListener;
     this.outFile = outFile;
     try {
       this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), ENCODING));
@@ -64,7 +64,7 @@ public class LocalDocumentItemWriter implements DocumentItemWriter {
   public void close() {
     try {
       bufferedWriter.close();
-      fileAction.perform(outFile);
+      itemWriterListener.onCompleted(outFile);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

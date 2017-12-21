@@ -1,0 +1,81 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+version: '3.3'
+services:
+  zookeeper:
+    image: zookeeper:${ZOOKEEPER_VERSION:-3.4.10}
+    restart: always
+    hostname: zookeeper
+    networks:
+      - infra-network
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888
+  solr:
+    image: solr:${SOLR_VERSION:-6.6.2}
+    restart: always
+    hostname: solr
+    ports:
+      - "8983:8983"
+    networks:
+      - infra-network
+    env_file:
+      - Profile
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr
+      - start
+      - "-f"
+      - "-c"
+      - "-z"
+      - ${ZOOKEEPER_CONNECTION_STRING}
+    volumes:
+      - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/src/main/configsets:/opt/solr/configsets
+  localstack-s3:
+    image: localstack/localstack
+    ports:
+      - "4569:4569"
+    environment:
+      - SERVICES=s3:4569
+    hostname: fakes3
+    networks:
+      infra-network:
+        aliases:
+          - testbucket.fakes3
+    env_file:
+      - Profile
+  inframanager:
+    image: ambari-infra-manager:v1.0
+    restart: always
+    hostname: infra-manager.apache.org
+    networks:
+      - infra-network
+    env_file:
+      - Profile
+    ports:
+      - 61890:61890
+      - 5007:5007
+    environment:
+      COMPONENT: infra-manager
+      COMPONENT_LOG: infra-manager
+      ZK_CONNECT_STRING: ${ZOOKEEPER_CONNECTION_STRING}
+      DISPLAY: $DOCKERIP:0
+    volumes:
+      - $AMBARI_LOCATION/ambari-infra/ambari-infra-manager/target/package:/root/ambari-infra-manager
+networks:
+  infra-network:
+    driver: bridge

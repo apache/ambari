@@ -18,36 +18,21 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Collections.unmodifiableMap;
+@Configuration
+@ConfigurationProperties(prefix = "infra-manager.jobs")
+public class DocumentExportPropertyMap {
+  private Map<String, DocumentExportProperties> solrDataExport;
 
-public class Document {
-  private final Map<String, String> fieldMap;
-
-  private Document() {
-    fieldMap = new HashMap<>();
+  public Map<String, DocumentExportProperties> getSolrDataExport() {
+    return solrDataExport;
   }
 
-  public Document(Map<String, String> fieldMap) {
-    this.fieldMap = unmodifiableMap(fieldMap);
-  }
-
-  public String get(String key) {
-    return fieldMap.get(key);
-  }
-
-  @JsonAnyGetter
-  private Map<String, String> getFieldMap() {
-    return fieldMap;
-  }
-
-  @JsonAnySetter
-  private void put(String key, String value) {
-    fieldMap.put(key, value);
+  public void setSolrDataExport(Map<String, DocumentExportProperties> solrDataExport) {
+    this.solrDataExport = solrDataExport;
   }
 }

@@ -18,36 +18,16 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
+import java.io.File;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.util.Collections.unmodifiableMap;
-
-public class Document {
-  private final Map<String, String> fieldMap;
-
-  private Document() {
-    fieldMap = new HashMap<>();
+public abstract class AbstractFileAction implements FileAction {
+  @Override
+  public File perform(File inputFile, boolean deleteInput) {
+    File outputFile =  perform(inputFile);
+    if (deleteInput)
+      inputFile.delete();
+    return outputFile;
   }
 
-  public Document(Map<String, String> fieldMap) {
-    this.fieldMap = unmodifiableMap(fieldMap);
-  }
-
-  public String get(String key) {
-    return fieldMap.get(key);
-  }
-
-  @JsonAnyGetter
-  private Map<String, String> getFieldMap() {
-    return fieldMap;
-  }
-
-  @JsonAnySetter
-  private void put(String key, String value) {
-    fieldMap.put(key, value);
-  }
+  protected abstract File perform(File inputFile);
 }

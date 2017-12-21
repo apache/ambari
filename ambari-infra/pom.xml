@@ -23,7 +23,6 @@
     <version>2.0.0.0-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
-  <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-infra</artifactId>
   <version>2.0.0.0-SNAPSHOT</version>
@@ -44,6 +43,7 @@
     <module>ambari-infra-solr-client</module>
     <module>ambari-infra-solr-plugin</module>
     <module>ambari-infra-manager</module>
+    <module>ambari-infra-manager-it</module>
   </modules>
 
   <build>
@@ -161,6 +161,9 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.log</exclude>
             <exclude>**/*.txt</exclude>
+            <exclude>**/docker/Profile</exclude>
+            <exclude>**/docker/.env</exclude>
+            <exclude>**/*.story</exclude>
           </excludes>
         </configuration>
         <executions>
