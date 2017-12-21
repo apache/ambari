@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -50,6 +51,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
 
   public static final String CONFIGURATION_CATEGORY_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "category");
   public static final String CONFIGURATION_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "properties");
+  public static final String CONFIGURATION_PROPERTY_TYPES_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "property_types");
   public static final String CONFIGURATION_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "component_name");
   public static final String CONFIGURATION_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(RESOURCE_KEY, "service_name");
 
@@ -65,6 +67,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     set.add(CONFIGURATION_COMPONENT_NAME_PROPERTY_ID);
     set.add(CONFIGURATION_CATEGORY_PROPERTY_ID);
     set.add(CONFIGURATION_PROPERTIES_PROPERTY_ID);
+    set.add(CONFIGURATION_PROPERTY_TYPES_PROPERTY_ID);
 
     PROPERTIES = Collections.unmodifiableSet(set);
 
@@ -202,12 +205,13 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     return getRequestStatus(null, null, operationStatusMetadata);
   }
 
-  private Resource toResource(String serviceName, String componentName, String categoryName, Map<String, String> properties, Set<String> requestedIds) {
+  private Resource toResource(String serviceName, String componentName, String categoryName, Map<String, String> properties, Map<String, String> propertyTypes, Set<String> requestedIds) {
     Resource resource = new ResourceImpl(Resource.Type.RootServiceComponentConfiguration);
     setResourceProperty(resource, CONFIGURATION_SERVICE_NAME_PROPERTY_ID, serviceName, requestedIds);
     setResourceProperty(resource, CONFIGURATION_COMPONENT_NAME_PROPERTY_ID, componentName, requestedIds);
     setResourceProperty(resource, CONFIGURATION_CATEGORY_PROPERTY_ID, categoryName, requestedIds);
     setResourceProperty(resource, CONFIGURATION_PROPERTIES_PROPERTY_ID, properties, requestedIds);
+    setResourceProperty(resource, CONFIGURATION_PROPERTY_TYPES_PROPERTY_ID, propertyTypes, requestedIds);
     return resource;
   }
 
@@ -238,7 +242,11 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
 
         RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(requestDetails.serviceName, requestDetails.componentName, requestDetails.categoryName);
         if (handler != null) {
-          handler.updateCategory(requestDetails.categoryName, requestDetails.properties, removePropertiesIfNotSpecified);
+          try {
+            handler.updateCategory(requestDetails.categoryName, requestDetails.properties, removePropertiesIfNotSpecified);
+          } catch (AmbariException e) {
+            throw new SystemException(e.getMessage(), e.getCause());
+          }
         } else {
           throw new SystemException(String.format("Configurations may not be updated for the %s component of the root service, %s", requestDetails.serviceName, requestDetails.componentName));
         }
@@ -390,11 +398,11 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
     RootServiceComponentConfigurationHandler handler = rootServiceComponentConfigurationHandlerFactory.getInstance(serviceName, componentName, categoryName);
 
     if (handler != null) {
-      Map<String, Map<String, String>> configurations = handler.getConfigurations(categoryName);
+      Map<String, RootServiceComponentConfiguration> configurations = handler.getConfigurations(categoryName);
 
       if (configurations != null) {
-        for (Map.Entry<String, Map<String, String>> entry : configurations.entrySet()) {
-          resources.add(toResource(serviceName, componentName, entry.getKey(), entry.getValue(), requestedIds));
+        for (Map.Entry<String, RootServiceComponentConfiguration> entry : configurations.entrySet()) {
+          resources.add(toResource(serviceName, componentName, entry.getKey(), entry.getValue().getProperties(), entry.getValue().getPropertyTypes(), requestedIds));
         }
       }
     }

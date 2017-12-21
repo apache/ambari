@@ -1331,3 +1331,39 @@ th.entity-actions {
 .entity-actions a:focus:hover {
   text-decoration: none;
 }
+
+.search-box-button {
+  position: relative;
+  margin-right: 5px;
+}
+
+.search-box-button .btn {
+  padding: 10px;
+}
+
+.search-box-row {
+  padding-top: 15px;
+  padding-bottom: 5px;
+}
+
+.popup-arrow-up {
+  background: inherit;
+  z-index: 1;
+  left: 6px;
+  position: absolute;
+  width: 24px;
+  height: 16px;
+  overflow: hidden;
+}
+
+.popup-arrow-up:after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  transform: rotate(45deg);
+  top: 10px;
+  left: 2px;
+  box-shadow: -2px -2px 10px -3px rgba(0, 0, 0, 0.5);
+}

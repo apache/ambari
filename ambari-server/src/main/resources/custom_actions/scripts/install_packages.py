@@ -31,7 +31,6 @@ from resource_management.core.resources import Package
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.repo_version_history \
     import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 from resource_management.core.providers import get_provider
@@ -155,9 +154,45 @@ class InstallPackages(Script):
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
+    self._fix_default_links("livy", "livy-server")
+    self._fix_default_links("livy2", "livy2-server")
+
     # if installing a version of HDP that needs some symlink love, then create them
     if is_package_install_successful and 'actual_version' in self.structured_output:
       self._relink_configurations_with_conf_select(stack_id, self.structured_output['actual_version'])
+
+
+  def _fix_default_links(self, package_name, component_name):
+    """
+    If a prior version of Ambari did not correctly reverse the conf symlinks, then they would
+    be put into a bad state when distributing a new stack. For example:
+
+    /etc/component/conf (directory)
+    <stack-root>/v1/component/conf -> /etc/component/conf
+
+    When distributing v2, we'd detect the /etc/component/conf problems and would try to adjust it:
+    /etc/component/conf -> <stack-root>/current/component/conf
+    <stack-root>/v2/component/conf -> /etc/component/v2/0
+
+    The problem is that v1 never gets changed (since the stack being distributed is v2), and
+    we end up with a circular link:
+    /etc/component/conf -> <stack-root>/current/component/conf
+    <stack-root>/v1/component/conf -> /etc/component/conf
+
+    :return: None
+    """
+    from resource_management.libraries.functions import stack_select
+    package_dirs = conf_select.get_package_dirs()
+    if package_name in package_dirs:
+      Logger.info("Determining if the default conf links for {0} need to be fixed".format(package_name))
+
+      directories = package_dirs[package_name]
+      Logger.info("The following directories will be checked for {0}: {1}".format(package_name,
+        str(directories)))
+
+      stack_version = stack_select.get_stack_version_before_install(component_name)
+      if stack_version:
+        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
 
 
   def _relink_configurations_with_conf_select(self, stack_id, stack_version):

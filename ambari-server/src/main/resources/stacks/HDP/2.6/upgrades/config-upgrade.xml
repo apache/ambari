@@ -183,8 +183,6 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_yarn_spark_versioned_classpaths">
             <type>yarn-site</type>
-            <set key="yarn.nodemanager.aux-services.spark_shuffle.classpath" value="{{stack_root}}/{{spark_version}}/spark/aux/*"/>
-            <set key="yarn.nodemanager.aux-services.spark2_shuffle.classpath" value="{{stack_root}}/{{spark2_version}}/spark2/aux/*"/>
             <replace key="yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath" find="${hdp.version}/spark/" replace-with="{{spark_version}}/spark/"/>
           </definition>
         </changes>

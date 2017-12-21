@@ -107,7 +107,7 @@
   </property>
   <property>
     <name>logsearch_truststore_location</name>
-    <value>/etc/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
+    <value>/usr/lib/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
     <display-name>Log Search trust store location</display-name>
     <description>Location of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
@@ -133,7 +133,7 @@
   </property>
   <property>
     <name>logsearch_keystore_location</name>
-    <value>/etc/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
+    <value>/usr/lib/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
     <display-name>Log Search key store location</display-name>
     <description>Location of the key store file.</description>
     <on-ambari-upgrade add="true"/>
@@ -183,6 +183,6 @@
       <property-file-name>logsearch-env.sh.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="true" update="true"/>
   </property>
 </configuration>

@@ -93,7 +93,8 @@ class PythonExecutor(object):
     The structured out file, however, is preserved during multiple invocations that use the same file.
     """
     pythonCommand = self.python_command(script, script_params)
-    logger.debug("Running command " + pprint.pformat(pythonCommand))
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug("Running command %s", pprint.pformat(pythonCommand))
 
     if handle is None:
       tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
@@ -127,7 +128,7 @@ class PythonExecutor(object):
     """
     Log some useful information after task failure.
     """
-    logger.info("Command " + pprint.pformat(pythonCommand) + " failed with exitcode=" + str(result['exitcode']))
+    logger.info("Command %s failed with exitcode=%s", pprint.pformat(pythonCommand), result['exitcode'])
     log_process_information(logger)
 
   def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
@@ -138,7 +139,7 @@ class PythonExecutor(object):
               (" after waiting %s secs" % str(timeout) if timeout else "")
       returncode = 999
     result = self.condenseOutput(out, error, returncode, structured_out)
-    logger.debug("Result: %s" % result)
+    logger.debug("Result: %s", result)
     return result
 
   def read_result_from_files(self, out_path, err_path, structured_out_path):
@@ -223,10 +224,10 @@ class BackgroundThread(threading.Thread):
   def run(self):
     process_out, process_err = self.pythonExecutor.open_subprocess_files(self.holder.out_file, self.holder.err_file, True)
 
-    logger.debug("Starting process command %s" % self.holder.command)
+    logger.debug("Starting process command %s", self.holder.command)
     process = self.pythonExecutor.launch_python_subprocess(self.holder.command, process_out, process_err)
 
-    logger.debug("Process has been started. Pid = %s" % process.pid)
+    logger.debug("Process has been started. Pid = %s", process.pid)
 
     self.holder.handle.pid = process.pid
     self.holder.handle.status = BackgroundCommandExecutionHandle.RUNNING_STATUS
@@ -236,6 +237,6 @@ class BackgroundThread(threading.Thread):
 
     self.holder.handle.exitCode = process.returncode
     process_condensed_result = self.pythonExecutor.prepare_process_result(process.returncode, self.holder.out_file, self.holder.err_file, self.holder.structured_out_file)
-    logger.debug("Calling callback with args %s" % process_condensed_result)
+    logger.debug("Calling callback with args %s", process_condensed_result)
     self.holder.handle.on_background_command_complete_callback(process_condensed_result, self.holder.handle)
-    logger.debug("Exiting from thread for holder pid %s" % self.holder.handle.pid)
+    logger.debug("Exiting from thread for holder pid %s", self.holder.handle.pid)

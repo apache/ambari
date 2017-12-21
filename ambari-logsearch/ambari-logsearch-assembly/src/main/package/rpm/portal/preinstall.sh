@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,11 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-Package: [[artifactId]]
-Version: [[package-version]]-[[package-release]]
-Section: [[deb.section]]
-Priority: [[deb.priority]]
-Depends: [[deb.dependency.list]]
-Architecture: [[deb.architecture]]
-Description: [[description]]
-Maintainer: [[deb.publisher]]
+
+LOGSEARCH_CONF="/etc/ambari-logsearch-portal/conf"
+LOGSEARCH_CONF_BACKUP="/usr/lib/ambari-logsearch-portal/conf-old"
+
+if [ -d $LOGSEARCH_CONF_BACKUP ]; then
+  rm -rf $LOGSEARCH_CONF_BACKUP
+fi
+
+if [ -d $LOGSEARCH_CONF ]; then
+  mkdir -p $LOGSEARCH_CONF_BACKUP
+  cp -r $LOGSEARCH_CONF/* $LOGSEARCH_CONF_BACKUP
+  rm -rf $LOGSEARCH_CONF
+fi

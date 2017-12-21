@@ -90,7 +90,7 @@ def setup_ranger_kafka():
       else:
         Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is not installed, creating create core-site.xml from default configurations")
         setup_core_site_for_required_plugins(component_user = params.kafka_user, component_group = params.user_group,
-                                             create_core_site_path = params.conf_dir, configurations = { 'hadoop.security.authentication' : 'kerberos' if params.security_enabled else 'simple' },
+                                             create_core_site_path = params.conf_dir, configurations = { 'hadoop.security.authentication' : 'kerberos' if params.kerberos_security_enabled else 'simple' },
                                              configuration_attributes = {})
 
     else:

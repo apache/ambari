@@ -19,8 +19,8 @@
 
 angular.module('ambariAdminConsole')
 .controller('GroupsListCtrl',
-['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', '$translate', 'Settings', 'Cluster', 'View', 'Alert',
-function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Settings, Cluster, View, Alert) {
+['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', '$translate', 'Settings', 'Cluster', 'View', 'Alert', 'Pagination', 'Filters',
+function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Settings, Cluster, View, Alert, Pagination, Filters) {
   var $t = $translate.instant;
   $scope.constants = {
     groups: $t('common.groups').toLowerCase()
@@ -28,77 +28,57 @@ function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Setti
   $scope.minRowsToShowPagination = Settings.minRowsToShowPagination;
   $scope.isLoading = false;
   $scope.groups = [];
-
-  $scope.groupsPerPage = 10;
-  $scope.currentPage = 1;
-  $scope.totalGroups = 0;
-  $scope.filter = {
-    name: '',
-    type: null
-  };
-  $scope.maxVisiblePages=20;
   $scope.tableInfo = {
+    filtered: 0,
     total: 0,
     showed: 0
   };
-  $scope.isNotEmptyFilter = true;
-
-  $scope.pageChanged = function() {
-    loadGroups();
-  };
-  $scope.groupsPerPageChanges = function() {
-    loadGroups();
-  };
+  $scope.pagination = Pagination.create();
+  $scope.filters = [
+    {
+      key: 'group_name',
+      label: $t('groups.name'),
+      options: []
+    },
+    {
+      key: 'groupTypeName',
+      label: $t('common.type'),
+      options: []
+    }
+  ];
 
   $scope.resetPagination = function() {
-    $scope.currentPage = 1;
-    loadGroups();
+    $scope.pagination.resetPagination($scope.groups, $scope.tableInfo);
   };
 
-  function loadGroups(){
+  $scope.pageChanged = function() {
+    $scope.pagination.pageChanged($scope.groups, $scope.tableInfo);
+  };
+
+  $scope.filterGroups = function(appliedFilters) {
+    $scope.tableInfo.filtered = Filters.filterItems(appliedFilters, $scope.groups, $scope.filters);
+    $scope.pagination.resetPagination($scope.groups, $scope.tableInfo);
+  };
+
+  $scope.toggleSearchBox = function() {
+    $('.search-box-button .popup-arrow-up, .search-box-row').toggleClass('hide');
+  };
+
+  $scope.loadGroups = function() {
     $scope.isLoading = true;
-    Group.all({
-      currentPage: $scope.currentPage, 
-      groupsPerPage: $scope.groupsPerPage, 
-      searchString: $scope.filter.name,
-      group_type: $scope.filter.type.value
-    }).then(function(groups) {
+    Group.all().then(function(groups) {
       $scope.isLoading = false;
-      $scope.totalGroups = groups.itemTotal;
       $scope.groups = groups.map(Group.makeGroup);
-      $scope.tableInfo.total = groups.itemTotal;
-      $scope.tableInfo.showed = groups.length;
+      $scope.tableInfo.total = $scope.groups.length;
+      Filters.initFilterOptions($scope.filters, $scope.groups);
+      $scope.filterGroups();
     })
     .catch(function(data) {
       Alert.error($t('groups.alerts.getGroupsListError'), data.data.message);
     });
-  }
-
-  $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
-    .concat(Object.keys(Group.getTypes()).map(function(key) {
-      return {
-        label: $t(Group.getTypes()[key].LABEL_KEY),
-        value: Group.getTypes()[key].VALUE
-      };
-  }));
-  $scope.filter.type = $scope.typeFilterOptions[0];
-
-  $scope.clearFilters = function () {
-    $scope.filter.name = '';
-    $scope.filter.type = $scope.typeFilterOptions[0];
-    $scope.resetPagination();
   };
-  
-  loadGroups();
 
-  $scope.$watch(
-    function (scope) {
-      return Boolean(scope.filter.name || (scope.filter.type && scope.filter.type.value !== '*'));
-    },
-    function (newValue, oldValue, scope) {
-      scope.isNotEmptyFilter = newValue;
-    }
-  );
+  $scope.loadGroups();
 
   $rootScope.$watch(function(scope) {
     return scope.LDAPSynced;

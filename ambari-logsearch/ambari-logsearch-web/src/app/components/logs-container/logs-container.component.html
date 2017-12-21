@@ -24,9 +24,9 @@
     </div>
   </div>
 </div>
-<div class="container-fluid">
-  <filters-panel class="row" [filtersForm]="filtersForm" [logsType]="logsType"></filters-panel>
-  <div class="row">
+<div #container [ngClass]="{'container-fluid': true, 'fixed-filterbar': isFilterPanelFixedPostioned}">
+  <filters-panel class="row" [filtersForm]="filtersForm" [logsType]="logsType" #filtersPanel></filters-panel>
+  <div class="row events-count">
     <div *ngIf="autoRefreshRemainingSeconds" class="col-md-12">
       <div class="auto-refresh-message pull-right">
         {{'filter.capture.triggeringRefresh' | translate: autoRefreshMessageParams}}

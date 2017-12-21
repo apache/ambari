@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, OnChanges, SimpleChanges, Input} from '@angular/core';
+import {Component, OnChanges, SimpleChanges, Input, ViewContainerRef} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
@@ -33,7 +33,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 })
 export class FiltersPanelComponent implements OnChanges {
 
-  constructor(private logsContainer: LogsContainerService) {
+  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef) {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -61,6 +61,10 @@ export class FiltersPanelComponent implements OnChanges {
   logsType: LogsType;
 
   searchBoxItems: Observable<ListItem[]>;
+
+  get containerEl(): Element {
+    return this.viewContainerRef.element.nativeElement;
+  }
 
   get filters(): {[key: string]: FilterCondition} {
     return this.logsContainer.filters;

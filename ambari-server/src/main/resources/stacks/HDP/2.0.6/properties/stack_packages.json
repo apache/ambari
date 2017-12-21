@@ -536,7 +536,8 @@
             "oozie-server"
           ],
           "PATCH": [
-            "oozie-server"
+            "oozie-server",
+            "oozie-client"
           ],
           "STANDARD": [
             "oozie-client",
@@ -1066,6 +1067,12 @@
           "current_dir": "{0}/current/livy-client/conf"
         }
       ],
+      "livy2": [
+        {
+          "conf_dir": "/etc/livy2/conf",
+          "current_dir": "{0}/current/livy2-client/conf"
+        }
+      ],
       "mahout": [
         {
           "conf_dir": "/etc/mahout/conf",
@@ -1240,7 +1247,7 @@
         "packages": ["spark", "livy"]
       },
       "SPARK2": {
-        "packages": ["spark2", "livy"]
+        "packages": ["spark2", "livy2"]
       },
       "SQOOP": {
         "packages": ["sqoop"]

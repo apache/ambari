@@ -66,6 +66,11 @@ import org.apache.ambari.server.state.RepositoryVersionState;
         query = "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters "
             + "WHERE clusters.clusterName=:clusterName AND hostVersion.state=:state"),
 
+    @NamedQuery(
+        name = "findByCluster",
+        query = "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters "
+            + "WHERE clusters.clusterName=:clusterName"),
+
     @NamedQuery(name = "hostVersionByClusterHostnameAndState", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
             "WHERE clusters.clusterName=:clusterName AND hostVersion.hostEntity.hostName=:hostName AND hostVersion.state=:state"),
