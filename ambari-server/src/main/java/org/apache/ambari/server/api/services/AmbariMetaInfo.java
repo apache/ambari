@@ -140,7 +140,8 @@ public class AmbariMetaInfo {
   private File extensionsRoot;
   private File serverVersionFile;
   private File customActionRoot;
-  private Map<String, VersionDefinitionXml> versionDefinitions = null;
+
+  Map<String, VersionDefinitionXml> versionDefinitions = null;
 
 
   @Inject
@@ -1428,12 +1429,12 @@ public class AmbariMetaInfo {
     versionDefinitions = new HashMap<>();
 
     for (StackInfo stack : getStacks()) {
-      for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
-        versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
-            stack.getVersion(), definition.release.version), definition);
-      }
-
       if (stack.isActive() && stack.isValid()) {
+        for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
+          versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
+            stack.getVersion(), definition.release.version), definition);
+        }
+        
         try {
           // !!! check for a "latest-vdf" one.  This will be used for the default if one is not found.
           VersionDefinitionXml xml = stack.getLatestVersionDefinition();
