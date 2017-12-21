@@ -198,9 +198,6 @@ public class TimelineMetricConfiguration {
   public static final String CLUSTER_AGGREGATOR_DAILY_DISABLED =
     "timeline.metrics.cluster.aggregator.daily.disabled";
 
-  public static final String DISABLE_APPLICATION_TIMELINE_STORE =
-    "timeline.service.disable.application.timeline.store";
-
   public static final String WEBAPP_HTTP_ADDRESS =
     "timeline.metrics.service.webapp.address";
 
