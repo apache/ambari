@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * Encapsulate all metrics related SQL queries.
@@ -411,6 +412,8 @@ public class PhoenixTransactSQL {
     "METRIC_AGGREGATE_HOURLY";
   public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
     "METRIC_AGGREGATE_DAILY";
+
+  public static final Pattern PHOENIX_TABLES_REGEX_PATTERN = Pattern.compile("METRIC_");
 
   public static final String[] PHOENIX_TABLES = {
     METRICS_RECORD_TABLE_NAME,

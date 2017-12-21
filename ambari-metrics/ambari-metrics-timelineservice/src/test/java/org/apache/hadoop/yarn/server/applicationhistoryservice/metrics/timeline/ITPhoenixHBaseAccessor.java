@@ -30,6 +30,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES_REGEX_PATTERN;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -43,12 +44,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
 import org.apache.hadoop.hbase.client.Durability;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.TableDescriptor;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
@@ -324,26 +327,13 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
   @Test
   public void testInitPoliciesAndTTL() throws Exception {
-    HBaseAdmin hBaseAdmin = hdb.getHBaseAdmin();
-    String precisionTtl = "";
-    // Verify policies are unset
-    for (String tableName : PHOENIX_TABLES) {
-      HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
-      tableDescriptor.setNormalizationEnabled(true);
-      Assert.assertTrue("Normalizer enabled.", tableDescriptor.isNormalizationEnabled());
-
-      for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
-        if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
-          precisionTtl = family.getValue("TTL");
-        }
-      }
-      Assert.assertEquals("Precision TTL value.", "86400", precisionTtl);
-    }
+    Admin hBaseAdmin = hdb.getHBaseAdmin();
+    int precisionTtl = 2 * 86400;
 
     Field f = PhoenixHBaseAccessor.class.getDeclaredField("tableTTL");
     f.setAccessible(true);
-    Map<String, String> precisionValues = (Map<String, String>) f.get(hdb);
-    precisionValues.put(METRICS_RECORD_TABLE_NAME, String.valueOf(2 * 86400));
+    Map<String, Integer> precisionValues = (Map<String, Integer>) f.get(hdb);
+    precisionValues.put(METRICS_RECORD_TABLE_NAME, precisionTtl);
     f.set(hdb, precisionValues);
 
     Field f2 = PhoenixHBaseAccessor.class.getDeclaredField("timelineMetricsTablesDurability");
@@ -360,13 +350,18 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     for (int i = 0; i < 10; i++) {
       LOG.warn("Policy check retry : " + i);
       for (String tableName : PHOENIX_TABLES) {
-        HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
+        TableName[] tableNames = hBaseAdmin.listTableNames(PHOENIX_TABLES_REGEX_PATTERN, false);
+        Optional<TableName> tableNameOptional = Arrays.stream(tableNames)
+          .filter(t -> tableName.equals(t.getNameAsString())).findFirst();
+
+        TableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableNameOptional.get());
+        
         normalizerEnabled = tableDescriptor.isNormalizationEnabled();
         tableDurabilitySet = (Durability.ASYNC_WAL.equals(tableDescriptor.getDurability()));
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
-          precisionTableCompactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_ENGINE_CLASS);
+          precisionTableCompactionPolicy = tableDescriptor.getValue(HSTORE_ENGINE_CLASS);
         } else {
-          aggregateTableCompactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY);
+          aggregateTableCompactionPolicy = tableDescriptor.getValue(HSTORE_COMPACTION_CLASS_KEY);
         }
         LOG.debug("Table: " + tableName + ", normalizerEnabled = " + normalizerEnabled);
         // Best effort for 20 seconds
@@ -374,8 +369,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
           Thread.sleep(20000l);
         }
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
-          for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
-            precisionTtl = family.getValue("TTL");
+          for (ColumnFamilyDescriptor family : tableDescriptor.getColumnFamilies()) {
+            precisionTtl = family.getTimeToLive();
           }
         }
       }
@@ -385,7 +380,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     Assert.assertTrue("Durability Set.", tableDurabilitySet);
     Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
     Assert.assertEquals("FIFO compaction policy is set for aggregate tables", DATE_TIERED_COMPACTION_POLICY, aggregateTableCompactionPolicy);
-    Assert.assertEquals("Precision TTL value not changed.", String.valueOf(2 * 86400), precisionTtl);
+    Assert.assertEquals("Precision TTL value as expected.", 2 * 86400, precisionTtl);
 
     hBaseAdmin.close();
   }
