@@ -18,11 +18,10 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import static org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader.DATA_FILE_NAME;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +35,9 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabController;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
@@ -178,6 +180,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
   @Inject
   HostDAO hostDAO;
+
+  @Inject
+  KerberosKeytabController kerberosKeytabController;
+
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
    * data.
@@ -235,10 +241,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   protected static OperationType getOperationType(Map<String, String> commandParameters) {
     String value = getCommandParameterValue(commandParameters, OPERATION_TYPE);
-    if(StringUtils.isEmpty(value)) {
+    if (StringUtils.isEmpty(value)) {
       return OperationType.DEFAULT;
-    }
-    else {
+    } else {
       return OperationType.valueOf(value.toUpperCase());
     }
   }
@@ -365,14 +370,32 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   }
 
   /**
+   * Returns preconfigure type passed to current action.
+   *
+   * @return PreconfigureServiceType
+   */
+  protected PreconfigureServiceType getCommandPreconfigureType() {
+    String preconfigureServices = getCommandParameterValue(getCommandParameters(), PRECONFIGURE_SERVICES);
+    PreconfigureServiceType type = null;
+    if (!StringUtils.isEmpty(preconfigureServices)) {
+      try {
+        type = PreconfigureServiceType.valueOf(preconfigureServices.toUpperCase());
+      } catch (Throwable t) {
+        LOG.warn("Invalid preconfigure_services value, assuming DEFAULT: {}", preconfigureServices);
+        type = PreconfigureServiceType.DEFAULT;
+      }
+    }
+    return type;
+  }
+
+  /**
    * Iterates through the Kerberos identity metadata from the
    * {@link org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader} and calls
    * the implementing class to handle each identity found.
    * <p/>
-   * Using the "data_directory" value from this action's command parameters map, creates a
-   * {@link KerberosIdentityDataFileReader} to parse
-   * the relative identity.dat file and iterate through its "records".  Each "record" is process using
-   * {@link #processRecord(Map, String, KerberosOperationHandler, Map, Map)}.
+   * Using {@link #getHostFilter()}, {@link #getIdentityFilter()} and {@link #getServiceComponentFilter()} it retrieve
+   * list of filtered keytabs and their principals and process each principal using
+   * {@link #processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, Map)}.
    *
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request
@@ -390,102 +413,43 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     if (commandParameters != null) {
       // Grab the relevant data from this action's command parameters map
       PrincipalKeyCredential administratorCredential = kerberosHelper.getKDCAdministratorCredentials(getClusterName());
-      String defaultRealm = getDefaultRealm(commandParameters);
       KDCType kdcType = getKDCType(commandParameters);
-      String dataDirectoryPath = getDataDirectoryPath(commandParameters);
+      String defaultRealm = getDefaultRealm(commandParameters);
 
-      if (dataDirectoryPath != null) {
-        File dataDirectory = new File(dataDirectoryPath);
+      KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
+      Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
 
-        // If the data directory exists, attempt to process further, else assume there is no work to do
-        if (dataDirectory.exists()) {
-          if (!dataDirectory.isDirectory() || !dataDirectory.canRead()) {
-            String message = String.format("Failed to process the identities, the data directory is not accessible: %s",
-                dataDirectory.getAbsolutePath());
-            actionLog.writeStdErr(message);
-            LOG.error(message);
-            throw new AmbariException(message);
-          }
-          // The "identity data" file may or may not exist in the data directory, depending on if
-          // there is work to do or not.
-          File identityDataFile = new File(dataDirectory, DATA_FILE_NAME);
+      try {
+        handler.open(administratorCredential, defaultRealm, kerberosConfiguration);
+      } catch (KerberosOperationException e) {
+        String message = String.format("Failed to process the identities, could not properly open the KDC operation handler: %s",
+            e.getMessage());
+        actionLog.writeStdErr(message);
+        LOG.error(message);
+        throw new AmbariException(message, e);
+      }
 
-          if (identityDataFile.exists()) {
-            if (!identityDataFile.canRead()) {
-              String message = String.format("Failed to process the identities, cannot read the index file: %s",
-                  identityDataFile.getAbsolutePath());
-              actionLog.writeStdErr(message);
-              LOG.error(message);
-              throw new AmbariException(message);
-            }
-
-            KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
-            if (handler == null) {
-              String message = String.format("Failed to process the identities, a KDC operation handler was not found for the KDC type of : %s",
-                  kdcType.toString());
-              actionLog.writeStdErr(message);
-              LOG.error(message);
-              throw new AmbariException(message);
-            }
-
-            Map<String, String> kerberosConfiguration = getConfiguration("kerberos-env");
-
-            try {
-              handler.open(administratorCredential, defaultRealm, kerberosConfiguration);
-            } catch (KerberosOperationException e) {
-              String message = String.format("Failed to process the identities, could not properly open the KDC operation handler: %s",
-                  e.getMessage());
-              actionLog.writeStdErr(message);
-              LOG.error(message);
-              throw new AmbariException(message, e);
-            }
-
-            // Create the data file reader to parse and iterate through the records
-            KerberosIdentityDataFileReader reader = null;
-            try {
-              reader = kerberosIdentityDataFileReaderFactory.createKerberosIdentityDataFileReader(identityDataFile);
-              for (Map<String, String> record : reader) {
-                // Process the current record
-                commandReport = processRecord(record, defaultRealm, handler, kerberosConfiguration, requestSharedDataContext);
-
-                // If the principal processor returns a CommandReport, than it is time to stop since
-                // an error condition has probably occurred, else all is assumed to be well.
-                if (commandReport != null) {
-                  break;
-                }
-              }
-            } catch (AmbariException e) {
-              // Catch this separately from IOException since the reason it was thrown was not the same
-              // Note: AmbariException is an IOException, so there may be some confusion
-              throw new AmbariException(e.getMessage(), e);
-            } catch (IOException e) {
-              String message = String.format("Failed to process the identities, cannot read the index file: %s",
-                  identityDataFile.getAbsolutePath());
-              actionLog.writeStdErr(message);
-              LOG.error(message, e);
-              throw new AmbariException(message, e);
-            } finally {
-              if (reader != null) {
-                // The reader needs to be closed, if it fails to close ignore the exception since
-                // there is little we can or care to do about it now.
-                try {
-                  reader.close();
-                } catch (IOException e) {
-                  // Ignore this...
-                }
-              }
-
-              // The KerberosOperationHandler needs to be closed, if it fails to close ignore the
-              // exception since there is little we can or care to do about it now.
-              try {
-                handler.close();
-              } catch (KerberosOperationException e) {
-                // Ignore this...
-              }
+      try {
+        for (ResolvedKerberosKeytab rkk : kerberosKeytabController.getFilteredKeytabs((Map<String, Collection<String>>) getServiceComponentFilter(), getHostFilter(), getIdentityFilter())) {
+          for (ResolvedKerberosPrincipal principal : rkk.getPrincipals()) {
+            commandReport = processIdentity(principal, handler, kerberosConfiguration, requestSharedDataContext);
+            // If the principal processor returns a CommandReport, than it is time to stop since
+            // an error condition has probably occurred, else all is assumed to be well.
+            if (commandReport != null) {
+              break;
             }
           }
         }
+      } finally {
+        // The KerberosOperationHandler needs to be closed, if it fails to close ignore the
+        // exception since there is little we can or care to do about it now.
+        try {
+          handler.close();
+        } catch (KerberosOperationException e) {
+          // Ignore this...
+        }
       }
+
     }
 
     actionLog.writeStdOut("Processing identities completed.");
@@ -502,11 +466,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * Processes an identity as necessary.
    * <p/>
    * This method is called from {@link #processIdentities(Map)} for each
-   * identity "record" found in the Kerberos identity metadata file. After processing, it is expected
+   * principal found by specified filter. After processing, it is expected
    * that the return value is null on success and a CommandReport (indicating the error) on failure.
    *
-   * @param identityRecord           a Map containing the data for the current identity record
-   * @param evaluatedPrincipal       a String indicating the relevant principal
+   * @param resolvedPrincipal        a ResolvedKerberosPrincipal object to process
    * @param operationHandler         a KerberosOperationHandler used to perform Kerberos-related
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
@@ -516,47 +479,11 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    *                                 condition; or null, indicating a success condition
    * @throws AmbariException if an error occurs while processing the identity record
    */
-  protected abstract CommandReport processIdentity(Map<String, String> identityRecord,
-                                                   String evaluatedPrincipal,
+  protected abstract CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                                    KerberosOperationHandler operationHandler,
                                                    Map<String, String> kerberosConfiguration,
                                                    Map<String, Object> requestSharedDataContext)
       throws AmbariException;
-
-  /**
-   * Process and prepares an identity record to be handled by the implementing class.
-   * <p/>
-   * Given the data from the record Map, attempts to replace variables in the principal pattern to
-   * generate a concrete principal value to further process. This "evaluated principal" is then passed to
-   * {@link #processIdentity(Map, String, KerberosOperationHandler, Map, Map)}
-   * to be handled as needed.
-   *
-   * @param record                   a Map containing the data for the current identity record
-   * @param defaultRealm             a String declaring the default Kerberos realm
-   * @param operationHandler         a KerberosOperationHandler used to perform Kerberos-related
-   *                                 tasks for specific Kerberos implementations
-   *                                 (MIT, Active Directory, etc...)
-   * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
-   * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
-   *                                 to a given request  @return a CommandReport, indicating an error
-   *                                 condition; or null, indicating a success condition
-   * @throws AmbariException if an error occurs while processing the identity record
-   */
-  private CommandReport processRecord(Map<String, String> record, String defaultRealm,
-                                      KerberosOperationHandler operationHandler,
-                                      Map<String, String> kerberosConfiguration, Map<String, Object> requestSharedDataContext)
-      throws AmbariException {
-    CommandReport commandReport = null;
-
-    if (record != null) {
-      String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
-      if (principal != null) {
-        commandReport = processIdentity(record, principal, operationHandler, kerberosConfiguration, requestSharedDataContext);
-      }
-    }
-
-    return commandReport;
-  }
 
   protected void deleteDataDirectory(String dataDirectoryPath) {
     // Make sure this is a relevant directory. We don't want to accidentally allow _ANY_ directory
@@ -600,12 +527,96 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     return hostFilers != null && hostFilers.size() > 0;
   }
 
-  protected Long ambariServerHostID(){
+
+  protected Map<String, ? extends Collection<String>> getServiceComponentFilter() {
+    String serializedValue = getCommandParameterValue(SERVICE_COMPONENT_FILTER);
+
+    if (serializedValue != null) {
+      Type type = new TypeToken<Map<String, ? extends Collection<String>>>() {
+      }.getType();
+      return StageUtils.getGson().fromJson(serializedValue, type);
+    } else {
+      return null;
+    }
+  }
+
+  protected Collection<String> getIdentityFilter() {
+    String serializedValue = getCommandParameterValue(IDENTITY_FILTER);
+
+    if (serializedValue != null) {
+      Type type = new TypeToken<Collection<String>>() {
+      }.getType();
+      return StageUtils.getGson().fromJson(serializedValue, type);
+    } else {
+      return null;
+    }
+  }
+
+  protected Long ambariServerHostID() {
     String ambariServerHostName = StageUtils.getHostName();
     HostEntity ambariServerHostEntity = hostDAO.findByName(ambariServerHostName);
     return (ambariServerHostEntity == null)
         ? null
         : ambariServerHostEntity.getHostId();
+  }
+
+
+  public static class KerberosCommandParameters {
+    private Map<String, String> params;
+
+    public KerberosCommandParameters(ExecutionCommand ec) {
+      params = ec.getCommandParams();
+    }
+
+    public KerberosCommandParameters(AbstractServerAction serverAction) {
+      this(serverAction.getExecutionCommand());
+    }
+
+    public Set<String> getHostFilter() {
+      String serializedValue = getCommandParameterValue(HOST_FILTER);
+
+      if (serializedValue != null) {
+        Type type = new TypeToken<Set<String>>() {
+        }.getType();
+        return StageUtils.getGson().fromJson(serializedValue, type);
+      } else {
+        return null;
+      }
+    }
+
+    public boolean hasHostFilters() {
+      Set<String> hostFilers = getHostFilter();
+      return hostFilers != null && hostFilers.size() > 0;
+    }
+
+    public Map<String, ? extends Collection<String>> getServiceComponentFilter() {
+      String serializedValue = getCommandParameterValue(SERVICE_COMPONENT_FILTER);
+
+      if (serializedValue != null) {
+        Type type = new TypeToken<Map<String, ? extends Collection<String>>>() {
+        }.getType();
+        return StageUtils.getGson().fromJson(serializedValue, type);
+      } else {
+        return null;
+      }
+    }
+
+    public Collection<String> getIdentityFilter() {
+      String serializedValue = getCommandParameterValue(IDENTITY_FILTER);
+
+      if (serializedValue != null) {
+        Type type = new TypeToken<Collection<String>>() {
+        }.getType();
+        return StageUtils.getGson().fromJson(serializedValue, type);
+      } else {
+        return null;
+      }
+    }
+
+    public String getCommandParameterValue(String propertyName) {
+      Map<String, String> commandParameters = params;
+      return (commandParameters == null) ? null : commandParameters.get(propertyName);
+    }
   }
 
   /**
@@ -623,7 +634,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     RECREATE_ALL,
 
     /**
-     *  Generate keytabs for only those that are missing
+     * Generate keytabs for only those that are missing
      */
     CREATE_MISSING,
 
