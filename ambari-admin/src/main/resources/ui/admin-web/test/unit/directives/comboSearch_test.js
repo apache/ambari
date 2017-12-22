@@ -133,33 +133,6 @@ describe('#comboSearch', function () {
     });
   });
 
-  describe('#hideAutocomplete', function() {
-
-    it('showAutoComplete should be false when isEditing = false', function () {
-      var isoScope = element.isolateScope();
-      jasmine.Clock.useMock();
-
-      isoScope.isEditing = false;
-      isoScope.showAutoComplete = true;
-      isoScope.hideAutocomplete();
-
-      jasmine.Clock.tick(101);
-      expect(isoScope.showAutoComplete).toBeFalsy();
-    });
-
-    it('showAutoComplete should be false when isEditing = true', function () {
-      var isoScope = element.isolateScope();
-      jasmine.Clock.useMock();
-
-      isoScope.isEditing = true;
-      isoScope.showAutoComplete = true;
-      isoScope.hideAutocomplete();
-
-      jasmine.Clock.tick(101);
-      expect(isoScope.showAutoComplete).toBeTruthy();
-    });
-  });
-
   describe('#makeActive', function() {
     it('category option can not be active', function () {
       var isoScope = element.isolateScope();
@@ -223,6 +196,166 @@ describe('#comboSearch', function () {
           values: ['o1', 'o2']
         }
       ]);
+    });
+  });
+
+  describe('#observeSearchFilterInput', function() {
+    it('should show all filters when search filter empty', function () {
+      var isoScope = element.isolateScope();
+      isoScope.searchFilterInput = '';
+
+      isoScope.observeSearchFilterInput();
+
+      expect(isoScope.showAutoComplete).toBeTruthy();
+      expect(isoScope.filterSuggestions).toEqual([
+        {
+          key: 'f1',
+          label: 'filter1',
+          options: [  ],
+          active: true
+        },
+        {
+          key: 'f2',
+          label: 'filter2',
+          options: [  ],
+          active: false
+        }
+      ]);
+    });
+
+    it('should show only searched filter when search filter not empty', function () {
+      var isoScope = element.isolateScope();
+      isoScope.searchFilterInput = 'filter1';
+
+      isoScope.observeSearchFilterInput();
+
+      expect(isoScope.showAutoComplete).toBeTruthy();
+      expect(isoScope.filterSuggestions).toEqual([
+        {
+          key: 'f1',
+          label: 'filter1',
+          options: [  ],
+          active: true
+        }
+      ]);
+    });
+
+    it('should show no filter when search filter not found', function () {
+      var isoScope = element.isolateScope();
+      isoScope.searchFilterInput = 'unknown-filter';
+
+      isoScope.observeSearchFilterInput();
+
+      expect(isoScope.showAutoComplete).toBeFalsy();
+      expect(isoScope.filterSuggestions).toEqual([]);
+    });
+  });
+
+  describe('#observeSearchOptionInput', function() {
+    it('should show all options when options search empty', function () {
+      var isoScope = element.isolateScope();
+      var filter = {
+        key: 'p1',
+        searchOptionInput: '',
+        currentOption: null,
+        options: [
+          {
+            key: 'op1',
+            label: 'op1'
+          },
+          {
+            key: 'op2',
+            label: 'op2'
+          }
+        ]
+      };
+      isoScope.appliedFilters = [
+        {
+          key: 'p5',
+          currentOption: {
+            key: 'op5'
+          }
+        }
+      ];
+
+      isoScope.observeSearchOptionInput(filter);
+
+      expect(filter.showAutoComplete).toBeTruthy();
+      expect(filter.filteredOptions).toEqual([
+        {
+          key: 'op1',
+          label: 'op1',
+          active: false
+        },
+        {
+          key: 'op2',
+          label: 'op2',
+          active: false
+        }
+      ]);
+    });
+
+    it('should show only filtered options when options search not empty', function () {
+      var isoScope = element.isolateScope();
+      var filter = {
+        key: 'p1',
+        currentOption: null,
+        searchOptionInput: 'op1',
+        options: [
+          {
+            key: 'op1',
+            label: 'op1'
+          },
+          {
+            key: 'op2',
+            label: 'op2'
+          }
+        ]
+      };
+      isoScope.appliedFilters = [
+        {
+          key: 'p5',
+          currentOption: {
+            key: 'op5'
+          }
+        }
+      ];
+
+      isoScope.observeSearchOptionInput(filter);
+
+      expect(filter.showAutoComplete).toBeTruthy();
+      expect(filter.filteredOptions).toEqual([
+        {
+          key: 'op1',
+          label: 'op1',
+          active: false
+        }
+      ]);
+    });
+
+    it('should show no options when options search not found', function () {
+      var isoScope = element.isolateScope();
+      var filter = {
+        key: 'p1',
+        currentOption: null,
+        searchOptionInput: 'op3',
+        options: [
+          {
+            key: 'op1',
+            label: 'op1'
+          },
+          {
+            key: 'op2',
+            label: 'op2'
+          }
+        ]
+      };
+      isoScope.appliedFilters = [];
+
+      isoScope.observeSearchOptionInput(filter);
+
+      expect(filter.showAutoComplete).toBeFalsy();
+      expect(filter.filteredOptions).toEqual([]);
     });
   });
 
