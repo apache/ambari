@@ -27,6 +27,7 @@
     <minAmbariVersion>3.0.0.0</minAmbariVersion>
     <maxAmbariVersion></maxAmbariVersion>
     <nifiversion>1.0.0</nifiversion>
+    <custom.tests>false</custom.tests>
   </properties>
   <parent>
     <groupId>org.apache.ambari.contrib.mpacks</groupId>
@@ -84,6 +85,28 @@
                 </resource>
               </resources>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <configuration>
+              <executable>python</executable>
+              <workingDirectory>src/test/python</workingDirectory>
+              <arguments>
+                <argument>unitTests.py</argument>
+                <argument>${custom.tests}</argument>
+              </arguments>
+            </configuration>
+            <id>python-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

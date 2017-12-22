@@ -41,6 +41,11 @@
           <configFiles>
             <configFile>
               <type>xml</type>
+              <fileName>onefs.xml</fileName>
+              <dictionaryName>onefs</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
               <fileName>hdfs-site.xml</fileName>
               <dictionaryName>hdfs-site</dictionaryName>
             </configFile>
@@ -80,9 +85,17 @@
         <timeout>300</timeout>
       </commandScript>
 
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
       <configuration-dependencies>
         <config-type>core-site</config-type>
         <config-type>hdfs-site</config-type>
+        <config-type>onefs</config-type>
         <config-type>hadoop-env</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>

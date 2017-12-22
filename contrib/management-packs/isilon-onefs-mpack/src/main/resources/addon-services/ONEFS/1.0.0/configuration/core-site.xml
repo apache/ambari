@@ -27,6 +27,12 @@
   literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
     <on-ambari-upgrade add="false"/>
+    <depends-on>
+      <property>
+          <type>onefs</type>
+          <name>onefs_host</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hadoop.security.authentication</name>
@@ -89,14 +95,6 @@ DEFAULT
     <value-attributes>
       <type>multiLine</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>net.topology.script.file.name</name>
-    <value>/etc/hadoop/conf/topology_script.py</value>
-    <description>
-      Location of topology script used by Hadoop to determine the rack location of nodes.
-    </description>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

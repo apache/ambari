@@ -31,26 +31,30 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>dfs.datanode.http.address</name>
-    <value>0.0.0.0:8082</value>
-    <description>
-      The datanode http server address and port.
-    </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>dfs.namenode.http-address</name>
     <value>localhost:8082</value>
     <description>The name of the default file system.  Either the
       literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>onefs</type>
+        <name>onefs_host</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>dfs.namenode.https-address</name>
     <value>localhost:8080</value>
     <description>The https address where namenode binds</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>onefs</type>
+        <name>onefs_host</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>dfs.client-write-packet-size</name>
