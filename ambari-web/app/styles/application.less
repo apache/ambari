@@ -2551,3 +2551,43 @@ a.abort-icon:hover {
   padding: 0 10px;
   background-color: @diff-background-equal;
 }
+
+.bulk-host-display {
+  margin-bottom: 10px;
+  pre {
+    max-height: 120px;
+    font-family: 'Roboto', sans-serif;
+    color: @gray-text;
+    font-size: 12px;
+  }
+}
+
+.bulk-host-skipped {
+  margin-bottom: 10px;
+  .skipped-hosts {
+    .icon {
+      color: #337AB7;
+    }
+    a {
+      color: @gray-text;
+      text-decoration: none;
+    }
+    p {
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+  }
+  .skipped-hosts-text {
+    p {
+      font-size: 11px;
+      line-height: 1.2;
+    }
+  }
+}
+
+.skipped-hosts-panel.panel {
+  background-color: #f5f5f5;
+  padding: 10px;
+  max-height: 120px;
+  overflow: scroll;
+}

@@ -2477,8 +2477,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    *  - flag, that indicate whether ZooKeeper Server is installed
    * @return {Object}
    */
-  getHostComponentsInfo: function () {
-    var componentsOnHost = this.get('content.hostComponents');
+  getHostComponentsInfo: function (hostComponents) {
+    var componentsOnHost = hostComponents || this.get('content.hostComponents');
     var stoppedStates = [App.HostComponentStatus.stopped,
       App.HostComponentStatus.install_failed,
       App.HostComponentStatus.upgrade_failed,
