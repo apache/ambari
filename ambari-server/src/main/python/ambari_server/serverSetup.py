@@ -417,7 +417,16 @@ class JDKSetup(object):
     jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
                     "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
 
+    server_os_type = OS_TYPE + OS_VERSION
     if args.java_home:
+      if args.os_type and server_os_type != args.os_type:
+        #Do not set Java home for OS type unless default java.home is set
+        if not properties.get_property(JAVA_HOME_PROPERTY):
+          err = "JDK is not set for Ambari Server. Use ambari-server setup without --os-type option"
+          raise FatalException(1, err)
+        properties.process_pair(JAVA_HOME_PROPERTY + '.' + args.os_type, args.java_home)
+        return
+
       #java_home was specified among the command-line arguments. Use it as custom JDK location.
       if not validate_jdk(args.java_home):
         err = "Path to java home " + args.java_home + " or java binary file does not exists"
@@ -428,6 +437,7 @@ class JDKSetup(object):
       IS_CUSTOM_JDK = True
 
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
+      properties.process_pair(JAVA_HOME_PROPERTY + '.' + server_os_type, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
 
@@ -494,6 +504,7 @@ class JDKSetup(object):
       print "Validating JDK on Ambari Server...done."
 
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
+      properties.process_pair(JAVA_HOME_PROPERTY + '.' + server_os_type, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
 
@@ -1186,6 +1197,10 @@ def setup(options):
   # proceed jdbc properties if they were set
   if _check_jdbc_options(options):
     proceedJDBCProperties(options)
+
+  if options.os_type and not options.java_home:
+    err = "Error: Specified os_type should be used with option --java-home or -j"
+    raise FatalException(1, err)
 
   print 'Checking JDK...'
   try:

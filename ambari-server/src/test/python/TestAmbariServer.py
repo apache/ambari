@@ -2858,6 +2858,7 @@ class TestAmbariServer(TestCase):
       p.process_pair("jdk1.re", "(jdk.*)/jre")
       p.process_pair("jdk.download.supported", "true")
       p.process_pair("jce.download.supported", "true")
+      p.process_pair("java.home", "/jdk1")
 
       pem_side_effect1 = [True, False, True, False]
 
@@ -2866,6 +2867,7 @@ class TestAmbariServer(TestCase):
     args = MagicMock()
     args.java_home = "somewhere"
     args.silent = False
+    args.os_type = None
 
     p, jdk1_url, res_location, pem_side_effect1 = _init_test_jdk_mocks()
 
@@ -2980,6 +2982,30 @@ class TestAmbariServer(TestCase):
     download_and_install_jdk(args)
     self.assertTrue(update_properties_mock.call_count == 1)
 
+    # Test case: Update JAVA_HOME using --os-type option
+    update_properties_mock.reset_mock()
+    args.java_home = "somewhere"
+    args.os_type= "suse11"
+    validate_jdk_mock.return_value = True
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = pem_side_effect1
+    get_JAVA_HOME_mock.return_value = "some_jdk"
+    path_isfileMock.return_value = True
+    download_and_install_jdk(args)
+    self.assertTrue(update_properties_mock.call_count == 1)
+
+    # Test case: When --os_type option is provided but JDK is not set for server
+    args.java_home = "somewhere"
+    args.os_type = "ubuntu"
+    get_ambari_properties_mock.return_value = p
+    p.removeProp("java.home")
+    try:
+      download_and_install_jdk(args)
+      self.fail("Should throw exception")
+    except FatalException:
+      # Expected
+      pass
+
     # Test case: Negative test case JAVA_HOME location should not be updated if -j option is supplied and
     # jce_policy file already exists in resources dir.
     #write_property_mock.reset_mock()
@@ -3008,6 +3034,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(update_properties_mock.called)
 
     # Test case: Setup ambari-server first time, Custom JDK selected, JDK not exists
+    args.os_type = None
     update_properties_mock.reset_mock()
     validate_jdk_mock.return_value = False
     path_existsMock.reset_mock()
@@ -3885,6 +3912,17 @@ class TestAmbariServer(TestCase):
       self.fail("Should throw an exception")
     except FatalException as fe:
       self.assertTrue("Ambari repo URL format is invalid" in fe.reason)
+
+    # Option --os-type is used but -j option not provided
+    args = reset_mocks()
+    args.os_type = "ubuntu"
+    args.java_home = None
+    try:
+      result = setup(args)
+      self.fail("Should throw an exception")
+    except FatalException as fe:
+      #Expected
+      pass
 
     # test view extraction is skipped on-demand
     args = reset_mocks()

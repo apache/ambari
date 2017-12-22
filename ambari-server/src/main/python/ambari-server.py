@@ -383,6 +383,8 @@ def init_action_parser(action, parser):
                     help="File with database cleanup script")
   parser.add_option('-j', '--java-home', dest="java_home", default=None,
                     help="Use specified java_home.  Must be valid on all hosts")
+  parser.add_option('--os-type', dest="os_type", default=None,
+                    help="Use os_type for a specified java_home")
   parser.add_option('--ambari-repo', dest="ambari_repo", default=None,
                     help="Use specified Ambari repo URL.  Must be valid on all hosts for selected os type")
   parser.add_option("-v", "--verbose",
@@ -485,6 +487,8 @@ def init_setup_parser_options(parser):
 
   other_group.add_option('-j', '--java-home', default=None,
                          help="Use specified java_home.  Must be valid on all hosts")
+  other_group.add_option('--os-type', default=None,
+                         help="Use os_type for a specified java_home")
   other_group.add_option('--ambari-repo', default=None,
                     help="Use specified Ambari repo URL.  Must be valid on all hosts for selected os type")
   other_group.add_option('--stack-java-home', dest="stack_java_home", default=None,
