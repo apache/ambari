@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -82,9 +80,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
@@ -762,16 +758,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
     }
 
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is SO VERY wrong")
-    StackId configurationPackSourceStackId = upgradeContext.getSourceVersions().values().iterator().next().getStackId();
-
     // resolve or build a proper config upgrade pack - always start out with the config pack
     // for the current stack and merge into that
     //
     // HDP 2.2 to 2.3 should start with the config-upgrade.xml from HDP 2.2
     // HDP 2.2 to 2.4 should start with HDP 2.2 and merge in HDP 2.3's config-upgrade.xml
-    ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(pack,
-        configurationPackSourceStackId);
+    ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(upgradeContext);
 
     // create the upgrade and request
     for (UpgradeGroupHolder group : groups) {
@@ -1569,17 +1561,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
      * Builds the configurations to use for the specified upgrade and source
      * stack.
      *
-     * @param upgradePack
-     *          the upgrade pack (not {@code null}).
-     * @param sourceStackId
-     *          the source stack (not {@code null}).
+     * @param cx
+     *          the upgrade context(not {@code null}).
      * @return the {@link ConfigUpgradePack} which contains all of the necessary
      *         configuration definitions for the upgrade.
      */
-    public static ConfigUpgradePack build(UpgradePack upgradePack, StackId sourceStackId) {
+    public static ConfigUpgradePack build(UpgradeContext cx) {
+      final UpgradePack upgradePack = cx.getUpgradePack();
+      final StackId stackId;
+
+      if (cx.getDirection() == Direction.UPGRADE) {
+        stackId = cx.getStackIdFromVersions(cx.getSourceVersions());
+      } else {
+        stackId = cx.getStackIdFromVersions(cx.getTargetVersions());
+      }
+
       List<UpgradePack.IntermediateStack> intermediateStacks = upgradePack.getIntermediateStacks();
       ConfigUpgradePack configUpgradePack = s_metaProvider.get().getConfigUpgradePack(
-          sourceStackId.getStackName(), sourceStackId.getStackVersion());
+        stackId.getStackName(), stackId.getStackVersion());
 
       // merge in any intermediate stacks
       if (null != intermediateStacks) {
@@ -1589,7 +1588,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         for (UpgradePack.IntermediateStack intermediateStack : intermediateStacks) {
           ConfigUpgradePack intermediateConfigUpgradePack = s_metaProvider.get().getConfigUpgradePack(
-              sourceStackId.getStackName(), intermediateStack.version);
+            stackId.getStackName(), intermediateStack.version);
 
           configPacksToMerge.add(intermediateConfigUpgradePack);
         }
