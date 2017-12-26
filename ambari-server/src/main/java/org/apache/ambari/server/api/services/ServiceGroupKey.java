@@ -27,6 +27,8 @@ public class ServiceGroupKey {
   private String clusterName;
   private String serviceGroupName;
 
+  private Long dependencyId;
+
   @JsonProperty("cluster_name")
   public String getClusterName() {
     return clusterName;
@@ -59,6 +61,14 @@ public class ServiceGroupKey {
 
   public void setServiceGroupId(Long serviceGroupId) {
     this.serviceGroupId = serviceGroupId;
+  }
+
+  public Long getDependencyId() {
+    return dependencyId;
+  }
+
+  public void setDependencyId(Long dependencyId) {
+    this.dependencyId = dependencyId;
   }
 
   @Override

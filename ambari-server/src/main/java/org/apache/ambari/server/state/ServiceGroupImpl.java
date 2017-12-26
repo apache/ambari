@@ -42,7 +42,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
 
-
 public class ServiceGroupImpl implements ServiceGroup {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceGroupImpl.class);
@@ -159,7 +158,7 @@ public class ServiceGroupImpl implements ServiceGroup {
     if (getServiceGroupDependencies() != null) {
       for (ServiceGroupKey sgk : getServiceGroupDependencies()) {
         responses.add(new ServiceGroupDependencyResponse(cluster.getClusterId(), cluster.getClusterName(),
-                serviceGroupId, serviceGroupName, sgk.getClusterId(), sgk.getClusterName(), sgk.getServiceGroupId(), sgk.getServiceGroupName()));
+                serviceGroupId, serviceGroupName, sgk.getClusterId(), sgk.getClusterName(), sgk.getServiceGroupId(), sgk.getServiceGroupName(), sgk.getDependencyId()));
       }
     }
     return responses;
@@ -203,6 +202,7 @@ public class ServiceGroupImpl implements ServiceGroup {
         serviceGroupKey.setServiceGroupId(serviceGroupDependencId);
         serviceGroupKey.setClusterName(clusterName);
         serviceGroupKey.setClusterId(clusterId);
+        serviceGroupKey.setDependencyId(sgde.getServiceGroupDependencyId());
         serviceGroupDependenciesList.add(serviceGroupKey);
       }
     }

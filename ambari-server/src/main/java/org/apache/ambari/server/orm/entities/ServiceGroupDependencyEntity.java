@@ -92,6 +92,14 @@ public class ServiceGroupDependencyEntity {
     this.serviceGroupDependency = serviceGroupDependency;
   }
 
+  public Long getServiceGroupDependencyId() {
+    return serviceGroupDependencyId;
+  }
+
+  public void setServiceGroupDependencyId(Long serviceGroupDependencyId) {
+    this.serviceGroupDependencyId = serviceGroupDependencyId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

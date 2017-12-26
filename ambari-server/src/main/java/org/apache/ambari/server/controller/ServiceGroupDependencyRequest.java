@@ -22,12 +22,17 @@ public class ServiceGroupDependencyRequest {
 
   private String clusterName; // REF
   private String serviceGroupName; // GET/CREATE/UPDATE/DELETE
-  private Long dependencyServiceGroupId;
+  private String dependentServiceGroupClusterName;
+  private String dependentServiceGroupName;
+  private Long dependencyId;
 
-  public ServiceGroupDependencyRequest(String clusterName, String serviceGroupName, Long dependencyServiceGroupId) {
+  public ServiceGroupDependencyRequest(String clusterName, String serviceGroupName, String dependentServiceGroupClusterName,
+                                       String dependentServiceGroupName, Long dependencyId) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
-    this.dependencyServiceGroupId = dependencyServiceGroupId;
+    this.dependentServiceGroupName = dependentServiceGroupName;
+    this.dependentServiceGroupClusterName = dependentServiceGroupClusterName;
+    this.dependencyId = dependencyId;
   }
 
   /**
@@ -58,12 +63,28 @@ public class ServiceGroupDependencyRequest {
     this.serviceGroupName = serviceGroupName;
   }
 
-  public Long getDependencyServiceGroupId() {
-    return dependencyServiceGroupId;
+  public Long getDependencyId() {
+    return dependencyId;
   }
 
-  public void setDependencyServiceGroupId(Long dependencyServiceGroupId) {
-    this.dependencyServiceGroupId = dependencyServiceGroupId;
+  public void setDependencyId(Long dependencyId) {
+    this.dependencyId = dependencyId;
+  }
+
+  public String getDependentServiceGroupName() {
+    return dependentServiceGroupName;
+  }
+
+  public void setDependentServiceGroupName(String dependentServiceGroupName) {
+    this.dependentServiceGroupName = dependentServiceGroupName;
+  }
+
+  public String getDependentServiceGroupClusterName() {
+    return dependentServiceGroupClusterName;
+  }
+
+  public void setDependentServiceGroupClusterName(String dependentServiceGroupClusterName) {
+    this.dependentServiceGroupClusterName = dependentServiceGroupClusterName;
   }
 
   public String toString() {

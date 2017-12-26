@@ -26,6 +26,7 @@ public class ServiceGroupDependencyResponse {
   private Long serviceGroupId;
   private Long dependencyClusterId;
   private Long dependencyGroupId;
+  private Long dependencyId;
   private String clusterName;
   private String serviceGroupName;
   private String dependencyGroupName;
@@ -33,7 +34,7 @@ public class ServiceGroupDependencyResponse {
 
   public ServiceGroupDependencyResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName,
                                         Long dependencyClusterId, String dependencyClusterName,
-                                        Long dependencyGroupId, String dependencyGroupName) {
+                                        Long dependencyGroupId, String dependencyGroupName, Long dependencyId) {
     this.clusterId = clusterId;
     this.serviceGroupId = serviceGroupId;
     this.clusterName = clusterName;
@@ -42,6 +43,7 @@ public class ServiceGroupDependencyResponse {
     this.dependencyGroupName = dependencyGroupName;
     this.dependencyClusterId = dependencyClusterId;
     this.dependencyClusterName = dependencyClusterName;
+    this.dependencyId = dependencyId;
   }
 
   /**
@@ -132,27 +134,36 @@ public class ServiceGroupDependencyResponse {
     this.dependencyClusterName = dependencyClusterName;
   }
 
+  public Long getDependencyId() {
+    return dependencyId;
+  }
+
+  public void setDependencyId(Long dependencyId) {
+    this.dependencyId = dependencyId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (!(o instanceof ServiceGroupDependencyResponse)) return false;
 
-    ServiceGroupResponse that = (ServiceGroupResponse) o;
+    ServiceGroupDependencyResponse that = (ServiceGroupDependencyResponse) o;
 
-    if (clusterId != null ?
-            !clusterId.equals(this.clusterId) : this.clusterId != null) {
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (dependencyGroupId != null ? !dependencyGroupId.equals(that.dependencyGroupId) : that.dependencyGroupId != null)
       return false;
-    }
-    if (clusterName != null ?
-            !clusterName.equals(this.clusterName) : this.clusterName != null) {
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null)
       return false;
-    }
-    if (serviceGroupName != null ?
-            !serviceGroupName.equals(this.serviceGroupName) : this.serviceGroupName != null) {
-      return false;
-    }
 
     return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = clusterId != null ? clusterId.hashCode() : 0;
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
+    result = 31 * result + (dependencyGroupId != null ? dependencyGroupId.hashCode() : 0);
+    return result;
   }
 
   /**
