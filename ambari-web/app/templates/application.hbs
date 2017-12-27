@@ -174,15 +174,13 @@
         </div>
 
         <div class="navbar-nav navbar-text navbar-right brand-wrapper">
-          {{#if enableLinks}}
             {{! cluster name }}
-            <a href="#" {{bindAttr title="clusterName"}} {{action "showPopup" target="App.router.backgroundOperationsController"}} class="cluster-name">
+            <div {{bindAttr title="clusterName"}} class="cluster-name">
               {{#unless App.isClusterUser}}
                 <span>{{clusterDisplayName}}</span>
               {{/unless}}
-            </a>
+            </div>
             {{! cluster name end }}
-          {{/if}}
         </div>
       </div>
     </nav>
