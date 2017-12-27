@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.infra;
 
-import com.google.common.collect.Lists;
 import org.apache.ambari.infra.steps.ExportJobsSteps;
 import org.apache.commons.lang.StringUtils;
 import org.jbehave.core.configuration.Configuration;
@@ -36,6 +35,7 @@ import org.jbehave.core.steps.ParameterConverters;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -87,7 +87,7 @@ public class InfraManagerStories extends JUnitStories {
   }
 
   private static List<String> findStoriesInFolder(String folderAbsolutePath, String suffix) {
-    List<String> results = Lists.newArrayList();
+    List<String> results = new ArrayList<>();
     File folder = new File(folderAbsolutePath);
     File[] listOfFiles = folder.listFiles();
     if (listOfFiles != null) {
