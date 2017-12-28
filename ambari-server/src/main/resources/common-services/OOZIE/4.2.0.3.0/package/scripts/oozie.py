@@ -83,18 +83,18 @@ def oozie(is_server=False):
                   username = params.oozie_user,
                   password = Script.get_password(params.oozie_user))
 
-  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+  download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                       os.path.join(params.oozie_root, "extra_libs", "sqljdbc4.jar")
   )
   webapps_sqljdbc_path = os.path.join(params.oozie_home, "oozie-server", "webapps", "oozie", "WEB-INF", "lib", "sqljdbc4.jar")
   if os.path.isfile(webapps_sqljdbc_path):
-    download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+    download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                         webapps_sqljdbc_path
     )
-  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+  download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                       os.path.join(params.oozie_home, "share", "lib", "oozie", "sqljdbc4.jar")
   )
-  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+  download_file(os.path.join(params.config['ambariLevelParams']['jdk_location'], "sqljdbc4.jar"),
                       os.path.join(params.oozie_home, "temp", "WEB-INF", "lib", "sqljdbc4.jar")
   )
 

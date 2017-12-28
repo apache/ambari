@@ -258,7 +258,7 @@ class CustomServiceOrchestrator():
     logger.info('Generating the JCEKS file: roleCommand={0} and taskId = {1}'.format(roleCommand, task_id))
 
     # Set up the variables for the external command to generate a JCEKS file
-    java_home = commandJson['hostLevelParams']['java_home']
+    java_home = commandJson['ambariLevelParams']['java_home']
     java_bin = '{java_home}/bin/java'.format(java_home=java_home)
 
     cs_lib_path = self.credential_shell_lib_path

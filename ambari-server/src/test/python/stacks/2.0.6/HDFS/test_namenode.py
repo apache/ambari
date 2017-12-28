@@ -835,7 +835,7 @@ class TestNamenode(RMFTestCase):
     active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
     standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
     unknown_namenodes = []
-
+    
     get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
 
     call_mocks = MagicMock(return_value=(0,""))
@@ -1385,7 +1385,6 @@ class TestNamenode(RMFTestCase):
                        mocks_dict=mocks_dict)
 
     self.assertTrue(setup_ranger_plugin_mock.called)
-
     self.assertResourceCalledByIndex(7, 'Execute',
       ('mv', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh.bak'),
       only_if='test -f /usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh',

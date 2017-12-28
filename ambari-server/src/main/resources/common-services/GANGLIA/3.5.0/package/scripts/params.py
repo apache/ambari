@@ -70,7 +70,7 @@ hbase_master_hosts = set(default("/clusterHostInfo/hbase_master_hosts", []))
 slave_hosts = set(default("/clusterHostInfo/datanode_hosts", []))
 tt_hosts = set(default("/clusterHostInfo/mapred_tt_hosts", []))
 nm_hosts = set(default("/clusterHostInfo/nodemanager_hosts", []))
-hbase_rs_hosts = set(default("/clusterHostInfo/hbase_rs_hosts", []))
+hbase_rs_hosts = set(default("/clusterHostInfo/hbase_regionserver_hosts", []))
 flume_hosts = set(default("/clusterHostInfo/flume_hosts", []))
 jn_hosts = set(default("/clusterHostInfo/journalnode_hosts", []))
 nimbus_server_hosts = set(default("/clusterHostInfo/nimbus_hosts", []))
@@ -116,7 +116,7 @@ ganglia_cluster_names = {
   "jn_hosts": [("HDPJournalNode", 8654)],
   "flume_hosts": [("HDPFlumeServer", 8655)],
   "hbase_rs_hosts": [("HDPHBaseRegionServer", 8656)],
-  "nm_hosts": [("HDPNodeManager", 8657)],
+  "nodemanager_hosts": [("HDPNodeManager", 8657)],
   "mapred_tt_hosts": [("HDPTaskTracker", 8658)],
   "slave_hosts": [("HDPDataNode", 8659)],
   "namenode_host": [("HDPNameNode", 8661)],

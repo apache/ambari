@@ -26,7 +26,8 @@
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/service_check.py", 
         "hooks_folder": "stack-hooks", 
-        "version": "2.1.0.0-1234", 
+        "version": "2.1.0.0-1234",
+        "excluded_hosts": "host1,host2",
         "command_timeout": "300", 
         "script_type": "PYTHON",
         "xml_configs_list":[{"hdfs-site.xml":"hdfs-site"}],
@@ -39,10 +40,10 @@
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]", 
         "hooks_folder": "stack-hooks", 
         "stack_name": "HDP", 
-        "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
         "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}",
-        "cluster_name": "c1", 
-        "user_list": "[\"ambari-qa\",\"hdfs\"]"
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]",
+        "cluster_name": "c1"
     }, 
     "ambariLevelParams": {
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
@@ -58,7 +59,7 @@
         "oracle_jdbc_url": "http://c6401.ambari.apache.org/resources//ojdbc6.jar", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "ambari_db_rca_username": "mapred", 
-        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "jdk_name": "jdk-7u67-linux-x64.tar.gz", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
         "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar"
     }, 

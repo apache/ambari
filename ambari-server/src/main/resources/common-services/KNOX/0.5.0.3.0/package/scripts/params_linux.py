@@ -359,7 +359,7 @@ knoxsso_topology_template = config['configurations']['knoxsso-topology']['conten
 gateway_log4j = config['configurations']['gateway-log4j']['content']
 ldap_log4j = config['configurations']['ldap-log4j']['content']
 users_ldif = config['configurations']['users-ldif']['content']
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
@@ -371,7 +371,7 @@ if security_enabled:
   knox_principal_name = config['configurations']['knox-env']['knox_principal_name'].replace('_HOST',_hostname_lowercase)
 
 # for curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 # ranger knox plugin start section
 

@@ -94,7 +94,7 @@ log_dir = config['configurations']['storm-env']['storm_log_dir']
 pid_dir = status_params.pid_dir
 local_dir = config['configurations']['storm-site']['storm.local.dir']
 user_group = config['configurations']['cluster-env']['user_group']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 jps_binary = format("{java64_home}/bin/jps")
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 storm_zookeeper_root_dir = default('/configurations/storm-site/storm.zookeeper.root', None)
@@ -255,7 +255,7 @@ storm_worker_log4j_content = config['configurations']['storm-worker-log4j']['con
 storm_jaas_file = format("{conf_dir}/storm_jaas.conf")
 
 # for curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 # ranger storm plugin start section
 

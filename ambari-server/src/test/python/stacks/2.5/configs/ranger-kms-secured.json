@@ -206,7 +206,7 @@
         "db_driver_filename": "mysql-connector-java.jar", 
         "agent_stack_retry_on_unavailability": "false", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
-        "jce_name": "jce_policy-7.zip", 
+        "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
         "java_version": "7", 
         "ambari_db_rca_password": "mapred", 
         "host_sys_prepped": "false", 
@@ -352,7 +352,7 @@
     "forceRefreshConfigTags": [],
     "stageId": 0,
     "clusterHostInfo": {
-        "snamenode_host": [
+        "snamenode_hosts": [
             "c6401.ambari.apache.org"
         ],
         "ambari_server_use_ssl": [
@@ -373,10 +373,10 @@
         "all_hosts": [
             "c6401.ambari.apache.org"
         ],
-        "slave_hosts": [
+        "datanode_hosts": [
             "c6401.ambari.apache.org"
         ],
-        "namenode_host": [
+        "namenode_hosts": [
             "c6401.ambari.apache.org"
         ],
         "ambari_server_port": [

@@ -153,7 +153,7 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 
 target = format("{hive_lib}/{jdbc_jar_name}")
 
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 
 start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")
@@ -161,7 +161,7 @@ start_metastore_path = format("{tmp_dir}/start_metastore_script")
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 
 ##### MYSQL
 

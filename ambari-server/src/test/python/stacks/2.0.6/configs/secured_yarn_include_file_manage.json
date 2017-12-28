@@ -1117,7 +1117,7 @@
     "snamenode_host": [
       "c6402.ambari.apache.org"
     ],
-    "nm_hosts": [
+    "nodemanager_hosts": [
       "c6402.ambari.apache.org"
     ],
     "drpc_server_hosts": [
@@ -1181,7 +1181,7 @@
     "oozie_server": [
       "c6402.ambari.apache.org"
     ],
-    "hs_host": [
+    "historyserver_hosts": [
       "c6402.ambari.apache.org"
     ],
     "nimbus_hosts": [

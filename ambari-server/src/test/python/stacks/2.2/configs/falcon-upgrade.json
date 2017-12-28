@@ -30,7 +30,7 @@
     "clusterName": "c1", 
     "hostname": "c6402.ambari.apache.org", 
     "clusterLevelParams": {
-        "stack_version": "2.1", 
+        "stack_version": "2.2", 
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "hooks_folder": "stack-hooks", 
         "stack_name": "HDP", 

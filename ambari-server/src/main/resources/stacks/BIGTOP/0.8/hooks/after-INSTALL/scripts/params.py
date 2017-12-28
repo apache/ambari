@@ -39,7 +39,7 @@ versioned_stack_root = '/usr/bigtop/current'
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 #java params
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']

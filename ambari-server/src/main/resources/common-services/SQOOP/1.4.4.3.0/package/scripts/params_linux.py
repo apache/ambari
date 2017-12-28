@@ -124,7 +124,7 @@ if "jdbc_drivers" in config['configurations']['sqoop-env']:
     sqoop_jdbc_drivers_dict.append(jdbc_name)
     sqoop_jdbc_drivers_to_remove[jdbc_name] = previous_jdbc_jar_name
     sqoop_jdbc_drivers_name_dict[jdbc_name] = jdbc_driver_name
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 
 ########################################################

@@ -211,7 +211,7 @@
     "forceRefreshConfigTags": [],
     "stageId": 0,
     "clusterHostInfo": {
-        "snamenode_host": [
+        "snamenode_hosts": [
             "c6401.ambari.apache.org"
         ],
         "ambari_server_use_ssl": [
@@ -229,10 +229,10 @@
         "all_hosts": [
             "c6401.ambari.apache.org"
         ],
-        "slave_hosts": [
+        "datanode_hosts": [
             "c6401.ambari.apache.org"
         ],
-        "namenode_host": [
+        "namenode_hosts": [
             "c6401.ambari.apache.org"
         ],
         "ambari_server_port": [

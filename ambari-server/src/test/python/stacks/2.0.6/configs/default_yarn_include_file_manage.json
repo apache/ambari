@@ -1294,7 +1294,7 @@
     "snamenode_host": [
       "c6402.ambari.apache.org"
     ],
-    "nm_hosts": [
+    "nodemanager_hosts": [
       "c6402.ambari.apache.org"
     ],
     "drpc_server_hosts": [

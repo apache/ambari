@@ -90,7 +90,7 @@ kafka_pid_file = kafka_pid_dir+"/kafka.pid"
 kafka_managed_pid_dir = "/var/run/kafka"
 kafka_managed_log_dir = "/var/log/kafka"
 user_group = config['configurations']['cluster-env']['user_group']
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 kafka_env_sh_template = config['configurations']['kafka-env']['content']
 kafka_jaas_conf_template = default("/configurations/kafka_jaas_conf/content", None)
 kafka_client_jaas_conf_template = default("/configurations/kafka_client_jaas_conf/content", None)
@@ -179,7 +179,7 @@ else:
     kafka_keytab_path = None
 
 # for curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 
 # ranger kafka plugin section start
 

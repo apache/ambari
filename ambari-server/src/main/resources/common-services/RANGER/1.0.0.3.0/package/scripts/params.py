@@ -122,7 +122,7 @@ if stack_supports_ranger_tagsync:
 
 usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
 ranger_pid_dir = default("/configurations/ranger-env/ranger_pid_dir", "/var/run/ranger")

@@ -125,7 +125,7 @@ atlas_jaas_file = format("{conf_dir}/atlas_jaas.conf")
 user_group = config['configurations']['cluster-env']['user_group']
 
 # metadata env
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
 env_sh_template = config['configurations']['atlas-env']['content']
 

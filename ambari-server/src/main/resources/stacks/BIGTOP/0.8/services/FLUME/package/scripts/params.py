@@ -36,7 +36,7 @@ else:
   flume_bin = '/usr/bin/flume-ng'
 
 flume_conf_dir = '/etc/flume/conf'
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 flume_log_dir = '/var/log/flume'
 flume_run_dir = '/var/run/flume'
 flume_user = 'flume'

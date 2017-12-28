@@ -1,7 +1,6 @@
 {
     "roleCommand": "START", 
     "clusterName": "cl1", 
-    "hostname": "c6402.ambari.apache.org", 
     "passiveInfo": [], 
     "clusterLevelParams": {
         "stack_version": "2.1", 
@@ -74,8 +73,8 @@
         "repoVersionId": 1
     },
     "agentLevelParams": {
-        "public_hostname": "c6401.ambari.apache.org", 
-        "hostname": "c6401.ambari.apache.org", 
+        "public_hostname": "c6402.ambari.apache.org", 
+        "hostname": "c6402.ambari.apache.org", 
         "agentConfigParams": {
             "agent": {
                 "parallel_execution": 0, 
@@ -165,7 +164,6 @@
         "phase": "INITIAL_START"
     }, 
     "taskId": 93, 
-    "public_hostname": "c6402.ambari.apache.org",
     "configurations": {
         "mapred-site": {
             "mapreduce.jobhistory.address": "c6402.ambari.apache.org:10020", 

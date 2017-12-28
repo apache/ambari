@@ -22,8 +22,7 @@
     "commandParams": {
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/service_check.py", 
-        "hooks_folder": "stack-hooks", 
-        "version": "2.1.1.0-2067", 
+        "hooks_folder": "stack-hooks",
         "command_timeout": "300", 
         "script_type": "PYTHON"
     },

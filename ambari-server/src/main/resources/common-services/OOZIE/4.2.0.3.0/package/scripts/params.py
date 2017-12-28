@@ -27,7 +27,7 @@ if OSCheck.is_windows_family():
 else:
   from params_linux import *
 
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 java_version = expect("/hostLevelParams/java_version", int)
 
 

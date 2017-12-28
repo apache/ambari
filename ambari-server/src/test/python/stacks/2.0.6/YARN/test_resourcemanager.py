@@ -304,6 +304,7 @@ class TestResourceManager(RMFTestCase):
         content = Template('include_hosts_list.j2'),
         group = 'hadoop',
     )
+    
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/rm.service.keytab rm/c6401.ambari.apache.org@EXAMPLE.COM; yarn --config /etc/hadoop/conf rmadmin -refreshNodes',
         environment = {'PATH': "/bin:/usr/bin:/usr/lib/hadoop-yarn/bin"},
         user = 'yarn',

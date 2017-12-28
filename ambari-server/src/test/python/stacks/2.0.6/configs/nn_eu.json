@@ -34,9 +34,8 @@
     "stageId": 19, 
     "kerberosCommandParams": [], 
     "clusterName": "c1", 
-    "hostname": "c6402.ambari.apache.org", 
     "clusterLevelParams": {
-        "stack_version": "2.1", 
+        "stack_version": "2.6", 
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "hooks_folder": "stack-hooks", 
         "stack_name": "HDP", 
@@ -106,8 +105,8 @@
         "repoVersionId": 1
     },
     "agentLevelParams": {
-        "public_hostname": "c6401.ambari.apache.org", 
-        "hostname": "c6401.ambari.apache.org", 
+        "public_hostname": "c6402.ambari.apache.org", 
+        "hostname": "c6402.ambari.apache.org", 
         "agentConfigParams": {
             "agent": {
                 "parallel_execution": 0, 
@@ -192,7 +191,6 @@
     "role": "NAMENODE", 
     "requestId": 22, 
     "taskId": 147, 
-    "public_hostname": "c6402.ambari.apache.org",
     "upgradeSummary": {
       "services": {
         "HDFS": {

@@ -11,7 +11,8 @@
         "hooks_folder": "stack-hooks", 
         "version": "2.1.0.0-1234", 
         "command_timeout": "300", 
-        "script_type": "PYTHON"
+        "script_type": "PYTHON",
+        "excluded_hosts": "host1"
     },
     "clusterLevelParams": {
         "stack_version": "2.1", 

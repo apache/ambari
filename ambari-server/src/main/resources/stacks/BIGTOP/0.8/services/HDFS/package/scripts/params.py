@@ -220,7 +220,7 @@ name_node_params = default("/commandParams/namenode", None)
 hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #hadoop-env.sh
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 stack_version = str(config['clusterLevelParams']['stack_version'])
 
 stack_is_champlain_or_further = not (stack_version.startswith('2.0') or stack_version.startswith('2.1'))

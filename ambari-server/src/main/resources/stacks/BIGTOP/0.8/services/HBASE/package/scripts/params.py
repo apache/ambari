@@ -59,7 +59,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
-java64_home = config['hostLevelParams']['java_home']
+java64_home = config['ambariLevelParams']['java_home']
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
 master_heapsize = config['configurations']['hbase-env']['hbase_master_heapsize']

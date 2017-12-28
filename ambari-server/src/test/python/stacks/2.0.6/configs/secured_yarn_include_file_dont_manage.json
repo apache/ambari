@@ -1178,16 +1178,16 @@
         "storm_ui_server_hosts": [
             "c6401.ambari.apache.org"
         ],
-        "oozie_server": [
+        "oozie_server_hosts": [
             "c6402.ambari.apache.org"
         ],
-        "hs_host": [
+        "historyserver_hosts": [
             "c6402.ambari.apache.org"
         ],
         "nimbus_hosts": [
             "c6401.ambari.apache.org"
         ],
-        "namenode_host": [
+        "namenode_hosts": [
             "c6401.ambari.apache.org"
         ],
         "hbase_master_hosts": [

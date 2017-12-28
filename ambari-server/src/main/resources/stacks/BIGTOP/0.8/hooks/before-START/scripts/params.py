@@ -99,7 +99,7 @@ server_db_name = config['hostLevelParams']['db_name']
 db_driver_filename = config['hostLevelParams']['db_driver_filename']
 oracle_driver_url = config['hostLevelParams']['oracle_jdbc_url']
 mysql_driver_url = config['hostLevelParams']['mysql_jdbc_url']
-ambari_server_resources = config['hostLevelParams']['jdk_location']
+ambari_server_resources = config['ambariLevelParams']['jdk_location']
 oracle_driver_symlink_url = format("{ambari_server_resources}oracle-jdbc-driver.jar")
 mysql_driver_symlink_url = format("{ambari_server_resources}mysql-jdbc-driver.jar")
 
@@ -119,7 +119,7 @@ else:
   rca_prefix = rca_disabled_prefix
 
 #hadoop-env.sh
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 
 if str(config['clusterLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path

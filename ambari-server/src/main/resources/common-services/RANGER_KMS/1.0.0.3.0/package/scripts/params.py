@@ -63,7 +63,7 @@ if stack_supports_config_versioning:
   kms_conf_dir = format('{stack_root}/current/ranger-kms/conf')
 
 kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/kms")
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")
 
@@ -72,7 +72,7 @@ ranger_kms_audit_log_maxbackupindex = default('/configurations/kms-log4j/ranger_
 ranger_kms_log_maxfilesize = default('/configurations/kms-log4j/ranger_kms_log_maxfilesize',256)
 ranger_kms_log_maxbackupindex = default('/configurations/kms-log4j/ranger_kms_log_maxbackupindex',20)
 
-jdk_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
 
 # ranger host

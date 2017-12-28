@@ -788,6 +788,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
       mode = 0755, create_parents = True, cd_access = 'a')
 
+    self.printResources()
     self.assertResourceCalled('Execute',
                               ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
                               path=["/bin", "/usr/bin/"],

@@ -91,12 +91,12 @@ hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #java params
-java_home = config['hostLevelParams']['java_home']
+java_home = config['ambariLevelParams']['java_home']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
-jdk_location = config['hostLevelParams']['jdk_location']
+jce_location = config['ambariLevelParams']['jdk_location']
+jdk_location = config['ambariLevelParams']['jdk_location']
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")

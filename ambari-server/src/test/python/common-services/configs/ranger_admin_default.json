@@ -28,7 +28,9 @@
         "ambari_db_rca_username": "mapred", 
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar",
+        "custom_mysql_jdbc_name": "mysql-connector-java.jar",
+        "previous_custom_mysql_jdbc_name": "mysql-connector-java-old.jar"
     },
     "repositoryFile": {
         "resolved": true, 
