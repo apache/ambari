@@ -539,9 +539,14 @@ class Master(Script):
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
             interpreter['properties']['phoenix.driver'] = 'org.apache.phoenix.jdbc.PhoenixDriver'
-            interpreter['properties']['phoenix.hbase.client.retries.number'] = '1'
-            interpreter['properties']['phoenix.user'] = 'phoenixuser'
-            interpreter['properties']['phoenix.password'] = ''
+            if 'phoenix.hbase.client.retries.number' not in interpreter['properties']:
+              interpreter['properties']['phoenix.hbase.client.retries.number'] = '1'
+            if 'phoenix.phoenix.query.numberFormat' not in interpreter['properties']:
+              interpreter['properties']['phoenix.phoenix.query.numberFormat'] = '#.#'
+            if 'phoenix.user' not in interpreter['properties']:
+              interpreter['properties']['phoenix.user'] = 'phoenixuser'
+            if 'phoenix.password' not in interpreter['properties']:
+              interpreter['properties']['phoenix.password'] = ''
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
