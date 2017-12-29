@@ -18,7 +18,6 @@
 @import 'common.less';
 
 @button-width: 150px;
-@border-color: #EBECF1;
 
 #config-versions-control {
   .dropdown-menu {
@@ -36,6 +35,9 @@
     li {
       list-style-type: none;
     }
+  }
+  .bottom-shadow {
+    box-shadow: inset 0 0 0 @border-color, inset 0px -10px 8px -8px @border-color;
   }
   .grey-text {
     color: @top-nav-brand-color;

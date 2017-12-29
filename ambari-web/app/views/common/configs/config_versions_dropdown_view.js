@@ -34,6 +34,17 @@ App.ConfigVersionsDropdownView = Em.View.extend({
   isCompareMode: false,
   displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
 
+  didInsertElement: function() {
+    this.$().on("shown.bs.dropdown", function() {
+      const versionsBlock = $(this).find('.versions-list');
+      if (versionsBlock.height() < versionsBlock.prop('scrollHeight')) {
+        versionsBlock.addClass('bottom-shadow');
+      } else {
+        versionsBlock.removeClass('bottom-shadow');
+      }
+    });
+  },
+
   mainClickAction: function (event) {
     if (this.get('isSecondary')) {
       this.get('parentView').compare(event);
