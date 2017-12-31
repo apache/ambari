@@ -418,7 +418,7 @@ class Controller(threading.Thread):
           logger.log(logging_level, "Executing alert commands")
           self.alert_scheduler_handler.execute_alert(response['alertExecutionCommands'])
 
-        if "true" == response['restartAgent']:
+        if response['restartAgent']:
           logger.error("Received the restartAgent command")
           self.restartAgent()
         else:
