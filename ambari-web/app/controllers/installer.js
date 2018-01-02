@@ -1120,7 +1120,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
         var versionsString = stringUtils.getFormattedStringFromArray(versionsList, t('or'));
         var popupBody = t('popup.jdkValidation.body').format(selectedStack.get('stackName') + ' ' + selectedStack.get('stackVersion'), versionsString, currentJDKVersion);
-        App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), 'danger');
+        App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), true);
         return;
       }
     }

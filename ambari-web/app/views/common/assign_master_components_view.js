@@ -172,7 +172,7 @@ App.AddControlView = Em.View.extend({
    */
   componentName: null,
 
-  tagName: "div",
+  tagName: "span",
 
   classNames: ["label", 'extra-component'],
 
@@ -213,7 +213,7 @@ App.RemoveControlView = Em.View.extend({
    */
   componentName: null,
 
-  tagName: "div",
+  tagName: "span",
 
   'data-qa': 'remove-master',
 
