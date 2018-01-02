@@ -1488,7 +1488,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       Em.I18n.t('admin.stackUpgrade.upgrade.retry.confirm.body').format(version.get('displayName')),
       null,
-      this.getUpgradeDowngradeHeader(version.get('upgradeTypeDislayName'), version.get('displayName'), false)
+      this.getUpgradeDowngradeHeader(version.get('upgradeTypeDislayName'), version.get('displayName'))
     );
   },
 

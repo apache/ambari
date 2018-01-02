@@ -345,7 +345,7 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     var primaryText = Em.I18n.t('common.exitAnyway');
     var msg = isCritical ? Em.I18n.t('admin.kerberos.wizard.exit.critical.msg')
       : Em.I18n.t('admin.kerberos.wizard.exit.warning.msg');
-    return App.showConfirmationPopup(primary, msg, null, null, primaryText, isCritical);
+    return App.showConfirmationPopup(primary, msg, null, null, primaryText, isCritical ? 'danger' : 'success');
   },
 
   /**

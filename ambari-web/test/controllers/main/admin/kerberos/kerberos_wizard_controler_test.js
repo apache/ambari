@@ -36,13 +36,13 @@ describe('App.KerberosWizardController', function() {
     it('should open warning confirmation popup', function () {
       var f = Em.K;
       controller.warnBeforeExitPopup(f, false);
-      expect(App.showConfirmationPopup.calledWith(f, Em.I18n.t('admin.kerberos.wizard.exit.warning.msg'), null, null, Em.I18n.t('common.exitAnyway'), false)).to.be.true;
+      expect(App.showConfirmationPopup.calledWith(f, Em.I18n.t('admin.kerberos.wizard.exit.warning.msg'), null, null, Em.I18n.t('common.exitAnyway'), 'success')).to.be.true;
     });
 
     it('should open critical confirmation popup', function () {
       var f = Em.K;
       controller.warnBeforeExitPopup(f, true);
-      expect(App.showConfirmationPopup.calledWith(f, Em.I18n.t('admin.kerberos.wizard.exit.critical.msg'), null, null, Em.I18n.t('common.exitAnyway'), true)).to.be.true;
+      expect(App.showConfirmationPopup.calledWith(f, Em.I18n.t('admin.kerberos.wizard.exit.critical.msg'), null, null, Em.I18n.t('common.exitAnyway'), 'danger')).to.be.true;
     });
   });
 
@@ -467,12 +467,12 @@ describe('App.KerberosWizardController', function() {
 
     it("isCritical is true", function() {
       controller.warnBeforeExitPopup(Em.K, true);
-      expect(App.showConfirmationPopup.calledWith(Em.K, Em.I18n.t('admin.kerberos.wizard.exit.critical.msg'), null, null, Em.I18n.t('common.exitAnyway'), true)).to.be.true;
+      expect(App.showConfirmationPopup.calledWith(Em.K, Em.I18n.t('admin.kerberos.wizard.exit.critical.msg'), null, null, Em.I18n.t('common.exitAnyway'), 'danger')).to.be.true;
     });
 
     it("isCritical is false", function() {
       controller.warnBeforeExitPopup(Em.K, false);
-      expect(App.showConfirmationPopup.calledWith(Em.K, Em.I18n.t('admin.kerberos.wizard.exit.warning.msg'), null, null, Em.I18n.t('common.exitAnyway'), false)).to.be.true;
+      expect(App.showConfirmationPopup.calledWith(Em.K, Em.I18n.t('admin.kerberos.wizard.exit.warning.msg'), null, null, Em.I18n.t('common.exitAnyway'), 'success')).to.be.true;
     });
   });
 

@@ -86,7 +86,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
                 }
                 App.showConfirmationPopup(function () {
                   self.popupPrimaryButtonCallback(config_action);
-                }, body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
+                }, body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, 'success', 'refresh_yarn_queues')
               }
             }
           }
@@ -99,7 +99,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
     var self = this;
     App.showConfirmationPopup(function () {
       self.hsiRestartPopupPrimaryButtonCallback(components);
-    }, Em.I18n.t('popup.confirmation.hsiRestart.body'), null, Em.I18n.t('popup.confirmation.commonHeader'), Em.I18n.t('popup.confirmation.hsiRestart.buttonText'), false, 'restart_hsi')
+    }, Em.I18n.t('popup.confirmation.hsiRestart.body'), null, Em.I18n.t('popup.confirmation.commonHeader'), Em.I18n.t('popup.confirmation.hsiRestart.buttonText'), 'success', 'restart_hsi')
   },
 
   hsiRestartPopupPrimaryButtonCallback: function (components) {
