@@ -18,16 +18,11 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collection;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -53,9 +48,6 @@ public class KerberosPrincipalEntity {
 
   @Column(name = "cached_keytab_path", insertable = true, updatable = true, nullable = true)
   private String cachedKeytabPath = null;
-
-  @OneToMany(mappedBy = "principalEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-  private Collection<KerberosPrincipalHostEntity> kerberosPrincipalHostEntities;
 
   /**
    * Constructs an empty KerberosPrincipalEntity
@@ -130,21 +122,4 @@ public class KerberosPrincipalEntity {
     this.cachedKeytabPath = cachedKeytabPath;
   }
 
-  /**
-   * Gets the list of related KerberosPrincipalHostEntities
-   *
-   * @return a List of related KerberosPrincipalHostEntities or null if none exist
-   */
-  public Collection<KerberosPrincipalHostEntity> getKerberosPrincipalHostEntities() {
-    return kerberosPrincipalHostEntities;
-  }
-
-  /**
-   * Sets the list of related KerberosPrincipalHostEntities
-   *
-   * @param kerberosPrincipalHostEntities a List of related KerberosPrincipalHostEntities or null if none exist
-   */
-  public void setKerberosPrincipalHostEntities(Collection<KerberosPrincipalHostEntity> kerberosPrincipalHostEntities) {
-    this.kerberosPrincipalHostEntities = kerberosPrincipalHostEntities;
-  }
 }

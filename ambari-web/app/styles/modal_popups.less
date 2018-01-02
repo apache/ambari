@@ -33,6 +33,7 @@
 }
 
 .host-component-popup-wrap {
+  min-height: 220px;
   .task-top-wrap {
     .operation-name-top {
       width: 36%;
@@ -68,6 +69,22 @@
       .progress {
         margin-bottom: 0;
       }
+    }
+  }
+  .status-dropdown {
+    .btn.dropdown-toggle:first-child {
+      min-width: 150px;
+      padding: 10px;
+      position: relative;
+      text-align: left;
+      .caret {
+        position: absolute;
+        top: 15px;
+        right: 10px;
+      }
+    }
+    ul.dropdown-menu {
+      min-width: 150px;
     }
   }
 }
@@ -395,7 +412,7 @@
 }
 
 .modal-xlg {
-  width: 100%;
+  width: 98%;
   .wizard {
     .container {
       width: 1236px;

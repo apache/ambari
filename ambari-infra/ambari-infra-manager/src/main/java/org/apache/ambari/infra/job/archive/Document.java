@@ -26,7 +26,6 @@ import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
 
-// TODO: create entities for each solr collections
 public class Document {
   private final Map<String, String> fieldMap;
 

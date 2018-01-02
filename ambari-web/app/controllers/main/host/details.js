@@ -407,7 +407,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         // not available
         return App.showConfirmationPopup(
           callback, Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointNA'), null,
-          Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'), true
+          Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'), 'danger'
         );
       } else {
         // still young
@@ -2477,8 +2477,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    *  - flag, that indicate whether ZooKeeper Server is installed
    * @return {Object}
    */
-  getHostComponentsInfo: function () {
-    var componentsOnHost = this.get('content.hostComponents');
+  getHostComponentsInfo: function (hostComponents) {
+    var componentsOnHost = hostComponents || this.get('content.hostComponents');
     var stoppedStates = [App.HostComponentStatus.stopped,
       App.HostComponentStatus.install_failed,
       App.HostComponentStatus.upgrade_failed,

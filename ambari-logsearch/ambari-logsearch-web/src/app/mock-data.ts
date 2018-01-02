@@ -18,6 +18,8 @@
 
 import * as moment from 'moment';
 
+const currentTime = moment();
+
 export const mockData = {
   login: {},
   logout: {},
@@ -153,34 +155,82 @@ export const mockData = {
           },
           components: {},
           resources: {
-            graphData: [
-              {
-                dataCount: [
-                  {
-                    name: 'n16',
-                    value: 800
-                  },
-                  {
-                    name: 'n17',
-                    value: 400
-                  }
-                ],
-                name: 'graph8'
-              },
-              {
-                dataCount: [
-                  {
-                    name: 'n18',
-                    value: 600
-                  },
-                  {
-                    name: 'n19',
-                    value: 300
-                  }
-                ],
-                name: 'graph9'
-              }
-            ]
+            6: {
+              graphData: [
+                {
+                  dataCount: [
+                    {
+                      name: 'hdfs',
+                      value: 800
+                    },
+                    {
+                      name: 'zookeeper',
+                      value: 400
+                    },
+                    {
+                      name: 'ambari_metrics',
+                      value: 200
+                    }
+                  ],
+                  name: 'admin'
+                },
+                {
+                  dataCount: [
+                    {
+                      name: 'ambari_agent',
+                      value: 400
+                    },
+                    {
+                      name: 'hdfs',
+                      value: 600
+                    },
+                    {
+                      name: 'ambari_metrics',
+                      value: 300
+                    }
+                  ],
+                  name: 'user'
+                }
+              ]
+            },
+            10: {
+              graphData: [
+                {
+                  dataCount: [
+                    {
+                      name: 'ambari',
+                      value: 800
+                    },
+                    {
+                      name: 'hdfs',
+                      value: 400
+                    },
+                    {
+                      name: 'hbase',
+                      value: 200
+                    },
+                  ],
+                  name: '/user'
+                },
+                {
+                  dataCount: [
+                    {
+                      name: 'hdfs',
+                      value: 400
+                    },
+                    {
+                      name: 'hbase',
+                      value: 600
+                    },
+                    {
+                      name: 'kafka',
+                      value: 300
+                    }
+                  ],
+                  name: '/root'
+                }
+              ]
+            }
           },
           schema: {
             fields: {
@@ -299,7 +349,7 @@ export const mockData = {
               path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
               host: 'h0',
               level: 'WARN',
-              logtime: moment().valueOf(),
+              logtime: currentTime.valueOf(),
               ip: '192.168.0.1',
               logfile_line_number: 8,
               type: 'ams_collector',
@@ -316,14 +366,14 @@ export const mockData = {
               event_md5: '1908755391',
               event_dur_ms: 200,
               _ttl_: '+5DAYS',
-              _expire_at_: moment().add(5, 'd').valueOf(),
+              _expire_at_: currentTime.clone().add(5, 'd').valueOf(),
               _router_field_: 20
             },
             {
               path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
               host: 'h1',
               level: 'ERROR',
-              logtime: moment().subtract(2, 'd').valueOf(),
+              logtime: currentTime.clone().subtract(2, 'd').valueOf(),
               ip: '192.168.0.2',
               type: 'ams_collector',
               _version_: 14,
@@ -340,14 +390,14 @@ export const mockData = {
               event_md5: '1029384756',
               event_dur_ms: 700,
               _ttl_: '+5DAYS',
-              _expire_at_: moment().add(3, 'd').valueOf(),
+              _expire_at_: currentTime.clone().add(3, 'd').valueOf(),
               _router_field_: 5
             },
             {
               path: '/var/log/ambari-metrics-collector/ambari-metrics-collector.log',
               host: 'h1',
               level: 'FATAL',
-              logtime: moment().subtract(10, 'd').valueOf(),
+              logtime: currentTime.clone().subtract(10, 'd').valueOf(),
               ip: '192.168.0.3',
               type: 'ambari_agent',
               _version_: 14,
@@ -364,14 +414,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 100,
               _ttl_: '+5DAYS',
-              _expire_at_: moment().subtract(5, 'd').valueOf(),
+              _expire_at_: currentTime.clone().subtract(5, 'd').valueOf(),
               _router_field_: 45
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-server.log',
               host: 'h1',
               level: 'INFO',
-              logtime: moment().subtract(25, 'h').valueOf(),
+              logtime: currentTime.clone().subtract(25, 'h').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_server',
               _version_: 14,
@@ -388,14 +438,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: '+5DAYS',
-              _expire_at_: moment().subtract(25, 'h').add(5, 'd').valueOf(),
+              _expire_at_: currentTime.clone().subtract(25, 'h').add(5, 'd').valueOf(),
               _router_field_: 55
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-server.log',
               host: 'h1',
               level: 'DEBUG',
-              logtime: moment().subtract(25, 'd').valueOf(),
+              logtime: currentTime.clone().subtract(25, 'd').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_server',
               _version_: 14,
@@ -412,14 +462,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: '+5DAYS',
-              _expire_at_: moment().subtract(20, 'd').valueOf(),
+              _expire_at_: currentTime.clone().subtract(20, 'd').valueOf(),
               _router_field_: 55
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-client.log',
               host: 'h1',
               level: 'TRACE',
-              logtime: moment().subtract(2, 'h').valueOf(),
+              logtime: currentTime.clone().subtract(2, 'h').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_client',
               _version_: 14,
@@ -436,14 +486,14 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: '+5DAYS',
-              _expire_at_: moment().subtract(2, 'h').add(5, 'd').valueOf(),
+              _expire_at_: currentTime.clone().subtract(2, 'h').add(5, 'd').valueOf(),
               _router_field_: 55
             },
             {
               path: '/var/log/ambari-metrics-collector/zookeeper-client.log',
               host: 'h1',
               level: 'UNKNOWN',
-              logtime: moment().subtract(31, 'd').valueOf(),
+              logtime: currentTime.clone().subtract(31, 'd').valueOf(),
               ip: '192.168.0.4',
               type: 'zookeeper_client',
               _version_: 14,
@@ -460,7 +510,7 @@ export const mockData = {
               event_md5: '67589403',
               event_dur_ms: 1000,
               _ttl_: '+5DAYS',
-              _expire_at_: moment().subtract(26, 'd').valueOf(),
+              _expire_at_: currentTime.clone().subtract(26, 'd').valueOf(),
               _router_field_: 55
             }
           ],
@@ -637,11 +687,11 @@ export const mockData = {
               {
                 dataCount: [
                   {
-                    name: moment().toISOString(),
+                    name: currentTime.toISOString(),
                     value: '1000'
                   },
                   {
-                    name: moment().subtract(1, 'h').toISOString(),
+                    name: currentTime.clone().subtract(1, 'h').toISOString(),
                     value: '2000'
                   }
                 ],
@@ -650,11 +700,11 @@ export const mockData = {
               {
                 dataCount: [
                   {
-                    name: moment().toISOString(),
+                    name: currentTime.toISOString(),
                     value: '700'
                   },
                   {
-                    name: moment().subtract(1, 'h').toISOString(),
+                    name: currentTime.clone().subtract(1, 'h').toISOString(),
                     value: '900'
                   }
                 ],

@@ -21,6 +21,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Subject} from 'rxjs/Subject';
 import {SearchBoxParameter, SearchBoxParameterProcessed, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {UtilsService} from '@app/services/utils.service';
 
 @Component({
@@ -88,7 +89,7 @@ export class SearchBoxComponent implements OnInit, OnDestroy, ControlValueAccess
   items: ListItem[] = [];
 
   @Input()
-  itemsOptions: {[key: string]: ListItem[]} = {};
+  itemsOptions: HomogeneousObject<ListItem[]> = {};
 
   /**
    * Name of parameter to be used if there are no matching values

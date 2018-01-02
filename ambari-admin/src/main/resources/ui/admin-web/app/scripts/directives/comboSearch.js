@@ -17,6 +17,27 @@
  */
 'use strict';
 
+
+/**
+ *  Example:
+ *  <combo-search suggestions="filters"
+ *                filter-change="filterItems"
+ *                placeholder="Search"
+ *                supportCategories="true">
+ *  </combo-search>
+ *
+ *  filters = [
+ *    {
+ *      key: 'property1',
+ *      label: $t('propertyLabel'),
+ *      category: 'category1'
+ *      options: []
+ *    }
+ *  ]
+ *  Note: "category" field is optional, should be used only when supportCategories="true"
+ *
+ */
+
 angular.module('ambariAdminConsole')
 .directive('comboSearch', function() {
   return {
@@ -41,7 +62,7 @@ angular.module('ambariAdminConsole')
       var suggestions = $ctrl.suggestions;
       var supportCategories = $ctrl.supportCategories;
       var mainInputElement = $elem.find('.main-input.combo-search-input');
-      $scope.paceholder = $ctrl.placeholder;
+      $scope.placeholder = $ctrl.placeholder;
       $scope.searchFilterInput = '';
       $scope.filterSuggestions = [];
       $scope.showAutoComplete = false;
@@ -261,7 +282,7 @@ angular.module('ambariAdminConsole')
       }
 
       function initKeyHandlers() {
-        $(document).keydown(function(event) {
+        $($elem).keydown(function(event) {
           if (event.which === 13) { // "Enter" key
             enterKeyHandler();
             $scope.$apply();
@@ -295,7 +316,7 @@ angular.module('ambariAdminConsole')
 
       function leftArrowKeyHandler() {
         var activeElement = $(document.activeElement);
-        if (activeElement.is('input') && activeElement[0].selectionStart === 0) {
+        if (activeElement.is('input') && activeElement[0].selectionStart === 0 && $scope.appliedFilters.length > 0) {
           if (activeElement.hasClass('main-input')) {
             focusInput($scope.appliedFilters[$scope.appliedFilters.length - 1]);
           } else {

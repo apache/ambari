@@ -864,6 +864,20 @@
           ]
         }
       },
+      "SUPERSET": {
+        "SUPERSET": {
+          "STACK-SELECT-PACKAGE": "superset",
+          "INSTALL": [
+            "superset"
+          ],
+          "PATCH": [
+            "superset"
+          ],
+          "STANDARD": [
+            "superset"
+          ]
+        }
+      },
       "TITAN": {
         "TITAN_CLIENT": {
           "STACK-SELECT-PACKAGE": "titan-client",
@@ -1276,7 +1290,7 @@
     },
     "upgrade-dependencies" : {
       "ATLAS": ["STORM"],
-      "HIVE": ["TEZ", "MAPREDUCE2"],
+      "HIVE": ["TEZ", "MAPREDUCE2", "SQOOP"],
       "TEZ": ["HIVE"],
       "MAPREDUCE2": ["HIVE"],
       "MAHOUT": ["MAPREDUCE2"],

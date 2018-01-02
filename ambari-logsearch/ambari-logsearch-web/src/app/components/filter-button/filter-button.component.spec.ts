@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-import {NO_ERRORS_SCHEMA} from '@angular/core';
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {NO_ERRORS_SCHEMA, Injector} from '@angular/core';
+import {async, ComponentFixture, TestBed, inject} from '@angular/core/testing';
 import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
+import {ServiceInjector} from '@app/classes/service-injector';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
@@ -99,11 +100,12 @@ describe('FilterButtonComponent', () => {
     .compileComponents();
   }));
 
-  beforeEach(() => {
+  beforeEach(inject([Injector], (injector: Injector) => {
+    ServiceInjector.injector = injector;
     fixture = TestBed.createComponent(FilterButtonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  });
+  }));
 
   it('should create component', () => {
     expect(component).toBeTruthy();

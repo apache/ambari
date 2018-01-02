@@ -15,18 +15,26 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<p>{{{view.message}}}</p>
-{{#each host in view.undeletableHosts}}
-  <div class="panel panel-default">
-    <div class="panel-heading" {{action "onToggleHost" host target="view"}}>
-      <i {{bindAttr class=":pull-left :panel-toggle host.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
-      <a class="panel-toggle">
-        <p>{{host.error.key}}</p>
-      </a>
-    </div>
-
-    <div class="panel-body collapse in" {{bindAttr style="host.isBodyVisible"}}>
-      <p>{{host.error.message}}</p>
-    </div>
+{{#if view.hostsToModify}}
+  <p>{{{view.modifyMessage }}}</p>
+  <div class="bulk-host-display">
+    <pre>{{view.hostsToModify}}</pre>
   </div>
-{{/each}}
+{{/if}}
+
+{{#if view.skippedHosts}}
+  <p>{{{view.skipMessage}}}</p>
+  <div class="skipped-hosts-panel panel panel-default" >
+  {{#each host in view.skippedHosts}}
+    <div class="bulk-host-skipped">
+      <div class="skipped-hosts" {{action "onToggleHost" host target="view"}}>
+        <i {{bindAttr class=":pull-left :icon host.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+        <a><p>{{host.error.key}}</p></a>
+      </div>
+      <div class="skipped-hosts-text collapse in" {{bindAttr style="host.isBodyVisible"}}>
+        <p><i>{{host.error.message}}</i></p>
+      </div>
+    </div>
+  {{/each}}
+  </div>
+{{/if}}

@@ -48,7 +48,7 @@ public class SolrQueryBuilderTest {
   @Test
   public void testSetQuery() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder()
-            .setQueryText("logtime:[* TO \"${end}\"]")
+            .setQueryText("logtime:[* TO ${end}]")
             .setEndValue("2017-11-27'T'10:12:11.372Z")
             .build();
     assertThat(solrQuery.getQuery(), is("logtime:[* TO \"2017-11-27'T'10:12:11.372Z\"]"));
@@ -57,7 +57,7 @@ public class SolrQueryBuilderTest {
   @Test
   public void testSetFilterQuery() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder()
-            .setFilterQueryText("(logtime:\"${logtime}\" AND id:{\"${id}\" TO *]) OR logtime:{\"${logtime}\" TO \"${end}\"]")
+            .setFilterQueryText("(logtime:${logtime} AND id:{${id} TO *]) OR logtime:{${logtime} TO ${end}]")
             .setDocument(DOCUMENT)
             .setEndValue("2017-11-27'T'10:12:11.372Z")
             .build();
@@ -76,7 +76,7 @@ public class SolrQueryBuilderTest {
   @Test
   public void testSetFilterQueryWhenEndValueIsNull() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder()
-            .setFilterQueryText("logtime:\"${logtime}\" AND id:{\"${id}\" TO *]")
+            .setFilterQueryText("logtime:${logtime} AND id:{${id} TO *]")
             .setDocument(DOCUMENT)
             .build();
     assertThat(solrQuery.getFilterQueries()[0], is("logtime:\"2017-10-02'T'10:00:11.634Z\" AND id:{\"1\" TO *]"));
@@ -109,5 +109,17 @@ public class SolrQueryBuilderTest {
     SolrQuery solrQuery = new SolrQueryBuilder().addSort("logtime", "id").build();
     assertThat(solrQuery.getSorts().get(0).getItem(), is("logtime"));
     assertThat(solrQuery.getSorts().get(1).getItem(), is("id"));
+  }
+
+  @Test
+  public void test_start_and_end_values_are_given() throws Exception {
+    SolrQuery solrQuery = new SolrQueryBuilder().setQueryText("id:[${start} TO ${end}]").setInterval("10", "13").build();
+    assertThat(solrQuery.getQuery(), is("id:[\"10\" TO \"13\"]"));
+  }
+
+  @Test
+  public void test_start_and_end_values_are_null() throws Exception {
+    SolrQuery solrQuery = new SolrQueryBuilder().setQueryText("id:[${start} TO ${end}]").build();
+    assertThat(solrQuery.getQuery(), is("id:[* TO *]"));
   }
 }

@@ -30,6 +30,8 @@ import {MomentTimezoneModule} from 'angular-moment-timezone';
 
 import {environment} from '@envs/environment';
 
+import {ServiceInjector} from '@app/classes/service-injector';
+
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
@@ -85,6 +87,11 @@ import {LogFileEntryComponent} from '@app/components/log-file-entry/log-file-ent
 import {TabsComponent} from '@app/components/tabs/tabs.component';
 import {ServiceLogsTableComponent} from '@app/components/service-logs-table/service-logs-table.component';
 import {AuditLogsTableComponent} from '@app/components/audit-logs-table/audit-logs-table.component';
+import {AuditLogsEntriesComponent} from '@app/components/audit-logs-entries/audit-logs-entries.component';
+import {GraphLegendComponent} from '@app/components/graph-legend/graph-legend.component';
+import {HorizontalHistogramComponent} from '@app/components/horizontal-histogram/horizontal-histogram.component';
+import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip.component';
+import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -141,6 +148,11 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     TabsComponent,
     ServiceLogsTableComponent,
     AuditLogsTableComponent,
+    AuditLogsEntriesComponent,
+    GraphLegendComponent,
+    HorizontalHistogramComponent,
+    GraphTooltipComponent,
+    GraphLegendItemComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -194,4 +206,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {
+  constructor(private injector: Injector) {
+    ServiceInjector.injector = this.injector;
+  }
 }

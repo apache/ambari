@@ -145,13 +145,13 @@
 
     <menu name="Releases">
       <item name="2.6.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.6.1"/>
-      <item name="2.6.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.6.0"/>
-      <item name="2.5.2" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.5.2"/>
-      <item name="2.5.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.5.1"/>
-      <item name="2.5.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.5.0"/>
-      <item name="2.4.3" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.4.3"/>
-      <item name="2.4.2" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.4.2"/>
-      <item name="2.4.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.4.1"/>
+      <item name="2.6.0" href="http://archive.apache.org/dist/ambari/ambari-2.6.0"/>
+      <item name="2.5.2" href="http://archive.apache.org/dist/ambari/ambari-2.5.2"/>
+      <item name="2.5.1" href="http://archive.apache.org/dist/ambari/ambari-2.5.1"/>
+      <item name="2.5.0" href="http://archive.apache.org/dist/ambari/ambari-2.5.0"/>
+      <item name="2.4.3" href="http://archive.apache.org/dist/ambari/ambari-2.4.3"/>
+      <item name="2.4.2" href="http://archive.apache.org/dist/ambari/ambari-2.4.2"/>
+      <item name="2.4.1" href="http://archive.apache.org/dist/ambari/ambari-2.4.1"/>
       <item name="2.4.0" href="http://archive.apache.org/dist/ambari/ambari-2.4.0"/>
       <item name="2.2.2" href="http://archive.apache.org/dist/ambari/ambari-2.2.2"/>
       <item name="2.2.1" href="http://archive.apache.org/dist/ambari/ambari-2.2.1"/>
