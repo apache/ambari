@@ -16,20 +16,8 @@
  * limitations under the License.
  */
 
-export interface HistogramMarginOptions {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-}
+import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params';
 
-export interface HistogramStyleOptions {
-  margin?: HistogramMarginOptions;
-  height?: number;
-  tickPadding?: number;
-  columnWidth?: {[key:string]: number};
-}
-
-export interface HistogramOptions extends HistogramStyleOptions {
-  keysWithColors: {[key: string]: string};
+export class AuditLogsTopResourcesQueryParams extends AuditLogsQueryParams {
+  field: string;
 }

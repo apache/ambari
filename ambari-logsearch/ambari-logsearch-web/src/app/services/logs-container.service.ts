@@ -27,7 +27,6 @@ import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/takeUntil';
 import * as moment from 'moment-timezone';
-import {TranslateService} from '@ngx-translate/core';
 import {HttpClientService} from '@app/services/http-client.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
@@ -46,6 +45,7 @@ import {
   FilterCondition, TimeUnitListItem, SortingListItem, SearchBoxParameter, SearchBoxParameterTriggered
 } from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {LogsType, ScrollType, SortingType} from '@app/classes/string';
 import {Tab} from '@app/classes/models/tab';
 import {LogField} from '@app/classes/models/log-field';
@@ -61,15 +61,15 @@ import {CommonEntry} from '@app/classes/models/common-entry';
 export class LogsContainerService {
 
   constructor(
-    private translate: TranslateService, private httpClient: HttpClientService,
-    private auditLogsStorage: AuditLogsService, private auditLogsFieldsStorage: AuditLogsFieldsService,
-    private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService,
-    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
-    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appState: AppStateService,
-    private appSettings: AppSettingsService, private tabsStorage: TabsService, private clustersStorage: ClustersService,
-    private componentsStorage: ComponentsService, private hostsStorage: HostsService
+    private httpClient: HttpClientService, private appState: AppStateService,
+    private appSettings: AppSettingsService, private auditLogsStorage: AuditLogsService,
+    private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService,
+    private serviceLogsFieldsStorage: ServiceLogsFieldsService, private tabsStorage: TabsService,
+    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private clustersStorage: ClustersService,
+    private componentsStorage: ComponentsService, private hostsStorage: HostsService,
+    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService
   ) {
-    const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): {[key: string]: FormControl} => {
+    const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
       let formControl = new FormControl(),
         item = {
           [key]: formControl
@@ -88,7 +88,7 @@ export class LogsContainerService {
     tabsStorage.mapCollection((tab: Tab): Tab => {
       let currentAppState = tab.appState || {};
       const appState = Object.assign({}, currentAppState, {
-        activeFilters: this.getFiltersData(tab.type)
+        activeFilters: this.getFiltersData(tab.appState.activeLogsType)
       });
       return Object.assign({}, tab, {
         appState
@@ -120,7 +120,7 @@ export class LogsContainerService {
 
   private readonly paginationOptions: string[] = ['10', '25', '50', '100'];
 
-  filters: {[key: string]: FilterCondition} = {
+  filters: HomogeneousObject<FilterCondition> = {
     clusters: {
       label: 'filter.clusters',
       options: [],
@@ -507,18 +507,25 @@ export class LogsContainerService {
     query: ['includeQuery', 'excludeQuery']
   };
 
+  readonly topResourcesCount: string = '10';
+
+  readonly topUsersCount: string = '6';
+
   readonly logsTypeMap = {
     auditLogs: {
       logsModel: this.auditLogsStorage,
       fieldsModel: this.auditLogsFieldsStorage,
       // TODO add all the required fields
       listFilters: ['clusters', 'timeRange', 'auditLogsSorting', 'pageSize', 'page', 'query'],
+      topResourcesFilters: ['clusters', 'timeRange', 'query'],
       histogramFilters: ['clusters', 'timeRange', 'query']
     },
     serviceLogs: {
       logsModel: this.serviceLogsStorage,
       fieldsModel: this.serviceLogsFieldsStorage,
-      listFilters: ['clusters', 'timeRange', 'components', 'levels', 'hosts', 'serviceLogsSorting', 'pageSize', 'page', 'query'],
+      listFilters: [
+        'clusters', 'timeRange', 'components', 'levels', 'hosts', 'serviceLogsSorting', 'pageSize', 'page', 'query'
+      ],
       histogramFilters: ['clusters', 'timeRange', 'components', 'levels', 'hosts', 'query']
     }
   };
@@ -620,6 +627,10 @@ export class LogsContainerService {
 
   private stopCaptureTime: number;
 
+  topUsersGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
+
+  topResourcesGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
+
   loadLogs = (logsType: LogsType = this.activeLogsType): void => {
     this.httpClient.get(logsType, this.getParams('listFilters')).subscribe((response: Response): void => {
       const jsonResponse = response.json(),
@@ -643,6 +654,34 @@ export class LogsContainerService {
           const histogramData = jsonResponse.graphData;
           if (histogramData) {
             this.serviceLogsHistogramStorage.addInstances(histogramData);
+          }
+        }
+      });
+    }
+    if (logsType === 'auditLogs') {
+      this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
+        field: 'resource'
+      }), {
+        number: this.topResourcesCount
+      }).subscribe((response: Response): void => {
+        const jsonResponse = response.json();
+        if (jsonResponse) {
+          const data = jsonResponse.graphData;
+          if (data) {
+            this.topResourcesGraphData = this.parseAuditLogsTopData(data);
+          }
+        }
+      });
+      this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
+        field: 'reqUser'
+      }), {
+        number: this.topUsersCount
+      }).subscribe((response: Response): void => {
+        const jsonResponse = response.json();
+        if (jsonResponse) {
+          const data = jsonResponse.graphData;
+          if (data) {
+            this.topUsersGraphData = this.parseAuditLogsTopData(data);
           }
         }
       });
@@ -680,7 +719,19 @@ export class LogsContainerService {
     });
   }
 
-  private getParams(filtersMapName: string, logsType: LogsType = this.activeLogsType): {[key: string]: string} {
+  private parseAuditLogsTopData(data: BarGraph[]): HomogeneousObject<HomogeneousObject<number>> {
+    return data.reduce((currentObject: HomogeneousObject<HomogeneousObject<number>>, currentItem: BarGraph): HomogeneousObject<HomogeneousObject<number>> => Object.assign(currentObject, {
+      [currentItem.name]: currentItem.dataCount.reduce((currentDataObject: HomogeneousObject<number>, currentDataItem: CommonEntry): HomogeneousObject<number> => {
+        return Object.assign(currentDataObject, {
+          [currentDataItem.name]: currentDataItem.value
+        });
+      }, {})
+    }), {});
+  }
+
+  private getParams(
+    filtersMapName: string, additionalParams: HomogeneousObject<string> = {}, logsType: LogsType = this.activeLogsType
+  ): HomogeneousObject<string> {
     let params = {};
     this.logsTypeMap[logsType][filtersMapName].forEach((key: string): void => {
       const inputValue = this.filtersForm.getRawValue()[key],
@@ -698,10 +749,10 @@ export class LogsContainerService {
         }
       });
     }, this);
-    return params;
+    return Object.assign({}, params, additionalParams);
   }
 
-  getHistogramData(data: BarGraph[]): {[key: string]: number} {
+  getHistogramData(data: BarGraph[]): HomogeneousObject<HomogeneousObject<number>> {
     let histogramData = {};
     data.forEach(type => {
       const name = type.name;
@@ -800,7 +851,9 @@ export class LogsContainerService {
     return (value: SearchBoxParameter[]): string => {
       let parameters;
       if (value && value.length) {
-        parameters = value.filter((item: SearchBoxParameter): boolean => item.isExclude === isExclude).map((parameter: SearchBoxParameter): {[key: string]: string} => {
+        parameters = value.filter((item: SearchBoxParameter): boolean => {
+          return item.isExclude === isExclude;
+        }).map((parameter: SearchBoxParameter): HomogeneousObject<string> => {
           return {
             [parameter.name]: parameter.value.replace(/\s/g, '+')
           };

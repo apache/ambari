@@ -83,7 +83,6 @@ export class ComponentActionsService {
   openLog(log: ServiceLog): void {
     const tab = {
       id: log.id,
-      type: 'serviceLogs',
       isCloseable: true,
       label: `${log.host} >> ${log.type}`,
       appState: {
