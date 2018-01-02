@@ -188,44 +188,6 @@ ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
 ams_hbase_init_check_enabled = default("/configurations/ams-site/timeline.metrics.hbase.init.check.enabled", True)
 
-# AD Manager settings
-ams_ad_conf_dir = '/etc/ambari-metrics-anomaly-detection/conf'
-ams_ad_log_dir = default("/configurations/ams-admanager-env/ams_ad_log_dir", '/var/log/ambari-metrics-anomaly-detection')
-ams_ad_pid_dir = status_params.ams_ad_pid_dir
-ams_ad_data_dir = default("/configurations/ams-admanager-env/ams_ad_data_dir", '/var/lib/ambari-metrics-anomaly-detection')
-ams_ad_input_definition_directory = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.input.definition.directory']
-
-ams_admanager_env_sh_template = config['configurations']['ams-admanager-env']['content']
-ams_admanager_config_template = config['configurations']['ams-admanager-config']['content']
-ams_admanager_script = "/usr/sbin/ambari-metrics-admanager"
-ams_admanager_port = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.application.port']
-ams_admanager_heapsize = config['configurations']['ams-admanager-env']['ams_admanager_heapsize']
-ams_admanager_lib_dir = "/usr/lib/ambari-metrics-anomaly-detection"
-ams_admanager_jar = format("{ams_admanager_lib_dir}/ambari-metrics-anomaly-detection-service-*.jar")
-ams_ad_log_max_backup_size = default('configurations/ams-admanager-log4j/ams_ad_log_max_backup_size',80)
-ams_ad_log_number_of_backup_files = default('configurations/ams-admanager-log4j/ams_ad_log_number_of_backup_files',60)
-
-admanager_spark_op_mode = config['configurations']['ams-admanager-config']['ambari.metrics.admanager.spark.operation.mode']
-ams_ad_spark_env_sh_template = config['configurations']['ams-admanager-spark-env']['content']
-spark_master_port = default("/configurations/ams-admanager-spark-env/spark_master_port", 6190)
-spark_master_webui_port = default("/configurations/ams-admanager-spark-env/spark_master_webui_port", 6180)
-spark_worker_cores = default("/configurations/ams-admanager-spark-env/spark_worker_cores", 4)
-spark_worker_memory = default("/configurations/ams-admanager-spark-env/spark_worker_memory", 2048)
-spark_worker_webui_port = default("/configurations/ams-admanager-spark-env/spark_worker_webui_port", 6181)
-spark_daemon_memory = default("/configurations/ams-admanager-spark-env/spark_daemon_memory", 1024)
-
-if admanager_spark_op_mode == 'spark-on-yarn':
-  admanager_spark_hostport = hostname + ":" + spark_master_port #TODO : Fix for spark on yarn mode.
-  ams_ad_standalone_spark_enabled = False
-else:
-  admanager_spark_hostport = hostname + ":" + spark_master_port
-  ams_ad_standalone_spark_enabled = True
-
-if (('ams-admanager-log4j' in config['configurations']) and ('content' in config['configurations']['ams-admanager-log4j'])):
-  ams_ad_log4j_props = config['configurations']['ams-admanager-log4j']['content']
-else:
-  ams_ad_log4j_props = None
-
 #hadoop params
 
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']

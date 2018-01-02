@@ -50,10 +50,6 @@ def should_install_phoenix():
   has_phoenix = len(phoenix_hosts) > 0
   return phoenix_enabled or has_phoenix
 
-def should_install_ams_admanager():
-  config = Script.get_config()
-  return _has_applicable_local_component(config, ["AD_MANAGER"])
-
 def should_install_ams_collector():
   config = Script.get_config()
   return _has_applicable_local_component(config, ["METRICS_COLLECTOR"])
