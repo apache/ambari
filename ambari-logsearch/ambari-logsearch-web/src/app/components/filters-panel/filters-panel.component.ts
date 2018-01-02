@@ -23,6 +23,7 @@ import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/observable/from';
 import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {LogsType} from '@app/classes/string';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
@@ -66,15 +67,15 @@ export class FiltersPanelComponent implements OnChanges {
     return this.viewContainerRef.element.nativeElement;
   }
 
-  get filters(): {[key: string]: FilterCondition} {
+  get filters(): HomogeneousObject<FilterCondition> {
     return this.logsContainer.filters;
   }
 
   /**
    * Object with options for search box parameter values
-   * @returns {[key: string]: ListItem[]}
+   * @returns HomogeneousObject<ListItem[]>
    */
-  get options(): {[key: string]: ListItem[]} {
+  get options(): HomogeneousObject<ListItem[]> {
     return Object.keys(this.filters).filter((key: string): boolean => {
       const condition = this.filters[key];
       return Boolean(condition.fieldName && condition.options);
