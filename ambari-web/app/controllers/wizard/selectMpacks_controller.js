@@ -17,10 +17,13 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
-App.WizardSelectMpacksController = Em.Controller.extend({
+App.WizardSelectMpacksController = App.WizardStepController.extend({
 
   name: 'wizardSelectMpacksController',
+
+  stepName: 'selectMpacks',
 
   noRecommendationAvailable: false,
 
@@ -75,7 +78,8 @@ App.WizardSelectMpacksController = Em.Controller.extend({
           return version;
         })
       ),
-      []);
+      []
+    );
 
     const mpackServiceVersions = mpackVersions.reduce(
       (services, mpackVersion) => services.concat(
@@ -84,7 +88,8 @@ App.WizardSelectMpacksController = Em.Controller.extend({
           return service;
         })
       ),
-      []);
+      []
+    );
 
     const uniqueServices = {};
     mpackServiceVersions.forEach(service => {
@@ -510,14 +515,28 @@ App.WizardSelectMpacksController = Em.Controller.extend({
       const selectedServiceNames = selectedServices.map(service => service.name);
       this.set('content.selectedServiceNames', selectedServiceNames);
 
-      const selectedMpacks = this.get('selectedMpackVersions').map(mpackVersion =>
-        ({
+      const selectedMpacks = this.get('selectedMpackVersions').map(mpackVersion => {
+        const selectedMpack = {
+          id: `${mpackVersion.mpack.name}-${mpackVersion.version}`,
           name: mpackVersion.mpack.name,
           displayName: mpackVersion.mpack.displayName,
-          url: mpackVersion.mpackUrl,
+          publicUrl: mpackVersion.mpackUrl,
+          downloadUrl: mpackVersion.mpackUrl,
           version: mpackVersion.version
-        })
-      );
+        };
+        
+        const oldSelectedMpacks = this.get('content.selectedMpacks');
+        let oldSelectedMpack;
+        if (oldSelectedMpacks) {
+          oldSelectedMpack = oldSelectedMpacks.find(mpack => mpack.name === mpackVersion.mpack.name && mpack.version === mpackVersion.version);
+        }
+        if (oldSelectedMpack) {
+          selectedMpack.downloadUrl = oldSelectedMpack.downloadUrl;
+          selectedMpack.operatingSystems = oldSelectedMpack.operatingSystems;
+        }
+        
+        return selectedMpack;
+      });
       this.set('content.selectedMpacks', selectedMpacks);
 
       App.router.send('next');

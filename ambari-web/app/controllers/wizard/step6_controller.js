@@ -19,6 +19,7 @@
 var App = require('app');
 var blueprintUtils = require('utils/blueprint');
 var validationUtils = require('utils/validator');
+require('./wizardStep_controller');
 
 /**
  * By Step 6, we have the following information stored in App.db and set on this
@@ -32,9 +33,11 @@ var validationUtils = require('utils/validator');
  *   slaveComponentHosts: App.db.slaveComponentHosts (slave-components-to-hosts mapping the user selected in Step 6)
  *
  */
-App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixin, App.HostComponentRecommendationMixin, {
+App.WizardStep6Controller = App.WizardStepController.extend(App.HostComponentValidationMixin, App.HostComponentRecommendationMixin, {
 
   name: 'wizardStep6Controller',
+
+  stepName: 'step6',
 
   /**
    * List of hosts

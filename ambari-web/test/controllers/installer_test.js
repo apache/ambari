@@ -398,31 +398,32 @@ describe('App.InstallerController', function () {
   })
 
   describe('#setStepsEnable', function() {
-
     beforeEach(function () {
       var steps = Em.A([
         Em.Object.create({
           step: 0,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 1,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 2,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 3,
-          value: false
+          value: true
         }),
         Em.Object.create({
           step: 4,
-          value: false
+          value: true
         })
       ]);
+      
       installerController.set('isStepDisabled', steps);
+      
       installerController.set('steps', [
         "step0",
         "step1",
@@ -430,11 +431,19 @@ describe('App.InstallerController', function () {
         "step3",
         "step4"
       ]);
-      //installerController.totalSteps = steps.length - 1;
-      installerController.set('currentStep',2);
+      
+      installerController.set('currentStep', 2);
     });
 
-    it ('Should enable next steps', function() {
+    it('Should enable next steps', function() {
+      var stepController = Em.Object.create({
+        isStepDisabled: function () {
+          return false;
+        }
+      });
+
+      sinon.stub(installerController, 'getStepController').returns(stepController);
+
       var expected = [
         {
           "step": 0,
@@ -442,23 +451,28 @@ describe('App.InstallerController', function () {
         },
         {
           "step": 1,
-          "value": true
+          "value": false
         },
         {
           "step": 2,
-          "value": true
+          "value": false
         },
         {
           "step": 3,
-          "value": true
+          "value": false
         },
         {
           "step": 4,
-          "value": true
+          "value": false
         }
       ];
+
+      installerController.setStepsEnable();
+
       var res = JSON.parse(JSON.stringify(installerController.get('isStepDisabled')));
       expect(res).to.eql(expected);
+
+      installerController.getStepController.restore();
     });
   });
 
@@ -544,7 +558,7 @@ describe('App.InstallerController', function () {
       };
 
       beforeEach(function () {
-        installerController.loadMap['step5'][1].callback.call(checker);
+        installerController.loadMap['step5'][0].callback.call(checker);
       });
 
       it('confirmed hosts are loaded', function() {

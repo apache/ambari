@@ -228,6 +228,44 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('currentStep', index);
   },
 
+  getPreviousStepName: function () {
+    const index = this.get('currentStep');
+    
+    if (index > 0) {
+      const steps = this.get('steps');
+      
+      if (steps) {
+        return steps[index - 1];
+      } else {
+        //legacy support
+        return 'step' + (index - 1);
+      }
+    } else {
+      return null;
+    }
+  },
+
+  getNextStepName: function () {
+    const index = this.get('currentStep');
+
+    const steps = this.get('steps');
+    if (steps) {
+      if (index < steps.length - 1) {
+        return steps[index + 1];
+      } else {
+        return null
+      }
+    }
+    
+    //legacy support
+    const totalSteps = this.get('totalSteps');
+    if (index < totalSteps - 1) {
+      return 'step' + (index + 1);
+    } else {
+      return null;
+    }
+  },
+
   clusters: null,
 
   isStep0: function () {

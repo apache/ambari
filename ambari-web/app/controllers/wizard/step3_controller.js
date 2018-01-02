@@ -19,10 +19,13 @@
 var App = require('app');
 var lazyloading = require('utils/lazy_loading');
 var numberUtils = require('utils/number_utils');
+require('./wizardStep_controller');
 
-App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.CheckHostMixin, {
+App.WizardStep3Controller = App.WizardStepController.extend(App.ReloadPopupMixin, App.CheckHostMixin, {
 
   name: 'wizardStep3Controller',
+
+  stepName: 'step3',
 
   hosts: [],
 

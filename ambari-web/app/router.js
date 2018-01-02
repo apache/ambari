@@ -44,10 +44,16 @@ App.WizardRoute = Em.Route.extend({
   gotoStep10: Em.Router.transitionTo('step10'),
 
   gotoConfigureDownload: Em.Router.transitionTo('configureDownload'),
-
+  
   gotoSelectMpacks: Em.Router.transitionTo('selectMpacks'),
   
-  gotoDownloadProducts: Em.Router.transitionTo('downloadProducts'),
+  gotoCustomMpackRepos: Em.Router.transitionTo('customMpackRepos'),
+
+  gotoDownloadMpacks: Em.Router.transitionTo('downloadMpacks'),
+  
+  gotoCustomProductRepos: Em.Router.transitionTo('customProductRepos'),
+  
+  gotoVerifyProducts: Em.Router.transitionTo('verifyProducts'),
 
   isRoutable: function() {
     return typeof this.get('route') === 'string' && App.router.get('loggedIn');

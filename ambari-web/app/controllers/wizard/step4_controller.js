@@ -17,10 +17,13 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
 App.WizardStep4Controller = Em.ArrayController.extend({
 
   name: 'wizardStep4Controller',
+
+  stepName: 'step4',
 
   /**
    * List of Services

@@ -787,6 +787,20 @@
   }
 }
 
+#customProductRepos, #verifyProductRepos {
+  .table.table-hover > tbody {
+    > tr, > tr:hover > td {
+      border-width: 0;
+    }
+    > tr.mpack-firstOs.os-firstRepo {
+      border-top-width: 1px;
+    }
+    > tr:last-of-type {
+      border-bottom-width: 1px;
+    }
+  }
+}
+
 @media all and (max-width: 2560px) {
    .wizard-content {
     #serviceConfig {

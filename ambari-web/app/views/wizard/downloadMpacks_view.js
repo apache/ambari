@@ -17,9 +17,9 @@
 
 var App = require('app');
 
-App.WizardDownloadProductsView = Em.View.extend({
+App.WizardDownloadMpacksView = Em.View.extend({
 
-  templateName: require('templates/wizard/downloadProducts'),
+  templateName: require('templates/wizard/downloadMpacks'),
 
   didInsertElement: function () {
     this._super();

@@ -19,10 +19,13 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 var fileUtils = require('utils/file_utils');
+require('./wizardStep_controller');
 
-App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
+App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
 
   name: 'wizardStep8Controller',
+
+  stepName: 'step8',
 
   /**
    * @type {boolean}
@@ -923,9 +926,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       this._startDeploy();
     } else {
       const selectedStack = this.getSelectedStack();
-      this.get('wizardController').updateRepoOSInfo({ id: selectedStack.get('id'), stackName: selectedStack.get('stackName'), stackVersion: selectedStack.get('stackVersion') }, selectedStack).done(function() {
+      //skip this because we already updated the repo URLs if they were customized in the customProductRepos step's submit action
+      //this.get('wizardController').updateRepoOSInfo({ id: selectedStack.get('id'), stackName: selectedStack.get('stackName'), stackVersion: selectedStack.get('stackVersion') }, selectedStack).done(function() {
         self._startDeploy();
-      });
+      //});
     }
   },
 

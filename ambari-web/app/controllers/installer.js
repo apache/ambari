@@ -43,7 +43,10 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step3",
     "configureDownload",
 	  "selectMpacks",
-    "downloadProducts",
+    "customMpackRepos",
+    "downloadMpacks",
+    "customProductRepos",
+    "verifyProducts",
     //"step1",
     //"step4",
     "step5",
@@ -53,6 +56,17 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step9",
     "step10"
   ],
+
+  getStepController: function (stepName) {
+    if (typeof (stepName) === "number") {
+      stepName = this.get('steps')[stepName];
+    }
+
+    stepName = stepName.charAt(0).toUpperCase() + stepName.slice(1);
+    const stepController = App.router.get('wizard' + stepName + 'Controller');
+
+    return stepController;
+  },
 
   content: Em.Object.create({
     cluster: null,
@@ -934,11 +948,15 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       os.get('repositories').forEach(function (repository) {
         repoVersion.operating_systems[k].repositories.push({
           "Repositories": {
+            "public_url": repository.get('baseUrlInit'),
             "base_url": repository.get('baseUrl'),
             "repo_id": repository.get('repoId'),
             "repo_name": repository.get('repoName'),
-            "components": repository.get('components'),
-            "distribution": repository.get('distribution')
+            "unique": repository.get('unique')
+            //removed the following properties because they were not present on the server
+            //and are therefore undefined on the client, so there is no need to pass them back
+            // "components": repository.get('components'),
+            // "distribution": repository.get('distribution')
           }
         });
       });
@@ -1076,6 +1094,14 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
       }
     ],
+    'customProductRepos': [
+      {
+        type: 'async',
+        callback: function () {
+          return this.finishRegisteringMpacks(this.getStepSavedState('customProductRepos'));
+        }
+      },
+    ],
     'step3': [
       {
         type: 'sync',
@@ -1085,12 +1111,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       }
     ],
     'step5': [
-      {
-        type: 'async',
-        callback: function () {
-          return this.finishRegisteringMpacks(this.getStepSavedState('step5'));
-        }
-      },
       {
         type: 'sync',
         callback: function () {
@@ -1203,13 +1223,25 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   gotoConfigureDownload: function () {
     this.gotoStep('configureDownload');
   },
-
-  gotoDownloadProducts: function () {
-    this.gotoStep('downloadProducts');
-  },
-
+  
   gotoSelectMpacks: function () {
     this.gotoStep('selectMpacks');
+  },
+
+  gotoCustomMpackRepos: function () {
+    this.gotoStep('customMpackRepos');
+  },
+
+  gotoDownloadMpacks: function () {
+    this.gotoStep('downloadMpacks');
+  },
+
+  gotoCustomProductRepos: function () {
+    this.gotoStep('customProductRepos');
+  },
+
+  gotoVerifyProducts: function () {
+    this.gotoStep('verifyProducts');
   },
 
   isStep0: function () {
@@ -1260,8 +1292,24 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     return this.get('currentStep') == this.getStepIndex('configureDownload');
   }.property('currentStep'),
 
-  isDownloadProducts: function () {
-    return this.get('currentStep') == this.getStepIndex('downloadProducts');
+  isSelectMpacks: function () {
+    return this.get('currentStep') == this.getStepIndex('selectMpacks');
+  }.property('currentStep'),
+
+  isCustomMpackRepos: function () {
+    return this.get('currentStep') == this.getStepIndex('customMpackRepos');
+  }.property('currentStep'),
+
+  isDownloadMpacks: function () {
+    return this.get('currentStep') == this.getStepIndex('downloadMpacks');
+  }.property('currentStep'),
+
+  isCustomProductRepos: function () {
+    return this.get('currentStep') == this.getStepIndex('customProductRepos');
+  }.property('currentStep'),
+
+  isVerifyProducts: function () {
+    return this.get('currentStep') == this.getStepIndex('verifyProducts');
   }.property('currentStep'),
 
   clearConfigActionComponents: function() {
@@ -1305,10 +1353,18 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   setStepsEnable: function () {
     const steps = this.get('steps');
     for (let i = 0, length = steps.length; i < length; i++) {
+      let stepDisabled = true;
+      
+      const stepController = this.getStepController(steps[i]);
+      if (stepController) {
+        stepController.set('wizardController', this);
+        stepDisabled = stepController.isStepDisabled();
+      }
+
       const stepIndex = this.getStepIndex(steps[i]);
-      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepIndex > this.get('currentStep'));
+      this.get('isStepDisabled').findProperty('step', stepIndex).set('value', stepDisabled);
     }
-  }.observes('currentStep'),
+  },
 
   /**
    * Compare jdk versions used for ambari and selected stack.
@@ -1404,11 +1460,14 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   /**
-   * This runs when Step5 loads and completes the mpack registration process that was begun in the Download Mpacks step.
+   * This runs when the step after Download Mpacks loads and completes the mpack registration process that was begun in the Download Mpacks step.
    * It populates the StackService model from the stack version definitions.
    * Then, it persists info about the selected services and the selected stack.
    *
-   * @return {object}  a promise
+   * @param {Boolean} keepStackServices If true, previously loaded stack services are retained.
+   *                                    This is to support back/forward navigation in the wizard
+   *                                    and should correspond to the saved state of the step after Download Mpacks.
+   * @return {object} a promise
    */
   finishRegisteringMpacks: function (keepStackServices) {
     return this.getMpackStackVersions().then(data => {
@@ -1440,6 +1499,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         this.set('content.clients', clients);
         this.save('clients');
 
+        //TODO: mpacks
         // - for now, pull the stack from the single mpack that we can install
         // - when we can support multiple mpacks, make this an array of selectedStacks (or just use the selectedServices array?) and add the repo data to it
         const selectedService = selectedServices[0];

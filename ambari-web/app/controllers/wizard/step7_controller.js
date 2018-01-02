@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
 /**
  * By Step 7, we have the following information stored in App.db and set on this
@@ -42,9 +43,11 @@ var App = require('app');
  * @property {?object[]} slaveComponentHosts
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, App.AddSecurityConfigs, App.KDCCredentialsControllerMixin, {
+App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, App.AddSecurityConfigs, App.KDCCredentialsControllerMixin, {
 
   name: 'wizardStep7Controller',
+
+  stepName: 'step7',
 
   /**
    * Contains all field properties that are viewed in this step

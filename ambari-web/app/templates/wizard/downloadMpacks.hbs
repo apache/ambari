@@ -17,7 +17,7 @@
 }}
 
 <div id="download-step-content" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
-  <h4 class="step-header">{{t installer.downloadProducts.header}}</h4>
+  <h4 class="step-header">{{t installer.downloadMpacks.header}}</h4>
 
   <div class="panel panel-default">
     <div class="panel-body">
@@ -26,9 +26,9 @@
       {{else}}
         <div class="panel panel-default">
           <div class="step-title">
-            <p>{{t installer.downloadProducts.body.title}}</p>
+            <p>{{t installer.downloadMpacks.body.title}}</p>
           </div>
-          <p class="step-description">{{t installer.downloadProducts.body.description}}</p>
+          <p class="step-description">{{t installer.downloadMpacks.body.description}}</p>
 
           <div class="panel-body version-contents-body">
             <table class="table table-hover">
@@ -51,7 +51,7 @@
                           </div>
                         </div>
                       {{else}}
-                        {{#if mpack.success}}
+                        {{#if mpack.succeeded}}
                           <i class="glyphicon glyphicon-ok"></i>&nbsp;
                           {{t common.download}}&nbsp;{{t common.complete}}
                         {{else}}

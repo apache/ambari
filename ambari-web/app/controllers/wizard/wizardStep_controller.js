@@ -17,34 +17,26 @@
  */
 
 var App = require('app');
-require('./wizardStep_controller');
 
-App.WizardStep5Controller = App.WizardStepController.extend(App.BlueprintMixin, App.AssignMasterComponents, {
-
-  name: "wizardStep5Controller",
-
-  stepName: 'step5',
-
-  isSaved: function () {
+/*
+  A base class for wizard step controllers.
+*/
+App.WizardStepController = Em.Controller.extend({  
+  /**
+   * Determines whether the step should be disabled.
+   * This is a base implementation that should be extended
+   * in derived classes to provide special case logic.
+   * The base implementation returns true if the step being checked
+   * is after the current step.
+   * 
+   * @returns true if the step should be disabled
+   */
+  isStepDisabled: function () {
     const wizardController = this.get('wizardController');
-    if (wizardController) {
-      return wizardController.getStepSavedState(this.get('stepName'));
-    }
-    return false;
-  }.property('wizardController.content.stepsSavedState'),
+    const currentIndex = wizardController.get('currentStep');
+    const stepName = this.get('stepName');
+    const stepIndex = wizardController.getStepIndex(stepName);
 
-  _goNextStepIfValid: function () {
-    App.set('router.nextBtnClickInProgress', false);
-    if (!this.get('submitDisabled')) {
-      App.router.send('next');
-    }
-  },
-
-  _additionalClearSteps: function() {
-    var parentController = App.router.get(this.get('content.controllerName'));
-    if (parentController && parentController.get('content.componentsFromConfigs')) {
-      parentController.clearConfigActionComponents();
-    }
+    return stepIndex > currentIndex;
   }
-
 });

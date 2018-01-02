@@ -19,10 +19,13 @@
 var App = require('app');
 var validator = require('utils/validator');
 var lazyloading = require('utils/lazy_loading');
+require('./wizardStep_controller');
 
-App.WizardStep2Controller = Em.Controller.extend({
+App.WizardStep2Controller = App.WizardStepController.extend({
 
   name: 'wizardStep2Controller',
+
+  stepName: 'step2',
 
   /**
    * List of not installed hostnames

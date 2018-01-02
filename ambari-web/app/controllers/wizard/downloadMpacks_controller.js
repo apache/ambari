@@ -16,10 +16,13 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
-App.WizardDownloadProductsController = Em.Controller.extend({
+App.WizardDownloadMpacksController = App.WizardStepController.extend({
 
-  name: 'wizardDownloadProductsController',
+  name: 'wizardDownloadMpacksController',
+
+  stepName: 'downloadMpacks',
 
   mpacks: [],
 
@@ -30,10 +33,10 @@ App.WizardDownloadProductsController = Em.Controller.extend({
       this.get('mpacks').pushObject(Em.Object.create({
         name: mpack.name,
         displayName: mpack.displayName,
-        url: mpack.url,
+        url: mpack.downloadUrl,
         inProgress: true,
         failed: false,
-        success: false
+        succeeded: false
       }));
     }, this);
   },
@@ -62,8 +65,9 @@ App.WizardDownloadProductsController = Em.Controller.extend({
 
   downloadMpackSuccess: function (data, opt, params) {
     console.dir("Mpack " + params.name + " download completed with success code " + data.status);
+    this.get('mpacks').findProperty('name', params.name).set('succeeded', true);
+    this.get('mpacks').findProperty('name', params.name).set('failed', false);
     this.get('mpacks').findProperty('name', params.name).set('inProgress', false);
-    this.get('mpacks').findProperty('name', params.name).set('success', true);
   },
 
   downloadMpackError: function (request, ajaxOptions, error, opt, params) {
@@ -71,14 +75,16 @@ App.WizardDownloadProductsController = Em.Controller.extend({
       this.downloadMpackSuccess(request, opt, params);
     } else {
       console.dir("Mpack " + params.name + " download failed with error code " + request.status);
-      this.get('mpacks').findProperty('name', params.name).set('inProgress', false);
+      this.get('mpacks').findProperty('name', params.name).set('succeeded', false);
       this.get('mpacks').findProperty('name', params.name).set('failed', true);
+      this.get('mpacks').findProperty('name', params.name).set('inProgress', false);
     }
   },
 
   retryDownload: function (event) {
     var mpack = event.context;
     mpack.set('inProgress', true);
+    mpack.set('succeeded', false);
     mpack.set('failed', false);
     this.downloadMpack(mpack);
   },

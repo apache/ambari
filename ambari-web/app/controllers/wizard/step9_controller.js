@@ -17,10 +17,13 @@
  */
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+require('./wizardStep_controller');
 
-App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
+App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin, {
 
   name: 'wizardStep9Controller',
+
+  stepName: 'step9',
 
   /**
    *  Array of host Objects that are successfully registered on "Confirm Host Options" page

@@ -34,6 +34,7 @@ App.Repository = DS.Model.extend({
   operatingSystem: DS.belongsTo('App.OperatingSystem'),
   components: DS.attr('string'),
   distribution: DS.attr('string'),
+  unique: DS.attr('boolean'),
 
   validation: DS.attr('string', {defaultValue: ''}),
   validationClassName: Em.computed.getByKey('validationClassNameMap', 'validation', ''),

@@ -76,7 +76,7 @@ App.stackMapper = App.QuickDataMapper.create({
   configRepository: {
     id: 'id',
     base_url: 'base_url',
-    base_url_init: 'base_url',
+    base_url_init: 'public_url',
     default_base_url: 'default_base_url',
     latest_base_url: 'latest_base_url',
     mirrors_list: 'mirrors_list',
@@ -87,7 +87,8 @@ App.stackMapper = App.QuickDataMapper.create({
     stack_version: 'stack_version',
     operating_system_id: 'os_id',
     components: 'components',
-    distribution: 'distribution'
+    distribution: 'distribution',
+    unique: 'unique'
   },
 
   map: function(json) {

@@ -17,10 +17,13 @@
  */
 
 var App = require('app');
+require('./wizardStep_controller');
 
-App.WizardConfigureDownloadController = Em.Controller.extend({
+App.WizardConfigureDownloadController = App.WizardStepController.extend({
 
   name: 'wizardConfigureDownloadController',
+
+  stepName: 'configureDownload',
 
   loadStep: function () {
     let downloadConfig = this.get('content.downloadConfig');

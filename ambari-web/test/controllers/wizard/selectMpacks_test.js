@@ -1025,15 +1025,19 @@ describe('App.WizardSelectMpacksController', function () {
 
       var expectedSelectedMpacks = [
         {
+          id: "mpackName1-1.0.0.0",
           name: "mpackName1",
           displayName: "displayName1",
-          url: "http://someurl.com/mpack1",
+          publicUrl: "http://someurl.com/mpack1",
+          downloadUrl: "http://someurl.com/mpack1",
           version: "1.0.0.0"
         },
         {
+          id: "mpackName2-1.0.0.0",
           name: "mpackName2",
           displayName: "displayName2",
-          url: "http://someurl.com/mpack2",
+          publicUrl: "http://someurl.com/mpack2",
+          downloadUrl: "http://someurl.com/mpack2",
           version: "1.0.0.0"
         }
       ];

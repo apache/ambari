@@ -38,10 +38,19 @@ App.WizardConfigureDownloadView = Em.View.extend({
     this.setProxyAuth(selectedProxyAuth, true);
   },
 
-  useRedHatSatelliteChanged: function () {
+  useRedHatSatelliteChanged: function (event) {
     this.set('controller.content.downloadConfig.useProxy', false);
     const self = this.useProxyChanged ? this : this.get('parentView'); //parentView is actually just this view, but this function gets called from a sub-view on the template so we have to reference this way
     self.useProxyChanged();
+
+    if (event && event.currentTarget && event.currentTarget.checked) {
+      App.ModalPopup.show({
+        header: Em.I18n.t('common.important'),
+        encodeBody: false,
+        secondary: false,
+        body: Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning')
+      });
+    }
   },
 
   useProxyChanged: function () {
