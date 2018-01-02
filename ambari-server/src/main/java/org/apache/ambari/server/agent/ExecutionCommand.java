@@ -480,8 +480,6 @@ public class ExecutionCommand extends AgentCommand {
     String GROUP_LIST = "group_list";
     String USER_GROUPS = "user_groups";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
-    String SOURCE_STACK = "source_stack";
-    String TARGET_STACK = "target_stack";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";

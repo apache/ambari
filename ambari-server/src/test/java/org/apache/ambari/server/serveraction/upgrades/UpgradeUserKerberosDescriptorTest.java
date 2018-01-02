@@ -65,6 +65,7 @@ public class UpgradeUserKerberosDescriptorTest {
 
   private TreeMap<String, Field> fields = new TreeMap<>();
   private StackId HDP_24 = new StackId("HDP", "2.4");
+  private StackId HDP_25 = new StackId("HDP", "2.5");
 
   @Before
   public void setup() throws Exception {
@@ -77,6 +78,7 @@ public class UpgradeUserKerberosDescriptorTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(1l).atLeastOnce();
     expect(cluster.getCurrentStackVersion()).andReturn(HDP_24).atLeastOnce();
+    expect(cluster.getDesiredStackVersion()).andReturn(HDP_25).atLeastOnce();
     replay(clusters, cluster);
 
     prepareFields();
@@ -89,7 +91,6 @@ public class UpgradeUserKerberosDescriptorTest {
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
     commandParams.put("upgrade_direction", "UPGRADE");
-    commandParams.put("target_stack", "HDP-2.5");
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -146,7 +147,6 @@ public class UpgradeUserKerberosDescriptorTest {
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
     commandParams.put("upgrade_direction", "DOWNGRADE");
-    commandParams.put("target_stack", "HDP-2.5");
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
