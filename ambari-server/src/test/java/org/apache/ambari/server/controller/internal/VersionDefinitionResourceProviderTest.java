@@ -536,7 +536,7 @@ public class VersionDefinitionResourceProviderTest {
 
     res = status.getAssociatedResources().iterator().next();
     Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
-    Assert.assertEquals("HDP-2.2.0.4-a", res.getPropertyValue("VersionDefinition/repository_version"));
+    Assert.assertEquals("2.2.0.4-a", res.getPropertyValue("VersionDefinition/repository_version"));
     Assert.assertEquals("HDP-2.2.0.4-a", res.getPropertyValue("VersionDefinition/display_name"));
     Assert.assertNotNull(res.getPropertyValue("VersionDefinition/show_available"));
     Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
