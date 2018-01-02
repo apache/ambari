@@ -48,9 +48,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATOR_SINK_CLASS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ALTER_METRICS_METADATA_TABLE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ANOMALY_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_ANOMALY_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_INSTANCE_HOST_TABLE_SQL;
@@ -59,7 +57,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_METADATA_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_TABLE_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_TREND_ANOMALY_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.DEFAULT_ENCODING;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.DEFAULT_TABLE_COMPRESSION;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_HOSTED_APPS_METADATA_SQL;
@@ -75,9 +72,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES_REGEX_PATTERN;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.TREND_ANOMALY_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_AGGREGATE_RECORD_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_ANOMALY_METRICS_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CLUSTER_AGGREGATE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CLUSTER_AGGREGATE_TIME_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CONTAINER_METRICS_SQL;
@@ -85,7 +80,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_INSTANCE_HOST_METADATA_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_METADATA_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_TREND_ANOMALY_METRICS_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider.SOURCE_NAME.RAW_METRICS;
 
 import java.io.IOException;
@@ -322,57 +316,6 @@ public class PhoenixHBaseAccessor {
     commitMetrics(Collections.singletonList(timelineMetrics));
   }
 
-  private void commitAnomalyMetric(Connection conn, TimelineMetric metric) {
-    PreparedStatement metricRecordStmt = null;
-    try {
-      Map<String, String> metricMetadata = metric.getMetadata();
-      
-      byte[] uuid = metadataManagerInstance.getUuid(metric);
-      if (uuid == null) {
-        LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
-        return;
-      }
-
-      if (metric.getAppId().equals("anomaly-engine-ks") || metric.getAppId().equals("anomaly-engine-hsdev")) {
-        metricRecordStmt = conn.prepareStatement(String.format(UPSERT_TREND_ANOMALY_METRICS_SQL,
-          TREND_ANOMALY_METRICS_TABLE_NAME));
-
-        metricRecordStmt.setBytes(1, uuid);
-        metricRecordStmt.setLong(2, metric.getStartTime());
-        metricRecordStmt.setLong(3, Long.parseLong(metricMetadata.get("test-start-time")));
-        metricRecordStmt.setLong(4, Long.parseLong(metricMetadata.get("train-start-time")));
-        metricRecordStmt.setLong(5, Long.parseLong(metricMetadata.get("train-end-time")));
-        String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-        metricRecordStmt.setString(6, json);
-        metricRecordStmt.setString(7, metric.getMetadata().get("method"));
-        double anomalyScore = metric.getMetadata().containsKey("anomaly-score") ? Double.parseDouble(metric.getMetadata().get("anomaly-score"))  : 0.0;
-        metricRecordStmt.setDouble(8, anomalyScore);
-
-      } else {
-        metricRecordStmt = conn.prepareStatement(String.format(
-          UPSERT_ANOMALY_METRICS_SQL, ANOMALY_METRICS_TABLE_NAME));
-
-        metricRecordStmt.setBytes(1, uuid);
-        metricRecordStmt.setLong(2, metric.getStartTime());
-        String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-        metricRecordStmt.setString(3, json);
-        metricRecordStmt.setString(4, metric.getMetadata().get("method"));
-        double anomalyScore = metric.getMetadata().containsKey("anomaly-score") ? Double.parseDouble(metric.getMetadata().get("anomaly-score"))  : 0.0;
-        metricRecordStmt.setDouble(5, anomalyScore);
-      }
-
-      try {
-        metricRecordStmt.executeUpdate();
-      } catch (SQLException sql) {
-        LOG.error("Failed on insert records to store.", sql);
-      }
-
-    } catch (Exception e) {
-      LOG.error("Failed on insert records to anomaly table.", e);
-    }
-
-  }
-
   public void commitMetrics(Collection<TimelineMetrics> timelineMetricsCollection) {
     LOG.debug("Committing metrics to store");
     Connection conn = null;
@@ -384,9 +327,6 @@ public class PhoenixHBaseAccessor {
               UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
       for (TimelineMetrics timelineMetrics : timelineMetricsCollection) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-          if (metric.getAppId().startsWith("anomaly-engine") && !metric.getAppId().equals("anomaly-engine-test-metric")) {
-            commitAnomalyMetric(conn, metric);
-          }
 
           metricRecordStmt.clearParameters();
 
@@ -535,20 +475,6 @@ public class PhoenixHBaseAccessor {
       // Container Metrics
       stmt.executeUpdate( String.format(CREATE_CONTAINER_METRICS_TABLE_SQL,
         encoding, tableTTL.get(CONTAINER_METRICS_TABLE_NAME), compression));
-
-      //Anomaly Metrics
-      stmt.executeUpdate(String.format(CREATE_ANOMALY_METRICS_TABLE_SQL,
-        ANOMALY_METRICS_TABLE_NAME,
-        encoding,
-        tableTTL.get(METRICS_AGGREGATE_HOURLY_TABLE_NAME),
-        compression));
-
-      //Trend Anomaly Metrics
-      stmt.executeUpdate(String.format(CREATE_TREND_ANOMALY_METRICS_TABLE_SQL,
-        TREND_ANOMALY_METRICS_TABLE_NAME,
-        encoding,
-        tableTTL.get(METRICS_AGGREGATE_HOURLY_TABLE_NAME),
-        compression));
 
       // Host level
       String precisionSql = String.format(CREATE_METRICS_TABLE_SQL,
@@ -947,47 +873,6 @@ public class PhoenixHBaseAccessor {
 
   public void insertMetricRecords(TimelineMetrics metrics) throws SQLException, IOException {
     insertMetricRecords(metrics, false);
-  }
-
-  public TimelineMetrics getAnomalyMetricRecords(String method, long startTime, long endTime, Integer limit) throws SQLException {
-    Connection conn = getConnection();
-    PreparedStatement stmt = null;
-    ResultSet rs = null;
-    TimelineMetrics metrics = new TimelineMetrics();
-    try {
-      stmt = PhoenixTransactSQL.prepareAnomalyMetricsGetSqlStatement(conn, method, startTime, endTime, limit);
-      rs = stmt.executeQuery();
-      while (rs.next()) {
-
-        byte[] uuid = rs.getBytes("UUID");
-        TimelineMetric metric = metadataManagerInstance.getMetricFromUuid(uuid);
-
-        if (method.equals("ks") || method.equals("hsdev")) {
-          metric.setStartTime(rs.getLong("TEST_END_TIME"));
-        } else {
-          metric.setStartTime(rs.getLong("SERVER_TIME"));
-        }
-        metric.setInstanceId(null);
-
-        HashMap<String, String> metadata = new HashMap<>();
-        metadata.put("method", rs.getString("METHOD"));
-        metadata.put("anomaly-score", String.valueOf(rs.getDouble("ANOMALY_SCORE")));
-        if (method.equals("ks") || method.equals("hsdev")) {
-          metadata.put("test-start-time", String.valueOf(rs.getLong("TEST_START_TIME")));
-          metadata.put("train-start-time", String.valueOf(rs.getLong("TRAIN_START_TIME")));
-          metadata.put("train-end-time", String.valueOf(rs.getLong("TRAIN_END_TIME")));
-        }
-        metric.setMetadata(metadata);
-
-        TreeMap<Long, Double> sortedByTimeMetrics = readMetricFromJSON(rs.getString("METRICS"));
-        metric.setMetricValues(sortedByTimeMetrics);
-
-        metrics.getMetrics().add(metric);
-      }
-    } catch (Exception ex) {
-      LOG.error(ex);
-    }
-    return metrics;
   }
 
 

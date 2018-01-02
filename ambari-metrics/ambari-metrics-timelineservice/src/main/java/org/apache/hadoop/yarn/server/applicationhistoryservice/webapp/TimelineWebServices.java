@@ -284,26 +284,6 @@ public class TimelineWebServices {
   }
 
   @GET
-  @Path("/metrics/anomalies")
-  @Produces({ MediaType.APPLICATION_JSON })
-  public TimelineMetrics getAnomalyMetrics(
-    @Context HttpServletRequest req,
-    @Context HttpServletResponse res,
-    @QueryParam("method") String method,
-    @QueryParam("startTime") String startTime,
-    @QueryParam("endTime") String endTime,
-    @QueryParam("limit") String limit
-    ) {
-    init(res);
-
-    try {
-      return timelineMetricStore.getAnomalyMetrics(method, parseLongStr(startTime), parseLongStr(endTime), parseIntStr(limit));
-    } catch (Exception e) {
-      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @GET
   @Path("/metrics/metadata")
   @Produces({ MediaType.APPLICATION_JSON })
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(
@@ -374,30 +354,6 @@ public class TimelineWebServices {
 
     try {
       return timelineMetricStore.getUuid(metricName, appId, instanceId, hostname);
-    } catch (Exception e) {
-      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @GET
-  @Path("/metrics/metadata/key")
-  @Produces({ MediaType.APPLICATION_JSON })
-  public Set<Map<String, String>> getTimelineMetricKey(
-    @Context HttpServletRequest req,
-    @Context HttpServletResponse res,
-    @QueryParam("metricName") String metricName,
-    @QueryParam("appId") String appId,
-    @QueryParam("instanceId") String instanceId,
-    @QueryParam("hostname") String hostname
-  ) {
-    init(res);
-
-    try {
-      if (StringUtils.isEmpty(hostname)) {
-        return timelineMetricStore.getTimelineMetricKeys(metricName, appId, instanceId, Collections.EMPTY_LIST);
-      } else {
-        return timelineMetricStore.getTimelineMetricKeys(metricName, appId, instanceId, Arrays.asList(StringUtils.split(hostname, ",")));
-      }
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }

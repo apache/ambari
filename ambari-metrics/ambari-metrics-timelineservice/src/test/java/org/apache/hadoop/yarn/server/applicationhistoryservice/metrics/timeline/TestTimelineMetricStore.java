@@ -119,15 +119,6 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
     return null;
   }
 
-  @Override
-  public TimelineMetrics getAnomalyMetrics(String method, long startTime, long endTime, Integer limit) {
-    return null;
-  }
-
-  @Override
-  public Set<Map<String, String>> getTimelineMetricKeys(String metricName, String appId, String instanceId, List<String> hosts) throws SQLException, IOException {
-    return Collections.emptySet();
-  }
 }
 
 

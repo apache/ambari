@@ -122,31 +122,6 @@
           </logs>
         </component>
 
-        <component>
-          <name>AD_MANAGER</name>
-          <displayName>AD Manager</displayName>
-          <category>MASTER</category>
-          <cardinality>0-1</cardinality>
-          <versionAdvertised>false</versionAdvertised>
-          <commandScript>
-            <script>scripts/ams_admanager.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
-          </commandScript>
-          <configuration-dependencies>
-            <config-type>ams-hbase-site</config-type>
-            <config-type>ams-admanager-config</config-type>
-            <config-type>ams-admanager-env</config-type>
-            <config-type>ams-admanager-log4j</config-type>
-            <config-type>ams-admanager-spark-env</config-type>
-          </configuration-dependencies>
-          <logs>
-            <log>
-              <logId>ams_anomaly_detection</logId>
-              <primary>true</primary>
-            </log>
-          </logs>
-        </component>
       </components>
 
       <themes>
@@ -177,11 +152,6 @@
               <name>ambari-metrics-grafana</name>
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_ams_grafana</condition>
-            </package>
-            <package>
-              <name>ambari-metrics-admanager</name>
-              <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_ams_admanager</condition>
             </package>
             <package>
               <name>gcc</name>

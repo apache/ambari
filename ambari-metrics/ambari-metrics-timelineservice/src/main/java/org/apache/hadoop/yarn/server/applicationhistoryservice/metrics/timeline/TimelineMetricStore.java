@@ -107,9 +107,4 @@ public interface TimelineMetricStore {
      * @return [ hostname ]
      */
   List<String> getLiveInstances();
-
-  TimelineMetrics getAnomalyMetrics(String method, long startTime, long endTime, Integer limit) throws SQLException;
-
-  Set<Map<String, String>> getTimelineMetricKeys(String metricName, String appId, String instanceId,  List<String> hosts) throws SQLException, IOException;
-
 }
