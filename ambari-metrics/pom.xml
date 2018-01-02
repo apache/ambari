@@ -33,7 +33,6 @@
     <module>ambari-metrics-host-monitoring</module>
     <module>ambari-metrics-grafana</module>
     <module>ambari-metrics-host-aggregator</module>
-    <module>ambari-metrics-anomaly-detection-service</module>
     <module>ambari-metrics-assembly</module>
   </modules>
   <properties>
@@ -49,8 +48,6 @@
     <grafana.tar>https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz</grafana.tar>
     <phoenix.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-623/tars/phoenix/phoenix-5.0.0.3.0.0.0-623.tar.gz</phoenix.tar>
     <phoenix.folder>phoenix-5.0.0.3.0.0.0-623</phoenix.folder>
-    <spark.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-439/tars/spark2/spark-2.1.0.3.0.0.0-439-bin-3.0.0.3.0.0.0-439.tgz</spark.tar>
-    <spark.folder>spark-2.1.0.3.0.0.0-439-bin-3.0.0.3.0.0.0-439</spark.folder>
     <resmonitor.install.dir>/usr/lib/python2.6/site-packages/resource_monitoring</resmonitor.install.dir>
     <powermock.version>1.6.2</powermock.version>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
