@@ -23,10 +23,6 @@ from ambari_commons import OSCheck
 
 def main(argv=None):
   # Same logic that was in "os_type_check.sh"
-  if len(sys.argv) != 2:
-    print "Usage: <cluster_os>"
-    raise Exception("Error in number of arguments. Usage: <cluster_os>")
-    pass
 
   current_os = get_os_type()
   #log the current os type value to be used during bootstrap

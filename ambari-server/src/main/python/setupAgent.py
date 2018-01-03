@@ -24,6 +24,8 @@ import sys
 import logging
 import os
 import subprocess
+import ConfigParser
+import re
 
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -303,6 +305,7 @@ def checkServerReachability(host, port):
 #               3        User to run agent as
 #      X        4        Project Version (Ambari)
 #      X        5        Server port
+#      X        6        Ambari Repo Url
 def parseArguments(argv=None):
   if argv is None:  # make sure that arguments was passed
     return {"exitstatus": 2, "log": "No arguments were passed"}
@@ -316,6 +319,7 @@ def parseArguments(argv=None):
   user_run_as = args[3]
   projectVersion = ""
   server_port = 8080
+  ambariRepoUrl = ""
 
   if len(args) > 4:
     projectVersion = args[4]
@@ -326,7 +330,10 @@ def parseArguments(argv=None):
     except (Exception):
       server_port = 8080
 
-  parsed_args = (expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port)
+  if len(args) > 6:
+    ambariRepoUrl = args[6]
+
+  parsed_args = (expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port, ambariRepoUrl)
   return {"exitstatus": 0, "log": "", "parsed_args": parsed_args}
 
 def run_setup(argv=None):
@@ -335,7 +342,7 @@ def run_setup(argv=None):
   if (retcode["exitstatus"] != 0):
     return retcode
 
-  (expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port) = retcode["parsed_args"]
+  (expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port, ambariRepoUrl) = retcode["parsed_args"]
 
   retcode = checkServerReachability(hostname, server_port)
   if (retcode["exitstatus"] != 0):
@@ -352,9 +359,27 @@ def run_setup(argv=None):
       # Verify that the ambari repo file is available before trying to install ambari-agent
       ambari_repo_file = get_ambari_repo_file_full_name()
       if os.path.exists(ambari_repo_file):
-        retcode = installAgent(availableProjectVersion)
-        if (not retcode["exitstatus"] == 0):
-          return retcode
+        if ambariRepoUrl == "":
+          retcode = installAgent(availableProjectVersion)
+          if (not retcode["exitstatus"] == 0):
+            return retcode
+        else:
+          #update repo file to use given repo url
+          if OSCheck.is_suse_family() or OSCheck.is_redhat_family():
+            config = ConfigParser.RawConfigParser()
+            config.read(ambari_repo_file)
+            baseurl = config.get(config.sections()[0], 'baseurl')
+          elif OSCheck.is_ubuntu_family():
+            for line in open(ambari_repo_file,'r'):
+              match = re.search('^deb.*$', line)
+              if match is not None:
+                baseurl = match.group(0).split()[1]
+                break
+          subprocess.call(['sed', '-i', '-e', 's,' + baseurl + ',' + ambariRepoUrl + ',g', ambari_repo_file])
+          retcode = installAgent(availableProjectVersion)
+          if (not retcode["exitstatus"] == 0):
+            #failed due to new ambari repo url
+            return retcode
       else:
         return {"exitstatus": 2, "log": "Ambari repo file not found: {0}".format(ambari_repo_file)}
         pass
