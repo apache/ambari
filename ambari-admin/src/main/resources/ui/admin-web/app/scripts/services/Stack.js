@@ -92,7 +92,7 @@ angular.module('ambariAdminConsole')
 
       $http.get(Settings.baseUrl + '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/gpl.license.accepted&minimal_response=true', {mock: 'true'})
         .then(function(data) {
-          deferred.resolve(data.data.RootServiceComponents.properties['gpl.license.accepted']);
+          deferred.resolve(data.data.RootServiceComponents.properties && data.data.RootServiceComponents.properties['gpl.license.accepted']);
         })
         .catch(function(data) {
           deferred.reject(data);

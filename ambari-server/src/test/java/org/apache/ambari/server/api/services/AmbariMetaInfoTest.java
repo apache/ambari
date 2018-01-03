@@ -133,8 +133,7 @@ public class AmbariMetaInfoTest {
   private static final int OS_CNT = 4;
 
   private static TestAmbariMetaInfo metaInfo = null;
-  private final static Logger LOG =
-      LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+  private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
   private static final String HADOOP_ENV_FILE_NAME = "hadoop-env.xml";
   private static final String HDFS_LOG4J_FILE_NAME = "hdfs-log4j.xml";
@@ -1900,6 +1899,35 @@ public class AmbariMetaInfoTest {
 
     Assert.assertNotNull(widgetsFile);
     Assert.assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
+  }
+
+  @Test
+  public void testGetVersionDefinitionsForDisabledStack() throws AmbariException {
+    Map<String, VersionDefinitionXml> versionDefinitions = metaInfo.getVersionDefinitions();
+    Assert.assertNotNull(versionDefinitions);
+    // Check presence
+    Map.Entry<String, VersionDefinitionXml> vdfEntry = null;
+    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
+      if (entry.getKey().equals("HDP-2.2.1")) {
+        vdfEntry = entry;
+      }
+    }
+    Assert.assertNotNull("Candidate stack and vdf for test case.", vdfEntry);
+    StackInfo stackInfo = metaInfo.getStack("HDP", "2.2.1");
+    // Strange that this is not immutable but works for this test !
+    stackInfo.setActive(false);
+
+    // Hate to use reflection hence changed contract to be package private
+    metaInfo.versionDefinitions = null;
+
+    versionDefinitions = metaInfo.getVersionDefinitions();
+    vdfEntry = null;
+    for (Map.Entry<String, VersionDefinitionXml> entry : versionDefinitions.entrySet()) {
+      if (entry.getKey().equals("HDP-2.2.1")) {
+        vdfEntry = entry;
+      }
+    }
+    Assert.assertNull("Disabled stack should not be returned by the API", vdfEntry);
   }
 
   private File getStackRootTmp(String buildDir) {

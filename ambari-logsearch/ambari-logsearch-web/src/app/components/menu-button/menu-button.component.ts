@@ -18,6 +18,7 @@
 
 import {Component, Input, ViewChild, ElementRef} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
+import {ServiceInjector} from '@app/classes/service-injector';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
@@ -27,7 +28,8 @@ import {ComponentActionsService} from '@app/services/component-actions.service';
 })
 export class MenuButtonComponent {
 
-  constructor(protected actions: ComponentActionsService) {
+  constructor() {
+    this.actions = ServiceInjector.injector.get(ComponentActionsService);
   }
 
   @ViewChild('dropdown')
@@ -81,6 +83,8 @@ export class MenuButtonComponent {
    */
   @Input()
   maxLongClickDelay: number = 0;
+
+  private actions: ComponentActionsService;
 
   /**
    * This is a private property to indicate the mousedown timestamp, so that we can check it when teh click event

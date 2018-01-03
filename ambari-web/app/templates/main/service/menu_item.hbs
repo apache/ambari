@@ -17,12 +17,12 @@
 }}
 
 <a class="services-menu-blocks" {{bindAttr href="view.link" data-href="view.dataHref"}}>
-  {{#if view.content.alertsCount}}
-    <span {{bindAttr class=":icon-circle view.hasCriticalAlerts:service-alerts-critical:service-alerts-warning"}}></span>
-  {{/if}}
   <span class="pull-right">
     <i rel="tooltip" {{action goToConfigs target="view"}} {{bindAttr class=":glyphicon :glyphicon-refresh :restart-required-service view.content.isRestartRequired::hidden" data-original-title="view.restartRequiredMessage"}}></i>
   </span>
+  {{#if view.content.alertsCount}}
+    <span {{bindAttr class=":icon-circle view.hasCriticalAlerts:service-alerts-critical:service-alerts-warning"}}></span>
+  {{/if}}
   <span {{bindAttr class=":menu-item-name view.content.workStatus" data-original-title="view.content.toolTipContent"}} rel="serviceHealthTooltip">
       {{unbound view.content.displayName}}
   </span>

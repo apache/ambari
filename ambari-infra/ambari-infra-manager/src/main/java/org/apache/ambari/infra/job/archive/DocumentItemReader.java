@@ -18,6 +18,8 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.job.CloseableIterator;
+import org.apache.ambari.infra.job.ObjectSource;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.support.AbstractItemStreamItemReader;
@@ -31,16 +33,16 @@ public class DocumentItemReader extends AbstractItemStreamItemReader<Document> i
 
   public final static String POSITION = "last-read";
 
-  private final DocumentSource documentSource;
+  private final ObjectSource<Document> documentSource;
   private final int readBlockSize;
 
-  private DocumentIterator documentIterator = null;
+  private CloseableIterator<Document> documentIterator = null;
   private int count = 0;
   private boolean eof = false;
   private Document current = null;
   private Document previous = null;
 
-  public DocumentItemReader(DocumentSource documentSource, int readBlockSize) {
+  public DocumentItemReader(ObjectSource<Document> documentSource, int readBlockSize) {
     this.documentSource = documentSource;
     this.readBlockSize = readBlockSize;
     setName(ClassUtils.getShortName(DocumentItemReader.class));

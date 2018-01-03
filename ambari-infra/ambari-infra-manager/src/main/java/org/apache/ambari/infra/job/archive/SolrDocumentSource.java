@@ -18,6 +18,8 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.job.CloseableIterator;
+import org.apache.ambari.infra.job.ObjectSource;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -29,27 +31,29 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.format.DateTimeFormatter;
 
-public class SolrDocumentSource implements DocumentSource {
+public class SolrDocumentSource implements ObjectSource<Document> {
   public static final DateTimeFormatter SOLR_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
   private static final Logger LOG = LoggerFactory.getLogger(SolrDocumentSource.class);
 
-  private final String zkHost;
+  private final String zkConnectionString;
   private final SolrQueryProperties properties;
-  private final String endValue;
+  private final String start;
+  private final String end;
 
-  public SolrDocumentSource(String zkHost, SolrQueryProperties properties, String endValue) {
-    this.zkHost = zkHost;
+  public SolrDocumentSource(String zkConnectionString, SolrQueryProperties properties, String start, String end) {
+    this.zkConnectionString = zkConnectionString;
     this.properties = properties;
-    this.endValue = endValue;
+    this.start = start;
+    this.end = end;
   }
 
   @Override
-  public DocumentIterator open(Document current, int rows) {
-    CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
+  public CloseableIterator<Document> open(Document current, int rows) {
+    CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkConnectionString).build();
     client.setDefaultCollection(properties.getCollection());
 
     SolrQuery query = properties.toQueryBuilder()
-            .setEndValue(endValue)
+            .setInterval(start, end)
             .setDocument(current)
             .build();
     query.setRows(rows);

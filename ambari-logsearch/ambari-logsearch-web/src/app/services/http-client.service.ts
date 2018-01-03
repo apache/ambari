@@ -19,8 +19,12 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/first';
-import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams} from '@angular/http';
-import {AuditLogsQueryParams} from '@app/classes/queries/audit-logs-query-params';
+import {
+  Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response, Headers, URLSearchParams
+} from '@angular/http';
+import {HomogeneousObject} from '@app/classes/object';
+import {AuditLogsListQueryParams} from '@app/classes/queries/audit-logs-query-params';
+import {AuditLogsTopResourcesQueryParams} from '@app/classes/queries/audit-logs-top-resources-query-params';
 import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params';
 import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params';
 import {ServiceLogsTruncatedQueryParams} from '@app/classes/queries/service-logs-truncated-query-params';
@@ -41,7 +45,7 @@ export class HttpClientService extends Http {
     },
     auditLogs: {
       url: 'audit/logs',
-      params: opts => new AuditLogsQueryParams(opts)
+      params: opts => new AuditLogsListQueryParams(opts)
     },
     auditLogsFields: {
       url: 'audit/logs/schema/fields'
@@ -69,14 +73,31 @@ export class HttpClientService extends Http {
     },
     hosts: {
       url: 'service/logs/tree'
+    },
+    topAuditLogsResources: {
+      url: variables => `audit/logs/resources/${variables.number}`,
+      params: opts => new AuditLogsTopResourcesQueryParams(opts)
     }
   };
 
   private readonly unauthorizedStatuses = [401, 403, 419];
 
-  private generateUrlString(url: string): string {
+  private generateUrlString(url: string, urlVariables?: HomogeneousObject<string>): string {
     const preset = this.endPoints[url];
-    return preset ? `${this.apiPrefix}${preset.url}` : url;
+    let generatedUrl: string;
+    if (preset) {
+      const urlExpression = preset.url;
+      let path: string;
+      if (typeof urlExpression === 'function') {
+        path = preset.url(urlVariables);
+      } else if (typeof urlExpression === 'string') {
+        path = preset.url;
+      }
+      generatedUrl = `${this.apiPrefix}${path}`;
+    } else {
+      generatedUrl = url;
+    }
+    return generatedUrl;
   }
 
   private generateUrl(request: string | Request): string | Request {
@@ -89,7 +110,7 @@ export class HttpClientService extends Http {
     }
   }
 
-  private generateOptions(url: string, params: {[key: string]: string}): RequestOptionsArgs {
+  private generateOptions(url: string, params: HomogeneousObject<string>): RequestOptionsArgs {
     const preset = this.endPoints[url],
       rawParams = preset && preset.params ? preset.params(params) : params;
     if (rawParams) {
@@ -122,11 +143,11 @@ export class HttpClientService extends Http {
     return req;
   }
 
-  get(url, params?: {[key: string]: string}): Observable<Response> {
-    return super.get(this.generateUrlString(url), this.generateOptions(url, params));
+  get(url, params?: HomogeneousObject<string>, urlVariables?: HomogeneousObject<string>): Observable<Response> {
+    return super.get(this.generateUrlString(url, urlVariables), this.generateOptions(url, params));
   }
 
-  postFormData(url: string, params: {[key: string]: string}, options?: RequestOptionsArgs): Observable<Response> {
+  postFormData(url: string, params: HomogeneousObject<string>, options?: RequestOptionsArgs): Observable<Response> {
     const encodedParams = this.generateOptions(url, params).params;
     let body;
     if (encodedParams && encodedParams instanceof URLSearchParams) {

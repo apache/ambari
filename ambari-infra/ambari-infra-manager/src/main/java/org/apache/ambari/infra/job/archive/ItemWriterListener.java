@@ -18,7 +18,8 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-// TODO: generic object source
-public interface DocumentSource {
-  DocumentIterator open(Document current, int rows);
+import java.io.File;
+
+public interface ItemWriterListener {
+  void onCompleted(File file);
 }

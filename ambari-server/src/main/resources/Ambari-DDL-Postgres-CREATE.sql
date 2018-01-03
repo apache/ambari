@@ -913,17 +913,35 @@ CREATE TABLE kerberos_principal (
 
 CREATE TABLE kerberos_keytab (
   keytab_path VARCHAR(255) NOT NULL,
-  CONSTRAINT PK_krb_keytab_path_host_id PRIMARY KEY (keytab_path));
+  owner_name VARCHAR(255),
+  owner_access VARCHAR(255),
+  group_name VARCHAR(255),
+  group_access VARCHAR(255),
+  is_ambari_keytab SMALLINT NOT NULL DEFAULT 0,
+  write_ambari_jaas SMALLINT NOT NULL DEFAULT 0,
+  CONSTRAINT PK_kerberos_keytab PRIMARY KEY (keytab_path));
 
-CREATE TABLE kerberos_principal_host (
-  principal_name VARCHAR(255) NOT NULL,
+
+CREATE TABLE kerberos_keytab_principal (
+  kkp_id BIGINT NOT NULL DEFAULT 0,
   keytab_path VARCHAR(255) NOT NULL,
+  principal_name VARCHAR(255) NOT NULL,
+  host_id BIGINT,
   is_distributed SMALLINT NOT NULL DEFAULT 0,
-  host_id BIGINT NOT NULL,
-  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY (principal_name, keytab_path, host_id),
-  CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
-  CONSTRAINT FK_krb_pr_host_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path));
+  CONSTRAINT PK_kkp PRIMARY KEY (kkp_id),
+  CONSTRAINT FK_kkp_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path),
+  CONSTRAINT FK_kkp_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT FK_kkp_principal_name FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
+  CONSTRAINT UNI_kkp UNIQUE(keytab_path, principal_name, host_id)
+);
+
+CREATE TABLE kkp_mapping_service (
+  kkp_id BIGINT NOT NULL DEFAULT 0,
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_kkp_mapping_service PRIMARY KEY (kkp_id, service_name, component_name),
+  CONSTRAINT FK_kkp_service_principal FOREIGN KEY (kkp_id) REFERENCES kerberos_keytab_principal (kkp_id)
+);
 
 CREATE TABLE kerberos_descriptor(
    kerberos_descriptor_name   VARCHAR(255) NOT NULL,
@@ -1054,6 +1072,7 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 BEGIN;
 INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
+  ('kkp_id_seq', 0),
   ('cluster_id_seq', 1),
   ('host_id_seq', 0),
   ('user_id_seq', 2),

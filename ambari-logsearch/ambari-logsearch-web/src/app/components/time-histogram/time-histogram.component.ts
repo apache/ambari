@@ -16,100 +16,48 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, AfterViewInit, OnChanges, Input, Output, ViewChild, ElementRef, EventEmitter} from '@angular/core';
-import {ContainerElement, Selection} from 'd3';
+import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
 import * as d3 from 'd3';
 import * as moment from 'moment-timezone';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
-import {HistogramStyleOptions, HistogramOptions} from '@app/classes/histogram-options';
+import {GraphComponent} from '@app/classes/components/graph/graph.component';
+import {GraphScaleItem} from '@app/classes/graph';
 
 @Component({
   selector: 'time-histogram',
   templateUrl: './time-histogram.component.html',
-  styleUrls: ['./time-histogram.component.less']
+  styleUrls: ['../../classes/components/graph/graph.component.less', './time-histogram.component.less']
 })
-export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges {
+export class TimeHistogramComponent extends GraphComponent implements OnInit {
 
-  constructor(private appSettings: AppSettingsService) {}
+  constructor(private appSettings: AppSettingsService) {
+    super();
+  }
 
   ngOnInit() {
     this.appSettings.getParameter('timeZone').subscribe((value: string): void => {
       this.timeZone = value;
-      this.createHistogram();
+      this.createGraph();
     });
-    this.options = Object.assign({}, this.defaultOptions, this.customOptions);
   }
 
-  ngAfterViewInit() {
-    this.htmlElement = this.element.nativeElement;
-    this.tooltipElement = this.tooltipEl.nativeElement;
-    this.host = d3.select(this.htmlElement);
-  }
-
-  ngOnChanges() {
-    this.createHistogram();
-  }
-
-  @ViewChild('container')
-  element: ElementRef;
-
-  @ViewChild('tooltipEl')
-  tooltipEl: ElementRef;
-
   @Input()
-  svgId: string;
-
-  @Input()
-  customOptions: HistogramOptions;
-
-  @Input()
-  data: {[key: string]: number};
+  columnWidth = {
+    second: 40,
+    minute: 30,
+    hour: 25,
+    day: 20,
+    base: 20
+  };
 
   @Output()
   selectArea: EventEmitter<number[]> = new EventEmitter();
 
-  private readonly defaultOptions: HistogramStyleOptions = {
-    margin: {
-      top: 5,
-      right: 50,
-      bottom: 30,
-      left: 50
-    },
-    height: 150,
-    tickPadding: 10,
-    columnWidth: {
-      second: 40,
-      minute: 30,
-      hour: 25,
-      day: 20,
-      base: 20
-    }
-  };
-
-  private options: HistogramOptions;
+  readonly isTimeGraph: boolean = true;
 
   private timeZone: string;
 
-  private host;
-
-  private svg;
-
-  private width: number;
-
-  private xScale;
-
-  private yScale;
-
-  private colorScale;
-
-  private xAxis;
-
-  private yAxis;
-
-  private htmlElement: HTMLElement;
-  private tooltipElement: HTMLElement;
-
-  private dragArea: Selection<SVGGraphicsElement, undefined, SVGGraphicsElement, undefined>;
+  private dragArea: d3.Selection<SVGGraphicsElement, undefined, SVGGraphicsElement, undefined>;
 
   private dragStartX: number;
 
@@ -118,25 +66,11 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
   private maxDragX: number;
 
   private readonly tickTimeFormat: string = 'MM/DD HH:mm';
-  private readonly historyStartEndTimeFormat = 'dddd, MMMM DD, YYYY';
+
+  private readonly historyStartEndTimeFormat: string = 'dddd, MMMM DD, YYYY';
 
   histogram: any;
 
-  /**
-   * This property is to hold the data of the bar where the mouse is over.
-   */
-  private tooltipInfo: {data: object, timeStamp: number};
-  /**
-   * This is the computed position of the tooltip relative to the @htmlElement which is the container of the histogram.
-   * It is set when the mousemoving over the bars in the @handleRectMouseMove method.
-   */
-  private tooltipPosition: {top: number, left: number};
-  /**
-   * This property indicates if the tooltip should be positioned on the left side of the cursor or not.
-   * It should be true when the tooltip is out from the window.
-   * @type {boolean}
-   */
-  private tooltipOnTheLeft: boolean = false;
   /**
    * This property holds the data structure describing the gaps between the xAxis ticks.
    * The unit property can be: second, minute, hour, day
@@ -146,11 +80,11 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
   /**
    * This is the rectangle element to represent the unselected time range on the left side of the selected time range
    */
-  private leftDragArea: Selection<SVGGraphicsElement, undefined, SVGGraphicsElement, undefined>;
+  private leftDragArea: d3.Selection<SVGGraphicsElement, undefined, SVGGraphicsElement, undefined>;
   /**
    * This is the rectangle element to represent the unselected time range on the right side of the selected time range
    */
-  private rightDragArea: Selection<SVGGraphicsElement, undefined, SVGGraphicsElement, undefined>;
+  private rightDragArea: d3.Selection<SVGGraphicsElement, undefined, SVGGraphicsElement, undefined>;
   /**
    * This is a Date object holding the value of the first tick of the xAxis. It is a helper getter for the template.
    */
@@ -166,134 +100,12 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
     return (ticks && ticks.length && ticks[ticks.length-1]) || undefined;
   }
 
-  /**
-   * This will return the information about the used levels and the connected colors and labels.
-   * The goal is to provide an easy property to the template to display the legend of the levels.
-   * @returns {Array<{level: string; label: string; color: string}>}
-   */
-  private get legends(): Array<{level: string, label: string, color: string}> {
-    return Object.keys(this.options.keysWithColors).map(level => Object.assign({},{
-      level,
-      label: `levels.${level.toLowerCase()}`,
-      color: this.options.keysWithColors[level]
-    }));
-  }
-
-  private createHistogram(): void {
-    if (this.host) {
-      this.setup();
-      this.buildSVG();
-      this.populate();
-    }
-  }
-
-  private setup(): void {
-    const margin = this.options.margin,
-      keysWithColors = this.options.keysWithColors,
-      keys = Object.keys(keysWithColors),
-      colors = keys.reduce((array: string[], key: string): string[] => [...array, keysWithColors[key]], []);
-    this.width = this.htmlElement.clientWidth - margin.left - margin.right;
-    this.xScale = d3.scaleTime().range([0, this.width]);
-    this.yScale = d3.scaleLinear().range([this.options.height, 0]);
-    this.colorScale = d3.scaleOrdinal(colors);
-  }
-
-  private buildSVG(): void {
-    const margin = this.options.margin;
-    this.host.html('');
-    this.svg = this.host.append('svg').attr('id', this.svgId).attr('width', this.htmlElement.clientWidth)
-      .attr('height', this.options.height + margin.top + margin.bottom).append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-  }
-
-  /**
-   * It draws the svg representation of the x axis. The goal is to set the ticks here, add the axis to the svg element
-   * and set the position of the axis.
-   */
-  private drawXAxis(): void {
-    this.xAxis = d3.axisBottom(this.xScale)
-      .tickFormat(tick => moment(tick).tz(this.timeZone).format(this.tickTimeFormat))
-      .tickPadding(this.options.tickPadding);
-    this.svg.append('g').attr('class', 'axis axis-x').attr('transform', `translate(0,${this.options.height})`).call(this.xAxis);
-  }
-
-  /**
-   * It draws the svg representation of the y axis. The goal is to set the ticks here, add the axis to the svg element
-   * and set the position of the axis.
-   */
-  private drawYAxis(): void {
-    this.yAxis = d3.axisLeft(this.yScale).tickFormat((tick: number): string | undefined => {
-      if (Number.isInteger(tick)) {
-        return tick.toFixed(0);
-      } else {
-        return;
-      }
-    }).tickPadding(this.options.tickPadding);
-    this.svg.append('g').attr('class', 'axis axis-y').call(this.yAxis).append('text');
+  protected xAxisTickFormatter = (tick: Date): string => {
+    return moment(tick).tz(this.timeZone).format(this.tickTimeFormat);
   };
 
-  /**
-   * The goal is to handle the mouse over event on the rect svg elements so that we can populate the tooltip info object
-   * and set the initial position of the tooltip. So we call the corresponding methods.
-   * @param d The data for the currently "selected" bar
-   * @param {number} index The index of the current element in the selection
-   * @param elements The selection of the elements
-   */
-  private handleRectMouseOver = (d: any, index: number, elements: any):void => {
-    this.setTooltipDataFromChartData(d);
-    this.setTooltipPosition();
-  };
-
-  /**
-   * The goal is to handle the movement of the mouse over the rect svg elements, so that we can set the position of
-   * the tooltip by calling the @setTooltipPosition method.
-   */
-  private handleRectMouseMove = ():void => {
-    this.setTooltipPosition();
-  };
-
-  /**
-   * The goal is to reset the tooltipInfo object so that the tooltip will be hidden.
-   */
-  private handleRectMouseOut = ():void => {
-    this.tooltipInfo = null;
-  };
-
-  /**
-   * The goal is set the tooltip
-   * @param d
-   */
-  private setTooltipDataFromChartData(d: {data: any, [key: string]: any}): void {
-    let {timeStamp, ...data} = d.data;
-    let levelColors = this.options.keysWithColors;
-    this.tooltipInfo = {
-      data: Object.keys(levelColors).map(key => Object.assign({}, {
-        level: key,
-        levelLabel: `levels.${key.toLowerCase()}`,
-        value: data[key]
-      })),
-      timeStamp
-    };
-  }
-
-  /**
-   * The goal of this function is to set the tooltip position regarding the d3.mouse event relative to the @htmlElement.
-   * Onlty if we have @tooltipInfo
-   */
-  private setTooltipPosition():void {
-    if (this.tooltipInfo) {
-      let tEl = this.tooltipElement;
-      let pos = d3.mouse(this.htmlElement);
-      let left = pos[0];
-      let top = pos[1] - (tEl.offsetHeight / 2);
-      let tooltipWidth = tEl.offsetWidth;
-      let windowSize = window.innerWidth;
-      if (left + tooltipWidth > windowSize) {
-        left = pos[0] - (tooltipWidth + 25);
-      }
-      this.tooltipOnTheLeft = left < pos[0];
-      this.tooltipPosition = {left, top};
-    }
+  protected yAxisTickFormatter = (tick: number): string | undefined => {
+    return Number.isInteger(tick) ? tick.toFixed(0) : undefined;
   };
 
   /**
@@ -361,33 +173,33 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
   /**
    * Set the domain for the y scale regarding the given data. The maximum value of the data is the sum of the log level
    * values.
-   * An example data: [{timeStamp: 1233455677, WARN: 12, ERROR: 123}]
-   * @param {Array<{timeStamp: number; [p: string]: number}>} data
+   * An example data: [{tick: 1233455677, WARN: 12, ERROR: 123}]
+   * @param {GraphScaleItem[]} data
    */
-  private setYScaleDomain(data: Array<{timeStamp: number, [key: string]: number}>): void {
-    const keys = Object.keys(this.options.keysWithColors);
+  protected setYScaleDomain(data: GraphScaleItem[]): void {
+    const keys = Object.keys(this.labels);
     const maxYValue = d3.max(data, item => keys.reduce((sum: number, key: string): number => sum + item[key], 0));
     this.yScale.domain([0, maxYValue]);
   }
 
   /**
    * Set the domain values for the x scale regarding the given data.
-   * An example data: [{timeStamp: 1233455677, WARN: 12, ERROR: 123}]
-   * @param {Array<{timeStamp: number; [p: string]: any}>} data
+   * An example data: [{tick: 1233455677, WARN: 12, ERROR: 123}]
+   * @param {GraphScaleItem[]} data
    */
-  private setXScaleDomain(data: Array<{timeStamp: number, [key: string]: any}>): void {
-    this.xScale.domain(d3.extent(data, item => item.timeStamp)).nice();
+  protected setXScaleDomain(data: GraphScaleItem[]): void {
+    this.xScale.domain(d3.extent(data, item => item.tick)).nice();
   }
 
-  private populate(): void {
-    const keys = Object.keys(this.options.keysWithColors);
+  protected populate(): void {
+    const keys = Object.keys(this.colors);
     const data = this.data;
     const timeStamps = Object.keys(data);
     // we create a more consumable data structure for d3
-    const formattedData = timeStamps.map((timeStamp: string): {timeStamp: number, [key: string]: number} => Object.assign({
-        timeStamp: Number(timeStamp)
+    const formattedData = timeStamps.map((timeStamp: string): {tick: number, [key: string]: number} => Object.assign({
+        tick: Number(timeStamp)
       }, data[timeStamp]));
-    const layers = (d3.stack().keys(keys)(formattedData));
+    const layers = d3.stack().keys(keys)(formattedData);
 
     // after we have the data we set the domain values both scales
     this.setXScaleDomain(formattedData);
@@ -396,39 +208,32 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
     // Setting the timegap label above the chart
     this.setChartTimeGapByXScale();
 
-    let unitD3TimeProp = this.chartTimeGap.unit.charAt(0).toUpperCase() + this.chartTimeGap.unit.slice(1);
+    const unitD3TimeProp = this.chartTimeGap.unit.charAt(0).toUpperCase() + this.chartTimeGap.unit.slice(1);
     this.xScale.nice(d3[`time${unitD3TimeProp}`], 2);
 
-    let columnWidth = this.options.columnWidth[this.chartTimeGap.unit] || this.options.columnWidth.base;
+    const columnWidth = this.columnWidth[this.chartTimeGap.unit] || this.columnWidth.base;
 
     // drawing the axis
     this.drawXAxis();
     this.drawYAxis();
 
     // populate the data and drawing the bars
-    const layer = this.svg.selectAll('.value').data(d3.transpose<any>(layers))
-                    .attr('class', 'value')
-                  .enter().append('g')
-                    .attr('class', 'value');
-    layer.selectAll('.value rect').data(item => item)
-        .attr('x', item => this.xScale(item.data.timeStamp) - columnWidth / 2)
+    const layer = this.svg.selectAll().data(d3.transpose<any>(layers))
+      .enter().append('g')
+      .attr('class', 'value');
+    layer.selectAll().data(item => item).enter().append('rect')
+        .attr('x', item => this.xScale(item.data.tick) - columnWidth / 2)
         .attr('y', item => this.yScale(item[1]))
         .attr('height', item => this.yScale(item[0]) - this.yScale(item[1]))
         .attr('width', columnWidth.toString())
-        .style('fill', (item, index) => this.colorScale(index))
-      .enter().append('rect')
-        .attr('x', item => this.xScale(item.data.timeStamp) - columnWidth / 2)
-        .attr('y', item => this.yScale(item[1]))
-        .attr('height', item => this.yScale(item[0]) - this.yScale(item[1]))
-        .attr('width', columnWidth.toString())
-        .style('fill', (item, index) => this.colorScale(index))
+        .style('fill', (item, index) => this.orderedColors[index])
         .on('mouseover', this.handleRectMouseOver)
         .on('mousemove', this.handleRectMouseMove)
         .on('mouseout', this.handleRectMouseOut);
     this.setDragBehavior();
   }
 
-  private getTimeRangeByXRanges(startX: number, endX:number): [number, number] {
+  private getTimeRangeByXRanges(startX: number, endX: number): [number, number] {
     const xScaleInterval = this.xScale.domain().map((point: Date): number => point.valueOf());
     const xScaleLength = xScaleInterval[1] - xScaleInterval[0];
     const ratio = xScaleLength / this.width;
@@ -442,7 +247,7 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
    * @param {number} currentX This is the ending point of the drag within the container
    */
   private createInvertDragArea(startX: number, currentX: number): void {
-    const height: number = this.options.height + this.options.margin.top + this.options.margin.bottom;
+    const height: number = this.height + this.margin.top + this.margin.bottom;
     this.leftDragArea = this.svg.insert('rect').attr('height', height).attr('class', 'unselected-drag-area');
     this.rightDragArea = this.svg.insert('rect').attr('height', height).attr('class', 'unselected-drag-area');
     this.setInvertDragArea(startX, currentX);
@@ -456,9 +261,8 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
   private setInvertDragArea(startX: number, currentX: number): void {
     const left: number = Math.min(startX, currentX);
     const right: number = Math.max(startX, currentX);
-    let rightAreaWidth: number = this.width - right;
-    rightAreaWidth = rightAreaWidth > 0 ? rightAreaWidth : 0;
-    let leftAreaWidth: number = left > 0 ? left : 0;
+    const rightAreaWidth: number = Math.max(0, this.width - right);
+    const leftAreaWidth: number = Math.max(0, left);
     this.leftDragArea.attr('x', 0).attr('width', leftAreaWidth);
     this.rightDragArea.attr('x', right).attr('width', rightAreaWidth);
   }
@@ -472,20 +276,20 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
   }
 
   private setDragBehavior(): void {
-    this.minDragX = this.options.margin.left;
-    this.maxDragX = this.htmlElement.clientWidth;
+    this.minDragX = this.margin.left;
+    this.maxDragX = this.graphContainer.clientWidth;
     d3.selectAll(`svg#${this.svgId}`).call(d3.drag()
-      .on('start', (datum: undefined, index: number, containers: ContainerElement[]): void => {
+      .on('start', (datum: undefined, index: number, containers: d3.ContainerElement[]): void => {
         if (this.dragArea) {
           this.dragArea.remove();
         }
-        this.dragStartX = Math.max(0, this.getDragX(containers[0]) - this.options.margin.left);
+        this.dragStartX = Math.max(0, this.getDragX(containers[0]) - this.margin.left);
         this.dragArea = this.svg.insert('rect', ':first-child').attr('x', this.dragStartX).attr('y', 0).attr('width', 0)
-          .attr('height', this.options.height).attr('class', 'drag-area');
+          .attr('height', this.height).attr('class', 'drag-area');
       })
-      .on('drag', (datum: undefined, index: number, containers: ContainerElement[]): void => {
+      .on('drag', (datum: undefined, index: number, containers: d3.ContainerElement[]): void => {
         const mousePos = this.getDragX(containers[0]);
-        const currentX = Math.max(mousePos, this.minDragX) - this.options.margin.left;
+        const currentX = Math.max(mousePos, this.minDragX) - this.margin.left;
         const startX = Math.min(currentX, this.dragStartX);
         const currentWidth = Math.abs(currentX - this.dragStartX);
         this.dragArea.attr('x', startX).attr('width', currentWidth);
@@ -507,7 +311,7 @@ export class TimeHistogramComponent implements OnInit, AfterViewInit, OnChanges 
     }));
   }
 
-  private getDragX(element: ContainerElement): number {
+  private getDragX(element: d3.ContainerElement): number {
     return d3.mouse(element)[0];
   }
 

@@ -18,30 +18,20 @@
 <header>
   <div class="container-fluid">
     <div class="row">
-      <div *ngIf="chartTimeGap" class="time-gap col-lg-2 col-md-offset-5">
+      <div *ngIf="isTimeGraph && chartTimeGap" class="time-gap col-md-2 col-md-offset-5">
         {{chartTimeGap.value}} {{chartTimeGap.label | translate}} {{'histogram.gap' | translate}}
       </div>
-      <div class="legends col-md-5" [class.md-offset-7]="!chartTimeGap">
-        <div *ngFor="let legend of legends" class="legend {{legend.level | lowercase}}">
-          {{ legend.label | translate }}
-        </div>
-      </div>
+      <graph-legend [ngClass]="{'col-md-5 text-right': true, 'md-offset-7': !chartTimeGap}"
+                    [items]="legendItems"></graph-legend>
     </div>
   </div>
 </header>
-<div #container></div>
-<footer *ngIf="firstDateTick || lastDateTick">
-  <div *ngIf="firstDateTick" class="first-date-tick-label">{{firstDateTick | amTz:timeZone | amDateFormat:historyStartEndTimeFormat}}</div>
-  <div *ngIf="lastDateTick" class="last-date-tick-label">{{lastDateTick | amTz:timeZone | amDateFormat:historyStartEndTimeFormat}}</div>
+<div #graphContainer></div>
+<footer *ngIf="isTimeGraph && (firstDateTick || lastDateTick)">
+  <div *ngIf="firstDateTick">{{firstDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
+  <div *ngIf="lastDateTick">{{lastDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
 </footer>
-<div [ngClass]="{hide: !tooltipInfo, 'tooltip-left': tooltipOnTheLeft, 'tooltip-chart': true}" #tooltipEl
-     [style.top]="tooltipInfo ? (tooltipPosition.top + 'px') : ''" [style.left]="tooltipInfo ? (tooltipPosition.left + 'px') : ''">
-  <ng-container *ngIf="tooltipInfo">
-    <div class="tooltip-chart-date">{{tooltipInfo.timeStamp | amTz:timeZone | amDateFormat:tickTimeFormat}}</div>
-    <div *ngFor="let data of tooltipInfo.data" class="level {{data.level | lowercase}}">
-      <span class="level-label">{{data.levelLabel | translate }}</span>
-      <span class="level-value">{{data.value}}</span>
-    </div>
-  </ng-container>
-</div>
-
+<graph-tooltip #tooltip [data]="tooltipInfo.data" [ngClass]="{'hide': !tooltipInfo.data}"
+               [style.top]="tooltipInfo.data ? tooltipPosition.top + 'px' : ''"
+               [style.left]="tooltipInfo.data ? tooltipPosition.left + 'px' : ''"
+               [title]="tooltipInfo.title | amTz: timeZone | amDateFormat: tickTimeFormat"></graph-tooltip>

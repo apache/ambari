@@ -300,4 +300,121 @@ describe('UtilsService', () => {
       });
     });
   });
+
+  describe('#isEmptyObject()', () => {
+    const cases = [
+      {
+        obj: {},
+        result: true,
+        title: 'empty object'
+      },
+      {
+        obj: {
+          p: 'v'
+        },
+        result: false,
+        title: 'not empty object'
+      },
+      {
+        obj: null,
+        result: false,
+        title: 'null'
+      },
+      {
+        obj: undefined,
+        result: false,
+        title: 'undefined'
+      },
+      {
+        obj: '',
+        result: false,
+        title: 'empty string'
+      },
+      {
+        obj: 0,
+        result: false,
+        title: 'zero'
+      },
+      {
+        obj: false,
+        result: false,
+        title: 'false'
+      },
+      {
+        obj: NaN,
+        result: false,
+        title: 'NaN'
+      },
+      {
+        obj: [],
+        result: false,
+        title: 'empty array'
+      },
+      {
+        obj: '123',
+        result: false,
+        title: 'not empty primitive'
+      }
+    ];
+
+    cases.forEach(test => {
+      it(test.title, inject([UtilsService], (service: UtilsService) => {
+        expect(service.isEmptyObject(test.obj)).toEqual(test.result);
+      }));
+    });
+  });
+
+  describe('#getMaxNumberInObject()', () => {
+    const cases = [
+      {
+        obj: {
+          a: 1,
+          b: -1,
+          c: 0
+        },
+        max: 1,
+        title: 'basic case'
+      },
+      {
+        obj: {
+          a: 1
+        },
+        max: 1,
+        title: 'single-item object'
+      },
+      {
+        obj: {
+          a: -Infinity,
+          b: 0,
+          c: 1
+        },
+        max: 1,
+        title: 'object with -Infinity'
+      },
+      {
+        obj: {
+          a: Infinity,
+          b: 0,
+          c: 1
+        },
+        max: Infinity,
+        title: 'object with Infinity'
+      },
+      {
+        obj: {
+          a: NaN,
+          b: 0,
+          c: 1
+        },
+        max: 1,
+        title: 'object with NaN'
+      }
+    ];
+
+    cases.forEach(test => {
+      it(test.title, inject([UtilsService], (service: UtilsService) => {
+        expect(service.getMaxNumberInObject(test.obj)).toEqual(test.max);
+      }));
+    });
+  });
 });

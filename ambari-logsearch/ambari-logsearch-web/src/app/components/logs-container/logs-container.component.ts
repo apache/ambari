@@ -28,8 +28,8 @@ import {ServiceLog} from '@app/classes/models/service-log';
 import {Tab} from '@app/classes/models/tab';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
-import {HistogramOptions} from '@app/classes/histogram-options';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {LogsType} from '@app/classes/string';
 import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel.component";
 
@@ -74,11 +74,11 @@ export class LogsContainerComponent {
     return this.logsContainer.totalCount;
   }
 
-  histogramData: {[key: string]: number};
+  histogramData: HomogeneousObject<HomogeneousObject<number>>;
 
-  readonly histogramOptions: HistogramOptions = {
-    keysWithColors: this.logsContainer.colors
-  };
+  get serviceLogsHistogramColors(): HomogeneousObject<string> {
+    return this.logsContainer.colors;
+  }
 
   get autoRefreshRemainingSeconds(): number {
     return this.logsContainer.autoRefreshRemainingSeconds;

@@ -150,8 +150,7 @@ App.AddHawqStandbyWizardStep3Controller = Em.Controller.extend({
         Em.I18n.t('admin.addHawqStandby.wizard.step3.confirm.dataDir.body').format(dataDir, hawqStandby),
         null,
         Em.I18n.t('admin.addHawqStandby.wizard.step3.confirm.dataDir.title'),
-        "Confirm",
-        false
+        "Confirm"
       );
     }
   },

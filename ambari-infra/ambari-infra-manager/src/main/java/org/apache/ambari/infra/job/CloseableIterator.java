@@ -16,10 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.archive;
+package org.apache.ambari.infra.job;
 
 import java.util.Iterator;
 
-// TODO: generic closeable iterator
-public interface DocumentIterator extends Iterator<Document>, AutoCloseable {
+public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
 }

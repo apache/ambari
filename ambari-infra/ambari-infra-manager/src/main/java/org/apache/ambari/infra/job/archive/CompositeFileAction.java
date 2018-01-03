@@ -19,6 +19,7 @@
 package org.apache.ambari.infra.job.archive;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -28,7 +29,7 @@ public class CompositeFileAction implements FileAction {
   private final List<FileAction> actions;
 
   public CompositeFileAction(FileAction... actions) {
-    this.actions = asList(actions);
+    this.actions = new ArrayList<>(asList(actions));
   }
 
   public void add(FileAction action) {
@@ -36,10 +37,10 @@ public class CompositeFileAction implements FileAction {
   }
 
   @Override
-  public File perform(File inputFile) {
+  public File perform(File inputFile, boolean deleteInput) {
     File file = inputFile;
     for (FileAction action : actions) {
-      file = action.perform(file);
+      file = action.perform(file, deleteInput);
     }
     return file;
   }

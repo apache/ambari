@@ -800,26 +800,30 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   prepareRepoForSaving: function(repo) {
     var repoVersion = { "operating_systems": [] };
     var ambariManagedRepositories = !repo.get('useRedhatSatellite');
-    repo.get('operatingSystems').forEach(function (os, k) {
-      repoVersion.operating_systems.push({
-        "OperatingSystems": {
-          "os_type": os.get("osType"),
-          "ambari_managed_repositories": ambariManagedRepositories
-        },
-        "repositories": []
-      });
-      os.get('repositories').forEach(function (repository) {
-        repoVersion.operating_systems[k].repositories.push({
-          "Repositories": {
-            "base_url": repository.get('baseUrl'),
-            "repo_id": repository.get('repoId'),
-            "repo_name": repository.get('repoName'),
-            "components": repository.get('components'),
-            "tags": repository.get('tags'),
-            "distribution": repository.get('distribution')
-          }
+    var k = 0;
+    repo.get('operatingSystems').forEach(function (os) {
+      if (os.get('isSelected')) {
+        repoVersion.operating_systems.push({
+          "OperatingSystems": {
+            "os_type": os.get("osType"),
+            "ambari_managed_repositories": ambariManagedRepositories
+          },
+          "repositories": []
         });
-      });
+        os.get('repositories').forEach(function (repository) {
+          repoVersion.operating_systems[k].repositories.push({
+            "Repositories": {
+              "base_url": repository.get('baseUrl'),
+              "repo_id": repository.get('repoId'),
+              "repo_name": repository.get('repoName'),
+              "components": repository.get('components'),
+              "tags": repository.get('tags'),
+              "distribution": repository.get('distribution')
+            }
+          });
+        });
+        k++;
+      }
     });
     return repoVersion;
   },
@@ -1116,7 +1120,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         }
         var versionsString = stringUtils.getFormattedStringFromArray(versionsList, t('or'));
         var popupBody = t('popup.jdkValidation.body').format(selectedStack.get('stackName') + ' ' + selectedStack.get('stackVersion'), versionsString, currentJDKVersion);
-        App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), true);
+        App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), 'danger');
         return;
       }
     }

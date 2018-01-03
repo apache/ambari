@@ -18,38 +18,34 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import org.hibernate.validator.constraints.NotBlank;
+import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
-import javax.validation.constraints.Min;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Optional;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
-@Configuration
-@PropertySource(value = {"classpath:infra-manager.properties"})
-@ConfigurationProperties(prefix = "infra-manager.jobs.solr_data_export")
 public class DocumentExportProperties {
-  @NotBlank
-  private String zooKeeperSocket;
-  @Min(1)
+  private String zooKeeperConnectionString;
   private int readBlockSize;
-  @Min(1)
   private int writeBlockSize;
-  @NotBlank
   private String destinationDirectoryPath;
-  @NotBlank
   private String fileNameSuffixColumn;
   private SolrQueryProperties query;
+  private String s3AccessKey;
+  private String s3SecretKey;
+  private String s3KeyPrefix;
+  private String s3BucketName;
+  private String s3Endpoint;
 
-  public String getZooKeeperSocket() {
-    return zooKeeperSocket;
+  public String getZooKeeperConnectionString() {
+    return zooKeeperConnectionString;
   }
 
-  public void setZooKeeperSocket(String zooKeeperSocket) {
-    this.zooKeeperSocket = zooKeeperSocket;
+  public void setZooKeeperConnectionString(String zooKeeperConnectionString) {
+    this.zooKeeperConnectionString = zooKeeperConnectionString;
   }
 
   public int getReadBlockSize() {
@@ -76,24 +72,6 @@ public class DocumentExportProperties {
     this.destinationDirectoryPath = destinationDirectoryPath;
   }
 
-  public void apply(JobParameters jobParameters) {
-    // TODO: solr query params
-    zooKeeperSocket = jobParameters.getString("zooKeeperSocket", zooKeeperSocket);
-    readBlockSize = getIntJobParameter(jobParameters, "readBlockSize", readBlockSize);
-    writeBlockSize = getIntJobParameter(jobParameters, "writeBlockSize", writeBlockSize);
-    destinationDirectoryPath = jobParameters.getString("destinationDirectoryPath", destinationDirectoryPath);
-    query.setCollection(jobParameters.getString("collection", query.getCollection()));
-    query.setQueryText(jobParameters.getString("queryText", query.getQueryText()));
-    query.setFilterQueryText(jobParameters.getString("filterQueryText", query.getFilterQueryText()));
-  }
-
-  private int getIntJobParameter(JobParameters jobParameters, String parameterName, int defaultValue) {
-    String writeBlockSizeText = jobParameters.getString(parameterName);
-    if (isBlank(writeBlockSizeText))
-      return defaultValue;
-    return this.writeBlockSize = Integer.parseInt(writeBlockSizeText);
-  }
-
   public String getFileNameSuffixColumn() {
     return fileNameSuffixColumn;
   }
@@ -108,5 +86,95 @@ public class DocumentExportProperties {
 
   public void setQuery(SolrQueryProperties query) {
     this.query = query;
+  }
+
+  public String getS3AccessKey() {
+    return s3AccessKey;
+  }
+
+  public void setS3AccessKey(String s3AccessKey) {
+    this.s3AccessKey = s3AccessKey;
+  }
+
+  public String getS3SecretKey() {
+    return s3SecretKey;
+  }
+
+  public void setS3SecretKey(String s3SecretKey) {
+    this.s3SecretKey = s3SecretKey;
+  }
+
+  public String getS3KeyPrefix() {
+    return s3KeyPrefix;
+  }
+
+  public void setS3KeyPrefix(String s3KeyPrefix) {
+    this.s3KeyPrefix = s3KeyPrefix;
+  }
+
+  public String getS3BucketName() {
+    return s3BucketName;
+  }
+
+  public void setS3BucketName(String s3BucketName) {
+    this.s3BucketName = s3BucketName;
+  }
+
+  public String getS3Endpoint() {
+    return s3Endpoint;
+  }
+
+  public void setS3Endpoint(String s3Endpoint) {
+    this.s3Endpoint = s3Endpoint;
+  }
+
+  public void apply(JobParameters jobParameters) {
+    zooKeeperConnectionString = jobParameters.getString("zooKeeperConnectionString", zooKeeperConnectionString);
+    readBlockSize = getIntJobParameter(jobParameters, "readBlockSize", readBlockSize);
+    writeBlockSize = getIntJobParameter(jobParameters, "writeBlockSize", writeBlockSize);
+    destinationDirectoryPath = jobParameters.getString("destinationDirectoryPath", destinationDirectoryPath);
+    query.apply(jobParameters);
+  }
+
+  private int getIntJobParameter(JobParameters jobParameters, String parameterName, int defaultValue) {
+    String valueText = jobParameters.getString(parameterName);
+    if (isBlank(valueText))
+      return defaultValue;
+    return Integer.parseInt(valueText);
+  }
+
+  public DocumentExportProperties deepCopy() {
+    try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      String json = objectMapper.writeValueAsString(this);
+      return objectMapper.readValue(json, DocumentExportProperties.class);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public Optional<S3Properties> s3Properties() {
+    if (!isBlank(s3AccessKey) && !isBlank(s3SecretKey) && !isBlank(s3BucketName))
+      return Optional.of(new S3Properties(s3AccessKey, s3SecretKey, s3KeyPrefix, s3BucketName, s3Endpoint));
+    return Optional.empty();
+  }
+
+  public void validate() {
+    if (isBlank(zooKeeperConnectionString))
+      throw new IllegalArgumentException("The property zooKeeperConnectionString can not be null or empty string!");
+
+    if (readBlockSize == 0)
+      throw new IllegalArgumentException("The property readBlockSize must be greater than 0!");
+
+    if (writeBlockSize == 0)
+      throw new IllegalArgumentException("The property writeBlockSize must be greater than 0!");
+
+    if (isBlank(destinationDirectoryPath))
+      throw new IllegalArgumentException("The property destinationDirectoryPath can not be null or empty string!");
+
+    if (isBlank(fileNameSuffixColumn))
+      throw new IllegalArgumentException("The property fileNameSuffixColumn can not be null or empty string!");
+
+    query.validate();
   }
 }

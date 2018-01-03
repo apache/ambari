@@ -23,9 +23,32 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 
 public class DocumentExportJobListener implements JobExecutionListener {
+
+  private final DocumentExportPropertyMap propertyMap;
+
+  public DocumentExportJobListener(DocumentExportPropertyMap propertyMap) {
+    this.propertyMap = propertyMap;
+  }
+
+
   @Override
   public void beforeJob(JobExecution jobExecution) {
+    try {
+      String jobName = jobExecution.getJobInstance().getJobName();
+      DocumentExportProperties defaultProperties = propertyMap.getSolrDataExport().get(jobName);
+      if (defaultProperties == null)
+        throw new UnsupportedOperationException("Properties not found for job " + jobName);
 
+      DocumentExportProperties properties = defaultProperties.deepCopy();
+      properties.apply(jobExecution.getJobParameters());
+      properties.validate();
+      jobExecution.getExecutionContext().put("exportProperties", properties);
+    }
+    catch (UnsupportedOperationException | IllegalArgumentException ex) {
+      jobExecution.stop();
+      jobExecution.setExitStatus(new ExitStatus(ExitStatus.FAILED.getExitCode(), ex.getMessage()));
+      throw ex;
+    }
   }
 
   @Override

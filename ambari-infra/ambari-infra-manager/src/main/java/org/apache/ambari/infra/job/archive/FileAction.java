@@ -21,5 +21,5 @@ package org.apache.ambari.infra.job.archive;
 import java.io.File;
 
 public interface FileAction {
-  File perform(File inputFile);
+  File perform(File inputFile, boolean deleteInput);
 }

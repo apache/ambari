@@ -45,6 +45,7 @@ import org.apache.ambari.server.serveraction.kerberos.DestroyPrincipalsServerAct
 import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.StackId;
@@ -78,7 +79,7 @@ class DeleteIdentityHandler {
   public void addDeleteIdentityStages(Cluster cluster, OrderedRequestStageContainer stageContainer, CommandParams commandParameters, boolean manageIdentities)
     throws AmbariException
   {
-    ServiceComponentHostServerActionEvent event = new ServiceComponentHostServerActionEvent("AMBARI_SERVER", StageUtils.getHostName(), System.currentTimeMillis());
+    ServiceComponentHostServerActionEvent event = new ServiceComponentHostServerActionEvent(RootComponent.AMBARI_SERVER.name(), StageUtils.getHostName(), System.currentTimeMillis());
     String hostParamsJson = StageUtils.getGson().toJson(customCommandExecutionHelper.createDefaultHostParams(cluster, cluster.getDesiredStackVersion()));
     stageContainer.setClusterHostInfo(StageUtils.getGson().toJson(StageUtils.getClusterHostInfo(cluster)));
     if (manageIdentities) {
@@ -321,7 +322,7 @@ class DeleteIdentityHandler {
     }
 
     @Override
-    protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, Map<String, Object> requestSharedDataContext) throws AmbariException {
+    protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal, KerberosOperationHandler operationHandler, Map<String, String> kerberosConfiguration, Map<String, Object> requestSharedDataContext) throws AmbariException {
       return null;
     }
   }

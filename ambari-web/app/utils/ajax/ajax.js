@@ -303,8 +303,7 @@ var urls = {
       return {
         data: JSON.stringify({
           RequestInfo: {
-            query: data.query,
-            force_delete_components: true
+            query: data.query
           }
         })
       }
@@ -1843,7 +1842,8 @@ var urls = {
       return {
         data: JSON.stringify({
           "Repositories": {
-            "base_url": data.baseUrl
+            "base_url": data.baseUrl,
+            "repo_name": data.repoName
           }
         })
       }

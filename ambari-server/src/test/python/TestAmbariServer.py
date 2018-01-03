@@ -473,11 +473,13 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.extract_views")
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
   @patch("ambari_server.serverSetup.service_setup")
-  def test_main_with_preset_dbms(self, service_setup_mock, adjust_directory_permissions_mock, extract_views_mock, check_jdbc_drivers_mock, setup_database_mock, configure_os_settings_mock, download_and_install_jdk_mock, check_ambari_user_mock, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+  @patch("ambari_server.serverConfiguration.search_file")
+  def test_main_with_preset_dbms(self, search_file_mock, service_setup_mock, adjust_directory_permissions_mock, extract_views_mock, check_jdbc_drivers_mock, setup_database_mock, configure_os_settings_mock, download_and_install_jdk_mock, check_ambari_user_mock, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
                                  logger_mock, setup_local_db_method):
     extract_views_mock.return_value = 0
     check_ambari_user_mock.return_value = (0, False, 'user', None)
     configure_os_settings_mock.return_value = 0
+    search_file_mock.return_value = '/tmp/ambari.properties'
     import sys
     tmp_argv = sys.argv
     try:
