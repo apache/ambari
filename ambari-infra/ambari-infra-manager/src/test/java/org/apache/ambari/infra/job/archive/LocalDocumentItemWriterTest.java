@@ -32,10 +32,13 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.easymock.EasyMock.cmp;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.LogicalOperator.EQUAL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -44,6 +47,7 @@ public class LocalDocumentItemWriterTest extends EasyMockSupport {
 
   private static final Document DOCUMENT = new Document(new HashMap<String, String>() {{ put("id", "1"); }});
   private static final Document DOCUMENT2 = new Document(new HashMap<String, String>() {{ put("id", "2"); }});
+  private static final Document DOCUMENT3 = new Document(new HashMap<String, String>() {{ put("id", "3"); }});
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private LocalDocumentItemWriter localDocumentItemWriter;
@@ -65,17 +69,30 @@ public class LocalDocumentItemWriterTest extends EasyMockSupport {
 
   @Test
   public void testWrite() throws Exception {
-    itemWriterListener.onCompleted(outFile); expectLastCall();
+    itemWriterListener.onCompleted(
+            cmp(new WriteCompletedEvent(outFile, DOCUMENT, DOCUMENT3), writeCompletedEventEqualityComparator(), EQUAL)); expectLastCall();
     replayAll();
 
     localDocumentItemWriter.write(DOCUMENT);
     localDocumentItemWriter.write(DOCUMENT2);
+    localDocumentItemWriter.write(DOCUMENT3);
     localDocumentItemWriter.close();
 
     List<Document> documentList = readBack(outFile);
-    assertThat(documentList.size(), is(2));
+    assertThat(documentList.size(), is(3));
     assertThat(documentList.get(0).get("id"), is(DOCUMENT.get("id")));
     assertThat(documentList.get(1).get("id"), is(DOCUMENT2.get("id")));
+    assertThat(documentList.get(2).get("id"), is(DOCUMENT3.get("id")));
+  }
+
+  private Comparator<WriteCompletedEvent> writeCompletedEventEqualityComparator() {
+    return (o1, o2) -> {
+      if (o1.getOutFile().equals(o2.getOutFile()) &&
+              o1.getFirstDocument().equals(o2.getFirstDocument()) &&
+              o1.getLastDocument().equals(o2.getLastDocument()))
+        return 0;
+      return 1;
+    };
   }
 
   private List<Document> readBack(File file) throws IOException {

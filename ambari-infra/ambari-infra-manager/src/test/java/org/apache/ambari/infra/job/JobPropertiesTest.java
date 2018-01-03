@@ -1,5 +1,7 @@
-package org.apache.ambari.infra.job.archive;
+package org.apache.ambari.infra.job;
 
+import org.apache.ambari.infra.job.archive.DocumentExportProperties;
+import org.apache.ambari.infra.job.archive.SolrProperties;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
@@ -23,7 +25,7 @@ import static org.junit.Assert.assertThat;
  * specific language governing permissions and limitations
  * under the License.
  */
-public class DocumentExportPropertiesTest {
+public class JobPropertiesTest {
   @Test
   public void testDeepCopy() throws Exception {
     DocumentExportProperties documentExportProperties = new DocumentExportProperties();
@@ -31,13 +33,13 @@ public class DocumentExportPropertiesTest {
     documentExportProperties.setFileNameSuffixColumn(".json");
     documentExportProperties.setReadBlockSize(10);
     documentExportProperties.setWriteBlockSize(20);
-    documentExportProperties.setZooKeeperConnectionString("localhost:2181");
-    SolrQueryProperties query = new SolrQueryProperties();
-    query.setFilterQueryText("id:1167");
-    query.setQueryText("name:'Joe'");
-    query.setCollection("Users");
-    query.setSortColumn(new String[] {"name"});
-    documentExportProperties.setQuery(query);
+    SolrProperties solr = new SolrProperties();
+    solr.setZooKeeperConnectionString("localhost:2181");
+    solr.setFilterQueryText("id:1167");
+    solr.setQueryText("name:'Joe'");
+    solr.setCollection("Users");
+    solr.setSortColumn(new String[] {"name"});
+    documentExportProperties.setSolr(solr);
 
     DocumentExportProperties parsed = documentExportProperties.deepCopy();
 
@@ -45,10 +47,10 @@ public class DocumentExportPropertiesTest {
     assertThat(parsed.getFileNameSuffixColumn(), is(documentExportProperties.getFileNameSuffixColumn()));
     assertThat(parsed.getReadBlockSize(), is(documentExportProperties.getReadBlockSize()));
     assertThat(parsed.getWriteBlockSize(), is(documentExportProperties.getWriteBlockSize()));
-    assertThat(parsed.getZooKeeperConnectionString(), is(documentExportProperties.getZooKeeperConnectionString()));
-    assertThat(parsed.getQuery().getQueryText(), is(query.getQueryText()));
-    assertThat(parsed.getQuery().getFilterQueryText(), is(query.getFilterQueryText()));
-    assertThat(parsed.getQuery().getCollection(), is(query.getCollection()));
-    assertThat(parsed.getQuery().getSortColumn(), is(query.getSortColumn()));
+    assertThat(parsed.getSolr().getZooKeeperConnectionString(), is(documentExportProperties.getSolr().getZooKeeperConnectionString()));
+    assertThat(parsed.getSolr().getQueryText(), is(solr.getQueryText()));
+    assertThat(parsed.getSolr().getFilterQueryText(), is(solr.getFilterQueryText()));
+    assertThat(parsed.getSolr().getCollection(), is(solr.getCollection()));
+    assertThat(parsed.getSolr().getSortColumn(), is(solr.getSortColumn()));
   }
 }

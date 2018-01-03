@@ -42,7 +42,7 @@ public class Document {
   }
 
   @JsonAnyGetter
-  private Map<String, String> getFieldMap() {
+  public Map<String, String> getFieldMap() {
     return fieldMap;
   }
 

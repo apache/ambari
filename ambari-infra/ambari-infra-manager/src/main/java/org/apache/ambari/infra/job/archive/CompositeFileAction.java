@@ -37,10 +37,10 @@ public class CompositeFileAction implements FileAction {
   }
 
   @Override
-  public File perform(File inputFile, boolean deleteInput) {
+  public File perform(File inputFile) {
     File file = inputFile;
     for (FileAction action : actions) {
-      file = action.perform(file, deleteInput);
+      file = action.perform(file);
     }
     return file;
   }

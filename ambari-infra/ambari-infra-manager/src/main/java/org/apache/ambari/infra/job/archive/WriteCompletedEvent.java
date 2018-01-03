@@ -18,27 +18,28 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import org.apache.ambari.infra.job.PropertyMap;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import java.io.File;
 
-import java.util.Map;
+public class WriteCompletedEvent {
+  private final File outFile;
+  private final Document firstDocument;
+  private final Document lastDocument;
 
-@Configuration
-@ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentExportPropertyMap implements PropertyMap<DocumentExportProperties> {
-  private Map<String, DocumentExportProperties> solrDataExport;
-
-  public Map<String, DocumentExportProperties> getSolrDataExport() {
-    return solrDataExport;
+  public WriteCompletedEvent(File outFile, Document firstDocument, Document lastDocument) {
+    this.outFile = outFile;
+    this.firstDocument = firstDocument;
+    this.lastDocument = lastDocument;
   }
 
-  public void setSolrDataExport(Map<String, DocumentExportProperties> solrDataExport) {
-    this.solrDataExport = solrDataExport;
+  public File getOutFile() {
+    return outFile;
   }
 
-  @Override
-  public Map<String, DocumentExportProperties> getPropertyMap() {
-    return getSolrDataExport();
+  public Document getFirstDocument() {
+    return firstDocument;
+  }
+
+  public Document getLastDocument() {
+    return lastDocument;
   }
 }

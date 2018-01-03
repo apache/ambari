@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.archive;
+package org.apache.ambari.infra.job.deleting;
 
 import org.apache.ambari.infra.job.PropertyMap;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,19 +26,19 @@ import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentExportPropertyMap implements PropertyMap<DocumentExportProperties> {
-  private Map<String, DocumentExportProperties> solrDataExport;
+public class DocumentDeletingPropertyMap implements PropertyMap<DocumentDeletingProperties> {
+  private Map<String, DocumentDeletingProperties> solrDataDeleting;
 
-  public Map<String, DocumentExportProperties> getSolrDataExport() {
-    return solrDataExport;
+  public Map<String, DocumentDeletingProperties> getSolrDataDeleting() {
+    return solrDataDeleting;
   }
 
-  public void setSolrDataExport(Map<String, DocumentExportProperties> solrDataExport) {
-    this.solrDataExport = solrDataExport;
+  public void setSolrDataDeleting(Map<String, DocumentDeletingProperties> solrDataDeleting) {
+    this.solrDataDeleting = solrDataDeleting;
   }
 
   @Override
-  public Map<String, DocumentExportProperties> getPropertyMap() {
-    return getSolrDataExport();
+  public Map<String, DocumentDeletingProperties> getPropertyMap() {
+    return getSolrDataDeleting();
   }
 }
