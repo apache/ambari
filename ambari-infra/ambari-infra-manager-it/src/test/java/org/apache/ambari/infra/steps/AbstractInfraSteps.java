@@ -46,7 +46,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Date;
-import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 import static java.lang.System.currentTimeMillis;
@@ -64,6 +63,7 @@ public abstract class AbstractInfraSteps {
   private String dockerHost;
   private SolrClient solrClient;
   private AmazonS3Client s3client;
+  private int documentId = 0;
 
   public InfraClient getInfraClient() {
     return new InfraClient(String.format("http://%s:%d/api/v1/jobs", dockerHost, INFRA_MANAGER_PORT));
@@ -189,7 +189,7 @@ public abstract class AbstractInfraSteps {
     solrInputDocument.addField("action", "getfileinfo");
     solrInputDocument.addField("log_message", "allowed=true\tugi=ambari-qa (auth:SIMPLE)\tip=/192.168.64.102\tcmd=getfileinfo\tsrc=/ats/active\tdst=null\tperm=null\tproto=rpc\tcallerContext=HIVE_QUERY_ID:ambari-qa_20160317200111_223b3079-4a2d-431c-920f-6ba37ed63e9f");
     solrInputDocument.addField("logger_name", "FSNamesystem.audit");
-    solrInputDocument.addField("id", UUID.randomUUID().toString());
+    solrInputDocument.addField("id", Integer.toString(documentId++));
     solrInputDocument.addField("authType", "SIMPLE");
     solrInputDocument.addField("logfile_line_number", 1);
     solrInputDocument.addField("cliIP", "/192.168.64.102");

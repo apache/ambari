@@ -18,8 +18,6 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import java.io.File;
-
 public interface ItemWriterListener {
-  void onCompleted(File file);
+  void onCompleted(WriteCompletedEvent event);
 }

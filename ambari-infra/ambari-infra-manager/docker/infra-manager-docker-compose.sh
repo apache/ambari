@@ -81,6 +81,8 @@ function setup_profile() {
   local AMBARI_LOCATION=$(pwd)
   popd
   cat << EOF > $sdir/Profile
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
 EOF
 }
 
