@@ -339,7 +339,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         putKafkaBrokerProperty("super.users", kafka_super_users)
 
       putKafkaBrokerProperty("principal.to.local.class", "kafka.security.auth.KerberosPrincipalToLocal")
-      putKafkaBrokerProperty("security.inter.broker.protocol", "PLAINTEXTSASL")
+
+      recommended_inter_broker_protocol = 'PLAINTEXTSASL'
+      if 'security.inter.broker.protocol' in kafka_broker:
+        current_inter_broker_protocol = kafka_broker['security.inter.broker.protocol']
+        if current_inter_broker_protocol in ('PLAINTEXTSASL', 'SASL_PLAINTEXT', 'SASL_SSL'):
+          recommended_inter_broker_protocol = current_inter_broker_protocol
+      putKafkaBrokerProperty("security.inter.broker.protocol", recommended_inter_broker_protocol)
+
       putKafkaBrokerProperty("zookeeper.set.acl", "true")
 
     else:  # not security_enabled
