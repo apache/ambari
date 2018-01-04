@@ -517,6 +517,7 @@ public class UpgradeCatalog260Test {
   }
 
   public void expectGetCurrentVersionID(List<Integer> current, Capture<String[]> scdcaptureKey, Capture<String[]> scdcaptureValue) throws SQLException {
+    expect(dbAccessor.tableExists(eq("cluster_version"))).andReturn(true).once();
     expect(dbAccessor.getIntColumnValues(eq("cluster_version"), eq("repo_version_id"),
         capture(scdcaptureKey), capture(scdcaptureValue), eq(false))).andReturn(current).once();
   }
