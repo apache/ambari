@@ -244,6 +244,7 @@ public class ClusterStackVersionResourceProviderTest {
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
           Collections.emptyList()).anyTimes();
+      expect(clusters.getHost(hostname)).andReturn(host).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -634,6 +635,7 @@ public class ClusterStackVersionResourceProviderTest {
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
           Collections.emptyList()).anyTimes();
+      expect(clusters.getHost(hostname)).andReturn(host).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -871,6 +873,7 @@ public class ClusterStackVersionResourceProviderTest {
           MaintenanceState.OFF).anyTimes();
       expect(host.getAllHostVersions()).andReturn(
           Collections.emptyList()).anyTimes();
+      expect(clusters.getHost(hostname)).andReturn(host).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -1486,6 +1489,7 @@ public class ClusterStackVersionResourceProviderTest {
             .put("os_release_version", "7.2")
             .build()
           ).anyTimes();
+      expect(clusters.getHost(hostname)).andReturn(host).anyTimes();
       replay(host);
       hostsForCluster.put(hostname, host);
     }
@@ -1987,6 +1991,7 @@ public class ClusterStackVersionResourceProviderTest {
        expect(host.getAllHostVersions()).andReturn(
            Collections.<HostVersionEntity>emptyList()).anyTimes();
        expect(host.getHostAttributes()).andReturn(new HashMap<String, String>()).anyTimes();
+       expect(clusters.getHost(hostname)).andReturn(host).anyTimes();
        replay(host);
        hostsForCluster.put(hostname, host);
 

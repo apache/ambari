@@ -306,6 +306,8 @@ public class AmbariManagementControllerTest {
         new StackId("HDP-2.2.0"), "2.2.0-1234");
 
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+
+    configuration.setProperty("java.home.redhat-ppc7", "ppc_java_home_path");
   }
 
   @After
@@ -1248,6 +1250,30 @@ public class AmbariManagementControllerTest {
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
     assertEquals("false", ec.getCommandParams().get("command_retry_enabled"));
   }
+
+  @Test
+  public void testGetExecutionCommandWithJavaHomeValue() throws Exception{
+
+      String cluster1 = "cluster11234";
+      final String host1 = getUniqueName();
+      final String host2 = getUniqueName();
+      String serviceName = "HDFS";
+      createServiceComponentHostSimple(cluster1, host1, host2);
+      clusters.getHost(host1).setState(HostState.HEALTHY);
+      clusters.getHost(host1).setOsType("redhat-ppc7");
+
+      Cluster cluster = clusters.getCluster(cluster1);
+      Service s1 = cluster.getService(serviceName);
+
+      ServiceComponentHost scHost=s1.getServiceComponent("DATANODE").getServiceComponentHost(host1);
+
+      installService(cluster1, serviceName, false, false);
+
+      ExecutionCommand ec = controller.getExecutionCommand(cluster, scHost, RoleCommand.START);
+
+      assertTrue(ec.getHostLevelParams().containsValue("ppc_java_home_path"));
+
+    }
 
 
   @Test
@@ -4056,6 +4082,104 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testAddExecutionCommandsToStageWithJavaHomeValueForAmbariActionExecutionHelper() throws Exception {
+    final String cluster1 = getUniqueName();
+    final String host1 = "a" + getUniqueName();
+    final String host2 = "b" + getUniqueName();
+    final String host3 = "c" + getUniqueName();
+
+    setupClusterWithHosts(cluster1, "HDP-2.0.6",
+        new ArrayList<String>() {{
+          add(host1);
+          add(host2);
+          add(host3);
+        }},
+        "centos6");
+
+    clusters.getHost(host1).setState(HostState.HEALTHY);
+    clusters.getHost(host1).setOsType("redhat-ppc7");
+
+    Cluster cluster = clusters.getCluster(cluster1);
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    cluster.setCurrentStackVersion(new StackId("HDP-2.0.6"));
+
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+    Config config1 = cf.createNew(cluster, "global", "version1",
+        new HashMap<String, String>() {{
+          put("key1", "value1");
+        }}, new HashMap<>());
+
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
+        new HashMap<String, String>() {{
+          put("key1", "value1");
+        }}, new HashMap<>());
+
+    Config config3 = cf.createNew(cluster, "yarn-site", "version1",
+        new HashMap<String, String>() {{
+          put("test.password", "supersecret");
+        }}, new HashMap<>());
+
+    RepositoryVersionEntity repositoryVersion = repositoryVersion206;
+
+    Service hdfs = cluster.addService("HDFS", repositoryVersion);
+    Service mapred = cluster.addService("YARN", repositoryVersion);
+
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
+
+    mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
+
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
+
+    String actionDef1 = getUniqueName();
+    String actionDef2 = getUniqueName();
+
+    ActionDefinition a1 = new ActionDefinition(actionDef1, ActionType.SYSTEM,
+        "test,[optional1]", "", "", "Does file exist", TargetHostType.SPECIFIC, Short.valueOf("100"), null);
+    controller.getAmbariMetaInfo().addActionDefinition(a1);
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+        actionDef2, ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
+        TargetHostType.ALL, Short.valueOf("1000"), null));
+
+    Map<String, String> params = new HashMap<String, String>() {{
+      put("test", "test");
+      put("pwd", "SECRET:yarn-site:1:test.password");
+    }};
+
+    Map<String, String> requestProperties = new HashMap<>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+    requestProperties.put("datanode", "abc");
+
+    ArrayList<String> hosts = new ArrayList<String>() {{add(host1);}};
+    RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", "DATANODE", hosts);
+    List<RequestResourceFilter> resourceFilters = new ArrayList<>();
+    resourceFilters.add(resourceFilter);
+
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest(cluster1, null, actionDef1, resourceFilters, null, params, false);
+    RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
+    assertEquals(1, response.getTasks().size());
+    ShortTaskStatus taskStatus = response.getTasks().get(0);
+    Assert.assertEquals(host1, taskStatus.getHostName());
+
+    List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
+    Stage stage = actionDB.getAllStages(response.getRequestId()).get(0);
+    Assert.assertNotNull(stage);
+
+    Assert.assertEquals(1, storedTasks.size());
+    HostRoleCommand task = storedTasks.get(0);
+    Assert.assertEquals(RoleCommand.ACTIONEXECUTE, task.getRoleCommand());
+    Assert.assertEquals(actionDef1, task.getRole().name());
+    Assert.assertEquals(host1, task.getHostName());
+    ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
+
+    assertTrue(cmd.getHostLevelParams().containsValue("ppc_java_home_path"));
+  }
+
+  @Test
   public void testComponentCategorySentWithRestart() throws Exception, AuthorizationException {
     final String cluster1 = getUniqueName();
     final String host1 = getUniqueName();
@@ -4544,6 +4668,79 @@ public class AmbariManagementControllerTest {
     request.setPassword("password");
 
     controller.createUsers(new HashSet<>(Collections.singleton(request)));
+  }
+
+  @SuppressWarnings("serial")
+  @Test
+  public void testAddServiceCheckActionWithJavaHomeValue() throws Exception {
+    final String cluster1 = getUniqueName();
+    final String host1 = getUniqueName();
+    final String host2 = getUniqueName();
+
+    setupClusterWithHosts(cluster1, "HDP-0.1",
+        new ArrayList<String>() {{
+          add(host1);
+          add(host2);
+        }},
+        "centos5");
+
+    Cluster cluster = clusters.getCluster(cluster1);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
+
+    clusters.getHost(host1).setState(HostState.HEALTHY);
+    clusters.getHost(host1).setOsType("redhat-ppc7");
+
+    RepositoryVersionEntity repositoryVersion = repositoryVersion01;
+
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+    Config config1 = cf.createNew(cluster, "global", "version1",
+        new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<>());
+    config1.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr1", new HashMap<>()); }});
+
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
+        new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<>());
+    config2.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr2", new HashMap<>()); }});
+
+    cluster.addDesiredConfig("_test", Collections.singleton(config1));
+    cluster.addDesiredConfig("_test", Collections.singleton(config2));
+
+    Service hdfs = cluster.addService("HDFS", repositoryVersion);
+    Service mapReduce = cluster.addService("MAPREDUCE", repositoryVersion);
+
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name());
+
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    mapReduce.getServiceComponent(Role.MAPREDUCE_CLIENT.name()).addServiceComponentHost(host2);
+
+    Map<String, String> params = new HashMap<String, String>() {{
+      put("test", "test");
+    }};
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest(cluster1, Role.HDFS_SERVICE_CHECK.name(), params, false);
+    RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", null, null);
+    actionRequest.getResourceFilters().add(resourceFilter);
+
+    Map<String, String> requestProperties = new HashMap<>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+
+    RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
+
+    assertEquals(1, response.getTasks().size());
+    ShortTaskStatus task = response.getTasks().get(0);
+
+    List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
+    Stage stage = actionDB.getAllStages(response.getRequestId()).get(0);
+
+    //Check configs not stored with execution command
+    ExecutionCommandDAO executionCommandDAO = injector.getInstance(ExecutionCommandDAO.class);
+    ExecutionCommandEntity commandEntity = executionCommandDAO.findByPK(task.getTaskId());
+
+    Gson gson = new Gson();
+    ExecutionCommand executionCommand = gson.fromJson(new StringReader(
+        new String(commandEntity.getCommand())), ExecutionCommand.class);
+
+    assertTrue(executionCommand.getHostLevelParams().containsValue("ppc_java_home_path"));
   }
 
   @Test
