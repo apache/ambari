@@ -18,16 +18,21 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 
 public abstract class AbstractFileAction implements FileAction {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractFileAction.class);
+
   @Override
-  public File perform(File inputFile, boolean deleteInput) {
-    File outputFile =  perform(inputFile);
-    if (deleteInput)
-      inputFile.delete();
+  public File perform(File inputFile) {
+    File outputFile =  onPerform(inputFile);
+    if (!inputFile.delete())
+      LOG.warn("File {} was not deleted. Exists: {}", inputFile.getAbsolutePath(), inputFile.exists());
     return outputFile;
   }
 
-  protected abstract File perform(File inputFile);
+  protected abstract File onPerform(File inputFile);
 }

@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.job.JobPropertyMap;
 import org.apache.ambari.infra.job.ObjectSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,8 @@ import java.io.File;
 import java.nio.file.Paths;
 
 @Configuration
-public class DocumentExportConfiguration {
-  private static final Logger LOG = LoggerFactory.getLogger(DocumentExportConfiguration.class);
+public class DocumentArchivingConfiguration {
+  private static final Logger LOG = LoggerFactory.getLogger(DocumentArchivingConfiguration.class);
 
   @Inject
   private DocumentExportPropertyMap propertyMap;
@@ -64,13 +65,14 @@ public class DocumentExportConfiguration {
     propertyMap.getSolrDataExport().values().forEach(DocumentExportProperties::validate);
 
     propertyMap.getSolrDataExport().keySet().forEach(jobName -> {
+      LOG.info("Registering data archiving job {}", jobName);
       Job job = logExportJob(jobName, exportStep);
       jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
     });
   }
 
   private Job logExportJob(String jobName, Step logExportStep) {
-    return jobs.get(jobName).listener(new DocumentExportJobListener(propertyMap)).start(logExportStep).build();
+    return jobs.get(jobName).listener(new JobPropertyMap<>(propertyMap)).start(logExportStep).build();
   }
 
   @Bean
@@ -85,11 +87,12 @@ public class DocumentExportConfiguration {
   @StepScope
   public DocumentExporter documentExporter(DocumentItemReader documentItemReader,
                                            @Value("#{stepExecution.jobExecution.id}") String jobId,
-                                           @Value("#{stepExecution.jobExecution.executionContext.get('exportProperties')}") DocumentExportProperties properties) {
+                                           @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties,
+                                           SolrDAO solrDAO) {
     File path = Paths.get(
             properties.getDestinationDirectoryPath(),
             // TODO: jobId should remain the same after continuing job
-            String.format("%s_%s", properties.getQuery().getCollection(), jobId)).toFile(); // TODO: add end date
+            String.format("%s_%s", properties.getSolr().getCollection(), jobId)).toFile(); // TODO: add end date
     LOG.info("Destination directory path={}", path);
     if (!path.exists()) {
       if (!path.mkdirs()) {
@@ -99,20 +102,23 @@ public class DocumentExportConfiguration {
 
     CompositeFileAction fileAction = new CompositeFileAction(new TarGzCompressor());
     properties.s3Properties().ifPresent(s3Properties -> fileAction.add(new S3Uploader(s3Properties)));
+    FileNameSuffixFormatter fileNameSuffixFormatter = FileNameSuffixFormatter.from(properties);
+    LocalItemWriterListener itemWriterListener = new LocalItemWriterListener(fileAction, solrDAO);
 
     return new DocumentExporter(
             documentItemReader,
-            firstDocument -> localDocumentItemWriter(properties, path, fileAction, firstDocument),
+            firstDocument -> new LocalDocumentItemWriter(
+                    outFile(properties.getSolr().getCollection(), path, fileNameSuffixFormatter.format(firstDocument)), itemWriterListener),
             properties.getWriteBlockSize());
   }
 
-  private LocalDocumentItemWriter localDocumentItemWriter(DocumentExportProperties properties, File path, FileAction fileAction, Document firstDocument) {
-    return new LocalDocumentItemWriter(outFile(properties.getQuery().getCollection(), path, firstDocument.get(properties.getFileNameSuffixColumn())),
-            file -> fileAction.perform(file, true));
+  @Bean
+  @StepScope
+  public SolrDAO solrDAO(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties) {
+    return new SolrDAO(properties.getSolr());
   }
 
   private File outFile(String collection, File directoryPath, String suffix) {
-    // TODO: format date (suffix)
     File file = new File(directoryPath, String.format("%s_-_%s.json", collection, suffix));
     LOG.info("Exporting to temp file {}", file.getAbsolutePath());
     return file;
@@ -121,20 +127,16 @@ public class DocumentExportConfiguration {
   @Bean
   @StepScope
   public DocumentItemReader reader(ObjectSource<Document> documentSource,
-                                   @Value("#{stepExecution.jobExecution.executionContext.get('exportProperties')}") DocumentExportProperties properties) {
+                                   @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties) {
     return new DocumentItemReader(documentSource, properties.getReadBlockSize());
   }
 
   @Bean
   @StepScope
-  public ObjectSource logSource(@Value("#{jobParameters[start]}") String start,
-                                @Value("#{jobParameters[end]}") String end,
-                                @Value("#{stepExecution.jobExecution.executionContext.get('exportProperties')}") DocumentExportProperties properties) {
+  public ObjectSource<Document> logSource(@Value("#{jobParameters[start]}") String start,
+                                          @Value("#{jobParameters[end]}") String end,
+                                          SolrDAO solrDAO) {
 
-    return new SolrDocumentSource(
-            properties.getZooKeeperConnectionString(),
-            properties.getQuery(),
-            start,
-            end);
+    return new SolrDocumentSource(solrDAO, start, end);
   }
 }

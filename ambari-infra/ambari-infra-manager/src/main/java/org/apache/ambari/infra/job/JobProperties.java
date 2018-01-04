@@ -16,29 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.archive;
+package org.apache.ambari.infra.job;
 
-import org.apache.ambari.infra.job.PropertyMap;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.batch.core.JobParameters;
 
-import java.util.Map;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
-@Configuration
-@ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentExportPropertyMap implements PropertyMap<DocumentExportProperties> {
-  private Map<String, DocumentExportProperties> solrDataExport;
+public abstract class JobProperties<T extends JobProperties<T>> {
+  private final Class<T> clazz;
 
-  public Map<String, DocumentExportProperties> getSolrDataExport() {
-    return solrDataExport;
+  protected JobProperties(Class<T> clazz) {
+    this.clazz = clazz;
   }
 
-  public void setSolrDataExport(Map<String, DocumentExportProperties> solrDataExport) {
-    this.solrDataExport = solrDataExport;
+  public T deepCopy() {
+    try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      String json = objectMapper.writeValueAsString(this);
+      return objectMapper.readValue(json, clazz);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
-  @Override
-  public Map<String, DocumentExportProperties> getPropertyMap() {
-    return getSolrDataExport();
-  }
+  public abstract void apply(JobParameters jobParameters);
+
+  public abstract void validate();
 }

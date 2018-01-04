@@ -18,34 +18,71 @@
  */
 package org.apache.ambari.infra.job.archive;
 
-import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.ambari.infra.job.JobProperties;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.springframework.batch.core.JobParameters;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
+import static org.apache.commons.csv.CSVFormat.DEFAULT;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
-public class DocumentExportProperties {
-  private String zooKeeperConnectionString;
+public class DocumentExportProperties extends JobProperties<DocumentExportProperties> {
   private int readBlockSize;
   private int writeBlockSize;
   private String destinationDirectoryPath;
   private String fileNameSuffixColumn;
-  private SolrQueryProperties query;
-  private String s3AccessKey;
-  private String s3SecretKey;
+  private String fileNameSuffixDateFormat;
+  private SolrProperties solr;
+  private String s3AccessFile;
   private String s3KeyPrefix;
   private String s3BucketName;
   private String s3Endpoint;
+  private transient Supplier<Optional<S3Properties>> s3Properties;
 
-  public String getZooKeeperConnectionString() {
-    return zooKeeperConnectionString;
+  public DocumentExportProperties() {
+    super(DocumentExportProperties.class);
+    s3Properties = this::loadS3Properties;
   }
 
-  public void setZooKeeperConnectionString(String zooKeeperConnectionString) {
-    this.zooKeeperConnectionString = zooKeeperConnectionString;
+  private Optional<S3Properties> loadS3Properties() {
+    if (isBlank(s3BucketName))
+      return Optional.empty();
+
+    String accessKey = System.getenv("AWS_ACCESS_KEY_ID");
+    String secretKey = System.getenv("AWS_SECRET_ACCESS_KEY");
+
+    if (isBlank(accessKey) || isBlank(secretKey)) {
+      if (isBlank(s3AccessFile))
+        return Optional.empty();
+      try (CSVParser csvParser = CSVParser.parse(new FileReader(s3AccessFile), DEFAULT.withHeader("Access key ID", "Secret access key"))) {
+        Iterator<CSVRecord> iterator = csvParser.iterator();
+        if (!iterator.hasNext()) {
+          return Optional.empty();
+        }
+
+        CSVRecord record = csvParser.iterator().next();
+        Map<String, Integer> header = csvParser.getHeaderMap();
+        accessKey = record.get(header.get("Access key ID"));
+        secretKey = record.get(header.get("Secret access key"));
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
+    return Optional.of(new S3Properties(
+            accessKey,
+            secretKey,
+            s3KeyPrefix,
+            s3BucketName,
+            s3Endpoint));
   }
 
   public int getReadBlockSize() {
@@ -80,28 +117,29 @@ public class DocumentExportProperties {
     this.fileNameSuffixColumn = fileNameSuffixColumn;
   }
 
-  public SolrQueryProperties getQuery() {
-    return query;
+  public String getFileNameSuffixDateFormat() {
+    return fileNameSuffixDateFormat;
   }
 
-  public void setQuery(SolrQueryProperties query) {
-    this.query = query;
+  public void setFileNameSuffixDateFormat(String fileNameSuffixDateFormat) {
+    this.fileNameSuffixDateFormat = fileNameSuffixDateFormat;
   }
 
-  public String getS3AccessKey() {
-    return s3AccessKey;
+  public SolrProperties getSolr() {
+    return solr;
   }
 
-  public void setS3AccessKey(String s3AccessKey) {
-    this.s3AccessKey = s3AccessKey;
+  public void setSolr(SolrProperties query) {
+    this.solr = query;
   }
 
-  public String getS3SecretKey() {
-    return s3SecretKey;
+  public String getS3AccessFile() {
+    return s3AccessFile;
   }
 
-  public void setS3SecretKey(String s3SecretKey) {
-    this.s3SecretKey = s3SecretKey;
+  public void setS3AccessFile(String s3AccessFile) {
+    this.s3AccessFile = s3AccessFile;
+    s3Properties = this::loadS3Properties;
   }
 
   public String getS3KeyPrefix() {
@@ -128,12 +166,16 @@ public class DocumentExportProperties {
     this.s3Endpoint = s3Endpoint;
   }
 
+  public Optional<S3Properties> s3Properties() {
+    return s3Properties.get();
+  }
+
+  @Override
   public void apply(JobParameters jobParameters) {
-    zooKeeperConnectionString = jobParameters.getString("zooKeeperConnectionString", zooKeeperConnectionString);
     readBlockSize = getIntJobParameter(jobParameters, "readBlockSize", readBlockSize);
     writeBlockSize = getIntJobParameter(jobParameters, "writeBlockSize", writeBlockSize);
     destinationDirectoryPath = jobParameters.getString("destinationDirectoryPath", destinationDirectoryPath);
-    query.apply(jobParameters);
+    solr.apply(jobParameters);
   }
 
   private int getIntJobParameter(JobParameters jobParameters, String parameterName, int defaultValue) {
@@ -143,26 +185,8 @@ public class DocumentExportProperties {
     return Integer.parseInt(valueText);
   }
 
-  public DocumentExportProperties deepCopy() {
-    try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      String json = objectMapper.writeValueAsString(this);
-      return objectMapper.readValue(json, DocumentExportProperties.class);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public Optional<S3Properties> s3Properties() {
-    if (!isBlank(s3AccessKey) && !isBlank(s3SecretKey) && !isBlank(s3BucketName))
-      return Optional.of(new S3Properties(s3AccessKey, s3SecretKey, s3KeyPrefix, s3BucketName, s3Endpoint));
-    return Optional.empty();
-  }
-
+  @Override
   public void validate() {
-    if (isBlank(zooKeeperConnectionString))
-      throw new IllegalArgumentException("The property zooKeeperConnectionString can not be null or empty string!");
-
     if (readBlockSize == 0)
       throw new IllegalArgumentException("The property readBlockSize must be greater than 0!");
 
@@ -175,6 +199,7 @@ public class DocumentExportProperties {
     if (isBlank(fileNameSuffixColumn))
       throw new IllegalArgumentException("The property fileNameSuffixColumn can not be null or empty string!");
 
-    query.validate();
+    solr.validate();
+    s3Properties().ifPresent(S3Properties::validate);
   }
 }
