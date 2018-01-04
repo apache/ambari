@@ -439,6 +439,8 @@ Em.I18n.translations = {
   'question.sure.startAll':'Are you sure you want to start all the components?',
   'question.sure.stopAll':'Are you sure you want to stop all the components?',
   'question.sure.restartAll':'Are you sure you want to restart all the components?',
+  'question.sure.regenerateKeytab.service': 'Are you sure you want to regenerate keytab file operations for a {0} service?',
+  'question.sure.regenerateKeytab.host': 'Are you sure you want to regenerate keytab file operations for a {0} host?',
 
   'popup.highlight':'click to highlight',
   'popup.confirmation.commonHeader':'Confirmation',
@@ -1189,6 +1191,8 @@ Em.I18n.translations = {
   'alerts.notifications.addCustomPropertyPopup.header': 'Add Property',
   'alerts.notifications.addCustomPropertyPopup.error.propertyExists': 'Custom Property with current name already exists',
   'alerts.notifications.addCustomPropertyPopup.error.invalidPropertyName': 'Property name can only contain letters, numbers or . -_* characters',
+  'alerts.notifications.regenerateKeytab.service.error' : 'Keytabs for {0} service could not be regenerated',
+  'alerts.notifications.regenerateKeytab.host.error' : 'Keytabs for {0} host could not be regenerated',
 
 
   'wizard.progressPage.notice.completed':'Please proceed to the next step.',
