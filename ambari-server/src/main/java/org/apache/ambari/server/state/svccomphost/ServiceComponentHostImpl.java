@@ -20,11 +20,9 @@ package org.apache.ambari.server.state.svccomphost;
 
 import java.text.MessageFormat;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
  import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -47,6 +45,7 @@ import org.apache.ambari.server.events.HostComponentsUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
+import org.apache.ambari.server.events.StaleConfigsUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
@@ -84,7 +83,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
-import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
@@ -912,7 +910,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       stateEntity = hostComponentStateDAO.merge(stateEntity);
       if (!oldState.equals(state)) {
         stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
-            new HostComponentUpdate(stateEntity, oldState))));
+            HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
       }
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
@@ -1043,7 +1041,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         stateEntity = hostComponentStateDAO.merge(stateEntity);
         if (statusUpdated) {
           stateUpdateEventPublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
-              new HostComponentUpdate(stateEntity, oldState))));
+              HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
         }
         // TODO Audit logs
       } catch (InvalidStateTransitionException e) {
@@ -1256,6 +1254,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     r.setActualConfigs(actualConfigs);
     r.setUpgradeState(upgradeState);
 
+    try {
+      r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs, hostComponentDesiredStateEntity));
+    } catch (Exception e) {
+      LOG.error("Could not determine stale config", e);
+    }
+
     return r;
   }
 
@@ -1418,47 +1422,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public void updateActualConfigs(Map<String, Map<String, String>> configTags) {
-    Map<Long, ConfigGroup> configGroupMap;
-    String clusterName = getClusterName();
-    try {
-      Cluster cluster = clusters.getCluster(clusterName);
-      configGroupMap = cluster.getConfigGroups();
-    } catch (AmbariException e) {
-      LOG.warn("Unable to find cluster, " + clusterName);
-      return;
-    }
-
-    LOG.debug("Updating configuration tags for {}: {}", hostName, configTags);
-    final ConcurrentMap<String, HostConfig> newActualConfigs = new ConcurrentHashMap<>();
-
-    for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
-      String type = entry.getKey();
-      Map<String, String> values = new HashMap<>(entry.getValue());
-
-      String tag = values.get(ConfigHelper.CLUSTER_DEFAULT_TAG);
-      values.remove(ConfigHelper.CLUSTER_DEFAULT_TAG);
-
-      HostConfig hc = new HostConfig();
-      hc.setDefaultVersionTag(tag);
-      newActualConfigs.put(type, hc);
-
-      if (!values.isEmpty()) {
-        for (Entry<String, String> overrideEntry : values.entrySet()) {
-          Long groupId = Long.parseLong(overrideEntry.getKey());
-          hc.getConfigGroupOverrides().put(groupId, overrideEntry.getValue());
-          if (!configGroupMap.containsKey(groupId)) {
-            LOG.debug("Config group does not exist, id = {}", groupId);
-          }
-        }
-      }
-    }
-
-    // update internal stateful collection in an "atomic" manner
-    actualConfigs = newActualConfigs;
-  }
-
-  @Override
   public Map<String, HostConfig> getActualConfigs() {
     return actualConfigs;
   }
@@ -1524,6 +1487,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   @Transactional
   public void setRestartRequired(boolean restartRequired) {
+    if (setRestartRequiredWithoutEventPublishing(restartRequired)) {
+      eventPublisher.publish(new StaleConfigsUpdateEvent(this, restartRequired));
+    }
+  }
+
+  @Override
+  @Transactional
+  public boolean setRestartRequiredWithoutEventPublishing(boolean restartRequired) {
     LOG.debug("Set RestartRequired on serviceName = {} componentName = {} hostName = {} to {}",
         getServiceName(), getServiceComponentName(), getHostName(), restartRequired);
 
@@ -1531,11 +1502,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     if (desiredStateEntity != null) {
       desiredStateEntity.setRestartRequired(restartRequired);
       hostComponentDesiredStateDAO.merge(desiredStateEntity);
+      return true;
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
           + getServiceComponentName() + ", hostName = " + getHostName());
     }
+    return false;
   }
 
   @Transactional

@@ -156,12 +156,6 @@ public interface ServiceComponentHost {
   void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 
   /**
-   * Updates the tags that have been recognized by a START action.
-   * @param configTags
-   */
-  void updateActualConfigs(Map<String, Map<String, String>> configTags);
-
-  /**
    * Gets the actual config tags, if known.
    * @return the actual config map
    */
@@ -201,6 +195,13 @@ public interface ServiceComponentHost {
    * @param restartRequired the restartRequired flag
    */
   void setRestartRequired(boolean restartRequired);
+
+  /**
+   * Set restartRequired flag for appropriate HostComponentDesiredStateEntity
+   * @param restartRequired the restartRequired flag.
+   * @return true when restartRequired flag was changed.
+   */
+  boolean setRestartRequiredWithoutEventPublishing(boolean restartRequired);
 
 
   HostComponentDesiredStateEntity getDesiredStateEntity();

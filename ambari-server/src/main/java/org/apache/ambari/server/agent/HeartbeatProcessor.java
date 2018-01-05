@@ -468,6 +468,21 @@ public class HeartbeatProcessor extends AbstractService{
               versionEventPublisher.publish(event);
             }
 
+            if (!scHost.getState().equals(org.apache.ambari.server.state.State.UPGRADING) &&
+                (report.getRoleCommand().equals(RoleCommand.START.toString()) ||
+                (report.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND.toString()) &&
+                    ("START".equals(report.getCustomCommand()) ||
+                        "RESTART".equals(report.getCustomCommand()))))) {
+              scHost.setRestartRequired(false);
+            }
+
+            // Necessary for resetting clients stale configs after starting service
+            if ((RoleCommand.INSTALL.toString().equals(report.getRoleCommand()) ||
+                (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
+                    "INSTALL".equals(report.getCustomCommand()))) && svcComp.isClientComponent()){
+              scHost.setRestartRequired(false);
+            }
+
             if (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
                 !("START".equals(report.getCustomCommand()) ||
                     "STOP".equals(report.getCustomCommand()))) {
@@ -580,10 +595,6 @@ public class HeartbeatProcessor extends AbstractService{
                         + " according to STATUS_COMMAND report");
                   }
                 }
-              }
-
-              if (null != status.getConfigTags()) {
-                scHost.updateActualConfigs(status.getConfigTags());
               }
 
               Map<String, Object> extra = status.getExtra();

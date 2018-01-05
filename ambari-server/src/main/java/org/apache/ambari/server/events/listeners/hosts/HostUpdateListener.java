@@ -155,7 +155,7 @@ public class HostUpdateListener {
     Long clusterId = event.getClusterId();
 
     if (event.getHost() != null || event.getServiceComponentHost() != null) {
-      String hostName = event.getHost().getHostName();
+      String hostName = event.getHost() == null ? event.getServiceComponentHost().getHostName() : event.getHost().getHostName();
 
       HostUpdateEvent hostUpdateEvent = retrieveHostUpdateFromCache(clusterId, hostName);
 

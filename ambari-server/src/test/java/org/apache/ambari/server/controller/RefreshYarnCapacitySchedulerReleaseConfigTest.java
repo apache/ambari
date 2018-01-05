@@ -257,9 +257,9 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
       ServiceComponent rm = service.getServiceComponent(componentName);
       ServiceComponentHost rmc1 = rm.getServiceComponentHost(hostname);
 
-      rmc1.updateActualConfigs((new HashMap<String, Map<String,String>>() {{
+      /*rmc1.updateActualConfigs((new HashMap<String, Map<String,String>>() {{
         put("capacity-scheduler", new HashMap<String,String>() {{ put("tag", "version1"); }});
         put("hive-group", new HashMap<String,String>() {{ put("tag", "version1"); }});
-      }}));
+      }}));*/
   }
 }

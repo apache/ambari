@@ -19,34 +19,57 @@
 package org.apache.ambari.server.events;
 
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class HostComponentUpdate {
 
-  private Long id;
   private Long clusterId;
   private String serviceName;
   private String hostName;
   private String componentName;
   private State currentState;
   private State previousState;
+  private MaintenanceState maintenanceState;
+  private Boolean staleConfigs;
 
-  public HostComponentUpdate(HostComponentStateEntity stateEntity, State previousState) {
-    this.id = stateEntity.getId();
-    this.clusterId = stateEntity.getClusterId();
-    this.serviceName = stateEntity.getServiceName();
-    this.hostName = stateEntity.getHostEntity().getHostName();
-    this.currentState = stateEntity.getCurrentState();
-    this.componentName = stateEntity.getComponentName();
+  private HostComponentUpdate(Long clusterId, String serviceName, String hostName, String componentName,
+                             State currentState, State previousState, MaintenanceState maintenanceState,
+                             Boolean staleConfigs) {
+    this.clusterId = clusterId;
+    this.serviceName = serviceName;
+    this.hostName = hostName;
+    this.componentName = componentName;
+    this.currentState = currentState;
     this.previousState = previousState;
+    this.maintenanceState = maintenanceState;
+    this.staleConfigs = staleConfigs;
   }
 
-  public Long getId() {
-    return id;
+  public static HostComponentUpdate createHostComponentStatusUpdate(HostComponentStateEntity stateEntity, State previousState) {
+    HostComponentUpdate hostComponentUpdate = new HostComponentUpdate(stateEntity.getClusterId(),
+        stateEntity.getServiceName(), stateEntity.getHostEntity().getHostName(), stateEntity.getComponentName(),
+        stateEntity.getCurrentState(), previousState, null, null);
+    return hostComponentUpdate;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public static HostComponentUpdate createHostComponentMaintenanceStatusUpdate(Long clusterId, String serviceName,
+                                                                               String hostName, String componentName,
+                                                                               MaintenanceState maintenanceState) {
+    HostComponentUpdate hostComponentUpdate = new HostComponentUpdate(clusterId, serviceName, hostName,
+        componentName, null, null, maintenanceState, null);
+    return hostComponentUpdate;
+  }
+
+  public static HostComponentUpdate createHostComponentStaleConfigsStatusUpdate(Long clusterId, String serviceName,
+                                                                               String hostName, String componentName,
+                                                                               Boolean isStaleConfig) {
+    HostComponentUpdate hostComponentUpdate = new HostComponentUpdate(clusterId, serviceName, hostName,
+        componentName, null, null, null, isStaleConfig);
+    return hostComponentUpdate;
   }
 
   public Long getClusterId() {
@@ -97,6 +120,22 @@ public class HostComponentUpdate {
     this.previousState = previousState;
   }
 
+  public MaintenanceState getMaintenanceState() {
+    return maintenanceState;
+  }
+
+  public void setMaintenanceState(MaintenanceState maintenanceState) {
+    this.maintenanceState = maintenanceState;
+  }
+
+  public Boolean getStaleConfigs() {
+    return staleConfigs;
+  }
+
+  public void setStaleConfigs(Boolean staleConfigs) {
+    this.staleConfigs = staleConfigs;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -104,24 +143,26 @@ public class HostComponentUpdate {
 
     HostComponentUpdate that = (HostComponentUpdate) o;
 
-    if (id != null ? !id.equals(that.id) : that.id != null) return false;
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
     if (currentState != that.currentState) return false;
-    return previousState == that.previousState;
+    if (previousState != that.previousState) return false;
+    if (maintenanceState != that.maintenanceState) return false;
+    return staleConfigs != null ? staleConfigs.equals(that.staleConfigs) : that.staleConfigs == null;
   }
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
+    int result = clusterId != null ? clusterId.hashCode() : 0;
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     result = 31 * result + (previousState != null ? previousState.hashCode() : 0);
+    result = 31 * result + (maintenanceState != null ? maintenanceState.hashCode() : 0);
+    result = 31 * result + (staleConfigs != null ? staleConfigs.hashCode() : 0);
     return result;
   }
 }

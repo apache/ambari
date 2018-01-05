@@ -2545,9 +2545,9 @@ public class AmbariManagementControllerTest {
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);
 
-    sch1.updateActualConfigs(new HashMap<String, Map<String,String>>() {{
+    /*sch1.updateActualConfigs(new HashMap<String, Map<String,String>>() {{
       put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
-    }});
+    }});*/
 
 
     ServiceComponentHostRequest r =
@@ -2642,11 +2642,11 @@ public class AmbariManagementControllerTest {
         }};
 
     Service s1 = clusters.getCluster(cluster1).getService(serviceName);
-    s1.getServiceComponent(componentName1).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
+    /*s1.getServiceComponent(componentName1).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
     s1.getServiceComponent(componentName2).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
     s1.getServiceComponent(componentName3).getServiceComponentHost(host1).updateActualConfigs(actualConfigOld);
     s1.getServiceComponent(componentName2).getServiceComponentHost(host2).updateActualConfigs(actualConfigOld);
-    s1.getServiceComponent(componentName3).getServiceComponentHost(host2).updateActualConfigs(actualConfig);
+    s1.getServiceComponent(componentName3).getServiceComponentHost(host2).updateActualConfigs(actualConfig);*/
 
     ServiceComponentHostRequest r =
         new ServiceComponentHostRequest(cluster1, null, null, null, null);
@@ -10066,11 +10066,11 @@ public class AmbariManagementControllerTest {
     };
 
     Service s1 = clusters.getCluster(cluster1).getService(serviceName);
-    s1.getServiceComponent(componentName1).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
+    /*s1.getServiceComponent(componentName1).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
     s1.getServiceComponent(componentName2).getServiceComponentHost(host1).updateActualConfigs(actualConfig);
     s1.getServiceComponent(componentName3).getServiceComponentHost(host1).updateActualConfigs(actualConfigOld);
     s1.getServiceComponent(componentName2).getServiceComponentHost(host2).updateActualConfigs(actualConfigOld);
-    s1.getServiceComponent(componentName3).getServiceComponentHost(host2).updateActualConfigs(actualConfig);
+    s1.getServiceComponent(componentName3).getServiceComponentHost(host2).updateActualConfigs(actualConfig);*/
 
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(cluster1, null, null, null, null);
     Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
