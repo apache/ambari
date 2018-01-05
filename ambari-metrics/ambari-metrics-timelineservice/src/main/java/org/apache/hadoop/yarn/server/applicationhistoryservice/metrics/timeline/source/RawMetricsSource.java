@@ -18,7 +18,6 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source;
 
 import java.util.Collection;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;

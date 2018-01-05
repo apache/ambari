@@ -17,10 +17,10 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 // TODO get rid of this class
 public class SplitByMetricNamesCondition implements Condition {
   private final Condition adaptee;
