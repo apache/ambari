@@ -32,7 +32,7 @@
           <category>CLIENT</category>
           <componentType>HCFS_CLIENT</componentType>
           <cardinality>1+</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <commandScript>
             <script>scripts/onefs_client.py</script>
             <scriptType>PYTHON</scriptType>

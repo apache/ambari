@@ -47,6 +47,8 @@ default_fs = config['configurations']['core-site']['fs.defaultFS']
 java64_home = config['hostLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
 
+ambari_libs_dir = "/var/lib/ambari-agent/lib"
+
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete/copyfromlocal hdfs directories/files we need to call params.HdfsResource in code

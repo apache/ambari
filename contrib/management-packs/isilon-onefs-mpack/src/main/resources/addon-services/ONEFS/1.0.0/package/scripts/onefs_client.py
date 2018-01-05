@@ -16,6 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions import format
+from resource_management import File, StaticFile
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources.xml_config import XmlConfig
@@ -50,6 +52,11 @@ class OneFsClient(Script):
             group=params.user_group,
             mode=0644
     )
+
+    File(format("{params.ambari_libs_dir}/fast-hdfs-resource.jar"),
+         mode=0644,
+         content=StaticFile("/var/lib/ambari-agent/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar")
+         )
 
 if __name__ == "__main__":
   OneFsClient().execute()
