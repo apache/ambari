@@ -17,14 +17,13 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.net;
 
-import com.google.common.base.Stopwatch;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.util.concurrent.TimeUnit;
+import com.google.common.base.Stopwatch;
 
 /**
  * Implements MetricsSender and provides a way of pushing metrics to application metrics history service using REST

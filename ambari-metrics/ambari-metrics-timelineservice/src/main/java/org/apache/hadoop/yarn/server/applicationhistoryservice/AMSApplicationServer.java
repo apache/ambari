@@ -20,7 +20,6 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.http.HttpConfig;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
@@ -35,12 +34,9 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.HBaseTimelineMetricsService;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.TimelineStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.AMSWebApp;
 import org.apache.hadoop.yarn.webapp.WebApp;
 import org.apache.hadoop.yarn.webapp.WebApps;
-
-import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Metrics collector web server
@@ -86,7 +82,7 @@ public class AMSApplicationServer extends CompositeService {
     super.serviceStop();
   }
   
-  static AMSApplicationServer launchAppHistoryServer(String[] args) {
+  static AMSApplicationServer launchAMSApplicationServer(String[] args) {
     Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
     StringUtils.startupShutdownMessage(AMSApplicationServer.class, args, LOG);
     AMSApplicationServer amsApplicationServer = null;
@@ -106,7 +102,7 @@ public class AMSApplicationServer extends CompositeService {
   }
 
   public static void main(String[] args) {
-    launchAppHistoryServer(args);
+    launchAMSApplicationServer(args);
   }
 
   protected TimelineMetricStore createTimelineMetricStore(Configuration conf) {
@@ -131,7 +127,7 @@ public class AMSApplicationServer extends CompositeService {
           HttpConfig.Policy.HTTP_ONLY.name()));
       webApp =
           WebApps
-            .$for("ambarimetrics", null, null, "ws")
+            .$for("timeline", null, null, "ws")
             .withHttpPolicy(conf, policy)
             .at(bindAddress)
             .start(new AMSWebApp(timelineMetricStore));

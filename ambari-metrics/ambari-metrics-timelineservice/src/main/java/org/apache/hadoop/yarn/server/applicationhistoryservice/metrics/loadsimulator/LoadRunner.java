@@ -18,33 +18,29 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
   .loadsimulator;
 
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.AppID;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.ApplicationInstance;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.HostMetricsGenerator;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.MetricsGeneratorConfigurer;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.net.MetricsSender;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.net.RestMetricsSender;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.util.TimeStampProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.AppID.MASTER_APPS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.AppID.SLAVE_APPS;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.AppID.MASTER_APPS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.AppID.SLAVE_APPS;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.AppID;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.ApplicationInstance;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.HostMetricsGenerator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.MetricsGeneratorConfigurer;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.net.MetricsSender;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.net.RestMetricsSender;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.util.TimeStampProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *

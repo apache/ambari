@@ -18,12 +18,12 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
   .loadsimulator.util;
 
+import java.io.IOException;
+
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
-
-import java.io.IOException;
 
 /**
  * Small wrapper that configures the ObjectMapper with some defaults.

@@ -17,10 +17,10 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
+import java.util.List;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
-
-import java.util.List;
 
 /**
  * Encapsulate a Condition with pre-formatted and pre-parsed query string.

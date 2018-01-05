@@ -18,21 +18,16 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator;
 
 
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.AppMetrics;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.data.HostMetricsGenerator;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.net.MetricsSender;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.net.RestMetricsSender;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.util.Json;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.concurrent.Callable;
+
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.AppMetrics;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data.HostMetricsGenerator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.net.MetricsSender;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.net.RestMetricsSender;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.util.Json;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  */

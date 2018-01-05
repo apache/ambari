@@ -18,11 +18,11 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.uuid;
 
-import com.google.common.primitives.Longs;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import java.security.SecureRandom;
+
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 
-import java.security.SecureRandom;
+import com.google.common.primitives.Longs;
 
 public class RandomUuidGenStrategy implements MetricUuidGenStrategy {
   private static SecureRandom randomGenerator;

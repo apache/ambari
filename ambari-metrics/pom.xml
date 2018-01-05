@@ -41,7 +41,7 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <!--TODO change to HDP URL-->
     <hbase.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-623/tars/hbase/hbase-2.0.0.3.0.0.0-623-bin.tar.gz</hbase.tar>
-    <hbase.folder>hbase-1.1.2.2.6.0.3-8</hbase.folder>
+    <hbase.folder>hbase-2.0.0.3.0.0.0-623</hbase.folder>
     <hadoop.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-623/tars/hadoop/hadoop-3.0.0.3.0.0.0-623.tar.gz</hadoop.tar>
     <hadoop.folder>hadoop-3.0.0.3.0.0.0-623</hadoop.folder>
     <grafana.folder>grafana-2.6.0</grafana.folder>
