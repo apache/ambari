@@ -18,8 +18,6 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
 
-import org.apache.hadoop.hbase.util.RetryCounterFactory;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 
