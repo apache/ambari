@@ -21,7 +21,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.stomp.dto.Hash;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
-import org.apache.ambari.server.events.AlertDefinitionsUpdateEvent;
+import org.apache.ambari.server.events.AlertDefinitionsAgentUpdateEvent;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
@@ -65,7 +65,7 @@ public class AgentCurrentDataController {
   }
 
   @MessageMapping("/alert_definitions")
-  public AlertDefinitionsUpdateEvent getAlertDefinitions(@Header String simpSessionId, Hash hash) throws AmbariException {
+  public AlertDefinitionsAgentUpdateEvent getAlertDefinitions(@Header String simpSessionId, Hash hash) throws AmbariException {
     Long hostId = agentSessionManager.getHost(simpSessionId).getHostId();
     return alertDefinitionsHolder.getUpdateIfChanged(hash.getHash(), hostId);
   }

@@ -20,8 +20,6 @@ package org.apache.ambari.server.events.listeners.requests;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
-import org.apache.ambari.server.events.AlertDefinitionsMessageEmitter;
-import org.apache.ambari.server.events.AlertDefinitionsUpdateEvent;
 import org.apache.ambari.server.events.AmbariUpdateEvent;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
@@ -37,9 +35,6 @@ public class StateUpdateListener {
   @Autowired
   private DefaultMessageEmitter defaultMessageEmitter;
 
-  @Autowired
-  private AlertDefinitionsMessageEmitter alertDefinitionsMessageEmitter;
-
   public StateUpdateListener(Injector injector) {
     StateUpdateEventPublisher stateUpdateEventPublisher =
       injector.getInstance(StateUpdateEventPublisher.class);
@@ -50,9 +45,6 @@ public class StateUpdateListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onUpdateEvent(AmbariUpdateEvent event) throws AmbariException {
-    if (event instanceof AlertDefinitionsUpdateEvent) {
-      alertDefinitionsMessageEmitter.emitMessage(event);
-    }
     defaultMessageEmitter.emitMessage(event);
   }
 }

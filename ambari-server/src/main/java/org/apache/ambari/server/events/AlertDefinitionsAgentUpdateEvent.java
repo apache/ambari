@@ -32,19 +32,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Contains info about alert definitions update. This update is specific to a single host.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implements Hashable {
+public class AlertDefinitionsAgentUpdateEvent extends AmbariHostUpdateEvent implements Hashable {
 
   private final Map<Long, AlertCluster> clusters;
-  private final EventType eventType;
+  private final AlertDefinitionEventType eventType;
   private final String hostName;
   private final Long hostId;
   private String hash;
 
-  public static AlertDefinitionsUpdateEvent emptyEvent() {
-    return new AlertDefinitionsUpdateEvent(null, null, null, null);
+  public static AlertDefinitionsAgentUpdateEvent emptyEvent() {
+    return new AlertDefinitionsAgentUpdateEvent(null, null, null, null);
   }
 
-  public AlertDefinitionsUpdateEvent(EventType eventType, Map<Long, AlertCluster> clusters, String hostName, Long hostId) {
+  public AlertDefinitionsAgentUpdateEvent(AlertDefinitionEventType eventType, Map<Long, AlertCluster> clusters, String hostName, Long hostId) {
     super(Type.ALERT_DEFINITIONS);
     this.eventType = eventType;
     this.clusters = clusters != null ? new HashMap<>(clusters) : null;
@@ -69,7 +69,7 @@ public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implement
   }
 
   @JsonProperty("eventType")
-  public EventType getEventType() {
+  public AlertDefinitionEventType getEventType() {
     return eventType;
   }
 
@@ -83,7 +83,7 @@ public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implement
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    AlertDefinitionsUpdateEvent other = (AlertDefinitionsUpdateEvent) o;
+    AlertDefinitionsAgentUpdateEvent other = (AlertDefinitionsAgentUpdateEvent) o;
 
     return Objects.equals(eventType, other.eventType) &&
       Objects.equals(clusters, other.clusters);
@@ -98,15 +98,4 @@ public class AlertDefinitionsUpdateEvent extends AmbariHostUpdateEvent implement
   public Long getHostId() {
     return hostId;
   }
-
-  public enum EventType {
-    /** Full current alert definitions */
-    CREATE,
-    /** Remove existing alert definition */
-    DELETE,
-    /** Update existing alert definition, or add new one */
-    UPDATE,
-    ;
-  }
-
 }

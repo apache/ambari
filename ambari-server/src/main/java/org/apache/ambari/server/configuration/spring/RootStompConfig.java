@@ -25,7 +25,6 @@ import javax.servlet.ServletContext;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.stomp.AmbariSubscriptionRegistry;
 import org.apache.ambari.server.api.AmbariSendToMethodReturnValueHandler;
-import org.apache.ambari.server.events.AlertDefinitionsMessageEmitter;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.events.listeners.requests.StateUpdateListener;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
@@ -71,11 +70,6 @@ public class RootStompConfig {
   @Bean
   public DefaultMessageEmitter defaultMessageSender(Injector injector) {
     return new DefaultMessageEmitter(injector.getInstance(AgentSessionManager.class), brokerTemplate);
-  }
-
-  @Bean
-  public AlertDefinitionsMessageEmitter alertDefinitionsMessageSender(Injector injector) {
-    return new AlertDefinitionsMessageEmitter(injector.getInstance(AgentSessionManager.class), brokerTemplate);
   }
 
   @Bean

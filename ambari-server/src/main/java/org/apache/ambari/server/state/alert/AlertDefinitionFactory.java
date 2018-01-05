@@ -190,6 +190,8 @@ public class AlertDefinitionFactory {
     definition.setHelpURL(entity.getHelpURL());
     definition.setDescription(entity.getDescription());
     definition.setUuid(entity.getHash());
+    definition.setRepeatTolerance(entity.getRepeatTolerance());
+    definition.setRepeatToleranceEnabled(entity.isRepeatToleranceEnabled());
 
     try{
       String sourceJson = entity.getSource();

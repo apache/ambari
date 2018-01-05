@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.events.AlertDefinitionsUpdateEvent;
+import org.apache.ambari.server.events.AlertDefinitionEventType;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class AlertCluster {
     return hostName;
   }
 
-  public boolean handleUpdate(AlertDefinitionsUpdateEvent.EventType eventType, AlertCluster update) {
+  public boolean handleUpdate(AlertDefinitionEventType eventType, AlertCluster update) {
     if (update.alertDefinitions.isEmpty()) {
       return false;
     }

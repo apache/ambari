@@ -61,6 +61,12 @@ public class AlertDefinition {
   @SerializedName("help_url")
   private String helpURL = null;
 
+  @JsonProperty("repeat_tolerance")
+  private int repeatTolerance;
+
+  @JsonProperty("repeat_tolerance_enabled")
+  private Boolean repeatToleranceEnabled;
+
   /**
    * Gets the cluster ID for this definition.
    *
@@ -260,6 +266,22 @@ public class AlertDefinition {
    */
   public String getUuid() {
     return uuid;
+  }
+
+  public int getRepeatTolerance() {
+    return repeatTolerance;
+  }
+
+  public void setRepeatTolerance(int repeatTolerance) {
+    this.repeatTolerance = repeatTolerance;
+  }
+
+  public Boolean getRepeatToleranceEnabled() {
+    return repeatToleranceEnabled;
+  }
+
+  public void setRepeatToleranceEnabled(Boolean repeatToleranceEnabled) {
+    this.repeatToleranceEnabled = repeatToleranceEnabled;
   }
 
   /**
