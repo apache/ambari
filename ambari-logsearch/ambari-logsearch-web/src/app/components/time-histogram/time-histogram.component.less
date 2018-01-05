@@ -20,28 +20,11 @@
 
 :host {
   position: relative;
-  .level-mixin(@level, @size: .8em) {
-    @name: "@{level}-color";
-    border-radius: 100%;
-    content: "";
-    display: inline-block;
-    height: .8em;
-    width: .8em;
-    background-color: @@name;
-  }
-
   background: #ECECEC; // TODO add style according to actual design
-  display: block;
 
   /deep/ .axis {
-    .domain {
-      display: none;
-    }
     .tick {
       cursor: default;
-      line {
-        display: none;
-      }
     }
   }
 
@@ -49,137 +32,21 @@
     cursor: crosshair;
   }
 
-  /deep/ .value {
-    cursor: pointer;
-    rect {
-      transition: opacity 250ms;
-      opacity: .8;
-      &:hover {
-        opacity: 1;
-      }
-    }
-  }
-
-  /deep/ .tooltip-chart {
-    background: #fff;
-    border-radius: 4px;
-    border: @input-border;
-    display: block;
-    font-size: .8em;
-    margin: 0 1.5em;
-    min-height: 2em;
-    min-width: 5em;
-    padding: .5em;
-    position: absolute;
-    &:empty {
-      display: none;
-    }
-    &::before {
-      .caret-mixin(6px, left, #fff);
-      left: -6px;
-      position: absolute;
-      top: calc(50% - 2px);
-    }
-    &.tooltip-left::before {
-      display: none;
-    }
-    &.tooltip-left::after {
-      .caret-mixin(6px, right, #fff);
-      right: -6px;
-      position: absolute;
-      top: calc(50% - 2px);
-    }
-    .tooltip-chart-date {
-      padding: 0 0 .1em 0;
-      text-align: center;
-    }
-    .level {
-      display: flex;
-      &::before {
-        margin: auto .2em auto 0;
-      }
-      .level-label {
-        flex-grow: 3;
-        padding: 0 2em 0 0;
-      }
-      .level-value {
-        text-align: right;
-      }
-    }
-
-    .fatal::before {
-      .level-mixin('fatal');
-    }
-    .error::before {
-      .level-mixin('error');
-    }
-    .warn::before {
-      .level-mixin('warning');
-    }
-    .info::before {
-      .level-mixin('info');
-    }
-    .trace::before {
-      .level-mixin('trace');
-    }
-    .debug::before {
-      .level-mixin('debug');
-    }
-    .unknown::before {
-      .level-mixin('unknown');
-    }
-  }
   header {
-    padding: .5rem;
-  }
-  .legends {
-    text-align: right;
-    .legend {
-      display: inline-block;
-      font-size: 1rem;
-      text-transform: uppercase;
-      padding-right: 1em;
-    }
-    .fatal::before {
-      .level-mixin('fatal');
-    }
-    .error::before {
-      .level-mixin('error');
-    }
-    .warn::before {
-      .level-mixin('warning');
-    }
-    .info::before {
-      .level-mixin('info');
-    }
-    .trace::before {
-      .level-mixin('trace');
-    }
-    .debug::before {
-      .level-mixin('debug');
-    }
-    .unknown::before {
-      .level-mixin('unknown');
-    }
+    padding: @graph-padding;
   }
 
   .time-gap {
-    color: #666;
+    color: @base-font-color;
     font-size: 1.2rem;
     text-align: center;
   }
 
   footer {
-    display: flex;
-    div {
-      color: #666;
-      flex-grow: 1;
-      font-size: 1.2rem;
-      padding: 0 1em .5em 1em;
-    }
-    .last-date-tick-label {
-      text-align: right;
-    }
+    .default-flex;
+    font-size: 1.2rem;
+    color: @base-font-color;
+    padding: 0 1em .5em;
   }
 
   /deep/ rect.drag-area {

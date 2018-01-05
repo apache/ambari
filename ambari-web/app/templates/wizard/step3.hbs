@@ -62,6 +62,9 @@
             <table id="confirm-hosts-table" class="table table-hover" {{QAAttr "confirm-hosts-table"}}>
               <thead>
               <tr>
+                <th {{QAAttr "confirm-hosts-table-heading-cell"}}>
+                  {{view App.CheckboxView checkedBinding="view.pageChecked"}}
+                </th>
                 <th class="col-md-5" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.host}}</th>
                 <!-- retrieved from local storage initially -->
                 <th class="col-md-2" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.progress}}</th>
@@ -70,15 +73,15 @@
                 <th class="col-md-2" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.action}}</th>
                 <!-- trash icon -->
                 <!-- retry icon -->
-                <th {{QAAttr "confirm-hosts-table-heading-cell"}}>
-                  {{view App.CheckboxView checkedBinding="view.pageChecked"}}
-                </th>
               </tr>
               </thead>
               <tbody {{QAAttr "confirm-hosts-table-body"}}>
               {{#if view.pageContent}}
                 {{#each host in view.pageContent}}
                   {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host" data-qa="confirm-hosts-table-body-row"}}
+                    <td class="step3-table-checkbox" {{QAAttr "confirm-hosts-table-body-cell"}}>
+                      {{view App.CheckboxView checkedBinding="host.isChecked" labelIdentifier="select-host-checkbox"}}
+                    </td>
                     <td class="host" {{QAAttr "confirm-hosts-table-body-cell"}}>
                       <span title="{{unbound host.name}}" class="trim_hostname" {{QAAttr "confirm-hosts-table-host-name"}}>{{host.name}}</span>
                     </td>
@@ -99,9 +102,6 @@
                       <a class="action" id="display-action" href="#" {{action remove target="view"}} {{bindAttr disabled="isBackDisabled"}} {{QAAttr "remove-host-button"}}>
                         <i class="glyphicon glyphicon-trash" {{translateAttr title="common.remove"}}></i>
                       </a>
-                    </td>
-                    <td class="step3-table-checkbox" {{QAAttr "confirm-hosts-table-body-cell"}}>
-                      {{view App.CheckboxView checkedBinding="host.isChecked" labelIdentifier="select-host-checkbox"}}
                     </td>
                   {{/view}}
                 {{/each}}

@@ -16,34 +16,41 @@
  * limitations under the License.
  */
 
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {Injector} from '@angular/core';
+import {async, ComponentFixture, TestBed, inject} from '@angular/core/testing';
 import {StoreModule} from '@ngrx/store';
 import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
 import {TranslationModules} from '@app/test-config.spec';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
+import {ServiceInjector} from '@app/classes/service-injector';
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
+import {GraphLegendComponent} from '@app/components/graph-legend/graph-legend.component';
+import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
+import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip.component';
 
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {TimeHistogramComponent} from './time-histogram.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
-import {HttpClientService} from "@app/services/http-client.service";
-import {AppStateService} from "@app/services/storage/app-state.service";
-import {AuditLogsService} from "@app/services/storage/audit-logs.service";
-import {AuditLogsFieldsService} from "@app/services/storage/audit-logs-fields.service";
-import {ServiceLogsService} from "@app/services/storage/service-logs.service";
-import {ServiceLogsFieldsService} from "@app/services/storage/service-logs-fields.service";
-import {ServiceLogsTruncatedService} from "@app/services/storage/service-logs-truncated.service";
-import {TabsService} from "@app/services/storage/tabs.service";
-import {ClustersService} from "@app/services/storage/clusters.service";
-import {ComponentsService} from "@app/services/storage/components.service";
-import {HostsService} from "@app/services/storage/hosts.service";
+import {HttpClientService} from '@app/services/http-client.service';
+import {UtilsService} from '@app/services/utils.service';
+import {AppStateService} from '@app/services/storage/app-state.service';
+import {AuditLogsService} from '@app/services/storage/audit-logs.service';
+import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
+import {ServiceLogsService} from '@app/services/storage/service-logs.service';
+import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
+import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService} from '@app/services/storage/tabs.service';
+import {ClustersService} from '@app/services/storage/clusters.service';
+import {ComponentsService} from '@app/services/storage/components.service';
+import {HostsService} from '@app/services/storage/hosts.service';
+import {HomogeneousObject} from '@app/classes/object';
 
 describe('TimeHistogramComponent', () => {
   let component: TimeHistogramComponent;
   let fixture: ComponentFixture<TimeHistogramComponent>;
   let histogramData: any;
-  let customOptions: any;
+  let colors: HomogeneousObject<string>;
 
   beforeEach(async(() => {
     const httpClient = {
@@ -54,29 +61,42 @@ describe('TimeHistogramComponent', () => {
       }
     };
     histogramData = {
-      "1512476481940": {
-        "FATAL": 0,
-        "ERROR": 1000,
-        "WARN": 700,
-        "INFO": 0,
-        "DEBUG": 0,
-        "TRACE": 0,
-        "UNKNOWN": 0
-      }, "1512472881940": {"FATAL": 0, "ERROR": 2000, "WARN": 900, "INFO": 0, "DEBUG": 0, "TRACE": 0, "UNKNOWN": 0}
-    };
-    customOptions = {
-      keysWithColors: {
-        FATAL: '#830A0A',
-        ERROR: '#E81D1D',
-        WARN: '#FF8916',
-        INFO: '#2577B5',
-        DEBUG: '#65E8FF',
-        TRACE: '#888',
-        UNKNOWN: '#BDBDBD'
+      1512476481940: {
+        FATAL: 0,
+        ERROR: 1000,
+        WARN: 700,
+        INFO: 0,
+        DEBUG: 0,
+        TRACE: 0,
+        UNKNOWN: 0
+      },
+      1512472881940: {
+        FATAL: 0,
+        ERROR: 2000,
+        WARN: 900,
+        INFO: 0,
+        DEBUG: 0,
+        TRACE: 0,
+        UNKNOWN: 0
       }
     };
+    colors = {
+      FATAL: '#830A0A',
+      ERROR: '#E81D1D',
+      WARN: '#FF8916',
+      INFO: '#2577B5',
+      DEBUG: '#65E8FF',
+      TRACE: '#888',
+      UNKNOWN: '#BDBDBD'
+    };
     TestBed.configureTestingModule({
-      declarations: [TimeHistogramComponent, TimeZoneAbbrPipe],
+      declarations: [
+        TimeHistogramComponent,
+        GraphLegendComponent,
+        GraphLegendItemComponent,
+        GraphTooltipComponent,
+        TimeZoneAbbrPipe
+      ],
       imports: [
         StoreModule.provideStore({
           appSettings
@@ -93,6 +113,7 @@ describe('TimeHistogramComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
+        UtilsService,
         AppStateService,
         AuditLogsService,
         AuditLogsFieldsService,
@@ -109,14 +130,15 @@ describe('TimeHistogramComponent', () => {
       .compileComponents();
   }));
 
-  beforeEach(() => {
-      fixture = TestBed.createComponent(TimeHistogramComponent);
-      component = fixture.componentInstance;
-      component.customOptions = customOptions;
-      component.svgId = "HistogramSvg";
-      component.data = histogramData;
-      fixture.detectChanges();
-    });
+  beforeEach(inject([Injector], (injector: Injector) => {
+    ServiceInjector.injector = injector;
+    fixture = TestBed.createComponent(TimeHistogramComponent);
+    component = fixture.componentInstance;
+    component.colors = colors;
+    component.svgId = 'HistogramSvg';
+    component.data = histogramData;
+    fixture.detectChanges();
+  }));
 
   it('should create component', () => {
     expect(component).toBeTruthy();

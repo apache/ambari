@@ -46,7 +46,8 @@
     <class>org.apache.ambari.server.orm.entities.HostVersionEntity</class>
     <class>org.apache.ambari.server.orm.entities.KerberosPrincipalEntity</class>
     <class>org.apache.ambari.server.orm.entities.KerberosKeytabEntity</class>
-    <class>org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity</class>
+    <class>org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity</class>
+    <class>org.apache.ambari.server.orm.entities.KerberosKeytabServiceMappingEntity</class>
     <class>org.apache.ambari.server.orm.entities.KeyValueEntity</class>
     <class>org.apache.ambari.server.orm.entities.MemberEntity</class>
     <class>org.apache.ambari.server.orm.entities.MetainfoEntity</class>

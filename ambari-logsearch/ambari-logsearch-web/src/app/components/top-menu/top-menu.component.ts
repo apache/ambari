@@ -20,6 +20,7 @@ import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {FilterCondition, TimeUnitListItem} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
@@ -36,7 +37,7 @@ export class TopMenuComponent {
     return this.logsContainer.filtersForm;
   };
 
-  get filters(): {[key: string]: FilterCondition} {
+  get filters(): HomogeneousObject<FilterCondition> {
     return this.logsContainer.filters;
   };
 

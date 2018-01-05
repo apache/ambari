@@ -18,7 +18,7 @@
 
 import {Component, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
-import {LogsTableComponent} from '@app/classes/components/logs-table-component';
+import {LogsTableComponent} from '@app/classes/components/logs-table/logs-table-component';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
 

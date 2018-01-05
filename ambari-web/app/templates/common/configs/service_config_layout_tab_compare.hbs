@@ -17,7 +17,7 @@
 }}
 
 {{#if view.dataIsReady}}
-  {{#unless tab.isHiddenByFilter}}
+  {{#unless view.content.isHiddenByFilter}}
     <div class="row bottom-border comparison-table-header">
       <div class="col-md-3 property-name-column">{{t common.propertyName}}</div>
       <div class="col-md-4 property-value-column">
@@ -35,7 +35,7 @@
     </div>
 
     <div class="accordion">
-      {{#each row in tab.sectionRows}}
+      {{#each row in view.content.sectionRows}}
         {{#each section in row}}
           <div class="panel-group">
             <div class="panel panel-default">
@@ -47,7 +47,7 @@
                   </a>
                 </h3>
               </div>
-              <div class="panel-body collapse in" {{bindAttr class="section.isCollapsed:hide"}} {{QAAttr "panel-body"}}>
+              <div class="panel-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}} {{QAAttr "panel-body"}}>
                 <div class="service-config-section">
                   {{#each subRow in section.subsectionRows}}
                     {{#each subsection in subRow}}

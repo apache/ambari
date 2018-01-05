@@ -31,9 +31,16 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider.ConfigurationPackBuilder;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.stack.ModuleFileUnmarshaller;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
@@ -46,6 +53,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.lang.StringUtils;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,6 +78,7 @@ public class ConfigUpgradeValidityTest {
 
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
+  private UpgradeContextFactory upgradeContextFactory;
 
   private int validatedConfigCount = 0;
 
@@ -86,6 +95,7 @@ public class ConfigUpgradeValidityTest {
     injector.getInstance(GuiceJpaInitializer.class);
 
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    upgradeContextFactory = injector.getInstance(UpgradeContextFactory.class);
   }
 
   @After
@@ -104,6 +114,8 @@ public class ConfigUpgradeValidityTest {
     Collection<StackInfo> stacks = ambariMetaInfo.getStacks();
     Assert.assertFalse(stacks.isEmpty());
 
+    Cluster cluster = EasyMock.createNiceMock(Cluster.class);
+
     for( StackInfo stack : stacks ){
       if (!stack.isActive()) {
         LOG.info("Skipping configuration validity test for {}", new StackId(stack));
@@ -113,10 +125,33 @@ public class ConfigUpgradeValidityTest {
       Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks(stack.getName(), stack.getVersion());
       for (String key : upgradePacks.keySet()) {
         UpgradePack upgradePack = upgradePacks.get(key);
-        StackId sourceStack = new StackId(stack);
+        final StackId sourceStack = new StackId(stack);
 
-        ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(upgradePack,
-            sourceStack);
+        final RepositoryVersionEntity rve = new RepositoryVersionEntity() {{
+          setStack(new StackEntity(){{
+            setStackName(sourceStack.getStackName());
+            setStackVersion(sourceStack.getStackVersion());
+          }});
+        }};
+
+        final UpgradeEntity upgradeEntity = new UpgradeEntity();
+
+        UpgradeHistoryEntity upgradeHistoryEntity = new UpgradeHistoryEntity(){{
+          setServiceName("TEST");
+          setComponentName("TEST");
+          setFromRepositoryVersion(rve);
+          setUpgrade(upgradeEntity);
+        }};
+
+        upgradeEntity.setDirection(Direction.UPGRADE);
+        upgradeEntity.addHistory(upgradeHistoryEntity);
+        upgradeEntity.setRepositoryVersion(rve);
+
+        UpgradeContext cx = upgradeContextFactory.create(cluster, upgradeEntity);
+
+        cx.setUpgradePack(upgradePack);
+
+        ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(cx);
 
         // do configure tasks in the group section
         List<Grouping> groups = upgradePack.getGroups(Direction.UPGRADE);

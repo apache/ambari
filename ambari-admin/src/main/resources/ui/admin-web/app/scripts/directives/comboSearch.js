@@ -17,6 +17,27 @@
  */
 'use strict';
 
+
+/**
+ *  Example:
+ *  <combo-search suggestions="filters"
+ *                filter-change="filterItems"
+ *                placeholder="Search"
+ *                supportCategories="true">
+ *  </combo-search>
+ *
+ *  filters = [
+ *    {
+ *      key: 'property1',
+ *      label: $t('propertyLabel'),
+ *      category: 'category1'
+ *      options: []
+ *    }
+ *  ]
+ *  Note: "category" field is optional, should be used only when supportCategories="true"
+ *
+ */
+
 angular.module('ambariAdminConsole')
 .directive('comboSearch', function() {
   return {
@@ -41,7 +62,7 @@ angular.module('ambariAdminConsole')
       var suggestions = $ctrl.suggestions;
       var supportCategories = $ctrl.supportCategories;
       var mainInputElement = $elem.find('.main-input.combo-search-input');
-      $scope.paceholder = $ctrl.placeholder;
+      $scope.placeholder = $ctrl.placeholder;
       $scope.searchFilterInput = '';
       $scope.filterSuggestions = [];
       $scope.showAutoComplete = false;
@@ -169,10 +190,8 @@ angular.module('ambariAdminConsole')
           return !(option.key === '' || option.key === undefined || appliedOptions[option.key])
             && (!filter.searchOptionInput || option.label.toLowerCase().indexOf(filter.searchOptionInput.toLowerCase()) !== -1);
         });
+        resetActive(filter.filteredOptions);
         filter.showAutoComplete = filter.filteredOptions.length > 0;
-        if (filter.filteredOptions.length > 0) {
-          $scope.makeActive(filter.filteredOptions[0], filter.filteredOptions);
-        }
       };
 
       $scope.extractFilters = function(filters) {
@@ -247,7 +266,13 @@ angular.module('ambariAdminConsole')
             return i;
           }
         }
-        return 0;
+        return -1;
+      }
+
+      function resetActive(array) {
+        array.forEach(function(item) {
+          item.active = false;
+        });
       }
 
       function focusInput(filter) {
@@ -257,7 +282,7 @@ angular.module('ambariAdminConsole')
       }
 
       function initKeyHandlers() {
-        $(document).keydown(function(event) {
+        $($elem).keydown(function(event) {
           if (event.which === 13) { // "Enter" key
             enterKeyHandler();
             $scope.$apply();
@@ -282,12 +307,16 @@ angular.module('ambariAdminConsole')
             leftArrowKeyHandler();
             $scope.$apply();
           }
+          if (event.which === 27) { // "Escape" key
+            $scope.showAutoComplete = false;
+            $scope.$apply();
+          }
         });
       }
 
       function leftArrowKeyHandler() {
         var activeElement = $(document.activeElement);
-        if (activeElement.is('input') && activeElement[0].selectionStart === 0) {
+        if (activeElement.is('input') && activeElement[0].selectionStart === 0 && $scope.appliedFilters.length > 0) {
           if (activeElement.hasClass('main-input')) {
             focusInput($scope.appliedFilters[$scope.appliedFilters.length - 1]);
           } else {
@@ -341,7 +370,14 @@ angular.module('ambariAdminConsole')
           if (activeAppliedFilters.length > 0) {
             var filteredOptions = activeAppliedFilters[0].filteredOptions;
             activeIndex = findActiveByProperty(filteredOptions);
-            nextIndex = (activeIndex < filteredOptions.length - 1) ? activeIndex + 1 : 0;
+            if (activeIndex < filteredOptions.length - 1) {
+              nextIndex = activeIndex + 1;
+            } else {
+              //switch to input of option
+              nextIndex = null;
+              resetActive(filteredOptions);
+              focusInput(activeAppliedFilters[0]);
+            }
           }
           if (nextIndex !== null) {
             $scope.makeActive(filteredOptions[nextIndex], filteredOptions);
@@ -374,7 +410,16 @@ angular.module('ambariAdminConsole')
           if (activeAppliedFilters.length > 0) {
             var filteredOptions = activeAppliedFilters[0].filteredOptions;
             activeIndex = findActiveByProperty(filteredOptions);
-            nextIndex = (activeIndex > 0) ?  activeIndex - 1 : filteredOptions.length - 1;
+            if (activeIndex > 0) {
+              nextIndex = activeIndex - 1;
+            } else if (activeIndex === 0) {
+              //switch to input of option
+              nextIndex = null;
+              resetActive(filteredOptions);
+              focusInput(activeAppliedFilters[0]);
+            } else {
+              nextIndex = filteredOptions.length - 1;
+            }
           }
           if (nextIndex !== null) {
             $scope.makeActive(filteredOptions[nextIndex], filteredOptions);
@@ -401,7 +446,8 @@ angular.module('ambariAdminConsole')
             if (activeOptions.length > 0) {
               $scope.selectOption(null, activeOptions[0], activeAppliedFilters[0]);
             }
-          } else {
+          }
+          if (activeAppliedFilters.length === 0 || activeOptions.length === 0) {
             $scope.appliedFilters.filter(function(item) {
               return !item.currentOption;
             }).forEach(function(item) {

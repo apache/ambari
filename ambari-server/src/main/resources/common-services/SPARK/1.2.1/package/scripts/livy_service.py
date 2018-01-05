@@ -48,5 +48,3 @@ def livy_service(name, upgrade_type=None, action=None):
             on_timeout=format("! ( {process_id_exists_command} ) || {sudo} -H -E kill -9 {livy_server_pid}"),
             environment={'JAVA_HOME': params.java_home}
             )
-
-    File(params.livy_server_pid_file, action="delete")

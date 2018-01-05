@@ -1,9 +1,9 @@
 {
   "common.title": "Log Search",
-  "common.hide": "Hide",
-  "common.show": "Show",
   "common.serviceLogs": "Service Logs",
   "common.auditLogs": "Audit Logs",
+  "common.summary": "Summary",
+  "common.logs": "Logs",
 
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
@@ -159,6 +159,8 @@
   "logs.noEventFound": "No event found",
   "logs.hideGraph": "Hide Graph",
   "logs.showGraph": "Show Graph",
+  "logs.topUsers": "Top {{number}} Users",
+  "logs.topResources": "Top {{number}} Resources",
 
   "histogram.gap": "gap",
   "histogram.gaps": "gaps",

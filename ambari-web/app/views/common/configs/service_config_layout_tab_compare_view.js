@@ -27,5 +27,15 @@ App.ServiceConfigLayoutTabCompareView = App.ServiceConfigLayoutTabView.extend({
 
   onToggleBlock: function(event) {
     event.context.toggleProperty('isCollapsed');
+    $(event.currentTarget).siblings('.panel-body').slideToggle(500);
+  },
+
+  didInsertElement: function() {
+    this._super();
+    this.get('content.sectionRows').forEach(function(row) {
+      row.setEach('isCollapsed', false);
+      row.setEach('isCategoryBodyVisible', Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;'));
+    });
   }
+
 });

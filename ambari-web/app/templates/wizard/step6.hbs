@@ -22,11 +22,31 @@
 
   <div class="panel panel-default">
     <div class="panel-body">
-      {{#if anyGeneralIssues}}
-        <div class="alert alert-danger" {{QAAttr "error-message"}}>
-          {{t installer.step6.validationSlavesAndClients.hasIssues}}
-          <a href="javascript:void(null);" {{action openSlavesAndClientsIssues target="controller"}}>{{t installer.step6.validationSlavesAndClients.click}}</a>
-          {{t installer.step6.validationSlavesAndClients.forDetails}}
+      {{#if anyErrors}}
+        <p>{{t installer.step6.validationSlavesAndClients.popup.body}}</p>
+        <div class="limited-height-2">
+          {{#if anyGeneralErrors}}
+            <div class="alert alert-danger">
+              <ul>
+                {{#if errorMessage}}
+                  <li>{{errorMessage}}</li>
+                {{/if}}
+                {{#each msg in controller.generalErrorMessages}}
+                  <li>{{msg}}</li>
+                {{/each}}
+              </ul>
+            </div>
+          {{/if}}
+
+          {{#if anyGeneralWarnings}}
+            <div class="alert alert-warning">
+              <ul>
+                {{#each msg in controller.generalWarningMessages}}
+                  <li>{{msg}}</li>
+                {{/each}}
+              </ul>
+            </div>
+          {{/if}}
         </div>
       {{/if}}
 

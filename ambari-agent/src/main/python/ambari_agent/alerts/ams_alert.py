@@ -64,8 +64,9 @@ class AmsAlert(MetricAlert):
     # use the URI lookup keys to get a final URI value to query
     alert_uri = self._get_uri_from_structure(self.uri_property_keys)
 
-    logger.debug("[Alert][{0}] Calculated metric URI to be {1} (ssl={2})".format(
-      self.get_name(), alert_uri.uri, str(alert_uri.is_ssl_enabled)))
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug("[Alert][{0}] Calculated metric URI to be {1} (ssl={2})".format(
+        self.get_name(), alert_uri.uri, str(alert_uri.is_ssl_enabled)))
 
     host = BaseAlert.get_host_from_url(alert_uri.uri)
     if host is None:
@@ -94,7 +95,8 @@ class AmsAlert(MetricAlert):
 
         collect_result = self._get_result(value_list[0] if compute_result is None else compute_result)
 
-        logger.debug("[Alert][{0}] Computed result = {1}".format(self.get_name(), str(value_list)))
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.debug("[Alert][{0}] Computed result = {1}".format(self.get_name(), str(value_list)))
 
     return (collect_result, value_list)
 

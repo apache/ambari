@@ -19,94 +19,104 @@
 
 angular.module('ambariAdminConsole')
 .controller('UsersListCtrl',
-['$scope', 'User', '$modal', '$rootScope', 'UserConstants', '$translate', 'Cluster', 'View', 'ConfirmationModal', 'Settings',
-function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, View, ConfirmationModal, Settings) {
+['$scope', 'User', '$modal', '$rootScope', 'UserConstants', '$translate', 'Cluster', 'View', 'ConfirmationModal', 'Settings', 'Pagination', 'Filters',
+function($scope, User, $modal, $rootScope, UserConstants, $translate, Cluster, View, ConfirmationModal, Settings, Pagination, Filters) {
   var $t = $translate.instant;
   $scope.constants = {
     admin: $t('users.ambariAdmin'),
     users: $t('common.users').toLowerCase()
   };
+  $scope.users = [];
   $scope.minRowsToShowPagination = Settings.minRowsToShowPagination;
   $scope.isLoading = false;
-  $scope.users = [];
-  $scope.usersPerPage = 10;
-  $scope.currentPage = 1;
-  $scope.totalUsers = 0;
-  $scope.filters = {
-    name: '',
-    status: null,
-    type: null
-  };
-  $scope.maxVisiblePages = 20;
+  $scope.pagination = Pagination.create();
   $scope.tableInfo = {
+    filtered: 0,
     total: 0,
     showed: 0
   };
-  $scope.isNotEmptyFilter = true;
+  $scope.filters = [
+    {
+      key: 'user_name',
+      label: $t('users.username'),
+      customValueConverter: function(item) {
+        return item.Users.user_name;
+      },
+      options: []
+    },
+    {
+      key: 'role',
+      label: $t('clusters.role'),
+      customValueConverter: function(item) {
+        return item.Users.roles[0] ? item.Users.roles[0].permission_label : '';
+      },
+      options: []
+    },
+    {
+      key: 'status',
+      label: $t('users.status'),
+      isStatic: true,
+      customValueConverter: function(item) {
+        return item.Users.active ? $t('users.active') : $t('users.inactive');
+      },
+      options: [
+        {
+          key: $t('users.active'),
+          label: $t('users.active')
+        },
+        {
+          key: $t('users.inactive'),
+          label: $t('users.inactive')
+        }
+      ]
+    },
+    {
+      key: 'type',
+      label: $t('common.type'),
+      customValueConverter: function(item) {
+        return item.Users.userTypeName;
+      },
+      options: []
+    },
+    {
+      key: 'group',
+      label: $t('common.group'),
+      isMultiple: true,
+      customValueConverter: function(item) {
+        return item.Users.groups;
+      },
+      options: []
+    }
+  ];
 
   function loadUsers() {
     $scope.isLoading = true;
-    User.list({
-      currentPage: $scope.currentPage,
-      usersPerPage: $scope.usersPerPage,
-      searchString: $scope.filters.name,
-      user_type: $scope.filters.type.value,
-      active: $scope.filters.status.value
-    }).then(function (data) {
-      $scope.totalUsers = data.data.itemTotal;
+    User.list().then(function (data) {
       $scope.users = data.data.items.map(User.makeUser);
-      $scope.tableInfo.showed = data.data.items.length;
-      $scope.tableInfo.total = data.data.itemTotal;
+      $scope.tableInfo.total = $scope.users.length;
+      $scope.filterUsers();
+      Filters.initFilterOptions($scope.filters, $scope.users);
     }).finally(function () {
       $scope.isLoading = false;
     });
   }
 
-  $scope.pageChanged = function () {
-    loadUsers();
+  $scope.toggleSearchBox = function() {
+    $('.search-box-button .popup-arrow-up, .search-box-row').toggleClass('hide');
   };
-  $scope.usersPerPageChanges = function () {
-    $scope.resetPagination();
+
+  $scope.pageChanged = function () {
+    $scope.pagination.pageChanged($scope.users, $scope.tableInfo);
   };
 
   $scope.resetPagination = function () {
-    $scope.currentPage = 1;
-    loadUsers();
+    $scope.pagination.resetPagination($scope.users, $scope.tableInfo);
   };
 
-  $scope.activeFilterOptions = [
-    {label: $t('common.all'), value: '*'},
-    {label: $t('users.active'), value: true},
-    {label: $t('users.inactive'), value: false}
-  ];
-  $scope.filters.status = $scope.activeFilterOptions[0];
-
-  $scope.typeFilterOptions = [{label: $t('common.all'), value: '*'}]
-    .concat(Object.keys(UserConstants.TYPES).map(function (key) {
-      return {
-        label: $t(UserConstants.TYPES[key].LABEL_KEY),
-        value: UserConstants.TYPES[key].VALUE
-      };
-    }));
-
-  $scope.filters.type = $scope.typeFilterOptions[0];
-
-  $scope.clearFilters = function () {
-    $scope.filters.name = '';
-    $scope.filters.type = $scope.typeFilterOptions[0];
-    $scope.filters.status = $scope.activeFilterOptions[0];
-    $scope.resetPagination();
+  $scope.filterUsers = function(appliedFilters) {
+    $scope.tableInfo.filtered = Filters.filterItems(appliedFilters, $scope.users, $scope.filters);
+    $scope.pagination.resetPagination($scope.users, $scope.tableInfo);
   };
-
-  $scope.$watch(
-    function (scope) {
-      return Boolean(scope.filters.name || (scope.filters.status && scope.filters.status.value !== '*')
-        || (scope.filters.type && scope.filters.type.value !== '*'));
-    },
-    function (newValue, oldValue, scope) {
-      scope.isNotEmptyFilter = newValue;
-    }
-  );
 
   $rootScope.$watch(function (scope) {
     return scope.LDAPSynced;

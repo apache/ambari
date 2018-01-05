@@ -219,8 +219,7 @@ App.ManageCredentialsFormView = Em.View.extend({
       }, t('admin.kerberos.credentials.remove.confirmation.body'),
       function () {},
       null,
-      t('yes'),
-      false);
+      t('yes'));
     popup.set('secondary', t('no'));
     return {
       deferred: dfd,
