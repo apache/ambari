@@ -30,6 +30,7 @@ import {serviceLogsHistogramData} from '@app/services/storage/service-logs-histo
 import {serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {userConfigs} from '@app/services/storage/user-configs.service';
 import {tabs} from '@app/services/storage/tabs.service';
 
@@ -37,6 +38,7 @@ export const reducers = {
   appSettings,
   appState,
   auditLogs,
+  auditLogsGraphData,
   serviceLogs,
   serviceLogsHistogramData,
   serviceLogsTruncated,

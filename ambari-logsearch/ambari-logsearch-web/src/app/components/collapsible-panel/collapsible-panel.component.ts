@@ -39,7 +39,7 @@ export class CollapsiblePanelComponent {
    * @type {string}
    */
   @Input()
-  title: string = '';
+  commonTitle: string = '';
 
   /**
    * The panel's title for the opened state
@@ -82,7 +82,7 @@ export class CollapsiblePanelComponent {
   /**
    * The goal is to simply negate the current collapse state.
    */
-  toggleCollapsed():void {
+  toggleCollapsed(): void {
     this.isCollapsed = !this.isCollapsed;
   }
 
