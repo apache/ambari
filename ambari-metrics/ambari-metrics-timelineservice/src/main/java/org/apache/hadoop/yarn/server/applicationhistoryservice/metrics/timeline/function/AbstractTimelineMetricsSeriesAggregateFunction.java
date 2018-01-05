@@ -17,10 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function;
 
-import com.google.common.base.Joiner;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +24,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+
+import com.google.common.base.Joiner;
 
 public abstract class AbstractTimelineMetricsSeriesAggregateFunction
     implements TimelineMetricsSeriesAggregateFunction {

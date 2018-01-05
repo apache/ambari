@@ -1,8 +1,8 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-
 import java.util.List;
+
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
