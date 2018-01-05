@@ -64,6 +64,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     rolling_restart_supported: 'rolling_restart_supported',
     is_master: 'is_master',
     is_client: 'is_client',
+    component_type: 'component_type',
     stack_name: 'stack_name',
     stack_version: 'stack_version',
     stack_service_id: 'service_name',

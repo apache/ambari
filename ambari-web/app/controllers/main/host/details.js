@@ -3005,9 +3005,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     opt = opt || {};
     opt.scope = opt.scope || '*';
     var installedComponents;
-    var dependencies = App.StackServiceComponent.find(componentName).get('dependencies');
-    dependencies = opt.scope === '*' ? dependencies : dependencies.filterProperty('scope', opt.scope);
-    if (dependencies.length == 0) return [];
     switch (opt.scope) {
       case 'host':
         Em.assert("You should pass at least `hostName` or `installedComponents` to options.", opt.hostName || opt.installedComponents);
@@ -3018,9 +3015,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         installedComponents = opt.installedComponents || App.HostComponent.find().mapProperty('componentName').uniq();
         break;
     }
-    return dependencies.filter(function (dependency) {
-      return !installedComponents.contains(dependency.componentName);
-    }).mapProperty('componentName');
+    var component = App.StackServiceComponent.find(componentName);
+    return component.missingDependencies(installedComponents, opt);
   },
 
   /**
