@@ -18,19 +18,17 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.data;
 
 
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.util.RandomMetricsProvider;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.util.TimeStampProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.util.RandomMetricsProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.util.TimeStampProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MetricsGeneratorConfigurer is a factory that reads metrics definition from a file,
