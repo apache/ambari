@@ -42,6 +42,7 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
+import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
@@ -92,6 +93,7 @@ import {GraphLegendComponent} from '@app/components/graph-legend/graph-legend.co
 import {HorizontalHistogramComponent} from '@app/components/horizontal-histogram/horizontal-histogram.component';
 import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip.component';
 import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
+import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -153,6 +155,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     HorizontalHistogramComponent,
     GraphTooltipComponent,
     GraphLegendItemComponent,
+    TimeLineGraphComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -182,6 +185,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     AppSettingsService,
     AppStateService,
     AuditLogsService,
+    AuditLogsGraphDataService,
     ServiceLogsService,
     ServiceLogsHistogramDataService,
     ServiceLogsTruncatedService,

@@ -22,6 +22,7 @@ import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {
   ServiceLogsHistogramDataService, serviceLogsHistogramData
@@ -55,6 +56,7 @@ describe('LogsContainerService', () => {
           auditLogs,
           serviceLogs,
           auditLogsFields,
+          auditLogsGraphData,
           serviceLogsFields,
           serviceLogsHistogramData,
           appSettings,
@@ -71,6 +73,7 @@ describe('LogsContainerService', () => {
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
+        AuditLogsGraphDataService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         AppSettingsService,

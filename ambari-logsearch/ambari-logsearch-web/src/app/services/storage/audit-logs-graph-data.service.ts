@@ -16,46 +16,17 @@
  * limitations under the License.
  */
 
-export interface GraphPositionOptions {
-  top: number;
-  left: number;
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {AppStore, CollectionModelService, getCollectionReducer} from '@app/classes/models/store';
+
+export const modelName = 'auditLogsGraphData';
+
+@Injectable()
+export class AuditLogsGraphDataService extends CollectionModelService {
+  constructor(store: Store<AppStore>) {
+    super(modelName, store);
+  }
 }
 
-export interface GraphMarginOptions extends GraphPositionOptions {
-  right: number;
-  bottom: number;
-}
-
-export interface GraphTooltipInfo {
-  data: object[];
-  title: string | number;
-}
-
-export interface LegendItem {
-  label: string;
-  color: string;
-}
-
-export interface GraphScaleItem {
-  tick: number;
-  [key: string]: number;
-}
-
-export interface ChartTimeGap {
-  value: number;
-  unit: string;
-  label: string;
-}
-
-export interface GraphEventData extends Array<number> {
-  data: GraphScaleItem;
-}
-
-export type GraphLinePoint = GraphScaleItem & {
-  color: string;
-}
-
-export interface GraphLineData {
-  points: GraphScaleItem[];
-  key: string;
-}
+export const auditLogsGraphData = getCollectionReducer(modelName);
