@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,6 +54,7 @@ import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
+import org.apache.ambari.server.controller.ServiceGroupRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
@@ -131,7 +134,7 @@ public class AmbariContext {
   private static ClusterController clusterController;
   //todo: task id's.  Use existing mechanism for getting next task id sequence
   private final static AtomicLong nextTaskId = new AtomicLong(10000);
-  private static final String DEFAULT_SERVICE_GROUP_NAME = "default_service_group";
+  static final String DEFAULT_SERVICE_GROUP_NAME = "default_service_group"; // exposed for test
 
   private static HostRoleCommandFactory hostRoleCommandFactory;
   private static HostResourceProvider hostResourceProvider;
@@ -324,14 +327,22 @@ public class AmbariContext {
 
   public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName,
       StackId stackId, Long repositoryVersionId) {
+
+    Set<String> serviceGroups = Sets.newHashSet(DEFAULT_SERVICE_GROUP_NAME);
     Collection<String> services = topology.getBlueprint().getServices();
 
     try {
       Cluster cluster = getController().getClusters().getCluster(clusterName);
+      serviceGroups.removeAll(cluster.getServiceGroups().keySet());
       services.removeAll(cluster.getServices().keySet());
     } catch (AmbariException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
+
+    Set<ServiceGroupRequest> serviceGroupRequests = serviceGroups.stream()
+      .map(serviceGroupName -> new ServiceGroupRequest(clusterName, serviceGroupName))
+      .collect(toSet());
+
     Set<ServiceRequest> serviceRequests = new HashSet<>();
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
@@ -344,12 +355,17 @@ public class AmbariContext {
         componentRequests.add(new ServiceComponentRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, component, null, recoveryEnabled));
       }
     }
+
     try {
+      if (!serviceGroupRequests.isEmpty()) {
+        getServiceGroupResourceProvider().createServiceGroups(serviceGroupRequests);
+      }
       getServiceResourceProvider().createServices(serviceRequests);
       getComponentResourceProvider().createComponents(componentRequests);
     } catch (AmbariException | AuthorizationException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
+
     // set all services state to INSTALLED->STARTED
     // this is required so the user can start failed services at the service level
     Map<String, Object> installProps = new HashMap<>();
