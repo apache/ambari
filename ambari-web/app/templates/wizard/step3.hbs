@@ -140,6 +140,79 @@
             {{/unless}}
           </div>
         {{/unless}}
+
+        {{#if promptRepoInfo}}
+          <div class="panel panel-default repos-panel">
+            <div class="step-title">
+              <p>{{t common.repositories}}</p>
+            </div>
+            <p class="step-description">{{t installer.step1.repo.body}}</p>
+            <div class="panel-body version-contents-body">
+              <div class="row radio-group">
+                {{! Public Repository radio }}
+                <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text"}}>
+                  {{view view.usePublicRepoRadioButton classNames="display-inline-block" labelIdentifier="use-public-repo"}}
+                  {{#if networkIssuesExist}}
+                    <a id="public-disabled-link"
+                       class="display-inline-block" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
+                  {{/if}}
+                </div>
+                {{! Public Repository radio END }}
+                {{!--Local repo radio--}}
+                {{view view.useLocalRepoRadioButton classNames="radio big-radio col-sm-4" labelIdentifier="use-local-repo"}}
+              </div>
+              <div class="alert alert-info"
+                   role="alert">{{t installer.step1.useLocalRepo.infoForm.alert.baseUrl}}</div>
+
+              {{#if view.showWarning}}
+                <div
+                  class="alert alert-warning" {{QAAttr "step1-warning"}}>{{t installer.step1.attentionNeeded}}</div>
+              {{/if}}
+            </div>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th class="col-sm-2">{{t common.os}}</th>
+                  <th class="col-sm-3">{{t common.name}}</th>
+                  <th class="col-sm-6">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
+                  <th class="col-sm-1"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each operatingSystem in controller.newSupportedOsList}}
+                  <tr {{QAAttr "os-wrapper"}}>
+                    <td class="col-sm-2" {{QAAttr "os-type-label"}}>{{operatingSystem.os_family}}</td>
+                    <td class="col-sm-9" colspan="2">
+                      <table class="table table-condensed no-borders inner-table" {{QAAttr "{operatingSystem.os_family}"}}>
+                        <tbody>
+                          {{#each repository in operatingSystem.repositories}}
+                            <tr {{QAAttr "{repository.repo_name}"}}>
+                              <td class="col-sm-3">{{repository.repo_id}}</td>
+                              <td class="col-sm-8" {{bindAttr class="repository.invalidFormatError:textfield-error"}}>
+                                {{view App.WizardStep3ViewRepoUrlInput  valueBinding="repository.base_url" }}
+                              </td>
+                            </tr>
+                          {{/each}}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+            {{! OSes and Repositories END }}
+            {{! Skip Repository Base URL validation }}
+            <div id="skip-validation">
+              {{#view App.CheckboxView labelTranslate="installer.step1.advancedRepo.skipValidation.message" checkedBinding="skipValidationChecked" labelIdentifier="skip-validation"}}
+                <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
+                   data-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
+                </i>
+              {{/view}}
+              <div class="clearfix"></div>
+            </div>
+            {{! Skip Repository Base URL validation END }}
+          </div>
+        {{/if}}
       </div>
     </div>
   </div>

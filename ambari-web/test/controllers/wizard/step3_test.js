@@ -378,6 +378,48 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('isSubmitDisabled')).to.equal(true);
     });
 
+    it('should remove hdp url prompt if no host of os_family exist', function () {
+      var host1 = Em.Object.create({name: 'host1', os_family: 'os1'});
+      var host2 = Em.Object.create({name: 'host2', os_family: 'os2'});
+      var hosts = [
+            host1,
+            host2
+          ];
+      c.reopen({
+        hosts: hosts,
+        newAmbariOsTypes: [],
+        promptAmbariRepoUrl: false,
+        promptRepoInfo: true,
+        newSupportedOsList : [
+          Em.Object.create({os_family : 'os2'})
+        ]
+      });
+      c.removeHosts([host2]).onPrimary();
+      expect(c.get('promptRepoInfo')).to.equal(false);
+    });
+
+    it('should not remove hdp url prompt if a host of os_family exist', function () {
+      var host1 = Em.Object.create({name: 'host1', os_family: 'os1'});
+      var host2 = Em.Object.create({name: 'host2', os_family: 'os2'});
+      var host3 = Em.Object.create({name: 'host3', os_family: 'os2'});
+      var hosts = [
+            host1,
+            host2,
+            host3
+          ];
+      c.reopen({
+        hosts: hosts,
+        newAmbariOsTypes: [],
+        promptAmbariRepoUrl: false,
+        promptRepoInfo: true,
+        newSupportedOsList : [
+          Em.Object.create({os_family : 'os2'})
+        ]
+      });
+      c.removeHosts([host2]).onPrimary();;
+      expect(c.get('promptRepoInfo')).to.equal(true);
+    });
+
   });
 
   describe('#removeSelectedHosts', function () {
@@ -771,9 +813,11 @@ describe('App.WizardStep3Controller', function () {
     var tests = Em.A([
       {
         bootHosts: Em.A([
-          Em.Object.create({bootStatus: 'DONE'})
+          Em.Object.create({bootStatus: 'DONE', name: 'c1'})
         ]),
-        data: {items: []},
+        data: {items: [
+          {Hosts: {host_name: 'c1', os_family: 'os1'}}
+        ]},
         registrationStartedAt: 1000000,
         m: 'one host DONE',
         e: {
@@ -840,11 +884,13 @@ describe('App.WizardStep3Controller', function () {
     beforeEach(function () {
       sinon.spy(c, 'getHostInfo');
       sinon.stub(App, 'dateTime').returns(1000000);
+      sinon.stub(c, 'startHostcheck', Em.K);
     });
 
     afterEach(function () {
       c.getHostInfo.restore();
       App.dateTime.restore();
+      c.startHostcheck.restore();
     });
 
     tests.forEach(function (test) {
@@ -2567,22 +2613,29 @@ describe('App.WizardStep3Controller', function () {
       var expected = {
           name: 'name',
           home: 'home',
-          location: 'location'
-        },
-        data = {
+          location: 'location',
+          os_family_java_home: 'ab'
+      },
+      data = {
           RootServiceComponents: {
             properties: {
               'jdk.name': expected.name,
               'java.home': expected.home,
-              'jdk_location': expected.location
+              'jdk_location': expected.location,
+              'java.home.aa': expected.os_family_java_home
             }
           }
-        };
-
+      };
+      var bootHosts = [
+                       Em.Object.create({name: 'h1', bootStatus: 'REGISTERED', os_family: 'aa'})
+                       ];
+      c.set('bootHosts', bootHosts);
       c.getJDKNameSuccessCallback(data);
       expect(c.get('needJDKCheckOnHosts')).to.equal(false);
       expect(c.get('jdkLocation')).to.equal(expected.location);
       expect(c.get('javaHome')).to.equal(expected.home);
+      var javaHomeHostInfo = c.get('javaHomeHostInfo');
+      expect(javaHomeHostInfo['aa'].jdk_path).to.equal('ab');
     });
 
   });
@@ -2595,11 +2648,9 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({name: 'n1', bootStatus: 'REGISTERED'}),
           Em.Object.create({name: 'n2', bootStatus: 'REGISTERED'})
         ],
-        javaHome = '/java',
         jdkLocation = '/jdk';
       c.reopen({
         bootHosts: bootHosts,
-        javaHome: javaHome,
         jdkLocation: jdkLocation
       });
       c.doCheckJDK();
@@ -2719,14 +2770,186 @@ describe('App.WizardStep3Controller', function () {
         ]
       };
 
+      var bootHosts = [
+                       Em.Object.create({name: 'h1', bootStatus: 'REGISTERED', os_family: 'os1'}),
+                       Em.Object.create({name: 'h2', bootStatus: 'REGISTERED', os_family: 'os2'})
+                       ];
+      var javaHomeHostInfo = {};
+      javaHomeHostInfo['os1'] = {jdk_path: "/abc", hosts: [], host_jdk_context: []};
+      javaHomeHostInfo['os2'] = {jdk_path: "/abc", hosts: [], host_jdk_context: []};
+
+      c.reopen({
+        bootHosts: bootHosts,
+        javaHomeHostInfo: javaHomeHostInfo,
+      });
+
       c.set('jdkCategoryWarnings', {});
       c.parseJDKCheckResults(data);
       var result = c.get('jdkCategoryWarnings');
       expect(result.length).to.equal(1);
       expect(result[0].hostsNames).to.eql(['h1']);
-
     });
 
+  });
+
+  describe('#checkRepoForNewOs', function () {
+    it('should show prompt if repos dont exist for os_family in allRepos', function () {
+      var bootHosts = [
+                       Em.Object.create({name: 'host1', bootStatus: 'REGISTERED', os_family: 'os1'}),
+                       Em.Object.create({name: 'host2', bootStatus: 'REGISTERED', os_family: 'os2'})
+                       ];
+      var allRepos = [
+                      {os_family: 'os1'}
+                      ];
+      var allSupportedOSList = {operating_systems: [
+                                                    {
+                                                      OperatingSystems: { os_type : 'os2'},
+                                                      repositories: [
+                                                                     {
+                                                                       Repositories: {
+                                                                         base_url: 'baseurl1'
+                                                                       }
+                                                                     },
+                                                                     {
+                                                                       Repositories: {
+                                                                         base_url: 'baseurl2'
+                                                                       }
+                                                                     }
+                                                                     ]
+                                                    }
+                                                    ]
+      };
+      c.reopen({
+        bootHosts: bootHosts,
+        allRepos: allRepos,
+        promptRepoInfo: false,
+        allSupportedOSList: allSupportedOSList
+      });
+      c.checkRepoForNewOs();
+      expect(c.get('promptRepoInfo')).to.equal(true);
+    });
+  });
+
+  describe('#editLocalRepository', function () {
+    it('should set invalidFormatError to true for invalid base url', function() {
+      var repositories = [{
+        base_url: 'invalid url',
+        last_base_url: 'http://last_base_url'
+      }];
+      c.reopen({
+        repositories : repositories
+      });
+      c.editLocalRepository();
+      expect(c.get('repositories')[0].invalidFormatError).to.equal(true);
+    });
+
+    it('should set invalidFormatError to false and update the last_base_url to base_url', function() {
+      var repositories = [{
+        base_url: 'http://base_url',
+        last_base_url: 'http://last_base_url'
+      }];
+      c.reopen({
+        repositories : repositories
+      });
+      c.editLocalRepository();
+      expect(c.get('repositories')[0].invalidFormatError).to.equal(false);
+      expect(c.get('repositories')[0].last_base_url).to.equal('http://base_url');
+    });
+  });
+
+  describe('onNetworkIssuesExist', function () {
+    it('should remove base_url if networkIssueExist', function() {
+      var newSupportedOsList = [{
+        os_family : 'os1',
+        repositories: [
+                       {
+                         base_url: 'http://base_url',
+                         last_base_url: 'http://last_base_url'
+                       }
+                       ]
+      }];
+      c.reopen({
+        newSupportedOsList : newSupportedOsList,
+        networkIssuesExist : true
+      });
+      c.onNetworkIssuesExist();
+      expect(c.get('newSupportedOsList')[0].repositories[0].base_url).to.equal("");
+    });
+  });
+
+  describe('#usePublicRepo', function () {
+    beforeEach(function () {
+      var newSupportedOsList = [{
+        os_family : 'os1',
+        repositories: [
+                       {
+                         base_url: 'invalid_url',
+                         last_base_url: 'http://last_base_url',
+                         latest_base_url: 'http://latest_base_url'
+                       }
+                       ]
+      }];
+      c.reopen({
+        useRedhatSatellite: true,
+        isPublicRepo: false,
+        isLocalRepo: true,
+        newSupportedOsList : newSupportedOsList
+      });
+      c.usePublicRepo();
+    });
+
+    it('base_url is set to latest_base_url', function () {
+      expect(c.get('newSupportedOsList')[0].repositories[0].base_url).to.be.equal('http://latest_base_url');
+    });
+
+    it('`useRedhatSatellite` is set `false`', function () {
+      expect(c.get('useRedhatSatellite')).to.be.false;
+    });
+
+    it('`usePublicRepo` is set `true`', function () {
+      expect(c.get('isPublicRepo')).to.be.true;
+    });
+
+    it('`useLocalRepo` is set `false`', function () {
+      expect(c.get('isLocalRepo')).to.be.false;
+    });
+  });
+
+  describe('#useLocalRepo', function () {
+    beforeEach( function () {
+      var newSupportedOsList = [{
+        os_family : 'os1',
+        repositories: [
+                       {
+                         base_url: 'invalid_url',
+                         last_base_url: 'http://last_base_url',
+                         latest_base_url: 'http://latest_base_url'
+                       }
+                       ]
+      }];
+      c.reopen({
+        isPublicRepo: true,
+        isLocalRepo: false,
+        newSupportedOsList : newSupportedOsList
+      });
+      c.useLocalRepo();
+    });
+
+    it('base_url is set to blank', function () {
+      expect(c.get('newSupportedOsList')[0].repositories[0].base_url).to.be.equal('');
+    });
+
+    it('last_base_url is set to blank', function () {
+      expect(c.get('newSupportedOsList')[0].repositories[0].last_base_url).to.be.equal('');
+    });
+
+    it('`isPublicRepo` is set `false`', function () {
+      expect(c.get('isPublicRepo')).to.be.false;
+    });
+
+    it('`isLocalRepo` is set `true`', function () {
+      expect(c.get('isLocalRepo')).to.be.true;
+    });
   });
 
   describe('#getHostCheckTasksSuccess', function() {
