@@ -1717,7 +1717,7 @@ public class RequestResourceProviderTest {
 
     TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
     expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
-    expect(topology.getBlueprint()).andReturn(null).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
 
 

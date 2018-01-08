@@ -21,9 +21,6 @@ package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.state.SecurityType;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Holds security related properties, the securityType and security descriptor (in case of KERBEROS
  * kerberos_descriptor) either contains the whole descriptor or just the reference to it.
@@ -46,9 +43,7 @@ public class SecurityConfiguration {
    */
   private String descriptor;
 
-
-  @JsonCreator
-  public SecurityConfiguration(@JsonProperty("type") SecurityType type) {
+  public SecurityConfiguration(SecurityType type) {
     this.type = type;
   }
 

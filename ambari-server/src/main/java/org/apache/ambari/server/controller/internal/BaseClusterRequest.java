@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,13 +29,12 @@ import org.apache.ambari.server.api.predicate.Token;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.topology.BlueprintV2;
-import org.apache.ambari.server.topology.BlueprintV2Factory;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
-import org.apache.ambari.server.topology.Service;
 import org.apache.ambari.server.topology.TopologyRequest;
 
 /**
@@ -64,7 +62,12 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    * blueprint
    */
   //todo: change interface to only return blueprint name
-  protected BlueprintV2 blueprint;
+  protected Blueprint blueprint;
+
+  /**
+   * configuration
+   */
+  protected Configuration configuration;
 
   /**
    * security configuration
@@ -74,12 +77,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   /**
    * blueprint factory
    */
-  protected static BlueprintV2Factory blueprintFactory;
-
-  /**
-   * List of services
-   */
-  protected Collection<Service> serviceConfigs;
+  protected static BlueprintFactory blueprintFactory;
 
   /**
    * Lexer used to obtain property names from a predicate string
@@ -96,7 +94,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    * inject blueprint factory
    * @param factory  blueprint factory
    */
-  public static void init(BlueprintV2Factory factory) {
+  public static void init(BlueprintFactory factory) {
     blueprintFactory = factory;
   }
 
@@ -106,19 +104,13 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   }
 
   @Override
-  public BlueprintV2 getBlueprint() {
+  public Blueprint getBlueprint() {
     return blueprint;
   }
 
   @Override
-  public Collection<Service> getServiceConfigs() {
-    return serviceConfigs;
-  }
-
-  @Override
-  @Deprecated
   public Configuration getConfiguration() {
-    return null;
+    return configuration;
   }
 
   @Override
@@ -163,7 +155,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    *
    * @param blueprint blueprint
    */
-  protected void setBlueprint(BlueprintV2 blueprint) {
+  protected void setBlueprint(Blueprint blueprint) {
     this.blueprint = blueprint;
   }
 
@@ -172,14 +164,14 @@ public abstract class BaseClusterRequest implements TopologyRequest {
    *
    * @param configuration  configuration
    */
-  @Deprecated
   protected void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   /**
    * Get the blueprint factory.
    */
-  protected BlueprintV2Factory getBlueprintFactory() {
+  protected BlueprintFactory getBlueprintFactory() {
     return blueprintFactory;
   }
 

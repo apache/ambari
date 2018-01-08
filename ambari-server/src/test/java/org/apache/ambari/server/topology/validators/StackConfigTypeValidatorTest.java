@@ -16,19 +16,16 @@ package org.apache.ambari.server.topology.validators;
 
 import static org.easymock.EasyMock.expect;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.StackV2;
-import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.Service;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -50,13 +47,10 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
   private Configuration stackConfigurationMock;
 
   @Mock
-  private BlueprintV2 blueprintMock;
+  private Blueprint blueprintMock;
 
   @Mock
-  private Service testService;
-
-  @Mock
-  private StackV2 stackMock;
+  private Stack stackMock;
 
   @Mock
   private ClusterTopology clusterTopologyMock;
@@ -68,12 +62,10 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
 
   @Before
   public void before() {
-    List<Service> serviceConfigs = new ArrayList<>();
-    serviceConfigs.add(testService);
-    expect(testService.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
+    expect(clusterTopologyMock.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
     expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
-    expect(clusterTopologyMock.getServiceConfigs()).andReturn(serviceConfigs).anyTimes();
-    expect(testService.getStack()).andReturn(stackMock).anyTimes();
+
+    expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
   }
 
   @After

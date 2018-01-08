@@ -64,7 +64,7 @@ public class ActiveWidgetLayoutService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get user widget layouts", nickname = "ActiveWidgetLayoutService#getServiceConfigs", notes = "Returns all active widget layouts for user.", response = ActiveWidgetLayoutResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get user widget layouts", nickname = "ActiveWidgetLayoutService#getServices", notes = "Returns all active widget layouts for user.", response = ActiveWidgetLayoutResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user layout details", defaultValue = "WidgetLayoutInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort layouts (asc | desc)", defaultValue = "WidgetLayoutInfo/user_name.asc", dataType = "string", paramType = "query"),

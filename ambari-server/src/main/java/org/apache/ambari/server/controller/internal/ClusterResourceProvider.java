@@ -206,7 +206,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("blueprint");
     baseUnsupported.remove("host_groups");
     baseUnsupported.remove("default_password");
-    baseUnsupported.remove("services");
+    baseUnsupported.remove("configurations");
     baseUnsupported.remove("credentials");
     baseUnsupported.remove("config_recommendation_strategy");
     baseUnsupported.remove("provision_action");

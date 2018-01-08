@@ -284,7 +284,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(stack.getExcludedConfigurationTypes("service1")).andReturn(Collections.emptySet()).anyTimes();
     expect(stack.getExcludedConfigurationTypes("service2")).andReturn(Collections.emptySet()).anyTimes();
 
-    expect(request.getBlueprint()).andReturn(null).anyTimes();
+    expect(request.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(request.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(request.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
@@ -343,7 +343,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) eq("1"), anyLong());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();

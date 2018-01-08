@@ -225,7 +225,7 @@ public class AmbariContextTest {
     blueprintServices.add("service2");
 
     expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
-    expect(topology.getBlueprint()).andReturn(null).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.singletonMap(HOST_GROUP_1, group1Info)).anyTimes();
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
@@ -296,10 +296,8 @@ public class AmbariContextTest {
     Capture<Set<ServiceRequest>> serviceRequestCapture = EasyMock.newCapture();
     Capture<Set<ServiceComponentRequest>> serviceComponentRequestCapture = EasyMock.newCapture();
 
-    serviceResourceProvider.createServices(capture(serviceRequestCapture));
-    expectLastCall().once();
-    componentResourceProvider.createComponents(capture(serviceComponentRequestCapture));
-    expectLastCall().once();
+    expect(serviceResourceProvider.createServices(capture(serviceRequestCapture))).andReturn(null).once();
+    expect(componentResourceProvider.createComponents(capture(serviceComponentRequestCapture))).andReturn(null).once();
 
     Capture<Request> serviceInstallRequestCapture = EasyMock.newCapture();
     Capture<Request> serviceStartRequestCapture = EasyMock.newCapture();
@@ -315,7 +313,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();
@@ -385,8 +383,7 @@ public class AmbariContextTest {
     expect(cluster.getService("service2")).andReturn(mockService1).once();
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
-    controller.createHostComponents(capture(requestsCapture));
-    expectLastCall().once();
+    expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
 
     replayAll();
 
@@ -400,7 +397,7 @@ public class AmbariContextTest {
     components.add("component3");
     componentsMap.put("service2", components);
 
-    context.createAmbariHostResources(CLUSTER_ID, "host1", new HashMap<org.apache.ambari.server.topology.Service, Collection<ComponentV2>>());
+    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
 
     assertEquals(requestsCapture.getValue().size(), 3);
   }
@@ -415,8 +412,7 @@ public class AmbariContextTest {
     expect(cluster.getService("service1")).andReturn(mockService1).times(2);
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
-    controller.createHostComponents(capture(requestsCapture));
-    expectLastCall().once();
+    expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
 
     replayAll();
 
@@ -430,7 +426,7 @@ public class AmbariContextTest {
     components.add("component3");
     componentsMap.put("service2", components);
 
-    context.createAmbariHostResources(CLUSTER_ID, "host1", new HashMap<org.apache.ambari.server.topology.Service, Collection<ComponentV2>>());
+    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
 
     assertEquals(requestsCapture.getValue().size(), 2);
   }
@@ -733,10 +729,8 @@ public class AmbariContextTest {
     expectLastCall().once();
     expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
 
-    serviceResourceProvider.createServices(capture(Capture.<Set<ServiceRequest>>newInstance()));
-    expectLastCall().once();
-    componentResourceProvider.createComponents(capture(Capture.<Set<ServiceComponentRequest>>newInstance()));
-    expectLastCall().once();
+    expect(serviceResourceProvider.createServices(anyObject())).andReturn(null).once();
+    expect(componentResourceProvider.createComponents(anyObject())).andReturn(null).once();
 
     expect(serviceResourceProvider.updateResources(
         capture(Capture.<Request>newInstance()), capture(Capture.<Predicate>newInstance()))).andReturn(null).atLeastOnce();
@@ -744,7 +738,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
   }
 
   @Test
@@ -769,7 +763,7 @@ public class AmbariContextTest {
 
     // test
     try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null);
+      context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
       fail("Expected failure when several versions are found");
     } catch (IllegalArgumentException e) {
       assertEquals(
@@ -792,7 +786,7 @@ public class AmbariContextTest {
 
     // test
     try {
-      context.createAmbariResources(topology, CLUSTER_NAME, null);
+      context.createAmbariResources(topology, CLUSTER_NAME, null, "xyz", null);
       fail("Expected failure when a bad version is provided");
     } catch (IllegalArgumentException e) {
       assertEquals(

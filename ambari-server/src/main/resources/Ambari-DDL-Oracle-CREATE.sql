@@ -607,14 +607,6 @@ CREATE TABLE blueprint (
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name),
   CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
 
-CREATE TABLE blueprintv2 (
-  blueprint_name VARCHAR2(255) NOT NULL,
-  security_type VARCHAR2(32) NOT NULL DEFAULT 'NONE',
-  security_descriptor_reference VARCHAR2(255),
-  content CLOB NOT NULL,
-  CONSTRAINT PK_blueprintv2 PRIMARY KEY (blueprint_name));
-
-
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR2(255) NOT NULL,
   name VARCHAR2(255) NOT NULL,
@@ -838,18 +830,6 @@ CREATE TABLE topology_request (
   provision_action VARCHAR(255),
   CONSTRAINT PK_topology_request PRIMARY KEY (id),
   CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
-
-CREATE TABLE topology_configurations (
-  id NUMBER(19) NOT NULL,
-  request_id NUMBER(19) NOT NULL,
-  service_group_name VARCHAR(100) NOT NULL,
-  service_name VARCHAR(100) NOT NULL,
-  component_name VARCHAR(100),
-  host_group_name VARCHAR(100),
-  cluster_properties CLOB,
-  cluster_attributes CLOB,
-  CONSTRAINT PK_topology_configurations PRIMARY KEY (id),
-  CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id));
 
 CREATE TABLE topology_hostgroup (
   id NUMBER(19) NOT NULL,

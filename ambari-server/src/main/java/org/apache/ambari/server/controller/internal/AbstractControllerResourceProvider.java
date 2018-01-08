@@ -243,7 +243,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case HostComponentProcess:
         return new HostComponentProcessResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Blueprint:
-        return new BlueprintV2ResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new BlueprintResourceProvider(propertyIds, keyPropertyIds, managementController);
       case KerberosDescriptor:
         return resourceProviderFactory.getKerberosDescriptorResourceProvider(managementController, propertyIds, keyPropertyIds);
       case Recommendation:

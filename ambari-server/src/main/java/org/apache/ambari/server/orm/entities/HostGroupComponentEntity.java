@@ -44,19 +44,7 @@ public class HostGroupComponentEntity {
   private String blueprintName;
 
   @Id
-  @Column(name = "service_group", nullable = true, insertable = true, updatable = false)
-  private String serviceGroup;
-
-  @Id
-  @Column(name = "service_name", nullable = true, insertable = true, updatable = false)
-  private String serviceName;
-
-  @Id
-  @Column(name = "type", nullable = false, insertable = true, updatable = false)
-  private String type;
-
-  @Id
-  @Column(name = "instance_name", nullable = true, insertable = true, updatable = false)
+  @Column(name = "name", nullable = false, insertable = true, updatable = false)
   private String name;
 
   @Column(name = "provision_action", nullable = true, insertable = true, updatable = false)
@@ -141,8 +129,6 @@ public class HostGroupComponentEntity {
   public void setBlueprintName(String blueprintName) {
     this.blueprintName = blueprintName;
   }
-
-
 
   /**
    * Get the provision action associated with this
