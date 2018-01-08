@@ -964,6 +964,11 @@ def main(options, args, parser):
 def mainBody():
   parser = optparse.OptionParser(usage="usage: %prog action [options]",)
   action = sys.argv[1]
+
+  if action == "setup-ldap":
+    print "setup-ldap action is deprecated. Please configure LDAP integration from the Ambari UI"
+    sys.exit(0)
+
   init_action_parser(action, parser)
   (options, args) = parser.parse_args()
 

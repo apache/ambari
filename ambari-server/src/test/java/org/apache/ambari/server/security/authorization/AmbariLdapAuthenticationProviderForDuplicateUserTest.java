@@ -20,6 +20,8 @@ package org.apache.ambari.server.security.authorization;
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
@@ -84,19 +86,21 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(),"src/test/resources/version");
     properties.setProperty(Configuration.OS_VERSION.getKey(),"centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
-    properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=apache,dc=org");
-    properties.setProperty(Configuration.LDAP_PRIMARY_URL.getKey(), "localhost:" + getLdapServer().getPort());
-
     Configuration configuration = new Configuration(properties);
+    
+    final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration();
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "dc=apache,dc=org");
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "localhost");
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, String.valueOf(getLdapServer().getPort()));
 
-    authenticationProvider = new AmbariLdapAuthenticationProvider(configuration, authoritiesPopulator, userDAO);
+    authenticationProvider = new AmbariLdapAuthenticationProvider(configuration, ldapConfiguration, authoritiesPopulator, userDAO);
   }
 
   @Test
   public void testAuthenticateDuplicateUserAltUserSearchDisabled() throws Exception {
     // Given
     Authentication authentication = new UsernamePasswordAuthenticationToken("user_dup", "password");
-    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "false");
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "false");
 
     expectedException.expect(DuplicateLdapUserFoundAuthenticationException.class);
     expectedException.expectMessage("Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration");
@@ -114,7 +118,7 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
   public void testAuthenticateDuplicateUserAltUserSearchEnabled() throws Exception {
     // Given
     Authentication authentication = new UsernamePasswordAuthenticationToken("user_dup", "password");
-    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "true");
 
     expectedException.expect(DuplicateLdapUserFoundAuthenticationException.class);
     expectedException.expectMessage("Login Failed: Please append your domain to your username and try again.  Example: user_dup@domain");

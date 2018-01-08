@@ -15,24 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.ambari.server.orm;
-
-import org.apache.ambari.server.events.JpaInitializedEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-
-import com.google.inject.Inject;
-import com.google.inject.persist.PersistService;
+package org.apache.ambari.server.configuration;
 
 /**
- * This class needs to be instantiated with guice to initialize Guice-persist
+ * Ldap username collision handling behavior.
+ * CONVERT - convert existing local users to LDAP users.
+ * SKIP - skip existing local users.
  */
-public class GuiceJpaInitializer {
-  
-  @Inject
-  public GuiceJpaInitializer(PersistService service, AmbariEventPublisher publisher) {
-    service.start();
-    publisher.publish(new JpaInitializedEvent());
-  }
-
+public enum LdapUsernameCollisionHandlingBehavior {
+  CONVERT,
+  SKIP
 }
+

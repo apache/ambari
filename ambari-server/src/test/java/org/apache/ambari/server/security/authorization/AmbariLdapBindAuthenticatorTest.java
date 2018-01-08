@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import static java.lang.Boolean.parseBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
@@ -25,8 +26,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.util.Properties;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttributes;
@@ -34,9 +33,11 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
 
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMockSupport;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -47,7 +48,20 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
+  
+  private Injector injector;
+  private AmbariLdapConfiguration ldapConfiguration;
+  
+  @Before
+  public void init() throws Exception {
+    injector = createInjector();
+    ldapConfiguration = injector.getInstance(AmbariLdapConfiguration.class);
+  }
 
   @Test
   public void testAuthenticateWithoutLogin() throws Exception {
@@ -93,11 +107,12 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
     FilterBasedLdapUserSearch userSearch = createMock(FilterBasedLdapUserSearch.class);
     expect(userSearch.searchForUser(anyString())).andReturn(searchedUserContext).once();
 
+    setupDatabaseConfigurationExpectations(false, false);
+
     replayAll();
 
-    Configuration configuration = new Configuration();
 
-    AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, configuration);
+    AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, ldapConfiguration);
     bindAuthenticator.setUserSearch(userSearch);
 
     try {
@@ -128,13 +143,13 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
     expectLastCall().atLeastOnce();
 
     DirContextOperations boundUserContext = createMock(DirContextOperations.class);
+    System.out.println(ldapUserDNString);
     expect(boundUserContext.search(eq("ou=groups"), eq("(&(member=" + ldapUserDNString + ")(objectclass=group)(|(cn=Ambari Administrators)))"), anyObject(SearchControls.class)))
         .andReturn(adminGroups)
         .atLeastOnce();
     boundUserContext.close();
     expectLastCall().atLeastOnce();
-
-
+    
     LdapContextSource ldapCtxSource = createMock(LdapContextSource.class);
     expect(ldapCtxSource.getBaseLdapName())
         .andReturn(basePath)
@@ -166,23 +181,69 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
       expectLastCall().once();
     }
 
+    setupDatabaseConfigurationExpectations(true, forceUsernameToLower);
+
     replayAll();
 
     RequestContextHolder.setRequestAttributes(servletRequestAttributes);
 
-    Properties properties = new Properties();
-    if (forceUsernameToLower) {
-      properties.setProperty(Configuration.LDAP_USERNAME_FORCE_LOWERCASE.getKey(), "true");
-    }
-    Configuration configuration = new Configuration(properties);
-
-    AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, configuration);
+    AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, ldapConfiguration);
     bindAuthenticator.setUserSearch(userSearch);
     DirContextOperations user = bindAuthenticator.authenticate(new UsernamePasswordAuthenticationToken(ambariUsername, "password"));
 
     verifyAll();
 
-    String ldapUserNameAttribute = configuration.getLdapServerProperties().getUsernameAttribute();
+    String ldapUserNameAttribute = ldapConfiguration.getLdapServerProperties().getUsernameAttribute();
     assertEquals(ldapUsername, user.getStringAttribute(ldapUserNameAttribute));
+  }
+  
+  private Injector createInjector() throws Exception {
+    return Guice.createInjector(new AbstractModule() {
+
+      @Override
+      protected void configure() {
+        bind(AmbariLdapConfiguration.class).toInstance(createNiceMock(AmbariLdapConfiguration.class));
+      }
+    });
+  }
+  
+  private void setupDatabaseConfigurationExpectations(boolean expectedDatabaseConfigCall, boolean forceUsernameToLowerCase) {
+    final LdapServerProperties ldapServerProperties = getDefaultLdapServerProperties(forceUsernameToLowerCase);
+    ldapServerProperties.setGroupObjectClass("group");
+    if (expectedDatabaseConfigCall) {
+      expect(ldapConfiguration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
+    }
+  }
+  
+  private static LdapServerProperties getDefaultLdapServerProperties(boolean forceUsernameToLowerCase) {
+    final LdapServerProperties ldapServerProperties = new LdapServerProperties();
+    ldapServerProperties.setPrimaryUrl(AmbariLdapConfigurationKeys.SERVER_HOST.getDefaultValue() + ":" + AmbariLdapConfigurationKeys.SERVER_PORT.getDefaultValue());
+    ldapServerProperties.setSecondaryUrl(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST.getDefaultValue() + ":" + AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT.getDefaultValue());
+    ldapServerProperties.setUseSsl(parseBoolean(AmbariLdapConfigurationKeys.USE_SSL.getDefaultValue()));
+    ldapServerProperties.setAnonymousBind(parseBoolean(AmbariLdapConfigurationKeys.ANONYMOUS_BIND.getDefaultValue()));
+    ldapServerProperties.setManagerDn(AmbariLdapConfigurationKeys.BIND_DN.getDefaultValue());
+    ldapServerProperties.setManagerPassword(AmbariLdapConfigurationKeys.BIND_PASSWORD.getDefaultValue());
+    ldapServerProperties.setBaseDN(AmbariLdapConfigurationKeys.USER_SEARCH_BASE.getDefaultValue());
+    ldapServerProperties.setUsernameAttribute(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setForceUsernameToLowercase(forceUsernameToLowerCase);
+    ldapServerProperties.setUserBase(AmbariLdapConfigurationKeys.USER_BASE.getDefaultValue());
+    ldapServerProperties.setUserObjectClass(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS.getDefaultValue());
+    ldapServerProperties.setDnAttribute(AmbariLdapConfigurationKeys.DN_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setGroupBase(AmbariLdapConfigurationKeys.GROUP_BASE.getDefaultValue());
+    ldapServerProperties.setGroupObjectClass(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS.getDefaultValue());
+    ldapServerProperties.setGroupMembershipAttr(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setGroupNamingAttr(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE.getDefaultValue());
+    ldapServerProperties.setAdminGroupMappingRules(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES.getDefaultValue());
+    ldapServerProperties.setAdminGroupMappingMemberAttr("");
+    ldapServerProperties.setUserSearchFilter(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER.getDefaultValue());
+    ldapServerProperties.setAlternateUserSearchFilter(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER.getDefaultValue());
+    ldapServerProperties.setGroupSearchFilter(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER.getDefaultValue());
+    ldapServerProperties.setReferralMethod(AmbariLdapConfigurationKeys.REFERRAL_HANDLING.getDefaultValue());
+    ldapServerProperties.setSyncUserMemberReplacePattern(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN.getDefaultValue());
+    ldapServerProperties.setSyncGroupMemberReplacePattern(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN.getDefaultValue());
+    ldapServerProperties.setSyncUserMemberFilter(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER.getDefaultValue());
+    ldapServerProperties.setSyncGroupMemberFilter(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER.getDefaultValue());
+    ldapServerProperties.setPaginationEnabled(parseBoolean(AmbariLdapConfigurationKeys.PAGINATION_ENABLED.getDefaultValue()));
+    return ldapServerProperties;
   }
 }
