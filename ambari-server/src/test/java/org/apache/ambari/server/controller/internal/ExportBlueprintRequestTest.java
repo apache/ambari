@@ -120,7 +120,7 @@ public class ExportBlueprintRequestTest {
 
     // assertions
     assertEquals(CLUSTER_NAME, exportBlueprintRequest.getClusterName());
-    Blueprint bp = null; exportBlueprintRequest.getBlueprint();
+    Blueprint bp = exportBlueprintRequest.getBlueprint();
     assertEquals("exported-blueprint", bp.getName());
     Map<String, HostGroup> hostGroups = bp.getHostGroups();
     assertEquals(2, hostGroups.size());

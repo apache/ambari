@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -149,31 +152,31 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
               " using existing db!");
           }
         }
-//        if (configurationContext.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
-//            Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
-//            if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
-//              ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<>(blueprint.getHostGroupsForComponent(component));
-//              Set<String> givenHostGroups = new HashSet<>();
-//              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
-//              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
-//              if(givenHostGroups.size() != hostGroupsForComponent.size()) {
-//                 throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-//              }
-//              if(HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()){
-//                for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
-//                   Iterator<String> itr = givenHostGroups.iterator();
-//                   while(itr.hasNext()){
-//                      if(itr.next().contains(hostGroupForComponent.getName())){
-//                         itr.remove();
-//                      }
-//                   }
-//                 }
-//                 if(!givenHostGroups.isEmpty()){
-//                    throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-//                 }
-//                }
-//              }
-//        }
+        if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
+            Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
+            if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
+              ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<>(blueprint.getHostGroupsForComponent(component));
+              Set<String> givenHostGroups = new HashSet<>();
+              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
+              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
+              if(givenHostGroups.size() != hostGroupsForComponent.size()) {
+                 throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
+              }
+              if(HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()){
+                for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
+                   Iterator<String> itr = givenHostGroups.iterator();
+                   while(itr.hasNext()){
+                      if(itr.next().contains(hostGroupForComponent.getName())){
+                         itr.remove();
+                      }
+                   }
+                 }
+                 if(!givenHostGroups.isEmpty()){
+                    throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
+                 }
+                }
+              }
+          }
 
         if (component.equals("HIVE_METASTORE")) {
           Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
@@ -311,13 +314,12 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     Map<String, Map<String, String>> configProperties = blueprint.getConfiguration().getProperties();
     Collection<String> cardinalityFailures = new HashSet<>();
     //todo: don't hard code this HA logic here
-//TODO
-//    if (ClusterTopologyImpl.isNameNodeHAEnabled(configProperties) &&
-//        (component.equals("SECONDARY_NAMENODE"))) {
-//      // override the cardinality for this component in an HA deployment,
-//      // since the SECONDARY_NAMENODE should not be started in this scenario
-//      cardinality = new Cardinality("0");
-//    }
+    if (ClusterTopologyImpl.isNameNodeHAEnabled(configProperties) &&
+        (component.equals("SECONDARY_NAMENODE"))) {
+      // override the cardinality for this component in an HA deployment,
+      // since the SECONDARY_NAMENODE should not be started in this scenario
+      cardinality = new Cardinality("0");
+    }
 
     int actualCount = blueprint.getHostGroupsForComponent(component).size();
     if (! cardinality.isValidCount(actualCount)) {

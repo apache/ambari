@@ -22,9 +22,10 @@ import static org.apache.ambari.server.controller.internal.UnitUpdater.PropertyV
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.StackV2;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.UnitUpdater.PropertyUnit;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.TopologyValidator;
 
@@ -41,34 +42,33 @@ public class UnitValidator implements TopologyValidator {
 
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
-    topology.getServiceConfigs().forEach(service -> {
-      String stackId = service.getStackId();
-      validateConfig(service.getConfiguration().getFullProperties(), topology.getBlueprint().getStackById(stackId));
-      topology.getHostGroupInfo().values().forEach(hostGroup -> {
-        String stackId2 = service.getStackId();
-        validateConfig(hostGroup.getConfiguration().getFullProperties(), topology.getBlueprint().getStackById(stackId2));
-      });
-    });
+    Stack stack = topology.getBlueprint().getStack();
+    validateConfig(topology.getConfiguration().getFullProperties(), stack);
+    for (HostGroupInfo hostGroup : topology.getHostGroupInfo().values()) {
+      validateConfig(hostGroup.getConfiguration().getFullProperties(), stack);
+    }
   }
 
-  private void validateConfig(Map<String, Map<String, String>> configuration, StackV2 stack) {
-    configuration.entrySet().forEach(each ->
-      validateConfigType(each.getKey(), each.getValue(), stack)
-    );
+  private void validateConfig(Map<String, Map<String, String>> configuration, Stack stack) {
+    for (Map.Entry<String, Map<String, String>> each : configuration.entrySet()) {
+      validateConfigType(each.getKey(), each.getValue(), stack);
+    }
   }
 
-  private void validateConfigType(String configType, Map<String, String> config, StackV2 stack) {
-    config.keySet().forEach(propertyName -> validateProperty(configType, config, propertyName, stack));
+  private void validateConfigType(String configType, Map<String, String> config, Stack stack) {
+    for (String propertyName : config.keySet()) {
+      validateProperty(configType, config, propertyName, stack);
+    }
   }
 
-  private void validateProperty(String configType, Map<String, String> config, String propertyName, StackV2 stack) {
+  private void validateProperty(String configType, Map<String, String> config, String propertyName, Stack stack) {
     relevantProps.stream()
       .filter(each -> each.hasTypeAndName(configType, propertyName))
       .findFirst()
       .ifPresent(relevantProperty -> checkUnit(config, stack, relevantProperty));
   }
 
-  private void checkUnit(Map<String, String> configToBeValidated, StackV2 stack, UnitValidatedProperty prop) {
+  private void checkUnit(Map<String, String> configToBeValidated, Stack stack, UnitValidatedProperty prop) {
     PropertyUnit stackUnit = PropertyUnit.of(stack, prop);
     PropertyValue value = PropertyValue.of(prop.getPropertyName(), configToBeValidated.get(prop.getPropertyName()));
     if (value.hasAnyUnit() && !value.hasUnit(stackUnit)) {

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +39,6 @@ import org.apache.ambari.server.orm.dao.TopologyLogicalRequestDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.TopologyConfigurationsEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
@@ -95,7 +93,7 @@ public class PersistedStateImpl implements PersistedState {
   private HostRoleCommandDAO physicalTaskDAO;
 
   @Inject
-  private BlueprintV2Factory blueprintFactory;
+  private BlueprintFactory blueprintFactory;
 
   @Inject
   private LogicalRequestFactory logicalRequestFactory;
@@ -256,18 +254,9 @@ public class PersistedStateImpl implements PersistedState {
       entity.setBlueprintName(request.getBlueprint().getName());
     }
 
-    Collection<TopologyConfigurationsEntity> serviceConfigurations = new ArrayList<>();
-    request.getServiceConfigs().forEach(service -> {
-      TopologyConfigurationsEntity topologyConfigurationsEntity = new TopologyConfigurationsEntity();
-      topologyConfigurationsEntity.setServiceGroupName(service.getServiceGroup().getName());
-      topologyConfigurationsEntity.setServiceName(service.getName());
-      topologyConfigurationsEntity.setConfigProperties(propertiesAsString(service.getConfiguration().getProperties()));
-      topologyConfigurationsEntity.setConfigAttributes(attributesAsString(service.getConfiguration().getAttributes()));
-      serviceConfigurations.add(topologyConfigurationsEntity);
-    });
-    entity.setTopologyConfigurationsEntities(serviceConfigurations);
-
+    entity.setClusterAttributes(attributesAsString(request.getConfiguration().getAttributes()));
     entity.setClusterId(request.getClusterId());
+    entity.setClusterProperties(propertiesAsString(request.getConfiguration().getProperties()));
     entity.setDescription(request.getDescription());
 
     if (request.getProvisionAction() != null) {
@@ -389,43 +378,22 @@ public class PersistedStateImpl implements PersistedState {
     private final Long clusterId;
     private final Type type;
     private final String description;
-    private final BlueprintV2 blueprint;
-    private final Collection<Service> services;
+    private final Blueprint blueprint;
+    private final Configuration configuration;
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
-    public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintV2Factory blueprintFactory) {
+    public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
       clusterId = entity.getClusterId();
       type = Type.valueOf(entity.getAction());
       description = entity.getDescription();
 
       try {
         blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());
-      } catch (NoSuchBlueprintException e) {
-        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
       } catch (NoSuchStackException e) {
         throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
       }
-      // load Service configurations from db, set Blueprint service config as parent for each
-      services = new ArrayList<>();
-      entity.getTopologyConfigurationsEntities().stream().filter(topologyConfigurationsEntity -> (
-        topologyConfigurationsEntity.getComponentName() == null
-                && topologyConfigurationsEntity.getHostGroupName() == null))
-              .forEach(topologyConfigurationsEntity -> {
-
-        ServiceId serviceId = ServiceId.of(topologyConfigurationsEntity.getServiceName(),
-                topologyConfigurationsEntity.getServiceGroupName());
-        Service service = blueprint.getServiceById(serviceId);
-        Configuration configuration = createConfiguration(topologyConfigurationsEntity.getConfigProperties(),
-                topologyConfigurationsEntity.getConfigAttributes());
-        service.getConfiguration().setParentConfiguration(service.getStack().getConfiguration());
-        configuration.setParentConfiguration(service.getConfiguration());
-
-        service.setConfiguration(configuration);
-        services.add(service);
-
-      });
+      configuration = createConfiguration(entity.getClusterProperties(), entity.getClusterAttributes());
+      configuration.setParentConfiguration(blueprint.getConfiguration());
 
       parseHostGroupInfo(entity);
     }
@@ -441,19 +409,13 @@ public class PersistedStateImpl implements PersistedState {
     }
 
     @Override
-    public BlueprintV2 getBlueprint() {
+    public Blueprint getBlueprint() {
       return blueprint;
     }
 
     @Override
-    @Deprecated
     public Configuration getConfiguration() {
-      return null;
-    }
-
-    @Override
-    public Collection<Service> getServiceConfigs() {
-      return services;
+      return configuration;
     }
 
     @Override

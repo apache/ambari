@@ -42,10 +42,10 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
-import org.apache.ambari.server.controller.internal.ConfigurationContext;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -59,10 +59,10 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
-import org.apache.ambari.server.topology.ComponentV2;
+import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.HostGroupV2;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
@@ -193,15 +193,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       throw new RuntimeException("Unable to process blueprint export request: " + e, e);
     }
 
-    ConfigurationContext configurationContext = new ConfigurationContext(topology.getBlueprint().getStacks().iterator().next(),
-      topology.getBlueprint().getConfiguration());
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology, configurationContext);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    //TODO add service groups
-    //Stack stack = topology.getBlueprint().getStack();
-    //blueprintResource.setProperty("Blueprints/stack_name", stack.getName());
-    //blueprintResource.setProperty("Blueprints/stack_version", stack.getVersion());
+    Stack stack = topology.getBlueprint().getStack();
+    blueprintResource.setProperty("Blueprints/stack_name", stack.getName());
+    blueprintResource.setProperty("Blueprints/stack_version", stack.getVersion());
 
     if (topology.isClusterKerberosEnabled()) {
       Map<String, Object> securityConfigMap = new LinkedHashMap<>();
@@ -446,9 +443,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    *
    * @return list of component names for the host
    */
-  private List<Map<String, String>> processHostGroupComponents(HostGroupV2 group) {
+  private List<Map<String, String>> processHostGroupComponents(HostGroup group) {
     List<Map<String, String>> listHostGroupComponents = new ArrayList<>();
-    for (ComponentV2 component : group.getComponents()) {
+    for (Component component : group.getComponents()) {
       Map<String, String> mapComponentProperties = new HashMap<>();
       listHostGroupComponents.add(mapComponentProperties);
       mapComponentProperties.put("name", component.getName());

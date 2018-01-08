@@ -105,10 +105,10 @@ public class UnitUpdaterTest extends EasyMockSupport {
 
   private String updateUnit(String serviceName, String configType, String propName, String propValue) throws InvalidTopologyException, ConfigurationTopologyException {
     UnitUpdater updater = new UnitUpdater(serviceName, configType);
-    expect(clusterTopology.getBlueprint()).andReturn(null).anyTimes();
+    expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(serviceName, configType)).andReturn(stackConfigWithMetadata).anyTimes();
     replayAll();
-    return updater.updateForClusterCreate(propName, propValue, Collections.emptyMap(), clusterTopology, null);
+    return updater.updateForClusterCreate(propName, propValue, Collections.emptyMap(), clusterTopology);
   }
 }

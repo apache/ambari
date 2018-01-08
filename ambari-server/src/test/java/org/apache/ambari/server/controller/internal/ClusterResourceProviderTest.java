@@ -104,7 +104,7 @@ public class ClusterResourceProviderTest {
   @Before
   public void setup() throws Exception{
     ClusterResourceProvider.init(topologyManager, topologyFactory, securityFactory, gson);
-    ProvisionClusterRequest.init(null);
+    ProvisionClusterRequest.init(blueprintFactory);
     provider = new ClusterResourceProvider(controller);
 
     expect(blueprintFactory.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).anyTimes();
@@ -188,7 +188,7 @@ public class ClusterResourceProviderTest {
     expect(securityFactory.createSecurityConfigurationFromRequest(EasyMock.anyObject(), anyBoolean())).andReturn
       (securityConfiguration).once();
     expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
-    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.getSecurity()).andReturn(blueprintSecurityConfiguration).anyTimes();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 

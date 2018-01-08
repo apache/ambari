@@ -122,7 +122,7 @@ public class ServiceService extends BaseService {
   @Path("") // This is needed if class level path is not present otherwise no Swagger docs will be generated for this method
   @Produces(MediaType.TEXT_PLAIN)
   @ApiOperation(value = "Get all services",
-      nickname = "ServiceService#getServiceConfigs",
+      nickname = "ServiceService#getServices",
       notes = "Returns all services.",
       response = ServiceResponse.ServiceResponseSwagger.class,
       responseContainer = RESPONSE_CONTAINER_LIST)
