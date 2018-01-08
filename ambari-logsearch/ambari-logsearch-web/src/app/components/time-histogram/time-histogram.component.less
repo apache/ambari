@@ -19,43 +19,7 @@
 @import '../mixins';
 
 :host {
-  position: relative;
-  background: #ECECEC; // TODO add style according to actual design
-
-  /deep/ .axis {
-    .tick {
-      cursor: default;
-    }
-  }
-
-  /deep/ svg {
-    cursor: crosshair;
-  }
-
   header {
     padding: @graph-padding;
   }
-
-  .time-gap {
-    color: @base-font-color;
-    font-size: 1.2rem;
-    text-align: center;
-  }
-
-  footer {
-    .default-flex;
-    font-size: 1.2rem;
-    color: @base-font-color;
-    padding: 0 1em .5em;
-  }
-
-  /deep/ rect.drag-area {
-    fill: #fff;
-  }
-
-  /deep/ rect.unselected-drag-area {
-    fill: darken(@main-background-color, 10%);
-    opacity: .6;
-  }
-
 }

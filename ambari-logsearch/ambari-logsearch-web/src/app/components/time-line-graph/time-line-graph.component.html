@@ -14,14 +14,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<div [ngClass]="{'panel': true, 'panel-default': true, 'panel-collapsible': true, 'panel-collapsed': isCollapsed}">
-    <div class="panel-heading" (click)="handleCollapseBtnClick($event)">
-      <a [attr.aria-collapsed]="isCollapsed">
-        <i [ngClass]="{'fa': true, 'fa-caret-down': !isCollapsed, 'fa-caret-right': isCollapsed}"></i>
-        {{((isCollapsed ? collapsedTitle : openTitle) || commonTitle) | translate}}
-      </a>
-    </div>
-    <div class="panel-body" [attr.aria-collapsed]="isCollapsed">
-      <ng-content></ng-content>
-    </div>
-</div>
+
+<div #graphContainer></div>
+<footer *ngIf="firstDateTick || lastDateTick">
+  <div *ngIf="firstDateTick">{{firstDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
+  <div *ngIf="lastDateTick">{{lastDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
+</footer>
+<graph-legend class="col-md-12" [items]="legendItems"></graph-legend>
+<graph-tooltip #tooltip [data]="tooltipInfo.data" [ngClass]="{'hide': !tooltipInfo.data}"
+               [style.top]="tooltipInfo.data ? tooltipPosition.top + 'px' : ''"
+               [style.left]="tooltipInfo.data ? tooltipPosition.left + 'px' : ''"
+               [title]="tooltipInfo.title | amTz: timeZone | amDateFormat: tickTimeFormat"></graph-tooltip>

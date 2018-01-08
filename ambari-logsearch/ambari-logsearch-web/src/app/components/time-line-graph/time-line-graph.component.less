@@ -16,46 +16,27 @@
  * limitations under the License.
  */
 
-export interface GraphPositionOptions {
-  top: number;
-  left: number;
-}
+@import '../variables';
 
-export interface GraphMarginOptions extends GraphPositionOptions {
-  right: number;
-  bottom: number;
-}
+:host {
+  /deep/ .line {
+    fill: none;
+    stroke-width: 1.5px;
+  }
 
-export interface GraphTooltipInfo {
-  data: object[];
-  title: string | number;
-}
+  /deep/ .grid-line-area {
+    fill: transparent;
 
-export interface LegendItem {
-  label: string;
-  color: string;
-}
+    + .grid-line {
+      stroke: transparent;
+    }
 
-export interface GraphScaleItem {
-  tick: number;
-  [key: string]: number;
-}
+    &.visible-grid-line-area {
+      cursor: pointer;
 
-export interface ChartTimeGap {
-  value: number;
-  unit: string;
-  label: string;
-}
-
-export interface GraphEventData extends Array<number> {
-  data: GraphScaleItem;
-}
-
-export type GraphLinePoint = GraphScaleItem & {
-  color: string;
-}
-
-export interface GraphLineData {
-  points: GraphScaleItem[];
-  key: string;
+      + .grid-line {
+        stroke: @base-font-color;
+      }
+    }
+  }
 }

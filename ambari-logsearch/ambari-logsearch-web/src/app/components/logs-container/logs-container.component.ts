@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, ViewChild, HostListener} from '@angular/core';
+import {Component, OnInit, ElementRef, ViewChild, HostListener} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
+import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuditLog} from '@app/classes/models/audit-log';
@@ -38,18 +39,27 @@ import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel
   templateUrl: './logs-container.component.html',
   styleUrls: ['./logs-container.component.less']
 })
-export class LogsContainerComponent {
+export class LogsContainerComponent implements OnInit {
 
   constructor(
-    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService,
-    private tabsStorage: TabsService, private logsContainer: LogsContainerService
+    private appState: AppStateService, private tabsStorage: TabsService, private logsContainer: LogsContainerService,
+    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
+    private auditLogsGraphStorage: AuditLogsGraphDataService
   ) {
+  }
+
+  ngOnInit() {
     this.logsContainer.loadColumnsNames();
-    appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
-    serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
-      this.histogramData = this.logsContainer.getHistogramData(data);
+    this.appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
+    this.serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
+      this.serviceLogsHistogramData = this.logsContainer.getGraphData(data, Object.keys(this.logsContainer.colors));
     });
-    appState.getParameter('isServiceLogContextView').subscribe((value: boolean) => this.isServiceLogContextView = value);
+    this.auditLogsGraphStorage.getAll().subscribe((data: BarGraph[]): void => {
+      this.auditLogsGraphData = this.logsContainer.getGraphData(data);
+    });
+    this.appState.getParameter('isServiceLogContextView').subscribe((value: boolean): void => {
+      this.isServiceLogContextView = value;
+    });
   }
 
   @ViewChild('container') containerRef: ElementRef;
@@ -74,7 +84,9 @@ export class LogsContainerComponent {
     return this.logsContainer.totalCount;
   }
 
-  histogramData: HomogeneousObject<HomogeneousObject<number>>;
+  serviceLogsHistogramData: HomogeneousObject<HomogeneousObject<number>>;
+
+  auditLogsGraphData: HomogeneousObject<HomogeneousObject<number>>;
 
   get serviceLogsHistogramColors(): HomogeneousObject<string> {
     return this.logsContainer.colors;
