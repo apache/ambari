@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
+import static org.apache.hadoop.http.HttpServer2.HTTP_MAX_THREADS_KEY;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -120,7 +122,7 @@ public class AMSApplicationServer extends CompositeService {
     LOG.info("Instantiating metrics collector at " + bindAddress);
     try {
       Configuration conf = metricConfiguration.getMetricsConf();
-      conf.set("hadoop.http.max.threads", String.valueOf(metricConfiguration
+      conf.set(HTTP_MAX_THREADS_KEY, String.valueOf(metricConfiguration
         .getTimelineMetricsServiceHandlerThreadCount()));
       HttpConfig.Policy policy = HttpConfig.Policy.valueOf(
         conf.get(TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY,
