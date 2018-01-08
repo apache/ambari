@@ -708,16 +708,14 @@ public class StageUtilsTest extends EasyMockSupport {
     // GIVEN
     Map<String, String> hostLevelParams = new HashMap<>();
     Configuration configuration = new Configuration();
-    configuration.setProperty("java.home", "myJavaHome");
     configuration.setProperty("jdk.name", "myJdkName");
     configuration.setProperty("jce.name", "myJceName");
     // WHEN
     StageUtils.useStackJdkIfExists(hostLevelParams, configuration);
     // THEN
-    assertEquals("myJavaHome", hostLevelParams.get("java_home"));
     assertEquals("myJdkName", hostLevelParams.get("jdk_name"));
     assertEquals("myJceName", hostLevelParams.get("jce_name"));
-    assertEquals(4, hostLevelParams.size());
+    assertEquals(3, hostLevelParams.size());
   }
 
   private void checkServiceHostIndexes(Map<String, Set<String>> info, String componentName, String mappedComponentName,

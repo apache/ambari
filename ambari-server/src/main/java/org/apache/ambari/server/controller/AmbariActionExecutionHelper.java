@@ -22,6 +22,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STA
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 
@@ -456,6 +457,7 @@ public class AmbariActionExecutionHelper {
         resourceFilter.getComponentName() : componentName);
 
       Map<String, String> hostLevelParams = execCmd.getHostLevelParams();
+
       hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
       hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
       for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
@@ -492,6 +494,12 @@ public class AmbariActionExecutionHelper {
       if (null != cluster && cluster.isUpgradeSuspended()) {
         cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
       }
+
+      // set java home for each host depending on os type; if not found default will be used
+      String javaHomeValue = configs.getJavaHomeForOs(clusters.getHost(hostName).getOsType());
+      commandParams.put(JAVA_HOME, javaHomeValue);
+      hostLevelParams.put(JAVA_HOME, javaHomeValue);
+      roleParams.put(JAVA_HOME, javaHomeValue);
 
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);

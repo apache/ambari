@@ -16,33 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.archive;
+package org.apache.ambari.infra.job;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 
-public class DocumentExportJobListener implements JobExecutionListener {
+public class JobPropertyMap<T extends JobProperties<T>> implements JobExecutionListener {
 
-  private final DocumentExportPropertyMap propertyMap;
+  private final PropertyMap<T> propertyMap;
 
-  public DocumentExportJobListener(DocumentExportPropertyMap propertyMap) {
+  public JobPropertyMap(PropertyMap<T> propertyMap) {
     this.propertyMap = propertyMap;
   }
-
 
   @Override
   public void beforeJob(JobExecution jobExecution) {
     try {
       String jobName = jobExecution.getJobInstance().getJobName();
-      DocumentExportProperties defaultProperties = propertyMap.getSolrDataExport().get(jobName);
+      T defaultProperties = propertyMap.getPropertyMap().get(jobName);
       if (defaultProperties == null)
         throw new UnsupportedOperationException("Properties not found for job " + jobName);
 
-      DocumentExportProperties properties = defaultProperties.deepCopy();
+      T properties = defaultProperties.deepCopy();
       properties.apply(jobExecution.getJobParameters());
       properties.validate();
-      jobExecution.getExecutionContext().put("exportProperties", properties);
+      jobExecution.getExecutionContext().put("jobProperties", properties);
     }
     catch (UnsupportedOperationException | IllegalArgumentException ex) {
       jobExecution.stop();
@@ -53,6 +52,6 @@ public class DocumentExportJobListener implements JobExecutionListener {
 
   @Override
   public void afterJob(JobExecution jobExecution) {
-    jobExecution.setExitStatus(new ExitStatus(ExitStatus.COMPLETED.getExitCode()));
+
   }
 }

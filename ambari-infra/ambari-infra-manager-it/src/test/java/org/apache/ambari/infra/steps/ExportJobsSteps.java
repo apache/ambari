@@ -23,6 +23,8 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.apache.ambari.infra.InfraClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.jbehave.core.annotations.Alias;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
@@ -31,9 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
+import static org.apache.ambari.infra.OffsetDateTimeConverter.SOLR_DATETIME_FORMATTER;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
@@ -44,8 +50,10 @@ public class ExportJobsSteps extends AbstractInfraSteps {
 
   @Given("$count documents in solr")
   public void addDocuments(int count) throws Exception {
-    for (int i = 0; i < count; ++i)
-      addDocument(OffsetDateTime.now().minusMinutes(i));
+    OffsetDateTime intervalEnd = OffsetDateTime.now();
+    for (int i = 0; i < count; ++i) {
+      addDocument(intervalEnd.minusMinutes(i % (count / 10)));
+    }
     getSolrClient().commit();
   }
 
@@ -84,7 +92,7 @@ public class ExportJobsSteps extends AbstractInfraSteps {
   }
 
   @Then("Check filenames contains the text $text on s3 server after $waitSec seconds")
-  public void checkS3After(String text, int waitSec) throws Exception {
+  public void checkS3After(String text, int waitSec) {
     AmazonS3Client s3Client = getS3client();
     ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
     doWithin(waitSec, "check uploaded files to s3", () -> s3Client.doesBucketExist(S3_BUCKET_NAME)
@@ -102,5 +110,39 @@ public class ExportJobsSteps extends AbstractInfraSteps {
             && s3Client.listObjects(listObjectsRequest).getObjectSummaries().stream()
             .filter(s3ObjectSummary -> s3ObjectSummary.getKey().contains(text))
             .count() == count);
+  }
+
+  @Then("No file exists on s3 server with filenames containing the text $text")
+  public void fileNotExistOnS3(String text) {
+    AmazonS3Client s3Client = getS3client();
+    ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
+    assertThat(s3Client.listObjects(listObjectsRequest).getObjectSummaries().stream()
+            .anyMatch(s3ObjectSummary -> s3ObjectSummary.getKey().contains(text)), is(false));
+  }
+
+  @Then("solr contains $count documents between $startLogtime and $endLogtime")
+  public void documentCount(int count, OffsetDateTime startLogTime, OffsetDateTime endLogTime) throws Exception {
+    SolrQuery query = new SolrQuery();
+    query.setRows(count * 2);
+    query.setQuery(String.format("logtime:[\"%s\" TO \"%s\"]", SOLR_DATETIME_FORMATTER.format(startLogTime), SOLR_DATETIME_FORMATTER.format(endLogTime)));
+    assertThat(getSolrClient().query(query).getResults().size(), is(count));
+  }
+
+  @Then("solr does not contain documents between $startLogtime and $endLogtime after $waitSec seconds")
+  public void isSolrEmpty(OffsetDateTime startLogTime, OffsetDateTime endLogTime, int waitSec) {
+    SolrQuery query = new SolrQuery();
+    query.setRows(1);
+    query.setQuery(String.format("logtime:[\"%s\" TO \"%s\"]", SOLR_DATETIME_FORMATTER.format(startLogTime), SOLR_DATETIME_FORMATTER.format(endLogTime)));
+    doWithin(waitSec, "check solr is empty", () -> isSolrEmpty(query));
+  }
+
+  private boolean isSolrEmpty(SolrQuery query) {
+    try {
+      return getSolrClient().query(query).getResults().isEmpty();
+    } catch (SolrServerException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }

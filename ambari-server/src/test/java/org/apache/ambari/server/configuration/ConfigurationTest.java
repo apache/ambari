@@ -319,6 +319,17 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testGetJavaHomeForOs() throws Exception {
+    final Configuration conf = new Configuration();
+    conf.setProperty("java.home", "default_value");
+    conf.setProperty("java.home.redhat-ppc7", "ppc_value");
+    Assert.assertEquals("ppc_value", conf.getJavaHomeForOs("redhat-ppc7"));
+    Assert.assertEquals("default_value", conf.getJavaHomeForOs("redhat7"));
+    Assert.assertEquals("default_value", conf.getJavaHomeForOs(""));
+    Assert.assertEquals("default_value", conf.getJavaHomeForOs(null));
+  }
+
+  @Test
   public void testGetAmbariBlacklistFile() {
     Properties ambariProperties = new Properties();
     Configuration conf = new Configuration(ambariProperties);

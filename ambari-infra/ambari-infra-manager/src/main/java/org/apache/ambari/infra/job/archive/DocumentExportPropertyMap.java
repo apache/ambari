@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.job.PropertyMap;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,7 +26,7 @@ import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentExportPropertyMap {
+public class DocumentExportPropertyMap implements PropertyMap<DocumentExportProperties> {
   private Map<String, DocumentExportProperties> solrDataExport;
 
   public Map<String, DocumentExportProperties> getSolrDataExport() {
@@ -34,5 +35,10 @@ public class DocumentExportPropertyMap {
 
   public void setSolrDataExport(Map<String, DocumentExportProperties> solrDataExport) {
     this.solrDataExport = solrDataExport;
+  }
+
+  @Override
+  public Map<String, DocumentExportProperties> getPropertyMap() {
+    return getSolrDataExport();
   }
 }

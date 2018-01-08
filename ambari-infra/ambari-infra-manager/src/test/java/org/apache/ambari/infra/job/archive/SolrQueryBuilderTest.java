@@ -21,15 +21,10 @@ package org.apache.ambari.infra.job.archive;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.regex.Matcher;
 
-import static org.apache.ambari.infra.job.archive.SolrQueryBuilder.PARAMETER_PATTERN;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 public class SolrQueryBuilderTest {
@@ -46,40 +41,40 @@ public class SolrQueryBuilderTest {
   }
 
   @Test
-  public void testSetQuery() throws Exception {
+  public void testSetQueryReplacesTheDefaultQueryTextAndParameterPlaceholdersAreReplacedToValues() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder()
             .setQueryText("logtime:[* TO ${end}]")
-            .setEndValue("2017-11-27'T'10:12:11.372Z")
+            .setInterval(null, "2017-11-27'T'10:12:11.372Z")
             .build();
-    assertThat(solrQuery.getQuery(), is("logtime:[* TO \"2017-11-27'T'10:12:11.372Z\"]"));
+    assertThat(solrQuery.getQuery(), is("logtime:[* TO 2017\\-11\\-27'T'10\\:12\\:11.372Z]"));
   }
 
   @Test
-  public void testSetFilterQuery() throws Exception {
+  public void testSetFilterQueryAddsAFilterQueryAndParameterPlaceholdersAreReplacedToValues() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder()
             .setFilterQueryText("(logtime:${logtime} AND id:{${id} TO *]) OR logtime:{${logtime} TO ${end}]")
             .setDocument(DOCUMENT)
-            .setEndValue("2017-11-27'T'10:12:11.372Z")
+            .setInterval(null, "2017-11-27'T'10:12:11.372Z")
             .build();
-    assertThat(solrQuery.getFilterQueries()[0], is("(logtime:\"2017-10-02'T'10:00:11.634Z\" AND id:{\"1\" TO *]) OR logtime:{\"2017-10-02'T'10:00:11.634Z\" TO \"2017-11-27'T'10:12:11.372Z\"]"));
+    assertThat(solrQuery.getFilterQueries()[0], is( "(logtime:2017\\-10\\-02'T'10\\:00\\:11.634Z AND id:{1 TO *]) OR logtime:{2017\\-10\\-02'T'10\\:00\\:11.634Z TO 2017\\-11\\-27'T'10\\:12\\:11.372Z]"));
   }
 
   @Test
   public void testSetFilterQueryWhenDocumentIsNull() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder()
             .setFilterQueryText("(logtime:\"${logtime}\" AND id:{\"${id}\" TO *]) OR logtime:{\"${logtime}\" TO \"${end}\"]")
-            .setEndValue("2017-11-27'T'10:12:11.372Z")
+            .setInterval(null, "2017-11-27'T'10:12:11.372Z")
             .build();
     assertThat(solrQuery.getFilterQueries(), is(nullValue()));
   }
 
   @Test
-  public void testSetFilterQueryWhenEndValueIsNull() throws Exception {
+  public void testNullEndValueDoesNotAffectFilterQuery() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder()
             .setFilterQueryText("logtime:${logtime} AND id:{${id} TO *]")
             .setDocument(DOCUMENT)
             .build();
-    assertThat(solrQuery.getFilterQueries()[0], is("logtime:\"2017-10-02'T'10:00:11.634Z\" AND id:{\"1\" TO *]"));
+    assertThat(solrQuery.getFilterQueries()[0], is("logtime:2017\\-10\\-02'T'10\\:00\\:11.634Z AND id:{1 TO *]"));
   }
 
   @Test
@@ -91,20 +86,6 @@ public class SolrQueryBuilderTest {
   }
 
   @Test
-  public void testRegex() throws Exception {
-    Matcher matcher = PARAMETER_PATTERN.matcher("(logtime:\"${logtime}\" AND id:{\"${id}\" TO *]) OR logtime:{\"${logtime}\" TO \"${end}\"]");
-    List<String> parameters = new ArrayList<>();
-    while (matcher.find())
-      parameters.add(matcher.group());
-
-    assertThat(parameters, hasSize(4));
-    assertThat(parameters.get(0), is("${logtime}"));
-    assertThat(parameters.get(1), is("${id}"));
-    assertThat(parameters.get(2), is("${logtime}"));
-    assertThat(parameters.get(3), is("${end}"));
-  }
-
-  @Test
   public void testSort() throws Exception {
     SolrQuery solrQuery = new SolrQueryBuilder().addSort("logtime", "id").build();
     assertThat(solrQuery.getSorts().get(0).getItem(), is("logtime"));
@@ -113,7 +94,7 @@ public class SolrQueryBuilderTest {
 
   @Test
   public void test_start_and_end_values_are_given() throws Exception {
-    SolrQuery solrQuery = new SolrQueryBuilder().setQueryText("id:[${start} TO ${end}]").setInterval("10", "13").build();
+    SolrQuery solrQuery = new SolrQueryBuilder().setQueryText("id:[\"${start}\" TO \"${end}\"]").setInterval("10", "13").build();
     assertThat(solrQuery.getQuery(), is("id:[\"10\" TO \"13\"]"));
   }
 

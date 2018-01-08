@@ -139,7 +139,9 @@ public class AmbariCustomCommandExecutionHelperTest {
     clusters = injector.getInstance(Clusters.class);
 
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
-    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
+    Configuration configuration = injector.getInstance(Configuration.class);
+    configuration.setProperty("java.home.redhat-ppc7", "ppc_java_home_path");
+    StageUtils.setConfiguration(configuration);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     createClusterFixture("c1", new StackId("HDP-2.0.6"), "2.0.6-1234", "c1");
@@ -532,6 +534,43 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertTrue(helper.isTopologyRefreshRequired("RESTART", "c2", "HDFS"));
     Assert.assertFalse(helper.isTopologyRefreshRequired("STOP", "c2", "HDFS"));
   }
+
+  @Test
+  public void testAddExecutionCommandsToStageWithJavaHomeValue() throws Exception {
+
+    clusters.getHost("c1-c6401").setState(HostState.HEALTHY);
+    clusters.getHost("c1-c6401").setOsType("redhat-ppc7");
+
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put(REQUEST_CONTEXT_PROPERTY, "Refresh YARN Capacity Scheduler");
+        put("command", "REFRESHQUEUES");
+      }
+    };
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "REFRESHQUEUES",
+            new HashMap<String, String>() {
+              {
+                put("forceRefreshConfigTags", "capacity-scheduler");
+              }
+            }, false);
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
+    EasyMock.replay(hostRoleCommand, actionManager, configHelper);
+
+    ambariManagementController.createAction(actionRequest, requestProperties);
+
+    Request request = requestCapture.getValue();
+    Stage stage = request.getStages().iterator().next();
+    List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c1-c6401");
+    ExecutionCommand command = commands.get(0).getExecutionCommand();
+
+    Assert.assertTrue(command.getHostLevelParams().containsValue("ppc_java_home_path"));
+
+    // ZK is the only service that is versionable
+    Assert.assertFalse(MapUtils.isEmpty(command.getComponentVersionMap()));
+    Assert.assertEquals(1, command.getComponentVersionMap().size());
+    Assert.assertTrue(command.getComponentVersionMap().containsKey("ZOOKEEPER"));
+  }
+
 
   @Test
   public void testAvailableServicesMapContainsVersions() throws Exception {

@@ -630,7 +630,6 @@ public class StageUtils {
    */
   public static void useStackJdkIfExists(Map<String, String> hostLevelParams, Configuration configuration) {
     // set defaults first
-    hostLevelParams.put(JAVA_HOME, configuration.getJavaHome());
     hostLevelParams.put(JDK_NAME, configuration.getJDKName());
     hostLevelParams.put(JCE_NAME, configuration.getJCEName());
     hostLevelParams.put(JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));

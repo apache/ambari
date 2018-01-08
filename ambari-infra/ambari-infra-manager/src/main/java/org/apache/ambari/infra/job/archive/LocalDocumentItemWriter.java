@@ -20,16 +20,22 @@ package org.apache.ambari.infra.job.archive;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
 public class LocalDocumentItemWriter implements DocumentItemWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalDocumentItemWriter.class);
+
   private static final ObjectMapper json = new ObjectMapper();
   private static final String ENCODING = "UTF-8";
 
   private final File outFile;
   private final BufferedWriter bufferedWriter;
   private final ItemWriterListener itemWriterListener;
+  private Document firstDocument = null;
+  private Document lastDocument = null;
 
   public LocalDocumentItemWriter(File outFile, ItemWriterListener itemWriterListener) {
     this.itemWriterListener = itemWriterListener;
@@ -48,6 +54,11 @@ public class LocalDocumentItemWriter implements DocumentItemWriter {
     try {
       bufferedWriter.write(json.writeValueAsString(document));
       bufferedWriter.newLine();
+
+      if (firstDocument == null)
+        firstDocument = document;
+
+      lastDocument = document;
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -57,14 +68,16 @@ public class LocalDocumentItemWriter implements DocumentItemWriter {
   @Override
   public void revert() {
     IOUtils.closeQuietly(bufferedWriter);
-    outFile.delete();
+    if (!outFile.delete())
+      LOG.warn("File {} was not deleted. Exists: {}", outFile.getAbsolutePath(), outFile.exists());
   }
 
   @Override
   public void close() {
     try {
       bufferedWriter.close();
-      itemWriterListener.onCompleted(outFile);
+      if (itemWriterListener != null)
+        itemWriterListener.onCompleted(new WriteCompletedEvent(outFile, firstDocument, lastDocument));
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

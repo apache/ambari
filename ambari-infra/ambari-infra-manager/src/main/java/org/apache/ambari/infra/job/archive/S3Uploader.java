@@ -29,7 +29,7 @@ import static org.apache.commons.lang.StringUtils.isBlank;
  */
 public class S3Uploader extends AbstractFileAction {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DocumentExportConfiguration.class);
+  private static final Logger LOG = LoggerFactory.getLogger(S3Uploader.class);
 
   private final AmazonS3Client client;
   private final String keyPrefix;
@@ -49,7 +49,7 @@ public class S3Uploader extends AbstractFileAction {
   }
 
   @Override
-  public File perform(File inputFile) {
+  public File onPerform(File inputFile) {
     String key = keyPrefix + inputFile.getName();
 
     if (client.doesObjectExist(bucketName, key)) {

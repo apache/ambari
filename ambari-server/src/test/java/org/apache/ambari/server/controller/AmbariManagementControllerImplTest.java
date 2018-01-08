@@ -2123,7 +2123,7 @@ public class AmbariManagementControllerImplTest {
 
     Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster, repositoryVersionEntity.getStackId());
 
-    assertEquals(16, defaultHostParams.size());
+    assertEquals(15, defaultHostParams.size());
     assertEquals(MYSQL_JAR, defaultHostParams.get(DB_DRIVER_FILENAME));
     assertEquals(SOME_STACK_NAME, defaultHostParams.get(STACK_NAME));
     assertEquals(SOME_STACK_VERSION, defaultHostParams.get(STACK_VERSION));
