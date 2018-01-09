@@ -7,4 +7,4 @@
 (Please explain how this patch was tested. Ex: unit tests, manual tests)
 (If this patch involves UI changes, please attach a screen-shot; otherwise, remove this)
 
-Please review https://cwiki.apache.org/confluence/display/AMBARI/How+to+Contribute before opening a pull request.
+Please review [Ambari Contributing Guide](https://cwiki.apache.org/confluence/display/AMBARI/How+to+Contribute) before opening a pull request.
