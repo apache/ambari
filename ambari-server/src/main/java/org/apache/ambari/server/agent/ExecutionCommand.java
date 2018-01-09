@@ -133,7 +133,7 @@ public class ExecutionCommand extends AgentCommand {
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
-  @JsonIgnore
+  @com.fasterxml.jackson.annotation.JsonProperty("kerberosCommandParams")
   private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")
