@@ -317,7 +317,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     }
     if (content.findProperty('category', 'jdk').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.jdk');
-      newContent += content.findProperty('category', 'jdk').warnings[0].hostsLong.join('<br>');
+      newContent += content.findProperty('category', 'jdk').warnings.mapProperty('hostsLong').join('<br>');
     }
     if (content.findProperty('category', 'disk').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.disk');

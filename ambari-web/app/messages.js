@@ -773,6 +773,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.summary':'{0} on {1}',
   'installer.step3.hostWarningsPopup.jdk':'JDK Issues',
   'installer.step3.hostWarningsPopup.jdk.name':'JDK not found at <i>{0}</i>',
+  'installer.step3.hostWarningsPopup.jdk.name.empty': 'JDK not found for OS family <i>{0}</i>',
   'installer.step3.hostWarningsPopup.jdk.context':'{0}',
   'installer.step3.hostWarningsPopup.jdk.message':'The following registered hosts have issues related to JDK',
   'installer.step3.hostWarningsPopup.repositories':'Repository Issues',

@@ -1959,6 +1959,9 @@ var urls = {
       }
     }
   },
+  'wizard.get_version_definition': {
+    'real': '/version_definitions/{version_definition_id}?fields=operating_systems/repositories/Repositories/*',
+  },
   'wizard.step1.get_repo_version_by_id': {
     'real': '/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*' +
     ',repository_versions/RepositoryVersions/*' +
@@ -2256,7 +2259,7 @@ var urls = {
     'mock': '/data/wizard/bootstrap/poll_{numPolls}.json'
   },
   'wizard.step3.is_hosts_registered': {
-    'real': '/hosts?fields=Hosts/host_status',
+    'real': '/hosts?fields=Hosts/host_status,Hosts/os_family',
     'mock': '/data/wizard/bootstrap/single_host_registration.json'
   },
   'wizard.stacks': {

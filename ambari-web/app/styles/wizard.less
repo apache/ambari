@@ -192,6 +192,49 @@
     #warningsSection {
       margin: 0px 10px;
     }
+    .repos-panel {
+      input {
+        width:85%;
+      }
+      .version-contents-body {
+        padding: 0px 10px;
+        .radio-group {
+          padding-bottom: 10px;
+          margin-top: 0px;
+          color: #666;
+        }
+      }
+      .radio {
+        margin-top: 0px;
+      }
+      .big-radio {
+        &.disabled>span{
+          opacity: 0.7;
+        }
+      }
+      #public-disabled-link {
+        margin-left: 10px;
+        font-weight: normal;
+        cursor: pointer;
+      }
+      .textfield-error {
+        .ember-text-field {
+          color: #666;
+          border: 1px solid #EF6162;
+        }
+      }
+      #skip-validation {
+        padding-top: 20px;
+        label {
+          color: #666;
+          font-weight: normal;
+          margin-top: -2px;
+          &.disabled {
+            opacity: 0.7;
+          }
+        }
+      }
+    }
   }
   #step4, #step5, #step6 {
     a.selected {
