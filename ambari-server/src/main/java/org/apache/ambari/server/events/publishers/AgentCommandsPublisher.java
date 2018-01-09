@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.events.publishers;
 
+import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
+import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -116,7 +120,7 @@ public class AgentCommandsPublisher {
         Map<String, String> hlp = ec.getCommandParams();
         if (hlp != null) {
           String customCommand = hlp.get("custom_command");
-          if ("SET_KEYTAB".equalsIgnoreCase(customCommand) || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
+          if (SET_KEYTAB.equalsIgnoreCase(customCommand) || REMOVE_KEYTAB.equalsIgnoreCase(customCommand) || CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
             LOG.info(String.format("%s called", customCommand));
             try {
               injectKeytab(ec, customCommand, clusters.getHostById(hostId).getHostName());
@@ -171,7 +175,7 @@ public class AgentCommandsPublisher {
   void injectKeytab(ExecutionCommand ec, String command, String targetHost) throws AmbariException {
     String dataDir = ec.getCommandParams().get(KerberosServerAction.DATA_DIRECTORY);
 
-    if (dataDir != null) {
+    if(dataDir != null) {
       KerberosIdentityDataFileReader reader = null;
       List<Map<String, String>> kcp = ec.getKerberosCommandParams();
 
@@ -183,7 +187,7 @@ public class AgentCommandsPublisher {
 
           if (targetHost.equalsIgnoreCase(hostName)) {
 
-            if ("SET_KEYTAB".equalsIgnoreCase(command)) {
+            if (SET_KEYTAB.equalsIgnoreCase(command)) {
               String keytabFilePath = record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
 
               if (keytabFilePath != null) {
@@ -219,7 +223,7 @@ public class AgentCommandsPublisher {
                   kcp.add(keytabMap);
                 }
               }
-            } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
+            } else if (REMOVE_KEYTAB.equalsIgnoreCase(command) || CHECK_KEYTABS.equalsIgnoreCase(command)) {
               Map<String, String> keytabMap = new HashMap<>();
 
               keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
