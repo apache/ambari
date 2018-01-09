@@ -23,8 +23,14 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import org.apache.ambari.infra.InfraClient;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -56,6 +62,7 @@ public abstract class AbstractInfraSteps {
   private static final int SOLR_PORT = 8983;
   private static final int INFRA_MANAGER_PORT = 61890;
   private static final int FAKE_S3_PORT = 4569;
+  private static final int HDFS_PORT = 9000;
   private static final String AUDIT_LOGS_COLLECTION = "audit_logs";
   protected static final String S3_BUCKET_NAME = "testbucket";
   private String ambariFolder;
@@ -77,13 +84,22 @@ public abstract class AbstractInfraSteps {
     return s3client;
   }
 
+  public String getLocalDataFolder() {
+    return ambariFolder + "/ambari-infra/ambari-infra-manager/docker/test-out";
+  }
+
   @BeforeStories
   public void initDockerContainer() throws Exception {
-    LOG.info("Create new docker container for testing Ambari Infra Manager ...");
+    System.setProperty("HADOOP_USER_NAME", "root");
+
     URL location = AbstractInfraSteps.class.getProtectionDomain().getCodeSource().getLocation();
     ambariFolder = new File(location.toURI()).getParentFile().getParentFile().getParentFile().getParent();
-    shellScriptLocation = ambariFolder + "/ambari-infra/ambari-infra-manager/docker/infra-manager-docker-compose.sh";
 
+    LOG.info("Clean local data folder {}", getLocalDataFolder());
+    FileUtils.cleanDirectory(new File(getLocalDataFolder()));
+
+    shellScriptLocation = ambariFolder + "/ambari-infra/ambari-infra-manager/docker/infra-manager-docker-compose.sh";
+    LOG.info("Create new docker container for testing Ambari Infra Manager ...");
     runCommand(new String[]{shellScriptLocation, "start"});
 
     dockerHost = System.getProperty("docker.host") != null ? System.getProperty("docker.host") : "localhost";
@@ -106,7 +122,7 @@ public abstract class AbstractInfraSteps {
     checkInfraManagerReachable();
   }
 
-  protected void runCommand(String[] command) {
+  private void runCommand(String[] command) {
     try {
       LOG.info("Exec command: {}", StringUtils.join(command, " "));
       Process process = Runtime.getRuntime().exec(command);
@@ -130,7 +146,7 @@ public abstract class AbstractInfraSteps {
     });
   }
 
-  protected void doWithin(int sec, String actionName, Runnable runnable) {
+  private void doWithin(int sec, String actionName, Runnable runnable) {
     long start = currentTimeMillis();
     Exception exception;
     while (true) {
@@ -215,9 +231,26 @@ public abstract class AbstractInfraSteps {
     ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
     ObjectListing objectListing = getS3client().listObjects(listObjectsRequest);
     LOG.info("Found {} files on s3.", objectListing.getObjectSummaries().size());
-    objectListing.getObjectSummaries().forEach(s3ObjectSummary ->  LOG.info("Found file in s3 with key {}", s3ObjectSummary.getKey()));
+    objectListing.getObjectSummaries().forEach(s3ObjectSummary ->  LOG.info("Found file on s3 with key {}", s3ObjectSummary.getKey()));
+
+    LOG.info("Listing files on hdfs.");
+    try (FileSystem fileSystem = getHdfs()) {
+      int count = 0;
+      RemoteIterator<LocatedFileStatus> it = fileSystem.listFiles(new Path("/test_audit_logs"), true);
+      while (it.hasNext()) {
+        LOG.info("Found file on hdfs with name {}", it.next().getPath().getName());
+        ++count;
+      }
+      LOG.info("{} files found on hfds", count);
+    }
 
     LOG.info("shutdown containers");
     runCommand(new String[]{shellScriptLocation, "stop"});
+  }
+
+  protected FileSystem getHdfs() throws IOException {
+    Configuration conf = new Configuration();
+    conf.set("fs.defaultFS", String.format("hdfs://%s:%d/", dockerHost, HDFS_PORT));
+    return FileSystem.get(conf);
   }
 }
