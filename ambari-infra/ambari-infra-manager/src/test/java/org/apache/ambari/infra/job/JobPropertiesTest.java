@@ -29,7 +29,7 @@ public class JobPropertiesTest {
   @Test
   public void testDeepCopy() throws Exception {
     DocumentExportProperties documentExportProperties = new DocumentExportProperties();
-    documentExportProperties.setDestinationDirectoryPath("/tmp");
+    documentExportProperties.setLocalDestinationDirectory("/tmp");
     documentExportProperties.setFileNameSuffixColumn(".json");
     documentExportProperties.setReadBlockSize(10);
     documentExportProperties.setWriteBlockSize(20);
@@ -43,7 +43,7 @@ public class JobPropertiesTest {
 
     DocumentExportProperties parsed = documentExportProperties.deepCopy();
 
-    assertThat(parsed.getDestinationDirectoryPath(), is(documentExportProperties.getDestinationDirectoryPath()));
+    assertThat(parsed.getLocalDestinationDirectory(), is(documentExportProperties.getLocalDestinationDirectory()));
     assertThat(parsed.getFileNameSuffixColumn(), is(documentExportProperties.getFileNameSuffixColumn()));
     assertThat(parsed.getReadBlockSize(), is(documentExportProperties.getReadBlockSize()));
     assertThat(parsed.getWriteBlockSize(), is(documentExportProperties.getWriteBlockSize()));

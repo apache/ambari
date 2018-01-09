@@ -16,32 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job;
+package org.apache.ambari.infra.job.archive;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.batch.core.JobParameters;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
-public abstract class JobProperties<T extends JobProperties<T>> {
-  private final Class<T> clazz;
-
-  protected JobProperties(Class<T> clazz) {
-    this.clazz = clazz;
-  }
-
-  public T deepCopy() {
-    try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      String json = objectMapper.writeValueAsString(this);
-      return objectMapper.readValue(json, clazz);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public abstract void apply(JobParameters jobParameters);
-
-  public abstract void validate();
+public enum ExportDestination {
+  LOCAL,
+  HDFS,
+  S3
 }

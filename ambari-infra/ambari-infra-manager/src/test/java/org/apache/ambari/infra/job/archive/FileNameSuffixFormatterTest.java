@@ -32,7 +32,7 @@ public class FileNameSuffixFormatterTest {
 
   @Test(expected = NullPointerException.class)
   public void testFormatWhenDocumentIsNullThrowingException() throws Exception {
-    formatter.format(null);
+    formatter.format((Document) null);
   }
 
   @Test(expected = IllegalArgumentException.class)
