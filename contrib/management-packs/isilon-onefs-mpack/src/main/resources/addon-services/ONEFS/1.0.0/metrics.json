@@ -193,6 +193,12 @@
               "metric" : "disk_free",
               "amsHostMetric" : true
             },
+            "metrics/disk/disk_percent" : {
+              "temporal" : true,
+              "pointInTime" : true,
+              "metric" : "disk_percent",
+              "amsHostMetric" : true
+            },
             "metrics/disk/read_count" : {
               "temporal" : true,
               "pointInTime" : true,

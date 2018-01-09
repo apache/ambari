@@ -6,67 +6,38 @@
       "section_name": "ONEFS_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "NameNode GC count",
-          "description": "Count of total garbage collections and count of major type garbage collections of the JVM.",
-          "widget_type": "GRAPH",
+          "widget_name": "OneFS Host Free Disk Space",
+          "description": "Percentage of available space on OneFS host",
+          "widget_type": "GAUGE",
           "is_visible": true,
           "metrics": [
             {
-              "name": "jvm.JvmMetrics.GcCount._rate",
-              "metric_path": "metrics/jvm/gcCount._rate",
+              "name": "disk_free",
+              "metric_path": "metrics/disk/disk_free",
               "service_name": "ONEFS",
               "component_name": "ONEFS_CLIENT"
             },
             {
-              "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate",
-              "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep._rate",
+              "name": "disk_total",
+              "metric_path": "metrics/disk/disk_total",
               "service_name": "ONEFS",
               "component_name": "ONEFS_CLIENT"
             }
           ],
           "values": [
             {
-              "name": "GC total count",
-              "value": "${jvm.JvmMetrics.GcCount._rate}"
-            },
-            {
-              "name": "GC count of type major collection",
-              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate}"
+              "name": "OneFS Host Disk Free Space",
+              "value": "${disk_free/disk_total}"
             }
           ],
           "properties": {
-            "graph_type": "LINE",
-            "time_range": "1"
+            "warning_threshold": "0.25",
+            "error_threshold": "0.1"
           }
         },
         {
-          "widget_name": "NameNode GC time",
-          "description": "Total time taken by major type garbage collections in milliseconds.",
-          "widget_type": "GRAPH",
-          "is_visible": true,
-          "metrics": [
-            {
-              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate",
-              "metric_path": "metrics/jvm/JvmMetrics/GcTimeMillisConcurrentMarkSweep._rate",
-              "service_name": "ONEFS",
-              "component_name": "ONEFS_CLIENT"
-            }
-          ],
-          "values": [
-            {
-              "name": "GC time in major collection",
-              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate}"
-            }
-          ],
-          "properties": {
-            "display_unit": "ms",
-            "graph_type": "LINE",
-            "time_range": "1"
-          }
-        },
-        {
-          "widget_name": "NameNode Heap",
-          "description": "Heap memory committed and Heap memory used with respect to time.",
+          "widget_name": "OneFS NameNode Memory",
+          "description": "The sum of the current memory allocated by the HDFS process and the sum of the memory limit that the HDFS process can allocate.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -85,11 +56,11 @@
           ],
           "values": [
             {
-              "name": "JVM heap committed",
+              "name": "Heap committed",
               "value": "${jvm.JvmMetrics.MemHeapCommittedM}"
             },
             {
-              "name": "JVM heap used",
+              "name": "Heap used",
               "value": "${jvm.JvmMetrics.MemHeapUsedM}"
             }
           ],
@@ -100,8 +71,8 @@
           }
         },
         {
-          "widget_name": "NameNode Host Load",
-          "description": "Percentage of CPU and Memory resources being consumed on NameNode host.",
+          "widget_name": "OneFS Host Load",
+          "description": "Percentage of CPU and Memory resources being consumed on OneFS host.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
