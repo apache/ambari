@@ -25,13 +25,17 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.dto.AlertGroupUpdate;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
+import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
@@ -100,6 +104,9 @@ public class AlertDefinitionDAO {
    */
   @Inject
   private AlertDefinitionFactory alertDefinitionFactory;
+
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
 
   /**
    * Gets an alert definition with the specified ID.
@@ -347,6 +354,10 @@ public class AlertDefinitionDAO {
     }
 
     group.addAlertDefinition(alertDefinition);
+    AlertGroupsUpdateEvent alertGroupsUpdateEvent = new AlertGroupsUpdateEvent(Collections.singletonList(
+        new AlertGroupUpdate(group)),
+        UpdateEventType.UPDATE);
+    stateUpdateEventPublisher.publish(alertGroupsUpdateEvent);
     dispatchDao.merge(group);
 
     // publish the alert definition registration

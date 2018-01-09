@@ -30,6 +30,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
   private final Map<AmbariUpdateEvent.Type, String> DEFAULT_DESTINATIONS =
       Collections.unmodifiableMap(new HashMap<AmbariUpdateEvent.Type, String>(){{
         put(AmbariUpdateEvent.Type.ALERT, "/events/alerts");
+        put(AmbariUpdateEvent.Type.ALERT_GROUP, "/events/alert_group");
         put(AmbariUpdateEvent.Type.METADATA, "/events/metadata");
         put(AmbariUpdateEvent.Type.HOSTLEVELPARAMS, "/host_level_params");
         put(AmbariUpdateEvent.Type.UI_TOPOLOGY, "/events/ui_topologies");

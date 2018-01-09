@@ -45,6 +45,7 @@ public abstract class AmbariUpdateEvent {
 
   public enum Type {
     ALERT("events.alerts"),
+    ALERT_GROUP("events.alert_group"),
     METADATA("events.metadata"),
     HOSTLEVELPARAMS("events.hostlevelparams"),
     UI_TOPOLOGY("events.topology_update"),
