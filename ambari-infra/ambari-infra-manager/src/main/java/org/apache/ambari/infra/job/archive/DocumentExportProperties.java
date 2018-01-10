@@ -31,13 +31,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
+import static org.apache.ambari.infra.job.archive.ExportDestination.HDFS;
+import static org.apache.ambari.infra.job.archive.ExportDestination.LOCAL;
+import static org.apache.ambari.infra.job.archive.ExportDestination.S3;
 import static org.apache.commons.csv.CSVFormat.DEFAULT;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class DocumentExportProperties extends JobProperties<DocumentExportProperties> {
   private int readBlockSize;
   private int writeBlockSize;
-  private String destinationDirectoryPath;
+  private ExportDestination destination;
+  private String localDestinationDirectory;
   private String fileNameSuffixColumn;
   private String fileNameSuffixDateFormat;
   private SolrProperties solr;
@@ -46,6 +51,9 @@ public class DocumentExportProperties extends JobProperties<DocumentExportProper
   private String s3BucketName;
   private String s3Endpoint;
   private transient Supplier<Optional<S3Properties>> s3Properties;
+
+  private String hdfsEndpoint;
+  private String hdfsDestinationDirectory;
 
   public DocumentExportProperties() {
     super(DocumentExportProperties.class);
@@ -101,12 +109,20 @@ public class DocumentExportProperties extends JobProperties<DocumentExportProper
     this.writeBlockSize = writeBlockSize;
   }
 
-  public String getDestinationDirectoryPath() {
-    return destinationDirectoryPath;
+  public ExportDestination getDestination() {
+    return destination;
   }
 
-  public void setDestinationDirectoryPath(String destinationDirectoryPath) {
-    this.destinationDirectoryPath = destinationDirectoryPath;
+  public void setDestination(ExportDestination destination) {
+    this.destination = destination;
+  }
+
+  public String getLocalDestinationDirectory() {
+    return localDestinationDirectory;
+  }
+
+  public void setLocalDestinationDirectory(String localDestinationDirectory) {
+    this.localDestinationDirectory = localDestinationDirectory;
   }
 
   public String getFileNameSuffixColumn() {
@@ -170,11 +186,34 @@ public class DocumentExportProperties extends JobProperties<DocumentExportProper
     return s3Properties.get();
   }
 
+  public String getHdfsEndpoint() {
+    return hdfsEndpoint;
+  }
+
+  public void setHdfsEndpoint(String hdfsEndpoint) {
+    this.hdfsEndpoint = hdfsEndpoint;
+  }
+
+  public String getHdfsDestinationDirectory() {
+    return hdfsDestinationDirectory;
+  }
+
+  public void setHdfsDestinationDirectory(String hdfsDestinationDirectory) {
+    this.hdfsDestinationDirectory = hdfsDestinationDirectory;
+  }
+
   @Override
   public void apply(JobParameters jobParameters) {
     readBlockSize = getIntJobParameter(jobParameters, "readBlockSize", readBlockSize);
     writeBlockSize = getIntJobParameter(jobParameters, "writeBlockSize", writeBlockSize);
-    destinationDirectoryPath = jobParameters.getString("destinationDirectoryPath", destinationDirectoryPath);
+    destination = ExportDestination.valueOf(jobParameters.getString("destination", destination.name()));
+    localDestinationDirectory = jobParameters.getString("localDestinationDirectory", localDestinationDirectory);
+    s3AccessFile = jobParameters.getString("s3AccessFile", s3AccessFile);
+    s3BucketName = jobParameters.getString("s3BucketName", s3BucketName);
+    s3KeyPrefix = jobParameters.getString("s3KeyPrefix", s3KeyPrefix);
+    s3Endpoint = jobParameters.getString("s3Endpoint", s3Endpoint);
+    hdfsEndpoint = jobParameters.getString("hdfsEndpoint", hdfsEndpoint);
+    hdfsDestinationDirectory = jobParameters.getString("hdfsDestinationDirectory", hdfsDestinationDirectory);
     solr.apply(jobParameters);
   }
 
@@ -193,13 +232,33 @@ public class DocumentExportProperties extends JobProperties<DocumentExportProper
     if (writeBlockSize == 0)
       throw new IllegalArgumentException("The property writeBlockSize must be greater than 0!");
 
-    if (isBlank(destinationDirectoryPath))
-      throw new IllegalArgumentException("The property destinationDirectoryPath can not be null or empty string!");
-
-    if (isBlank(fileNameSuffixColumn))
+    if (isBlank(fileNameSuffixColumn)) {
       throw new IllegalArgumentException("The property fileNameSuffixColumn can not be null or empty string!");
+    }
+
+    requireNonNull(destination, "The property destination can not be null!");
+    switch (destination) {
+      case LOCAL:
+        if (isBlank(localDestinationDirectory))
+          throw new IllegalArgumentException(String.format(
+                  "The property localDestinationDirectory can not be null or empty string when destination is set to %s!", LOCAL.name()));
+        break;
+
+      case S3:
+        s3Properties()
+                .orElseThrow(() -> new IllegalArgumentException("S3 related properties must be set if the destination is " + S3.name()))
+                .validate();
+        break;
+
+      case HDFS:
+        if (isBlank(hdfsEndpoint))
+          throw new IllegalArgumentException(String.format(
+                  "The property hdfsEndpoint can not be null or empty string when destination is set to %s!", HDFS.name()));
+        if (isBlank(hdfsDestinationDirectory))
+          throw new IllegalArgumentException(String.format(
+                  "The property hdfsDestinationDirectory can not be null or empty string when destination is set to %s!", HDFS.name()));
+    }
 
     solr.validate();
-    s3Properties().ifPresent(S3Properties::validate);
   }
 }

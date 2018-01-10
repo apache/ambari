@@ -49,4 +49,6 @@ public interface InputDescriptor {
   Long getCacheDedupInterval();
 
   Boolean isEnabled();
+
+  Map<String, Object> getAllProperties();
 }

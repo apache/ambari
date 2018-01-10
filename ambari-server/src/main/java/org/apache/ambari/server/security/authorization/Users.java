@@ -35,6 +35,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -118,6 +119,9 @@ public class Users {
 
   @Inject
   private PasswordEncoder passwordEncoder;
+
+  @Inject
+  protected AmbariLdapConfiguration ldapConfiguration;
 
   @Inject
   protected Configuration configuration;
@@ -892,7 +896,7 @@ public class Users {
 
   private void processLdapAdminGroupMappingRules(Set<MemberEntity> membershipsToCreate) {
 
-    String adminGroupMappings = configuration.getProperty(Configuration.LDAP_ADMIN_GROUP_MAPPING_RULES);
+    String adminGroupMappings = ldapConfiguration.groupMappingRules();
     if (Strings.isNullOrEmpty(adminGroupMappings) || membershipsToCreate.isEmpty()) {
       LOG.info("Nothing to do. LDAP admin group mappings: {}, Memberships to handle: {}", adminGroupMappings, membershipsToCreate.size());
       return;

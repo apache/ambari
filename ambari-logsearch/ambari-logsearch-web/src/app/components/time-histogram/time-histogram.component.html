@@ -27,7 +27,7 @@
   </div>
 </header>
 <div #graphContainer></div>
-<footer *ngIf="isTimeGraph && (firstDateTick || lastDateTick)">
+<footer *ngIf="firstDateTick || lastDateTick">
   <div *ngIf="firstDateTick">{{firstDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
   <div *ngIf="lastDateTick">{{lastDateTick | amTz: timeZone | amDateFormat: historyStartEndTimeFormat}}</div>
 </footer>

@@ -20,12 +20,12 @@ command="$1"
 
 function start_containers() {
   check_env_files
-  echo "Start containers ..."
+  kill_containers
   pushd $sdir/../
   local AMBARI_INFRA_MANAGER_LOCATION=$(pwd)
   echo $AMBARI_INFRA_MANAGER_LOCATION
-  kill_containers
   cd $AMBARI_INFRA_MANAGER_LOCATION/docker
+  echo "Start containers ..."
   docker-compose up -d
   popd
   echo "Containers started"
@@ -73,25 +73,37 @@ ZOOKEEPER_VERSION=3.4.10
 ZOOKEEPER_CONNECTION_STRING=zookeeper:2181
 
 SOLR_VERSION=6.6.2
+
+HADOOP_VERSION=3.0.0
 EOF
 }
 
 function setup_profile() {
-  pushd $sdir/../../
-  local AMBARI_LOCATION=$(pwd)
-  popd
   cat << EOF > $sdir/Profile
 AWS_ACCESS_KEY_ID=test
 AWS_SECRET_ACCESS_KEY=test
+HADOOP_USER_NAME=root
+
+CORE-SITE.XML_fs.default.name=hdfs://namenode:9000
+CORE-SITE.XML_fs.defaultFS=hdfs://namenode:9000
+HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:9000
+HDFS-SITE.XML_dfs.replication=1
 EOF
 }
 
 function kill_containers() {
+  pushd $sdir/../
+  local AMBARI_INFRA_MANAGER_LOCATION=$(pwd)
   echo "Try to remove containers if exists ..."
-  docker rm -f docker_inframanager_1
-  docker rm -f docker_solr_1
-  docker rm -f docker_zookeeper_1
-  docker rm -f docker_localstack-s3_1
+  echo $AMBARI_INFRA_MANAGER_LOCATION
+  cd $AMBARI_INFRA_MANAGER_LOCATION/docker
+  docker-compose rm -f -s inframanager
+  docker-compose rm -f -s solr
+  docker-compose rm -f -s zookeeper
+  docker-compose rm -f -s fakes3
+  docker-compose rm -f -s namenode
+  docker-compose rm -f -s datanode
+  popd
 }
 
 case $command in

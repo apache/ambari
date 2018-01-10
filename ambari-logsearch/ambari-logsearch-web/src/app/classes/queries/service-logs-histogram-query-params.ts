@@ -16,55 +16,9 @@
  * limitations under the License.
  */
 
-import {QueryParams} from '@app/classes/queries/query-params';
+import {AuditLogsGraphQueryParams} from '@app/classes/queries/audit-logs-graph-query-params';
 
-export class ServiceLogsHistogramQueryParams extends QueryParams {
-  constructor(options: ServiceLogsHistogramQueryParams) {
-    let unit;
-    const diffTimeStamp = new Date(options.to).valueOf() - new Date(options.from).valueOf();
-    switch (true) {
-      case diffTimeStamp <= 1000:
-        unit = '+100MILLISECOND';
-        break;
-      case diffTimeStamp <= 30000:
-        unit = '+500MILLISECOND';
-        break;
-      case diffTimeStamp <= 60000:
-        unit = '+2SECOND';
-        break;
-      case diffTimeStamp < 1800000:
-        unit = '+1MINUTE';
-        break;
-      case diffTimeStamp < 7200000:
-        unit = '+2MINUTE';
-        break;
-      case diffTimeStamp < 21600000:
-        unit = '+5MINUTE';
-        break;
-      case diffTimeStamp <= 36000000:
-        unit = '+10MINUTE';
-        break;
-      case diffTimeStamp <= 86400000:
-        unit = '+1HOUR';
-        break;
-      case diffTimeStamp < 1296000000:
-        unit = '+8HOUR';
-        break;
-      case diffTimeStamp <= 7776000000:
-        unit = '+1DAY';
-        break;
-      default:
-        unit = '+1MONTH';
-        break;
-    }
-    options.unit = unit;
-    super(options);
-  }
-  from: string;
-  to: string;
-  unit?: string;
+export class ServiceLogsHistogramQueryParams extends AuditLogsGraphQueryParams {
   clusters?: string;
   level?: string;
-  includeQuery?: string;
-  excludeQuery?: string;
 }

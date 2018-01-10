@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-import {ServiceLogsHistogramQueryParams} from './service-logs-histogram-query-params';
+import {AuditLogsGraphQueryParams} from './audit-logs-graph-query-params';
 
-describe('ServiceLogsHistogramQueryParams', () => {
+describe('AuditLogsGraphQueryParams', () => {
 
   describe('constructor', () => {
     const cases = [
@@ -194,7 +194,7 @@ describe('ServiceLogsHistogramQueryParams', () => {
 
     cases.forEach(test => {
       it(test.title, () => {
-        const paramsObject = new ServiceLogsHistogramQueryParams(test.options);
+        const paramsObject = new AuditLogsGraphQueryParams(test.options);
         expect(paramsObject.unit).toEqual(test.unit);
       });
     });

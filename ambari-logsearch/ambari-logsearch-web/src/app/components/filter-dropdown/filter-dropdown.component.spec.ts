@@ -24,6 +24,7 @@ import {AppSettingsService, appSettings} from '@app/services/storage/app-setting
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {
@@ -79,6 +80,7 @@ describe('FilterDropdownComponent', () => {
           appState,
           auditLogs,
           auditLogsFields,
+          auditLogsGraphData,
           serviceLogs,
           serviceLogsFields,
           serviceLogsHistogramData,
@@ -95,6 +97,7 @@ describe('FilterDropdownComponent', () => {
         AppStateService,
         AuditLogsService,
         AuditLogsFieldsService,
+        AuditLogsGraphDataService,
         ServiceLogsService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,

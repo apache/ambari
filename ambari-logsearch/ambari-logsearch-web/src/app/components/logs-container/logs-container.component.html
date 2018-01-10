@@ -34,21 +34,31 @@
     </div>
 
     <!-- TODO use plugin for singular/plural -->
-    <div class="logs-header col-md-12">{{
+    <div *ngIf="logsType === 'serviceLogs'" class="logs-header col-md-12">{{
       (!totalEventsFoundMessageParams.totalCount ? 'logs.noEventFound' :
         (totalEventsFoundMessageParams.totalCount === 1 ? 'logs.oneEventFound' : 'logs.totalEventFound'))
             | translate: totalEventsFoundMessageParams
     }}</div>
   </div>
-  <collapsible-panel openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
-    <time-histogram [data]="histogramData" [colors]="serviceLogsHistogramColors" svgId="service-logs-histogram"
-                    (selectArea)="setCustomTimeRange($event[0], $event[1])"></time-histogram>
-  </collapsible-panel>
   <ng-container [ngSwitch]="logsType">
-    <service-logs-table *ngSwitchCase="'serviceLogs'" [totalCount]="totalCount" [logs]="serviceLogs | async"
-                        [columns]="serviceLogsColumns | async" [filtersForm]="filtersForm"></service-logs-table>
-    <audit-logs-entries *ngSwitchCase="'auditLogs'" [totalCount]="totalCount" [logs]="auditLogs | async"
-                        [columns]="auditLogsColumns | async" [filtersForm]="filtersForm"></audit-logs-entries>
+    <ng-container *ngSwitchCase="'serviceLogs'">
+      <collapsible-panel openTitle="logs.hideGraph" collapsedTitle="logs.showGraph">
+        <time-histogram (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="serviceLogsHistogramData"
+                        [colors]="serviceLogsHistogramColors" [allowFractionalYTicks]="false"
+                        svgId="service-logs-histogram"></time-histogram>
+      </collapsible-panel>
+      <service-logs-table [totalCount]="totalCount" [logs]="serviceLogs | async" [columns]="serviceLogsColumns | async"
+                          [filtersForm]="filtersForm"></service-logs-table>
+    </ng-container>
+    <ng-container *ngSwitchCase="'auditLogs'">
+      <collapsible-panel commonTitle="logs.duration">
+        <time-line-graph (selectArea)="setCustomTimeRange($event[0], $event[1])" [data]="auditLogsGraphData"
+                         [allowFractionalYTicks]="false" [skipZeroValuesInTooltip]="false"
+                         svgId="audit-logs-graph"></time-line-graph>
+      </collapsible-panel>
+      <audit-logs-entries [totalCount]="totalCount" [logs]="auditLogs | async" [columns]="auditLogsColumns | async"
+                          [filtersForm]="filtersForm"></audit-logs-entries>
+    </ng-container>
   </ng-container>
   <log-context *ngIf="isServiceLogContextView" [id]="activeLog.id" [hostName]="activeLog.host_name"
                [componentName]="activeLog.component_name"></log-context>

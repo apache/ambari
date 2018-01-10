@@ -104,6 +104,10 @@ public class StackServiceComponentResourceProvider extends
   private static final String AUTO_DEPLOY_LOCATION_ID = PropertyHelper.getPropertyId(
       "auto_deploy", "location");
 
+  private static final String COMPONENT_TYPE = PropertyHelper.getPropertyId(
+    "StackServiceComponents", "component_type");
+
+
   /**
    * The key property ids for a StackServiceComponent resource.
    */
@@ -137,7 +141,8 @@ public class StackServiceComponentResourceProvider extends
       RECOVERY_ENABLED,
       ROLLING_RESTART_SUPPORTED,
       AUTO_DEPLOY_ENABLED_ID,
-      AUTO_DEPLOY_LOCATION_ID);
+      AUTO_DEPLOY_LOCATION_ID,
+      COMPONENT_TYPE);
 
   protected StackServiceComponentResourceProvider(AmbariManagementController managementController) {
     super(Type.StackServiceComponent, propertyIds, keyPropertyIds, managementController);
@@ -224,6 +229,8 @@ public class StackServiceComponentResourceProvider extends
           response.hasBulkCommands(), requestedIds);
 
       setResourceProperty(resource, ROLLING_RESTART_SUPPORTED, response.isRollingRestartSupported(),  requestedIds);
+
+      setResourceProperty(resource, COMPONENT_TYPE, response.getComponentType(),  requestedIds);
 
       AutoDeployInfo autoDeployInfo = response.getAutoDeploy();
       if (autoDeployInfo != null) {

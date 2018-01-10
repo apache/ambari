@@ -161,6 +161,7 @@
   "logs.showGraph": "Show Graph",
   "logs.topUsers": "Top {{number}} Users",
   "logs.topResources": "Top {{number}} Resources",
+  "logs.duration": "Duration",
 
   "histogram.gap": "gap",
   "histogram.gaps": "gaps",
