@@ -35,16 +35,21 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -162,6 +167,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
+    upgradeLdapConfiguration();
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -382,5 +388,95 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   * Moves LDAP related properties from ambari.properties to ambari_configuration DB table
+   * @throws AmbariException if there was any issue when clearing ambari.properties
+   */
+  protected void upgradeLdapConfiguration() throws AmbariException {
+    LOG.info("Moving LDAP related properties from ambari.properties to ambari_congiuration DB table...");
+    final AmbariConfigurationDAO ambariConfigurationDao = injector.getInstance(AmbariConfigurationDAO.class);
+    final Map<String, String> propertiesFound = new HashMap<>();
+    getLdapConfigurationMap().forEach((key, oldPropertyName) -> {
+      String ldapPropertyValue = configuration.getProperty(oldPropertyName);
+      if (StringUtils.isNotBlank(ldapPropertyValue)) {
+        propertiesFound.put(key.key(), oldPropertyName);
+        if (AmbariLdapConfigurationKeys.SERVER_HOST == key || AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST == key) {
+          saveLdapUrl(ambariConfigurationDao, oldPropertyName, key, ldapPropertyValue);
+        } else {
+          saveLdapConfiguration(ambariConfigurationDao, key, ldapPropertyValue);
+          LOG.info("Moved '" + oldPropertyName + "' as '" + key.key() + "'; value = " + ldapPropertyValue);
+        }
+      }
+    });
+    if (propertiesFound.isEmpty()) {
+      LOG.info("There was no LDAP related properties in ambari.properties; moved 0 elements");
+    } else {
+      configuration.removePropertiesFromAmbariProperties(propertiesFound.values());
+      LOG.info(propertiesFound.size() + " LDAP related properties " + (propertiesFound.size() == 1 ? "has" : "have") + " been moved to DB");
+    }
+  }
+
+  private void saveLdapUrl(AmbariConfigurationDAO ambariConfigurationDao, String oldPropertyName, AmbariLdapConfigurationKeys key, String value) {
+    final HostAndPort hostAndPort = HostAndPort.fromUrl(value);
+
+    AmbariLdapConfigurationKeys keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_HOST
+        : AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST;
+    saveLdapConfiguration(ambariConfigurationDao, keyToBesaved, hostAndPort.host);
+    LOG.info("Moved '" + oldPropertyName + "' as '" + keyToBesaved.key() + "'; value = " + hostAndPort.host);
+
+    keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_PORT : AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT;
+    saveLdapConfiguration(ambariConfigurationDao, keyToBesaved, hostAndPort.portAsString());
+    LOG.info("Moved '" + oldPropertyName + "' as '" + keyToBesaved.key() + "'; value = " + hostAndPort.host);
+  }
+
+  private void saveLdapConfiguration(AmbariConfigurationDAO ambariConfigurationDao, AmbariLdapConfigurationKeys key, String value) {
+    final AmbariConfigurationEntity configurationEntity = new AmbariConfigurationEntity();
+    configurationEntity.setCategoryName(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName());
+    configurationEntity.setPropertyName(key.key());
+    configurationEntity.setPropertyValue(value);
+    ambariConfigurationDao.create(configurationEntity);
+  }
+  
+  /**
+   * @return a map describing the new LDAP configuration key to the old ambari.properties property name
+   */
+  @SuppressWarnings("serial")
+  private Map<AmbariLdapConfigurationKeys, String> getLdapConfigurationMap() {
+    return Collections.unmodifiableMap(new HashMap<AmbariLdapConfigurationKeys, String>() {
+      {
+        put(AmbariLdapConfigurationKeys.LDAP_ENABLED, "ambari.ldap.isConfigured");
+        put(AmbariLdapConfigurationKeys.SERVER_HOST, "authentication.ldap.primaryUrl");
+        put(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST, "authentication.ldap.secondaryUrl");
+        put(AmbariLdapConfigurationKeys.USE_SSL, "authentication.ldap.useSSL");
+        put(AmbariLdapConfigurationKeys.ANONYMOUS_BIND, "authentication.ldap.bindAnonymously");
+        put(AmbariLdapConfigurationKeys.BIND_DN, "authentication.ldap.managerDn");
+        put(AmbariLdapConfigurationKeys.BIND_PASSWORD, "authentication.ldap.managerPassword");
+        put(AmbariLdapConfigurationKeys.DN_ATTRIBUTE, "authentication.ldap.dnAttribute");
+        put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS, "authentication.ldap.userObjectClass");
+        put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "authentication.ldap.usernameAttribute");
+        put(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "authentication.ldap.baseDn");
+        put(AmbariLdapConfigurationKeys.USER_BASE, "authentication.ldap.userBase");
+        put(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, "authentication.ldap.groupObjectClass");
+        put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, "authentication.ldap.groupNamingAttr");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE, "authentication.ldap.groupMembershipAttr");
+        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE, "authentication.ldap.baseDn");
+        put(AmbariLdapConfigurationKeys.GROUP_BASE, "authentication.ldap.groupBase");
+        put(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER, "authentication.ldap.userSearchFilter");
+        put(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.userMemberReplacePattern");
+        put(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER, "authentication.ldap.sync.userMemberFilter");
+        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "authentication.ldap.alternateUserSearchEnabled");
+        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER, "authentication.ldap.alternateUserSearchFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER, "authorization.ldap.groupSearchFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.groupMemberReplacePattern");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER, "authentication.ldap.sync.groupMemberFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES, "authorization.ldap.adminGroupMappingRules");
+        put(AmbariLdapConfigurationKeys.FORCE_LOWERCASE_USERNAMES, "authentication.ldap.username.forceLowercase");
+        put(AmbariLdapConfigurationKeys.REFERRAL_HANDLING, "authentication.ldap.referral");
+        put(AmbariLdapConfigurationKeys.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
+        put(AmbariLdapConfigurationKeys.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
+      }
+    });
   }
 }

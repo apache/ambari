@@ -25,4 +25,12 @@ public class HostAndPort {
     this.host = host;
     this.port = port;
   }
+
+  public static HostAndPort fromUrl(String url) {
+    return new HostAndPort(url.split(":")[0], Integer.valueOf(url.split(":")[1]));
+  }
+
+  public String portAsString() {
+    return String.valueOf(port);
+  }
 }

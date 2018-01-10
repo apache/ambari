@@ -34,6 +34,7 @@ import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.Markdown;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -2851,6 +2853,40 @@ public class Configuration {
     }
 
     return properties;
+  }
+
+  /**
+   * Removing the given properties from ambari.properties (i.e. at upgrade time)
+   *
+   * @param propertiesToBeCleared
+   *          the properties to be removed
+   * @throws AmbariException
+   *           if there was any issue when clearing ambari.properties
+   */
+  public void removePropertiesFromAmbariProperties(Collection<String> propertiesToBeRemoved) throws AmbariException {
+    try {
+      final File ambariPropertiesFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
+      final List<String> ambariPropertiesLines = FileUtils.readLines(ambariPropertiesFile, Charsets.UTF_8);
+      final StringBuilder newAmbariProperties = new StringBuilder();
+      for (String line : ambariPropertiesLines) {
+        if (!lineNeedsToBeRemoved(line, propertiesToBeRemoved)) {
+          newAmbariProperties.append(line).append(System.getProperty("line.separator"));
+        }
+      }
+      FileUtils.writeStringToFile(ambariPropertiesFile, newAmbariProperties.toString(), Charsets.UTF_8);
+
+      // reloading properties
+      this.properties = readConfigFile();
+    } catch (IOException e) {
+      throw new AmbariException("Error while clearing ambari.properties", e);
+    }
+  }
+
+  private boolean lineNeedsToBeRemoved(String line, Collection<String> propertiesToBeRemoved) {
+    if (StringUtils.isNotBlank(line)) {
+      return propertiesToBeRemoved.stream().anyMatch(propertyToBeCleared -> line.trim().indexOf(propertyToBeCleared.concat("=")) > -1);
+    }
+    return false;
   }
 
   /**
