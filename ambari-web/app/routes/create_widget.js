@@ -62,7 +62,6 @@ module.exports = App.WizardRoute.extend({
 
   step1: Em.Route.extend({
     route: '/step1',
-    breadcrumbs: null,
 
     connectOutlets: function (router) {
       var controller = router.get('widgetWizardController');
@@ -96,7 +95,6 @@ module.exports = App.WizardRoute.extend({
 
   step2: Em.Route.extend({
     route: '/step2',
-    breadcrumbs: null,
 
     connectOutlets: function (router) {
       var controller = router.get('widgetWizardController');
@@ -127,7 +125,6 @@ module.exports = App.WizardRoute.extend({
 
   step3: Em.Route.extend({
     route: '/step3',
-    breadcrumbs: null,
 
     connectOutlets: function (router) {
       var controller = router.get('widgetWizardController');
