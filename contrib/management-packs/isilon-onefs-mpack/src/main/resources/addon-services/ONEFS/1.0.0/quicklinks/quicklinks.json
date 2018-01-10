@@ -1,0 +1,31 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type": "HTTP_ONLY"
+    },
+    "links": [
+      {
+        "component_name" : "ONEFS_CLIENT",
+        "name": "onefs_web_ui",
+        "label": "OneFS Web UI",
+        "url": "%@://%@",
+        "host": {
+          "http_property": "fs.defaultFS",
+          "site": "core-site"
+        }
+      },
+      {
+        "component_name" : "ONEFS_CLIENT",
+        "name": "onefs_hdfs_web_ui",
+        "label": "OneFS HDFS Settings",
+        "url": "%@://%@/OneFS#HDFS/Settings",
+        "host": {
+          "http_property": "fs.defaultFS",
+          "site": "core-site"
+        }
+      }
+    ]
+  }
+}

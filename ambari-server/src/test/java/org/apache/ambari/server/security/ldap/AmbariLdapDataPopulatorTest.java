@@ -49,7 +49,8 @@ import java.util.Set;
 import javax.naming.directory.SearchControls;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.LdapUsernameCollisionHandlingBehavior;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
@@ -87,7 +88,7 @@ import com.google.common.collect.Sets;
 @PrepareForTest(AmbariLdapUtils.class)
 public class AmbariLdapDataPopulatorTest {
   public static class AmbariLdapDataPopulatorTestInstance extends TestAmbariLdapDataPopulator {
-    public AmbariLdapDataPopulatorTestInstance(Configuration configuration, Users users) {
+    public AmbariLdapDataPopulatorTestInstance(AmbariLdapConfiguration configuration, Users users) {
       super(configuration, users);
     }
 
@@ -103,7 +104,7 @@ public class AmbariLdapDataPopulatorTest {
     private LdapContextSource ldapContextSource;
     private PagedResultsDirContextProcessor processor;
 
-    public TestAmbariLdapDataPopulator(Configuration configuration, Users users) {
+    public TestAmbariLdapDataPopulator(AmbariLdapConfiguration configuration, Users users) {
       super(configuration, users);
     }
 
@@ -150,12 +151,12 @@ public class AmbariLdapDataPopulatorTest {
 
   @Test
   public void testIsLdapEnabled_badConfiguration() {
-    final Configuration configuration = createNiceMock(Configuration.class);
+    final AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     final Users users = createNiceMock(Users.class);
 
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
-    expect(configuration.isLdapConfigured()).andReturn(true);
+    expect(configuration.ldapEnabled()).andReturn(true);
     expect(ldapTemplate.search(EasyMock.<String>anyObject(), EasyMock.anyObject(), EasyMock.<AttributesMapper>anyObject())).andThrow(new NullPointerException()).once();
     replay(ldapTemplate, configuration, ldapServerProperties);
 
@@ -169,7 +170,7 @@ public class AmbariLdapDataPopulatorTest {
 
   @Test
   public void testReferralMethod() {
-    final Configuration configuration = createNiceMock(Configuration.class);
+    final AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     final Users users = createNiceMock(Users.class);
     LdapContextSource ldapContextSource = createNiceMock(LdapContextSource.class);
 
@@ -197,12 +198,12 @@ public class AmbariLdapDataPopulatorTest {
 
   @Test
   public void testIsLdapEnabled_reallyEnabled() {
-    final Configuration configuration = createNiceMock(Configuration.class);
+    final AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     final Users users = createNiceMock(Users.class);
 
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
-    expect(configuration.isLdapConfigured()).andReturn(true);
+    expect(configuration.ldapEnabled()).andReturn(true);
     expect(ldapTemplate.search(EasyMock.<String>anyObject(), EasyMock.anyObject(), EasyMock.<AttributesMapper>anyObject())).andReturn(Collections.emptyList()).once();
     replay(ldapTemplate, configuration);
 
@@ -216,12 +217,12 @@ public class AmbariLdapDataPopulatorTest {
 
   @Test
   public void testIsLdapEnabled_reallyDisabled() {
-    final Configuration configuration = createNiceMock(Configuration.class);
+    final AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     final Users users = createNiceMock(Users.class);
 
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
-    expect(configuration.isLdapConfigured()).andReturn(false);
+    expect(configuration.ldapEnabled()).andReturn(false);
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties);
     replay(ldapTemplate, ldapServerProperties, configuration);
 
@@ -258,7 +259,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3, group4, group5);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -312,7 +313,7 @@ public class AmbariLdapDataPopulatorTest {
     expect(group2.getGroupName()).andReturn("group2").anyTimes();
     expect(group2.isLdapGroup()).andReturn(true).anyTimes();
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     expect(users.getAllGroups()).andReturn(Arrays.asList(group1, group2));
     expect(users.getAllUsers()).andReturn(Collections.emptyList());
@@ -370,7 +371,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3, group4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -449,7 +450,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3, group4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -524,7 +525,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3, group4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -594,7 +595,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3, group4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -654,7 +655,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3, group4, group5);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -717,7 +718,7 @@ public class AmbariLdapDataPopulatorTest {
     expect(group1.isLdapGroup()).andReturn(false).anyTimes();
     expect(group2.isLdapGroup()).andReturn(false).anyTimes();
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -782,7 +783,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3, group4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -842,7 +843,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<Group> groupList = Arrays.asList(group1, group2, group3);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -907,7 +908,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3, user4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -966,8 +967,8 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3);
 
-    Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getLdapSyncCollisionHandlingBehavior()).andReturn(Configuration.LdapUsernameCollisionHandlingBehavior.SKIP).anyTimes();
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
+    expect(configuration.syncCollisionHandlingBehavior()).andReturn(LdapUsernameCollisionHandlingBehavior.SKIP).anyTimes();
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1020,7 +1021,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1075,7 +1076,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1124,7 +1125,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1184,7 +1185,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3, user4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1236,7 +1237,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3, user4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1300,7 +1301,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3, user4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1361,7 +1362,7 @@ public class AmbariLdapDataPopulatorTest {
 
     List<User> userList = Arrays.asList(user1, user2, user3, user4);
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1408,7 +1409,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test(expected = AmbariException.class)
   public void testSynchronizeLdapUsers_absent() throws Exception {
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1463,7 +1464,7 @@ public class AmbariLdapDataPopulatorTest {
     expect(group2.isLdapGroup()).andReturn(true).anyTimes();
     expect(group1.getGroupName()).andReturn("group1").anyTimes();
     expect(group2.getGroupName()).andReturn("group2").anyTimes();
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1533,7 +1534,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   @SuppressWarnings("serial")
   public void testCleanUpLdapUsersWithoutGroup() throws AmbariException {
-    final Configuration configuration = createNiceMock(Configuration.class);
+    final AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     final Users users = createNiceMock(Users.class);
 
     final GroupEntity ldapGroup = new GroupEntity();
@@ -1589,7 +1590,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testGetLdapUserByMemberAttr() throws Exception {
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1628,7 +1629,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testGetLdapUserByMemberAttrNoPagination() throws Exception {
 
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
@@ -1732,7 +1733,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testIsMemberAttributeBaseDn() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
 
@@ -1752,7 +1753,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testIsMemberAttributeBaseDn_withUidMatch() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
 
@@ -1772,7 +1773,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testIsMemberAttributeBaseDn_withLowerAndUpperCaseValue() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
 
@@ -1792,7 +1793,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testIsMemberAttributeBaseDn_withWrongAttribute() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
 
@@ -1812,7 +1813,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testIsMemberAttributeBaseDn_withEmptyValues() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
 
@@ -1832,7 +1833,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testIsMemberAttributeBaseDn_withDifferentUserAndGroupNameAttribute() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
@@ -1851,7 +1852,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testGetUniqueIdMemberPattern() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     String syncUserMemberPattern = "(?<sid>.*);(?<guid>.*);(?<member>.*)";
     String memberAttribute = "<SID=...>;<GUID=...>;cn=member,dc=apache,dc=org";
@@ -1865,7 +1866,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testGetUniqueIdByMemberPatternWhenPatternIsWrong() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     String syncUserMemberPattern = "(?<sid>.*);(?<guid>.*);(?<mem>.*)";
     String memberAttribute = "<SID=...>;<GUID=...>;cn=member,dc=apache,dc=org";
@@ -1879,7 +1880,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testGetUniqueIdByMemberPatternWhenPatternIsEmpty() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     String memberAttribute = "<SID=...>;<GUID=...>;cn=member,dc=apache,dc=org";
     AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
@@ -1892,7 +1893,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testGetUniqueIdByMemberPatternWhenMembershipAttributeIsNull() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     String syncUserMemberPattern = "(?<sid>.*);(?<guid>.*);(?<member>.*)";
     AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
@@ -1905,7 +1906,7 @@ public class AmbariLdapDataPopulatorTest {
   @Test
   public void testCreateCustomMemberFilter() {
     // GIVEN
-    Configuration configuration = createNiceMock(Configuration.class);
+    AmbariLdapConfiguration configuration = createNiceMock(AmbariLdapConfiguration.class);
     Users users = createNiceMock(Users.class);
     AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
     // WHEN

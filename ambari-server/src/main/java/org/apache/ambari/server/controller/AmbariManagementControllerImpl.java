@@ -801,14 +801,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
     // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-    String service = null;
+    String service = cluster.getServiceByConfigType(configType);
 
-    try {
-      service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-    } catch (IllegalArgumentException e) {
-      // Ignore this since we may have hit a config type that spans multiple services. This may
-      // happen in unit test cases but should not happen with later versions of stacks.
-    }
 
     // Get the changes so that the user's intention can be determined. For example, maybe
     // the user wants to change the run-as user for a service or maybe the the cluster-wide

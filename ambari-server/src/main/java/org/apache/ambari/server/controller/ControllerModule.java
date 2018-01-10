@@ -156,6 +156,7 @@ import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -361,6 +362,7 @@ public class ControllerModule extends AbstractModule {
     // So it's an "additional time", given to stage to finish execution before
     // it is considered as timed out
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+    bindConstant().annotatedWith(Names.named("alertServiceCorePoolSize")).to(configuration.getAlertServiceCorePoolSize());
 
     bindConstant().annotatedWith(Names.named("dbInitNeeded")).to(dbInitNeeded);
     bindConstant().annotatedWith(Names.named("statusCheckInterval")).to(5000L);
@@ -402,6 +404,7 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(DatabaseConsistencyCheckHelper.class);
     requestStaticInjection(KerberosChecker.class);
     requestStaticInjection(AuthorizationHelper.class);
+    requestStaticInjection(PasswordUtils.class);
 
     bindByAnnotation(null);
     bindNotificationDispatchers(null);

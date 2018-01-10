@@ -58,6 +58,9 @@ public class DocumentDeletingConfiguration {
 
   @PostConstruct
   public void createJobs() {
+    if (propertyMap == null || propertyMap.getSolrDataDeleting() == null)
+      return;
+
     propertyMap.getSolrDataDeleting().values().forEach(DocumentDeletingProperties::validate);
 
     propertyMap.getSolrDataDeleting().keySet().forEach(jobName -> {

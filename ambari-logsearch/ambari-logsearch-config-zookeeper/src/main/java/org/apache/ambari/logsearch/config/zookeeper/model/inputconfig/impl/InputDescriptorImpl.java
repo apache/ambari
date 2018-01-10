@@ -179,6 +179,8 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   @SerializedName("is_enabled")
   private Boolean isEnabled;
 
+  private Map<String, Object> allProperties;
+
   public String getType() {
     return type;
   }
@@ -289,5 +291,14 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
 
   public void setIsEnabled(Boolean isEnabled) {
     this.isEnabled = isEnabled;
+  }
+
+  @Override
+  public Map<String, Object> getAllProperties() {
+    return allProperties;
+  }
+
+  public void setAllProperties(Map<String, Object> allProperties) {
+    this.allProperties = allProperties;
   }
 }

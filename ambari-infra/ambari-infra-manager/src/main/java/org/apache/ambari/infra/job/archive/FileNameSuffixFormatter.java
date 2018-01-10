@@ -21,6 +21,7 @@ package org.apache.ambari.infra.job.archive;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.ambari.infra.job.archive.SolrDocumentIterator.SOLR_DATE_FORMAT_TEXT;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
@@ -42,15 +43,21 @@ public class FileNameSuffixFormatter {
   }
 
   public String format(Document document) {
-    if (document == null)
-      throw new NullPointerException("Can not format file name suffix: input document is null!");
+    requireNonNull(document, "Can not format file name suffix: input document is null!");
 
     if (isBlank(document.get(columnName)))
       throw new IllegalArgumentException("The specified document does not have a column " + columnName + " or it's value is blank!");
 
+    return format(document.get(columnName));
+  }
+
+  public String format(String value) {
+    if (isBlank(value))
+      throw new IllegalArgumentException("The specified value is blank!");
+
     if (dateFormat == null)
-      return document.get(columnName);
-    OffsetDateTime date = OffsetDateTime.parse(document.get(columnName), SOLR_DATETIME_FORMATTER);
+      return value;
+    OffsetDateTime date = OffsetDateTime.parse(value, SOLR_DATETIME_FORMATTER);
     return date.format(dateFormat);
   }
 }
