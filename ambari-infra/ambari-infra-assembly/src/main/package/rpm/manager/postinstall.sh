@@ -15,6 +15,13 @@
 # limitations under the License
 
 INFRA_MANAGER_LINK_NAME="/usr/bin/infra-manager"
-INFRA_MANAGER_SOURCE="/usr/lib/ambari-infra-manager/infraManager.sh"
+INFRA_MANAGER_SOURCE="/usr/lib/ambari-infra-manager/bin/infraManager.sh"
+INFRA_MANAGER_CONF_LINK_DIR="/etc/ambari-infra-manager"
+INFRA_MANAGER_CONF_LINK_NAME="$INFRA_MANAGER_CONF_LINK_DIR/conf"
+INFRA_MANAGER_CONF_SOURCE="/usr/lib/ambari-infra-manager/conf"
 
 rm -f $INFRA_MANAGER_LINK_NAME ; ln -s $INFRA_MANAGER_SOURCE $INFRA_MANAGER_LINK_NAME
+rm -f $INFRA_MANAGER_CONF_LINK_NAME
+rm -rf $INFRA_MANAGER_CONF_LINK_DIR
+mkdir -p $INFRA_MANAGER_CONF_LINK_DIR
+ln -s $INFRA_MANAGER_CONF_SOURCE $INFRA_MANAGER_CONF_LINK_NAME
