@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-import {AfterViewInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input} from '@angular/core';
+import {
+  AfterViewInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input, Output, EventEmitter
+} from '@angular/core';
 import * as d3 from 'd3';
 import * as d3sc from 'd3-scale-chromatic';
 import {
-  GraphPositionOptions, GraphMarginOptions, GraphTooltipInfo, LegendItem, GraphEventData
+  GraphPositionOptions, GraphMarginOptions, GraphTooltipInfo, LegendItem, GraphEventData, GraphEmittedEvent
 } from '@app/classes/graph';
 import {HomogeneousObject} from '@app/classes/object';
 import {ServiceInjector} from '@app/classes/service-injector';
@@ -119,6 +121,42 @@ export class GraphComponent implements AfterViewInit, OnChanges {
   @Input()
   skipZeroValuesInTooltip: boolean = true;
 
+  /**
+   * Indicates whether context menu for X axis ticks is available
+   * @type {boolean}
+   */
+  @Input()
+  hasXTickContextMenu: boolean = false;
+
+  /**
+   * Indicates whether context menu for Y axis ticks is available
+   * @type {boolean}
+   */
+  @Input()
+  hasYTickContextMenu: boolean = false;
+
+  /**
+   * Indicates whether X axis event should be emitted with formatted string values that are displayed
+   * (instead of raw values)
+   * @type {boolean}
+   */
+  @Input()
+  emitFormattedXTick: boolean = false;
+
+  /**
+   * Indicates whether Y axis event should be emitted with formatted string values that are displayed
+   * (instead of raw values)
+   * @type {boolean}
+   */
+  @Input()
+  emitFormattedYTick: boolean = false;
+
+  @Output()
+  xTickContextMenu: EventEmitter<GraphEmittedEvent<MouseEvent>> = new EventEmitter();
+
+  @Output()
+  yTickContextMenu: EventEmitter<GraphEmittedEvent<MouseEvent>> = new EventEmitter();
+
   @ViewChild('graphContainer')
   graphContainerRef: ElementRef;
 
@@ -126,6 +164,10 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     read: ElementRef
   })
   tooltipRef: ElementRef;
+
+  private readonly xAxisClassName: string = 'axis-x';
+
+  private readonly yAxisClassName: string = 'axis-y';
 
   protected utils: UtilsService;
 
@@ -276,7 +318,16 @@ export class GraphComponent implements AfterViewInit, OnChanges {
       axis.ticks(ticksCount);
     }
     this.xAxis = axis;
-    this.svg.append('g').attr('class', 'axis axis-x').attr('transform', `translate(0,${this.height})`).call(this.xAxis);
+    this.svg.append('g').attr('class', `axis ${this.xAxisClassName}`).attr('transform', `translate(0,${this.height})`)
+      .call(this.xAxis);
+    if (this.hasXTickContextMenu) {
+      this.svg.selectAll(`.${this.xAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
+        const tick = this.emitFormattedXTick ? this.xAxisTickFormatter(tickValue, index) : tickValue,
+          nativeEvent = d3.event;
+        this.xTickContextMenu.emit({tick, nativeEvent});
+        event.preventDefault();
+      });
+    }
   }
 
   /**
@@ -290,7 +341,15 @@ export class GraphComponent implements AfterViewInit, OnChanges {
       axis.ticks(ticksCount);
     }
     this.yAxis = axis;
-    this.svg.append('g').attr('class', 'axis axis-y').call(this.yAxis).append('text');
+    this.svg.append('g').attr('class', `axis ${this.yAxisClassName}`).call(this.yAxis);
+    if (this.hasYTickContextMenu) {
+      this.svg.selectAll(`.${this.yAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
+        const tick = this.emitFormattedYTick ? this.yAxisTickFormatter(tickValue, index): tickValue,
+          nativeEvent = d3.event;
+        this.yTickContextMenu.emit({tick, nativeEvent});
+        event.preventDefault();
+      });
+    }
   };
 
   /**
