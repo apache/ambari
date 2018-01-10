@@ -693,33 +693,72 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     return allowedTransfers;
   }
 
+  /**
+   * Gets whether the {@code set} directive is valid based on the optional
+   * attributes specified.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param configType
+   *          the configuration type for the change (not {@code null}).
+   * @param targetPropertyKey
+   *          the property to set (not {@code null}).
+   * @param ifKey
+   *          the property name to check in order to satisfy a condition, or
+   *          {@code null} if there is no condition.
+   * @param ifType
+   *          the property type to check in order to satisfy a condition, or
+   *          {@code null} if there is no condition.
+   * @param ifValue
+   *          the property value to compare for equality in order to satisfy a
+   *          condition, or {@code null} if there is no condition.
+   * @param ifKeyState
+   *          the state of the if-property. If the property is
+   *          {@link PropertyKeyState#ABSENT}, then execute the set directory
+   *          only if the if-key is absent.
+   * @return {@code true} if the set operation should be executed by the
+   *         upgrade, {@code false} otherwise.
+   */
   private boolean isOperationAllowed(Cluster cluster, String configType, String targetPropertyKey,
       String ifKey, String ifType, String ifValue, PropertyKeyState ifKeyState){
     boolean isAllowed = true;
 
     boolean ifKeyIsNotBlank = StringUtils.isNotBlank(ifKey);
     boolean ifTypeIsNotBlank = StringUtils.isNotBlank(ifType);
+    boolean ifValueIsBlank = StringUtils.isBlank(ifValue);
 
-    if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifKeyState == PropertyKeyState.ABSENT) {
+    // if-key/if-type and no value - set only if absent
+    if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank && ifKeyState == PropertyKeyState.ABSENT) {
       boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
       if (keyPresent) {
         LOG.info("Skipping property operation for {}/{} as the key {} for {} is present",
           configType, targetPropertyKey, ifKey, ifType);
         isAllowed = false;
       }
-    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValue == null &&
-      ifKeyState == PropertyKeyState.PRESENT) {
+      // if-key/if-type and no value - set only is present
+    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank && ifKeyState == PropertyKeyState.PRESENT) {
       boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
       if (!keyPresent) {
         LOG.info("Skipping property operation for {}/{} as the key {} for {} is not present",
           configType, targetPropertyKey, ifKey, ifType);
         isAllowed = false;
       }
-    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValue != null) {
-
+      // if-key/if-type and a value to check - set only if values match
+    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && !ifValueIsBlank) {
       String ifConfigType = ifType;
       String checkValue = getDesiredConfigurationValue(cluster, ifConfigType, ifKey);
-      if (!ifValue.toLowerCase().equals(StringUtils.lowerCase(checkValue))) {
+
+      // the check value is blank and there is an if-key-state of ABSENT - in
+      // this case, it means set the value if it matches or if it's absent
+      if (ifKeyState == PropertyKeyState.ABSENT) {
+        boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
+        if (!keyPresent) {
+          return true;
+        }
+      }
+
+      // the if-key was found, so we need to do a comparison
+      if (!StringUtils.equalsIgnoreCase(ifValue, checkValue)) {
         // skip adding
         LOG.info("Skipping property operation for {}/{} as the value {} for {}/{} is not equal to {}",
                  configType, targetPropertyKey, checkValue, ifConfigType, ifKey, ifValue);
