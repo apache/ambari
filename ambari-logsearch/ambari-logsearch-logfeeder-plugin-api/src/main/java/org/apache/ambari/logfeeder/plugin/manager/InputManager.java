@@ -16,30 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder.plugin.manager;
 
-package org.apache.ambari.logfeeder.mapper;
+import org.apache.ambari.logfeeder.plugin.input.Input;
 
-import java.util.Map;
+import java.io.File;
+import java.util.List;
 
-import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
 
-public abstract class Mapper {
-  private String inputDesc;
-  protected String fieldName;
-  private String mapClassCode;
+public abstract class InputManager implements BlockManager {
 
-  public abstract boolean init(String inputDesc, String fieldName, String mapClassCode, MapFieldDescriptor mapFieldDescriptor);
+  public abstract void addToNotReady(Input input);
 
-  protected void init(String inputDesc, String fieldName, String mapClassCode) {
-    this.inputDesc = inputDesc;
-    this.fieldName = fieldName;
-    this.mapClassCode = mapClassCode;
-  }
+  public abstract void checkInAll();
 
-  public abstract Object apply(Map<String, Object> jsonObj, Object value);
+  public abstract List<Input> getInputList(String serviceName);
 
-  @Override
-  public String toString() {
-    return "mapClass=" + mapClassCode + ", input=" + inputDesc + ", fieldName=" + fieldName;
-  }
+  public abstract void add(String serviceName, Input input);
+
+  public abstract void removeInput(Input input);
+
+  public abstract File getCheckPointFolderFile();
+
+  public abstract void cleanCheckPointFiles();
+
+  public abstract void removeInputsForService(String serviceName);
+
+  public abstract void startInputs(String serviceName);
 }

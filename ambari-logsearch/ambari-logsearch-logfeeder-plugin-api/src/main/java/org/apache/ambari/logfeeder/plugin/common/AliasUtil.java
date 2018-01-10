@@ -16,26 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.util;
+package org.apache.ambari.logfeeder.plugin.common;
 
+import org.apache.ambari.logfeeder.plugin.filter.Filter;
+import org.apache.ambari.logfeeder.plugin.filter.mapper.Mapper;
+import org.apache.ambari.logfeeder.plugin.input.Input;
+import org.apache.ambari.logfeeder.plugin.output.Output;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
-
-import org.apache.ambari.logfeeder.filter.Filter;
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.mapper.Mapper;
-import org.apache.ambari.logfeeder.output.Output;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
 public class AliasUtil {
 
-  private static final Logger LOG = Logger.getLogger(AliasUtil.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AliasUtil.class);
 
   private static final String ALIAS_CONFIG_JSON = "alias_config.json";
   private static HashMap<String, Object> aliasMap = null;
 
   static {
-    aliasMap = FileUtil.getJsonFileContentFromClassPath(ALIAS_CONFIG_JSON);
+    aliasMap = getJsonFileContentFromClassPath(ALIAS_CONFIG_JSON);
   }
 
   public static enum AliasType {
@@ -48,10 +52,10 @@ public class AliasUtil {
 
   public static Object getClassInstance(String key, AliasType aliasType) {
     String classFullName = getClassFullName(key, aliasType);
-    
+
     Object instance = null;
     try {
-      instance = (Object) Class.forName(classFullName).getConstructor().newInstance();
+      instance = Class.forName(classFullName).getConstructor().newInstance();
     } catch (Exception exception) {
       LOG.error("Unsupported class = " + classFullName, exception.getCause());
     }
@@ -84,23 +88,23 @@ public class AliasUtil {
 
   private static String getClassFullName(String key, AliasType aliastype) {
     String className = null;// key as a default value;
-    
+
     HashMap<String, String> aliasInfo = getAliasInfo(key, aliastype);
     String value = aliasInfo.get("klass");
-    if (!StringUtils.isEmpty(value)) {
+    if (value != null && !value.isEmpty()) {
       className = value;
       LOG.debug("Class name found for key :" + key + ", class name :" + className + " aliastype:" + aliastype.name());
     } else {
       LOG.debug("Class name not found for key :" + key + " aliastype:" + aliastype.name());
     }
-    
+
     return className;
   }
 
   @SuppressWarnings("unchecked")
   private static HashMap<String, String> getAliasInfo(String key, AliasType aliastype) {
-    HashMap<String, String> aliasInfo = new HashMap<String, String>();
-    
+    HashMap<String, String> aliasInfo = new HashMap<>();
+
     if (aliasMap != null) {
       String typeKey = aliastype.name().toLowerCase();
       HashMap<String, Object> typeJson = (HashMap<String, Object>) aliasMap.get(typeKey);
@@ -108,7 +112,18 @@ public class AliasUtil {
         aliasInfo = (HashMap<String, String>) typeJson.get(key);
       }
     }
-    
+
     return aliasInfo;
   }
+
+  public static HashMap<String, Object> getJsonFileContentFromClassPath(String fileName) {
+    ObjectMapper mapper = new ObjectMapper();
+    try (InputStream inputStream = AliasUtil.class.getClassLoader().getResourceAsStream(fileName)) {
+      return mapper.readValue(inputStream, new TypeReference<HashMap<String, Object>>() {});
+    } catch (IOException e) {
+      LOG.error("Error occurred during loading alias json file: {}", e);
+    }
+    return new HashMap<String, Object>();
+  }
+
 }

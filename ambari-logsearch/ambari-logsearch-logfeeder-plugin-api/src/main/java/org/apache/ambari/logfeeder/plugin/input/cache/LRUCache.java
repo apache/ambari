@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.input.cache;
+package org.apache.ambari.logfeeder.plugin.input.cache;
 
 import com.google.common.collect.EvictingQueue;
 
