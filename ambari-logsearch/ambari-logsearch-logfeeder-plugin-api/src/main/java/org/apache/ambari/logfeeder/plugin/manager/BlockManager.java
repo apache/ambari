@@ -16,31 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder.plugin.manager;
 
-package org.apache.ambari.logfeeder.metrics;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+import java.util.List;
 
-public class MetricData {
-  public final String metricsName;
-  public final boolean isPointInTime;
+public interface BlockManager {
 
-  public MetricData(String metricsName, boolean isPointInTime) {
-    this.metricsName = metricsName;
-    this.isPointInTime = isPointInTime;
-  }
-  
-  public long value = 0;
-  public long prevPublishValue = 0;
-  
-  public long prevLogValue = 0;
-  public long prevLogTime = System.currentTimeMillis();
-  
-  public int publishCount = 0; // Number of times the metric was published so far
-  
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-  }
+  void init() throws Exception;
+
+  void close();
+
+  void logStats();
+
+  void addMetricsContainers(List<MetricData> metricsList);
+
 }

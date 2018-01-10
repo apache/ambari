@@ -16,25 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder.plugin.manager;
 
-package org.apache.ambari.logfeeder.input;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.output.Output;
+import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
 
-/**
- * This file contains the file inode, line number of the log currently been read
- */
-public class InputMarker {
-  public final Input input;
-  public final String base64FileKey;
-  public final int lineNumber;
-  
-  public InputMarker(Input input, String base64FileKey, int lineNumber) {
-    this.input = input;
-    this.base64FileKey = base64FileKey;
-    this.lineNumber = lineNumber;
-  }
-  
-  @Override
-  public String toString() {
-    return "InputMarker [lineNumber=" + lineNumber + ", input=" + input.getShortDescription() + "]";
-  }
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+public abstract class OutputManager implements BlockManager {
+
+  public abstract void write(Map<String, Object> jsonObj, InputMarker inputMarker);
+
+  public abstract void write(String jsonBlock, InputMarker inputMarker);
+
+  public abstract void copyFile(File file, InputMarker marker);
+
+  public abstract void add(Output output);
+
+  public abstract List<Output> getOutputs();
+
+  public abstract List<? extends OutputConfigMonitor> getOutputsToMonitor();
+
 }

@@ -292,13 +292,4 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   public void setIsEnabled(Boolean isEnabled) {
     this.isEnabled = isEnabled;
   }
-
-  @Override
-  public Map<String, Object> getAllProperties() {
-    return allProperties;
-  }
-
-  public void setAllProperties(Map<String, Object> allProperties) {
-    this.allProperties = allProperties;
-  }
 }

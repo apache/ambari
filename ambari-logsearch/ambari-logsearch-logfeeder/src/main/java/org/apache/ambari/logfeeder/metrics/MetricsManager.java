@@ -26,6 +26,7 @@ import java.util.TreeMap;
 
 import org.apache.ambari.logfeeder.conf.LogFeederSecurityConfig;
 import org.apache.ambari.logfeeder.conf.MetricsCollectorConfig;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;

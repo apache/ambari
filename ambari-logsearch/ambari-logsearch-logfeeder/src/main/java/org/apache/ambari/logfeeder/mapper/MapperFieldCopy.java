@@ -19,17 +19,19 @@
 
 package org.apache.ambari.logfeeder.mapper;
 
-import java.util.Map;
-
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.plugin.filter.mapper.Mapper;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldCopyDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import java.util.Map;
+
 /**
  * Overrides the value for the field
  */
-public class MapperFieldCopy extends Mapper {
+public class MapperFieldCopy extends Mapper<LogFeederProps> {
   private static final Logger LOG = Logger.getLogger(MapperFieldCopy.class);
   
   private String copyName = null;

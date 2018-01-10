@@ -25,7 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
-import org.apache.ambari.logfeeder.metrics.MetricData;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
+import org.apache.ambari.logfeeder.plugin.input.Input;
 import org.junit.Test;
 
 public class InputManagerTest {
@@ -42,7 +43,7 @@ public class InputManagerTest {
     
     replay(input1, input2, input3, input4);
     
-    InputManager manager = new InputManager();
+    InputManagerImpl manager = new InputManagerImpl();
     manager.add("serviceName", input1);
     manager.add("serviceName", input2);
     manager.add("serviceName", input3);
@@ -79,8 +80,8 @@ public class InputManagerTest {
     expect(input3.getShortDescription()).andReturn("").once();
     
     replay(input1, input2, input3);
-    
-    InputManager manager = new InputManager();
+
+    InputManagerImpl manager = new InputManagerImpl();
     manager.setLogFeederProps(logFeederProps);
     manager.add("serviceName", input1);
     manager.add("serviceName", input2);
@@ -109,8 +110,8 @@ public class InputManagerTest {
     expect(input3.isReady()).andReturn(false);
     
     replay(input1, input2, input3);
-    
-    InputManager manager = new InputManager();
+
+    InputManagerImpl manager = new InputManagerImpl();
     manager.add("serviceName", input1);
     manager.add("serviceName", input2);
     manager.add("serviceName", input3);
@@ -135,8 +136,8 @@ public class InputManagerTest {
     expect(input3.isReady()).andReturn(false);
     
     replay(input1, input2, input3);
-    
-    InputManager manager = new InputManager();
+
+    InputManagerImpl manager = new InputManagerImpl();
     manager.add("serviceName", input1);
     manager.add("serviceName", input2);
     manager.add("serviceName", input3);
@@ -157,8 +158,8 @@ public class InputManagerTest {
     input3.lastCheckIn(); expectLastCall();
     
     replay(input1, input2, input3);
-    
-    InputManager manager = new InputManager();
+
+    InputManagerImpl manager = new InputManagerImpl();
     manager.add("serviceName", input1);
     manager.add("serviceName", input2);
     manager.add("serviceName", input3);
@@ -183,8 +184,8 @@ public class InputManagerTest {
     expect(input3.isClosed()).andReturn(true);
     
     replay(input1, input2, input3);
-    
-    InputManager manager = new InputManager();
+
+    InputManagerImpl manager = new InputManagerImpl();
     manager.add("serviceName", input1);
     manager.add("serviceName", input2);
     manager.add("serviceName", input3);

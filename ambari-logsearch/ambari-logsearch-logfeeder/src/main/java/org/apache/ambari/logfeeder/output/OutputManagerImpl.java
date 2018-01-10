@@ -16,23 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.ambari.logfeeder.output;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
-import org.apache.ambari.logfeeder.metrics.MetricData;
+import org.apache.ambari.logfeeder.input.InputFile;
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
+import org.apache.ambari.logfeeder.plugin.input.Input;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
+import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.MurmurHash;
 import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
@@ -41,9 +36,15 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-public class OutputManager {
-  private static final Logger LOG = Logger.getLogger(OutputManager.class);
+public class OutputManagerImpl extends OutputManager {
+  private static final Logger LOG = Logger.getLogger(OutputManagerImpl.class);
 
   private static final int HASH_SEED = 31174077;
   private static final int MAX_OUTPUT_SIZE = 32765; // 32766-1
@@ -81,6 +82,7 @@ public class OutputManager {
     this.outputs.add(output);
   }
 
+  @Override
   public void init() throws Exception {
     for (Output output : outputs) {
       output.init(logFeederProps);
@@ -88,7 +90,7 @@ public class OutputManager {
   }
 
   public void write(Map<String, Object> jsonObj, InputMarker inputMarker) {
-    Input input = inputMarker.input;
+    Input input = inputMarker.getInput();
 
     // Update the block with the context fields
     for (Map.Entry<String, String> entry : input.getInputDescriptor().getAddFields().entrySet()) {
@@ -102,8 +104,11 @@ public class OutputManager {
     if (jsonObj.get("type") == null) {
       jsonObj.put("type", input.getInputDescriptor().getType());
     }
-    if (jsonObj.get("path") == null && input.getFilePath() != null) {
-      jsonObj.put("path", input.getFilePath());
+    if (input.getClass().isAssignableFrom(InputFile.class)) { // TODO: find better solution
+      InputFile inputFile = (InputFile) input;
+      if (jsonObj.get("path") == null && inputFile.getFilePath() != null) {
+        jsonObj.put("path", inputFile.getFilePath());
+      }
     }
     if (jsonObj.get("path") == null && input.getInputDescriptor().getPath() != null) {
       jsonObj.put("path", input.getInputDescriptor().getPath());
@@ -114,10 +119,8 @@ public class OutputManager {
     if (jsonObj.get("ip") == null && LogFeederUtil.ipAddress != null) {
       jsonObj.put("ip", LogFeederUtil.ipAddress);
     }
-    if (jsonObj.get("level") == null) {
-      jsonObj.put("level", LogFeederConstants.LOG_LEVEL_UNKNOWN);
-    }
-    
+    jsonObj.putIfAbsent("level", LogFeederConstants.LOG_LEVEL_UNKNOWN);
+
     if (input.isUseEventMD5() || input.isGenEventMD5()) {
       String prefix = "";
       Object logtimeObj = jsonObj.get("logtime");
@@ -128,7 +131,7 @@ public class OutputManager {
           prefix = logtimeObj.toString();
         }
       }
-      
+
       Long eventMD5 = MurmurHash.hash64A(LogFeederUtil.getGson().toJson(jsonObj).getBytes(), HASH_SEED);
       if (input.isGenEventMD5()) {
         jsonObj.put("event_md5", prefix + eventMD5.toString());
@@ -145,8 +148,9 @@ public class OutputManager {
     if (jsonObj.get("event_count") == null) {
       jsonObj.put("event_count", new Integer(1));
     }
-    if (inputMarker.lineNumber > 0) {
-      jsonObj.put("logfile_line_number", new Integer(inputMarker.lineNumber));
+    if (inputMarker.getAllProperties().containsKey("line_number") &&
+      (Integer) inputMarker.getAllProperties().get("line_number") > 0) {
+      jsonObj.put("logfile_line_number", inputMarker.getAllProperties().get("line_number"));
     }
     if (jsonObj.containsKey("log_message")) {
       // TODO: Let's check size only for log_message for now
@@ -157,8 +161,9 @@ public class OutputManager {
       }
     }
     if (logLevelFilterHandler.isAllowed(jsonObj, inputMarker)
-      && !outputLineFilter.apply(jsonObj, inputMarker.input)) {
-      for (Output output : input.getOutputList()) {
+      && !outputLineFilter.apply(jsonObj, inputMarker.getInput())) {
+      List<? extends Output> outputList = input.getOutputList();
+      for (Output output : outputList) {
         try {
           output.write(jsonObj, inputMarker);
         } catch (Exception e) {
@@ -174,8 +179,8 @@ public class OutputManager {
       messageTruncateMetric.value++;
       String logMessageKey = this.getClass().getSimpleName() + "_MESSAGESIZE";
       LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Message is too big. size=" + logMessage.getBytes().length +
-          ", input=" + input.getShortDescription() + ". Truncating to " + MAX_OUTPUT_SIZE + ", first upto 100 characters=" +
-          StringUtils.abbreviate(logMessage, 100), null, LOG, Level.WARN);
+        ", input=" + input.getShortDescription() + ". Truncating to " + MAX_OUTPUT_SIZE + ", first upto 100 characters=" +
+        StringUtils.abbreviate(logMessage, 100), null, LOG, Level.WARN);
       logMessage = new String(logMessage.getBytes(), 0, MAX_OUTPUT_SIZE);
       jsonObj.put("log_message", logMessage);
       List<String> tagsList = (List<String>) jsonObj.get("tags");
@@ -190,7 +195,8 @@ public class OutputManager {
 
   public void write(String jsonBlock, InputMarker inputMarker) {
     if (logLevelFilterHandler.isAllowed(jsonBlock, inputMarker)) {
-      for (Output output : inputMarker.input.getOutputList()) {
+      List<? extends Output> outputList = inputMarker.getInput().getOutputList();
+      for (Output output : outputList) {
         try {
           output.write(jsonBlock, inputMarker);
         } catch (Exception e) {
@@ -201,8 +207,9 @@ public class OutputManager {
   }
 
   public void copyFile(File inputFile, InputMarker inputMarker) {
-    Input input = inputMarker.input;
-    for (Output output : input.getOutputList()) {
+    Input input = inputMarker.getInput();
+    List<? extends Output> outputList = input.getOutputList();
+    for (Output output : outputList) {
       try {
         output.copyFile(inputFile, inputMarker);
       }catch (Exception e) {
@@ -235,7 +242,7 @@ public class OutputManager {
         // Ignore
       }
     }
-    
+
     // Need to get this value from property
     int iterations = 30;
     int waitTimeMS = 1000;
