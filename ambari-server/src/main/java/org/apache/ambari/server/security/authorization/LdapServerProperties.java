@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Describes LDAP Server connection parameters
@@ -334,93 +336,13 @@ public class LdapServerProperties {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null || getClass() != obj.getClass()) return false;
-
-    LdapServerProperties that = (LdapServerProperties) obj;
-
-    if (primaryUrl != null ? !primaryUrl.equals(that.primaryUrl) : that.primaryUrl != null) return false;
-    if (secondaryUrl != null ? !secondaryUrl.equals(that.secondaryUrl) : that.secondaryUrl != null) return false;
-    if (useSsl!=that.useSsl) return false;
-    if (anonymousBind!=that.anonymousBind) return false;
-    if (managerDn != null ? !managerDn.equals(that.managerDn) : that.managerDn != null) return false;
-    if (managerPassword != null ? !managerPassword.equals(that.managerPassword) : that.managerPassword != null)
-      return false;
-    if (baseDN != null ? !baseDN.equals(that.baseDN) : that.baseDN != null) return false;
-    if (userBase != null ? !userBase.equals(that.userBase) : that.userBase != null)
-      return false;
-    if (userObjectClass != null ? !userObjectClass.equals(that.userObjectClass) : that.userObjectClass != null)
-      return false;
-    if (usernameAttribute != null ? !usernameAttribute.equals(that.usernameAttribute) : that.usernameAttribute != null)
-      return false;
-    if (forceUsernameToLowercase != that.forceUsernameToLowercase)
-      return false;
-    if (groupBase != null ? !groupBase.equals(that.groupBase) :
-        that.groupBase != null) return false;
-    if (groupObjectClass != null ? !groupObjectClass.equals(that.groupObjectClass) :
-        that.groupObjectClass != null) return false;
-    if (groupMembershipAttr != null ? !groupMembershipAttr.equals(
-        that.groupMembershipAttr) : that.groupMembershipAttr != null) return false;
-    if (groupNamingAttr != null ? !groupNamingAttr.equals(that.groupNamingAttr) :
-        that.groupNamingAttr != null) return false;
-    if (adminGroupMappingRules != null ? !adminGroupMappingRules.equals(
-        that.adminGroupMappingRules) : that.adminGroupMappingRules != null) return false;
-    if (groupSearchFilter != null ? !groupSearchFilter.equals(
-        that.groupSearchFilter) : that.groupSearchFilter != null) return false;
-    if (dnAttribute != null ? !dnAttribute.equals(
-        that.dnAttribute) : that.dnAttribute != null) return false;
-    if (syncGroupMemberReplacePattern != null ? !syncGroupMemberReplacePattern.equals(
-      that.syncGroupMemberReplacePattern) : that.syncGroupMemberReplacePattern != null) return false;
-    if (syncUserMemberReplacePattern != null ? !syncUserMemberReplacePattern.equals(
-      that.syncUserMemberReplacePattern) : that.syncUserMemberReplacePattern != null) return false;
-    if (syncUserMemberFilter != null ? !syncUserMemberFilter.equals(
-      that.syncUserMemberFilter) : that.syncUserMemberFilter != null) return false;
-    if (syncGroupMemberFilter != null ? !syncGroupMemberFilter.equals(
-      that.syncGroupMemberFilter) : that.syncGroupMemberFilter != null) return false;
-    if (referralMethod != null ? !referralMethod.equals(that.referralMethod) : that.referralMethod != null) return false;
-
-    if (groupMappingEnabled != that.isGroupMappingEnabled()) return false;
-
-    if (paginationEnabled != that.isPaginationEnabled()) return false;
-
-    if (userSearchFilter != null ? !userSearchFilter.equals(that.userSearchFilter) : that.userSearchFilter != null) return false;
-    if (alternateUserSearchFilter != null ? !alternateUserSearchFilter.equals(that.alternateUserSearchFilter) : that.alternateUserSearchFilter != null) return false;
-    if (adminGroupMappingMemberAttr != null ? !adminGroupMappingMemberAttr.equals(that.adminGroupMappingMemberAttr) : that.adminGroupMappingMemberAttr != null) return false;
-
-
-    return true;
+  public final boolean equals(Object obj) {
+    return EqualsBuilder.reflectionEquals(this, obj, false);
   }
 
   @Override
-  public int hashCode() {
-    int result = primaryUrl != null ? primaryUrl.hashCode() : 0;
-    result = 31 * result + (secondaryUrl != null ? secondaryUrl.hashCode() : 0);
-    result = 31 * result + (useSsl ? 1 : 0);
-    result = 31 * result + (anonymousBind ? 1 : 0);
-    result = 31 * result + (managerDn != null ? managerDn.hashCode() : 0);
-    result = 31 * result + (managerPassword != null ? managerPassword.hashCode() : 0);
-    result = 31 * result + (baseDN != null ? baseDN.hashCode() : 0);
-    result = 31 * result + (userBase != null ? userBase.hashCode() : 0);
-    result = 31 * result + (userObjectClass != null ? userObjectClass.hashCode() : 0);
-    result = 31 * result + (usernameAttribute != null ? usernameAttribute.hashCode() : 0);
-    result = 31 * result + (forceUsernameToLowercase ? 1 : 0);
-    result = 31 * result + (groupBase != null ? groupBase.hashCode() : 0);
-    result = 31 * result + (groupObjectClass != null ? groupObjectClass.hashCode() : 0);
-    result = 31 * result + (groupMembershipAttr != null ? groupMembershipAttr.hashCode() : 0);
-    result = 31 * result + (groupNamingAttr != null ? groupNamingAttr.hashCode() : 0);
-    result = 31 * result + (adminGroupMappingRules != null ? adminGroupMappingRules.hashCode() : 0);
-    result = 31 * result + (groupSearchFilter != null ? groupSearchFilter.hashCode() : 0);
-    result = 31 * result + (dnAttribute != null ? dnAttribute.hashCode() : 0);
-    result = 31 * result + (syncUserMemberReplacePattern != null ? syncUserMemberReplacePattern.hashCode() : 0);
-    result = 31 * result + (syncGroupMemberReplacePattern != null ? syncGroupMemberReplacePattern.hashCode() : 0);
-    result = 31 * result + (syncUserMemberFilter != null ? syncUserMemberFilter.hashCode() : 0);
-    result = 31 * result + (syncGroupMemberFilter != null ? syncGroupMemberFilter.hashCode() : 0);
-    result = 31 * result + (referralMethod != null ? referralMethod.hashCode() : 0);
-    result = 31 * result + (userSearchFilter != null ? userSearchFilter.hashCode() : 0);
-    result = 31 * result + (alternateUserSearchFilter != null ? alternateUserSearchFilter.hashCode() : 0);
-    result = 31 * result + (adminGroupMappingMemberAttr != null ? adminGroupMappingMemberAttr.hashCode() : 0);
-    return result;
+  public final int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(1, 31, this);
   }
 
   /**

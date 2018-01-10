@@ -33,7 +33,8 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.LdapUsernameCollisionHandlingBehavior;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
@@ -72,7 +73,7 @@ public class AmbariLdapDataPopulator {
   /**
    * Ambari configuration.
    */
-  private Configuration configuration;
+  private AmbariLdapConfiguration configuration;
 
   /**
    * Highlevel facade for management of users and groups.
@@ -107,7 +108,7 @@ public class AmbariLdapDataPopulator {
    * @param users         utility that provides access to Users
    */
   @Inject
-  public AmbariLdapDataPopulator(Configuration configuration, Users users) {
+  public AmbariLdapDataPopulator(AmbariLdapConfiguration configuration, Users users) {
     this.configuration = configuration;
     this.users = users;
     this.ldapServerProperties = configuration.getLdapServerProperties();
@@ -119,7 +120,7 @@ public class AmbariLdapDataPopulator {
    * @return true if enabled
    */
   public boolean isLdapEnabled() {
-    if (!configuration.isLdapConfigured()) {
+    if (!configuration.ldapEnabled()) {
       return false;
     }
     try {
@@ -215,7 +216,7 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(userName);
           } else {
@@ -292,7 +293,7 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(userName);
           } else {
@@ -405,7 +406,7 @@ public class AmbariLdapDataPopulator {
           continue;
         }
         if (!user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
             // existing user can not be converted to ldap user, so skip it
             LOG.info("User '{}' skipped because it is local user", externalMember);
             batchInfo.getUsersSkipped().add(externalMember);

@@ -27,6 +27,7 @@ import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.security.ClientSecurityType;
@@ -89,7 +90,10 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     injector.injectMembers(this);
 
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
-    configuration.setProperty(Configuration.LDAP_PRIMARY_URL, "localhost:" + getLdapServer().getPort());
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "localhost");
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, String.valueOf(getLdapServer().getPort()));
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "dc=ambari,dc=the apache,dc=org");
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.GROUP_BASE, "ou=the groups,dc=ambari,dc=the apache,dc=org");
   }
 
   @After
@@ -131,9 +135,6 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
     properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
-    //make ambari detect active configuration
-    properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=ambari,dc=the apache,dc=org");
-    properties.setProperty(Configuration.LDAP_GROUP_BASE.getKey(), "ou=the groups,dc=ambari,dc=the apache,dc=org");
     return properties;
   }
 }

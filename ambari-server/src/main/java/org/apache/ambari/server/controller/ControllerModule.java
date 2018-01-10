@@ -154,6 +154,7 @@ import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -401,6 +402,7 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(DatabaseConsistencyCheckHelper.class);
     requestStaticInjection(KerberosChecker.class);
     requestStaticInjection(AuthorizationHelper.class);
+    requestStaticInjection(PasswordUtils.class);
 
     bindByAnnotation(null);
     bindNotificationDispatchers(null);

@@ -30,6 +30,8 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -88,16 +90,19 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   private Users users;
   @Inject
   Configuration configuration;
+  @Inject
+  AmbariLdapConfiguration ldapConfiguration;
 
   @Before
-  public void setUp() {
-    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule(), new LdapModule());
-    injector.injectMembers(this);
+  public void setUp() throws Exception {
+    injector = Guice.createInjector(new AuthorizationTestModule(), new AuditLoggerModule(), new LdapModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_FILTER.getKey(), "(&(mail={0})(objectClass={userObjectClass}))");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "false");
-    configuration.setProperty(Configuration.LDAP_PRIMARY_URL, "localhost:" + getLdapServer().getPort());
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "false");
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER, "(&(mail={0})(objectClass={userObjectClass}))");
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "localhost");
+    ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, String.valueOf(getLdapServer().getPort()));
   }
 
   @After
@@ -117,7 +122,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
             .addMockedMethod("loadLdapAuthenticationProvider")
             .addMockedMethod("isLdapEnabled")
-            .withConstructor(configuration, authoritiesPopulator, userDAO).createMock();
+            .withConstructor(configuration, ldapConfiguration, authoritiesPopulator, userDAO).createMock();
     // Create the last thrown exception
     org.springframework.security.core.AuthenticationException exception =
             createNiceMock(org.springframework.security.core.AuthenticationException.class);
@@ -153,7 +158,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
             .addMockedMethod("loadLdapAuthenticationProvider")
             .addMockedMethod("isLdapEnabled")
-            .withConstructor(configuration, authoritiesPopulator, userDAO).createMock();
+            .withConstructor(configuration, ldapConfiguration, authoritiesPopulator, userDAO).createMock();
     // Create the cause
     org.springframework.ldap.AuthenticationException cause =
             createNiceMock(org.springframework.ldap.AuthenticationException.class);
@@ -210,7 +215,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser@ambari.apache.org"));
     users.createUser("allowedUser@ambari.apache.org", "password", UserType.LDAP, true, false);
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "password");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "true");
 
     // When
     Authentication result = authenticationProvider.authenticate(authentication);
@@ -224,7 +229,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     // Given
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
     Authentication authentication = new UsernamePasswordAuthenticationToken("missingloginalias@ambari.apache.org", "password");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "true");
 
 
     // When
@@ -240,7 +245,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     // Given
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "bad_password");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
+    authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "true");
 
 
     // When
@@ -249,4 +254,5 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     // Then
     // InvalidUsernamePasswordCombinationException should be thrown due to wrong password
   }
+
 }

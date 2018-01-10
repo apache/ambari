@@ -20,6 +20,7 @@ package org.apache.ambari.server.security.authorization;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
@@ -44,7 +45,8 @@ import com.google.inject.Inject;
 public class AmbariLdapAuthenticationProvider implements AuthenticationProvider {
   static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class); // exposed and mutable for "test"
 
-  Configuration configuration;
+  final Configuration configuration;
+  final AmbariLdapConfiguration ldapConfiguration;
 
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
   private UserDAO userDAO;
@@ -54,9 +56,10 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   private ThreadLocal<String> ldapUserSearchFilterThreadLocal = new ThreadLocal<>();
 
   @Inject
-  public AmbariLdapAuthenticationProvider(Configuration configuration,
+  public AmbariLdapAuthenticationProvider(Configuration configuration, AmbariLdapConfiguration ldapConfiguration,
                                           AmbariLdapAuthoritiesPopulator authoritiesPopulator, UserDAO userDAO) {
     this.configuration = configuration;
+    this.ldapConfiguration = ldapConfiguration;
     this.authoritiesPopulator = authoritiesPopulator;
     this.userDAO = userDAO;
   }
@@ -91,7 +94,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
         }
         throw new InvalidUsernamePasswordCombinationException(e);
       } catch (IncorrectResultSizeDataAccessException multipleUsersFound) {
-        String message = configuration.isLdapAlternateUserSearchEnabled() ?
+        String message = ldapConfiguration.isLdapAlternateUserSearchEnabled() ?
           String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username) :
           "Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration";
 
@@ -141,7 +144,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
       String userSearchBase = ldapServerProperties.get().getUserSearchBase();
       FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(userSearchBase, ldapUserSearchFilter, springSecurityContextSource);
 
-      AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(springSecurityContextSource, configuration);
+      AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(springSecurityContextSource, ldapConfiguration);
       bindAuthenticator.setUserSearch(userSearch);
 
       LdapAuthenticationProvider authenticationProvider = new LdapAuthenticationProvider(bindAuthenticator, authoritiesPopulator);
@@ -178,7 +181,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
    * @return true if properties were reloaded
    */
   private boolean reloadLdapServerProperties() {
-    LdapServerProperties properties = configuration.getLdapServerProperties();
+    LdapServerProperties properties = ldapConfiguration.getLdapServerProperties();
     if (!properties.equals(ldapServerProperties.get())) {
       LOG.info("Reloading properties");
       ldapServerProperties.set(properties);
@@ -190,7 +193,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
   private String getLdapUserSearchFilter(String userName) {
     return ldapServerProperties.get()
-      .getUserSearchFilter(configuration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
+      .getUserSearchFilter(ldapConfiguration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
   }
 
   private Integer getUserId(Authentication authentication) {
