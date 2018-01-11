@@ -418,7 +418,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       controller.set('content.kerberosOption', Em.I18n.t('admin.kerberos.wizard.step1.option.manual'));
       controller.set('controllers.kerberosWizardController.skipClientInstall', true);
       controller.filterConfigs(configs);
-      expect(controller.get('controllers.kerberosWizardController').overrideVisibility.calledOnce).to.be.true;
+      expect(controller.get('controllers.kerberosWizardController').overrideVisibility.called).to.be.true;
     });
 
     it("overrideVisibility results are valid", function() {
