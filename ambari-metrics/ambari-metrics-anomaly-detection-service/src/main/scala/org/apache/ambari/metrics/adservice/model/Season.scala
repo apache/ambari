@@ -45,7 +45,7 @@ case class Season(var DAY: Range, var HOUR: Range) {
 
     if (DAY.lower != -1 && !DAY.withinRange(dayOfWeek))
       return false
-    if (HOUR.lower != -1 && !HOUR.withinRange(hourOfDay))
+    if (HOUR.lower != -1 && !HOUR.withinHourRange(hourOfDay))
       return false
     true
   }
@@ -89,8 +89,6 @@ case class Season(var DAY: Range, var HOUR: Range) {
 
 object Season {
 
-  def apply(DAY: Range, HOUR: Range): Season = new Season(DAY, HOUR)
-
   def apply(range: Range, seasonType: SeasonType): Season = {
     if (seasonType.equals(SeasonType.DAY)) {
       new Season(range, Range(-1,-1))
@@ -99,7 +97,11 @@ object Season {
     }
   }
 
-  val mapper = new ObjectMapper() with ScalaObjectMapper
+  def apply(): Season = {
+    new Season(Range(-1,-1), Range(-1,-1))
+  }
+
+  val mapper = new ObjectMapper() //with ScalaObjectMapper
   mapper.registerModule(DefaultScalaModule)
 
   def getSeasons(timestamp: Long, seasons : List[Season]) : List[Season] = {
@@ -117,6 +119,6 @@ object Season {
   }
 
   def fromJson(seasonString: String) : Season = {
-    mapper.readValue[Season](seasonString)
+    mapper.readValue(seasonString, classOf[Season])
   }
 }

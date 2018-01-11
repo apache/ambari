@@ -25,6 +25,14 @@ package org.apache.ambari.metrics.adservice.model
   */
 case class Range (lower: Int, higher: Int) {
 
+  def withinHourRange(value: Int) : Boolean = {
+    if (lower <= higher) {
+      (value >= lower) && (value < higher)
+    } else {
+      !(value >= higher) && (value < lower)
+    }
+  }
+
   def withinRange(value: Int) : Boolean = {
     if (lower <= higher) {
       (value >= lower) && (value <= higher)

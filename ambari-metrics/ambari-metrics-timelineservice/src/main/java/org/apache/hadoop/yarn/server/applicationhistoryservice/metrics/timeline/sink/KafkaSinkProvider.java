@@ -30,6 +30,14 @@ import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
+import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
+import kafka.admin.RackAwareMode$;
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
+import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.ZkConnection;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -70,6 +78,7 @@ public class KafkaSinkProvider implements ExternalSinkProvider {
       configProperties.put(ProducerConfig.BATCH_SIZE_CONFIG, configuration.getMetricsConf().getInt(KAFKA_BATCH_SIZE, 128));
       configProperties.put(ProducerConfig.LINGER_MS_CONFIG, configuration.getMetricsConf().getInt(KAFKA_LINGER_MS, 1));
       configProperties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, configuration.getMetricsConf().getLong(KAFKA_BUFFER_MEM, 33554432)); // 32 MB
+      configProperties.put("partitioner.class", "org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.sink.MetricAppIdKafkaPartitioner");
       FLUSH_SECONDS = configuration.getMetricsConf().getInt(TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, 3);
       TIMEOUT_SECONDS = configuration.getMetricsConf().getInt(KAFKA_SINK_TIMEOUT_SECONDS, 10);
     } catch (Exception e) {
@@ -79,9 +88,34 @@ public class KafkaSinkProvider implements ExternalSinkProvider {
     configProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,"org.apache.kafka.common.serialization.ByteArraySerializer");
     configProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,"org.apache.kafka.connect.json.JsonSerializer");
 
-    
-
+    createKafkaTopic();
     producer = new KafkaProducer(configProperties);
+  }
+
+  private void createKafkaTopic() {
+    ZkClient zkClient = null;
+    ZkUtils zkUtils = null;
+    try {
+      String zookeeperHosts = TimelineMetricConfiguration.getInstance().getClusterZKQuorum();
+      int sessionTimeOutInMs = 15 * 1000;
+      int connectionTimeOutInMs = 10 * 1000;
+
+      zkClient = new ZkClient(zookeeperHosts, sessionTimeOutInMs, connectionTimeOutInMs, ZKStringSerializer$.MODULE$);
+      zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperHosts), false);
+
+      String topicName = TOPIC_NAME;
+      int noOfPartitions = 4;
+      int noOfReplication = 1;
+      Properties topicConfiguration = new Properties();
+
+      AdminUtils.createTopic(zkUtils, topicName, noOfPartitions, noOfReplication, topicConfiguration, RackAwareMode.Disabled$.MODULE$);
+    } catch (Exception ex) {
+      LOG.error(ex);
+    } finally {
+      if (zkClient != null) {
+        zkClient.close();
+      }
+    }
   }
 
   @Override
@@ -109,10 +143,15 @@ public class KafkaSinkProvider implements ExternalSinkProvider {
 
     @Override
     public void sinkMetricData(Collection<TimelineMetrics> metrics) {
-      JsonNode jsonNode = objectMapper.valueToTree(metrics);
-      ProducerRecord<String, JsonNode> rec = new ProducerRecord<String, JsonNode>(TOPIC_NAME, jsonNode);
-      Future<RecordMetadata> f = producer.send(rec);
+      for (TimelineMetrics timelineMetrics : metrics) {
+        if (CollectionUtils.isNotEmpty(timelineMetrics.getMetrics())) {
+          if (timelineMetrics.getMetrics().get(0).getAppId().equalsIgnoreCase("HOST")) {
+            JsonNode jsonNode = objectMapper.valueToTree(timelineMetrics);
+            ProducerRecord<String, JsonNode> rec = new ProducerRecord<String, JsonNode>(TOPIC_NAME, jsonNode);
+            Future<RecordMetadata> f = producer.send(rec);
+          }
+        }
+      }
     }
   }
-
 }
