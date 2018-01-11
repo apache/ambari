@@ -273,7 +273,7 @@ def perform_prestart_checks(expected_hostname):
     print(msg)
     sys.exit(1)
   elif not config.has_option('agent', 'prefix'):
-    msg = "Ambari prefix dir %s not configured, can't continue"
+    msg = "Ambari prefix dir not configured, can't continue"
     logger.error(msg)
     print(msg)
     sys.exit(1)
