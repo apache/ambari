@@ -214,13 +214,13 @@
 
     <mergePolicyFactory class="org.apache.solr.index.TieredMergePolicyFactory">
       <!-- "ranger_audit_logs_merge_factor" is set to 5 by default to trigger purging of deleted documents more often -->
-      <int name="maxMergeAtOnce">{{ranger_audit_logs_merge_factor}}</int> <!-- Solr default: 10 -->
-      <int name="segmentsPerTier">{{ranger_audit_logs_merge_factor}}</int> <!-- Solr default: 10 -->
-      <int name="maxMergeAtOnceExplicit">30</int> <!-- Solr default: 30 -->
-      <int name="floorSegmentMB">2048</int> <!-- Solr default: 2048 -->
-      <int name="maxMergedSegmentMB">5120</int> <!-- Solr default: 5120 -->
-      <double name="reclaimDeletesWeight">4.0</double> <!-- Solr default: ??? -->
-      <double name="forceMergeDeletesPctAllowed">10.0</double> <!-- Solr default: 10.0 -->
+      <int name="maxMergeAtOnce">{{ranger_audit_logs_merge_factor}}</int><!-- Solr default: 10 -->
+      <int name="segmentsPerTier">{{ranger_audit_logs_merge_factor}}</int><!-- Solr default: 10 -->
+      <int name="maxMergeAtOnceExplicit">30</int><!-- Solr default: 30 -->
+      <int name="floorSegmentMB">2048</int><!-- Solr default: 2048 -->
+      <int name="maxMergedSegmentMB">5120</int><!-- Solr default: 5120 -->
+      <double name="reclaimDeletesWeight">2.0</double><!-- Solr default: 2.0 -->
+      <double name="forceMergeDeletesPctAllowed">10.0</double><!-- Solr default: 10.0 -->
     </mergePolicyFactory>
 
     <!-- Expert: Merge Scheduler
