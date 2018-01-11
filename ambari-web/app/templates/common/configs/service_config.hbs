@@ -188,7 +188,7 @@
   {{view App.SpinnerView}}
 {{/if}}
 
-<div class="configs-save-panel" {{bindAttr class="view.showSavePanel::hidden"}}>
+<div {{bindAttr class="view.showSavePanel::hidden :configs-save-panel"}}>
   <div class="pull-right">
     <button class="btn btn-default" {{action doCancel target="controller"}}
       {{bindAttr disabled="view.isDiscardDisabled"}}>
