@@ -210,31 +210,18 @@
 
     <!-- Expert: Merge Policy
          The Merge Policy in Lucene controls how merging of segments is done.
-         The default since Solr/Lucene 3.3 is TieredMergePolicy.
-         The default since Lucene 2.3 was the LogByteSizeMergePolicy,
-         Even older versions of Lucene used LogDocMergePolicy.
-      -->
-    <!--
-        <mergePolicy class="org.apache.lucene.index.TieredMergePolicy">
-          <int name="maxMergeAtOnce">10</int>
-          <int name="segmentsPerTier">10</int>
-        </mergePolicy>
       -->
 
-    <!-- Merge Factor
-         The merge factor controls how many segments will get merged at a time.
-         For TieredMergePolicy, mergeFactor is a convenience parameter which
-         will set both MaxMergeAtOnce and SegmentsPerTier at once.
-         For LogByteSizeMergePolicy, mergeFactor decides how many new segments
-         will be allowed before they are merged into one.
-         Default is 10 for both merge policies.
-      -->
-    <!--
-    <mergeFactor>10</mergeFactor>
-      -->
-
-    <!-- Ranger customization. Set to 5 to trigger purging of deleted documents more often -->
-    <mergeFactor>{{ranger_audit_logs_merge_factor}}</mergeFactor>
+    <mergePolicyFactory class="org.apache.solr.index.TieredMergePolicyFactory">
+      <!-- "ranger_audit_logs_merge_factor" is set to 5 by default to trigger purging of deleted documents more often -->
+      <int name="maxMergeAtOnce">{{ranger_audit_logs_merge_factor}}</int> <!-- Solr default: 10 -->
+      <int name="segmentsPerTier">{{ranger_audit_logs_merge_factor}}</int> <!-- Solr default: 10 -->
+      <int name="maxMergeAtOnceExplicit">30</int> <!-- Solr default: 30 -->
+      <int name="floorSegmentMB">2048</int> <!-- Solr default: 2048 -->
+      <int name="maxMergedSegmentMB">5120</int> <!-- Solr default: 5120 -->
+      <double name="reclaimDeletesWeight">4.0</double> <!-- Solr default: ??? -->
+      <double name="forceMergeDeletesPctAllowed">10.0</double> <!-- Solr default: 10.0 -->
+    </mergePolicyFactory>
 
     <!-- Expert: Merge Scheduler
          The Merge Scheduler in Lucene controls how merges are
