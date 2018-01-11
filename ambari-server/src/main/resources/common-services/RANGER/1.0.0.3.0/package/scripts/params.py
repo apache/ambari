@@ -170,13 +170,13 @@ java_share_dir = '/usr/share/java'
 jdbc_jar_name = None
 previous_jdbc_jar_name = None
 if db_flavor.lower() == 'mysql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
   audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor.lower() == 'oracle':
-  jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
@@ -184,18 +184,18 @@ elif db_flavor.lower() == 'oracle':
   else:
     audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}') if stack_supports_ranger_audit_db else None
 elif db_flavor.lower() == 'postgres':
-  jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
   audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor.lower() == 'mssql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor.lower() == 'sqla':
-  jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
 else: raise Fail(format("'{db_flavor}' db flavor not supported."))

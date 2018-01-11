@@ -159,7 +159,7 @@ class TestRangerKMS(RMFTestCase):
       group = 'kms',
       mode = 0640
     )
-
+    
     self.assertResourceCalled('HdfsResource', '/ranger/audit',
                         type = 'directory',
                         action = ['create_on_execute'],

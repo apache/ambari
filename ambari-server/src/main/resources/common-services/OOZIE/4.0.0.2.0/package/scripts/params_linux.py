@@ -288,27 +288,27 @@ jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.
 sqla_db_used = False
 previous_jdbc_jar_name = None
 if jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
 elif jdbc_driver_name == "com.mysql.jdbc.Driver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
 elif jdbc_driver_name == "org.postgresql.Driver":
   jdbc_driver_jar = format("{oozie_home}/libserver/postgresql-9.0-801.jdbc4.jar")  #oozie using it's own postgres jdbc
   previous_jdbc_jar_name = None
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
 elif jdbc_driver_name == "sap.jdbc4.sqlanywhere.IDriver":
-  jdbc_driver_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
 else:
   jdbc_driver_jar = ""
   jdbc_symlink_name = ""
   previous_jdbc_jar_name = None
 
-default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
 driver_curl_source = format("{jdk_location}/{jdbc_driver_jar}")
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 if jdbc_driver_name == "org.postgresql.Driver":

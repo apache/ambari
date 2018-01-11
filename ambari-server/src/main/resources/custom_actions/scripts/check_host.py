@@ -280,7 +280,7 @@ class CheckHost(Script):
     no_jdbc_error_message = None
 
     if db_name == DB_MYSQL:
-      jdbc_driver_mysql_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      jdbc_driver_mysql_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
       if not jdbc_driver_mysql_name:
         no_jdbc_error_message = "The MySQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mysql --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -288,7 +288,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
         jdbc_name = jdbc_driver_mysql_name
     elif db_name == DB_ORACLE:
-      jdbc_driver_oracle_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      jdbc_driver_oracle_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
       if not jdbc_driver_oracle_name:
         no_jdbc_error_message = "The Oracle JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=oracle --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -296,7 +296,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
         jdbc_name = jdbc_driver_oracle_name
     elif db_name == DB_POSTGRESQL:
-      jdbc_driver_postgres_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      jdbc_driver_postgres_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
       if not jdbc_driver_postgres_name:
         no_jdbc_error_message = "The Postgres JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=postgres --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -304,7 +304,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
         jdbc_name = jdbc_driver_postgres_name
     elif db_name == DB_MSSQL:
-      jdbc_driver_mssql_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      jdbc_driver_mssql_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
       if not jdbc_driver_mssql_name:
         no_jdbc_error_message = "The MSSQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mssql --jdbc-driver=/path/to/jdbc_driver'."
       else:
@@ -312,7 +312,7 @@ class CheckHost(Script):
         jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
         jdbc_name = jdbc_driver_mssql_name
     elif db_name == DB_SQLA:
-      jdbc_driver_sqla_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      jdbc_driver_sqla_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
       if not jdbc_driver_sqla_name:
         no_jdbc_error_message = "The SQLAnywhere JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=sqlanywhere --jdbc-driver=/path/to/jdbc_driver'."
       else:

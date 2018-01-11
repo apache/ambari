@@ -276,20 +276,20 @@ default_connectors_map = { "com.microsoft.sqlserver.jdbc.SQLServerDriver":"sqljd
 sqla_db_used = False
 hive_previous_jdbc_jar_name = None
 if hive_jdbc_driver == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-  jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
 elif hive_jdbc_driver == "com.mysql.jdbc.Driver":
-  jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
 elif hive_jdbc_driver == "org.postgresql.Driver":
-  jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
-  jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
 elif hive_jdbc_driver == "sap.jdbc4.sqlanywhere.IDriver":
-  jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
 else: raise Fail(format("JDBC driver '{hive_jdbc_driver}' not supported."))
 
