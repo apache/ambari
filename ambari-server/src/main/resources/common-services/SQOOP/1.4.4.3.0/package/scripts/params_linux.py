@@ -99,24 +99,24 @@ if "jdbc_drivers" in config['configurations']['sqoop-env']:
     driver_name = driver_name.strip()
     if driver_name and not driver_name == '':
       if driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-        jdbc_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+        jdbc_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+        previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
         jdbc_driver_name = "mssql"
       elif driver_name == "com.mysql.jdbc.Driver":
-        jdbc_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+        jdbc_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+        previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
         jdbc_driver_name = "mysql"
       elif driver_name == "org.postgresql.Driver":
-        jdbc_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+        jdbc_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+        previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
         jdbc_driver_name = "postgres"
       elif driver_name == "oracle.jdbc.driver.OracleDriver":
-        jdbc_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+        jdbc_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+        previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
         jdbc_driver_name = "oracle"
       elif driver_name == "org.hsqldb.jdbc.JDBCDriver":
-        jdbc_name = default("/hostLevelParams/custom_hsqldb_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_hsqldb_jdbc_name", None)
+        jdbc_name = default("/ambariLevelParams/custom_hsqldb_jdbc_name", None)
+        previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_hsqldb_jdbc_name", None)
         jdbc_driver_name = "hsqldb"
       else: raise Fail(format("JDBC driver '{driver_name}' not supported."))
     else:

@@ -130,14 +130,14 @@ java_share_dir = '/usr/share/java'
 jdbc_jar_name = None
 previous_jdbc_jar_name = None
 if db_flavor == 'mysql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
   db_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{db_name}')
   db_jdbc_driver = "com.mysql.jdbc.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor == 'oracle':
-  jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
     db_jdbc_url = format('jdbc:oracle:thin:@{db_host}')
@@ -146,20 +146,20 @@ elif db_flavor == 'oracle':
   db_jdbc_driver = "oracle.jdbc.OracleDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
 elif db_flavor == 'postgres':
-  jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
   db_jdbc_url = format('jdbc:postgresql://{db_host}/{db_name}')
   db_jdbc_driver = "org.postgresql.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor == 'mssql':
-  jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
   db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={db_name}')
   db_jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor == 'sqla':
-  jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+  jdbc_jar_name = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   db_jdbc_url = format('jdbc:sqlanywhere:database={db_name};host={db_host}')
   db_jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
@@ -183,13 +183,13 @@ if has_ranger_admin:
   xa_previous_jdbc_jar_name = None
   if stack_supports_ranger_audit_db:
     if xa_audit_db_flavor == 'mysql':
-      jdbc_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mysql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "com.mysql.jdbc.Driver"
     elif xa_audit_db_flavor == 'oracle':
-      jdbc_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_oracle_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_oracle_jdbc_name", None)
       colon_count = xa_db_host.count(':')
       if colon_count == 2 or colon_count == 0:
         audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
@@ -197,18 +197,18 @@ if has_ranger_admin:
         audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
       jdbc_driver = "oracle.jdbc.OracleDriver"
     elif xa_audit_db_flavor == 'postgres':
-      jdbc_jar = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_postgres_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_postgres_jdbc_name", None)
       audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "org.postgresql.Driver"
     elif xa_audit_db_flavor == 'mssql':
-      jdbc_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_mssql_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_mssql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
       jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
     elif xa_audit_db_flavor == 'sqla':
-      jdbc_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+      jdbc_jar = default("/ambariLevelParams/custom_sqlanywhere_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/ambariLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
     else: raise Fail(format("'{xa_audit_db_flavor}' db flavor not supported."))

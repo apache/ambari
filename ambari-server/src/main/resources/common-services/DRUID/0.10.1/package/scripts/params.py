@@ -111,7 +111,7 @@ metadata_storage_type = config['configurations']['druid-common']['druid.metadata
 metadata_storage_url = config['configurations']['druid-common']['druid.metadata.storage.connector.connectURI']
 jdk_location = config['ambariLevelParams']['jdk_location']
 if 'mysql' == metadata_storage_type:
-  jdbc_driver_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  jdbc_driver_jar = default("/ambariLevelParams/custom_mysql_jdbc_name", None)
   connector_curl_source = format("{jdk_location}/{jdbc_driver_jar}")
   connector_download_dir=format("{druid_extensions_dir}/mysql-metadata-storage")
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
