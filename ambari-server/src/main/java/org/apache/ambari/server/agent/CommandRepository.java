@@ -147,7 +147,7 @@ public class CommandRepository {
     }
   }
 
-  public long getM_repoVersionId() {
+  public long getRepoVersionId() {
     return m_repoVersionId;
   }
 
@@ -234,11 +234,11 @@ public class CommandRepository {
       this.m_isPreInstalled = isPreInstalled.equalsIgnoreCase("true");
     }
 
-    public Boolean getM_isPreInstalled() {
+    public Boolean getPreInstalled() {
       return m_isPreInstalled;
     }
 
-    public boolean isM_isScoped() {
+    public boolean isScoped() {
       return m_isScoped;
     }
   }

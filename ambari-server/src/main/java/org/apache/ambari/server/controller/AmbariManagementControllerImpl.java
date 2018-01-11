@@ -5958,8 +5958,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ServiceComponentHost serviceComponentHost : hostComponents) {
       CommandRepository commandRepository = ambariMetaInfo.getCommandRepository(cluster,
           serviceComponentHost.getServiceComponent(), host);
-      hostRepositories.put(commandRepository.getM_repoVersionId(), commandRepository);
-      componentsRepos.put(serviceComponentHost.getServiceComponentName(), commandRepository.getM_repoVersionId());
+      hostRepositories.put(commandRepository.getRepoVersionId(), commandRepository);
+      componentsRepos.put(serviceComponentHost.getServiceComponentName(), commandRepository.getRepoVersionId());
     }
     return new HostRepositories(hostRepositories, componentsRepos);
   }
