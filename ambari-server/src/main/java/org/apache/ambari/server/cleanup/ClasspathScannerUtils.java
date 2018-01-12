@@ -96,11 +96,16 @@ public class ClasspathScannerUtils {
   private static boolean checkAnnotations(Class<?> candidate, List<Class<?>> selectors) {
     LOGGER.debug("Checking annotations for: [{}]", candidate);
     boolean ret = false;
-    for (Annotation candidateAnn : candidate.getDeclaredAnnotations()) {
-      if (selectors.contains(candidateAnn.annotationType())) {
-        ret = true;
-        break;
+    try {
+      for (Annotation candidateAnn : candidate.getDeclaredAnnotations()) {
+        if (selectors.contains(candidateAnn.annotationType())) {
+          ret = true;
+          break;
+        }
       }
+    }
+    catch (ArrayStoreException ex) {
+      LOGGER.error("Can't parse annotations for class {}. Is this a compiler/JDK bug?", candidate.getName(), ex);
     }
     return ret;
   }

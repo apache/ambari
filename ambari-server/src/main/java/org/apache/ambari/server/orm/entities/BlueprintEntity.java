@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.Basic;
@@ -63,17 +64,20 @@ public class BlueprintEntity {
    * Unidirectional one-to-one association to {@link StackEntity}
    */
   @OneToOne
-  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = false)
+  @JoinColumn(name = "stack_id", unique = false, nullable = true, insertable = true, updatable = false)
   private StackEntity stack;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<HostGroupEntity> hostGroups;
+  private Collection<HostGroupEntity> hostGroups = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<BlueprintConfigEntity> configurations;
+  private Collection<BlueprintConfigEntity> configurations = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<BlueprintSettingEntity> settings;
+  private Collection<BlueprintSettingEntity> settings = new ArrayList<>();
+
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
+  private Collection<BlueprintMpackReferenceEntity> mpackReferences = new ArrayList<>();
 
 
   /**
@@ -181,5 +185,13 @@ public class BlueprintEntity {
 
   public void setSecurityDescriptorReference(String securityDescriptorReference) {
     this.securityDescriptorReference = securityDescriptorReference;
+  }
+
+  public Collection<BlueprintMpackReferenceEntity> getMpackReferences() {
+    return mpackReferences;
+  }
+
+  public void setMpackReferences(Collection<BlueprintMpackReferenceEntity> mpackReferences) {
+    this.mpackReferences = mpackReferences;
   }
 }

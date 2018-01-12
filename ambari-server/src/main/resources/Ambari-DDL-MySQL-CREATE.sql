@@ -115,25 +115,6 @@ CREATE TABLE configuration_base (
   CONSTRAINT PK_configuration_base PRIMARY KEY (id)
 );
 
-CREATE TABLE clusterconfig (
-  config_id BIGINT NOT NULL,
-  version_tag VARCHAR(100) NOT NULL,
-  version BIGINT NOT NULL,
-  type_name VARCHAR(100) NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  stack_id BIGINT NOT NULL,
-  selected SMALLINT NOT NULL DEFAULT 0,
-  config_data LONGTEXT NOT NULL,
-  config_attributes LONGTEXT,
-  create_timestamp BIGINT NOT NULL,
-  unmapped SMALLINT NOT NULL DEFAULT 0,
-  selected_timestamp BIGINT NOT NULL DEFAULT 0,
-  CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
-  CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
-  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
-
 CREATE TABLE ambari_configuration (
   category_name VARCHAR(100) NOT NULL,
   property_name VARCHAR(100) NOT NULL,
@@ -621,11 +602,44 @@ CREATE TABLE requestschedulebatchrequest (
 
 CREATE TABLE blueprint (
   blueprint_name VARCHAR(100) NOT NULL,
-  stack_id BIGINT NOT NULL,
+  stack_id BIGINT,
   security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name),
   CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+
+CREATE TABLE blueprint_mpack_reference(
+  id BIGINT NOT NULL,
+  blueprint_name VARCHAR(255) NOT NULL,
+  mpack_name VARCHAR(255) NOT NULL,
+  mpack_version VARCHAR(255) NOT NULL,
+  mpack_uri VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_blueprint_mpack_ref PRIMARY KEY (id),
+  CONSTRAINT FK_mpr_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
+
+CREATE TABLE blueprint_service (
+  id BIGINT NOT NULL,
+  mpack_ref_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_blueprint_service PRIMARY KEY (id),
+  CONSTRAINT FK_blueprint_service_mpack_ref FOREIGN KEY (mpack_ref_id) REFERENCES blueprint_mpack_reference(id));
+
+CREATE TABLE blueprint_service_config (
+  service_id BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  config_data LONGTEXT NOT NULL,
+  config_attributes LONGTEXT,
+  CONSTRAINT PK_bp_svc_conf PRIMARY KEY (service_id, type_name),
+  CONSTRAINT FK_bp_svc_config_to_service FOREIGN KEY (service_id) REFERENCES blueprint_service (id));
+
+CREATE TABLE blueprint_mpack_configuration (
+  mpack_ref_id BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  config_data LONGTEXT NOT NULL,
+  config_attributes LONGTEXT,
+  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_ref_id, type_name),
+  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_ref_id) REFERENCES blueprint_mpack_reference (id));
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(100) NOT NULL,
@@ -635,12 +649,17 @@ CREATE TABLE hostgroup (
   CONSTRAINT FK_hg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
 
 CREATE TABLE hostgroup_component (
-  blueprint_name VARCHAR(100) NOT NULL,
-  hostgroup_name VARCHAR(100) NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  provision_action VARCHAR(100),
-  CONSTRAINT PK_hostgroup_component PRIMARY KEY (blueprint_name, hostgroup_name, name),
-  CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup(blueprint_name, name));
+  id BIGINT NOT NULL,
+  blueprint_name VARCHAR(255) NOT NULL,
+  hostgroup_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  mpack_name VARCHAR(255),
+  mpack_version VARCHAR(100),
+  service_name VARCHAR(255),
+  provision_action VARCHAR(255),
+  CONSTRAINT PK_hostgroup_component PRIMARY KEY (id),
+  CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup (blueprint_name, name),
+  CONSTRAINT FK_hgc_blueprint_service FOREIGN KEY (blueprint_service_id) REFERENCES blueprint_service(id));
 
 CREATE TABLE blueprint_configuration (
   blueprint_name VARCHAR(100) NOT NULL,
@@ -1240,7 +1259,10 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('remote_cluster_id_seq', 0),
   ('remote_cluster_service_id_seq', 0),
   ('servicecomponent_version_id_seq', 0),
-  ('hostcomponentdesiredstate_id_seq', 0);
+  ('hostcomponentdesiredstate_id_seq', 0),
+  ('blueprint_service_id_seq', 0),
+  ('blueprint_mpack_ref_id_seq', 0),
+  ('hostgroup_component_id_seq', 0);
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name) VALUES
   (1, 'AMBARI'),

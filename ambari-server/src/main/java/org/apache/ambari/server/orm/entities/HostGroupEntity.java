@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.Basic;
@@ -51,10 +52,10 @@ public class HostGroupEntity {
   private String cardinality = "NOT SPECIFIED";
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "hostGroup")
-  private Collection<HostGroupComponentEntity> components;
+  private Collection<HostGroupComponentEntity> components = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "hostGroup")
-  private Collection<HostGroupConfigEntity> configurations;
+  private Collection<HostGroupConfigEntity> configurations = new ArrayList<>();
 
   @ManyToOne
   @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)

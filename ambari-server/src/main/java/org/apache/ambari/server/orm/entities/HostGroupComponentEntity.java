@@ -20,35 +20,49 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
 /**
  * Represents a Host Group Component which is embedded in a Blueprint.
  */
-@IdClass(HostGroupComponentEntityPK.class)
-@Table(name = "hostgroup_component")
 @Entity
+@Table(name = "hostgroup_component")
+@TableGenerator(name = "hostgroup_component_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name",
+  valueColumnName = "sequence_value", pkColumnValue = "hostgroup_component_id_seq", initialValue = 1)
 public class HostGroupComponentEntity {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "hostgroup_component_id_generator")
+  @Column(name = "id", nullable = false, updatable = false)
+  private Long id;
+
   @Column(name = "hostgroup_name", nullable = false, insertable = false, updatable = false)
   private String hostGroupName;
 
-  @Id
   @Column(name = "blueprint_name", nullable = false, insertable = false, updatable = false)
   private String blueprintName;
 
-  @Id
   @Column(name = "name", nullable = false, insertable = true, updatable = false)
   private String name;
 
   @Column(name = "provision_action", nullable = true, insertable = true, updatable = false)
   private String provisionAction;
+
+  @Column(name = "mpack_name", nullable = true, insertable = true, updatable = false)
+  private String mpackName;
+
+  @Column(name = "mpack_version", nullable = true, insertable = true, updatable = false)
+  private String mpackVersion;
+
+  @Column(name = "service_name", nullable = true, insertable = true, updatable = false)
+  private String serviceName;
 
   @ManyToOne
   @JoinColumns({
@@ -56,7 +70,6 @@ public class HostGroupComponentEntity {
       @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
   })
   private HostGroupEntity hostGroup;
-
 
   /**
    * Get the name of the host group component.
@@ -148,5 +161,37 @@ public class HostGroupComponentEntity {
    */
   public void setProvisionAction(String provisionAction) {
     this.provisionAction = provisionAction;
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public String getMpackName() {
+    return mpackName;
+  }
+
+  public void setMpackName(String mpackName) {
+    this.mpackName = mpackName;
+  }
+
+  public String getMpackVersion() {
+    return mpackVersion;
+  }
+
+  public void setMpackVersion(String mpackVersion) {
+    this.mpackVersion = mpackVersion;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 }
