@@ -1074,4 +1074,9 @@ public class ConfigurationTest {
     Assert.assertEquals(1024, new Configuration(properties).getTlsEphemeralDhKeySize());
   }
 
+  @Test
+  public void canReadNonLatin1Properties() {
+    Assert.assertEquals("árvíztűrő tükörfúrógép", new Configuration().getProperty("encoding.test"));
+  }
+
 }

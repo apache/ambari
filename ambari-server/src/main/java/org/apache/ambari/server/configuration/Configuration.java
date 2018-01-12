@@ -24,12 +24,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -3198,7 +3200,7 @@ public class Configuration {
 
     // load the properties
     try {
-      properties.load(inputStream);
+      properties.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
       inputStream.close();
     } catch (FileNotFoundException fnf) {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
