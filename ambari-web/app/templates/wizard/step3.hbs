@@ -188,7 +188,10 @@
                           {{#each repository in operatingSystem.repositories}}
                             <tr {{QAAttr "{repository.repo_name}"}}>
                               <td class="col-sm-3">{{repository.repo_id}}</td>
-                              <td class="col-sm-8" {{bindAttr class="repository.invalidFormatError:textfield-error"}}>
+                              <td class="col-sm-1">
+                                {{view view.popoverView repositoryBinding="repository" data-qaBinding="repository.validation"}}
+                              </td>
+                              <td class="col-sm-8" {{bindAttr class="repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
                                 {{view App.WizardStep3ViewRepoUrlInput  valueBinding="repository.base_url" }}
                               </td>
                             </tr>
