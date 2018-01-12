@@ -196,7 +196,7 @@ def flume(action = None):
           environment={'JAVA_HOME': params.java_home}
         )
         # sometimes startup spawns a couple of threads - so only the first line may count
-        pid_cmd = as_sudo(('pgrep', '-o', '-u', params.flume_user, '-f', format('^{java_home}.*{agent}.*'))) + \
+        pid_cmd = as_sudo(('ps', '-f', '-u', params.flume_user, '|', 'grep', format('\'{params.java_home}.*org.apache.flume.node.Application.*--name {agent}.*\''), '|', 'sed', '-e', '\'s/^ *flume *\([0-9]*\).*$/\\1/\'', '|', 'head', '-n', '1')) + \
         " | " + as_sudo(('tee', flume_agent_pid_file)) + "  && test ${PIPESTATUS[0]} -eq 0"
         
         try:

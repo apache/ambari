@@ -67,7 +67,8 @@ class TestFlumeHandler(RMFTestCase):
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         wait_for_finish = False,
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -o -u flume -f '^/usr/jdk64/jdk1.7.0_45.*a1.*' | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/a1.pid  && test ${PIPESTATUS[0]} -eq 0",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E ps -f -u flume | grep '/usr/jdk64/jdk1.7.0_45.*org.apache.flume
+.node.Application.*--name a1' | sed -e 's/^ *flume *\([0-9*\]).*$/\1/' | head -n 1 | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/a1.pid  && test ${PIPESTATUS[0]} -eq 0",
         logoutput = True,
         tries = 20,
         try_sleep = 10,
@@ -101,7 +102,8 @@ class TestFlumeHandler(RMFTestCase):
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               wait_for_finish = False,
                               )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -o -u flume -f '^/usr/jdk64/jdk1.7.0_45.*a1.*' | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/a1.pid  && test ${PIPESTATUS[0]} -eq 0",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E ps -f -u flume | grep '/usr/jdk64/jdk1.7.0_45.*org.apache.flume
+.node.Application.*--name a1' | sed -e 's/^ *flume *\([0-9*\]).*$/\1/' | head -n 1 | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/a1.pid  && test ${PIPESTATUS[0]} -eq 0",
                               logoutput = True,
                               tries = 20,
                               try_sleep = 10,
@@ -373,7 +375,7 @@ class TestFlumeHandler(RMFTestCase):
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
+    self.assertResourceCalled('Execute', 'ps -f -u flume | grep \'/usr/jdk64/jdk1.7.0_45.*org.apache.flume.node.Application.*--name b1\' | sed -e \'s/^ *flume *\([0-9*\]).*$/\1/\' | head -n 1 > /var/run/flume/b1.pid',
       logoutput = True,
       tries = 10,
       try_sleep = 6)
@@ -401,7 +403,7 @@ class TestFlumeHandler(RMFTestCase):
         wait_for_finish = False,
     )
 
-    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -o -u flume -f '^/usr/jdk64/jdk1.7.0_45.*b1.*' | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/b1.pid  && test ${PIPESTATUS[0]} -eq 0",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E ps -f -u flume | grep '/usr/jdk64/jdk1.7.0_45.*org.apache.flume.node.Application.*--name b1' | sed -e 's/^ *flume *\([0-9*\]).*$/\1/' | head -n 1 | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/b1.pid  && test ${PIPESTATUS[0]} -eq 0",
         logoutput = True,
         tries = 20,
         try_sleep = 10,
