@@ -31,7 +31,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -93,6 +92,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
@@ -3200,7 +3200,7 @@ public class Configuration {
 
     // load the properties
     try {
-      properties.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
+      properties.load(new InputStreamReader(inputStream, Charsets.UTF_8));
       inputStream.close();
     } catch (FileNotFoundException fnf) {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
