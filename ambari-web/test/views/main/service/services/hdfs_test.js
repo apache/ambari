@@ -183,50 +183,7 @@ describe('App.MainDashboardServiceHdfsView', function () {
     });
   });
 
-  describe("#nonDfsUsed", function() {
-    var testCases = [
-      {
-        input: {
-          capacityTotal: null,
-          capacityRemaining: 1,
-          capacityUsed: 90
-        },
-        expected: null
-      },
-      {
-        input: {
-          capacityTotal: 100,
-          capacityRemaining: null,
-          capacityUsed: 90
-        },
-        expected: null
-      },
-      {
-        input: {
-          capacityTotal: 100,
-          capacityRemaining: 1,
-          capacityUsed: null
-        },
-        expected: null
-      },
-      {
-        input: {
-          capacityTotal: 100,
-          capacityRemaining: 1,
-          capacityUsed: 90
-        },
-        expected: 9
-      }
-    ];
 
-    testCases.forEach(function(test) {
-      it("total=" + test.input.capacityTotal + " remaining" + test.input.capacityRemaining + " used" + test.input.capacityUsed, function() {
-        view.get('service').setProperties(test.input);
-        view.propertyDidChange('nonDfsUsed');
-        expect(view.get('nonDfsUsed')).to.be.equal(test.expected);
-      });
-    });
-  });
 
   describe("#isNfsInStack", function() {
 
