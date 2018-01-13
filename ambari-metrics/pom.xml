@@ -53,8 +53,8 @@
     <grafana.tar>https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz</grafana.tar>
     <phoenix.tar>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.0.3/tars/phoenix-4.7.0.2.6.0.3-8.tar.gz</phoenix.tar>
     <phoenix.folder>phoenix-4.7.0.2.6.0.3-8</phoenix.folder>
-    <spark.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-439/tars/spark2/spark-2.1.0.3.0.0.0-439-bin-3.0.0.3.0.0.0-439.tgz</spark.tar>
-    <spark.folder>spark-2.1.0.3.0.0.0-439-bin-3.0.0.3.0.0.0-439</spark.folder>
+    <spark.tar>http://dev.hortonworks.com.s3.amazonaws.com/HDP/centos7/3.x/BUILDS/3.0.0.0-624/tars/spark2/spark-2.1.0.3.0.0.0-624-bin-3.0.0.3.0.0.0-624.tgz</spark.tar>
+    <spark.folder>spark-2.1.0.3.0.0.0-624-bin-3.0.0.3.0.0.0-624</spark.folder>
     <resmonitor.install.dir>
       /usr/lib/python2.6/site-packages/resource_monitoring
     </resmonitor.install.dir>

@@ -18,16 +18,16 @@
 package org.apache.ambari.metrics.adservice.app
 
 import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
 import io.dropwizard.testing.junit.ResourceTestRule
 
 object DropwizardResourceTestRuleHelper {
-  def withResourceTestRule(configBlock: (ResourceTestRule.Builder) => Unit)(testBlock: (ResourceTestRule) => Unit) {
+  def withResourceTestRule(configBlock: (ResourceTestRule.Builder) => Unit)(testBlock: (ResourceTestRule) => Statement) {
     val builder = new ResourceTestRule.Builder()
     configBlock(builder)
     val rule = builder.build()
-    rule.apply(() => {
-      testBlock(rule)
-    }, Description.EMPTY).evaluate()
+    rule.apply(testBlock(rule)
+    , Description.EMPTY).evaluate()
   }
 }

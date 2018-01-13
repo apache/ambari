@@ -20,6 +20,8 @@ package org.apache.ambari.metrics.adservice.detection
 import org.slf4j.{Logger, LoggerFactory}
 import org.apache.ambari.metrics.adservice.app.AnomalyDetectionAppConfig
 import org.apache.ambari.metrics.adservice.detection.pointintime.PointInTimeSubsystem
+import org.apache.ambari.metrics.adservice.metadata.MetricKey
+import org.apache.ambari.metrics.adservice.service.MetricDefinitionService
 
 /**
   * Class to start Anomaly detection jobs on spark.
@@ -30,22 +32,28 @@ class AdJobManager{
 
   var config: AnomalyDetectionAppConfig = _
   var sparkApplicationRunner: SparkApplicationRunner = _
+  var metricDefinitionService: MetricDefinitionService = _
 
   val configuredSubsystems: scala.collection.mutable.Map[String, Subsystem] = scala.collection.mutable.Map()
   var isInitialized : Boolean = false
+  var metricKeys: Set[MetricKey] = Set.empty[MetricKey]
 
-  def this (config: AnomalyDetectionAppConfig) = {
+  def this (config: AnomalyDetectionAppConfig, metricDefinitionService: MetricDefinitionService) = {
     this ()
     this.config = config
     this.sparkApplicationRunner = new SparkApplicationRunner(config.getSparkConfiguration)
+    this.metricDefinitionService = metricDefinitionService
   }
 
   /**
     * Initialize subsystems
     */
   def initializeSubsystems() : Unit = {
+
+    metricKeys = metricDefinitionService.getMetricKeyList
+
     if (config.getDetectionServiceConfiguration.isPointInTimeSubsystemEnabled) {
-      configuredSubsystems("pointintime") = new PointInTimeSubsystem(config.getDetectionServiceConfiguration, sparkApplicationRunner)
+      configuredSubsystems("pointintime") = new PointInTimeSubsystem(config.getDetectionServiceConfiguration, sparkApplicationRunner, metricKeys)
     }
   }
 

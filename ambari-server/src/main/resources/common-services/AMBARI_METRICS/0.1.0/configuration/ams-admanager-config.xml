@@ -109,7 +109,7 @@
         sparkHome: {{ams_admanager_lib_dir}}/spark
         jarfile: {{ams_admanager_lib_dir}}/ambari-metrics-anomaly-detection-service.jar
 
-      detection
+      detection:
         trend: false
         kafkaServers: localhost:6667
         kafkaTopic: ambari-metrics-ad

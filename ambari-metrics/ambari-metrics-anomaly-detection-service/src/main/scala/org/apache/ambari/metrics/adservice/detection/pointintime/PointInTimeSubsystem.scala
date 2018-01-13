@@ -18,7 +18,8 @@
 package org.apache.ambari.metrics.adservice.detection.pointintime
 
 import org.apache.ambari.metrics.adservice.configuration.DetectionServiceConfiguration
-import org.apache.ambari.metrics.adservice.detection.{SparkApplicationRunner, Subsystem}
+import org.apache.ambari.metrics.adservice.detection.{DetectionServiceUtils, SparkApplicationRunner, Subsystem}
+import org.apache.ambari.metrics.adservice.metadata.MetricKey
 import org.apache.spark.launcher.SparkAppHandle
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -32,16 +33,19 @@ class PointInTimeSubsystem extends Subsystem{
   val appHandleMap: scala.collection.mutable.Map[String, SparkAppHandle] = scala.collection.mutable.Map()
   var applicationRunner: SparkApplicationRunner = _
   var config: DetectionServiceConfiguration = _
+  var metricKeys: Set[MetricKey] = Set.empty[MetricKey]
 
   //EMA Stuff
   val emaDriverClass = "org.apache.ambari.metrics.adservice.detection.pointintime.EmaSparkDriver"
   val emaAppName = "Ema_Spark_Application"
   val emaConfig: scala.collection.mutable.MutableList[String] = scala.collection.mutable.MutableList()
 
-  def this(config: DetectionServiceConfiguration, applicationRunner: SparkApplicationRunner) = {
+
+  def this(config: DetectionServiceConfiguration, applicationRunner: SparkApplicationRunner, metricKeys: Set[MetricKey]) = {
     this
     this.applicationRunner = applicationRunner
     this.config = config
+    this.metricKeys = metricKeys
 
     //Initialize
     initializeConfigs()
@@ -111,6 +115,11 @@ class PointInTimeSubsystem extends Subsystem{
     emaConfig.+=(config.getKafkaServers)
     emaConfig.+=(config.getKafkaTopic)
     emaConfig.+=(config.getKafkaConsumerGroup)
+
+    val metricKeyFileName: String = DetectionServiceUtils.serializeMetricKeyList(metricKeys)
+    LOG.info("EMA Metric Key List file name : " + metricKeyFileName)
+
+    emaConfig.+=(metricKeyFileName)
   }
 
 }

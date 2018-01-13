@@ -23,6 +23,10 @@ import javax.xml.bind.annotation.XmlRootElement
 @XmlRootElement
 case class MetricKey (metricName: String, appId: String, instanceId: String, hostname: String, uuid: Array[Byte]) {
 
+  def this() = {
+    this("","","","",null)
+  }
+
   @Override
   override def toString: String = {
   "MetricName=" + metricName + ",App=" + appId + ",InstanceId=" + instanceId + ",Host=" + hostname

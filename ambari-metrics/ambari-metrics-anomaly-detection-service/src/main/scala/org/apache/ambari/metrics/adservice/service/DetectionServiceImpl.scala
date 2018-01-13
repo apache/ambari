@@ -30,15 +30,17 @@ class DetectionServiceImpl extends DetectionService{
 
   var adJobManager: AdJobManager = _
   var config : AnomalyDetectionAppConfig = _
+  var metricDefinitionService: MetricDefinitionService = _
 
   @Inject
-  def this (anomalyDetectionAppConfig: AnomalyDetectionAppConfig) = {
+  def this (anomalyDetectionAppConfig: AnomalyDetectionAppConfig, metricDefinitionService: MetricDefinitionService) = {
     this ()
     this.config = anomalyDetectionAppConfig
+    this.metricDefinitionService = metricDefinitionService
   }
 
   override def initialize(): Unit = {
-    this.adJobManager = new AdJobManager(config)
+    this.adJobManager = new AdJobManager(config, metricDefinitionService)
     adJobManager.startAdJobs()
   }
 

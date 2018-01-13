@@ -64,6 +64,34 @@ class SeasonTest extends FunSuite {
     //Try with a timestamp on a Wednesday, @ 9AM.
     c.set(2017, Calendar.NOVEMBER, 1, 9, 0, 0)
     assert(!season.belongsTo(c.getTimeInMillis))
+
+    val ts : Long = 1513804071420l
+    val emaSeasons: scala.collection.mutable.MutableList[Season] = scala.collection.mutable.MutableList()
+
+    //Work Week - Weekend.
+    //2 Periods
+    emaSeasons.+=(Season(Range(Calendar.MONDAY, Calendar.FRIDAY), SeasonType.DAY))
+    emaSeasons.+=(Season(Range(Calendar.SATURDAY, Calendar.SUNDAY), SeasonType.DAY))
+
+    //Day of the Week
+    //7 Days
+    emaSeasons.+=(Season(Range(Calendar.MONDAY, Calendar.MONDAY), SeasonType.DAY))
+    emaSeasons.+=(Season(Range(Calendar.TUESDAY, Calendar.TUESDAY), SeasonType.DAY))
+    emaSeasons.+=(Season(Range(Calendar.WEDNESDAY, Calendar.WEDNESDAY), SeasonType.DAY))
+    emaSeasons.+=(Season(Range(Calendar.THURSDAY, Calendar.THURSDAY), SeasonType.DAY))
+    emaSeasons.+=(Season(Range(Calendar.FRIDAY, Calendar.FRIDAY), SeasonType.DAY))
+    emaSeasons.+=(Season(Range(Calendar.SATURDAY, Calendar.SATURDAY), SeasonType.DAY))
+    emaSeasons.+=(Season(Range(Calendar.SUNDAY, Calendar.SUNDAY), SeasonType.DAY))
+
+    //Hour of the day
+    //24 Hours * 7 Days
+    for (day <- Calendar.SUNDAY to Calendar.SATURDAY) {
+      for (hour <- 1 to 24) {
+        emaSeasons.+=(Season(Range(day, day), Range(hour - 1, hour)))
+      }
+    }
+
+    Season.getSeasons(ts, emaSeasons.toList)
   }
 
   test("testEquals") {

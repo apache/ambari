@@ -85,7 +85,7 @@ class ADMetadataProvider extends MetricMetadataProvider {
   def getKeysFromMetricsCollector(protocol: String, host: String, port: String, path: String, metricDefinition: MetricDefinition): Set[MetricKey] = {
 
     val url: String = protocol + "://" + host + ":" + port + path
-    val mapper = new ObjectMapper() with ScalaObjectMapper
+    val mapper = new ObjectMapper() //with ScalaObjectMapper
 
     if (metricDefinition.hosts == null || metricDefinition.hosts.isEmpty) {
       val request: HttpRequest = Http(url)

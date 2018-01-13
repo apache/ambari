@@ -18,6 +18,7 @@
 package org.apache.ambari.metrics.adservice.app
 
 import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
 import io.dropwizard.Configuration
 import io.dropwizard.testing.ConfigOverride
@@ -29,11 +30,11 @@ object DropwizardAppRuleHelper {
 
   def withAppRunning[C <: Configuration](serviceClass: Class[_ <: io.dropwizard.Application[C]],
                                          configPath: String, configOverrides: ConfigOverride*)
-                                        (fn: (DropwizardAppRule[C]) => Unit) {
+                                        (fn: (DropwizardAppRule[C]) => Statement) {
     val overrides = new mutable.ListBuffer[ConfigOverride]
     configOverrides.foreach { o => overrides += o }
     val rule = new DropwizardAppRule(serviceClass, configPath, overrides.toList: _*)
-    rule.apply(() => fn(rule), Description.EMPTY).evaluate()
+    rule.apply(fn(rule), Description.EMPTY).evaluate()
   }
 
 }

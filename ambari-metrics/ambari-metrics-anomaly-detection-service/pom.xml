@@ -32,7 +32,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <scala.version>2.12.3</scala.version>
+    <scala.version>2.11.8</scala.version>
     <scala.binary.version>2.11</scala.binary.version>
     <jackson.version>2.9.1</jackson.version>
     <dropwizard.version>1.2.0</dropwizard.version>
@@ -396,7 +396,7 @@
     </dependency>
     <dependency>
       <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_2.12</artifactId>
+      <artifactId>scalatest_2.11</artifactId>
       <version>3.0.1</version>
       <scope>test</scope>
     </dependency>
@@ -475,7 +475,7 @@
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-scala_2.12</artifactId>
+      <artifactId>jackson-module-scala_2.11</artifactId>
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
@@ -497,7 +497,7 @@
     <!-- https://mvnrepository.com/artifact/org.scalaj/scalaj-http -->
     <dependency>
       <groupId>org.scalaj</groupId>
-      <artifactId>scalaj-http_2.12</artifactId>
+      <artifactId>scalaj-http_2.11</artifactId>
       <version>2.3.0</version>
     </dependency>
 

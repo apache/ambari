@@ -29,11 +29,12 @@ class SparkApplicationRunner{
   var config: SparkConfiguration = _
   val env: java.util.HashMap[String, String] = new java.util.HashMap()
   env.put("SPARK_PRINT_LAUNCH_COMMAND", "1")
-  val sparkArgs: Map[String, String] = Map.empty
+  val sparkArgs: scala.collection.mutable.Map[String, String] = scala.collection.mutable.Map()
 
   def this(config: SparkConfiguration) = {
     this()
     this.config = config
+//    sparkArgs("spark.executor.cores") = "2"
   }
 
   /**
