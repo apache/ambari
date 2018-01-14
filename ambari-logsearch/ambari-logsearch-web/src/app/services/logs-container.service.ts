@@ -537,6 +537,19 @@ export class LogsContainerService {
 
   private readonly defaultTimeZone = moment.tz.guess();
 
+  readonly queryContextMenuItems: ListItem[] = [
+    {
+      label: 'logs.addToQuery',
+      iconClass: 'fa fa-search-plus',
+      value: false // 'isExclude' is false
+    },
+    {
+      label: 'logs.excludeFromQuery',
+      iconClass: 'fa fa-search-minus',
+      value: true // 'isExclude' is true
+    }
+  ];
+
   timeZone: string = this.defaultTimeZone;
 
   totalCount: number = 0;

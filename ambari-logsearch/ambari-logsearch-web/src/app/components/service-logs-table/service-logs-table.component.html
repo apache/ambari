@@ -71,7 +71,8 @@
         </tr>
       </tfoot>
     </table>
-    <ul #contextmenu data-component="dropdown-list" class="dropdown-menu context-menu" [items]="contextMenuItems"
-        (selectedItemChange)="updateQuery($event)"></ul>
+    <context-menu [isDisplayed]="isContextMenuDisplayed" [contextMenuItems]="contextMenuItems"
+                  [leftPosition]="contextMenuLeft" [topPosition]="contextMenuTop" (itemSelect)="updateQuery($event)"
+                  (contextMenuDismiss)="onContextMenuDismiss()"></context-menu>
   </div>
 </div>
