@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
+import {Component} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {LogsTableComponent} from '@app/classes/components/logs-table/logs-table-component';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -27,22 +27,11 @@ import {UtilsService} from '@app/services/utils.service';
   templateUrl: './service-logs-table.component.html',
   styleUrls: ['./service-logs-table.component.less']
 })
-export class ServiceLogsTableComponent extends LogsTableComponent implements AfterViewInit {
+export class ServiceLogsTableComponent extends LogsTableComponent {
 
   constructor(private logsContainer: LogsContainerService, private utils: UtilsService) {
     super();
   }
-
-  ngAfterViewInit() {
-    if (this.contextMenu) {
-      this.contextMenuElement = this.contextMenu.nativeElement;
-    }
-  }
-
-  @ViewChild('contextmenu', {
-    read: ElementRef
-  })
-  contextMenu: ElementRef;
 
   readonly dateFormat: string = 'dddd, MMMM Do';
 
@@ -68,24 +57,15 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
 
   readonly customStyledColumns: string[] = ['level', 'type', 'logtime', 'log_message'];
 
-  readonly contextMenuItems: ListItem[] = [
-    {
-      label: 'logs.addToQuery',
-      iconClass: 'fa fa-search-plus',
-      value: false // 'isExclude' is false
-    },
-    {
-      label: 'logs.excludeFromQuery',
-      iconClass: 'fa fa-search-minus',
-      value: true // 'isExclude' is true
-    }
-  ];
-
   private readonly messageFilterParameterName: string = 'log_message';
 
   private contextMenuElement: HTMLElement;
 
   private selectedText: string = '';
+
+  get contextMenuItems(): ListItem[] {
+    return this.logsContainer.queryContextMenuItems;
+  }
 
   get timeZone(): string {
     return this.logsContainer.timeZone;
@@ -99,6 +79,22 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
     return this.logsContainer.logsTypeMap.serviceLogs;
   }
 
+  get isContextMenuDisplayed(): boolean {
+    return Boolean(this.selectedText);
+  };
+
+  /**
+   * 'left' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuLeft: number = 0;
+
+  /**
+   * 'top' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuTop: number = 0;
+
   isDifferentDates(dateA, dateB): boolean {
     return this.utils.isDifferentDates(dateA, dateB, this.timeZone);
   }
@@ -106,14 +102,9 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
   openMessageContextMenu(event: MouseEvent): void {
     const selectedText = getSelection().toString();
     if (selectedText) {
-      let contextMenuStyle = this.contextMenuElement.style;
-      Object.assign(contextMenuStyle, {
-        left: `${event.clientX}px`,
-        top: `${event.clientY}px`,
-        display: 'block'
-      });
+      this.contextMenuLeft = event.clientX;
+      this.contextMenuTop = event.clientY;
       this.selectedText = selectedText;
-      document.body.addEventListener('click', this.dismissContextMenu);
       event.preventDefault();
     }
   }
@@ -126,10 +117,8 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
     });
   }
 
-  private dismissContextMenu = (): void => {
+  onContextMenuDismiss(): void {
     this.selectedText = '';
-    this.contextMenuElement.style.display = 'none';
-    document.body.removeEventListener('click', this.dismissContextMenu);
-  };
+  }
 
 }

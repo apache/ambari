@@ -16,51 +16,6 @@
  * limitations under the License.
  */
 
-export interface GraphPositionOptions {
-  top: number;
-  left: number;
-}
-
-export interface GraphMarginOptions extends GraphPositionOptions {
-  right: number;
-  bottom: number;
-}
-
-export interface GraphTooltipInfo {
-  data: object[];
-  title: string | number;
-}
-
-export interface LegendItem {
-  label: string;
-  color: string;
-}
-
-export interface GraphScaleItem {
-  tick: number;
-  [key: string]: number;
-}
-
-export interface ChartTimeGap {
-  value: number;
-  unit: string;
-  label: string;
-}
-
-export interface GraphEventData extends Array<number> {
-  data: GraphScaleItem;
-}
-
-export type GraphLinePoint = GraphScaleItem & {
-  color: string;
-}
-
-export interface GraphLineData {
-  points: GraphScaleItem[];
-  key: string;
-}
-
-export interface GraphEmittedEvent<EventType> {
-  tick: any;
-  nativeEvent: EventType;
+ul.dropdown-menu {
+  position: fixed;
 }
