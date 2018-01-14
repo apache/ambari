@@ -496,6 +496,9 @@ public class TopologyManager {
 
     hostNameCheck(request, topology);
     request.setClusterId(clusterId);
+    if (ambariContext.isTopologyResolved(clusterId)) {
+      getOrCreateTopologyTaskExecutor(clusterId).start();
+    }
 
     // this registers/updates all request host groups
     topology.update(request);
@@ -971,7 +974,7 @@ public class TopologyManager {
     persistedState.registerInTopologyHostInfo(host);
   }
 
-  private ExecutorService getOrCreateTopologyTaskExecutor(Long clusterId) {
+  private ManagedThreadPoolExecutor getOrCreateTopologyTaskExecutor(Long clusterId) {
     ManagedThreadPoolExecutor topologyTaskExecutor = this.topologyTaskExecutorServiceMap.get(clusterId);
     if (topologyTaskExecutor == null) {
       LOG.info("Creating TopologyTaskExecutorService for clusterId: {}", clusterId);
