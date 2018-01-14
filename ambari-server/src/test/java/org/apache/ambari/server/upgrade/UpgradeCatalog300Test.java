@@ -62,7 +62,6 @@ import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCat
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
-import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -538,10 +537,13 @@ public class UpgradeCatalog300Test {
   @Test
   public void shouldSaveLdapConfigurationIfPropertyIsSetInAmbariProperties() throws Exception {
     final Module module = getTestGuiceModule();
+
     expect(configuration.getProperty("ambari.ldap.isConfigured")).andReturn("true").anyTimes();
+
     expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
-    ambariConfigurationDao.create(buildConfigurationEntity(AmbariLdapConfigurationKeys.LDAP_ENABLED, "true"));
-    expectLastCall().once();
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
     replay(configuration, entityManager, ambariConfigurationDao);
 
     final Injector injector = Guice.createInjector(module);
@@ -554,7 +556,9 @@ public class UpgradeCatalog300Test {
   public void shouldNotSaveLdapConfigurationIfPropertyIsNotSetInAmbariProperties() throws Exception {
     final Module module = getTestGuiceModule();
     expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
-    ambariConfigurationDao.create(buildConfigurationEntity(AmbariLdapConfigurationKeys.LDAP_ENABLED, "true"));
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
     replay(configuration, entityManager, ambariConfigurationDao);
 
     final Injector injector = Guice.createInjector(module);
@@ -564,13 +568,5 @@ public class UpgradeCatalog300Test {
     expectedException.expect(AssertionError.class);
     expectedException.expectMessage("Expectation failure on verify");
     verify(configuration, entityManager, ambariConfigurationDao);
-  }
-
-  private AmbariConfigurationEntity buildConfigurationEntity(AmbariLdapConfigurationKeys key, String value) {
-    final AmbariConfigurationEntity configurationEntity = new AmbariConfigurationEntity();
-    configurationEntity.setCategoryName(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName());
-    configurationEntity.setPropertyName(key.key());
-    configurationEntity.setPropertyValue(value);
-    return configurationEntity;
   }
 }
