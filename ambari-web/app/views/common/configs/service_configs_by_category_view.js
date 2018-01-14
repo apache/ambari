@@ -189,7 +189,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverrid
    */
   isShowBlock: function () {
     const isFilterEmpty = this.get('controller.filter') === '';
-    const isFilterActive = this.get('mainView.columns').someProperty('selected');
+    const isFilterActive = this.get('mainView.columns') && this.get('mainView.columns').someProperty('selected');
     const isCustomPropertiesCategory = this.get('category.customCanAddProperty');
     const isCompareMode = this.get('controller.isCompareMode');
     const hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {

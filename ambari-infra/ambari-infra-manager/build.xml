@@ -33,13 +33,16 @@
     <copy todir="target/package/libs" includeEmptyDirs="no">
       <fileset file="target/*.jar"/>
     </copy>
-    <copy todir="target/package" includeEmptyDirs="no">
-      <fileset file="src/main/resources/infraManager.sh"/>
+    <copy todir="target/package/conf" includeEmptyDirs="no">
       <fileset file="src/main/resources/infra-manager-env.sh"/>
       <fileset file="target/classes/infra-manager.properties"/>
-      <fileset file="target/classes/log4j.xml"/>
+      <fileset file="target/classes/log4j2.xml"/>
     </copy>
-    <chmod file="target/package/*.sh" perm="755"/>
+    <copy todir="target/package/bin" includeEmptyDirs="no">
+      <fileset file="src/main/resources/infraManager.sh"/>
+    </copy>
+    <chmod file="target/package/conf/infra-manager-env.sh" perm="755"/>
+    <chmod file="target/package/bin/infraManager.sh" perm="755"/>
     <tar compression="gzip" destfile="target/ambari-infra-manager.tar.gz">
       <tarfileset mode="755" dir="target/package">
         <include name="*.sh"/>

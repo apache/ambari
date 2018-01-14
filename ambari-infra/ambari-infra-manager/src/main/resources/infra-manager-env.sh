@@ -16,3 +16,25 @@
 
 # Extend with java options or system properties. e.g.: INFRA_MANAGER_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=5007,server=y,suspend=n"
 export INFRA_MANAGER_OPTS=""
+
+# Log Search debug options
+# export INFRA_MANAGER_DEBUG=true
+# exoprt INFRA_MANAGER_DEBUG_SUSPEND=n
+export INFRA_MANAGER_DEBUG_PORT=5005
+
+# Log Search memory
+# export INFRA_MANAGER_JAVA_MEM="--Xmx1024m"
+
+# export LOG_PATH=/var/log/ambari-logsearch-logfeeder/
+# export LOG_FILE=logsearch.log
+
+# Pid file of the application
+# export INFRA_MANAGER_PID_DIR=/var/run/ambari-infra-manager
+# export INFRA_MANAGER_PID_FILE=infra-manager.pid
+
+# SSL settings"
+# export INFRA_MANAGER_SSL="true"
+# export INFRA_MANAGER_KEYSTORE_LOCATION="/my/path/keystore.jks"
+# export INFRA_MANAGER_KEYSTORE_TYPE="jks"
+# export INFRA_MANAGER_TRUSTSTORE_LOCATION="/my/path/trutstore.jks"
+# export INFRA_MANAGER_TRUSTSTORE_TYPE="jks"

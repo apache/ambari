@@ -15,7 +15,9 @@
 # limitations under the License
 
 LOGSEARCH_SCRIPT_LINK_NAME="/usr/bin/logsearch"
-LOGSEARCH_CONF_DIR_LINK="/etc/ambari-logsearch-portal/conf"
+LOGSEARCH_ETC_FOLDER="/etc/ambari-logsearch-portal"
+LOGSEARCH_CONF_DIR_LINK="$LOGSEARCH_ETC_FOLDER/conf"
 
 rm -f $LOGSEARCH_SCRIPT_LINK_NAME
 rm -f $LOGSEARCH_CONF_DIR_LINK
+rm -f $LOGSEARCH_ETC_FOLDER
