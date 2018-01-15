@@ -20,11 +20,13 @@ package org.apache.ambari.server.configuration;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -2856,6 +2858,29 @@ public class Configuration {
   }
 
   /**
+   * Writes the given properties into the configuration file
+   *
+   * @param propertiesToWrite
+   *          the properties to be stored
+   * @param append
+   *          if {@code true} the given properties will be added at the end of the
+   *          configuration file; otherwise a brand new configuration file will be
+   *          produced
+   * @throws AmbariException
+   *           if there was any issue when clearing ambari.properties
+   */
+  private void writeConfigFile(Properties propertiesToStore, boolean append) throws AmbariException {
+    File configFile = null;
+    try {
+      configFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
+      propertiesToStore.store(new OutputStreamWriter(new FileOutputStream(configFile, append), Charsets.UTF_8), null);
+    } catch (Exception e) {
+      LOG.error("Cannot write properties [" + propertiesToStore + "] into configuration file [" + configFile + ", " + append + "] ");
+      throw new AmbariException("Error while clearing ambari.properties", e);
+    }
+  }
+
+  /**
    * Removing the given properties from ambari.properties (i.e. at upgrade time)
    *
    * @param propertiesToBeCleared
@@ -2864,29 +2889,14 @@ public class Configuration {
    *           if there was any issue when clearing ambari.properties
    */
   public void removePropertiesFromAmbariProperties(Collection<String> propertiesToBeRemoved) throws AmbariException {
-    try {
-      final File ambariPropertiesFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
-      final List<String> ambariPropertiesLines = FileUtils.readLines(ambariPropertiesFile, Charsets.UTF_8);
-      final StringBuilder newAmbariProperties = new StringBuilder();
-      for (String line : ambariPropertiesLines) {
-        if (!lineNeedsToBeRemoved(line, propertiesToBeRemoved)) {
-          newAmbariProperties.append(line).append(System.getProperty("line.separator"));
-        }
-      }
-      FileUtils.writeStringToFile(ambariPropertiesFile, newAmbariProperties.toString(), Charsets.UTF_8);
+    final Properties existingProperties = readConfigFile();
+    propertiesToBeRemoved.forEach(key -> {
+      existingProperties.remove(key);
+    });
+    writeConfigFile(existingProperties, false);
 
-      // reloading properties
-      this.properties = readConfigFile();
-    } catch (IOException e) {
-      throw new AmbariException("Error while clearing ambari.properties", e);
-    }
-  }
-
-  private boolean lineNeedsToBeRemoved(String line, Collection<String> propertiesToBeRemoved) {
-    if (StringUtils.isNotBlank(line)) {
-      return propertiesToBeRemoved.stream().anyMatch(propertyToBeCleared -> line.trim().indexOf(propertyToBeCleared.concat("=")) > -1);
-    }
-    return false;
+    // reloading properties
+    this.properties = readConfigFile();
   }
 
   /**

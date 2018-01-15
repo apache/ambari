@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,13 +48,13 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -398,19 +397,18 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     LOG.info("Moving LDAP related properties from ambari.properties to ambari_congiuration DB table...");
     final AmbariConfigurationDAO ambariConfigurationDao = injector.getInstance(AmbariConfigurationDAO.class);
     final Map<String, String> propertiesToBeSaved = new HashMap<>();
-    final Set<String> propertiesToBeRemoved = new HashSet<>();
-    getLdapConfigurationMap().forEach((key, oldPropertyName) -> {
+    final Map<AmbariLdapConfigurationKeys, String> ldapConfigurationMap = getLdapConfigurationMap();
+    ldapConfigurationMap.forEach((key, oldPropertyName) -> {
       String ldapPropertyValue = configuration.getProperty(oldPropertyName);
       if (StringUtils.isNotBlank(ldapPropertyValue)) {
-        propertiesToBeRemoved.add(oldPropertyName);
         if (AmbariLdapConfigurationKeys.SERVER_HOST == key || AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST == key) {
-          final HostAndPort hostAndPort = HostAndPort.fromUrl(ldapPropertyValue);
+          final HostAndPort hostAndPort = HostAndPort.fromString(ldapPropertyValue);
           AmbariLdapConfigurationKeys keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_HOST
               : AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST;
-          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.host);
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.getHostText());
 
           keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_PORT : AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT;
-          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.portAsString());
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), String.valueOf(hostAndPort.getPort()));
         } else {
           populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, key.key(), ldapPropertyValue);
         }
@@ -421,7 +419,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
       LOG.info("There was no LDAP related properties in ambari.properties; moved 0 elements");
     } else {
       ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), propertiesToBeSaved, false);
-      configuration.removePropertiesFromAmbariProperties(propertiesToBeRemoved);
+      configuration.removePropertiesFromAmbariProperties(ldapConfigurationMap.values());
       LOG.info(propertiesToBeSaved.size() + " LDAP related properties " + (propertiesToBeSaved.size() == 1 ? "has" : "have") + " been moved to DB");
     }
   }
