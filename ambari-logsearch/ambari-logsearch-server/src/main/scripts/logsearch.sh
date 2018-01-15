@@ -14,12 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JVM="java"
-
-if [ -x $JAVA_HOME/bin/java ]; then
-  JVM=$JAVA_HOME/bin/java
-fi
-
 if [ "$LOGSEARCH_JAVA_MEM" = "" ]; then
     LOGSEARCH_JAVA_MEM="-Xmx1g"
 fi
@@ -47,6 +41,12 @@ fi
 
 if [ -f "$LOGSEARCH_CONF_DIR/logsearch-env.sh" ]; then
   source $LOGSEARCH_CONF_DIR/logsearch-env.sh
+fi
+
+JVM="java"
+
+if [ -x $JAVA_HOME/bin/java ]; then
+  JVM=$JAVA_HOME/bin/java
 fi
 
 if [ ! -z "$LOGSEARCH_SOLR_CLIENT_SSL_INCLUDE" ]; then
