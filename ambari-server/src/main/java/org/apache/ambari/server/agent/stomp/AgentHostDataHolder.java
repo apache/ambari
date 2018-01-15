@@ -48,7 +48,7 @@ public abstract class AgentHostDataHolder<T extends AmbariHostUpdateEvent & Hash
     return !Objects.equals(agentHash, hostData.getHash()) ? hostData : getEmptyData();
   }
 
-  private T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
+  public T initializeDataIfNeeded(Long hostId, boolean regenerateHash) throws AmbariException {
     T hostData = data.get(hostId);
     if (hostData == null) {
       hostData = getCurrentData(hostId);

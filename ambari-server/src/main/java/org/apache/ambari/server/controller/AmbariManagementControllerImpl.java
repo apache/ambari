@@ -132,7 +132,6 @@ import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory
 import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
@@ -179,7 +178,6 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurati
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stack.ExtensionHelper;
 import org.apache.ambari.server.stack.RepoUtil;
-import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -5960,8 +5958,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ServiceComponentHost serviceComponentHost : hostComponents) {
       CommandRepository commandRepository = ambariMetaInfo.getCommandRepository(cluster,
           serviceComponentHost.getServiceComponent(), host);
-      hostRepositories.put(commandRepository.getM_repoVersionId(), commandRepository);
-      componentsRepos.put(serviceComponentHost.getServiceComponentName(), commandRepository.getM_repoVersionId());
+      hostRepositories.put(commandRepository.getRepoVersionId(), commandRepository);
+      componentsRepos.put(serviceComponentHost.getServiceComponentName(), commandRepository.getRepoVersionId());
     }
     return new HostRepositories(hostRepositories, componentsRepos);
   }
