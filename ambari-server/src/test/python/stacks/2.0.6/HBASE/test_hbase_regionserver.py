@@ -18,11 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
-#import upgrade
+import upgrade
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
-#@patch.object(upgrade, 'check_process_status', new = MagicMock())
+@patch.object(upgrade, 'check_process_status', new = MagicMock())
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHbaseRegionServer(RMFTestCase):

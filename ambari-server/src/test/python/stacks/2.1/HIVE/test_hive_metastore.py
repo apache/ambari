@@ -578,11 +578,13 @@ class TestHiveMetastore(RMFTestCase):
      'hive-metastore',
      '2.4.0.0-1234'),
         sudo = True)
+      
 
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
       mode = 0755, create_parents = True, cd_access = 'a')
+
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
@@ -788,7 +790,6 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
       mode = 0755, create_parents = True, cd_access = 'a')
 
-    self.printResources()
     self.assertResourceCalled('Execute',
                               ('rm', '-f', '/usr/hdp/current/hive-metastore/lib/ojdbc6.jar'),
                               path=["/bin", "/usr/bin/"],

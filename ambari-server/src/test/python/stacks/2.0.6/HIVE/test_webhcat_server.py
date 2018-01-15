@@ -228,24 +228,6 @@ class TestWebHCatServer(RMFTestCase):
                               configurations = self.getConfig()['configurations']['webhcat-site'],
                               configuration_attributes = self.getConfig()['configurationAttributes']['webhcat-site']
     )
-    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-        owner = 'hive',
-        group = 'hadoop',
-        conf_dir = '/usr/hdp/2.1.0.0-1234/hive/conf',
-        configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
-                      u'javax.jdo.option.ConnectionDriverName': u'true',
-                      u'javax.jdo.option.ConnectionPassword': u'true'}},
-        configurations = self.getConfig()['configurations']['hive-site'],
-    )
-    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
-        owner = 'yarn',
-        group = 'hadoop',
-        conf_dir = '/usr/hdp/2.1.0.0-1234/hadoop/conf',
-        configuration_attributes = {u'final': {u'yarn.nodemanager.container-executor.class': u'true',
-                      u'yarn.nodemanager.disk-health-checker.min-healthy-disks': u'true',
-                      u'yarn.nodemanager.local-dirs': u'true'}},
-        configurations = self.getConfig()['configurations']['yarn-site'],
-    )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-webhcat/etc/webhcat/webhcat-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
                               owner = 'hcat',
