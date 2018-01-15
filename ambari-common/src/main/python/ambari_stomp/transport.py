@@ -326,6 +326,7 @@ class BaseTransport(ambari_stomp.listener.Publisher):
         """
         Main loop listening for incoming data.
         """
+        
         log.info("Starting receiver loop")
         try:
             while self.running:
@@ -340,8 +341,12 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                             if self.__auto_decode:
                                 f.body = decode(f.body)
                             self.process_frame(f, frame)
+                            
+                    log.info("!!NOT RUNNING")
                 except exception.ConnectionClosedException:
+                    log.exception("!!except exception.ConnectionClosedException:")
                     if self.running:
+                        log.info("!!except exception.ConnectionClosedException if self.running")
                         self.notify('disconnected')
                         #
                         # Clear out any half-received messages after losing connection
@@ -349,8 +354,16 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                         self.__recvbuf = b''
                         self.running = False
                     break
+                except:
+                    log.exception("!!!EXCEPTION at loop")
+                    raise
                 finally:
+                    log.info("!!!CLEANUP")
                     self.cleanup()
+            log.info("!!NOT RUNNING BIG LOOP")
+        except:
+          log.exception("!!!EXCEPTION at big loop")
+          raise
         finally:
             with self.__receiver_thread_exit_condition:
                 self.__receiver_thread_exited = True
@@ -370,12 +383,13 @@ class BaseTransport(ambari_stomp.listener.Publisher):
                 try:
                     c = self.receive()
                 except exception.InterruptedException:
-                    log.debug("socket read interrupted, restarting")
+                    log.info("!!!socket read interrupted, restarting")
                     continue
             except Exception:
-                log.debug("socket read error", exc_info=True)
+                log.info("!!!socket read error", exc_info=True)
                 c = b''
             if c is None or len(c) == 0:
+                log.error("!!ConnectionClosedException!!! {0}".format(c))
                 raise exception.ConnectionClosedException()
             if c == b'\x0a' and not self.__recvbuf and not fastbuf.tell():
                 #
@@ -576,6 +590,7 @@ class Transport(BaseTransport):
         """
         Disconnect the underlying socket connection
         """
+        log.info("!!!disconnect_socket")
         self.running = False
         if self.socket is not None:
             if self.__need_ssl():
