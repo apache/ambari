@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 
+
 def get_property_value(dictionary, property_name, default_value=None, trim_string=False,
                        empty_value=""):
   """
@@ -56,10 +57,12 @@ def get_property_value(dictionary, property_name, default_value=None, trim_strin
 
   return value
 
+
 def get_unstructured_data(dictionary, property_name):
   prefix = property_name + '/'
   prefix_len = len(prefix)
   return dict((k[prefix_len:], v) for k, v in dictionary.iteritems() if k.startswith(prefix))
+
 
 def split_host_and_port(host):
   """
@@ -85,6 +88,7 @@ def split_host_and_port(host):
           host_and_port['port'] = int(parts[1])
 
   return host_and_port
+
 
 def set_port(host, port):
   """

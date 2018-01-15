@@ -142,7 +142,7 @@ class TestKerberosClient(RMFTestCase):
     package_dir = os.path.join(RMFTestCase._getCommonServicesFolder(), self.COMMON_SERVICES_PACKAGE_DIR)
     scripts_dir = os.path.join(package_dir, "scripts")
     sys.path += [scripts_dir]
-    from utils import get_property_value
+    from ambari_commons.kerberos.utils import get_property_value
 
     d = {
       'non_empty' : "Nonempty value",
