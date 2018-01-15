@@ -65,7 +65,7 @@ def should_install_lzo():
   if not lzo_enabled:
     return False
 
-  is_gpl_license_accepted = default("/hostLevelParams/gpl_license_accepted", False)
+  is_gpl_license_accepted = default("/ambariLevelParams/gpl_license_accepted", False)
   if not is_gpl_license_accepted:
     Logger.warning(INSTALLING_LZO_WITHOUT_GPL)
     return False
@@ -82,8 +82,8 @@ def install_lzo_if_needed():
   lzo_packages = get_lzo_packages()
 
   config = Script.get_config()
-  agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
-  agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+  agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
+  agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 
   Package(lzo_packages,
           retry_on_repo_unavailability=agent_stack_retry_on_unavailability,

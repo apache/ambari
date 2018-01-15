@@ -8,15 +8,14 @@
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/service_check.py", 
         "hooks_folder": "stack-hooks", 
-        "version": "2.1.0.0-1234", 
         "command_timeout": "300", 
         "script_type": "PYTHON"
     },
     "clusterLevelParams": {
-        "stack_version": "2.1", 
+        "stack_version": "3.3", 
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "hooks_folder": "stack-hooks", 
-        "stack_name": "HDP", 
+        "stack_name": "PHD", 
         "group_list": "[\"hdfs\",\"hadoop\",\"users\"]", 
         "user_groups": "{\"hive\":[\"hadoop\"], \"oozie\":[\"hadoop\",\"users\"], \"nobody\":[\"hadoop\",\"nobody\"], \"ambari-qa\":[\"hadoop\",\"users\"], \"flume\":[\"hadoop\"], \"hdfs\":[\"hadoop\"], \"storm\":[\"hadoop\"], \"mapred\":[\"hadoop\"], \"hbase\":[\"hadoop\"], \"tez\":[\"hadoop\",\"users\"], \"zookeeper\":[\"hadoop\"], \"falcon\":[\"hadoop\",\"users\"], \"sqoop\":[\"hadoop\"], \"yarn\":[\"hadoop\"], \"hcat\":[\"hadoop\"]}",
         "cluster_name": "c1", 

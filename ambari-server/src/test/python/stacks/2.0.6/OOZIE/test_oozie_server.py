@@ -1479,7 +1479,7 @@ class TestOozieServer(RMFTestCase):
 
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_name'] = "HDP"
+    json_content['clusterLevelParams']['stack_name'] = "HDP"
     json_content['clusterLevelParams']['stack_version'] = "2.3"
 
     # use mysql external database

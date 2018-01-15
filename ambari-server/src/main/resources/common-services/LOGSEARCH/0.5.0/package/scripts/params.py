@@ -56,9 +56,9 @@ credential_store_enabled = False
 if 'credentialStoreEnabled' in config:
   credential_store_enabled = config['credentialStoreEnabled']
 
-logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
+logsearch_server_conf = "/usr/lib/ambari-logsearch-portal/conf"
 logsearch_server_keys_folder = logsearch_server_conf + "/keys"
-logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_conf = "/usr/lib/ambari-logsearch-logfeeder/conf"
 logsearch_logfeeder_keys_folder = logsearch_logfeeder_conf + "/keys"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
@@ -75,7 +75,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 
 # shared configs
 java_home = config['ambariLevelParams']['java_home']
-ambari_java_home = default("/ambariLevelParams/ambari_java_home", None)
+ambari_java_home = default("/commandParams/ambari_java_home", None)
 java64_home = ambari_java_home if ambari_java_home is not None else java_home
 cluster_name = str(config['clusterName'])
 
@@ -114,7 +114,7 @@ infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/inf
 infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
 
-_hostname_lowercase = config['agentLevelParams']['hostname'].lower()
+_hostname_lowercase = config['hostname'].lower()
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
@@ -156,8 +156,8 @@ else:
 
   logsearch_solr_zk_quorum = ""
   zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-  if 'zookeeper_hosts' in config['clusterHostInfo']:
-    for host in config['clusterHostInfo']['zookeeper_hosts']:
+  if 'zookeeper_server_hosts' in config['clusterHostInfo']:
+    for host in config['clusterHostInfo']['zookeeper_server_hosts']:
       if logsearch_solr_zk_quorum:
         logsearch_solr_zk_quorum += ','
       logsearch_solr_zk_quorum += host + ":" + str(zookeeper_port)
@@ -170,7 +170,7 @@ zookeeper_quorum = logsearch_solr_zk_quorum
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
-logsearch_log = logsearch_log_dir + '/logsearch.out'
+logsearch_log = 'logsearch.out'
 logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
 logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
@@ -253,8 +253,6 @@ logsearch_properties['logsearch.auth.file.enabled'] = 'true'
 logsearch_properties['logsearch.auth.ldap.enabled'] = 'false'
 logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
 
-logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
-
 # load config values
 
 logsearch_properties = dict(logsearch_properties.items() +\
@@ -306,7 +304,7 @@ logfeeder_json_log_maxbackupindex = default('/configurations/logfeeder-log4j/log
 
 # logfeeder-env configs
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']
-logfeeder_log = logfeeder_log_dir + '/logfeeder.out'
+logfeeder_log = 'logfeeder.out'
 logfeeder_max_mem = config['configurations']['logfeeder-env']['logfeeder_max_mem']
 solr_service_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_service_logs_enable', True)
 solr_audit_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_audit_logs_enable', True)

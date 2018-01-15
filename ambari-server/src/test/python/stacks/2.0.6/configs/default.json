@@ -26,7 +26,6 @@
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/service_check.py", 
         "hooks_folder": "stack-hooks", 
-        "version": "2.1.0.0-1234",
         "excluded_hosts": "host1,host2",
         "command_timeout": "300", 
         "script_type": "PYTHON",
@@ -36,7 +35,7 @@
         "output_file":"HDFS_CLIENT-configs.tar.gz"
     }, 
     "clusterLevelParams": {
-        "stack_version": "2.1", 
+        "stack_version": "2.0", 
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]", 
         "hooks_folder": "stack-hooks", 
         "stack_name": "HDP", 
@@ -61,7 +60,11 @@
         "ambari_db_rca_username": "mapred", 
         "jdk_name": "jdk-7u67-linux-x64.tar.gz", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org/resources//mysql-connector-java.jar",
+        "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
+        "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
+        "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
+        "custom_sqlanywhere_jdbc_name" : "sqla-client-jdbc.tar.gz"
     }, 
     "repositoryFile": {
         "resolved": true, 
@@ -1366,7 +1369,7 @@
         "hbase_master_hosts": [
             "c6402.ambari.apache.org"
         ],
-        "hive_mysql_host": [
+        "hive_mysql_hosts": [
             "c6402.ambari.apache.org"
         ],
         "falcon_server_hosts": [
