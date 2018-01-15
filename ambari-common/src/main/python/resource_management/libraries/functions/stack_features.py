@@ -98,7 +98,7 @@ def get_stack_feature_version(config):
   from resource_management.libraries.functions.default import default
 
   if "clusterLevelParams" not in config or "commandParams" not in config:
-    raise Fail("Unable to determine the correct version since hostLevelParams and commandParams were not present in the configuration dictionary")
+    raise Fail("Unable to determine the correct version since clusterLevelParams and commandParams were not present in the configuration dictionary")
 
   # should always be there
   stack_version = config['clusterLevelParams']['stack_version']
