@@ -42,14 +42,14 @@ class LogFeeder(Script):
     env.set_params(params)
     self.configure(env)
 
-    Execute((format('{logfeeder_dir}/bin/logfeeder.sh start'),),
+    Execute((format('{logfeeder_dir}/bin/logfeeder.sh'), "start"),
             sudo=True)
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    Execute((format('{logfeeder_dir}/bin/logfeeder.sh stop'),),
+    Execute((format('{logfeeder_dir}/bin/logfeeder.sh'), "stop"),
             sudo=True)
 
   def status(self, env):
