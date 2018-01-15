@@ -90,7 +90,7 @@ class TestRUSetAll(RMFTestCase):
 
     # Ensure that the json file was actually read.
     stack_name = default("/clusterLevelParams/stack_name", None)
-    stack_version = default("/hostLevelParams/stack_version", None)
+    stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")
@@ -115,7 +115,7 @@ class TestRUSetAll(RMFTestCase):
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
 
-    json_payload['hostLevelParams']['stack_name'] = "HDP"
+    json_payload['clusterLevelParams']['stack_name'] = "HDP"
     json_payload['clusterLevelParams']['stack_version'] = "2.3"
     json_payload['commandParams']['version'] = "2.3.0.0-1234"
     json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
@@ -131,7 +131,7 @@ class TestRUSetAll(RMFTestCase):
 
     # Ensure that the json file was actually read.
     stack_name = default("/clusterLevelParams/stack_name", None)
-    stack_version = default("/hostLevelParams/stack_version", None)
+    stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")
@@ -182,7 +182,7 @@ class TestRUSetAll(RMFTestCase):
 
     # Ensure that the json file was actually read.
     stack_name = default("/clusterLevelParams/stack_name", None)
-    stack_version = default("/hostLevelParams/stack_version", None)
+    stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")

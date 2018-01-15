@@ -322,7 +322,7 @@ def get_restricted_packages():
     Logger.info("No services found, there are no restrictions for conf-select")
     return package_names
 
-  stack_name = default("/hostLevelParams/stack_name", None)
+  stack_name = default("/clusterLevelParams/stack_name", None)
   if stack_name is None:
     Logger.info("The stack name is not present in the command. Restricted names skipped.")
     return package_names
