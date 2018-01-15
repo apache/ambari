@@ -54,13 +54,16 @@ class QueuedWebSocketClient(WebSocketClient):
     # left in the queue, return None immediately otherwise the client
     # will block forever
     if self.terminated and self.messages.empty():
+      logger.info("!!! RETURNING NONE")
       return None
     message = self.messages.get()
     if message is StopIteration:
+      logger.info("!!! RETURNING NONE DUE TO STOP_ITERATION")
       return None
     return message
 
   def closed(self, code, reason=None):
+    logger.info("!!!CLOSED IS CALLED {0} {1}", code, reason)
     self.messages.put(StopIteration)
 
 class WsTransport(Transport):
@@ -91,6 +94,7 @@ class WsTransport(Transport):
   def send(self, encoded_frame):
     logger.debug("Outgoing STOMP message:\n>>> " + encoded_frame)
     if self.ws.terminated:
+      logger.info("!!!SEND ERROR")
       raise ConnectionIsAlreadyClosed("Connection is already closed cannot send data")
 
     self.ws.send(encoded_frame)
@@ -99,7 +103,8 @@ class WsTransport(Transport):
     try:
       msg = self.ws.receive()
       msg = str(msg) if msg is not None else msg
-      logger.debug("Incoming STOMP message:\n<<< {0}".format(msg))
+      if not msg:
+        logger.info("Incoming STOMP message:\n<<< {0}".format(msg))
       return msg
     except:
       # exceptions from this method are hidden by the framework so implementing logging by ourselves
@@ -107,6 +112,7 @@ class WsTransport(Transport):
     return None
 
   def stop(self):
+    logger.info("!!!WsTransport.stop()")
     self.running = False
     try:
       self.ws.terminate()
@@ -131,6 +137,7 @@ class WsConnection(BaseConnection, Protocol12):
     Protocol12.__init__(self, self.transport, (0, 0))
 
   def disconnect(self, receipt=None, headers=None, **keyword_headers):
+    logger.info("!!!WsConnection.disconnect()")
     try:
       Protocol12.disconnect(self, receipt, headers, **keyword_headers)
     except:
