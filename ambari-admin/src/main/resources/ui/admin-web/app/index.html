@@ -54,15 +54,15 @@
        <div class="container">
          <div class="navbar-header navbar-nav">
            <ol class="breadcrumb">
-             <li ng-repeat="breadcrumb in breadcrumbs" ng-class="$last && 'active'">{{breadcrumb}}</li>
+             <li ng-repeat="breadcrumb in breadcrumbs" ng-class="$last && 'active'" ng-cloak>{{breadcrumb}}</li>
            </ol>
          </div>
          <ul class="nav navbar-nav navbar-right">
            <li>
-             <p class="navbar-text">{{cluster.Clusters.cluster_name}}</p>
+             <p class="navbar-text" ng-cloak>{{cluster.Clusters.cluster_name}}</p>
            </li>
            <li class="dropdown">
-             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" ng-disabled="disabled">
+             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" ng-disabled="disabled" ng-cloak>
                <i class="fa fa-user"></i>&nbsp;{{currentUser}}&nbsp;<span class="caret"></span>
              </a>
              <ul class="dropdown-menu">
