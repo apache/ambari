@@ -26,19 +26,19 @@ import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentExportPropertyMap implements PropertyMap<DocumentExportProperties> {
-  private Map<String, DocumentExportProperties> solrDataExport;
+public class DocumentArchivingPropertyMap implements PropertyMap<DocumentArchivingProperties> {
+  private Map<String, DocumentArchivingProperties> solrDataArchiving;
 
-  public Map<String, DocumentExportProperties> getSolrDataExport() {
-    return solrDataExport;
+  public Map<String, DocumentArchivingProperties> getSolrDataArchiving() {
+    return solrDataArchiving;
   }
 
-  public void setSolrDataExport(Map<String, DocumentExportProperties> solrDataExport) {
-    this.solrDataExport = solrDataExport;
+  public void setSolrDataArchiving(Map<String, DocumentArchivingProperties> solrDataArchiving) {
+    this.solrDataArchiving = solrDataArchiving;
   }
 
   @Override
-  public Map<String, DocumentExportProperties> getPropertyMap() {
-    return getSolrDataExport();
+  public Map<String, DocumentArchivingProperties> getPropertyMap() {
+    return getSolrDataArchiving();
   }
 }
