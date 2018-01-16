@@ -34,9 +34,9 @@
     <!-- Needed for generating FindBugs warnings using parent pom -->
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
-    <hadoop.version>2.7.1.2.3.4.0-3347</hadoop.version>
-    <phoenix.version>4.4.0.2.3.4.0-3347</phoenix.version>
-    <hbase.version>1.1.2.2.3.4.0-3347</hbase.version>
+    <hadoop.version>3.0.0.3.0.0.0-623</hadoop.version>
+    <phoenix.version>5.0.0.3.0.0.0-623</phoenix.version>
+    <hbase.version>2.0.0.3.0.0.0-623</hbase.version>
   </properties>
 
   <build>
@@ -80,7 +80,8 @@
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
               <includeScope>compile</includeScope>
               <excludeScope>test</excludeScope>
-              <excludeArtifactIds>jasper-runtime,jasper-compiler</excludeArtifactIds>
+              <excludeArtifactIds>jasper-runtime,jasper-compiler
+              </excludeArtifactIds>
             </configuration>
           </execution>
         </executions>
@@ -125,11 +126,13 @@
                 <source>
                   <location>target/lib</location>
                   <excludes>
-                  <exclude>*tests.jar</exclude>
+                    <exclude>*tests.jar</exclude>
                   </excludes>
                 </source>
                 <source>
-                  <location>${project.build.directory}/${project.artifactId}-${project.version}.jar</location>
+                  <location>
+                    ${project.build.directory}/${project.artifactId}-${project.version}.jar
+                  </location>
                 </source>
               </sources>
             </mapping>
@@ -214,7 +217,9 @@
                   <location>conf/unix/amshbase_metrics_whitelist</location>
                 </source>
                 <source>
-                  <location>target/embedded/${hbase.folder}/conf/hbase-site.xml</location>
+                  <location>
+                    target/embedded/${hbase.folder}/conf/hbase-site.xml
+                  </location>
                 </source>
               </sources>
             </mapping>
@@ -287,7 +292,8 @@
           <skip>true</skip>
           <attach>false</attach>
           <submodules>false</submodules>
-          <controlDir>${project.basedir}/../src/main/package/deb/control</controlDir>
+          <controlDir>${project.basedir}/../src/main/package/deb/control
+          </controlDir>
         </configuration>
       </plugin>
     </plugins>
@@ -342,7 +348,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-common</artifactId>
-      <version>2.0.0.0-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -633,23 +639,29 @@
       <scope>test</scope>
       <classifier>tests</classifier>
     </dependency>
-      <dependency>
-        <groupId>org.apache.hbase</groupId>
-        <artifactId>hbase-testing-util</artifactId>
-        <version>${hbase.version}</version>
-        <scope>test</scope>
-        <optional>true</optional>
-        <exclusions>
-          <exclusion>
-            <groupId>org.jruby</groupId>
-            <artifactId>jruby-complete</artifactId>
-          </exclusion>
-          <exclusion>
-            <artifactId>zookeeper</artifactId>
-            <groupId>org.apache.zookeeper</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-testing-util</artifactId>
+      <version>${hbase.version}</version>
+      <scope>test</scope>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jruby</groupId>
+          <artifactId>jruby-complete</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>zookeeper</artifactId>
+          <groupId>org.apache.zookeeper</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-clients</artifactId>
+      <version>0.11.0.1</version>
+    </dependency>
+
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
@@ -672,6 +684,16 @@
       <artifactId>ambari-utility</artifactId>
       <version>1.0.0.0-SNAPSHOT</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-core</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-log4j</artifactId>
+      <version>2.1.0</version>
     </dependency>
   </dependencies>
 
@@ -697,17 +719,17 @@
                 </goals>
                 <configuration>
                   <target name="Download HBase">
-                    <mkdir dir="${project.build.directory}/embedded" />
+                    <mkdir dir="${project.build.directory}/embedded"/>
                     <get
-                      src="${hbase.tar}"
-                      dest="${project.build.directory}/embedded/hbase.tar.gz"
-                      usetimestamp="true"
-                      />
+                        src="${hbase.tar}"
+                        dest="${project.build.directory}/embedded/hbase.tar.gz"
+                        usetimestamp="true"
+                    />
                     <untar
-                      src="${project.build.directory}/embedded/hbase.tar.gz"
-                      dest="${project.build.directory}/embedded"
-                      compression="gzip"
-                      />
+                        src="${project.build.directory}/embedded/hbase.tar.gz"
+                        dest="${project.build.directory}/embedded"
+                        compression="gzip"
+                    />
                   </target>
                 </configuration>
               </execution>
@@ -721,19 +743,19 @@
                   <target name="Download Phoenix">
                     <mkdir dir="${project.build.directory}/embedded"/>
                     <get
-                      src="${phoenix.tar}"
-                      dest="${project.build.directory}/embedded/phoenix.tar.gz"
-                      usetimestamp="true"
-                      />
+                        src="${phoenix.tar}"
+                        dest="${project.build.directory}/embedded/phoenix.tar.gz"
+                        usetimestamp="true"
+                    />
                     <untar
-                      src="${project.build.directory}/embedded/phoenix.tar.gz"
-                      dest="${project.build.directory}/embedded"
-                      compression="gzip"
-                      />
+                        src="${project.build.directory}/embedded/phoenix.tar.gz"
+                        dest="${project.build.directory}/embedded"
+                        compression="gzip"
+                    />
                     <move
-                      file="${project.build.directory}/embedded/${phoenix.folder}/phoenix-${phoenix.version}-server.jar"
-                      tofile="${project.build.directory}/embedded/${hbase.folder}/lib/phoenix-${phoenix.version}-server.jar"
-                      />
+                        file="${project.build.directory}/embedded/${phoenix.folder}/phoenix-${phoenix.version}-server.jar"
+                        tofile="${project.build.directory}/embedded/${hbase.folder}/lib/phoenix-${phoenix.version}-server.jar"
+                    />
                   </target>
                 </configuration>
               </execution>
@@ -764,24 +786,24 @@
                 </goals>
                 <configuration>
                   <target name="Download HBase">
-                    <mkdir dir="${project.build.directory}/embedded" />
+                    <mkdir dir="${project.build.directory}/embedded"/>
                     <get
-                      src="${hbase.winpkg.zip}"
-                      dest="${project.build.directory}/embedded/hbase.zip"
-                      usetimestamp="true"
-                      />
+                        src="${hbase.winpkg.zip}"
+                        dest="${project.build.directory}/embedded/hbase.zip"
+                        usetimestamp="true"
+                    />
                     <unzip
-                      src="${project.build.directory}/embedded/hbase.zip"
-                      dest="${project.build.directory}/embedded/hbase.temp"
-                      />
+                        src="${project.build.directory}/embedded/hbase.zip"
+                        dest="${project.build.directory}/embedded/hbase.temp"
+                    />
                     <unzip
-                      src="${project.build.directory}/embedded/hbase.temp/resources/${hbase.winpkg.folder}.zip"
-                      dest="${project.build.directory}/embedded"
-                      />
+                        src="${project.build.directory}/embedded/hbase.temp/resources/${hbase.winpkg.folder}.zip"
+                        dest="${project.build.directory}/embedded"
+                    />
                     <copy
-                      file="${project.build.directory}/embedded/hbase.temp/resources/servicehost.exe"
-                      tofile="${project.build.directory}/embedded/${hbase.winpkg.folder}/bin/ams_hbase_master.exe"
-                      />
+                        file="${project.build.directory}/embedded/hbase.temp/resources/servicehost.exe"
+                        tofile="${project.build.directory}/embedded/${hbase.winpkg.folder}/bin/ams_hbase_master.exe"
+                    />
                   </target>
                 </configuration>
               </execution>
@@ -820,7 +842,8 @@
             <!-- The configuration of the plugin -->
             <configuration>
               <!-- Configuration of the archiver -->
-              <finalName>${project.artifactId}-simulator-${project.version}</finalName>
+              <finalName>${project.artifactId}-simulator-${project.version}
+              </finalName>
               <archive>
                 <!-- Manifest specific configuration -->
                 <manifest>

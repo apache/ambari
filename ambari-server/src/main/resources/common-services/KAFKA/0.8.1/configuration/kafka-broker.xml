@@ -423,4 +423,9 @@
     <value>{{host_in_memory_aggregation_port}}</value>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>kafka.timeline.metrics.host_in_memory_aggregation_protocol</name>
+    <value>{{host_in_memory_aggregation_protocol}}</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

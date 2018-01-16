@@ -52,5 +52,8 @@
   llaptaskscheduler.sink.timeline.protocol={{metric_collector_protocol}}
   llaptaskscheduler.sink.timeline.host_in_memory_aggregation = {{host_in_memory_aggregation}}
   llaptaskscheduler.sink.timeline.host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+  {% if is_aggregation_https_enabled %}
+    llaptaskscheduler.sink.timeline.host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+  {% endif %}
 
 {% endif %}

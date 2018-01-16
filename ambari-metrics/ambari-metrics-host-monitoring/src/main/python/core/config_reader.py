@@ -258,17 +258,20 @@ class Configuration:
   def get_max_queue_size(self):
     return int(self.get("collector", "max_queue_size", 5000))
 
-  def is_server_https_enabled(self):
+  def is_collector_https_enabled(self):
     return "true" == str(self.get("collector", "https_enabled")).lower()
 
   def get_java_home(self):
     return self.get("aggregation", "java_home")
 
   def is_inmemory_aggregation_enabled(self):
-    return "true" == str(self.get("aggregation", "host_in_memory_aggregation")).lower()
+    return "true" == str(self.get("aggregation", "host_in_memory_aggregation", "false")).lower()
 
   def get_inmemory_aggregation_port(self):
-    return self.get("aggregation", "host_in_memory_aggregation_port")
+    return self.get("aggregation", "host_in_memory_aggregation_port", "61888")
+
+  def get_inmemory_aggregation_protocol(self):
+    return self.get("aggregation", "host_in_memory_aggregation_protocol", "http")
 
   def get_aggregator_jvm_agrs(self):
     hosts = self.get("aggregation", "jvm_arguments", "-Xmx256m -Xms128m -XX:PermSize=68m")

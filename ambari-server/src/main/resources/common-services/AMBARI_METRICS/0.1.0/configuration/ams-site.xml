@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
  *
@@ -824,6 +823,11 @@
   <property>
     <name>timeline.metrics.host.inmemory.aggregation.port</name>
     <value>61888</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation.http.policy</name>
+    <value>HTTP_ONLY</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

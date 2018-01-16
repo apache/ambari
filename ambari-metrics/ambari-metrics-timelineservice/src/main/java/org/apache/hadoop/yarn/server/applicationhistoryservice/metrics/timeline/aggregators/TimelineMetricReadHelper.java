@@ -18,25 +18,35 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.TreeMap;
+
 import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.metrics2.sink.timeline.SingleValuedTimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.TreeMap;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 
 public class TimelineMetricReadHelper {
 
   private boolean ignoreInstance = false;
+  private TimelineMetricMetadataManager metadataManagerInstance = null;
 
   public TimelineMetricReadHelper() {}
 
   public TimelineMetricReadHelper(boolean ignoreInstance) {
+    this.ignoreInstance = ignoreInstance;
+  }
+
+  public TimelineMetricReadHelper(TimelineMetricMetadataManager timelineMetricMetadataManager) {
+    this.metadataManagerInstance = timelineMetricMetadataManager;
+  }
+
+  public TimelineMetricReadHelper(TimelineMetricMetadataManager timelineMetricMetadataManager, boolean ignoreInstance) {
+    this.metadataManagerInstance = timelineMetricMetadataManager;
     this.ignoreInstance = ignoreInstance;
   }
 
@@ -51,15 +61,15 @@ public class TimelineMetricReadHelper {
   public SingleValuedTimelineMetric getAggregatedTimelineMetricFromResultSet(ResultSet rs,
       Function f) throws SQLException, IOException {
 
+    byte[] uuid = rs.getBytes("UUID");
+    TimelineMetric timelineMetric = metadataManagerInstance.getMetricFromUuid(uuid);
     Function function = (f != null) ? f : Function.DEFAULT_VALUE_FUNCTION;
     SingleValuedTimelineMetric metric = new SingleValuedTimelineMetric(
-      rs.getString("METRIC_NAME") + function.getSuffix(),
-      rs.getString("APP_ID"),
-      rs.getString("INSTANCE_ID"),
-      rs.getString("HOSTNAME"),
-      rs.getLong("SERVER_TIME"),
-      rs.getLong("SERVER_TIME"),
-      rs.getString("UNITS")
+      timelineMetric.getMetricName() + function.getSuffix(),
+      timelineMetric.getAppId(),
+      timelineMetric.getInstanceId(),
+      timelineMetric.getHostName(),
+      rs.getLong("SERVER_TIME")
     );
 
     double value;
@@ -91,16 +101,13 @@ public class TimelineMetricReadHelper {
    */
   public TimelineMetric getTimelineMetricCommonsFromResultSet(ResultSet rs)
       throws SQLException {
-    TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName(rs.getString("METRIC_NAME"));
-    metric.setAppId(rs.getString("APP_ID"));
-    if (!ignoreInstance) {
-      metric.setInstanceId(rs.getString("INSTANCE_ID"));
+
+    byte[] uuid = rs.getBytes("UUID");
+    TimelineMetric metric = metadataManagerInstance.getMetricFromUuid(uuid);
+    if (ignoreInstance) {
+      metric.setInstanceId(null);
     }
-    metric.setHostName(rs.getString("HOSTNAME"));
-    metric.setTimestamp(rs.getLong("SERVER_TIME"));
-    metric.setStartTime(rs.getLong("START_TIME"));
-    metric.setType(rs.getString("UNITS"));
+    metric.setStartTime(rs.getLong("SERVER_TIME"));
     return metric;
   }
 
@@ -130,14 +137,16 @@ public class TimelineMetricReadHelper {
     return agg;
   }
 
-
   public TimelineClusterMetric fromResultSet(ResultSet rs) throws SQLException {
+
+    byte[] uuid = rs.getBytes("UUID");
+    TimelineMetric timelineMetric = metadataManagerInstance.getMetricFromUuid(uuid);
+
     return new TimelineClusterMetric(
-      rs.getString("METRIC_NAME"),
-      rs.getString("APP_ID"),
-      ignoreInstance ? null : rs.getString("INSTANCE_ID"),
-      rs.getLong("SERVER_TIME"),
-      rs.getString("UNITS"));
+      timelineMetric.getMetricName(),
+      timelineMetric.getAppId(),
+      ignoreInstance ? null : timelineMetric.getInstanceId(),
+      rs.getLong("SERVER_TIME"));
   }
 
   public MetricHostAggregate getMetricHostAggregateFromResultSet(ResultSet rs)
@@ -154,14 +163,8 @@ public class TimelineMetricReadHelper {
 
   public TimelineMetric getTimelineMetricKeyFromResultSet(ResultSet rs)
       throws SQLException, IOException {
-    TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName(rs.getString("METRIC_NAME"));
-    metric.setAppId(rs.getString("APP_ID"));
-    metric.setInstanceId(rs.getString("INSTANCE_ID"));
-    metric.setHostName(rs.getString("HOSTNAME"));
-    metric.setTimestamp(rs.getLong("SERVER_TIME"));
-    metric.setType(rs.getString("UNITS"));
-    return metric;
+    byte[] uuid = rs.getBytes("UUID");
+    return metadataManagerInstance.getMetricFromUuid(uuid);
   }
 }
 

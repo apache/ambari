@@ -114,13 +114,14 @@
             <config-type>ams-grafana-env</config-type>
             <config-type>ams-grafana-ini</config-type>
           </configuration-dependencies>
+          <logs>
+            <log>
+              <logId>ams_grafana</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
-        <logs>
-          <log>
-            <logId>ams_grafana</logId>
-            <primary>true</primary>
-          </log>
-        </logs>
+
       </components>
 
       <themes>

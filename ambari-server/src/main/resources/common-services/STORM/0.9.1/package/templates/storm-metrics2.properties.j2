@@ -25,6 +25,9 @@ sendInterval={{metrics_report_interval}}000
 clusterReporterAppId=nimbus
 host_in_memory_aggregation = {{host_in_memory_aggregation}}
 host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
 
 # HTTPS properties
 truststore.path = {{metric_truststore_path}}

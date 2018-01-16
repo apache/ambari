@@ -92,7 +92,7 @@ public class TimelineMetricsAggregatorMemorySink
       TimelineClusterMetric clusterMetricClone =
           new TimelineClusterMetric(clusterMetric.getMetricName(),
               clusterMetric.getAppId(), clusterMetric.getInstanceId(),
-              clusterMetric.getTimestamp(), clusterMetric.getType());
+              clusterMetric.getTimestamp());
       MetricHostAggregate hostAggregate = entry.getValue();
       MetricHostAggregate hostAggregateClone = new MetricHostAggregate(
           hostAggregate.getSum(), (int) hostAggregate.getNumberOfSamples(),
@@ -116,7 +116,7 @@ public class TimelineMetricsAggregatorMemorySink
       TimelineClusterMetric clusterMetricClone =
           new TimelineClusterMetric(clusterMetric.getMetricName(),
               clusterMetric.getAppId(), clusterMetric.getInstanceId(),
-              clusterMetric.getTimestamp(), clusterMetric.getType());
+              clusterMetric.getTimestamp());
       MetricClusterAggregate clusterAggregate = entry.getValue();
       MetricClusterAggregate clusterAggregateClone = new MetricClusterAggregate(
           clusterAggregate.getSum(), (int) clusterAggregate.getNumberOfHosts(),

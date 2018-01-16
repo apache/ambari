@@ -16,17 +16,18 @@
  * limitations under the License.
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 
 public class DefaultCondition implements Condition {
   List<String> metricNames;
@@ -43,12 +44,30 @@ public class DefaultCondition implements Condition {
   String statement;
   Set<String> orderByColumns = new LinkedHashSet<String>();
   boolean metricNamesNotCondition = false;
+  boolean hostNamesNotCondition = false;
+  boolean uuidNotCondition = false;
+  List<byte[]> uuids = new ArrayList<>();
 
   private static final Log LOG = LogFactory.getLog(DefaultCondition.class);
 
   public DefaultCondition(List<String> metricNames, List<String> hostnames, String appId,
                           String instanceId, Long startTime, Long endTime, Precision precision,
                           Integer limit, boolean grouped) {
+    this.metricNames = metricNames;
+    this.hostnames = hostnames;
+    this.appId = appId;
+    this.instanceId = instanceId;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.precision = precision;
+    this.limit = limit;
+    this.grouped = grouped;
+  }
+
+  public DefaultCondition(List<byte[]> uuids, List<String> metricNames, List<String> hostnames, String appId,
+                          String instanceId, Long startTime, Long endTime, Precision precision,
+                          Integer limit, boolean grouped) {
+    this.uuids = uuids;
     this.metricNames = metricNames;
     this.hostnames = hostnames;
     this.appId = appId;
@@ -74,13 +93,7 @@ public class DefaultCondition implements Condition {
 
   public StringBuilder getConditionClause() {
     StringBuilder sb = new StringBuilder();
-
-    boolean appendConjunction = appendMetricNameClause(sb);
-
-    appendConjunction = appendHostnameClause(sb, appendConjunction);
-
-    appendConjunction = append(sb, appendConjunction, getAppId(), " APP_ID = ?");
-    appendConjunction = append(sb, appendConjunction, getInstanceId(), " INSTANCE_ID = ?");
+    boolean appendConjunction = appendUuidClause(sb);
     appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
     append(sb, appendConjunction, getEndTime(), " SERVER_TIME < ?");
 
@@ -216,137 +229,146 @@ public class DefaultCondition implements Condition {
     return null;
   }
 
-  protected boolean appendMetricNameClause(StringBuilder sb) {
+  protected boolean appendUuidClause(StringBuilder sb) {
     boolean appendConjunction = false;
-    List<String> metricsLike = new ArrayList<>();
-    List<String> metricsIn = new ArrayList<>();
 
-    if (getMetricNames() != null) {
-      for (String name : getMetricNames()) {
-        if (name.contains("%")) {
-          metricsLike.add(name);
-        } else {
-          metricsIn.add(name);
-        }
-      }
+    if (CollectionUtils.isNotEmpty(uuids)) {
 
-      // Put a '(' first
-      sb.append("(");
+      List<byte[]> uuidsHost = new ArrayList<>();
+      List<byte[]> uuidsMetric = new ArrayList<>();
+      List<byte[]> uuidsFull = new ArrayList<>();
 
-      //IN clause
-      // METRIC_NAME (NOT) IN (?,?,?,?)
-      if (CollectionUtils.isNotEmpty(metricsIn)) {
-        sb.append("METRIC_NAME");
-        if (metricNamesNotCondition) {
-          sb.append(" NOT");
-        }
-        sb.append(" IN (");
-        //Append ?,?,?,?
-        for (int i = 0; i < metricsIn.size(); i++) {
-          sb.append("?");
-          if (i < metricsIn.size() - 1) {
-            sb.append(", ");
+      if (getUuids() != null) {
+        for (byte[] uuid : uuids) {
+          if (uuid.length == TimelineMetricMetadataManager.TIMELINE_METRIC_UUID_LENGTH) {
+            uuidsMetric.add(uuid);
+          } else if (uuid.length == TimelineMetricMetadataManager.HOSTNAME_UUID_LENGTH) {
+            uuidsHost.add(uuid);
+          } else {
+            uuidsFull.add(uuid);
           }
         }
-        sb.append(")");
-        appendConjunction = true;
-      }
 
-      //Put an OR/AND if both types are present
-      if (CollectionUtils.isNotEmpty(metricsIn) &&
-        CollectionUtils.isNotEmpty(metricsLike)) {
-        if (metricNamesNotCondition) {
-          sb.append(" AND ");
-        } else {
-          sb.append(" OR ");
-        }
-      }
+        // Put a '(' first
+        sb.append("(");
 
-      //LIKE clause
-      // METRIC_NAME (NOT) LIKE ? OR(AND) METRIC_NAME LIKE ?
-      if (CollectionUtils.isNotEmpty(metricsLike)) {
-
-        for (int i = 0; i < metricsLike.size(); i++) {
-          sb.append("METRIC_NAME");
-          if (metricNamesNotCondition) {
+        //IN clause
+        // METRIC_NAME (NOT) IN (?,?,?,?)
+        if (CollectionUtils.isNotEmpty(uuidsFull)) {
+          sb.append("UUID");
+          if (uuidNotCondition) {
             sb.append(" NOT");
           }
-          sb.append(" LIKE ");
-          sb.append("?");
-
-          if (i < metricsLike.size() - 1) {
-            if (metricNamesNotCondition) {
-              sb.append(" AND ");
-            } else {
-              sb.append(" OR ");
+          sb.append(" IN (");
+          //Append ?,?,?,?
+          for (int i = 0; i < uuidsFull.size(); i++) {
+            sb.append("?");
+            if (i < uuidsFull.size() - 1) {
+              sb.append(", ");
             }
           }
+          sb.append(")");
+          appendConjunction = true;
         }
-        appendConjunction = true;
-      }
 
-      // Finish with a ')'
-      if (appendConjunction) {
-        sb.append(")");
-      }
+        //Put an AND if both types are present
+        if (CollectionUtils.isNotEmpty(uuidsFull) &&
+          CollectionUtils.isNotEmpty(uuidsMetric)) {
+          sb.append(" AND ");
+        }
 
-      metricNames.clear();
-      if (CollectionUtils.isNotEmpty(metricsIn)) {
-        metricNames.addAll(metricsIn);
-      }
-      if (CollectionUtils.isNotEmpty(metricsLike)) {
-        metricNames.addAll(metricsLike);
+        // ( for OR
+        if (!metricNamesNotCondition && uuidsMetric.size() > 1 && (CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsHost))) {
+          sb.append("(");
+        }
+
+        //LIKE clause for clusterMetric UUIDs
+        // UUID (NOT) LIKE ? OR(AND) UUID LIKE ?
+        if (CollectionUtils.isNotEmpty(uuidsMetric)) {
+
+          for (int i = 0; i < uuidsMetric.size(); i++) {
+            sb.append("UUID");
+            if (metricNamesNotCondition) {
+              sb.append(" NOT");
+            }
+            sb.append(" LIKE ");
+            sb.append("?");
+
+            if (i < uuidsMetric.size() - 1) {
+              if (metricNamesNotCondition) {
+                sb.append(" AND ");
+              } else {
+                sb.append(" OR ");
+              }
+            // ) for OR
+            } else if ((CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsHost)) && !metricNamesNotCondition && uuidsMetric.size() > 1) {
+              sb.append(")");
+            }
+          }
+          appendConjunction = true;
+        }
+
+        //Put an AND if both types are present
+        if ((CollectionUtils.isNotEmpty(uuidsMetric) || (CollectionUtils.isNotEmpty(uuidsFull) && CollectionUtils.isEmpty(uuidsMetric)))
+          && CollectionUtils.isNotEmpty(uuidsHost)) {
+          sb.append(" AND ");
+        }
+        // ( for OR
+        if((CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsMetric)) && !hostNamesNotCondition && uuidsHost.size() > 1){
+          sb.append("(");
+        }
+
+        //LIKE clause for HOST UUIDs
+        // UUID (NOT) LIKE ? OR(AND) UUID LIKE ?
+        if (CollectionUtils.isNotEmpty(uuidsHost)) {
+
+          for (int i = 0; i < uuidsHost.size(); i++) {
+            sb.append("UUID");
+            if (hostNamesNotCondition) {
+              sb.append(" NOT");
+            }
+            sb.append(" LIKE ");
+            sb.append("?");
+
+            if (i < uuidsHost.size() - 1) {
+              if (hostNamesNotCondition) {
+                sb.append(" AND ");
+              } else {
+                sb.append(" OR ");
+              }
+            // ) for OR
+            } else if ((CollectionUtils.isNotEmpty(uuidsFull) || CollectionUtils.isNotEmpty(uuidsMetric)) && !hostNamesNotCondition && uuidsHost.size() > 1) {
+              sb.append(")");
+            }
+          }
+          appendConjunction = true;
+        }
+
+        // Finish with a ')'
+        if (appendConjunction) {
+          sb.append(")");
+        }
+
+        uuids = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(uuidsFull)) {
+          uuids.addAll(uuidsFull);
+        }
+        for (byte[] uuid: uuidsMetric) {
+          uuids.add(new String(uuid).concat("%").getBytes());
+        }
+        for (byte[] uuid: uuidsHost) {
+          uuids.add("%".concat(new String(uuid)).getBytes());
+        }
       }
     }
-    return appendConjunction;
-  }
 
-  protected boolean appendHostnameClause(StringBuilder sb, boolean appendConjunction) {
-    boolean hostnameContainsRegex = false;
-    if (hostnames != null) {
-      for (String hostname : hostnames) {
-        if (hostname.contains("%")) {
-          hostnameContainsRegex = true;
-          break;
-        }
-      }
-    }
-
-    StringBuilder hostnamesCondition = new StringBuilder();
-    if (hostnameContainsRegex) {
-      hostnamesCondition.append(" (");
-      for (String hostname : getHostnames()) {
-        if (hostnamesCondition.length() > 2) {
-          hostnamesCondition.append(" OR ");
-        }
-        hostnamesCondition.append("HOSTNAME LIKE ?");
-      }
-      hostnamesCondition.append(")");
-
-      appendConjunction = append(sb, appendConjunction, getHostnames(), hostnamesCondition.toString());
-    } else if (hostnames != null && getHostnames().size() > 1) {
-      for (String hostname : getHostnames()) {
-        if (hostnamesCondition.length() > 0) {
-          hostnamesCondition.append(" ,");
-        } else {
-          hostnamesCondition.append(" HOSTNAME IN (");
-        }
-        hostnamesCondition.append('?');
-      }
-      hostnamesCondition.append(')');
-      appendConjunction = append(sb, appendConjunction, getHostnames(), hostnamesCondition.toString());
-
-    } else {
-      appendConjunction = append(sb, appendConjunction, getHostnames(), " HOSTNAME = ?");
-    }
     return appendConjunction;
   }
 
   @Override
   public String toString() {
     return "Condition{" +
-      "metricNames=" + metricNames +
-      ", hostnames='" + hostnames + '\'' +
+      "uuids=" + uuids +
       ", appId='" + appId + '\'' +
       ", instanceId='" + instanceId + '\'' +
       ", startTime=" + startTime +
@@ -380,5 +402,20 @@ public class DefaultCondition implements Condition {
 
   public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
     this.metricNamesNotCondition = metricNamesNotCondition;
+  }
+
+  @Override
+  public void setHostnamesNotCondition(boolean hostNamesNotCondition) {
+    this.hostNamesNotCondition = hostNamesNotCondition;
+  }
+
+  @Override
+  public void setUuidNotCondition(boolean uuidNotCondition) {
+    this.uuidNotCondition = uuidNotCondition;
+  }
+
+  @Override
+  public List<byte[]> getUuids() {
+    return uuids;
   }
 }

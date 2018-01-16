@@ -1,8 +1,8 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-
 import java.util.List;
+
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,6 +24,7 @@ import java.util.List;
 public interface Condition {
   boolean isEmpty();
 
+  List<byte[]> getUuids();
   List<String> getMetricNames();
   boolean isPointInTime();
   boolean isGrouped();
@@ -45,4 +46,6 @@ public interface Condition {
   void setNoLimit();
   boolean doUpdate();
   void setMetricNamesNotCondition(boolean metricNamesNotCondition);
+  void setHostnamesNotCondition(boolean hostNamesNotCondition);
+  void setUuidNotCondition(boolean uuidNotCondition);
 }

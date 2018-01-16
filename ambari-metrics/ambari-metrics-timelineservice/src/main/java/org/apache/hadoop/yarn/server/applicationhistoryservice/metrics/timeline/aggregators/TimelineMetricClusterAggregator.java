@@ -17,14 +17,9 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
-import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_TIME_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -32,15 +27,22 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_TIME_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.MetricClusterAggregate;
+import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 
 public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator {
-  private final TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(true);
+  private final TimelineMetricReadHelper readHelper;
   private final boolean isClusterPrecisionInputTable;
 
   public TimelineMetricClusterAggregator(AGGREGATOR_NAME aggregatorName,
+                                         TimelineMetricMetadataManager metricMetadataManager,
                                          PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf,
                                          String checkpointLocation,
@@ -56,6 +58,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       hostAggregatorDisabledParam, inputTableName, outputTableName,
       nativeTimeRangeDelay, haController);
     isClusterPrecisionInputTable = inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
+    readHelper = new TimelineMetricReadHelper(metricMetadataManager, true);
   }
 
   @Override
@@ -64,16 +67,14 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
-    String sqlStr = String.format(GET_CLUSTER_AGGREGATE_TIME_SQL, getQueryHint(startTime), tableName);
+    String sqlStr = String.format(GET_CLUSTER_AGGREGATE_TIME_SQL, tableName);
     // HOST_COUNT vs METRIC_COUNT
     if (isClusterPrecisionInputTable) {
-      sqlStr = String.format(GET_CLUSTER_AGGREGATE_SQL, getQueryHint(startTime), tableName);
+      sqlStr = String.format(GET_CLUSTER_AGGREGATE_SQL, tableName);
     }
 
     condition.setStatement(sqlStr);
-    condition.addOrderByColumn("METRIC_NAME");
-    condition.addOrderByColumn("APP_ID");
-    condition.addOrderByColumn("INSTANCE_ID");
+    condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
     return condition;
   }
@@ -83,7 +84,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
     Map<TimelineClusterMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs, endTime);
 
     LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates.");
-    hBaseAccessor.saveClusterTimeAggregateRecords(hostAggregateMap, outputTableName);
+    hBaseAccessor.saveClusterAggregateRecordsSecond(hostAggregateMap, outputTableName);
   }
 
   private Map<TimelineClusterMetric, MetricHostAggregate> aggregateMetricsFromResultSet(ResultSet rs, long endTime)

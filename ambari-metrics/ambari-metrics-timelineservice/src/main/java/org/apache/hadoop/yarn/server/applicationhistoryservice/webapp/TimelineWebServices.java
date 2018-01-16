@@ -18,51 +18,6 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice.webapp;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience.Public;
-import org.apache.hadoop.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.metrics2.annotation.Metric;
-import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
-import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
-import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
-import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
-import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.EntityIdentifier;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.GenericObjectMapper;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.NameValuePair;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.TimelineReader.Field;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.TimelineStore;
-import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
-import org.apache.hadoop.yarn.webapp.BadRequestException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -75,22 +30,55 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.apache.hadoop.yarn.util.StringHelper.CSV_JOINER;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience.Public;
+import org.apache.hadoop.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
+import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
+import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
+import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.GenericObjectMapper;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.NameValuePair;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.TimelineReader.Field;
+import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
+import org.apache.hadoop.yarn.webapp.BadRequestException;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Singleton
 @Path("/ws/v1/timeline")
-//TODO: support XML serialization/deserialization
 public class TimelineWebServices {
-
   private static final Log LOG = LogFactory.getLog(TimelineWebServices.class);
-
-  private TimelineStore store;
+  
   private TimelineMetricStore timelineMetricStore;
 
   @Inject
-  public TimelineWebServices(TimelineStore store,
-                             TimelineMetricStore timelineMetricStore) {
-    this.store = store;
+  public TimelineWebServices(TimelineMetricStore timelineMetricStore) {
     this.timelineMetricStore = timelineMetricStore;
   }
 
@@ -130,125 +118,7 @@ public class TimelineWebServices {
       @Context HttpServletRequest req,
       @Context HttpServletResponse res) {
     init(res);
-    return new AboutInfo("Timeline API");
-  }
-
-  /**
-   * Return a list of entities that match the given parameters.
-   */
-  @GET
-  @Path("/{entityType}")
-  @Produces({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
-  public TimelineEntities getEntities(
-      @Context HttpServletRequest req,
-      @Context HttpServletResponse res,
-      @PathParam("entityType") String entityType,
-      @QueryParam("primaryFilter") String primaryFilter,
-      @QueryParam("secondaryFilter") String secondaryFilter,
-      @QueryParam("windowStart") String windowStart,
-      @QueryParam("windowEnd") String windowEnd,
-      @QueryParam("fromId") String fromId,
-      @QueryParam("fromTs") String fromTs,
-      @QueryParam("limit") String limit,
-      @QueryParam("fields") String fields) {
-    init(res);
-    TimelineEntities entities = null;
-    try {
-      entities = store.getEntities(
-        parseStr(entityType),
-        parseLongStr(limit),
-        parseLongStr(windowStart),
-        parseLongStr(windowEnd),
-        parseStr(fromId),
-        parseLongStr(fromTs),
-        parsePairStr(primaryFilter, ":"),
-        parsePairsStr(secondaryFilter, ",", ":"),
-        parseFieldsStr(fields, ","));
-    } catch (NumberFormatException e) {
-      throw new BadRequestException(
-          "windowStart, windowEnd or limit is not a numeric value.");
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException("requested invalid field.");
-    } catch (IOException e) {
-      LOG.error("Error getting entities", e);
-      throw new WebApplicationException(e,
-          Response.Status.INTERNAL_SERVER_ERROR);
-    }
-    if (entities == null) {
-      return new TimelineEntities();
-    }
-    return entities;
-  }
-
-  /**
-   * Return a single entity of the given entity type and Id.
-   */
-  @GET
-  @Path("/{entityType}/{entityId}")
-  @Produces({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
-  public TimelineEntity getEntity(
-      @Context HttpServletRequest req,
-      @Context HttpServletResponse res,
-      @PathParam("entityType") String entityType,
-      @PathParam("entityId") String entityId,
-      @QueryParam("fields") String fields) {
-    init(res);
-    TimelineEntity entity = null;
-    try {
-      entity =
-          store.getEntity(parseStr(entityId), parseStr(entityType),
-            parseFieldsStr(fields, ","));
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException(
-          "requested invalid field.");
-    } catch (IOException e) {
-      LOG.error("Error getting entity", e);
-      throw new WebApplicationException(e,
-          Response.Status.INTERNAL_SERVER_ERROR);
-    }
-    if (entity == null) {
-      throw new WebApplicationException(Response.Status.NOT_FOUND);
-    }
-    return entity;
-  }
-
-  /**
-   * Return the events that match the given parameters.
-   */
-  @GET
-  @Path("/{entityType}/events")
-  @Produces({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
-  public TimelineEvents getEvents(
-      @Context HttpServletRequest req,
-      @Context HttpServletResponse res,
-      @PathParam("entityType") String entityType,
-      @QueryParam("entityId") String entityId,
-      @QueryParam("eventType") String eventType,
-      @QueryParam("windowStart") String windowStart,
-      @QueryParam("windowEnd") String windowEnd,
-      @QueryParam("limit") String limit) {
-    init(res);
-    TimelineEvents events = null;
-    try {
-      events = store.getEntityTimelines(
-        parseStr(entityType),
-        parseArrayStr(entityId, ","),
-        parseLongStr(limit),
-        parseLongStr(windowStart),
-        parseLongStr(windowEnd),
-        parseArrayStr(eventType, ","));
-    } catch (NumberFormatException e) {
-      throw new BadRequestException(
-          "windowStart, windowEnd or limit is not a numeric value.");
-    } catch (IOException e) {
-      LOG.error("Error getting entity timelines", e);
-      throw new WebApplicationException(e,
-          Response.Status.INTERNAL_SERVER_ERROR);
-    }
-    if (events == null) {
-      return new TimelineEvents();
-    }
-    return events;
+    return new AboutInfo("AMS API");
   }
 
   /**
@@ -388,7 +258,7 @@ public class TimelineWebServices {
       }
 
       return timelineMetricStore.getTimelineMetrics(
-        parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, instanceId,
+        parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, parseStr(instanceId),
         parseLongStr(startTime), parseLongStr(endTime),
         Precision.getPrecision(precision), parseIntStr(limit),
         parseBoolean(grouped), parseTopNConfig(topN, topNFunction, isBottomN),
@@ -416,12 +286,17 @@ public class TimelineWebServices {
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(
     @Context HttpServletRequest req,
     @Context HttpServletResponse res,
-    @QueryParam("query") String query
+    @QueryParam("appId") String appId,
+    @QueryParam("metricName") String metricPattern,
+    @QueryParam("includeAll") String includeBlacklistedMetrics
     ) {
     init(res);
 
     try {
-      return timelineMetricStore.getTimelineMetricMetadata(query);
+      return timelineMetricStore.getTimelineMetricMetadata(
+        parseStr(appId),
+        parseStr(metricPattern),
+        parseBoolean(includeBlacklistedMetrics));
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
@@ -461,6 +336,26 @@ public class TimelineWebServices {
     }
   }
 
+  @GET
+  @Path("/metrics/uuid")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public byte[] getUuid(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res,
+    @QueryParam("metricName") String metricName,
+    @QueryParam("appId") String appId,
+    @QueryParam("instanceId") String instanceId,
+    @QueryParam("hostname") String hostname
+    ) {
+    init(res);
+
+    try {
+      return timelineMetricStore.getUuid(metricName, appId, instanceId, hostname);
+    } catch (Exception e) {
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   /**
    * This is a discovery endpoint that advertises known live collector
    * instances. Note: It will always answer with current instance as live.
@@ -479,42 +374,6 @@ public class TimelineWebServices {
     init(res);
 
     return timelineMetricStore.getLiveInstances();
-  }
-
-  /**
-   * Store the given entities into the timeline store, and return the errors
-   * that happen during storing.
-   */
-  @POST
-  @Consumes({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
-  public TimelinePutResponse postEntities(
-      @Context HttpServletRequest req,
-      @Context HttpServletResponse res,
-      TimelineEntities entities) {
-    init(res);
-    if (entities == null) {
-      return new TimelinePutResponse();
-    }
-    try {
-      List<EntityIdentifier> entityIDs = new ArrayList<EntityIdentifier>();
-      for (TimelineEntity entity : entities.getEntities()) {
-        EntityIdentifier entityID =
-            new EntityIdentifier(entity.getEntityId(), entity.getEntityType());
-        entityIDs.add(entityID);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Storing the entity " + entityID + ", JSON-style content: "
-              + TimelineUtils.dumpTimelineRecordtoJSON(entity));
-        }
-      }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Storing entities: " + CSV_JOINER.join(entityIDs));
-      }
-      return store.put(entities);
-    } catch (IOException e) {
-      LOG.error("Error putting entities", e);
-      throw new WebApplicationException(e,
-          Response.Status.INTERNAL_SERVER_ERROR);
-    }
   }
 
   private void init(HttpServletResponse response) {
@@ -643,6 +502,12 @@ public class TimelineWebServices {
   }
 
   private static String parseStr(String str) {
-    return str == null ? null : str.trim();
+    String trimmedInstance = (str == null) ? null : str.trim();
+    if (trimmedInstance != null) {
+      if (trimmedInstance.isEmpty() || trimmedInstance.equalsIgnoreCase("undefined")) {
+        trimmedInstance = null;
+      }
+    }
+    return trimmedInstance;
   }
 }

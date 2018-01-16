@@ -17,11 +17,30 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
+import static org.apache.phoenix.end2end.ParallelStatsDisabledIT.tearDownMiniCluster;
+import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.IntegrationTestingUtility;
+import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -40,24 +59,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
-import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
 
@@ -200,13 +201,10 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
     metricsConf.setLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE, 600000);
 
     return
-      new PhoenixHBaseAccessor(
-        new Configuration(),
-        metricsConf,
+      new PhoenixHBaseAccessor(new TimelineMetricConfiguration(new Configuration(), metricsConf),
         new PhoenixConnectionProvider() {
-
           @Override
-          public HBaseAdmin getHBaseAdmin() throws IOException {
+          public Admin getHBaseAdmin() throws IOException {
             try {
               return driver.getConnectionQueryServices(null, null).getAdmin();
             } catch (SQLException e) {
@@ -225,11 +223,12 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
             }
             return connection;
           }
+
         });
   }
 
   protected void insertMetricRecords(Connection conn, TimelineMetrics metrics, long currentTime)
-                                    throws SQLException, IOException {
+    throws SQLException, IOException {
 
     List<TimelineMetric> timelineMetrics = metrics.getMetrics();
     if (timelineMetrics == null || timelineMetrics.isEmpty()) {
@@ -258,15 +257,14 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
         metricRecordStmt.setString(2, metric.getHostName());
         metricRecordStmt.setString(3, metric.getAppId());
         metricRecordStmt.setString(4, metric.getInstanceId());
-        metricRecordStmt.setLong(5, currentTime);
-        metricRecordStmt.setLong(6, metric.getStartTime());
-        metricRecordStmt.setString(7, metric.getType());
-        metricRecordStmt.setDouble(8, aggregates[0]);
-        metricRecordStmt.setDouble(9, aggregates[1]);
-        metricRecordStmt.setDouble(10, aggregates[2]);
-        metricRecordStmt.setLong(11, (long) aggregates[3]);
+        metricRecordStmt.setLong(5, metric.getStartTime());
+        metricRecordStmt.setString(6, metric.getType());
+        metricRecordStmt.setDouble(7, aggregates[0]);
+        metricRecordStmt.setDouble(8, aggregates[1]);
+        metricRecordStmt.setDouble(9, aggregates[2]);
+        metricRecordStmt.setLong(10, (long) aggregates[3]);
         String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-        metricRecordStmt.setString(12, json);
+        metricRecordStmt.setString(11, json);
 
         try {
           metricRecordStmt.executeUpdate();

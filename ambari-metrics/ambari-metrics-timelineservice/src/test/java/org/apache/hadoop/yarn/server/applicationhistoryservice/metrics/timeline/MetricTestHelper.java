@@ -101,7 +101,7 @@ public class MetricTestHelper {
     metric.setAppId("test_app");
     metric.setInstanceId("test_instance");
     metric.setHostName("test_host");
-    metric.setTimestamp(startTime);
+    metric.setStartTime(startTime);
 
     return metric;
   }
@@ -109,7 +109,7 @@ public class MetricTestHelper {
   public static TimelineClusterMetric createEmptyTimelineClusterMetric(
       String name, long startTime) {
     TimelineClusterMetric metric = new TimelineClusterMetric(name,
-        "test_app", "instance_id", startTime, null);
+        "test_app", "instance_id", startTime);
 
     return metric;
   }

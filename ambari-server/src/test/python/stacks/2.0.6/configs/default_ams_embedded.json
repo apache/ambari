@@ -826,6 +826,7 @@
             "content": "\n"
         },
         "ams-site": {
+            "timeline.metrics.host.inmemory.aggregation": "true",
             "timeline.metrics.host.aggregator.minute.ttl": "604800",
             "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier": "1",
             "timeline.metrics.cluster.aggregator.daily.ttl": "63072000",

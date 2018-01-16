@@ -17,7 +17,16 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability;
 
-import com.google.common.base.Joiner;
+import static org.apache.helix.model.IdealState.RebalanceMode.FULL_AUTO;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -38,16 +47,11 @@ import org.apache.helix.model.InstanceConfig;
 import org.apache.helix.model.LiveInstance;
 import org.apache.helix.model.OnlineOfflineSMD;
 import org.apache.helix.model.StateModelDefinition;
-import org.apache.helix.tools.StateModelConfigGenerator;;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import static org.apache.helix.model.IdealState.RebalanceMode.FULL_AUTO;
+import org.apache.helix.tools.StateModelConfigGenerator;
+
+import com.google.common.base.Joiner;
+
+;
 
 public class MetricCollectorHAController {
   private static final Log LOG = LogFactory.getLog(MetricCollectorHAController.class);
@@ -94,7 +98,7 @@ public class MetricCollectorHAController {
           + zkClientPort +", quorum = " + zkQuorum);
       }
 
-      zkConnectUrl = getZkConnectionUrl(zkClientPort, zkQuorum);
+      zkConnectUrl = configuration.getZkConnectionUrl(zkClientPort, zkQuorum);
 
     } catch (Exception e) {
       LOG.error("Unable to load hbase-site from classpath.", e);
@@ -226,23 +230,6 @@ public class MetricCollectorHAController {
     manager.connect();
     HelixController controller = new HelixController();
     manager.addLiveInstanceChangeListener(controller);
-  }
-
-  private String getZkConnectionUrl(String zkClientPort, String zkQuorum) {
-    StringBuilder sb = new StringBuilder();
-    String[] quorumParts = zkQuorum.split(",");
-    String prefix = "";
-    for (String part : quorumParts) {
-      sb.append(prefix);
-      sb.append(part.trim());
-      if (!part.contains(":")) {
-        sb.append(":");
-        sb.append(zkClientPort);
-      }
-      prefix = ",";
-    }
-
-    return sb.toString();
   }
 
   public AggregationTaskRunner getAggregationTaskRunner() {

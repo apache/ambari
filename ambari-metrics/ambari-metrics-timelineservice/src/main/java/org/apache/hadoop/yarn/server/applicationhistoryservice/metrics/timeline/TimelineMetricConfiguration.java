@@ -17,15 +17,8 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.conf.Configuration;
-
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
@@ -33,28 +26,49 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.sink.ExternalSinkProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.DefaultInternalMetricsSourceProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider.SOURCE_NAME;
+import org.apache.log4j.Appender;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.Logger;
 
 /**
  * Configuration class that reads properties from ams-site.xml. All values
  * for time or intervals are given in seconds.
  */
-@InterfaceAudience.Public
-@InterfaceStability.Evolving
 public class TimelineMetricConfiguration {
   private static final Log LOG = LogFactory.getLog(TimelineMetricConfiguration.class);
 
   public static final String HBASE_SITE_CONFIGURATION_FILE = "hbase-site.xml";
   public static final String METRICS_SITE_CONFIGURATION_FILE = "ams-site.xml";
   public static final String METRICS_ENV_CONFIGURATION_FILE = "ams-env.xml";
+  public static final String METRICS_SSL_SERVER_CONFIGURATION_FILE = "ssl-server.xml";
 
   public static final String TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR =
     "timeline.metrics.aggregator.checkpoint.dir";
 
   public static final String TIMELINE_METRIC_AGGREGATOR_SINK_CLASS =
     "timeline.metrics.service.aggregator.sink.class";
+
+  public static final String TIMELINE_METRICS_SOURCE_PROVIDER_CLASS =
+    "timeline.metrics.service.source.provider.class";
+
+  public static final String TIMELINE_METRICS_SINK_PROVIDER_CLASS =
+    "timeline.metrics.service.sink.provider.class";
 
   public static final String TIMELINE_METRICS_CACHE_SIZE =
     "timeline.metrics.cache.size";
@@ -182,9 +196,6 @@ public class TimelineMetricConfiguration {
   public static final String CLUSTER_AGGREGATOR_DAILY_DISABLED =
     "timeline.metrics.cluster.aggregator.daily.disabled";
 
-  public static final String DISABLE_APPLICATION_TIMELINE_STORE =
-    "timeline.service.disable.application.timeline.store";
-
   public static final String WEBAPP_HTTP_ADDRESS =
     "timeline.metrics.service.webapp.address";
 
@@ -248,6 +259,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED =
     "timeline.metrics.cluster.aggregator.interpolation.enabled";
 
+  public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD =
+    "timeline.metrics.sink.collection.period";
+
   public static final String TIMELINE_METRICS_PRECISION_TABLE_DURABILITY =
     "timeline.metrics.precision.table.durability";
 
@@ -299,6 +313,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES =
     "timeline.metrics.precision.table.hbase.hstore.blockingStoreFiles";
 
+  public static final String TIMELINE_METRICS_UUID_GEN_STRATEGY =
+    "timeline.metrics.uuid.gen.strategy";
+
   public static final String TIMELINE_METRICS_SUPPORT_MULTIPLE_CLUSTERS =
     "timeline.metrics.support.multiple.clusters";
 
@@ -310,37 +327,89 @@ public class TimelineMetricConfiguration {
 
   public static final String TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION = "timeline.metrics.host.inmemory.aggregation";
 
+  public static final String TIMELINE_METRICS_COLLECTOR_INMEMORY_AGGREGATION = "timeline.metrics.collector.inmemory.aggregation";
+
+  public static final String TIMELINE_METRICS_COLLECTOR_IGNITE_NODES = "timeline.metrics.collector.ignite.nodes.list";
+
+  public static final String TIMELINE_METRICS_COLLECTOR_IGNITE_BACKUPS = "timeline.metrics.collector.ignite.nodes.backups";
+
+  public static final String INTERNAL_CACHE_HEAP_PERCENT =
+    "timeline.metrics.internal.cache.%s.heap.percent";
+
+  public static final String EXTERNAL_SINK_INTERVAL =
+    "timeline.metrics.external.sink.%s.%s.interval";
+
+  public static final String DEFAULT_EXTERNAL_SINK_DIR =
+    "timeline.metrics.external.sink.dir";
+
+  public static final String KAFKA_SERVERS = "timeline.metrics.external.sink.kafka.bootstrap.servers";
+  public static final String KAFKA_ACKS = "timeline.metrics.external.sink.kafka.acks";
+  public static final String KAFKA_RETRIES = "timeline.metrics.external.sink.kafka.bootstrap.retries";
+  public static final String KAFKA_BATCH_SIZE = "timeline.metrics.external.sink.kafka.batch.size";
+  public static final String KAFKA_LINGER_MS = "timeline.metrics.external.sink.kafka.linger.ms";
+  public static final String KAFKA_BUFFER_MEM = "timeline.metrics.external.sink.kafka.buffer.memory";
+  public static final String KAFKA_SINK_TIMEOUT_SECONDS = "timeline.metrics.external.sink.kafka.timeout.seconds";
+  
   private Configuration hbaseConf;
   private Configuration metricsConf;
+  private Configuration metricsSslConf;
   private Configuration amsEnvConf;
   private volatile boolean isInitialized = false;
 
+  private static TimelineMetricConfiguration instance = new TimelineMetricConfiguration();
+
+  private TimelineMetricConfiguration() {}
+
+  public static TimelineMetricConfiguration getInstance() {
+    return instance;
+  }
+
+  // Tests
+  public TimelineMetricConfiguration(Configuration hbaseConf, Configuration metricsConf) {
+    this.hbaseConf = hbaseConf;
+    this.metricsConf = metricsConf;
+    this.isInitialized = true;
+  }
+
   public void initialize() throws URISyntaxException, MalformedURLException {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = getClass().getClassLoader();
+    if (!isInitialized) {
+      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+      if (classLoader == null) {
+        classLoader = getClass().getClassLoader();
+      }
+      URL hbaseResUrl = classLoader.getResource(HBASE_SITE_CONFIGURATION_FILE);
+      URL amsResUrl = classLoader.getResource(METRICS_SITE_CONFIGURATION_FILE);
+      LOG.info("Found hbase site configuration: " + hbaseResUrl);
+      LOG.info("Found metric service configuration: " + amsResUrl);
+
+      if (hbaseResUrl == null) {
+        throw new IllegalStateException("Unable to initialize the metrics " +
+          "subsystem. No hbase-site present in the classpath.");
+      }
+
+      if (amsResUrl == null) {
+        throw new IllegalStateException("Unable to initialize the metrics " +
+          "subsystem. No ams-site present in the classpath.");
+      }
+
+      hbaseConf = new Configuration(true);
+      hbaseConf.addResource(hbaseResUrl.toURI().toURL());
+      metricsConf = new Configuration(true);
+      metricsConf.addResource(amsResUrl.toURI().toURL());
+
+      if (metricsConf.get("timeline.metrics.service.http.policy", "HTTP_ONLY").equalsIgnoreCase("HTTPS_ONLY")) {
+        URL amsSllResUrl = classLoader.getResource(METRICS_SSL_SERVER_CONFIGURATION_FILE);
+        LOG.info("Found metric ssl service configuration: " + amsResUrl);
+        if (amsSllResUrl == null) {
+          throw new IllegalStateException("Unable to initialize the metrics " +
+            "subsystem. No ams-ssl-server present in the classpath.");
+        }
+        metricsSslConf = new Configuration(true);
+        metricsSslConf.addResource(amsSllResUrl.toURI().toURL());
+      }
+
+      isInitialized = true;
     }
-    URL hbaseResUrl = classLoader.getResource(HBASE_SITE_CONFIGURATION_FILE);
-    URL amsResUrl = classLoader.getResource(METRICS_SITE_CONFIGURATION_FILE);
-    LOG.info("Found hbase site configuration: " + hbaseResUrl);
-    LOG.info("Found metric service configuration: " + amsResUrl);
-
-    if (hbaseResUrl == null) {
-      throw new IllegalStateException("Unable to initialize the metrics " +
-        "subsystem. No hbase-site present in the classpath.");
-    }
-
-    if (amsResUrl == null) {
-      throw new IllegalStateException("Unable to initialize the metrics " +
-        "subsystem. No ams-site present in the classpath.");
-    }
-
-    hbaseConf = new Configuration(true);
-    hbaseConf.addResource(hbaseResUrl.toURI().toURL());
-    metricsConf = new Configuration(true);
-    metricsConf.addResource(amsResUrl.toURI().toURL());
-
-    isInitialized = true;
   }
 
   public Configuration getHbaseConf() throws URISyntaxException, MalformedURLException {
@@ -357,32 +426,27 @@ public class TimelineMetricConfiguration {
     return metricsConf;
   }
 
-  public String getZKClientPort() throws MalformedURLException, URISyntaxException {
+  public Configuration getMetricsSslConf() throws URISyntaxException, MalformedURLException {
     if (!isInitialized) {
       initialize();
     }
-    return hbaseConf.getTrimmed("hbase.zookeeper.property.clientPort", "2181");
+    return metricsSslConf;
+  }
+
+  public String getZKClientPort() throws MalformedURLException, URISyntaxException {
+    return getHbaseConf().getTrimmed("hbase.zookeeper.property.clientPort", "2181");
   }
 
   public String getZKQuorum() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return hbaseConf.getTrimmed("hbase.zookeeper.quorum");
+    return getHbaseConf().getTrimmed("hbase.zookeeper.quorum");
   }
 
   public String getClusterZKClientPort() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return metricsConf.getTrimmed("cluster.zookeeper.property.clientPort", "2181");
+    return getMetricsConf().getTrimmed("cluster.zookeeper.property.clientPort", "2181");
   }
 
   public String getClusterZKQuorum() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return metricsConf.getTrimmed("cluster.zookeeper.quorum");
+    return getMetricsConf().getTrimmed("cluster.zookeeper.quorum");
   }
 
   public String getInstanceHostnameFromEnv() throws UnknownHostException {
@@ -402,12 +466,9 @@ public class TimelineMetricConfiguration {
     return DEFAULT_INSTANCE_PORT;
   }
 
-  public String getWebappAddress() {
+  public String getWebappAddress() throws MalformedURLException, URISyntaxException {
     String defaultHttpAddress = "0.0.0.0:6188";
-    if (metricsConf != null) {
-      return metricsConf.get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
-    }
-    return defaultHttpAddress;
+    return getMetricsConf().get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
   }
 
   public int getTimelineMetricsServiceHandlerThreadCount() {
@@ -467,10 +528,17 @@ public class TimelineMetricConfiguration {
     return defaultRpcAddress;
   }
 
+  public String getKafkaServers() {
+    if (metricsConf != null) {
+      return metricsConf.get("timeline.metrics.kafka.servers", null);
+    }
+    return null;
+  }
+
   public boolean isDistributedCollectorModeDisabled() {
     try {
-      if (metricsConf != null) {
-        return Boolean.parseBoolean(metricsConf.get("timeline.metrics.service.distributed.collector.mode.disabled", "false"));
+      if (getMetricsConf() != null) {
+        return Boolean.parseBoolean(getMetricsConf().get("timeline.metrics.service.distributed.collector.mode.disabled", "false"));
       }
       return false;
     } catch (Exception e) {
@@ -517,13 +585,124 @@ public class TimelineMetricConfiguration {
     return whitelist;
   }
 
+  /**
+   * Get the sink interval for a metrics source.
+   * Determines how often the metrics will be written to the sink.
+   * This determines whether any caching will be needed on the collector
+   * side, default interval disables caching by writing at the same time as
+   * we get data.
+   *
+   * @param sinkProviderClassName Simple name of your implementation of {@link ExternalSinkProvider}
+   * @param sourceName {@link SOURCE_NAME}
+   * @return seconds
+   */
+  public int getExternalSinkInterval(String sinkProviderClassName,
+                                     SOURCE_NAME sourceName) {
+    String sinkProviderSimpleClassName = sinkProviderClassName.substring(
+      sinkProviderClassName.lastIndexOf(".") + 1);
+
+    return Integer.parseInt(metricsConf.get(
+      String.format(EXTERNAL_SINK_INTERVAL, sinkProviderSimpleClassName, sourceName), "-1"));
+  }
+
+  public InternalSourceProvider getInternalSourceProvider() {
+    Class<? extends InternalSourceProvider> providerClass =
+      metricsConf.getClass(TIMELINE_METRICS_SOURCE_PROVIDER_CLASS,
+        DefaultInternalMetricsSourceProvider.class, InternalSourceProvider.class);
+    return ReflectionUtils.newInstance(providerClass, metricsConf);
+  }
+
+  /**
+   * List of external sink provider classes. Comma-separated.
+   */
+  public List<ExternalSinkProvider> getExternalSinkProviderList() {
+    Class<?>[] providerClasses = metricsConf.getClasses(TIMELINE_METRICS_SINK_PROVIDER_CLASS);
+    List<ExternalSinkProvider> providerList = new ArrayList<>();
+    if (providerClasses != null) {
+      for (Class<?> providerClass : providerClasses) {
+        providerList.add((ExternalSinkProvider) ReflectionUtils.newInstance(providerClass, metricsConf));
+      }
+    }
+    return providerList;
+  }
+
+  public String getInternalCacheHeapPercent(String instanceName) {
+    String heapPercent = metricsConf.get(String.format(INTERNAL_CACHE_HEAP_PERCENT, instanceName));
+    if (StringUtils.isEmpty(heapPercent)) {
+      return "5%";
+    } else {
+      return heapPercent.endsWith("%") ? heapPercent : heapPercent + "%";
+    }
+  }
+
+  public String getDefaultMetricsSinkDir() {
+    String dirPath = metricsConf.get(DEFAULT_EXTERNAL_SINK_DIR);
+    if (dirPath == null) {
+      // Only one logger at the time of writing
+      Appender appender = (Appender) Logger.getRootLogger().getAllAppenders().nextElement();
+      if (appender instanceof FileAppender) {
+        File f = new File(((FileAppender) appender).getFile());
+        if (f.exists()) {
+          dirPath = f.getParent();
+        } else {
+          dirPath = "/tmp";
+        }
+      }
+    }
+
+    return dirPath;
+  }
+
+  public boolean isHostInMemoryAggregationEnabled() {
+    if (metricsConf != null) {
+      return Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION, "false"));
+    } else {
+      return false;
+    }
+  }
+
   public boolean isContainerMetricsDisabled() {
     try {
       return metricsConf != null && Boolean.parseBoolean(metricsConf.get(TIMELINE_SERVICE_DISABLE_CONTAINER_METRICS, "false"));
     } catch (Exception e) {
+
       return false;
     }
   }
+
+  public boolean isCollectorInMemoryAggregationEnabled() {
+    if (metricsConf != null) {
+      return Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_COLLECTOR_INMEMORY_AGGREGATION, "false"));
+    } else {
+      return false;
+    }
+  }
+
+  public List<String> getAppIdsForHostAggregation() {
+    String appIds = metricsConf.get(CLUSTER_AGGREGATOR_APP_IDS);
+    if (!StringUtils.isEmpty(appIds)) {
+      return Arrays.asList(StringUtils.stripAll(appIds.split(",")));
+    }
+    return Collections.emptyList();
+  }
+
+  public String getZkConnectionUrl(String zkClientPort, String zkQuorum){
+      StringBuilder sb = new StringBuilder();
+      String[] quorumParts = zkQuorum.split(",");
+      String prefix = "";
+      for (String part : quorumParts) {
+        sb.append(prefix);
+        sb.append(part.trim());
+        if (!part.contains(":")) {
+          sb.append(":");
+          sb.append(zkClientPort);
+        }
+        prefix = ",";
+      }
+
+      return sb.toString();
+
+    }
 
   public boolean isWhitelistingEnabled() {
     if (metricsConf != null) {

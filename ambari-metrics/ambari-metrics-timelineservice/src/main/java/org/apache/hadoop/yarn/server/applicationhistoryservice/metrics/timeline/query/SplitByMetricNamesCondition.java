@@ -17,14 +17,14 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
 
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 // TODO get rid of this class
 public class SplitByMetricNamesCondition implements Condition {
   private final Condition adaptee;
-  private String currentMetric;
+  private byte[] currentUuid;
   private boolean metricNamesNotCondition = false;
 
   public SplitByMetricNamesCondition(Condition condition){
@@ -37,8 +37,13 @@ public class SplitByMetricNamesCondition implements Condition {
   }
 
   @Override
+  public List<byte[]> getUuids() {
+    return adaptee.getUuids();
+  }
+
+  @Override
   public List<String> getMetricNames() {
-    return Collections.singletonList(currentMetric);
+    return Collections.singletonList(new String(currentUuid));
   }
 
   @Override
@@ -91,31 +96,12 @@ public class SplitByMetricNamesCondition implements Condition {
         if (sb.length() > 1) {
           sb.append(" OR ");
         }
-        sb.append("METRIC_NAME = ?");
+        sb.append("UUID = ?");
       }
 
       appendConjunction = true;
     }
-    // TODO prevent user from using this method with multiple hostnames and SQL LIMIT clause
-    if (getHostnames() != null && getHostnames().size() > 1) {
-      StringBuilder hostnamesCondition = new StringBuilder();
-      for (String hostname: getHostnames()) {
-        if (hostnamesCondition.length() > 0) {
-          hostnamesCondition.append(" ,");
-        } else {
-          hostnamesCondition.append(" HOSTNAME IN (");
-        }
-        hostnamesCondition.append('?');
-      }
-      hostnamesCondition.append(')');
-      appendConjunction = DefaultCondition.append(sb, appendConjunction, getHostnames(), hostnamesCondition.toString());
-    } else {
-      appendConjunction = DefaultCondition.append(sb, appendConjunction, getHostnames(), " HOSTNAME = ?");
-    }
-    appendConjunction = DefaultCondition.append(sb, appendConjunction,
-      getAppId(), " APP_ID = ?");
-    appendConjunction = DefaultCondition.append(sb, appendConjunction,
-      getInstanceId(), " INSTANCE_ID = ?");
+
     appendConjunction = DefaultCondition.append(sb, appendConjunction,
       getStartTime(), " SERVER_TIME >= ?");
     DefaultCondition.append(sb, appendConjunction, getEndTime(),
@@ -178,12 +164,26 @@ public class SplitByMetricNamesCondition implements Condition {
     return adaptee.getMetricNames();
   }
 
-  public void setCurrentMetric(String currentMetric) {
-    this.currentMetric = currentMetric;
+  public void setCurrentUuid(byte[] uuid) {
+    this.currentUuid = uuid;
+  }
+
+  public byte[] getCurrentUuid() {
+    return currentUuid;
   }
 
  @Override
   public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
     this.metricNamesNotCondition = metricNamesNotCondition;
+  }
+
+  @Override
+  public void setHostnamesNotCondition(boolean hostNamesNotCondition) {
+
+  }
+
+  @Override
+  public void setUuidNotCondition(boolean uuidNotCondition) {
+
   }
 }

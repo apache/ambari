@@ -52,6 +52,7 @@ public class MetricCollectorHAControllerTest extends AbstractMiniHBaseClusterTes
 
     expect(configuration.getClusterZKClientPort()).andReturn(port);
     expect(configuration.getClusterZKQuorum()).andReturn(quorum);
+    expect(configuration.getZkConnectionUrl(port, quorum)).andReturn(quorum + ":" + port);
 
     replay(configuration);
   }

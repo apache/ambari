@@ -163,19 +163,30 @@ def ams(name=None):
               create_parents = True
     )
 
-    if params.host_in_memory_aggregation and params.log4j_props is not None:
-      File(os.path.join(params.ams_monitor_conf_dir, "log4j.properties"),
-           owner=params.ams_user,
-           content=params.log4j_props
-           )
+    if params.host_in_memory_aggregation:
+      if params.log4j_props is not None:
+        File(os.path.join(params.ams_monitor_conf_dir, "log4j.properties"),
+             owner=params.ams_user,
+             content=params.log4j_props
+             )
+        pass
 
-    XmlConfig("ams-site.xml",
-              conf_dir=params.ams_monitor_conf_dir,
-              configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
-              owner=params.ams_user,
-              group=params.user_group
-              )
+      XmlConfig("ams-site.xml",
+                conf_dir=params.ams_monitor_conf_dir,
+                configurations=params.config['configurations']['ams-site'],
+                configuration_attributes=params.config['configuration_attributes']['ams-site'],
+                owner=params.ams_user,
+                group=params.user_group
+                )
+
+      XmlConfig("ssl-server.xml",
+                conf_dir=params.ams_monitor_conf_dir,
+                configurations=params.config['configurations']['ams-ssl-server'],
+                configuration_attributes=params.config['configuration_attributes']['ams-site'],
+                owner=params.ams_user,
+                group=params.user_group
+                )
+      pass
 
     TemplateConfig(
       os.path.join(params.ams_monitor_conf_dir, "metric_monitor.ini"),
@@ -385,22 +396,32 @@ def ams(name=None, action=None):
               create_parents = True
     )
 
-    if params.host_in_memory_aggregation and params.log4j_props is not None:
-      File(format("{params.ams_monitor_conf_dir}/log4j.properties"),
-           mode=0644,
-           group=params.user_group,
-           owner=params.ams_user,
-           content=InlineTemplate(params.log4j_props)
-           )
+    if params.host_in_memory_aggregation:
+      if params.log4j_props is not None:
+        File(format("{params.ams_monitor_conf_dir}/log4j.properties"),
+             mode=0644,
+             group=params.user_group,
+             owner=params.ams_user,
+             content=InlineTemplate(params.log4j_props)
+             )
+        pass
 
-    XmlConfig("ams-site.xml",
-              conf_dir=params.ams_monitor_conf_dir,
-              configurations=params.config['configurations']['ams-site'],
-              configuration_attributes=params.config['configuration_attributes']['ams-site'],
-              owner=params.ams_user,
-              group=params.user_group
-              )
+      XmlConfig("ams-site.xml",
+                conf_dir=params.ams_monitor_conf_dir,
+                configurations=params.config['configurations']['ams-site'],
+                configuration_attributes=params.config['configuration_attributes']['ams-site'],
+                owner=params.ams_user,
+                group=params.user_group
+                )
 
+      XmlConfig("ssl-server.xml",
+                conf_dir=params.ams_monitor_conf_dir,
+                configurations=params.config['configurations']['ams-ssl-server'],
+                configuration_attributes=params.config['configuration_attributes']['ams-site'],
+                owner=params.ams_user,
+                group=params.user_group
+                )
+      pass
     Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_log_dir}")
             )
 
@@ -440,7 +461,7 @@ def ams(name=None, action=None):
          content=InlineTemplate(params.ams_env_sh_template)
     )
 
-    if params.metric_collector_https_enabled:
+    if params.metric_collector_https_enabled or params.is_aggregation_https_enabled:
       export_ca_certs(params.ams_monitor_conf_dir)
 
     pass
