@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
@@ -49,6 +50,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 
 
@@ -405,6 +407,40 @@ public class LogicalRequest extends Request {
     return removed;
   }
 
+  /**
+   * @return true if all the tasks in the logical request are in completed state, false otherwise
+   */
+  public boolean isFinished() {
+    for (ShortTaskStatus ts : getRequestStatus().getTasks()) {
+      if (!HostRoleStatus.valueOf(ts.getStatus()).isCompletedState()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Returns if all the tasks in the logical request have completed state.
+   */
+  public boolean isSuccessful() {
+    for (ShortTaskStatus ts : getRequestStatus().getTasks()) {
+      if (HostRoleStatus.valueOf(ts.getStatus()) != HostRoleStatus.COMPLETED) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public Optional<String> getFailureReason() {
+    for (HostRequest request : getHostRequests()) {
+      Optional<String> failureReason = request.getStatusMessage();
+      if (failureReason.isPresent()) {
+        return failureReason;
+      }
+    }
+    return Optional.absent();
+  }
+
   private void createHostRequests(TopologyRequest request, ClusterTopology topology) {
     Map<String, HostGroupInfo> hostGroupInfoMap = request.getHostGroupInfo();
     Blueprint blueprint = topology.getBlueprint();
@@ -522,5 +558,13 @@ public class LogicalRequest extends Request {
       controller = AmbariServer.getController();
     }
     return controller;
+  }
+
+  public CalculatedStatus calculateStatus() {
+    return !isFinished()
+      ? CalculatedStatus.PENDING
+      : isSuccessful()
+        ? CalculatedStatus.COMPLETED
+        : CalculatedStatus.ABORTED;
   }
 }

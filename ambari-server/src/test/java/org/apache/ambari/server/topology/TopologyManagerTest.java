@@ -403,6 +403,7 @@ public class TopologyManagerTest {
     List<LogicalRequest> requestList = new ArrayList<>();
     requestList.add(logicalRequest);
     expect(logicalRequest.hasPendingHostRequests()).andReturn(false).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(false).anyTimes();
     allRequests.put(clusterTopologyMock, requestList);
     expect(requestStatusResponse.getTasks()).andReturn(Collections.<ShortTaskStatus>emptyList()).anyTimes();
     expect(clusterTopologyMock.isClusterKerberosEnabled()).andReturn(true);
@@ -437,6 +438,8 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
             List<LogicalRequest>>emptyMap()).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(true).anyTimes();
+    expect(logicalRequest.isSuccessful()).andReturn(true).anyTimes();
     replayAll();
     topologyManager.provisionCluster(request);
     requestFinished();
@@ -460,6 +463,8 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
             List<LogicalRequest>>emptyMap()).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(true).anyTimes();
+    expect(logicalRequest.isSuccessful()).andReturn(false).anyTimes();
     replayAll();
     topologyManager.provisionCluster(request);
     requestFinished();
@@ -483,6 +488,7 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
             List<LogicalRequest>>emptyMap()).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(false).anyTimes();
     replayAll();
     topologyManager.provisionCluster(request);
     requestFinished();
@@ -523,6 +529,7 @@ public class TopologyManagerTest {
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
     expect(logicalRequest.hasPendingHostRequests()).andReturn(true).anyTimes();
     expect(logicalRequest.getCompletedHostRequests()).andReturn(Collections.EMPTY_LIST).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(true).anyTimes();
     expect(requestStatusResponse.getTasks()).andReturn(tasks).anyTimes();
     replayAll();
     EasyMock.replay(clusterTopologyMock);

@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.state.Host;
 
@@ -86,4 +87,8 @@ public interface PersistedState {
    */
   void removeHostRequests(long logicalRequestId, Collection<HostRequest> hostRequests);
 
+  /**
+   * Update the status of the given host request.
+   */
+  void setHostRequestStatus(long hostRequestId, HostRoleStatus status, String message);
 }

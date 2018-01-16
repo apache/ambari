@@ -39,6 +39,10 @@ public abstract class TopologyHostTask implements TopologyTask {
     this.hostRequest = hostRequest;
   }
 
+  public HostRequest getHostRequest() {
+    return hostRequest;
+  }
+
   /**
    * Run with an InternalAuthenticationToken as when running these tasks we might not have any active security context.
    */

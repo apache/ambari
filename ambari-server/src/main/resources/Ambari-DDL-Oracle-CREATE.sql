@@ -752,6 +752,8 @@ CREATE TABLE topology_host_request (
   group_id NUMBER(19) NOT NULL,
   stage_id NUMBER(19) NOT NULL,
   host_name VARCHAR(255),
+  status VARCHAR2(255),
+  status_message VARCHAR2(1024),
   CONSTRAINT PK_topology_host_request PRIMARY KEY (id),
   CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id),
   CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id));

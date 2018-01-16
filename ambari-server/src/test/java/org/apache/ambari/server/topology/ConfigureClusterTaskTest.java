@@ -35,6 +35,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.google.common.base.Functions;
+
 /**
  * Unit test for the ConfigureClusterTask class.
  * As business methods of this class don't return values, the assertions are made by verifying method calls on mocks.
@@ -93,7 +95,7 @@ public class ConfigureClusterTaskTest extends EasyMockSupport {
     clusterConfigurationRequest.process();
     replayAll();
 
-    AsyncCallableService<Boolean> asyncService = new AsyncCallableService<>(testSubject, 5000, 500, "test");
+    AsyncCallableService<Boolean> asyncService = new AsyncCallableService<>(testSubject, 5000, 500, "test", Functions.<Throwable>identity());
 
     // WHEN
     asyncService.call();
