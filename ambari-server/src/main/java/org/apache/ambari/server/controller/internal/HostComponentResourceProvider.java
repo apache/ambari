@@ -795,31 +795,18 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       @Override
       public RequestStageContainer invoke() throws AmbariException {
         RequestStageContainer stageContainer = null;
-        int retriesRemaining = 100;
-        do {
-          try {
-            stageContainer = updateHostComponents(stages, requests, request.getRequestInfoProperties(),
-                runSmokeTest);
-          } catch (Exception e) {
-            if (--retriesRemaining == 0) {
-              LOG.info("Caught an exception while updating host components, will not try again: {}", e.getMessage(), e);
-              // !!! IllegalArgumentException results in a 400 response, RuntimeException results in 500.
-              if (IllegalArgumentException.class.isInstance(e)) {
-                throw (IllegalArgumentException) e;
-              } else {
-                throw new RuntimeException("Update Host request submission failed: " + e, e);
-              }
-            } else {
-              LOG.info("Caught an exception while updating host components, retrying : " + e);
-              try {
-                Thread.sleep(250);
-              } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Update Host request submission failed: " + e, e);
-              }
-            }
+        try {
+          stageContainer = updateHostComponents(stages, requests, request.getRequestInfoProperties(),
+              runSmokeTest);
+        } catch (Exception e) {
+          LOG.info("Caught an exception while updating host components, will not try again: {}", e.getMessage(), e);
+          // !!! IllegalArgumentException results in a 400 response, RuntimeException results in 500.
+          if (e instanceof IllegalArgumentException) {
+            throw (IllegalArgumentException) e;
+          } else {
+            throw new RuntimeException("Update Host request submission failed: " + e, e);
           }
-        } while (stageContainer == null);
+        }
 
         return stageContainer;
       }

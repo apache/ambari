@@ -33,7 +33,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
@@ -43,7 +45,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintP
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
@@ -81,6 +82,7 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -337,7 +339,7 @@ public class TopologyManager {
 
     clusterTopologyMap.put(clusterId, topology);
 
-    addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true,
+    addClusterConfigRequest(logicalRequest, topology, new ClusterConfigurationRequest(ambariContext, topology, true,
       stackAdvisorBlueprintProcessor, securityType == SecurityType.KERBEROS));
 
     // Process the logical request
@@ -1051,9 +1053,17 @@ public class TopologyManager {
       if (!configChecked) {
         configChecked = true;
         if (!ambariContext.isTopologyResolved(topology.getClusterId())) {
-          LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
-          addClusterConfigRequest(topology, new ClusterConfigurationRequest(
-            ambariContext, topology, false, stackAdvisorBlueprintProcessor));
+          if (provisionRequest == null) {
+            LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, but provision request missing, skipping cluster config request");
+          } else if (provisionRequest.isFinished()) {
+            LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, but provision request is finished, skipping cluster config request");
+          } else {
+            LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
+            ClusterConfigurationRequest configRequest = new ClusterConfigurationRequest(ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+            addClusterConfigRequest(provisionRequest, topology, configRequest);
+          }
+        } else {
+          getOrCreateTopologyTaskExecutor(topology.getClusterId()).start();
         }
       }
     }
@@ -1061,36 +1071,17 @@ public class TopologyManager {
   }
 
   /**
-   * @param logicalRequest
    * @return true if all the tasks in the logical request are in completed state, false otherwise
    */
   private boolean isLogicalRequestFinished(LogicalRequest logicalRequest) {
-    if(logicalRequest != null) {
-      boolean completed = true;
-      for(ShortTaskStatus ts : logicalRequest.getRequestStatus().getTasks()) {
-        if(!HostRoleStatus.valueOf(ts.getStatus()).isCompletedState()) {
-          completed = false;
-        }
-      }
-      return completed;
-    }
-    return false;
+    return logicalRequest != null && logicalRequest.isFinished();
   }
 
   /**
    * Returns if all the tasks in the logical request have completed state.
-   * @param logicalRequest
-   * @return
    */
   private boolean isLogicalRequestSuccessful(LogicalRequest logicalRequest) {
-    if(logicalRequest != null) {
-      for(ShortTaskStatus ts : logicalRequest.getRequestStatus().getTasks()) {
-        if(HostRoleStatus.valueOf(ts.getStatus()) != HostRoleStatus.COMPLETED) {
-          return false;
-        }
-      }
-    }
-    return true;
+    return logicalRequest != null && logicalRequest.isSuccessful();
   }
 
   //todo: this should invoke a callback on each 'service' in the topology
@@ -1121,9 +1112,20 @@ public class TopologyManager {
    * @param topology              cluster topology
    * @param configurationRequest  configuration request to be executed
    */
-  private void addClusterConfigRequest(ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
+  private void addClusterConfigRequest(final LogicalRequest logicalRequest, ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
     ConfigureClusterTask task = configureClusterTaskFactory.createConfigureClusterTask(topology, configurationRequest, ambariEventPublisher);
-    executor.submit(new AsyncCallableService<>(task, task.getTimeout(), task.getRepeatDelay(),"ConfigureClusterTask"));
+    Function<Throwable, Void> onConfigureClusterError = new Function<Throwable, Void>() {
+      @Nullable @Override
+      public Void apply(Throwable input) {
+        HostRoleStatus status = input instanceof TimeoutException ? HostRoleStatus.TIMEDOUT : HostRoleStatus.FAILED;
+        LOG.info("ConfigureClusterTask failed, marking host requests {}", status);
+        for (HostRequest hostRequest : logicalRequest.getHostRequests()) {
+          hostRequest.markHostRequestFailed(status, input, persistedState);
+        }
+        return null;
+      }
+    };
+    executor.submit(new AsyncCallableService<>(task, task.getTimeout(), task.getRepeatDelay(),"ConfigureClusterTask", onConfigureClusterError));
   }
 
   /**

@@ -54,7 +54,7 @@ public class CalculatedStatus {
   private final double percent;
 
   /**
-   * A status which represents a COMPLETED state at 0%
+   * A status which represents a COMPLETED state at 100%
    */
   public static final CalculatedStatus COMPLETED = new CalculatedStatus(HostRoleStatus.COMPLETED,
       HostRoleStatus.COMPLETED, 100.0);
@@ -64,6 +64,11 @@ public class CalculatedStatus {
    */
   public static final CalculatedStatus PENDING = new CalculatedStatus(HostRoleStatus.PENDING,
       HostRoleStatus.PENDING, 0.0);
+
+  /**
+   * A status which represents an ABORTED state at -1%
+   */
+  public static final CalculatedStatus ABORTED = new CalculatedStatus(HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, -1);
 
   // ----- Constructors ------------------------------------------------------
 

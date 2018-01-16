@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
@@ -45,11 +46,14 @@ import org.apache.ambari.server.topology.tasks.InstallHostTask;
 import org.apache.ambari.server.topology.tasks.PersistHostResourcesTask;
 import org.apache.ambari.server.topology.tasks.RegisterWithConfigGroupTask;
 import org.apache.ambari.server.topology.tasks.StartHostTask;
+import org.apache.ambari.server.topology.tasks.TopologyHostTask;
 import org.apache.ambari.server.topology.tasks.TopologyTask;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 
 /**
  * Represents a set of requests to a single host such as install, start, etc.
@@ -69,6 +73,8 @@ public class HostRequest implements Comparable<HostRequest> {
   private final long id;
   private boolean isOutstanding = true;
   private final boolean skipFailure;
+  private HostRoleStatus status = HostRoleStatus.PENDING;
+  private String statusMessage;
 
   private Map<TopologyTask, Map<String, Long>> logicalTaskMap = new HashMap<TopologyTask, Map<String, Long>>();
 
@@ -77,7 +83,7 @@ public class HostRequest implements Comparable<HostRequest> {
   // logical task id -> physical tasks
   private Map<Long, Long> physicalTasks = new HashMap<Long, Long>();
 
-  private List<TopologyTask> topologyTasks = new ArrayList<TopologyTask>();
+  private List<TopologyHostTask> topologyTasks = new ArrayList<>();
 
   private ClusterTopology topology;
 
@@ -119,6 +125,8 @@ public class HostRequest implements Comparable<HostRequest> {
     hostgroupName = entity.getTopologyHostGroupEntity().getName();
     hostGroup = topology.getBlueprint().getHostGroup(hostgroupName);
     hostname = entity.getHostName();
+    setStatus(entity.getStatus());
+    statusMessage = entity.getStatusMessage();
     this.predicate = toPredicate(predicate);
     containsMaster = hostGroup.containsMasterComponent();
     this.topology = topology;
@@ -134,6 +142,15 @@ public class HostRequest implements Comparable<HostRequest> {
         (hostname == null ? "Host Assignment Pending" : hostname));
   }
 
+  void markHostRequestFailed(HostRoleStatus status, Throwable cause, PersistedState persistedState) {
+    String errorMessage = StringUtils.substringBefore(Throwables.getRootCause(cause).getMessage(), "\n");
+    LOG.info("HostRequest: marking host request {} for {} as {} due to {}", id, hostname, status, errorMessage);
+    abortPendingTasks();
+    setStatus(status);
+    setStatusMessage(errorMessage);
+    persistedState.setHostRequestStatus(id, status, errorMessage);
+  }
+
   //todo: synchronization
   public synchronized HostOfferResponse offer(Host host) {
     if (!isOutstanding) {
@@ -147,6 +164,24 @@ public class HostRequest implements Comparable<HostRequest> {
     } else {
       return HostOfferResponse.DECLINED_DUE_TO_PREDICATE;
     }
+  }
+
+  public HostRoleStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(HostRoleStatus status) {
+    if (status != null) {
+      this.status = status;
+    }
+  }
+
+  public void setStatusMessage(String errorMessage) {
+    this.statusMessage = errorMessage;
+  }
+
+  public Optional<String> getStatusMessage() {
+    return Optional.fromNullable(statusMessage);
   }
 
   public void setHostName(String hostName) {
@@ -307,7 +342,7 @@ public class HostRequest implements Comparable<HostRequest> {
     }
   }
 
-  public List<TopologyTask> getTopologyTasks() {
+  public List<TopologyHostTask> getTopologyTasks() {
     return topologyTasks;
   }
 
@@ -340,6 +375,9 @@ public class HostRequest implements Comparable<HostRequest> {
           logicalTask.setStdout(physicalTask.getStdout());
           logicalTask.setStructuredOut(physicalTask.getStructuredOut());
         }
+      }
+      if (logicalTask.getStatus() == HostRoleStatus.PENDING && status != HostRoleStatus.PENDING) {
+        logicalTask.setStatus(status);
       }
     }
     return logicalTasks.values();
@@ -438,6 +476,14 @@ public class HostRequest implements Comparable<HostRequest> {
     physicalTasks.put(logicalTaskId, physicalTaskId);
     topology.getAmbariContext().getPersistedTopologyState().registerPhysicalTask(logicalTaskId, physicalTaskId);
     getLogicalTask(logicalTaskId).incrementAttemptCount();
+  }
+
+  public void abortPendingTasks() {
+    for (HostRoleCommand command : getLogicalTasks()) {
+      if (command.getStatus() == HostRoleStatus.PENDING) {
+        command.setStatus(HostRoleStatus.ABORTED);
+      }
+    }
   }
 
   private Predicate toPredicate(String predicate) {

@@ -79,7 +79,7 @@ import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.tasks.TopologyTask;
+import org.apache.ambari.server.topology.tasks.TopologyHostTask;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
@@ -650,7 +650,7 @@ public class ClustersTest {
     expect(hr.getHostgroupName()).andReturn("MyHostGroup").anyTimes();
     expect(hr.getHostName()).andReturn(hostName).anyTimes();
     expect(hr.getStageId()).andReturn(1L);
-    expect(hr.getTopologyTasks()).andReturn(Collections.<TopologyTask>emptyList());
+    expect(hr.getTopologyTasks()).andReturn(Collections.<TopologyHostTask>emptyList());
 
     replay(hr);
     return hr;
