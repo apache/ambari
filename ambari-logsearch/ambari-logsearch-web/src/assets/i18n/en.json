@@ -161,7 +161,11 @@
   "logs.showGraph": "Show Graph",
   "logs.topUsers": "Top {{number}} Users",
   "logs.topResources": "Top {{number}} Resources",
-  "logs.duration": "Duration",
+  "logs.brokenListLayoutMessage": "Some information may not be visible.",
+  "logs.brokenListLayoutTooltip": "It seems that your screen is too narrow to display this number of columns.",
+  "logs.tableLayoutBtnTooltip": "Table layout. Optimal when you want to display only few columns.",
+  "logs.flexLayoutBtnTooltip": "Flexible layout. Optimal when your screen is narrow or you want to display more columns.",
+  "logs.toggleLabels": "Turn on/off the labels.",
 
   "histogram.gap": "gap",
   "histogram.gaps": "gaps",
