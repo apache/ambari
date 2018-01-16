@@ -93,7 +93,7 @@ public class ConfigureClusterTaskTest extends EasyMockSupport {
     clusterConfigurationRequest.process();
     replayAll();
 
-    AsyncCallableService<Boolean> asyncService = new AsyncCallableService<>(testSubject, 5000, 500, "test");
+    AsyncCallableService<Boolean> asyncService = new AsyncCallableService<>(testSubject, 5000, 500, "test", t -> {});
 
     // WHEN
     asyncService.call();
