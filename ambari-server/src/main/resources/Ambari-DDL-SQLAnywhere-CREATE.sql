@@ -635,7 +635,7 @@ CREATE TABLE hostgroup_component (
   service_name VARCHAR(255),
   provision_action VARCHAR(255),
   CONSTRAINT PK_hostgroup_component PRIMARY KEY (id),
-  CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup (blueprint_name, name);
+  CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup (blueprint_name, name));
 
 CREATE TABLE blueprint_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
