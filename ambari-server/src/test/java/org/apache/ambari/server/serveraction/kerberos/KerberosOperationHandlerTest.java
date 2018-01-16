@@ -351,6 +351,12 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     );
   }
 
+  @Test(expected = KerberosOperationException.class)
+  public void testTranslateWrongEncryptionTypes() throws Exception {
+    KerberosOperationHandler handler = createHandler();
+    handler.translateEncryptionTypes("aes-255", " ");
+  }
+
   @Test
   public void testEscapeCharacters() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
