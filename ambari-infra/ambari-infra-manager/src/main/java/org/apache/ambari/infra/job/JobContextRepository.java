@@ -16,23 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.deleting;
+package org.apache.ambari.infra.job;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.batch.core.StepExecution;
 
-import java.util.Map;
-
-@Configuration
-@ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentDeletingPropertyMap {
-  private Map<String, DocumentDeletingProperties> solrDataDeleting;
-
-  public Map<String, DocumentDeletingProperties> getSolrDataDeleting() {
-    return solrDataDeleting;
-  }
-
-  public void setSolrDataDeleting(Map<String, DocumentDeletingProperties> solrDataDeleting) {
-    this.solrDataDeleting = solrDataDeleting;
-  }
+public interface JobContextRepository {
+  StepExecution getStepExecution(Long jobExecutionId, Long id);
+  void updateExecutionContext(StepExecution stepExecution);
 }
