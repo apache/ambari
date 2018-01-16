@@ -24,6 +24,8 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.logfeeder.conf.LogEntryCacheConfig;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputFileDescriptorImpl;
@@ -61,6 +63,8 @@ public class InputFileTest {
 
   private InputMarker testInputMarker;
 
+  private LogFeederProps logFeederProps;
+
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
@@ -74,6 +78,9 @@ public class InputFileTest {
 
   @Before
   public void setUp() throws Exception {
+    logFeederProps = new LogFeederProps();
+    LogEntryCacheConfig logEntryCacheConfig = new LogEntryCacheConfig();
+    logFeederProps.setLogEntryCacheConfig(logEntryCacheConfig);
   }
 
   public void init(String path) throws Exception {
@@ -87,7 +94,7 @@ public class InputFileTest {
 
     Filter capture = new Filter() {
       @Override
-      public void init() {
+      public void init(LogFeederProps logFeederProps) {
       }
 
       @Override
@@ -103,7 +110,7 @@ public class InputFileTest {
     inputFile = new InputFile();
     inputFile.loadConfig(inputFileDescriptor);
     inputFile.addFilter(capture);
-    inputFile.init();
+    inputFile.init(logFeederProps);
   }
 
   @Test

@@ -47,7 +47,6 @@ describe('TabsComponent', () => {
     let activeTab;
     const tab = {
       id: 'tab0',
-      type: '',
       isActive: true,
       label: '',
       appState: null
@@ -64,21 +63,18 @@ describe('TabsComponent', () => {
     const items = [
         {
           id: 'serviceLogs',
-          type: '',
           isActive: false,
           label: '',
           appState: null
         },
         {
           id: 'auditLogs',
-          type: '',
           isActive: false,
           label: '',
           appState: null
         },
         {
           id: 'newTab',
-          type: '',
           isActive: false,
           label: '',
           appState: null

@@ -23,7 +23,6 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.script.script import Script
 from setup_logfeeder import setup_logfeeder
-from logsearch_common import kill_process
 
 class LogFeeder(Script):
   def install(self, env):
@@ -43,15 +42,15 @@ class LogFeeder(Script):
     env.set_params(params)
     self.configure(env)
 
-    Execute((format('{logfeeder_dir}/run.sh'),),
-            environment={'LOGFEEDER_INCLUDE': format('{logsearch_logfeeder_conf}/logfeeder-env.sh')},
+    Execute((format('{logfeeder_dir}/bin/logfeeder.sh start'),),
             sudo=True)
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    kill_process(params.logfeeder_pid_file, getpass.getuser(), params.logfeeder_log_dir)
+    Execute((format('{logfeeder_dir}/bin/logfeeder.sh stop'),),
+            sudo=True)
 
   def status(self, env):
     import status_params

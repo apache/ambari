@@ -111,7 +111,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
    * Create a new resource provider.
    */
   public ClusterKerberosDescriptorResourceProvider(AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Type.ClusterKerberosDescriptor, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   @Override

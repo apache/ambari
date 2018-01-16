@@ -1488,7 +1488,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       Em.I18n.t('admin.stackUpgrade.upgrade.retry.confirm.body').format(version.get('displayName')),
       null,
-      this.getUpgradeDowngradeHeader(version.get('upgradeTypeDislayName'), version.get('displayName'), false)
+      this.getUpgradeDowngradeHeader(version.get('upgradeTypeDislayName'), version.get('displayName'))
     );
   },
 
@@ -1695,6 +1695,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       sender: this,
       data: {
         repo: repo,
+        repoName: repo.get('repoName'),
         repoId: repo.get('repoId'),
         baseUrl: repo.get('baseUrl'),
         osType: os.get('osType'),

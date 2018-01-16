@@ -1,9 +1,9 @@
 {
   "common.title": "Log Search",
-  "common.hide": "Hide",
-  "common.show": "Show",
   "common.serviceLogs": "Service Logs",
   "common.auditLogs": "Audit Logs",
+  "common.summary": "Summary",
+  "common.logs": "Logs",
 
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
@@ -158,5 +158,21 @@
   "logs.totalEventFound": "{{totalCount}} events found",
   "logs.noEventFound": "No event found",
   "logs.hideGraph": "Hide Graph",
-  "logs.showGraph": "Show Graph"
+  "logs.showGraph": "Show Graph",
+  "logs.topUsers": "Top {{number}} Users",
+  "logs.topResources": "Top {{number}} Resources",
+  "logs.duration": "Duration",
+
+  "histogram.gap": "gap",
+  "histogram.gaps": "gaps",
+  "histogram.gap.second": "second",
+  "histogram.gap.seconds": "seconds",
+  "histogram.gap.minute": "minute",
+  "histogram.gap.minutes": "minutes",
+  "histogram.gap.hour": "hour",
+  "histogram.gap.hours": "hours",
+  "histogram.gap.day": "day",
+  "histogram.gap.days": "days",
+  "histogram.gap.week": "week",
+  "histogram.gap.weeks": "weeks"
 }

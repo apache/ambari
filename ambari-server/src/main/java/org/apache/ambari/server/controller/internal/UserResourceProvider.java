@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,6 +43,9 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * Resource provider for user resources.
  */
@@ -63,17 +65,30 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   public static final String USER_GROUPS_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "groups");
   public static final String USER_ADMIN_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "admin");
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      USER_USERNAME_PROPERTY_ID}));
+  /**
+   * The key property ids for a User resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.User, USER_USERNAME_PROPERTY_ID)
+      .build();
 
+  /**
+   * The property ids for a User resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      USER_USERNAME_PROPERTY_ID,
+      USER_PASSWORD_PROPERTY_ID,
+      USER_OLD_PASSWORD_PROPERTY_ID,
+      USER_LDAP_USER_PROPERTY_ID,
+      USER_TYPE_PROPERTY_ID,
+      USER_ACTIVE_PROPERTY_ID,
+      USER_GROUPS_PROPERTY_ID,
+      USER_ADMIN_PROPERTY_ID);
   /**
    * Create a new resource provider for the given management controller.
    */
-  UserResourceProvider(Set<String> propertyIds,
-                       Map<Resource.Type, String> keyPropertyIds,
-                       AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  UserResourceProvider(AmbariManagementController managementController) {
+    super(Resource.Type.User, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS));
@@ -224,7 +239,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   private UserRequest getRequest(Map<String, Object> properties) {

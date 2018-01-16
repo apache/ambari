@@ -104,6 +104,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    */
   loadCurrentVersions: function() {
     this.set('isCompareMode', false);
+    this.set('compareServiceVersion', null);
     this.set('versionLoaded', false);
     this.set('selectedVersion', this.get('currentDefaultVersion'));
     this.set('preSelectedConfigVersion', null);
@@ -144,8 +145,11 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * loads selected versions of current service
    * @method loadSelectedVersion
    */
-  loadSelectedVersion: function (version, switchToGroup) {
-    this.set('isCompareMode', false);
+  loadSelectedVersion: function (version, switchToGroup, stayInCompare) {
+    if (!stayInCompare) {
+      this.set('isCompareMode', false);
+      this.set('compareServiceVersion', null);
+    }
     this.set('versionLoaded', false);
     version = version || this.get('currentDefaultVersion');
     this.clearRecommendationsInfo();

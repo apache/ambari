@@ -295,24 +295,27 @@ describe('App.HostProgressPopupBodyView', function () {
 
       it("setBackgroundOperationHeader should be called", function() {
         view.set('parentView.isOpen', true);
+        view.resetState();
         expect(view.get('controller').setBackgroundOperationHeader.calledWith(false)).to.be.true;
       });
 
       it("controller.hosts should be empty", function() {
         view.set('controller.hosts', [Em.Object.create({})]);
         view.set('parentView.isOpen', true);
+        view.resetState();
         expect(view.get('controller.hosts')).to.be.empty;
       });
 
       it("setOnStart should be called", function() {
         view.set('parentView.isOpen', true);
-        //console.log("setOnStart.callCount:", view.setOnStart.callCount);
-        expect(view.setOnStart.calledOnce, "calledOnce").to.be.true;
+        view.resetState();
+        expect(view.setOnStart.called).to.be.true;
       });
 
       it("rerender should be called", function() {
         view.set('parentView.isOpen', true);
-        expect(view.rerender.calledOnce).to.be.true;
+        view.resetState();
+        expect(view.rerender.called).to.be.true;
       });
     });
 

@@ -20,6 +20,10 @@
   vertical-align: baseline;
 }
 
+#user-management .search-box-row {
+  margin-top: -1px;
+}
+
 #user-management .nav.nav-tabs {
   margin-bottom: 0;
 }

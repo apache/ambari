@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.conf.LogFeederSecurityConfig;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
@@ -52,12 +54,16 @@ public class OutputSolrTest {
   private OutputSolr outputSolr;
   private LogSearchConfigLogFeeder logSearchConfigMock;
   private Map<Integer, SolrInputDocument> receivedDocs = new ConcurrentHashMap<>();
+  private LogFeederProps logFeederProps = new LogFeederProps();
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
   @Before
   public void init() throws Exception {
+    LogFeederSecurityConfig logFeederSecurityConfig = new LogFeederSecurityConfig();
+    logFeederSecurityConfig.setSolrKerberosEnabled(false);
+    logFeederProps.setLogFeederSecurityConfig(logFeederSecurityConfig);
     outputSolr = new OutputSolr() {
       @SuppressWarnings("deprecation")
       @Override
@@ -97,7 +103,7 @@ public class OutputSolrTest {
     config.put("type", "service");
 
     outputSolr.loadConfig(config);
-    outputSolr.init();
+    outputSolr.init(logFeederProps);
 
     Map<Integer, SolrInputDocument> expectedDocs = new HashMap<>();
 
@@ -166,7 +172,7 @@ public class OutputSolrTest {
     config.put("type", "service");
 
     outputSolr.loadConfig(config);
-    outputSolr.init();
+    outputSolr.init(logFeederProps);
   }
 
   @After

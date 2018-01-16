@@ -43,7 +43,7 @@ angular.module('ambariAdminConsole')
   $scope.isGPLAccepted = false;
 
   $scope.isGPLRepo = function (repository) {
-    return repository.Repositories.tags.indexOf('GPL') >= 0;
+    return  repository.Repositories.tags && repository.Repositories.tags.indexOf('GPL') >= 0;
   };
 
   $scope.showRepo = function (repository) {

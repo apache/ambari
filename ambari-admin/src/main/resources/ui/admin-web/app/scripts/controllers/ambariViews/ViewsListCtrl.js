@@ -18,11 +18,108 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$translate', 'Settings', function($scope, View, $modal, Alert, ConfirmationModal, $translate, Settings) {
+.controller('ViewsListCtrl',
+['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$translate', 'Settings', 'Pagination', 'Filters',
+function($scope, View, $modal, Alert, ConfirmationModal, $translate, Settings, Pagination, Filters) {
   var $t = $translate.instant;
   var VIEWS_VERSION_STATUS_TIMEOUT = 5000;
   $scope.isLoading = false;
   $scope.minInstanceForPagination = Settings.minRowsToShowPagination;
+
+  $scope.filters = [
+    {
+      key: 'short_url_name',
+      label: $t('common.name'),
+      options: []
+    },
+    {
+      key: 'url',
+      label: $t('urls.url'),
+      customValueConverter: function(item) {
+        return '/main/view/' + item.view_name + '/' + item.short_url;
+      },
+      options: []
+    },
+    {
+      key: 'view_name',
+      label: $t('views.table.viewType'),
+      options: []
+    },
+    {
+      key: 'instance_name',
+      label: $t('urls.viewInstance'),
+      options: []
+    }
+  ];
+  $scope.views = [];
+  $scope.instances = [];
+  $scope.tableInfo = {
+    filtered: 0,
+    showed: 0,
+    total: 0
+  };
+  $scope.pagination = Pagination.create();
+
+  $scope.resetPagination = function() {
+    $scope.pagination.resetPagination($scope.instances, $scope.tableInfo);
+  };
+
+  $scope.pageChanged = function() {
+    $scope.pagination.pageChanged($scope.instances, $scope.tableInfo);
+  };
+
+  $scope.filterInstances = function(appliedFilters) {
+    $scope.tableInfo.filtered = Filters.filterItems(appliedFilters, $scope.instances, $scope.filters);
+    $scope.pagination.resetPagination($scope.instances, $scope.tableInfo);
+  };
+
+  $scope.toggleSearchBox = function() {
+    $('.search-box-button .popup-arrow-up, .search-box-row').toggleClass('hide');
+  };
+
+  $scope.cloneInstance = function(instanceClone) {
+    $scope.createInstance(instanceClone);
+  };
+
+  $scope.createInstance = function (instanceClone) {
+    var modalInstance = $modal.open({
+      templateUrl: 'views/ambariViews/modals/create.html',
+      controller: 'CreateViewInstanceCtrl',
+      resolve: {
+        views: function() {
+          return $scope.views;
+        },
+        instanceClone: function() {
+          return instanceClone;
+        }
+      },
+      backdrop: 'static'
+    });
+
+    modalInstance.result.then(loadViews);
+  };
+
+  $scope.deleteInstance = function (instance) {
+    ConfirmationModal.show(
+      $t('common.delete', {
+        term: $t('views.viewInstance')
+      }),
+      $t('common.deleteConfirmation', {
+        instanceType: $t('views.viewInstance'),
+        instanceName: instance.label
+      })
+    ).then(function () {
+      View.deleteInstance(instance.view_name, instance.version, instance.instance_name)
+        .then(function () {
+          loadViews();
+        })
+        .catch(function (data) {
+          Alert.error($t('views.alerts.cannotDeleteInstance'), data.data.message);
+        });
+    });
+  };
+
+  loadViews();
 
   function checkViewVersionStatus(view, versionObj, versionNumber) {
     var deferred = View.checkViewVersionStatus(view.view_name, versionNumber);
@@ -66,145 +163,12 @@ angular.module('ambariAdminConsole')
           $scope.instances.push(instance.ViewInstanceInfo);
         });
       });
-      initTypeFilter();
+      $scope.tableInfo.total = $scope.instances.length;
+      Filters.initFilterOptions($scope.filters, $scope.instances);
       $scope.filterInstances();
     }).catch(function (data) {
       Alert.error($t('views.alerts.cannotLoadViews'), data.data.message);
     });
   }
 
-  function initTypeFilter() {
-    var uniqTypes = $.unique($scope.instances.map(function(instance) {
-      return instance.view_name;
-    }));
-    $scope.typeFilterOptions = [ { label: $t('common.all'), value: '*'} ]
-      .concat(uniqTypes.map(function(type) {
-        return {
-          label: type,
-          value: type
-        };
-      }));
-    $scope.instanceTypeFilter = $scope.typeFilterOptions[0];
-  }
-
-  function showInstancesOnPage() {
-    var startIndex = ($scope.currentPage - 1) * $scope.instancesPerPage + 1;
-    var endIndex = $scope.currentPage * $scope.instancesPerPage;
-    var showedCount = 0;
-    var filteredCount = 0;
-
-    angular.forEach($scope.instances, function(instance) {
-      instance.isShowed = false;
-      if (instance.isFiltered) {
-        filteredCount++;
-        if (filteredCount >= startIndex && filteredCount <= endIndex) {
-          instance.isShowed = true;
-          showedCount++;
-        }
-      }
-    });
-    $scope.tableInfo.showed = showedCount;
-  }
-
-  $scope.views = [];
-  $scope.instances = [];
-  $scope.instancesPerPage = 10;
-  $scope.currentPage = 1;
-  $scope.instanceNameFilter = '';
-  $scope.instanceUrlFilter = '';
-  $scope.maxVisiblePages = 10;
-  $scope.isNotEmptyFilter = true;
-  $scope.instanceTypeFilter = '';
-  $scope.tableInfo = {
-    filtered: 0,
-    showed: 0
-  };
-
-  loadViews();
-
-  $scope.filterInstances = function() {
-    var filteredCount = 0;
-    angular.forEach($scope.instances, function(instance) {
-      if ($scope.instanceNameFilter && instance.short_url_name.indexOf($scope.instanceNameFilter) === -1) {
-        return instance.isFiltered = false;
-      }
-      if ($scope.instanceUrlFilter && ('/main/view/'+ instance.view_name + '/' + instance.short_url).indexOf($scope.instanceUrlFilter) === -1) {
-        return instance.isFiltered = false;
-      }
-      if ($scope.instanceTypeFilter.value !== '*' && instance.view_name.indexOf($scope.instanceTypeFilter.value) === -1) {
-        return instance.isFiltered = false;
-      }
-      filteredCount++;
-      instance.isFiltered = true;
-    });
-    $scope.tableInfo.filtered = filteredCount;
-    $scope.resetPagination();
-  };
-
-  $scope.pageChanged = function() {
-    showInstancesOnPage();
-  };
-
-  $scope.resetPagination = function() {
-    $scope.currentPage = 1;
-    showInstancesOnPage();
-  };
-
-  $scope.clearFilters = function () {
-    $scope.instanceNameFilter = '';
-    $scope.instanceUrlFilter = '';
-    $scope.instanceTypeFilter = $scope.typeFilterOptions[0];
-    $scope.resetPagination();
-  };
-
-  $scope.$watch(
-    function (scope) {
-      return Boolean(scope.instanceNameFilter || scope.instanceUrlFilter || (scope.instanceTypeFilter && scope.instanceTypeFilter.value !== '*'));
-    },
-    function (newValue, oldValue, scope) {
-      scope.isNotEmptyFilter = newValue;
-    }
-  );
-
-  $scope.cloneInstance = function(instanceClone) {
-    $scope.createInstance(instanceClone);
-  };
-
-  $scope.createInstance = function (instanceClone) {
-    var modalInstance = $modal.open({
-      templateUrl: 'views/ambariViews/modals/create.html',
-      controller: 'CreateViewInstanceCtrl',
-      resolve: {
-        views: function() {
-          return $scope.views;
-        },
-        instanceClone: function() {
-          return instanceClone;
-        }
-      },
-      backdrop: 'static'
-    });
-
-    modalInstance.result.then(loadViews);
-  };
-
-  $scope.deleteInstance = function (instance) {
-    ConfirmationModal.show(
-      $t('common.delete', {
-        term: $t('views.viewInstance')
-      }),
-      $t('common.deleteConfirmation', {
-        instanceType: $t('views.viewInstance'),
-        instanceName: instance.label
-      })
-    ).then(function () {
-      View.deleteInstance(instance.view_name, instance.version, instance.instance_name)
-        .then(function () {
-          loadViews();
-        })
-        .catch(function (data) {
-          Alert.error($t('views.alerts.cannotDeleteInstance'), data.data.message);
-        });
-    });
-  };
 }]);

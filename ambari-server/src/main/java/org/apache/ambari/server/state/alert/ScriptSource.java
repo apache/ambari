@@ -37,6 +37,10 @@ public class ScriptSource extends ParameterizedSource {
     return m_path;
   }
 
+  public void setPath(String path) {
+    m_path = path;
+  }
+
   /**
    * {@inheritDoc}
    */

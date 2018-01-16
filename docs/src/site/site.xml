@@ -107,6 +107,8 @@
       <item name="Quick Start Guide" href="https://cwiki.apache.org/confluence/display/AMBARI/Quick+Start+Guide"/>
       <item name="Features + Roadmap" href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=30755705"/>
       <item name="API Reference" href="https://github.com/apache/ambari/blob/trunk/ambari-server/docs/api/v1/index.md"/>
+      <item name="Install Guide for 2.6.1" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.6.1"/>
+      <item name="Install Guide for 2.6.0" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.6.0"/>
       <item name="Install Guide for 2.5.2" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.5.2"/>
       <item name="Install Guide for 2.5.1" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.5.1"/>
       <item name="Install Guide for 2.5.0" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.5.0"/>
@@ -142,12 +144,14 @@
     </menu>
 
     <menu name="Releases">
-      <item name="2.5.2" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.5.2"/>
-      <item name="2.5.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.5.1"/>
-      <item name="2.5.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.5.0"/>
-      <item name="2.4.3" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.4.3"/>
-      <item name="2.4.2" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.4.2"/>
-      <item name="2.4.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.4.1"/>
+      <item name="2.6.1" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-2.6.1"/>
+      <item name="2.6.0" href="http://archive.apache.org/dist/ambari/ambari-2.6.0"/>
+      <item name="2.5.2" href="http://archive.apache.org/dist/ambari/ambari-2.5.2"/>
+      <item name="2.5.1" href="http://archive.apache.org/dist/ambari/ambari-2.5.1"/>
+      <item name="2.5.0" href="http://archive.apache.org/dist/ambari/ambari-2.5.0"/>
+      <item name="2.4.3" href="http://archive.apache.org/dist/ambari/ambari-2.4.3"/>
+      <item name="2.4.2" href="http://archive.apache.org/dist/ambari/ambari-2.4.2"/>
+      <item name="2.4.1" href="http://archive.apache.org/dist/ambari/ambari-2.4.1"/>
       <item name="2.4.0" href="http://archive.apache.org/dist/ambari/ambari-2.4.0"/>
       <item name="2.2.2" href="http://archive.apache.org/dist/ambari/ambari-2.2.2"/>
       <item name="2.2.1" href="http://archive.apache.org/dist/ambari/ambari-2.2.1"/>

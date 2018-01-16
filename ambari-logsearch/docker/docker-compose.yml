@@ -64,7 +64,6 @@ services:
       - $AMBARI_LOCATION:/root/ambari
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
-      - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes/org:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/org
   logfeeder:
     image: ambari-logsearch:v1.0
     restart: always
@@ -83,7 +82,6 @@ services:
       - $AMBARI_LOCATION:/root/ambari
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
       - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
-      - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-logfeeder/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes
 networks:
    logsearch-network:
       driver: bridge

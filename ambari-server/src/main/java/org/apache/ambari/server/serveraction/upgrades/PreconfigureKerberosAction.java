@@ -38,10 +38,11 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.PreconfigureServiceType;
@@ -94,9 +95,6 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
   @Inject
   private KerberosKeytabDAO kerberosKeytabDAO;
-
-  @Inject
-  KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   @Inject
   KerberosPrincipalDAO kerberosPrincipalDAO;
@@ -376,11 +374,11 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
             // component.
             String componentName = KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME.equals(identity.getName())
                 ? "AMBARI_SERVER_SELF"
-                : "AMBARI_SERVER";
+                : RootComponent.AMBARI_SERVER.name();
 
             List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
             kerberosHelper.addIdentities(null, componentIdentities,
-                null, KerberosHelper.AMBARI_SERVER_HOST_NAME, ambariServerHostID(), "AMBARI", componentName, kerberosConfigurations, currentConfigurations,
+                null, KerberosHelper.AMBARI_SERVER_HOST_NAME, ambariServerHostID(), RootService.AMBARI.name(), componentName, kerberosConfigurations, currentConfigurations,
                 resolvedKeytabs, realm);
             propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
           }
@@ -392,7 +390,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
         // create database records for keytabs that must be presented on cluster
         for (ResolvedKerberosKeytab keytab : resolvedKeytabs.values()) {
-          kerberosHelper.processResolvedKeytab(keytab);
+          kerberosHelper.createResolvedKeytab(keytab);
         }
       } catch (IOException e) {
         throw new AmbariException(e.getMessage(), e);

@@ -102,7 +102,7 @@ public class UpgradeSummaryResourceProvider extends AbstractControllerResourcePr
    * @param controller the controller
    */
   public UpgradeSummaryResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.UpgradeSummary, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

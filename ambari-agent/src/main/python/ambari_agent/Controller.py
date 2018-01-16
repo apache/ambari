@@ -164,18 +164,17 @@ class Controller(threading.Thread):
     while not self.isRegistered:
       try:
         data = json.dumps(self.register.build(self.version))
-        prettyData = pprint.pformat(data)
-
         try:
           server_ip = socket.gethostbyname(self.hostname)
-          logger.info("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, prettyData)
+          logger.info("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, data)
         except socket.error:
           logger.warn("Unable to determine the IP address of '%s', agent registration may fail (agent=%s)",
-                      self.hostname, prettyData)
+                      self.hostname, data)
 
         ret = self.sendRequest(self.registerUrl, data)
-        prettyData = pprint.pformat(ret)
-        logger.debug("Registration response is %s", prettyData)
+
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.debug("Registration response is %s", pprint.pformat(ret))
 
         # exitstatus is a code of error which was raised on server side.
         # exitstatus = 0 (OK - Default)
@@ -203,7 +202,7 @@ class Controller(threading.Thread):
         self.cluster_configuration.update_configurations_from_heartbeat(ret)
         self.recovery_manager.update_configuration_from_registration(ret)
         self.config.update_configuration_from_registration(ret)
-        logger.debug("Updated config:" + str(self.config))
+        logger.debug("Updated config: %s", self.config)
 
         # Start StatusCommandExecutor child process or restart it if already running
         # in order to receive up to date agent config.
@@ -419,7 +418,7 @@ class Controller(threading.Thread):
           logger.log(logging_level, "Executing alert commands")
           self.alert_scheduler_handler.execute_alert(response['alertExecutionCommands'])
 
-        if "true" == response['restartAgent']:
+        if response['restartAgent']:
           logger.error("Received the restartAgent command")
           self.restartAgent()
         else:
@@ -557,11 +556,11 @@ class Controller(threading.Thread):
     if LiveStatus.SERVICES:
       return
 
-    logger.debug("Updating components map of cluster " + cluster_name)
+    logger.debug("Updating components map of cluster %s", cluster_name)
 
     # May throw IOError on server connection error
     response = self.sendRequest(self.componentsUrl + cluster_name, None)
-    logger.debug("Response from %s was %s", self.serverHostname, str(response))
+    logger.debug("Response from %s was %s", self.serverHostname, response)
 
     services, client_components, server_components = [], [], []
     for service, components in response['components'].items():
@@ -578,9 +577,9 @@ class Controller(threading.Thread):
     LiveStatus.COMPONENTS = server_components
 
     logger.debug("Components map updated")
-    logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
-    logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
-    logger.debug("LiveStatus.COMPONENTS" + str(LiveStatus.COMPONENTS))
+    logger.debug("LiveStatus.SERVICES %s", LiveStatus.SERVICES)
+    logger.debug("LiveStatus.CLIENT_COMPONENTS %s", LiveStatus.CLIENT_COMPONENTS)
+    logger.debug("LiveStatus.COMPONENTS %s", LiveStatus.COMPONENTS)
 
   def get_status_commands_executor(self):
     return self.statusCommandsExecutor

@@ -15,18 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<p><i class="glyphicon glyphicon-warning-sign"></i> {{t hosts.bulkOperation.deleteHosts.confirmation.body}}</p>
-{{#each host in view.hosts}}
-  <div><i>{{{host.deleted.key}}}</i></div>
-{{/each}}
+
+<div>{{{t hosts.bulkOperation.deleteHosts.confirmation.body.msg1}}}</div>
 <br />
-<div class='alert alert-warning'>{{{t common.important.strong}}}
-    {{t hosts.bulkOperation.deleteHosts.confirmation.body.msg1}}
+<div>
+  {{{t hosts.bulkOperation.deleteHosts.confirmation.body.msg2}}}
+  <span class="text-danger">{{t hosts.bulkOperation.deleteHosts.confirmation.body.msg3}}</span>
 </div>
 
-<div class='alert alert-warning'>
-    {{t hosts.bulkOperation.deleteHosts.confirmation.body.msg2}}
-    <span class="text-danger">{{t hosts.bulkOperation.deleteHosts.confirmation.body.msg3}}</span>
+<div class="form-inline align-center"><br />
+  <label><strong>{{view.typeMessage}}</strong></label>&nbsp;
+  {{view Ember.TextField valueBinding="view.parentView.confirmInput" class="input-sm form-control"}}<br />
 </div>
-
-<div class='alert alert-warning'>{{{t common.important.strong}}} {{t hosts.bulkOperation.deleteHosts.confirmation.body.msg4}}</div>

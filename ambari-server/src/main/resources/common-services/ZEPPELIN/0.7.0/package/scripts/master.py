@@ -137,9 +137,15 @@ class Master(Script):
     self.chown_zeppelin_pid_dir(env)
 
     # write out zeppelin-site.xml
+    my_map = {}
+    for key, value in params.config['configurations']['zeppelin-config'].iteritems():
+      my_map[key]=value
+    my_map['zeppelin.server.kerberos.keytab']=params.zeppelin_kerberos_keytab
+    my_map['zeppelin.server.kerberos.principal']=params.zeppelin_kerberos_principal
+
     XmlConfig("zeppelin-site.xml",
               conf_dir=params.conf_dir,
-              configurations=params.config['configurations']['zeppelin-config'],
+              configurations=my_map,
               owner=params.zeppelin_user,
               group=params.zeppelin_group
               )
@@ -403,7 +409,7 @@ class Master(Script):
     interpreter_settings = config_data['interpreterSettings']
     for interpreter_setting in interpreter_settings:
       interpreter = interpreter_settings[interpreter_setting]
-      if interpreter['group'] == 'livy' and params.livy_livyserver_host:
+      if interpreter['group'] == 'livy':
         if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
           interpreter['properties']['zeppelin.livy.principal'] = params.zeppelin_kerberos_principal
           interpreter['properties']['zeppelin.livy.keytab'] = params.zeppelin_kerberos_keytab
@@ -449,16 +455,6 @@ class Master(Script):
     import params
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
-
-    if 'spark2-defaults' in params.config['configurations']:
-      spark2_config = self.get_spark2_interpreter_config()
-      config_id = spark2_config["id"]
-      interpreter_settings[config_id] = spark2_config
-
-    if params.livy2_livyserver_host:
-      livy2_config = self.get_livy2_interpreter_config()
-      config_id = livy2_config["id"]
-      interpreter_settings[config_id] = livy2_config
 
     if params.zeppelin_interpreter:
       settings_to_delete = []
@@ -543,9 +539,14 @@ class Master(Script):
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
             interpreter['properties']['phoenix.driver'] = 'org.apache.phoenix.jdbc.PhoenixDriver'
-            interpreter['properties']['phoenix.hbase.client.retries.number'] = '1'
-            interpreter['properties']['phoenix.user'] = 'phoenixuser'
-            interpreter['properties']['phoenix.password'] = ''
+            if 'phoenix.hbase.client.retries.number' not in interpreter['properties']:
+              interpreter['properties']['phoenix.hbase.client.retries.number'] = '1'
+            if 'phoenix.phoenix.query.numberFormat' not in interpreter['properties']:
+              interpreter['properties']['phoenix.phoenix.query.numberFormat'] = '#.#'
+            if 'phoenix.user' not in interpreter['properties']:
+              interpreter['properties']['phoenix.user'] = 'phoenixuser'
+            if 'phoenix.password' not in interpreter['properties']:
+              interpreter['properties']['phoenix.password'] = ''
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
@@ -611,18 +612,6 @@ class Master(Script):
   def get_zeppelin_spark_dependencies(self):
     import params
     return glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies*.jar')
-
-  def get_spark2_interpreter_config(self):
-    import spark2_config_template
-    import json
-
-    return json.loads(spark2_config_template.template)
-
-  def get_livy2_interpreter_config(self):
-    import livy2_config_template
-    import json
-
-    return json.loads(livy2_config_template.template)
 
 if __name__ == "__main__":
   Master().execute()

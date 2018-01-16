@@ -21,18 +21,20 @@ package org.apache.ambari.logfeeder.common;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Maps;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputManager;
@@ -47,7 +49,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
-import org.apache.ambari.logfeeder.util.LogFeederPropertiesUtil;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
@@ -61,17 +62,26 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
+import org.springframework.core.io.ClassPathResource;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
 
 public class ConfigHandler implements InputConfigMonitor {
   private static final Logger LOG = Logger.getLogger(ConfigHandler.class);
 
   private final LogSearchConfigLogFeeder logSearchConfig;
-  
-  private final OutputManager outputManager = new OutputManager();
-  private final InputManager inputManager = new InputManager();
+
+  @Inject
+  private InputManager inputManager;
+  @Inject
+  private OutputManager outputManager;
+  @Inject
+  private LogFeederProps logFeederProps;
 
   private final Map<String, Object> globalConfigs = new HashMap<>();
-  private final List<String> globalConfigJsons = new ArrayList<String>();
+  private final List<String> globalConfigJsons = new ArrayList<>();
 
   private final List<InputDescriptor> inputConfigList = new ArrayList<>();
   private final List<FilterDescriptor> filterConfigList = new ArrayList<>();
@@ -82,9 +92,11 @@ public class ConfigHandler implements InputConfigMonitor {
   public ConfigHandler(LogSearchConfigLogFeeder logSearchConfig) {
     this.logSearchConfig = logSearchConfig;
   }
-  
+
+  @PostConstruct
   public void init() throws Exception {
     loadConfigFiles();
+    logSearchConfig.init(Maps.fromProperties(logFeederProps.getProperties()), logFeederProps.getClusterName());
     loadOutputs();
     simulateIfNeeded();
     
@@ -114,7 +126,7 @@ public class ConfigHandler implements InputConfigMonitor {
   private List<String> getConfigFiles() {
     List<String> configFiles = new ArrayList<>();
     
-    String logFeederConfigFilesProperty = LogFeederPropertiesUtil.getConfigFiles();
+    String logFeederConfigFilesProperty = logFeederProps.getConfigFiles();
     LOG.info("logfeeder.config.files=" + logFeederConfigFilesProperty);
     if (logFeederConfigFilesProperty != null) {
       configFiles.addAll(Arrays.asList(logFeederConfigFilesProperty.split(",")));
@@ -135,6 +147,10 @@ public class ConfigHandler implements InputConfigMonitor {
 
   private void loadConfigsUsingClassLoader(String configFileName) throws Exception {
     try (BufferedInputStream fis = (BufferedInputStream) this.getClass().getClassLoader().getResourceAsStream(configFileName)) {
+      ClassPathResource configFile = new ClassPathResource(configFileName);
+      if (!configFile.exists()) {
+        throw new FileNotFoundException(configFileName);
+      }
       String configData = IOUtils.toString(fis, Charset.defaultCharset());
       loadConfigs(configData);
     }
@@ -217,7 +233,7 @@ public class ConfigHandler implements InputConfigMonitor {
   }
   
   private void simulateIfNeeded() throws Exception {
-    int simulatedInputNumber = LogFeederPropertiesUtil.getSimulateInputNumber();
+    int simulatedInputNumber = logFeederProps.getInputSimulateConfig().getSimulateInputNumber();
     if (simulatedInputNumber == 0)
       return;
     
@@ -347,18 +363,15 @@ public class ConfigHandler implements InputConfigMonitor {
   }
 
   private void sortFilters() {
-    Collections.sort(filterConfigList, new Comparator<FilterDescriptor>() {
-      @Override
-      public int compare(FilterDescriptor o1, FilterDescriptor o2) {
-        Integer o1Sort = o1.getSortOrder();
-        Integer o2Sort = o2.getSortOrder();
-        if (o1Sort == null || o2Sort == null) {
-          return 0;
-        }
-        
-        return o1Sort - o2Sort;
+    Collections.sort(filterConfigList, (o1, o2) -> {
+      Integer o1Sort = o1.getSortOrder();
+      Integer o2Sort = o2.getSortOrder();
+      if (o1Sort == null || o2Sort == null) {
+        return 0;
       }
-    } );
+
+      return o1Sort - o2Sort;
+    });
   }
 
   private void assignOutputsToInputs(String serviceName) {
@@ -428,6 +441,7 @@ public class ConfigHandler implements InputConfigMonitor {
     outputManager.addMetricsContainers(metricsList);
   }
 
+  @PreDestroy
   public void close() {
     inputManager.close();
     outputManager.close();

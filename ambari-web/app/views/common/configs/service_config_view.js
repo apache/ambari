@@ -24,6 +24,10 @@ App.ServiceConfigView = Em.View.extend({
 
   isRestartMessageCollapsed: false,
 
+  isDiscardDisabled: Em.computed.or('!controller.versionLoaded', '!controller.isPropertiesChanged'),
+
+  isSaveDisabled: Em.computed.or('controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged'),
+
   /**
    * Bound from parent view in the template
    * @type {string}
@@ -58,6 +62,13 @@ App.ServiceConfigView = Em.View.extend({
     }
   }.property('controller.name', 'controller.selectedService'),
 
+  showSavePanel: function() {
+    return this.get('isOnTheServicePage') &&
+           !this.get('controller.isCompareMode') &&
+           this.get('controller.selectedVersionRecord.isCurrent') &&
+           !this.get('controller.isHostsConfigsPage');
+  }.property('isOnTheServicePage', 'controller.isCompareMode', 'controller.selectedVersionRecord.isCurrent', 'controller.isHostsConfigsPage'),
+
   /**
    * Determines if user is on the service configs page
    * @type {boolean}
@@ -81,6 +92,64 @@ App.ServiceConfigView = Em.View.extend({
   showHideAdvancedByFilter: function () {
     Em.run.once(this, 'updateFilterCounters');
   }.observes('controller.selectedService.configs.@each.isHiddenByFilter'),
+
+  /**
+   * save configuration
+   * @return {object}
+   */
+  save: function () {
+    var self = this;
+    var passwordWasChanged = this.get('controller.passwordConfigsAreChanged');
+    return App.ModalPopup.show({
+      header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
+      serviceConfigNote: '',
+      bodyClass: Em.View.extend({
+        templateName: require('templates/common/configs/save_configuration'),
+        classNames: ['col-md-12'],
+        showPasswordChangeWarning: passwordWasChanged,
+        notesArea: Em.TextArea.extend({
+          classNames: ['full-width'],
+          value: passwordWasChanged ? Em.I18n.t('dashboard.configHistory.info-bar.save.popup.notesForPasswordChange') : '',
+          placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder'),
+          didInsertElement: function () {
+            if (this.get('value')) {
+              this.onChangeValue();
+            }
+          },
+          onChangeValue: function() {
+            this.get('parentView.parentView').set('serviceConfigNote', this.get('value'));
+          }.observes('value')
+        })
+      }),
+      footerClass: Em.View.extend({
+        templateName: require('templates/main/service/info/save_popup_footer')
+      }),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.cancel'),
+      onSave: function () {
+        var newVersionToBeCreated = App.ServiceConfigVersion.find().filterProperty('serviceName', self.get('serviceName')).get('length') + 1;
+        self.get('controller').setProperties({
+          saveConfigsFlag: true,
+          serviceConfigVersionNote: this.get('serviceConfigNote'),
+          preSelectedConfigVersion: Em.Object.create({
+            version: newVersionToBeCreated,
+            serviceName: self.get('controller.content.serviceName'),
+            groupName: self.get('controller.selectedConfigGroup.name')
+          })
+        });
+        self.get('controller').saveStepConfigs();
+        this.hide();
+      },
+      onDiscard: function () {
+        this.hide();
+        self.set('controller.preSelectedConfigVersion', null);
+        self.get('controller').loadStep();
+      },
+      onCancel: function () {
+        this.hide();
+      }
+    });
+  },
 
   /**
    * updates filter counters for advanced tab

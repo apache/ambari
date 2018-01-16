@@ -53,7 +53,7 @@ def setup_logsearch():
             owner=params.logsearch_user,
             group=params.user_group)
 
-  File(params.logsearch_log,
+  File(format("{logsearch_log_dir}/{logsearch_log}"),
        mode=0644,
        owner=params.logsearch_user,
        group=params.user_group,

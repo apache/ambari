@@ -26,6 +26,7 @@ import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.common.LogFeederException;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterJsonDescriptorImpl;
@@ -54,7 +55,7 @@ public class FilterJSONTest {
     filterJson = new FilterJSON();
     filterJson.loadConfig(filterJsonDescriptor);
     filterJson.setOutputManager(mockOutputManager);
-    filterJson.init();
+    filterJson.init(new LogFeederProps());
   }
 
   @Test

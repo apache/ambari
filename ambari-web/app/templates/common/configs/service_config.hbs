@@ -45,54 +45,61 @@
     </div>
   {{/if}}
 {{/if}}
-{{#if view.supportsHostOverrides}}
-  <div class="alert alert-info config-manage-nav">
 
-    {{t common.group}}&nbsp;
-	  <span class="btn-group config-groups-dropdown">
-      {{#if controller.configGroupsAreLoaded}}
-        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} style="text-transform: none;" class="btn btn-default dropdown-toggle first"
-                                                                      data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
-        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu config-groups-dropdown-menu">
-          <!-- available config group menu links -->
-          {{#each configGroup in configGroups}}
-            <li>
-              <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
-                {{configGroup.displayNameHosts}}
-              </a>
-            </li>
-          {{/each}}
-        </ul>
+
+<div>
+  <div class="mbm">
+    {{#if view.isOnTheServicePage}}
+      {{#if allVersionsLoaded}}
+        {{view App.ConfigVersionsControlView}}
       {{else}}
-        {{view App.SpinnerView classNames="pull-left"}}
+        {{view App.SpinnerView}}
       {{/if}}
-		</span>
+    {{/if}}
+  </div>
+  {{#if view.supportsHostOverrides}}
+    <div {{bindAttr class="controller.isCompareMode:pull-bottom :pull-top controller.isHostsConfigsPage:pull-bottom :config-manage-nav :pull-right"}}>
       {{#if controller.isHostsConfigsPage}}
         {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
           &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
         {{/isAuthorized}}
-      {{else}}
-        {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
-            <a href="#" class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
-        {{/isAuthorized}}
       {{/if}}
-    <div class="pull-right">
-      {{view App.FilterComboCleanableView filterBinding="view.filter" columnsBinding="view.columns" popoverDescriptionBinding="view.propertyFilterPopover"}}
-    </div>
-    <div class="clearfix"></div>
-  </div>
-{{/if}}
+      {{t common.configGroup}}&nbsp;
+      {{#if controller.configGroupsAreLoaded}}
+        <div class="btn-group config-groups-dropdown">
+          <button {{bindAttr disabled="controller.isHostsConfigsPage"}}
+            class="btn btn-default dropdown-toggle"
+            data-toggle="dropdown">
+            {{selectedConfigGroup.displayNameHosts}}
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu config-groups-dropdown-menu">
+            {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
+              <li>
+                <a href="#" class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t
+                  services.service.actions.manage_configuration_groups.short}}</a>
+              </li>
+              <li role="separator" class="divider"></li>
+            {{/isAuthorized}}
+            <!-- available config group menu links -->
+            {{#each configGroup in configGroups}}
+              <li>
+                <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
+                  {{configGroup.displayNameHosts}}
+                </a>
+              </li>
+            {{/each}}
+          </ul>
+        </div>
+      {{else}}
+        {{view App.SpinnerView classNames="pull-left"}}
+      {{/if}}
+      {{view App.FilterComboCleanableView classNames="col-lg-4" filterBinding="view.filter"
+             columnsBinding="view.columns" popoverDescriptionBinding="view.propertyFilterPopover"}}
 
-{{#if view.isOnTheServicePage}}
-  {{#if allVersionsLoaded}}
-    {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
-  {{else}}
-    {{view App.SpinnerView}}
+    </div>
   {{/if}}
-{{/if}}
+</div>
 
 {{#if versionLoaded}}
   {{#unless hideDependenciesInfoBar}}
@@ -131,16 +138,40 @@
     </ul>
     <div class="tab-content service-config-tab-content">
       {{#each tab in view.tabs}}
-        <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
+        <div {{bindAttr class=":tab-pane tab.isActive:active isCompareMode:settings-compare-layout tab.id"}}>
           {{#if tab.isAdvanced}}
             {{#if tab.isRendered}}
+              {{#if isCompareMode}}
+                <div class="row bottom-border comparison-table-header">
+                  <div class="col-md-3 property-name-column">{{t common.propertyName}}</div>
+                  <div class="col-md-4 property-value-column">
+                    {{t common.version}}&nbsp;{{selectedVersionRecord.version}}
+                    {{#if selectedVersionRecord.isCurrent}}
+                      <span class="label label-success">{{t common.current}}</span>
+                    {{/if}}
+                  </div>
+                  <div class="col-md-4 col-md-offset-1 property-value-column">
+                    {{t common.version}}&nbsp;{{compareServiceVersion.version}}
+                    {{#if compareServiceVersion.isCurrent}}
+                      <span class="label label-success">{{t common.current}}</span>
+                    {{/if}}
+                  </div>
+                </div>
+              {{/if}}
               {{view App.ConfigCategoryContainerView categoriesBinding="selectedService.configCategories" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
             {{else}}
               {{view App.SpinnerView}}
             {{/if}}
           {{else}}
               {{! Render Enhanced Config Section }}
-              {{view App.ServiceConfigLayoutTabView contentBinding="tab" canEditBinding="view.canEdit" }}
+              {{#if isCompareMode}}
+                {{view App.ServiceConfigLayoutTabCompareView
+                       contentBinding="tab"
+                       primaryCompareVersionBinding="selectedVersionRecord"
+                       secondaryCompareVersionBinding="compareServiceVersion"}}
+              {{else}}
+                {{view App.ServiceConfigLayoutTabView contentBinding="tab" canEditBinding="view.canEdit" }}
+              {{/if}}
           {{/if}}
         </div>
       {{/each}}
@@ -149,10 +180,24 @@
     {{view App.ConfigCategoryContainerView categoriesBinding="selectedService.configCategories" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
   {{/if}}
   {{#if view.isAllConfigsHidden}}
-    <div class="alert alert-info col-sm-12">
+    <div class="alert alert-info">
       {{t services.service.config.nothing.to.display}}
     </div>
   {{/if}}
 {{else}}
   {{view App.SpinnerView}}
 {{/if}}
+
+<div class="configs-save-panel" {{bindAttr class="view.showSavePanel::hidden"}}>
+  <div class="pull-right">
+    <button class="btn btn-default" {{action doCancel target="controller"}}
+      {{bindAttr disabled="view.isDiscardDisabled"}}>
+      {{t common.discard}}
+    </button> &nbsp;
+    <button class="btn btn-success" {{action save target="view"}}
+      {{bindAttr disabled="view.isSaveDisabled"}}>
+      {{t common.save}}
+    </button>
+  </div>
+  <div class="clearfix"></div>
+</div>

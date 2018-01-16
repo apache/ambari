@@ -301,7 +301,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }
     } else {
       // from install wizard
-      var selectedStack = App.Stack.find().findProperty('isSelected');
+      var selectedStack = App.Stack.find().findProperty('isSelected', true);
       var allRepos = [];
       if (selectedStack && selectedStack.get('operatingSystems')) {
         selectedStack.get('operatingSystems').forEach(function (os) {

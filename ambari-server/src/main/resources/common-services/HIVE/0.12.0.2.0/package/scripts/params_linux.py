@@ -109,7 +109,9 @@ stack_supports_hive_interactive_ga = check_stack_feature(StackFeature.HIVE_INTER
 component_directory = status_params.component_directory
 component_directory_interactive = status_params.component_directory_interactive
 
+# used to render hadoop configurations, such as writing out its own mapreduce2 configs
 hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 hive_bin = format('{stack_root}/current/{component_directory}/bin')
 hive_cmd = os.path.join(hive_bin, "hive")

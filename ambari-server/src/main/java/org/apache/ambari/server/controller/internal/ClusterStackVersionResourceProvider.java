@@ -219,7 +219,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Inject
   public ClusterStackVersionResourceProvider(
           AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Type.ClusterStackVersion, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS, RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS, RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK));
@@ -449,18 +449,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     // dependencies
     try {
       if (repoVersionEntity.getType().isPartial()) {
-        Map<String, Set<String>> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster);
+        Set<String> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster);
 
         if (!missingDependencies.isEmpty()) {
-          StringBuilder message = new StringBuilder(
-              "The following services are included in this repository, but the repository is missing their dependencies: ").append(
-                  System.lineSeparator());
-
-          for (String failedService : missingDependencies.keySet()) {
-            message.append(String.format("%s requires the following services: %s", failedService,
-                StringUtils.join(missingDependencies.get(failedService), ','))).append(
-                    System.lineSeparator());
-          }
+          String message = String.format(
+              "The following services are also required to be included in this upgrade: %s",
+              StringUtils.join(missingDependencies, ", "));
 
           throw new SystemException(message.toString());
         }

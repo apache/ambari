@@ -136,7 +136,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.isDeletable = function() {
-    return !($scope.repoStatus == 'current' || $scope.repoStatus == 'installed');
+    return !($scope.repoStatus === 'CURRENT' || $scope.repoStatus === 'INSTALLED');
   };
 
   $scope.disableUnusedOS = function() {

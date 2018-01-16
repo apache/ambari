@@ -29,7 +29,6 @@ services:
           - $AMBARI_LOCATION:/root/ambari
           - $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs
           - $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config
-          - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes/org:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/org
 networks:
      logsearch-network:
         driver: bridge
