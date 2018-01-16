@@ -178,6 +178,8 @@ public class BlueprintImplTest {
     Configuration group2Configuration = new Configuration(group2Props, EMPTY_ATTRIBUTES, configuration);
     expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
 
+    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
+
     expect(group1.getCardinality()).andReturn("1").atLeastOnce();
     expect(group1.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"),new Component("ZKFC"))).atLeastOnce();
     expect(group2.getCardinality()).andReturn("1").atLeastOnce();
@@ -198,13 +200,13 @@ public class BlueprintImplTest {
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group1%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
-    replay(stack, group1, group2);
+    replay(stack, group1, group2, serverConfig);
 
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
     blueprint.validateRequiredProperties();
     BlueprintEntity entity = blueprint.toEntity();
 
-    verify(stack, group1, group2);
+    verify(stack, group1, group2, serverConfig);
     assertTrue(entity.getSecurityType() == SecurityType.NONE);
     assertTrue(entity.getSecurityDescriptorReference() == null);
   }
