@@ -16,23 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.deleting;
+package org.apache.ambari.infra.conf;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
-@ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentDeletingPropertyMap {
-  private Map<String, DocumentDeletingProperties> solrDataDeleting;
-
-  public Map<String, DocumentDeletingProperties> getSolrDataDeleting() {
-    return solrDataDeleting;
-  }
-
-  public void setSolrDataDeleting(Map<String, DocumentDeletingProperties> solrDataDeleting) {
-    this.solrDataDeleting = solrDataDeleting;
+public class InfraManagerSchedulingConfig {
+  @Bean
+  public TaskScheduler taskScheduler() {
+    return new ThreadPoolTaskScheduler();
   }
 }
