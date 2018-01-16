@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
 
@@ -34,17 +36,13 @@ public class BlueprintMpackConfigEntityPk {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     BlueprintMpackConfigEntityPk that = (BlueprintMpackConfigEntityPk) o;
-
-    if (mpackRefId != null ? !mpackRefId.equals(that.mpackRefId) : that.mpackRefId != null) return false;
-    return type != null ? type.equals(that.type) : that.type == null;
+    return Objects.equals(mpackRefId, that.mpackRefId) &&
+      Objects.equals(type, that.type);
   }
 
   @Override
   public int hashCode() {
-    int result = mpackRefId != null ? mpackRefId.hashCode() : 0;
-    result = 31 * result + (type != null ? type.hashCode() : 0);
-    return result;
+    return Objects.hash(mpackRefId, type);
   }
 }

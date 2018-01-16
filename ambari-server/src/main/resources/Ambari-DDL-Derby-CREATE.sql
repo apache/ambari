@@ -582,7 +582,6 @@ CREATE TABLE requestschedulebatchrequest (
   return_message varchar(20000),
   CONSTRAINT PK_requestschedulebatchrequest PRIMARY KEY (schedule_id, batch_id),
   CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id));
-  CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id));
 
 CREATE TABLE blueprint (
   blueprint_name VARCHAR(255) NOT NULL,
