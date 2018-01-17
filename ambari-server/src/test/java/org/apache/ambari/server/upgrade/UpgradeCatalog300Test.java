@@ -58,7 +58,10 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -74,7 +77,9 @@ import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import com.google.common.collect.ImmutableMap;
@@ -88,6 +93,8 @@ import com.google.inject.Provider;
 
 @RunWith(EasyMockRunner.class)
 public class UpgradeCatalog300Test {
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Mock(type = MockType.STRICT)
   private Provider<EntityManager> entityManagerProvider;
@@ -119,6 +126,9 @@ public class UpgradeCatalog300Test {
   @Mock(type = MockType.NICE)
   private Cluster cluster;
 
+  @Mock(type = MockType.NICE)
+  AmbariConfigurationDAO ambariConfigurationDao;
+
   @Before
   public void init() {
     reset(entityManagerProvider, injector);
@@ -142,6 +152,7 @@ public class UpgradeCatalog300Test {
     Method setStatusOfStagesAndRequests = UpgradeCatalog300.class.getDeclaredMethod("setStatusOfStagesAndRequests");
     Method updateLogSearchConfigs = UpgradeCatalog300.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateKerberosConfigurations = UpgradeCatalog300.class.getDeclaredMethod("updateKerberosConfigurations");
+    Method upgradeLdapConfiguration = UpgradeCatalog300.class.getDeclaredMethod("upgradeLdapConfiguration");
 
     UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
         .addMockedMethod(showHcatDeletedUserMessage)
@@ -149,17 +160,26 @@ public class UpgradeCatalog300Test {
         .addMockedMethod(setStatusOfStagesAndRequests)
         .addMockedMethod(updateLogSearchConfigs)
         .addMockedMethod(updateKerberosConfigurations)
+        .addMockedMethod(upgradeLdapConfiguration)
         .createMock();
 
 
     upgradeCatalog300.addNewConfigurationsFromXml();
+    expectLastCall().once();
+
     upgradeCatalog300.showHcatDeletedUserMessage();
+    expectLastCall().once();
+
     upgradeCatalog300.setStatusOfStagesAndRequests();
+    expectLastCall().once();
 
     upgradeCatalog300.updateLogSearchConfigs();
     expectLastCall().once();
 
     upgradeCatalog300.updateKerberosConfigurations();
+    expectLastCall().once();
+
+    upgradeCatalog300.upgradeLdapConfiguration();
     expectLastCall().once();
 
     replay(upgradeCatalog300);
@@ -171,15 +191,7 @@ public class UpgradeCatalog300Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-      }
-    };
+    Module module = getTestGuiceModule();
 
     Capture<DBAccessor.DBColumnInfo> hrcOpsDisplayNameColumn = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
@@ -241,6 +253,20 @@ public class UpgradeCatalog300Test {
     // Ambari configuration table addition...
 
     verify(dbAccessor);
+  }
+
+  private Module getTestGuiceModule() {
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(osFamily);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(Configuration.class).toInstance(configuration);
+        binder.bind(AmbariConfigurationDAO.class).toInstance(ambariConfigurationDao);
+      }
+    };
+    return module;
   }
 
   @Test
@@ -506,5 +532,41 @@ public class UpgradeCatalog300Test {
     Assert.assertEquals(2, propertiesWithGroup.size());
     Assert.assertEquals("ambari_managed_identities", propertiesWithGroup.get("group"));
     Assert.assertEquals("host1.example.com", propertiesWithGroup.get("kdc_host"));
+  }
+
+  @Test
+  public void shouldSaveLdapConfigurationIfPropertyIsSetInAmbariProperties() throws Exception {
+    final Module module = getTestGuiceModule();
+
+    expect(configuration.getProperty("ambari.ldap.isConfigured")).andReturn("true").anyTimes();
+
+    expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
+    replay(configuration, entityManager, ambariConfigurationDao);
+
+    final Injector injector = Guice.createInjector(module);
+    final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
+    upgradeCatalog300.upgradeLdapConfiguration();
+    verify(configuration, entityManager, ambariConfigurationDao);
+  }
+
+  @Test
+  public void shouldNotSaveLdapConfigurationIfPropertyIsNotSetInAmbariProperties() throws Exception {
+    final Module module = getTestGuiceModule();
+    expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
+    replay(configuration, entityManager, ambariConfigurationDao);
+
+    final Injector injector = Guice.createInjector(module);
+    final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
+    upgradeCatalog300.upgradeLdapConfiguration();
+
+    expectedException.expect(AssertionError.class);
+    expectedException.expectMessage("Expectation failure on verify");
+    verify(configuration, entityManager, ambariConfigurationDao);
   }
 }

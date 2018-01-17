@@ -20,11 +20,13 @@ package org.apache.ambari.server.configuration;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -34,6 +36,7 @@ import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.Markdown;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -2851,6 +2855,48 @@ public class Configuration {
     }
 
     return properties;
+  }
+
+  /**
+   * Writes the given properties into the configuration file
+   *
+   * @param propertiesToWrite
+   *          the properties to be stored
+   * @param append
+   *          if {@code true} the given properties will be added at the end of the
+   *          configuration file; otherwise a brand new configuration file will be
+   *          produced
+   * @throws AmbariException
+   *           if there was any issue when clearing ambari.properties
+   */
+  private void writeConfigFile(Properties propertiesToStore, boolean append) throws AmbariException {
+    File configFile = null;
+    try {
+      configFile = new File(Configuration.class.getClassLoader().getResource(Configuration.CONFIG_FILE).getPath());
+      propertiesToStore.store(new OutputStreamWriter(new FileOutputStream(configFile, append), Charsets.UTF_8), null);
+    } catch (Exception e) {
+      LOG.error("Cannot write properties [" + propertiesToStore + "] into configuration file [" + configFile + ", " + append + "] ");
+      throw new AmbariException("Error while clearing ambari.properties", e);
+    }
+  }
+
+  /**
+   * Removing the given properties from ambari.properties (i.e. at upgrade time)
+   *
+   * @param propertiesToBeCleared
+   *          the properties to be removed
+   * @throws AmbariException
+   *           if there was any issue when clearing ambari.properties
+   */
+  public void removePropertiesFromAmbariProperties(Collection<String> propertiesToBeRemoved) throws AmbariException {
+    final Properties existingProperties = readConfigFile();
+    propertiesToBeRemoved.forEach(key -> {
+      existingProperties.remove(key);
+    });
+    writeConfigFile(existingProperties, false);
+
+    // reloading properties
+    this.properties = readConfigFile();
   }
 
   /**
