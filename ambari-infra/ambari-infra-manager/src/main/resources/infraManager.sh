@@ -14,12 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JVM="java"
-
-if [ -x $JAVA_HOME/bin/java ]; then
-  JVM=$JAVA_HOME/bin/java
-fi
-
 if [ "$INFRA_MANAGER_JAVA_MEM" = "" ]; then
     INFRA_MANAGER_JAVA_MEM="-Xmx1g"
 fi
@@ -46,6 +40,12 @@ fi
 
 if [ -f "$INFRA_MANAGER_CONF_DIR/infra-manager-env.sh" ]; then
   source $INFRA_MANAGER_CONF_DIR/infra-manager-env.sh
+fi
+
+JVM="java"
+
+if [ -x $JAVA_HOME/bin/java ]; then
+  JVM=$JAVA_HOME/bin/java
 fi
 
 if [ ! -z "$INFRA_MANAGER_SOLR_CLIENT_SSL_INCLUDE" ]; then

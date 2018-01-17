@@ -48,7 +48,7 @@ public class DocumentArchivingConfiguration {
   private static final DocumentWiper NOT_DELETE = (firstDocument, lastDocument) -> { };
 
   @Inject
-  private DocumentExportPropertyMap propertyMap;
+  private DocumentArchivingPropertyMap propertyMap;
 
   @Inject
   private StepBuilderFactory steps;
@@ -66,12 +66,12 @@ public class DocumentArchivingConfiguration {
 
   @PostConstruct
   public void createJobs() {
-    if (propertyMap == null || propertyMap.getSolrDataExport() == null)
+    if (propertyMap == null || propertyMap.getSolrDataArchiving() == null)
       return;
 
-    propertyMap.getSolrDataExport().values().forEach(DocumentExportProperties::validate);
+    propertyMap.getSolrDataArchiving().values().forEach(DocumentArchivingProperties::validate);
 
-    propertyMap.getSolrDataExport().keySet().forEach(jobName -> {
+    propertyMap.getSolrDataArchiving().keySet().forEach(jobName -> {
       LOG.info("Registering data archiving job {}", jobName);
       Job job = logExportJob(jobName, exportStep);
       jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
@@ -94,7 +94,7 @@ public class DocumentArchivingConfiguration {
   @StepScope
   public DocumentExporter documentExporter(DocumentItemReader documentItemReader,
                                            @Value("#{stepExecution.jobExecution.id}") String jobId,
-                                           @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties,
+                                           @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties,
                                            InfraManagerDataConfig infraManagerDataConfig,
                                            @Value("#{jobParameters[end]}") String intervalEnd,
                                            DocumentWiper documentWiper) {
@@ -139,7 +139,7 @@ public class DocumentArchivingConfiguration {
 
   @Bean
   @StepScope
-  public DocumentWiper documentWiper(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties,
+  public DocumentWiper documentWiper(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties,
                                      SolrDAO solrDAO) {
     if (isBlank(properties.getSolr().getDeleteQueryText()))
       return NOT_DELETE;
@@ -148,7 +148,7 @@ public class DocumentArchivingConfiguration {
 
   @Bean
   @StepScope
-  public SolrDAO solrDAO(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties) {
+  public SolrDAO solrDAO(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties) {
     return new SolrDAO(properties.getSolr());
   }
 
@@ -161,7 +161,7 @@ public class DocumentArchivingConfiguration {
   @Bean
   @StepScope
   public DocumentItemReader reader(ObjectSource<Document> documentSource,
-                                   @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties) {
+                                   @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties) {
     return new DocumentItemReader(documentSource, properties.getReadBlockSize());
   }
 

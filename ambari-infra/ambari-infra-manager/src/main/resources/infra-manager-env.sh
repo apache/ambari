@@ -19,7 +19,7 @@ export INFRA_MANAGER_OPTS=""
 
 # Log Search debug options
 # export INFRA_MANAGER_DEBUG=true
-# exoprt INFRA_MANAGER_DEBUG_SUSPEND=n
+# export INFRA_MANAGER_DEBUG_SUSPEND=n
 export INFRA_MANAGER_DEBUG_PORT=5005
 
 # Log Search memory

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.configuration;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
 import static org.powermock.api.easymock.PowerMock.replayAll;
@@ -28,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 
@@ -57,6 +59,8 @@ import org.powermock.api.support.membermodification.MemberMatcher;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.common.base.Charsets;
 
 import junit.framework.Assert;
 
@@ -917,6 +921,38 @@ public class ConfigurationTest {
   @Test
   public void canReadNonLatin1Properties() {
     Assert.assertEquals("árvíztűrő tükörfúrógép", new Configuration().getProperty("encoding.test"));
+  }
+
+  @Test
+  public void testRemovingAmbariProperties() throws Exception {
+    final File ambariPropertiesFile = new File(Configuration.class.getClassLoader().getResource("ambari.properties").getPath());
+    final String originalContent = FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8);
+    assertTrue(originalContent.indexOf("testPropertyName") == -1);
+    try {
+      final String testambariProperties = "\ntestPropertyName1=testValue1\ntestPropertyName2=testValue2\ntestPropertyName3=testValue3";
+      FileUtils.writeStringToFile(ambariPropertiesFile, testambariProperties, Charsets.UTF_8, true);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName1") > -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName2") > -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName3") > -1);
+
+      final Configuration configuration = new Configuration();
+      configuration.removePropertiesFromAmbariProperties(Arrays.asList("testPropertyName2"));
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName1") > -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName2") == -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName3") > -1);
+
+      configuration.removePropertiesFromAmbariProperties(Arrays.asList("testPropertyName3"));
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName1") > -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName2") == -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName3") == -1);
+
+      configuration.removePropertiesFromAmbariProperties(Arrays.asList("testPropertyName1"));
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName1") == -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName2") == -1);
+      assertTrue(FileUtils.readFileToString(ambariPropertiesFile, Charsets.UTF_8).indexOf("testPropertyName3") == -1);
+    } finally {
+      FileUtils.writeStringToFile(ambariPropertiesFile, originalContent, Charsets.UTF_8);
+    }
   }
 
 }

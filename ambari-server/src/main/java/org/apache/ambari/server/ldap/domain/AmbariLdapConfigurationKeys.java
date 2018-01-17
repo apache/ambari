@@ -48,7 +48,7 @@ public enum AmbariLdapConfigurationKeys {
   USER_NAME_ATTRIBUTE("ambari.ldap.attributes.user.name_attr", PLAINTEXT, "uid", "The attribute used for determining the user name, such as 'uid'."),
   USER_GROUP_MEMBER_ATTRIBUTE("ambari.ldap.attributes.user.group_member_attr", PLAINTEXT, "", ""), //TODO
   USER_SEARCH_BASE("ambari.ldap.attributes.user.search_base", PLAINTEXT, "dc=ambari,dc=apache,dc=org", "The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled."),
-  USER_BASE("ambari.ldap.attributes.search_user.base", PLAINTEXT, "ou=people,dc=ambari,dc=apache,dc=org", "The filter used when searching for users in LDAP."),
+  USER_BASE("ambari.ldap.attributes.search_user_base", PLAINTEXT, "ou=people,dc=ambari,dc=apache,dc=org", "The filter used when searching for users in LDAP."),
 
   GROUP_OBJECT_CLASS("ambari.ldap.attributes.group.object_class", PLAINTEXT, "ou=groups,dc=ambari,dc=apache,dc=org", "The filter used when searching for groups in LDAP."),
   GROUP_NAME_ATTRIBUTE("ambari.ldap.attributes.group.name_attr", PLAINTEXT, "cn", "The attribute used to determine the group name in LDAP."),

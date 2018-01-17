@@ -78,6 +78,11 @@ HADOOP_VERSION=3.0.0
 EOF
 }
 
+function get_docker_ip() {
+  local ip=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')
+  echo $ip
+}
+
 function setup_profile() {
   cat << EOF > $sdir/Profile
 AWS_ACCESS_KEY_ID=test
