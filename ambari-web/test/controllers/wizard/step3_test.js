@@ -2792,6 +2792,49 @@ describe('App.WizardStep3Controller', function () {
 
   });
 
+  describe('#doCheckRepoInfo', function () {
+    var cases = [
+                 {
+                   controllerName: 'installerController',
+                   title: 'hdp repo prompt is disabled for installer',
+                   description: 'check redhat satellite option for installer',
+                   args: App.Stack,
+                   argsValue: [Em.Object.create({isSelected: true, useRedhatSatellite: true})]
+                 },
+                 {
+                   controllerName: 'addHostController',
+                   title: 'hdp repo prompt is disabled for add host',
+                   description: 'check redhat satellite option for add host',
+                   args: App.StackVersion,
+                   argsValue: Em.Object.create({content: []})
+                 }
+                 ];
+
+    cases.forEach(function (item){
+
+      describe(item.description, function () {
+        beforeEach(function () {
+          sinon.stub(item.args, 'find').returns(item.argsValue);
+        });
+
+        afterEach(function () {
+          item.args.find.restore();
+        });
+
+        it(item.title, function () {
+          var controller = App.WizardStep3Controller.create({
+            content: {
+              controllerName: item.controllerName
+            }
+          });
+          controller.doCheckRepoInfo();
+          expect(controller.get('promptRepoInfo')).to.equal(false);
+        });
+      });
+    });
+
+  });
+
   describe('#checkRepoForNewOs', function () {
     it('should show prompt if repos dont exist for os_family in allRepos', function () {
       var bootHosts = [
@@ -2949,6 +2992,305 @@ describe('App.WizardStep3Controller', function () {
 
     it('`isLocalRepo` is set `true`', function () {
       expect(c.get('isLocalRepo')).to.be.true;
+    });
+  });
+
+  describe("#checkRepoURLInstallerSuccessCallback", function () {
+    var stacks = Em.A([
+                       Em.Object.create({
+                         isSelected: false
+                       }),
+                       Em.Object.create({
+                         isSelected: true,
+                         reload: false,
+                         id: 'stack1',
+                         repositories: Em.A([
+                                             Em.Object.create({
+                                               id: 'HDP-UTILS-2.3-2.3.0.0-os1',
+                                               repoId: 'HDP-UTILS',
+                                               isSelected: true
+                                             }),
+                                             Em.Object.create({
+                                               id: 'HDP-UTILS-2.3-2.3.0.0-os2',
+                                               repoId: 'HDP-UTILS',
+                                               isSelected: false
+                                             })
+                                             ]),
+                                             operatingSystems: Em.A([
+                                                                     Em.Object.create({
+                                                                       isSelected: true,
+                                                                       id: 1,
+                                                                       osType: 'os1',
+                                                                       repositories: Em.A([
+                                                                                           Em.Object.create({
+                                                                                             id: 'HDP-2.3-2.3.0.0-os1-HDP-UTILS',
+                                                                                             repoId: 'HDP-UTILS',
+                                                                                             errorTitle: '1',
+                                                                                             errorContent: '1',
+                                                                                             validation: ''
+                                                                                           })
+                                                                                           ])
+                                                                     }),
+                                                                     Em.Object.create({
+                                                                       isSelected: false,
+                                                                       id: 2,
+                                                                       osType: 'os2',
+                                                                       repositories: Em.A([
+                                                                                           Em.Object.create({
+                                                                                             id: 'HDP-2.3-2.3.0.0-os2-HDP-UTILS',
+                                                                                             repoId: 'HDP-UTILS',
+                                                                                             errorTitle: '2',
+                                                                                             errorContent: '2',
+                                                                                             validation: ''
+                                                                                           })
+                                                                                           ])
+                                                                     })
+                                                                     ])
+                       })
+                       ]);
+    var params = Em.Object.create({
+      osType: 'os2',
+      repoId: 'HDP-UTILS',
+      osId: 'HDP-2.3-2.3.0.0-os2',
+      stackName: 'HDP',
+      stackVersion: '2.3',
+      data: Em.Object.create({
+        Repositories: Em.Object.create({
+          base_url: 'http://base_url'
+        })
+      })
+    });
+    var newSupportedOsList = [{
+      os_family : 'os2',
+      repositories: [
+                     {
+                       repo_id: 'HDP-UTILS',
+                       base_url: 'http://base_url',
+                       last_base_url: 'http://last_base_url',
+                       latest_base_url: 'http://latest_base_url'
+                     }
+                     ]
+    }];
+
+    beforeEach(function () {
+      c.set('content.stacks', stacks);
+      c.set('newSupportedOsList', newSupportedOsList);
+      c.set('validationCnt', 3);
+      c.checkRepoURLInstallerSuccessCallback([], [], params);
+    });
+
+    it('should set validation to OK', function () {
+      var os = c.get('newSupportedOsList').findProperty('os_family', params.osType);
+      expect(os.repositories.findProperty('repo_id', params.repoId).validation).to.be.equal('OK');
+    });
+    it('should set os isSelected to true in content.stacks', function () {
+      var os = c.get('content.stacks').findProperty('isSelected', true).get('operatingSystems').findProperty('osType', params.osType);
+      expect(os.get('isSelected')).to.be.true;
+    });
+  });
+
+  describe("#checkRepoURLInstallerErrorCallback", function () {
+    var params = Em.Object.create({
+      dfd: $.Deferred(),
+      osType: 'os2',
+      repoId: 'HDP-UTILS',
+      osId: 'HDP-2.3-2.3.0.0-os2',
+      stackName: 'HDP',
+      stackVersion: '2.3',
+      data: Em.Object.create({
+        Repositories: Em.Object.create({
+          base_url: 'http://base_url'
+        })
+      })
+    });
+    var newSupportedOsList = [{
+      os_family : 'os2',
+      repositories: [
+                     {
+                       repo_id: 'HDP-UTILS',
+                       base_url: 'http://base_url',
+                       last_base_url: 'http://last_base_url',
+                       latest_base_url: 'http://latest_base_url'
+                     }
+                     ]
+    }];
+
+    beforeEach(function () {
+      c.set('newSupportedOsList', newSupportedOsList);
+      c.set('validationCnt', 3);
+      c.set('repoValidationFailure', false);
+      c.checkRepoURLInstallerErrorCallback({status: 0, statusText: 'error', responseText: ''}, [], [], [], params);
+    });
+
+    it('should set validation to INVALID', function () {
+      var os = c.get('newSupportedOsList').findProperty('os_family', params.osType);
+      expect(os.repositories.findProperty('repo_id', params.repoId).validation).to.be.equal('INVALID');
+    });
+    it('should set repoValidationFailure to true', function() {
+      var os = c.get('newSupportedOsList').findProperty('os_family', params.osType);
+      expect(c.get('repoValidationFailure')).to.be.true;
+    });
+  });
+
+  describe("#checkRepoURLAddHostSuccessCallback", function() {
+    var newReposBaseURL = {}
+    var params = Em.Object.create({
+      osType: 'os2',
+      repoId: 'HDP-UTILS',
+      osId: 'HDP-2.3-2.3.0.0-os2',
+      stackName: 'HDP',
+      stackVersion: '2.3',
+      data: Em.Object.create({
+        Repositories: Em.Object.create({
+          base_url: 'http://base_url'
+        })
+      })
+    });
+    var newSupportedOsList = [{
+      os_family : 'os2',
+      repositories: [
+                     {
+                       repo_id: 'HDP-UTILS',
+                       base_url: 'http://base_url',
+                       last_base_url: 'http://last_base_url',
+                       latest_base_url: 'http://latest_base_url'
+                     }
+                     ]
+    }];
+
+    beforeEach(function() {
+      c.set('newReposBaseURL', newReposBaseURL);
+      c.set('validationCnt', 3);
+      c.set('newSupportedOsList', newSupportedOsList);
+      c.checkRepoURLAddHostSuccessCallback([], [], params);
+    });
+
+    it('should set validation to OK', function() {
+      var os = c.get('newSupportedOsList').findProperty('os_family', params.osType);
+      expect(os.repositories.findProperty('repo_id', params.repoId).validation).to.be.equal('OK');
+    });
+    it('should assign baseurl to appropriate repo_id in newReposBaseURL', function() {
+      var newReposBaseURL = c.get('newReposBaseURL');
+      expect(newReposBaseURL[params.osType][params.repoId]).to.be.equal(params.baseUrl);
+    });
+  });
+
+  describe("#checkRepoURLAddHostErrorCallback", function() {
+    var params = Em.Object.create({
+      dfd: $.Deferred(),
+      osType: 'os2',
+      repoId: 'HDP-UTILS',
+      osId: 'HDP-2.3-2.3.0.0-os2',
+      stackName: 'HDP',
+      stackVersion: '2.3',
+      data: Em.Object.create({
+        Repositories: Em.Object.create({
+          base_url: 'http://base_url'
+        })
+      })
+    });
+    var newSupportedOsList = [{
+      os_family : 'os2',
+      repositories: [
+                     {
+                       repo_id: 'HDP-UTILS',
+                       base_url: 'http://base_url',
+                       last_base_url: 'http://last_base_url',
+                       latest_base_url: 'http://latest_base_url'
+                     }
+                     ]
+    }];
+    beforeEach(function() {
+      c.set('newSupportedOsList', newSupportedOsList);
+      c.set('repoValidationFailure', false);
+      c.checkRepoURLAddHostErrorCallback({status: 0, statusText: 'error', responseText: ''}, [], [], [], params);
+    });
+    it('should set validation to INVALID', function() {
+      var os = c.get('newSupportedOsList').findProperty('os_family', params.osType);
+      expect(os.repositories.findProperty('repo_id', params.repoId).validation).to.be.equal('INVALID');
+    });
+    it('should set repoValidationFailure to true', function() {
+      var os = c.get('newSupportedOsList').findProperty('os_family', params.osType);
+      expect(c.get('repoValidationFailure')).to.be.true;
+    });
+  });
+
+  describe('#saveRepoUrl', function() {
+    var os1 = Em.Object.create({
+      OperatingSystems: Em.Object.create({
+        ambari_managed_repositories: true,
+        os_type: "os1",
+      }),
+      repositories:Em.A([
+                         Em.Object.create({
+                           Repositories: Em.Object.create({
+                             base_url: "http://base_url1",
+                             repo_id: "HDP-2.6",
+                             repo_name: "HDP",
+                           })
+                         })
+                         ])
+    });
+    var os2 = Em.Object.create({
+      OperatingSystems: Em.Object.create({
+        ambari_managed_repositories: true,
+        os_type: "os2",
+      }),
+      repositories:Em.A([
+                         Em.Object.create({
+                           Repositories: Em.Object.create({
+                             base_url: "http://base_url2",
+                             repo_id: "HDP-2.6",
+                             repo_name: "HDP",
+                           })
+                         })
+                         ])
+    });
+    var localRepoVersion = Em.Object.create({
+      operating_systems: Em.A([]),
+    });
+    localRepoVersion.operating_systems.push(os1);
+
+    var allSupportedOSList = Em.Object.create({
+      operating_systems: Em.A([]),
+    });
+    allSupportedOSList.operating_systems.push(os1);
+    allSupportedOSList.operating_systems.push(os2);
+
+    var newReposBaseURL = [];
+    newReposBaseURL['os2'] = {};
+    newReposBaseURL['os2']['HDP-2.6'] = 'http://base_url2';
+
+    controller = App.WizardStep3Controller.create({
+      content: {
+        controllerName: 'installerController'
+      }
+    });
+
+    beforeEach(function() {
+      sinon.stub(controller, 'updateRepoOSInfo', Em.K);
+      var stubForGet = sinon.stub(App, 'get');
+      stubForGet.withArgs('currentStackName').returns('HDP');
+      stubForGet.withArgs('currentStackVersionNumber').returns('2.6');
+      sinon.stub(App.StackVersion, 'find', function() {
+        return [
+          Em.Object.create({stack: 'HDP', version: '2.6', repositoryVersion: {id: 1}})
+        ];
+      });
+    });
+
+    afterEach(function() {
+      App.get.restore();
+      App.StackVersion.find.restore();
+      controller.updateRepoOSInfo.restore();
+    });
+
+    it('repoVersionToSave should contains os2', function() {
+      controller.set('localRepoVersion', localRepoVersion);
+      controller.set('allSupportedOSList', allSupportedOSList);
+      controller.set('newReposBaseURL', newReposBaseURL);
+      controller.saveRepoUrl();
+      expect(controller.updateRepoOSInfo.firstCall.args[0].operating_systems[1].OperatingSystems.os_type).to.equal('os2');
     });
   });
 

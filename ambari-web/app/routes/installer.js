@@ -232,18 +232,30 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     next: function (router, context) {
       console.time('step3 next');
       if (!router.get('btnClickInProgress')) {
-        App.set('router.nextBtnClickInProgress', true);
-        var installerController = router.get('installerController');
         var wizardStep3Controller = router.get('wizardStep3Controller');
-        installerController.saveConfirmedHosts(wizardStep3Controller);
-        installerController.setDBProperties({
-          bootStatus: true,
-          selectedServiceNames: undefined,
-          installedServiceNames: undefined
-        });
-        router.transitionTo('step4');
-        console.timeEnd('step3 next');
+        var installerController = router.get('installerController');
+        if (wizardStep3Controller.promptRepoInfo) {
+          self = this;
+          wizardStep3Controller.validateRepoUrls().done(function () {
+            if (!wizardStep3Controller.repoValidationFailure) {
+              self._transitionToStep4(router, wizardStep3Controller, installerController)
+            }
+          });
+        } else {
+          this._transitionToStep4(router, wizardStep3Controller, installerController);
+        }
       }
+    },
+    _transitionToStep4: function (router, wizard, installer) {
+      App.set('router.nextBtnClickInProgress', true);
+      installer.saveConfirmedHosts(wizard);
+      installer.setDBProperties({
+        bootStatus : true,
+        selectedServiceNames : undefined,
+        installedServiceNames : undefined
+      });
+      router.transitionTo('step4');
+      console.timeEnd('step3 next');
     },
     exit: function (router) {
       router.get('wizardStep3Controller').set('stopBootstrap', true);

@@ -149,13 +149,26 @@ module.exports = App.WizardRoute.extend({
     nextTransition: function (router, context) {
       var addHostController = router.get('addHostController');
       var wizardStep3Controller = router.get('wizardStep3Controller');
+      App.set('router.nextBtnClickInProgress', false);
+      if (wizardStep3Controller.promptRepoInfo) {
+        self = this;
+        wizardStep3Controller.validateRepoUrls().done(function () {
+          if (!wizardStep3Controller.repoValidationFailure) {
+            self._transitionToStep3(router, wizardStep3Controller, addHostController);
+          }
+        });
+      } else {
+        this._transitionToStep3(router, wizardStep3Controller, addHostController);
+      }
+    },
+    _transitionToStep3: function (router, wizard, addHost) {
+      App.set('router.nextBtnClickInProgress', true);
       var wizardStep6Controller = router.get('wizardStep6Controller');
-      addHostController.saveConfirmedHosts(wizardStep3Controller);
-      addHostController.saveClients();
-
-      addHostController.setDBProperties({
-        bootStatus: true,
-        slaveComponentHosts: undefined
+      addHost.saveConfirmedHosts(wizard);
+      addHost.saveClients();
+      addHost.setDBProperties({
+        bootStatus : true,
+        slaveComponentHosts : undefined
       });
       wizardStep6Controller.set('isClientsSet', false);
       router.transitionTo('step3');
