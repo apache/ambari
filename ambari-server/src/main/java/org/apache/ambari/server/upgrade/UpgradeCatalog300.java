@@ -35,8 +35,11 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -51,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -162,6 +166,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
+    upgradeLdapConfiguration();
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -382,5 +387,86 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   * Moves LDAP related properties from ambari.properties to ambari_configuration DB table
+   * @throws AmbariException if there was any issue when clearing ambari.properties
+   */
+  protected void upgradeLdapConfiguration() throws AmbariException {
+    LOG.info("Moving LDAP related properties from ambari.properties to ambari_congiuration DB table...");
+    final AmbariConfigurationDAO ambariConfigurationDao = injector.getInstance(AmbariConfigurationDAO.class);
+    final Map<String, String> propertiesToBeSaved = new HashMap<>();
+    final Map<AmbariLdapConfigurationKeys, String> ldapConfigurationMap = getLdapConfigurationMap();
+    ldapConfigurationMap.forEach((key, oldPropertyName) -> {
+      String ldapPropertyValue = configuration.getProperty(oldPropertyName);
+      if (StringUtils.isNotBlank(ldapPropertyValue)) {
+        if (AmbariLdapConfigurationKeys.SERVER_HOST == key || AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST == key) {
+          final HostAndPort hostAndPort = HostAndPort.fromString(ldapPropertyValue);
+          AmbariLdapConfigurationKeys keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_HOST
+              : AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST;
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.getHostText());
+
+          keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_PORT : AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT;
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), String.valueOf(hostAndPort.getPort()));
+        } else {
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, key.key(), ldapPropertyValue);
+        }
+      }
+    });
+
+    if (propertiesToBeSaved.isEmpty()) {
+      LOG.info("There was no LDAP related properties in ambari.properties; moved 0 elements");
+    } else {
+      ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), propertiesToBeSaved, false);
+      configuration.removePropertiesFromAmbariProperties(ldapConfigurationMap.values());
+      LOG.info(propertiesToBeSaved.size() + " LDAP related properties " + (propertiesToBeSaved.size() == 1 ? "has" : "have") + " been moved to DB");
+    }
+  }
+
+  private void populateLdapConfigurationToBeUpgraded(Map<String, String> propertiesToBeSaved, String oldPropertyName, String newPropertyName, String value) {
+    propertiesToBeSaved.put(newPropertyName, value);
+    LOG.info("About to upgrade '" + oldPropertyName + "' as '" + newPropertyName + "' (value=" + value + ")");
+  }
+  
+  /**
+   * @return a map describing the new LDAP configuration key to the old ambari.properties property name
+   */
+  @SuppressWarnings("serial")
+  private Map<AmbariLdapConfigurationKeys, String> getLdapConfigurationMap() {
+    return Collections.unmodifiableMap(new HashMap<AmbariLdapConfigurationKeys, String>() {
+      {
+        put(AmbariLdapConfigurationKeys.LDAP_ENABLED, "ambari.ldap.isConfigured");
+        put(AmbariLdapConfigurationKeys.SERVER_HOST, "authentication.ldap.primaryUrl");
+        put(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST, "authentication.ldap.secondaryUrl");
+        put(AmbariLdapConfigurationKeys.USE_SSL, "authentication.ldap.useSSL");
+        put(AmbariLdapConfigurationKeys.ANONYMOUS_BIND, "authentication.ldap.bindAnonymously");
+        put(AmbariLdapConfigurationKeys.BIND_DN, "authentication.ldap.managerDn");
+        put(AmbariLdapConfigurationKeys.BIND_PASSWORD, "authentication.ldap.managerPassword");
+        put(AmbariLdapConfigurationKeys.DN_ATTRIBUTE, "authentication.ldap.dnAttribute");
+        put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS, "authentication.ldap.userObjectClass");
+        put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "authentication.ldap.usernameAttribute");
+        put(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "authentication.ldap.baseDn");
+        put(AmbariLdapConfigurationKeys.USER_BASE, "authentication.ldap.userBase");
+        put(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, "authentication.ldap.groupObjectClass");
+        put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, "authentication.ldap.groupNamingAttr");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE, "authentication.ldap.groupMembershipAttr");
+        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE, "authentication.ldap.baseDn");
+        put(AmbariLdapConfigurationKeys.GROUP_BASE, "authentication.ldap.groupBase");
+        put(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER, "authentication.ldap.userSearchFilter");
+        put(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.userMemberReplacePattern");
+        put(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER, "authentication.ldap.sync.userMemberFilter");
+        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "authentication.ldap.alternateUserSearchEnabled");
+        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER, "authentication.ldap.alternateUserSearchFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER, "authorization.ldap.groupSearchFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.groupMemberReplacePattern");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER, "authentication.ldap.sync.groupMemberFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES, "authorization.ldap.adminGroupMappingRules");
+        put(AmbariLdapConfigurationKeys.FORCE_LOWERCASE_USERNAMES, "authentication.ldap.username.forceLowercase");
+        put(AmbariLdapConfigurationKeys.REFERRAL_HANDLING, "authentication.ldap.referral");
+        put(AmbariLdapConfigurationKeys.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
+        put(AmbariLdapConfigurationKeys.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
+      }
+    });
   }
 }

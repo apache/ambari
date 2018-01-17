@@ -38,7 +38,7 @@ import static org.apache.ambari.infra.job.archive.ExportDestination.S3;
 import static org.apache.commons.csv.CSVFormat.DEFAULT;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
-public class DocumentExportProperties extends JobProperties<DocumentExportProperties> {
+public class DocumentArchivingProperties extends JobProperties<DocumentArchivingProperties> {
   private int readBlockSize;
   private int writeBlockSize;
   private ExportDestination destination;
@@ -55,8 +55,8 @@ public class DocumentExportProperties extends JobProperties<DocumentExportProper
   private String hdfsEndpoint;
   private String hdfsDestinationDirectory;
 
-  public DocumentExportProperties() {
-    super(DocumentExportProperties.class);
+  public DocumentArchivingProperties() {
+    super(DocumentArchivingProperties.class);
     s3Properties = this::loadS3Properties;
   }
 
