@@ -191,7 +191,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   public void testAuthenticate() throws Exception {
     assertNull("User alread exists in DB", userDAO.findUserByName("allowedUser"));
     UserEntity userEntity = users.createUser("allowedUser", null, null);
-    users.addLdapAuthentication(userEntity, "some dn");
+    users.addLdapAuthentication(userEntity, "uid=allowedUser,ou=people,dc=ambari,dc=apache,dc=org");
 
     UserEntity ldapUser = userDAO.findUserByName("allowedUser");
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
@@ -218,7 +218,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     // Given
     assertNull("User already exists in DB", userDAO.findUserByName("allowedUser@ambari.apache.org"));
     UserEntity userEntity = users.createUser("allowedUser@ambari.apache.org", null, null);
-    users.addLdapAuthentication(userEntity, "some dn");
+    users.addLdapAuthentication(userEntity, "uid=allowedUser,ou=people,dc=ambari,dc=apache,dc=org");
 
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "password");
     authenticationProvider.ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "true");

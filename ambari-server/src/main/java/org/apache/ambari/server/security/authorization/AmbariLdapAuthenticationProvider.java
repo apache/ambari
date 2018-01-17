@@ -264,7 +264,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
 
         if (!CollectionUtils.isEmpty(authenticationEntities)) {
           for (UserAuthenticationEntity entity : authenticationEntities) {
-            if (!StringUtils.isEmpty(entity.getAuthenticationKey())) {
+            if (StringUtils.isEmpty(entity.getAuthenticationKey())) {
               // Proven innocent!
               userEntity = _userEntity;
               break;

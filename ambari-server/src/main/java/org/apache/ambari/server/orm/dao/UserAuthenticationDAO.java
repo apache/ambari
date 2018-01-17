@@ -63,7 +63,7 @@ public class UserAuthenticationDAO {
   public List<UserAuthenticationEntity> findByTypeAndKey(UserAuthenticationType authenticationType, String key) {
     TypedQuery<UserAuthenticationEntity> query = entityManagerProvider.get().createNamedQuery("UserAuthenticationEntity.findByTypeAndKey", UserAuthenticationEntity.class);
     query.setParameter("authenticationType", authenticationType.name());
-    query.setParameter("authenticationKey", (key == null) ? null : key.getBytes());
+    query.setParameter("authenticationKey", key);
     return daoUtils.selectList(query);
   }
 

@@ -285,8 +285,7 @@ CREATE TABLE user_authentication (
   create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
-  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users(user_id)
-);
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id));
 
 CREATE TABLE groups (
   group_id INTEGER,
