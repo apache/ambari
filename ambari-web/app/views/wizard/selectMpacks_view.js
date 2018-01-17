@@ -28,18 +28,29 @@ App.WizardSelectMpacksView = Em.View.extend({
   toggleMode: function () {
     const isAdvancedMode = this.get('controller.content.advancedMode');
     const controller = this.get('controller');
+    const toggleMode = controller.toggleMode.bind(controller);
 
-    if (isAdvancedMode) { //toggling to Basic Mode
-      this.showToggleToBasicBox(this.get('controller').toggleMode.bind(controller));
-    } else { //toggling to Advanced Mode
-      this.showToggleToAdvancedBox(this.get('controller').toggleMode.bind(controller));
+    if (isAdvancedMode) { //toggling to Basic (Use Cases) Mode
+      const selectedServices = controller.get('selectedServices');
+      if (selectedServices.length > 0) {
+        this.showToggleToBasicBox(toggleMode);
+      } else {
+        toggleMode();
+      }
+    } else { //toggling to Advanced (Mpacks/Services) Mode
+      const selectedUseCases = controller.get('selectedUseCases');
+      if (selectedUseCases.length > 0) {
+        this.showToggleToAdvancedBox(toggleMode);
+      } else {
+        toggleMode();
+      }  
     }
   },
 
   showToggleToAdvancedBox: function (callback) {
     App.ModalPopup.show({
-      primary: Em.I18n.t('installer.selectMpacks.basicMode'),
-      secondary: Em.I18n.t('installer.selectMpacks.advancedMode'),
+      primary: Em.I18n.t('common.cancel'),
+      secondary: Em.I18n.t('ok'),
       header: Em.I18n.t('installer.selectMpacks.changeMode'),
       body: Em.I18n.t('installer.selectMpacks.basicModeMessage'),
       showCloseButton: false,
@@ -55,8 +66,8 @@ App.WizardSelectMpacksView = Em.View.extend({
 
   showToggleToBasicBox: function (callback) {
     App.ModalPopup.show({
-      primary: Em.I18n.t('installer.selectMpacks.advancedMode'),
-      secondary: Em.I18n.t('installer.selectMpacks.basicMode'),
+      primary: Em.I18n.t('common.cancel'),
+      secondary: Em.I18n.t('ok'),
       header: Em.I18n.t('installer.selectMpacks.changeMode'),
       body: Em.I18n.t('installer.selectMpacks.advancedModeMessage'),
       showCloseButton: false,

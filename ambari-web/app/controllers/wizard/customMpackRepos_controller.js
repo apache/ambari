@@ -35,8 +35,10 @@ App.WizardCustomMpackReposController = App.WizardStepController.extend({
 
   isSubmitDisabled: function () {
     const mpacks = this.get('mpacks');
-    return mpacks.filterProperty('downloadUrl', '').length > 0 || App.get('router.btnClickInProgress');
-  }.property('mpacks.@each.downloadUrl', 'App.router.btnClickInProgress'),
+    return App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+      || mpacks.filterProperty('downloadUrl', '').length > 0;
+  }.property('mpacks.@each.downloadUrl', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   submit: function () {
     if (App.get('router.nextBtnClickInProgress')) {

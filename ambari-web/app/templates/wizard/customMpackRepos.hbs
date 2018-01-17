@@ -17,49 +17,44 @@
 }}
 
 <div id="customMpackRepos" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
-  <h4 class="step-header">{{t installer.customMpackRepos.header}}</h4>
+  <h4 class="step-title">{{t installer.customMpackRepos.header}}</h4>
 
   <div class="panel panel-default">
     <div class="panel-body">
       {{#if App.router.nextBtnClickInProgress}}
-        {{view App.SpinnerView}}
+      {{view App.SpinnerView}}
       {{else}}
-        <div class="panel panel-default">
-          <div class="step-title">
-            <p>{{t installer.customMpackRepos.body.title}}</p>
-          </div>
-          <p class="step-description">{{t installer.customMpackRepos.body.description}}</p>
-
-          <div class="panel-body version-contents-body">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th class="col-sm-4">{{t common.mpack}}</th>
-                  <th class="col-sm-2">{{t common.public}} {{t common.link}}</th>
-                  <th class="col-sm-6">{{t common.download}} {{t common.url}}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each mpack in mpacks}}
-                <tr>
-                  <td class="col-sm-4">{{mpack.displayName}}&nbsp;{{mpack.version}}</td>
-                  <td class="col-sm-2">
-                    <a target="_blank" {{bindAttr href="mpack.publicUrl"}}><span class="glyphicon glyphicon-new-window"></span></a>
-                  </td>
-                  <td class="col-sm-6">
-                    {{view Em.TextField class="form-control required" valueBinding="mpack.downloadUrl"}} <button type="button" {{bindAttr title="view.revertButtonTooltip" value="mpack.id"}} {{action revertUrl target="view"}}><span class="glyphicon glyphicon-repeat" style="transform: scaleX(-1)"></span></button>
-                  </td>
-                </tr>
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <p class="step-description">{{t installer.customMpackRepos.body.description}}</p>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th class="col-sm-4">{{t common.mpack}}</th>
+            <th class="col-sm-2">{{t common.public}} {{t common.link}}</th>
+            <th class="col-sm-6">{{t common.download}} {{t common.url}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each mpack in mpacks}}
+          <tr>
+            <td class="col-sm-4">{{mpack.displayName}}&nbsp;{{mpack.version}}</td>
+            <td class="col-sm-2">
+              <a target="_blank" {{bindAttr href="mpack.publicUrl"}}><i class="icon icon-external-link"></i></a>
+            </td>
+            <td class="col-sm-6">
+              <div class="input-group url-input required">
+                {{view Em.TextField class="form-control" valueBinding="mpack.downloadUrl"}} 
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default revert-button" {{bindAttr title="view.revertButtonTooltip" value="mpack.id"}} {{action revertUrl target="view"}}><i class="icon icon-rotate-left"></i></button>
+                </span>
+              </div>
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
       {{/if}}
-
     </div>
   </div>
-
 </div>
 
 <div class="wizard-footer col-md-12">

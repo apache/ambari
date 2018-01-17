@@ -90,10 +90,14 @@ App.WizardConfigureDownloadView = Em.View.extend({
   },
 
   isSubmitDisabled: function () {
+    if (this.get('controller.isSubmitDisabled')) {
+      return true;
+    }
+
     if (this.get('controller.content.downloadConfig.useProxy') && !this.get('controller.content.downloadConfig.proxyTestPassed')) {
       return true;
     }
 
     return false;
-  }.property('controller.content.downloadConfig.useProxy', 'controller.content.downloadConfig.proxyTestPassed')
+  }.property('controller.content.downloadConfig.useProxy', 'controller.content.downloadConfig.proxyTestPassed', 'controller.isSubmitDisabled')
 });

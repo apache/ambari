@@ -105,12 +105,21 @@ select.form-control {
 
 .panel {
   background-color: #fff;
+  border-radius: 0;
   .panel-heading {
-    background-color: #fff;
+    padding: 0;
+    margin-bottom: 15px;
     .panel-title {
       line-height: 34px;
     }
   }
+}
+
+.panel .panel-body {
+  padding: 0;
+  position: relative;
+  min-height: 200px;
+  height: 100%;
 }
 
 .row {
@@ -285,10 +294,6 @@ select.form-control {
   color: #fff;
 }
 
-.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
-  background-color: #f0f0f0;
-}
-
 @media (max-width: 992px) {
   .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12 {
     float: left;
@@ -432,11 +437,6 @@ select.form-control {
     margin-left: 0;
     margin-right: 0;
   }
-}
-
-
-.wizard .wizard-body {
-  padding: 0 !important;
 }
 
 .table.table-hover .action {

@@ -16,69 +16,56 @@
 * limitations under the License.
 }}
 
-<div id="download-step-content" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
-  <h4 class="step-header">{{t installer.downloadMpacks.header}}</h4>
+<div id="downloadMpacks" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
+  <h4 class="step-title">{{t installer.downloadMpacks.header}}</h4>
 
   <div class="panel panel-default">
     <div class="panel-body">
       {{#if App.router.nextBtnClickInProgress}}
-        {{view App.SpinnerView}}
+      {{view App.SpinnerView}}
       {{else}}
-        <div class="panel panel-default">
-          <div class="step-title">
-            <p>{{t installer.downloadMpacks.body.title}}</p>
-          </div>
-          <p class="step-description">{{t installer.downloadMpacks.body.description}}</p>
-
-          <div class="panel-body version-contents-body">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th class="col-sm-5">{{t common.mpack}}</th>
-                  <th class="col-sm-4">{{t common.status}}</th>
-                  <th class="col-sm-2">{{t common.actions}}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each mpack in mpacks}}
-                  <tr>
-                    <td class="col-sm-5">{{mpack.displayName}}&nbsp;{{mpack.version}}</td>
-                    <td class="download-status col-sm-4">
-                      {{#if mpack.inProgress}}
-                        <div class="progress-wrapper col-sm-8">
-                          <div class="progress">
-                            <div class="active progress-bar-striped progress-bar"}}></div>
-                          </div>
-                        </div>
-                      {{else}}
-                        {{#if mpack.succeeded}}
-                          <i class="glyphicon glyphicon-ok"></i>&nbsp;
-                          {{t common.download}}&nbsp;{{t common.complete}}
-                        {{else}}
-                          <i class="glyphicon glyphicon-remove"></i>&nbsp;
-                          {{t common.download}}&nbsp;{{t common.failed}}
-                        {{/if}}
-                      {{/if}}
-                    </td>
-                    <td class="col-sm-2">
-                      {{#if mpack.failed}}
-                        <button type="button" class="btn btn-default btn-xs" {{action retryDownload mpack target="controller"}}>
-                          <i class="icon icon-repeat"></i>
-                          {{t common.retry}}
-                        </button>
-                      {{/if}}
-                    </td>
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <p class="step-description">{{t installer.downloadMpacks.body.description}}</p>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th class="col-sm-6">{{t common.mpack}}</th>
+            <th class="col-sm-4">{{t common.status}}</th>
+            <th class="col-sm-2">{{t common.actions}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each mpack in mpacks}}
+            <tr>
+              <td class="col-sm-6">{{mpack.displayName}}&nbsp;{{mpack.version}}</td>
+              <td class="download-status col-sm-4">
+                {{#if mpack.inProgress}}
+                  <div class="progress-wrapper">
+                    <div class="progress">
+                      <div class="active progress-bar-striped progress-bar"}}></div>
+                    </div>
+                  </div>
+                {{else}}
+                  {{#if mpack.succeeded}}
+                    <i class="icon icon-ok-sign"></i>&nbsp;
+                    {{t common.download}}&nbsp;{{t common.complete}}
+                  {{else}}
+                    <i class="icon icon-remove-sign"></i>&nbsp;
+                    {{t common.download}}&nbsp;{{t common.failed}}
+                  {{/if}}
+                {{/if}}
+              </td>
+              <td class="col-sm-2">
+                <span data-toggle="tooltip" data-placement="bottom" {{translateAttr title="common.retry"}}>
+                  <button type="button" class="icon-button retry-button" {{bindAttr disabled="mpack.succeeded"}} {{action retryDownload mpack target="controller"}}></button>
+                </span>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
       {{/if}}
-
     </div>
   </div>
-
 </div>
 
 <div class="wizard-footer col-md-12">

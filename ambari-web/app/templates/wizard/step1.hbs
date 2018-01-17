@@ -16,11 +16,11 @@
 * limitations under the License.
 }}
 <div id="select-stack" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
-  <h4 class="step-header">{{t installer.step1.header}}</h4>
-  <p class="step-description">{{t installer.step1.body}}</p>
-
+  <h4 class="step-title">{{t installer.step1.header}}</h4>
+  
   <div class="panel panel-default">
     <div class="panel-body">
+      <p class="step-description">{{t installer.step1.body}}</p>
       {{#if isLoadingComplete}}
         {{! left tabs }}
         <div class="tabs-menu">

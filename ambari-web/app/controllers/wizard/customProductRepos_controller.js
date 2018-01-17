@@ -206,11 +206,13 @@ App.WizardCustomProductReposController = App.WizardStepController.extend({
   isSubmitDisabled: function () {
     if (this.get('anySelectedOs')) {
       const repos = this.get('repos');
-      return repos.filterProperty('downloadUrl', '').length > 0 || App.get('router.btnClickInProgress');
+      return App.get('router.btnClickInProgress')
+        || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+        || repos.filterProperty('downloadUrl', '').length > 0;
     }
     
     return true;
-  }.property('anySelectedOs', 'repos.@each.downloadUrl', 'App.router.btnClickInProgress'),
+  }.property('anySelectedOs', 'repos.@each.downloadUrl', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   submit: function () {
     if (App.get('router.nextBtnClickInProgress')) {

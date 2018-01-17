@@ -92,7 +92,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step0: Em.Route.extend({
     route: '/step0',
-
+    breadcrumbs: { label: Em.I18n.translations['installer.step0.header'] },
     connectOutlets: function (router) {
       console.time('step0 connectOutlets');
       var self = this;
@@ -125,7 +125,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step2: Em.Route.extend({
     route: '/step2',
-    
+    breadcrumbs: { label: Em.I18n.translations['installer.step2.header'] },
     connectOutlets: function (router, context) {
       console.time('step2 connectOutlets');
       var self = this;
@@ -144,7 +144,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
     },
     
-    back: Em.Router.transitionTo('step0'),
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step0');
+    },
     
     next: function (router) {
       console.time('step2 next');
@@ -163,7 +167,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step3: App.StepRoute.extend({
     route: '/step3',
-    
+    breadcrumbs: { label: Em.I18n.translations['installer.step3.header'] },
     connectOutlets: function (router) {
       console.time('step3 connectOutlets');
       var self = this;
@@ -180,6 +184,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('step2');
     },
 
@@ -227,7 +233,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   configureDownload: Em.Route.extend({
     route: '/configureDownload',
-    
+    breadcrumbs: { label: Em.I18n.translations['installer.configureDownload.header'] },
     connectOutlets: function (router) {
       console.time('configureDownload connectOutlets');
       var self = this;
@@ -245,7 +251,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
     },
     
-    back: Em.Router.transitionTo('step3'),
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step3');
+    },
     
     next: function (router) {
       console.time('configureDownload next');
@@ -280,6 +290,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('configureDownload');
     },
 
@@ -317,7 +329,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   customMpackRepos: App.StepRoute.extend({
     route: '/customMpackRepos',
-    
+    breadcrumbs: { label: Em.I18n.translations['installer.customMpackRepos.header'] },
     connectOutlets: function (router) {
       console.time('customMpackRepos connectOutlets');
       var self = this;
@@ -345,6 +357,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('selectMpacks');
     },
 
@@ -363,6 +377,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   
   downloadMpacks: App.StepRoute.extend({
     route: '/downloadMpacks',
+    breadcrumbs: { label: Em.I18n.translations['installer.downloadMpacks.header'] },
     connectOutlets: function (router) {
       console.time('downloadMpacks connectOutlets');
       var self = this;
@@ -372,14 +387,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('downloadMpacks');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('downloadMpacks');
-      
-      //disable customMpackRepos step (even though it is an earlier step) if not using custom repos
-      // Em.run.next(function () {
-      //   controller.get('isStepDisabled')
-      //     .findProperty('step', controller.getStepIndex('customMpackRepos'))
-      //     .set('value', !controller.get('content.downloadConfig.useCustomRepo'));
-      // });
-
       controller.loadAllPriorSteps().done(function () {
         controller.setStepsEnable();
         controller.connectOutlet('wizardDownloadMpacks', controller.get('content'));
@@ -390,6 +397,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     backTransition: function (router) {
       const controller = router.get('installerController');
+      controller.clearErrors();
       const downloadConfig = controller.get('content.downloadConfig');
       if (downloadConfig && downloadConfig.useCustomRepo) {
         router.transitionTo('customMpackRepos');
@@ -417,7 +425,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   customProductRepos: App.StepRoute.extend({
     route: '/customProductRepos',
-
+    breadcrumbs: { label: Em.I18n.translations['installer.customProductRepos.header'] },
     connectOutlets: function (router) {
       console.time('customProductRepos connectOutlets');
       var self = this;
@@ -445,6 +453,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('downloadMpacks');
     },
 
@@ -453,6 +463,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       if (!router.get('btnClickInProgress')) {
         App.set('router.nextBtnClickInProgress', true);
         const controller = router.get('installerController');
+        controller.clearErrors();
         controller.save('selectedMpacks');
         controller.setStepSaved('customProductRepos');
         router.transitionTo('verifyProducts');
@@ -463,6 +474,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   verifyProducts: App.StepRoute.extend({
     route: '/verifyProducts',
+    breadcrumbs: { label: Em.I18n.translations['installer.verifyProducts.header'] },
     connectOutlets: function (router) {
       console.time('verifyProducts connectOutlets');
       var self = this;
@@ -472,14 +484,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var newStepIndex = controller.getStepIndex('verifyProducts');
       router.setNavigationFlow(newStepIndex);
       controller.setCurrentStep('verifyProducts');
-
-      //disable customProductRepos step (even though it is an earlier step) if not using custom repos
-      // Em.run.next(function () {
-      //   controller.get('isStepDisabled')
-      //     .findProperty('step', controller.getStepIndex('customProductRepos'))
-      //     .set('value', !controller.get('content.downloadConfig.useCustomRepo'));
-      // });
-
       controller.loadAllPriorSteps().done(function () {
         controller.setStepsEnable();
         controller.connectOutlet('wizardVerifyProducts', controller.get('content'));
@@ -490,6 +494,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     backTransition: function (router) {
       const controller = router.get('installerController');
+      controller.clearErrors();
       const downloadConfig = controller.get('content.downloadConfig');
       if (downloadConfig && downloadConfig.useCustomRepo) {
         router.transitionTo('customProductRepos');
@@ -512,6 +517,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step4: App.StepRoute.extend({
     route: '/step4',
+    breadcrumbs: { label: Em.I18n.translations['installer.step4.header'] },
     connectOutlets: function (router, context) {
       console.time('step4 connectOutlets');
       var self = this;
@@ -530,6 +536,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     backTransition: function(router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('step1');
     },
 
@@ -555,6 +563,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step5: App.StepRoute.extend({
     route: '/step5',
+    breadcrumbs: { label: Em.I18n.translations['installer.step5.header'] },
     connectOutlets: function (router, context) {
       console.time('step5 connectOutlets');
       var self = this;
@@ -575,9 +584,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step5 connectOutlets');
       });
     },
-    backTransition: function(router) {
+    
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('verifyProducts');
     },
+    
     next: function (router) {
       console.time('step5 next');
       if (!router.get('btnClickInProgress')) {
@@ -601,6 +614,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step6: App.StepRoute.extend({
     route: '/step6',
+    breadcrumbs: { label: Em.I18n.translations['installer.step6.header'] },
     connectOutlets: function (router, context) {
       console.time('step6 connectOutlets');
       var self = this;
@@ -619,6 +633,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
     },
     backTransition: function(router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
       router.transitionTo('step5');
     },
 
@@ -654,7 +670,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step7: App.StepRoute.extend({
     route: '/step7',
-
+    breadcrumbs: { label: Em.I18n.translations['installer.step7.header'] },
     connectOutlets: function (router, context) {
       console.time('step7 connectOutlets');
       var self = this;
@@ -675,6 +691,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     backTransition: function (router) {
       console.time('step7 back');
+      var controller = router.get('installerController');
+      controller.clearErrors();
+
       var step = router.get('installerController.content.skipSlavesStep') ? 'step5' : 'step6';
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
@@ -689,6 +708,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
       console.timeEnd('step7 back');
     },
+
     next: function (router) {
       console.time('step7 next');
       if (!router.get('btnClickInProgress')) {
@@ -712,6 +732,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step8: App.StepRoute.extend({
     route: '/step8',
+    breadcrumbs: { label: Em.I18n.translations['installer.step8.header'] },
     connectOutlets: function (router, context) {
       console.time('step8 connectOutlets');
       var self = this;
@@ -728,11 +749,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step8 connectOutlets');
       });
     },
+    
     backTransition: function (router) {
-      if(router.get('wizardStep8Controller.isBackBtnDisabled') == false) {
+      if (router.get('wizardStep8Controller.isBackBtnDisabled') == false) {
+        var controller = router.get('installerController');
+        controller.clearErrors();
+
         router.transitionTo('step7');
       }
     },
+    
     next: function (router) {
       console.time('step8 next');
       if (!router.get('btnClickInProgress')) {
@@ -754,7 +780,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step9: Em.Route.extend({
     route: '/step9',
-
+    breadcrumbs: { label: Em.I18n.translations['installer.step9.header'] },
     connectOutlets: function (router, context) {
       console.time('step9 connectOutlets');
       var self = this;
@@ -777,7 +803,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
     },
 
-    back: Em.Router.transitionTo('step8'),
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step8');
+    },
 
     retry: function (router) {
       console.time('step9 retry');
@@ -826,7 +856,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   step10: Em.Route.extend({
     route: '/step10',
-
+    breadcrumbs: { label: Em.I18n.translations['installer.step10.header'] },
     connectOutlets: function (router, context) {
       var self = this;
       var controller = router.get('installerController');
@@ -845,7 +875,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
     },
     
-    back: Em.Router.transitionTo('step9'),
+    backTransition: function (router) {
+      var controller = router.get('installerController');
+      controller.clearErrors();
+      router.transitionTo('step9');
+    },
     
     complete: function (router, context) {
       var controller = router.get('installerController');

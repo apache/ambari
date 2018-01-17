@@ -57,6 +57,21 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     "step10"
   ],
 
+  errors: [],
+
+  hasErrors: function () {
+    return this.get('errors').length > 0;
+  }.property('errors'),
+
+  addError: function (newError) {
+    const errors = this.get('errors');
+    this.set('errors', errors.concat(newError));
+  },
+
+  clearErrors: function () {
+    this.set('errors', []);
+  },
+
   getStepController: function (stepName) {
     if (typeof (stepName) === "number") {
       stepName = this.get('steps')[stepName];
@@ -266,7 +281,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       },
       success: 'loadMpackServiceInfoSuccess',
       error: 'loadMpackServiceInfoError'
-    })
+    });
   },
 
   loadMpackServiceInfoSuccess: function (serviceInfo) {
@@ -277,10 +292,13 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   loadMpackServiceInfoError: function(request, status, error) {
     const message = Em.I18n.t('installer.error.mpackServiceInfo');
 
-    App.showAlertPopup(
-      Em.I18n.t('common.error'), //header
-      message //body
-    );
+    this.addError(message);
+    // App.showAlertPopup(
+    //   Em.I18n.t('common.error'), //header
+    //   message //body
+    // );
+
+    return message;
     
     console.log(`${message} ${status} - ${error}`);
   },
@@ -1470,7 +1488,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    * @return {object} a promise
    */
   finishRegisteringMpacks: function (keepStackServices) {
-    return this.getMpackStackVersions().then(data => {
+    return this.getMpackStackVersions().fail(this.addErrors).always(data => {
       data.items.forEach(versionDefinition => App.stackMapper.map(versionDefinition))
 
       if (!keepStackServices) {
