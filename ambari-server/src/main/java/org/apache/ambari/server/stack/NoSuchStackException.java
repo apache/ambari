@@ -25,4 +25,9 @@ public class NoSuchStackException extends Exception {
   public NoSuchStackException(String stackName, String stackVersion) {
     super(String.format("The requested stack doesn't exist. Name='%s' Version='%s'", stackName, stackVersion));
   }
+
+  public NoSuchStackException(String stackName, String stackVersion, Throwable cause) {
+    super(String.format("The requested stack doesn't exist. Name='%s' Version='%s'", stackName, stackVersion), cause);
+  }
+
 }

@@ -274,7 +274,7 @@ public class TopologyManager {
 
     final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
-    final Stack stack = topology.getBlueprint().getStack();
+    final Stack stack = topology.getBlueprint().getStack(); // TODO: implement multi-stack
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
 
@@ -1102,7 +1102,7 @@ public class TopologyManager {
    */
   private void addKerberosClient(ClusterTopology topology) {
     for (HostGroup group : topology.getBlueprint().getHostGroups().values()) {
-      group.addComponent("KERBEROS_CLIENT");
+      group.addComponent(new Component("KERBEROS_CLIENT"));
     }
   }
 

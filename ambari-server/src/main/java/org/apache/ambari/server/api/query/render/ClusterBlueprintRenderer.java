@@ -445,10 +445,10 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    */
   private List<Map<String, String>> processHostGroupComponents(HostGroup group) {
     List<Map<String, String>> listHostGroupComponents = new ArrayList<>();
-    for (Component component : group.getComponents()) {
+    for (String component : group.getComponentNames()) {
       Map<String, String> mapComponentProperties = new HashMap<>();
       listHostGroupComponents.add(mapComponentProperties);
-      mapComponentProperties.put("name", component.getName());
+      mapComponentProperties.put("name", component);
     }
     return listHostGroupComponents;
   }

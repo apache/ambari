@@ -244,8 +244,8 @@ public class TopologyManagerTest {
 
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
-    expect(blueprint.getComponents("service1")).andReturn(Arrays.asList("component1", "component3")).anyTimes();
-    expect(blueprint.getComponents("service2")).andReturn(Arrays.asList("component2", "component4")).anyTimes();
+    expect(blueprint.getComponentNames("service1")).andReturn(Arrays.asList("component1", "component3")).anyTimes();
+    expect(blueprint.getComponentNames("service2")).andReturn(Arrays.asList("component2", "component4")).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.singleton(group1)).anyTimes();
@@ -295,8 +295,8 @@ public class TopologyManagerTest {
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group1.containsMasterComponent()).andReturn(true).anyTimes();
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
-    expect(group1.getComponents("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
-    expect(group1.getComponents("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
+    expect(group1.getComponentNames("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
+    expect(group1.getComponentNames("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
     expect(group1.getConfiguration()).andReturn(topoGroup1Config).anyTimes();
     expect(group1.getName()).andReturn("group1").anyTimes();
     expect(group1.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
@@ -306,8 +306,8 @@ public class TopologyManagerTest {
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group2.containsMasterComponent()).andReturn(false).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
-    expect(group2.getComponents("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
-    expect(group2.getComponents("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
+    expect(group2.getComponentNames("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
+    expect(group2.getComponentNames("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
     expect(group2.getConfiguration()).andReturn(topoGroup2Config).anyTimes();
     expect(group2.getName()).andReturn("group2").anyTimes();
     expect(group2.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
@@ -406,8 +406,8 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
     expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
-    expect(group1.addComponent("KERBEROS_CLIENT")).andReturn(true).anyTimes();
-    expect(group2.addComponent("KERBEROS_CLIENT")).andReturn(true).anyTimes();
+    expect(group1.addComponent(new Component("KERBEROS_CLIENT"))).andReturn(true).anyTimes();
+    expect(group2.addComponent(new Component("KERBEROS_CLIENT"))).andReturn(true).anyTimes();
 
     replayAll();
 

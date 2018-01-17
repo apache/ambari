@@ -239,8 +239,8 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
 
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
-    expect(blueprint.getComponents("service1")).andReturn(Arrays.asList("component1", "component3")).anyTimes();
-    expect(blueprint.getComponents("service2")).andReturn(Arrays.asList("component2", "component4")).anyTimes();
+    expect(blueprint.getComponentNames("service1")).andReturn(Arrays.asList("component1", "component3")).anyTimes();
+    expect(blueprint.getComponentNames("service2")).andReturn(Arrays.asList("component2", "component4")).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(groupMap).anyTimes();
     expect(blueprint.getHostGroupsForComponent("component1")).andReturn(Collections.singleton(group1)).anyTimes();
@@ -303,8 +303,8 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
     expect(group1.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.emptyList()).anyTimes();
 
-    expect(group1.getComponents("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
-    expect(group1.getComponents("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
+    expect(group1.getComponentNames("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
+    expect(group1.getComponentNames("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
     expect(group1.getConfiguration()).andReturn(topoGroup1Config).anyTimes();
     expect(group1.getName()).andReturn("group1").anyTimes();
     expect(group1.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
@@ -315,8 +315,8 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(group2.containsMasterComponent()).andReturn(false).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
     expect(group2.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.emptyList()).anyTimes();
-    expect(group2.getComponents("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
-    expect(group2.getComponents("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
+    expect(group2.getComponentNames("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
+    expect(group2.getComponentNames("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
     expect(group2.getConfiguration()).andReturn(topoGroup2Config).anyTimes();
     expect(group2.getName()).andReturn("group2").anyTimes();
     expect(group2.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();

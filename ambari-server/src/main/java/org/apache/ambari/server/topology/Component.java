@@ -19,21 +19,40 @@
 package org.apache.ambari.server.topology;
 
 
+import java.util.Objects;
+
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 public class Component {
 
   private final String name;
+  @Nullable
+  private final String mpackInstance;
+  @Nullable
+  private final String serviceInstance;
 
   private final ProvisionAction provisionAction;
 
+  @Deprecated
   public Component(String name) {
-    this(name, null);
+    this(name, null, null, null);
   }
 
-
+  @Deprecated
   public Component(String name, ProvisionAction provisionAction) {
+    this(name, null, null, provisionAction);
+  }
+
+  public Component(String name, String mpackInstance, String serviceInstance) {
+    this(name, mpackInstance, serviceInstance, null);
+  }
+
+  public Component(String name, String mpackInstance, String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
+    this.mpackInstance = mpackInstance;
+    this.serviceInstance = serviceInstance;
     this.provisionAction = provisionAction;
   }
 
@@ -47,6 +66,21 @@ public class Component {
   }
 
   /**
+   * @return the mpack associated with this component (can be {@code null} if component -> mpack mapping is unambigous)
+   */
+  public String getMpackInstance() {
+    return mpackInstance;
+  }
+
+  /**
+   * @return the service instance this component belongs to. Can be {@null} if component does not belong to a service
+   * instance (there is a single service of the component's service type)
+   */
+  public String getServiceInstance() {
+    return serviceInstance;
+  }
+
+  /**
    * Gets the provision action associated with this component.
    *
    * @return the provision action for this component, which
@@ -56,4 +90,30 @@ public class Component {
     return this.provisionAction;
   }
 
+  @Override
+  public String toString() {
+    return com.google.common.base.Objects.toStringHelper(this)
+      .add("name", name)
+      .add("mpackInstance", mpackInstance)
+      .add("serviceInstance", serviceInstance)
+      .add("provisionAction", provisionAction)
+      .toString();
+  }
+
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Component component = (Component) o;
+    return Objects.equals(name, component.name) &&
+      Objects.equals(mpackInstance, component.mpackInstance) &&
+      Objects.equals(serviceInstance, component.serviceInstance) &&
+      provisionAction == component.provisionAction;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, mpackInstance, serviceInstance, provisionAction);
+  }
 }

@@ -21,6 +21,7 @@ package org.apache.ambari.server.topology;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -155,7 +156,7 @@ public class BlueprintFactory {
       Configuration configuration = configFactory.getConfiguration(configProps);
       String cardinality = String.valueOf(hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
 
-      HostGroup group = new HostGroupImpl(hostGroupName, bpName, stack, components, configuration, cardinality);
+      HostGroup group = new HostGroupImpl(hostGroupName, bpName, Collections.singleton(stack), components, configuration, cardinality);
 
       hostGroups.add(group);
     }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toList;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -103,8 +104,12 @@ public class BlueprintValidatorImplTest {
     expect(blueprint.getServices()).andReturn(services).anyTimes();
 
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
+    expect(group1.getComponents()).
+      andAnswer(() -> group1Components.stream().map(comp -> new Component(comp)).collect(toList())).anyTimes();
     expect(group1.getName()).andReturn("host-group-1").anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
+    expect(group2.getComponents()).
+      andAnswer(() -> group2Components.stream().map(comp -> new Component(comp)).collect(toList())).anyTimes();
     expect(group2.getName()).andReturn("host-group-2").anyTimes();
 
     expect(stack.getDependenciesForComponent("component1")).andReturn(dependencies1).anyTimes();
@@ -171,7 +176,7 @@ public class BlueprintValidatorImplTest {
     expect(stack.getComponents("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
     expect(stack.getAutoDeployInfo("component1")).andReturn(autoDeploy).anyTimes();
 
-    expect(group1.addComponent("component1")).andReturn(true).once();
+    expect(group1.addComponent(new Component("component1"))).andReturn(true).once();
 
     replay(blueprint, stack, group1, group2, dependency1);
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
@@ -207,8 +212,8 @@ public class BlueprintValidatorImplTest {
     expect(dependencyComponentInfo.isClient()).andReturn(true).anyTimes();
     expect(stack.getComponentInfo("component3")).andReturn(dependencyComponentInfo).anyTimes();
 
-    expect(group1.addComponent("component1")).andReturn(true).once();
-    expect(group1.addComponent("component3")).andReturn(true).once();
+    expect(group1.addComponent(new Component("component1"))).andReturn(true).once();
+    expect(group1.addComponent(new Component("component3"))).andReturn(true).once();
 
     replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
 

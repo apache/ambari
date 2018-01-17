@@ -156,6 +156,35 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       Collections.emptyMap()).anyTimes();
     expect(serviceInfo.getRequiredServices()).andReturn(Collections.emptyList()).anyTimes();
 
+    setupGetServiceForComponentExpectations();
+
+    expect(stack.getCardinality("MYSQL_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
+
+    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
+    expect(configHelper.getDefaultStackProperties(
+        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+  
+   stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
+
+
+    expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
+    expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
+    PowerMock.mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
+    PowerMock.replay(AmbariServer.class);
+    expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
+    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
+    Set<String> properties = new HashSet<>();
+    properties.add("core-site/hadoop.security.auth_to_local");
+    expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();
+  }
+
+  private void setupGetServiceForComponentExpectations() {
     Collection<String> hdfsComponents = new HashSet<>();
     hdfsComponents.add("NAMENODE");
     hdfsComponents.add("SECONDARY_NAMENODE");
@@ -163,12 +192,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     hdfsComponents.add("HDFS_CLIENT");
     serviceComponents.put("HDFS", hdfsComponents);
 
-    Collection<String> yarnComponents = new HashSet<>();
-    yarnComponents.add("RESOURCEMANAGER");
-    yarnComponents.add("NODEMANAGER");
-    yarnComponents.add("YARN_CLIENT");
-    yarnComponents.add("APP_TIMELINE_SERVER");
-    serviceComponents.put("YARN", yarnComponents);
+    serviceComponents.put("YARN", Sets.newHashSet("RESOURCEMANAGER", "NODEMANAGER", "YARN_CLIENT",
+      "APP_TIMELINE_SERVER", "HISTORYSERVER"));
 
     Collection<String> mrComponents = new HashSet<>();
     mrComponents.add("MAPREDUCE2_CLIENT");
@@ -180,11 +205,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     zkComponents.add("ZOOKEEPER_CLIENT");
     serviceComponents.put("ZOOKEEPER", zkComponents);
 
-    Collection<String> hiveComponents = new HashSet<>();
-    hiveComponents.add("MYSQL_SERVER");
-    hiveComponents.add("HIVE_METASTORE");
-    hiveComponents.add("HIVE_SERVER");
-    serviceComponents.put("HIVE", hiveComponents);
+    serviceComponents.put("HIVE", Sets.newHashSet("MYSQL_SERVER", "HIVE_METASTORE", "HIVE_SERVER", "HIVE_CLIENT"));
 
     Collection<String> falconComponents = new HashSet<>();
     falconComponents.add("FALCON_SERVER");
@@ -222,9 +243,11 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     amsComponents.add("METRICS_COLLECTOR");
     serviceComponents.put("AMBARI_METRICS", amsComponents);
 
-    Collection<String> stormComponents = new HashSet<>();
-    stormComponents.add("NIMBUS");
-    serviceComponents.put("STORM", stormComponents);
+    serviceComponents.put("STORM", Sets.newHashSet("NIMBUS", "SUPERVISOR", "STORM_UI_SERVER", "DRPC_SERVER"));
+    serviceComponents.put("RANGER", Sets.newHashSet("RANGER_ADMIN", "RANGER_USERSYNC", "RANGER_KMS_SERVER"));
+    serviceComponents.put("DRUID", Sets.newHashSet("DRUID_COORDINATOR", "DRUID_OVERLORD", "DRUID_BROKER", "DRUID_ROUTER"));
+    serviceComponents.put("HAWQ", Sets.newHashSet("HAWQMASTER", "HAWQSTANDBY"));
+    serviceComponents.put("TEZ", Sets.newHashSet("TEZ_CLIENT"));
 
     for (Map.Entry<String, Collection<String>> entry : serviceComponents.entrySet()) {
       String service = entry.getKey();
@@ -232,31 +255,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
         expect(stack.getServiceForComponent(component)).andReturn(service).anyTimes();
       }
     }
-
-    expect(stack.getCardinality("MYSQL_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
-
-    Set<String> emptySet = Collections.emptySet();
-    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
-
-    expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
-    expect(configHelper.getDefaultStackProperties(
-        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
-  
-   stackProperties.put(ConfigHelper.CLUSTER_ENV, defaultClusterEnvProperties);
-
-
-    expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
-    expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
-    PowerMock.mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
-    PowerMock.replay(AmbariServer.class);
-    expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
-    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
-    expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(kerberosHelper.getKerberosDescriptor(cluster, false)).andReturn(kerberosDescriptor).anyTimes();
-    Set<String> properties = new HashSet<>();
-    properties.add("core-site/hadoop.security.auth_to_local");
-    expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();
   }
 
   @After
@@ -4275,6 +4273,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.emptySet());
     expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
     expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
+    expect(stack.getServiceForComponent("FALCON_CLIENT")).andReturn("FALCON");
+    expect(stack.getServiceForComponent("FALCON_SERVER")).andReturn("FALCON");
+    expect(stack.getServiceForComponent("OOZIE_CLIENT")).andReturn("OOZIE");
+    expect(stack.getServiceForComponent("OOZIE_SERVER")).andReturn("OOZIE");
 
     Map<String, Map<String, String>> properties = new HashMap<>();
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
@@ -4314,6 +4316,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site")).anyTimes();
     expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
     expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
+    expect(stack.getServiceForComponent("FALCON_CLIENT")).andReturn("FALCON");
+    expect(stack.getServiceForComponent("FALCON_SERVER")).andReturn("FALCON");
+    expect(stack.getServiceForComponent("OOZIE_CLIENT")).andReturn("OOZIE");
+    expect(stack.getServiceForComponent("OOZIE_SERVER")).andReturn("OOZIE");
 
     Map<String, Map<String, String>> properties = new HashMap<>();
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
@@ -4350,6 +4356,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // customized stack calls for this test only
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site")).anyTimes();
     expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
+    expect(stack.getServiceForComponent("FALCON_CLIENT")).andReturn("FALCON");
+    expect(stack.getServiceForComponent("FALCON_SERVER")).andReturn("FALCON");
 
     Map<String, Map<String, String>> properties = new HashMap<>();
     Map<String, String> typeProps = new HashMap<>();
@@ -4397,6 +4405,10 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
     // simulate the case where the STORM service has been removed manually from the stack definitions
     expect(stack.getServiceForConfigType("storm-site")).andThrow(new IllegalArgumentException("TEST: Configuration not found in stack definitions!"));
+    expect(stack.getServiceForComponent("FALCON_CLIENT")).andReturn("FALCON");
+    expect(stack.getServiceForComponent("FALCON_SERVER")).andReturn("FALCON");
+    expect(stack.getServiceForComponent("OOZIE_CLIENT")).andReturn("OOZIE");
+    expect(stack.getServiceForComponent("OOZIE_SERVER")).andReturn("OOZIE");
 
     Map<String, Map<String, String>> properties = new HashMap<>();
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
@@ -4593,6 +4605,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
 
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("HDFS").anyTimes();
+
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
     Collection<String> hgComponents = new HashSet<>();
@@ -4670,6 +4684,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // simulate the case of the stack object throwing a RuntimeException, to indicate a config error
     expect(stack.getServiceForConfigType("hive-site")).andThrow(new RuntimeException("Expected Test Error")).once();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("HDFS");
 
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
@@ -4748,6 +4763,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // customized stack calls for this test only
     expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("HDFS");
 
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
@@ -4836,6 +4852,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // customized stack calls for this test only
     expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HBASE", "hbase-site")).andReturn(mapOfMetadata).atLeastOnce();
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("HDFS");
 
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
@@ -4904,6 +4921,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     // customized stack calls for this test only
     expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HBASE", "hbase-site")).andReturn(mapOfMetadata).atLeastOnce();
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("HDFS");
 
     Configuration clusterConfig = new Configuration(properties, Collections.emptyMap());
 
@@ -8214,7 +8232,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       }
 
       //create host group which is set on topology
-      allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, "test-bp", stack,
+      allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, "test-bp", Collections.singleton(stack),
         componentList, EMPTY_CONFIG, "1"));
 
       hostGroupInfo.put(hostGroup.name, groupInfo);

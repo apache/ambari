@@ -237,11 +237,11 @@ public class ClusterConfigurationRequest {
 
     if(services != null) {
       for (String service : services) {
-        Collection<String> components = blueprint.getComponents(service);
+        Collection<String> components = blueprint.getComponentNames(service);
         serviceComponents.put(service,
             (components == null)
                 ? Collections.emptySet()
-                : new HashSet<>(blueprint.getComponents(service)));
+                : new HashSet<>(blueprint.getComponentNames(service)));
       }
     }
 
@@ -281,7 +281,7 @@ public class ClusterConfigurationRequest {
   private Map<String, String> createComponentHostMap(Blueprint blueprint) {
     Map<String, String> componentHostsMap = new HashMap<>();
     for (String service : blueprint.getServices()) {
-      Collection<String> components = blueprint.getComponents(service);
+      Collection<String> components = blueprint.getComponentNames(service);
       for (String component : components) {
         Collection<String> componentHost = clusterTopology.getHostAssignmentsForComponent(component);
         // retrieve corresponding clusterInfoKey for component using StageUtils

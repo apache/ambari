@@ -62,11 +62,13 @@ public interface HostGroup {
    */
   Collection<Component> getComponents();
 
+
   /**
    * Get all of the host group component names
    *
    * @return collection of component names as String
    */
+  @Deprecated
   Collection<String> getComponentNames();
 
   /**
@@ -79,35 +81,38 @@ public interface HostGroup {
    * @return collection of component names as String that are associated with
    *           the specified provision action
    */
+  @Deprecated
   Collection<String> getComponentNames(ProvisionAction provisionAction);
+
+  /**
+   * Get the names components for the specified service which are associated with the host group.
+   *
+   * @param service  service name
+   *
+   * @return set of component names
+   */
+  @Deprecated
+  public Collection<String> getComponentNames(String service);
 
   /**
    * Get the host group components which belong to the specified service.
    *
-   * @param service  service name
+   * @param service  service instance name or service name. First, services looked up
+   *                 by instance name. If no appropriate service instance is found, services are looked
+   *                 up by type
    *
    * @return collection of component names for the specified service; will not return null
    */
-  Collection<String> getComponents(String service);
+  Collection<Component> getComponents(String service);
+
+
 
   /**
-   * Add a component to the host group.
-   *
-   * @param component  name of the component to add
-   *
-   * @return true if the component didn't already exist
-   */
-  boolean addComponent(String component);
-
-  /**
-   * Add a component to the host group, with the specified name
-   *   and provision action.
-   *
-   * @param component  component name
-   * @param provisionAction provision action for this component
+   * Add a component to the host group
+   * @param component
    * @return
    */
-  boolean addComponent(String component, ProvisionAction provisionAction);
+  boolean addComponent(Component component);
 
   /**
    * Determine if the host group contains a master component.
@@ -137,7 +142,15 @@ public interface HostGroup {
    *
    * @return associated stack
    */
+  @Deprecated
   Stack getStack();
+
+  /**
+   * Get the stack associated with the host group.
+   *
+   * @return associated stacks
+   */
+  Collection<Stack> getStacks();
 
   /**
    * Get the cardinality value that was specified for the host group.
