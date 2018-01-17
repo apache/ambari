@@ -61,9 +61,10 @@ public class BlueprintImplTest {
   Map<String, Map<String, String>> properties = new HashMap<>();
   Map<String, String> hdfsProps = new HashMap<>();
   Configuration configuration = new Configuration(properties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
+  org.apache.ambari.server.configuration.Configuration serverConfig;
 
   @Before
-  public void setup() {
+  public void setup() throws NoSuchFieldException, IllegalAccessException {
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
@@ -104,11 +105,12 @@ public class BlueprintImplTest {
     requiredService2Properties.add(new Stack.ConfigProperty("category2", "prop2", null));
     expect(stack.getRequiredConfigurationProperties("HDFS")).andReturn(requiredHDFSProperties).anyTimes();
     expect(stack.getRequiredConfigurationProperties("SERVICE2")).andReturn(requiredService2Properties).anyTimes();
+
+    serverConfig = setupConfigurationWithGPLLicense(true);
   }
 
   @Test
   public void testValidateConfigurations__basic_positive() throws Exception {
-    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
     expect(group1.getCardinality()).andReturn("1").atLeastOnce();
     expect(group1.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c2"))).atLeastOnce();
     expect(group2.getCardinality()).andReturn("1").atLeastOnce();
@@ -138,7 +140,6 @@ public class BlueprintImplTest {
     group2Props.put("category2", group2Category2Props);
     group2Category2Props.put("prop2", "val");
 
-    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
     // set config for group2 which contains a required property
     Configuration group2Configuration = new Configuration(group2Props, EMPTY_ATTRIBUTES, configuration);
     expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
@@ -178,7 +179,6 @@ public class BlueprintImplTest {
     Configuration group2Configuration = new Configuration(group2Props, EMPTY_ATTRIBUTES, configuration);
     expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
 
-    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
 
     expect(group1.getCardinality()).andReturn("1").atLeastOnce();
     expect(group1.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"),new Component("ZKFC"))).atLeastOnce();
@@ -242,10 +242,10 @@ public class BlueprintImplTest {
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group3%");
-    replay(stack, group1, group2);
+    replay(stack, group1, group2, serverConfig);
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
     blueprint.validateRequiredProperties();
-    verify(stack, group1, group2);
+    verify(stack, group1, group2, serverConfig);
   }
   @Test(expected= IllegalArgumentException.class)
   public void testValidateConfigurations__hostGroupConfigForNameNodeHAMappedSameHostGroup() throws Exception {
@@ -278,10 +278,10 @@ public class BlueprintImplTest {
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
-    replay(stack, group1, group2);
+    replay(stack, group1, group2, serverConfig);
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
     blueprint.validateRequiredProperties();
-    verify(stack, group1, group2);
+    verify(stack, group1, group2, serverConfig);
   }
   @Test(expected = InvalidTopologyException.class)
   public void testValidateConfigurations__secretReference() throws InvalidTopologyException,
@@ -289,7 +289,6 @@ public class BlueprintImplTest {
     Map<String, Map<String, String>> group2Props = new HashMap<>();
     Map<String, String> group2Category2Props = new HashMap<>();
 
-    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
     group2Props.put("category2", group2Category2Props);
     group2Category2Props.put("prop2", "val");
     hdfsProps.put("secret", "SECRET:hdfs-site:1:test");
@@ -309,7 +308,7 @@ public class BlueprintImplTest {
     }});
     Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
 
-    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(false);
+    serverConfig = setupConfigurationWithGPLLicense(false);
     replay(stack, group1, group2, serverConfig);
 
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
@@ -326,7 +325,7 @@ public class BlueprintImplTest {
     }});
     Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
 
-    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(false);
+    serverConfig = setupConfigurationWithGPLLicense(false);
     replay(stack, group1, group2, serverConfig);
 
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
@@ -344,7 +343,6 @@ public class BlueprintImplTest {
     }});
     Configuration lzoUsageConfiguration = new Configuration(lzoProperties, EMPTY_ATTRIBUTES, EMPTY_CONFIGURATION);
 
-    org.apache.ambari.server.configuration.Configuration serverConfig = setupConfigurationWithGPLLicense(true);
     expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
     replay(stack, group1, group2, serverConfig);
 
