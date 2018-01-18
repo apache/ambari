@@ -39,6 +39,7 @@ import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,14 +60,14 @@ public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
     mockedAuditLogger = createMock(AuditLogger.class);
     permissionHelper = createMock(PermissionHelper.class);
     entryPoint = createMock(AmbariEntryPoint.class);
-    underTest = new AmbariBasicAuthenticationFilter(null, entryPoint, mockedAuditLogger, permissionHelper);
+    underTest = new AmbariBasicAuthenticationFilter(createNiceMock(AuthenticationManager.class), entryPoint, mockedAuditLogger, permissionHelper);
   }
 
   @Test
   public void testDoFilter() throws IOException, ServletException {
     SecurityContextHolder.getContext().setAuthentication(null);
     // GIVEN
-    HttpServletRequest request = createMock(HttpServletRequest.class);
+    HttpServletRequest request = createNiceMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     FilterChain filterChain = createMock(FilterChain.class);
     expect(request.getHeader("Authorization")).andReturn("Basic ").andReturn(null);

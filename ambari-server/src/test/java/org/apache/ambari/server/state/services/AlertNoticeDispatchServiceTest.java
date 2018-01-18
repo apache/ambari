@@ -40,15 +40,12 @@ import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.Executor;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.dispatchers.AmbariSNMPDispatcher;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -56,15 +53,13 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
-import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.alert.TargetType;
-import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -792,17 +787,14 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     @Override
     public void configure(Binder binder) {
       Cluster cluster = EasyMock.createNiceMock(Cluster.class);
+      PartialNiceMockBinder.newBuilder().addDBAccessorBinding().addAmbariMetaInfoBinding().build().configure(binder);
+
       binder.bind(AlertDispatchDAO.class).toInstance(m_dao);
       binder.bind(DispatchFactory.class).toInstance(m_dispatchFactory);
-      binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(m_metaInfo);
-      binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
       binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
-      binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
 
       binder.bind(AlertNoticeDispatchService.class).toInstance(new AlertNoticeDispatchService());
 

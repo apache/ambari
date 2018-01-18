@@ -139,11 +139,21 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariManagementController = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
 
+    EasyMock.expect(configHelper.getPropertyValuesWithPropertyType(EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(PropertyInfo.PropertyType.class),
+        EasyMock.anyObject(Cluster.class),
+        EasyMock.anyObject(Map.class))).andReturn(Collections.EMPTY_SET);
+
+    EasyMock.replay(configHelper);
+
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
     createClusterFixture("c1", new StackId("HDP-2.0.6"), "2.0.6-1234", "c1");
+
+    EasyMock.verify(configHelper);
+    EasyMock.reset(configHelper);
 
     EasyMock.expect(hostRoleCommand.getTaskId()).andReturn(1L);
     EasyMock.expect(hostRoleCommand.getStageId()).andReturn(1L);
@@ -627,7 +637,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     RepositoryVersionHelper repoVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
 
     CommandRepository commandRepo = ambariMetaInfo.getCommandRepository(cluster, componentRM, host);
-
+    Assert.assertEquals(2, commandRepo.getRepositories().size());
 
     RepositoryInfo ri = new RepositoryInfo();
     ri.setBaseUrl("http://foo");
@@ -664,11 +674,11 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     // verify that ZK has no repositories, since we haven't defined a repo version for ZKC
     commandRepo = ambariMetaInfo.getCommandRepository(cluster, componentZKC, host);
-    Assert.assertEquals(0, commandRepo.getRepositories().size());
+    Assert.assertEquals(2, commandRepo.getRepositories().size());
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,
-    String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException {
+    String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
 
     String hostC6401 = hostPrefix + "-c6401";
     String hostC6402 = hostPrefix + "-c6402";
@@ -681,6 +691,9 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     addHost(hostC6401, clusterName);
     addHost(hostC6402, clusterName);
+
+    clusters.updateHostMappings(clusters.getHost(hostC6401));
+    clusters.updateHostMappings(clusters.getHost(hostC6402));
 
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
@@ -732,7 +745,7 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   private void createService(String clusterName, String serviceName,
-      RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException {
+      RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
 
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
         repositoryVersion.getId(), null, "false");

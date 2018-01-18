@@ -67,7 +67,6 @@ public class HeartBeatHandler {
 
   private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
   private final Clusters clusterFsm;
-  private final ActionQueue actionQueue;
   private final ActionManager actionManager;
   private HeartbeatMonitor heartbeatMonitor;
   private HeartbeatProcessor heartbeatProcessor;
@@ -98,12 +97,11 @@ public class HeartBeatHandler {
   private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<>();
 
   @Inject
-  public HeartBeatHandler(Clusters fsm, ActionQueue aq, ActionManager am,
+  public HeartBeatHandler(Clusters fsm, ActionManager am,
                           Injector injector) {
     clusterFsm = fsm;
-    actionQueue = aq;
     actionManager = am;
-    heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000, injector);
+    heartbeatMonitor = new HeartbeatMonitor(fsm, am, 60000, injector);
     heartbeatProcessor = new HeartbeatProcessor(fsm, am, heartbeatMonitor, injector); //TODO modify to match pattern
     injector.injectMembers(this);
   }
@@ -362,11 +360,6 @@ public class HeartBeatHandler {
         response.setHasMappedComponents(true);
         break;
       }
-    }
-
-    if(actionQueue.hasPendingTask(hostname)) {
-      LOG.debug("Host {} has pending tasks", hostname);
-      response.setHasPendingTasks(true);
     }
   }
 

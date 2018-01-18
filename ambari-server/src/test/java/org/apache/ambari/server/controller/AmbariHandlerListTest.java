@@ -43,6 +43,8 @@ import org.easymock.EasyMock;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.Assert;
@@ -57,6 +59,9 @@ public class AmbariHandlerListTest {
   private final AmbariViewsSecurityHeaderFilter ambariViewsSecurityHeaderFilter = createNiceMock(AmbariViewsSecurityHeaderFilter.class);
   private final AmbariPersistFilter persistFilter = createNiceMock(AmbariPersistFilter.class);
   private final DelegatingFilterProxy springSecurityFilter = createNiceMock(DelegatingFilterProxy.class);
+  private final SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
+  private final SessionIdManager sessionIdManager = createNiceMock(SessionIdManager.class);
+  private final SessionHandlerConfigurer sessionHandlerConfigurer = createNiceMock(SessionHandlerConfigurer.class);
 
 
   @Test
@@ -68,6 +73,7 @@ public class AmbariHandlerListTest {
     Server server = createNiceMock(Server.class);
 
     expect(handler.getServer()).andReturn(server);
+    expect(handler.getChildHandlers()).andReturn(new Handler[]{});
     handler.setServer(null);
 
     Capture<FilterHolder> securityHeaderFilterCapture = EasyMock.newCapture();
@@ -104,6 +110,7 @@ public class AmbariHandlerListTest {
     Server server = createNiceMock(Server.class);
 
     expect(handler.getServer()).andReturn(server);
+    expect(handler.getChildHandlers()).andReturn(new Handler[]{});
     handler.setServer(null);
 
     replay(handler, server);
@@ -142,6 +149,7 @@ public class AmbariHandlerListTest {
     expect(viewEntity.getClassLoader()).andReturn(classLoader).anyTimes();
 
     expect(handler.isStarted()).andReturn(true).anyTimes();
+    expect(handler.getChildHandlers()).andReturn(new Handler[]{});
 
     replay(handler, viewRegistry, viewEntity);
     handler.handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
@@ -161,12 +169,14 @@ public class AmbariHandlerListTest {
   private AmbariHandlerList getAmbariHandlerList(final WebAppContext handler) {
 
     AmbariHandlerList handlerList = new AmbariHandlerList();
+    sessionHandler.setSessionIdManager(sessionIdManager);
 
     handlerList.webAppContextProvider = new HandlerProvider(handler);
     handlerList.ambariViewsSecurityHeaderFilter = ambariViewsSecurityHeaderFilter;
     handlerList.persistFilter = persistFilter;
     handlerList.springSecurityFilter = springSecurityFilter;
-
+    handlerList.sessionHandler = sessionHandler;
+    handlerList.sessionHandlerConfigurer = sessionHandlerConfigurer;
     return handlerList;
   }
 

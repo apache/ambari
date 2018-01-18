@@ -398,7 +398,7 @@ public class ServiceComponentTest {
     // delete the SC
     DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
     sc.delete(deleteMetaData);
-    Assert.assertNull("Delete must fail as some SCH are in STARTED state", deleteMetaData.getAmbariException());
+    Assert.assertNotNull("Delete must fail as some SCH are in STARTED state", deleteMetaData.getAmbariException());
 
     sch1.setState(State.INSTALLED);
     sch2.setState(State.INSTALL_FAILED);

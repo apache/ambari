@@ -54,6 +54,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.velocity.app.Velocity;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -238,7 +239,6 @@ public class AmbariServerTest {
     final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
     final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
-    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
 
@@ -255,18 +255,8 @@ public class AmbariServerTest {
 
     replay(mockConfiguration);
 
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
-        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
-        bind(OsFamily.class).toInstance(mockOSFamily);
-        bind(EntityManager.class).toInstance(mockEntityManager);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(Configuration.class).toInstance(mockConfiguration);
-      }
-    });
+    final Injector mockInjector = createMockInjector(mockAmbariMetainfo,
+        mockDBDbAccessor, mockOSFamily, mockEntityManager, mockClusters, mockConfiguration);
 
     expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection).atLeastOnce();
     expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement).atLeastOnce();
@@ -310,7 +300,6 @@ public class AmbariServerTest {
     final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
     final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
     final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
-    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
     final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
     final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
 
@@ -327,18 +316,8 @@ public class AmbariServerTest {
 
     replay(mockConfiguration);
 
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
-        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
-        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
-        bind(OsFamily.class).toInstance(mockOSFamily);
-        bind(EntityManager.class).toInstance(mockEntityManager);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(Configuration.class).toInstance(mockConfiguration);
-      }
-    });
+    final Injector mockInjector = createMockInjector(mockAmbariMetainfo,
+        mockDBDbAccessor, mockOSFamily, mockEntityManager, mockClusters, mockConfiguration);
 
     expect(mockDBDbAccessor.getConnection()).andReturn(null);
 
@@ -359,6 +338,28 @@ public class AmbariServerTest {
     junit.framework.Assert.assertTrue(errorOccurred);
 
     easyMockSupport.verifyAll();
+  }
+
+  private Injector createMockInjector(final AmbariMetaInfo mockAmbariMetainfo,
+                                      final DBAccessor mockDBDbAccessor,
+                                      final OsFamily mockOSFamily,
+                                      final EntityManager mockEntityManager,
+                                      final Clusters mockClusters,
+                                      final Configuration mockConfiguration) {
+    return Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        PartialNiceMockBinder.newBuilder().addClustersBinding().build().configure(binder());
+
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(Configuration.class).toInstance(mockConfiguration);
+      }
+    });
   }
 
 }

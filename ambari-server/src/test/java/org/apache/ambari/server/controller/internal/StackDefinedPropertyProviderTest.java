@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -89,6 +90,7 @@ public class StackDefinedPropertyProviderTest {
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = "HostRoles/component_name";
   private static final String HOST_COMPONENT_STATE_PROPERTY_ID = "HostRoles/state";
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
+  private static final int METRICS_SERVICE_TIMEOUT = 10;
 
   private Clusters clusters = null;
   private Injector injector = null;
@@ -96,6 +98,7 @@ public class StackDefinedPropertyProviderTest {
 
   private static TimelineMetricCacheEntryFactory cacheEntryFactory;
   private static TimelineMetricCacheProvider cacheProvider;
+  private static MetricsRetrievalService metricsRetrievalService;
 
   @BeforeClass
   public static void setupCache() {
@@ -122,10 +125,11 @@ public class StackDefinedPropertyProviderTest {
     injector.getInstance(GuiceJpaInitializer.class);
     StackDefinedPropertyProvider.init(injector);
 
-    MetricsRetrievalService metricsRetrievalService = injector.getInstance(
+    metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);
 
-    metricsRetrievalService.start();
+    metricsRetrievalService.startAsync();
+    metricsRetrievalService.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
     metricsRetrievalService.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
 
     helper = injector.getInstance(OrmTestHelper.class);
@@ -188,6 +192,10 @@ public class StackDefinedPropertyProviderTest {
 
   @After
   public void teardown() throws Exception {
+    if (metricsRetrievalService != null && metricsRetrievalService.isRunning()) {
+      metricsRetrievalService.stopAsync();
+      metricsRetrievalService.awaitTerminated(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
+    }
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 

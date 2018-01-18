@@ -38,7 +38,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
@@ -272,7 +271,6 @@ public class TestActionManager {
   @Test
   public void testGetActions() throws Exception {
     int requestId = 500;
-    ActionQueue queue = createNiceMock(ActionQueue.class);
     ActionDBAccessor db = createStrictMock(ActionDBAccessor.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Stage stage1 = createNiceMock(Stage.class);
@@ -285,13 +283,13 @@ public class TestActionManager {
     expect(db.getLastPersistedRequestIdWhenInitialized()).andReturn(Long.valueOf(1000));
     expect(db.getAllStages(requestId)).andReturn(listStages);
 
-    replay(queue, db, clusters);
+    replay(db, clusters);
 
     ActionScheduler actionScheduler = new ActionScheduler(0, 0, db, createNiceMock(JPAEventPublisher.class));
     ActionManager manager = new ActionManager(db, injector.getInstance(RequestFactory.class), actionScheduler);
     assertSame(listStages, manager.getActions(requestId));
 
-    verify(queue, db, clusters);
+    verify(db, clusters);
   }
 
   /**

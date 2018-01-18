@@ -20,6 +20,8 @@ package org.apache.ambari.server.state.services;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.persistence.EntityManager;
 
@@ -35,6 +37,7 @@ import org.apache.ambari.server.utils.SynchronousThreadPoolExecutor;
 import org.apache.commons.io.IOUtils;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,6 +57,7 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
 
   private static final String JMX_URL = "http://jmx-endpoint";
   private static final String REST_URL = "http://rest-endpoint";
+  private static final int METRICS_SERVICE_TIMEOUT = 10;
 
   MetricsRetrievalService m_service = new MetricsRetrievalService();
 
@@ -67,12 +71,22 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
     m_injector.injectMembers(m_service);
   }
 
+  @After
+  public void after() throws TimeoutException {
+    //stop metrics service
+    if (m_service != null && m_service.isRunning()) {
+      m_service.stopAsync();
+      m_service.awaitTerminated(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
+    }
+  }
+
   /**
    * Tests that initial missing values are returned correctly as {@code null}.
    */
   @Test
   public void testCachedValueRetrievalDoesNotRequest() throws Exception {
-    m_service.doStart();
+    m_service.startAsync();
+    m_service.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
 
     JMXMetricHolder jmxMetricHolder = m_service.getCachedJMXMetric(JMX_URL);
     Assert.assertNull(jmxMetricHolder);
@@ -95,7 +109,8 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
 
     replayAll();
 
-    m_service.doStart();
+    m_service.startAsync();
+    m_service.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
 
     // make the service synchronous
     m_service.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
@@ -140,7 +155,8 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
 
     replayAll();
 
-    m_service.doStart();
+    m_service.startAsync();
+    m_service.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
 
     // make the service synchronous
     m_service.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
@@ -193,7 +209,8 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
 
     replayAll();
 
-    m_service.doStart();
+    m_service.startAsync();
+    m_service.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
 
     // make the service synchronous
     m_service.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
@@ -224,7 +241,8 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
 
     replayAll();
 
-    m_service.doStart();
+    m_service.startAsync();
+    m_service.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
 
     // make the service synchronous
     m_service.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());

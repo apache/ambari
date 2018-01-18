@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.persistence.EntityManager;
@@ -39,6 +40,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.persist.PersistModule;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
@@ -66,10 +68,11 @@ public class AmbariJpaPersistModule extends PersistModule {
   @Override protected void configurePersistence() {
     bindConstant().annotatedWith(Jpa.class).to(jpaUnit);
 
+    LocalTypeLiteral mapTypeLiteral = new LocalTypeLiteral<Map<?,?>>(){};
     if (null != properties) {
-      bind(Properties.class).annotatedWith(Jpa.class).toInstance(properties);
+      bind(mapTypeLiteral).annotatedWith(Jpa.class).toInstance(properties);
     } else {
-      bind(Properties.class).annotatedWith(Jpa.class).toProvider(Providers.of(null));
+      bind(mapTypeLiteral).annotatedWith(Jpa.class).toProvider(Providers.of(null));
     }
 
     bind(AmbariJpaPersistService.class).in(Singleton.class);
@@ -197,5 +200,8 @@ public class AmbariJpaPersistModule extends PersistModule {
       }
     }
     return valid;
+  }
+
+  private class LocalTypeLiteral<T> extends TypeLiteral<T> {
   }
 }

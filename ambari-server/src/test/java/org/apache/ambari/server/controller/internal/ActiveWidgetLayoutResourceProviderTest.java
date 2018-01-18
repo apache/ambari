@@ -79,6 +79,9 @@ import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
@@ -379,7 +382,9 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
       protected void configure() {
         install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
         install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+        install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
 
+        bind(PersistedState.class).to(PersistedStateImpl.class);
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessor.class));

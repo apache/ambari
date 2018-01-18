@@ -18,10 +18,11 @@
 package com.google.inject.persist.jpa;
 
 
-import java.util.Properties;
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import com.google.inject.Inject;
-import com.google.inject.internal.util.$Nullable;
 
 /**
  * Override non-public class limitations as we need non-interface method
@@ -29,7 +30,7 @@ import com.google.inject.internal.util.$Nullable;
 public class AmbariJpaPersistService extends JpaPersistService {
 
   @Inject
-  public AmbariJpaPersistService(@Jpa String persistenceUnitName, @$Nullable @Jpa Properties persistenceProperties) {
+  public AmbariJpaPersistService(@Jpa String persistenceUnitName, @Nullable @Jpa Map<?,?> persistenceProperties) {
     super(persistenceUnitName, persistenceProperties);
   }
 

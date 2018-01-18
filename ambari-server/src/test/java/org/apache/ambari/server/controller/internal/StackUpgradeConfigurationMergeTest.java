@@ -28,18 +28,24 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -49,6 +55,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -74,6 +81,9 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -429,6 +439,9 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
      */
     @Override
     public void configure(Binder binder) {
+      PartialNiceMockBinder.newBuilder(StackUpgradeConfigurationMergeTest.this)
+          .addActionDBAccessorConfigsBindings().build().configure(binder);
+
       binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
       binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
@@ -461,8 +474,15 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
       binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
       binder.bind(AmbariMetaInfo.class).toInstance(m_metainfo);
+      binder.bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
+      binder.bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+      binder.bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
+      binder.bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
+      binder.bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);
+
+      binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
     }
   }
 }
