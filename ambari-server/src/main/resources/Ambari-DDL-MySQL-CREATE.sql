@@ -301,11 +301,11 @@ CREATE TABLE user_authentication (
   user_authentication_id INTEGER,
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
-  authentication_key LONGBLOB,
+  authentication_key TEXT,
   create_time TIMESTAMP NOT NULL DEFAULT 0,
   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
-  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users(user_id)
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 
 CREATE TABLE groups (

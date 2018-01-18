@@ -278,11 +278,11 @@ CREATE TABLE user_authentication (
   user_authentication_id INTEGER,
   user_id INTEGER NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
-  authentication_key IMAGE,
+  authentication_key TEXT,
   create_time TIMESTAMP DEFAULT NOW(),
   update_time TIMESTAMP DEFAULT NOW(),
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
-  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users(user_id)
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 
 CREATE TABLE groups (

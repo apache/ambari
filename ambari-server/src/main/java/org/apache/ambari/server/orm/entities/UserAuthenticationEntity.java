@@ -29,7 +29,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -74,9 +73,8 @@ public class UserAuthenticationEntity {
   private UserAuthenticationType authenticationType = UserAuthenticationType.LOCAL;
 
   @Column(name = "authentication_key")
-  @Lob
   @Basic
-  private byte[] authenticationKey;
+  private String authenticationKey;
 
   @Column(name = "create_time", nullable = false)
   @Basic
@@ -109,11 +107,11 @@ public class UserAuthenticationEntity {
   }
 
   public String getAuthenticationKey() {
-    return authenticationKey == null ? "" : new String(authenticationKey);
+    return authenticationKey;
   }
 
   public void setAuthenticationKey(String authenticationKey) {
-    this.authenticationKey = (authenticationKey == null) ? null : authenticationKey.getBytes();
+    this.authenticationKey = authenticationKey;
   }
 
   public Date getCreateTime() {

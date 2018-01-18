@@ -281,11 +281,11 @@ CREATE TABLE user_authentication (
   user_authentication_id NUMBER(10),
   user_id NUMBER(10) NOT NULL,
   authentication_type VARCHAR(50) NOT NULL,
-  authentication_key BLOB,
+  authentication_key CLOB,
   create_time TIMESTAMP NULL,
   update_time TIMESTAMP NULL,
   CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
-  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users(user_id)
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 
 CREATE TABLE groups (

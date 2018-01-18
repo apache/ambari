@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
@@ -110,10 +111,24 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
   }
 
   @Test
-  public void testAuthenticate() throws Exception {
+  public void testAuthenticateMatchingDN() throws Exception {
+    testAuthenticate("uid=the allowedUser,ou=the people,dc=ambari,dc=the apache,dc=org");
+  }
+
+  @Test
+  public void testAuthenticateNullDN() throws Exception {
+    testAuthenticate(null);
+  }
+
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
+  public void testAuthenticateNonMatchingDN() throws Exception {
+    testAuthenticate("This is not a matching DN");
+  }
+
+  private void testAuthenticate(String dn) throws AmbariException {
     assertNull("User already exists in DB", userDAO.findUserByName("the allowedUser"));
     UserEntity userEntity = users.createUser("the allowedUser", null, null);
-    users.addLdapAuthentication(userEntity, "some Dn");
+    users.addLdapAuthentication(userEntity, dn);
 
     Authentication authentication = new UsernamePasswordAuthenticationToken("the allowedUser", "password");
     Authentication result = authenticationProvider.authenticate(authentication);
