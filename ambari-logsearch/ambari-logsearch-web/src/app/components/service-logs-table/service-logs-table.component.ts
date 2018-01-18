@@ -255,16 +255,13 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
   }
 
   /**
-   * This is just a temporary solution till, the fields and components i18n solution is not designed yet.
+   * Find the label for the given field in the @columns ListItem array
    * @param {string} field
    * @returns {string}
    */
   private getLabelForField(field: string): string {
-    let label = field.indexOf('_') > -1 ? field.toLowerCase().split('_') : field;
-    if (Array.isArray(label)) {
-      label = label.shift() + label.map((value: string) => upperFirst(value)).join('');
-    }
-    return 'logs.' + label;
+    const column: ListItem = this.columns.find(column => column.value === field);
+    return column && column.label;
   }
 
   /**

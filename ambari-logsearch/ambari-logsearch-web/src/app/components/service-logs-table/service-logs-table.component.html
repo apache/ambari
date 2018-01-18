@@ -67,7 +67,7 @@
             <tr class="log-item-row">
               <td class="log-action">
                 <dropdown-button iconClass="fa fa-ellipsis-v action" [hideCaret]="true" [options]="logActions"
-                                 [additionalArgs]="[log]"></dropdown-button>
+                                 [additionalArgs]="[log]" [showSelectedValue]="false"></dropdown-button>
               </td>
               <td *ngIf="isColumnDisplayed('logtime')" class="log-time">
                 <time>
