@@ -66,6 +66,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
   @Test
   public void executeMITKDCOption() throws Exception {
     String clusterName = "c1";
+    String clusterId = "1";
     Injector injector = setup(clusterName);
 
     File dataDirectory = createDataDirectory();
@@ -74,7 +75,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     commandParams.put(KerberosServerAction.KDC_TYPE, KDCType.MIT_KDC.name());
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
 
-    ExecutionCommand executionCommand = createMockExecutionCommand(clusterName, commandParams);
+    ExecutionCommand executionCommand = createMockExecutionCommand(clusterId, clusterName, commandParams);
     HostRoleCommand hostRoleCommand = createMockHostRoleCommand();
 
     PrincipalKeyCredential principleKeyCredential = createMock(PrincipalKeyCredential.class);
@@ -103,6 +104,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
   @Test
   public void executeManualOption() throws Exception {
     String clusterName = "c1";
+    String clusterId = "1";
     Injector injector = setup(clusterName);
 
     File dataDirectory = createDataDirectory();
@@ -110,7 +112,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
 
-    ExecutionCommand executionCommand = createMockExecutionCommand(clusterName, commandParams);
+    ExecutionCommand executionCommand = createMockExecutionCommand(clusterId, clusterName, commandParams);
     HostRoleCommand hostRoleCommand = createMockHostRoleCommand();
 
     replayAll();
@@ -147,8 +149,9 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
     Assert.assertEquals("{}", commandReport.getStructuredOut());
   }
 
-  private ExecutionCommand createMockExecutionCommand(String clusterName, Map<String, String> commandParams) {
+  private ExecutionCommand createMockExecutionCommand(String clusterId, String clusterName, Map<String, String> commandParams) {
     ExecutionCommand executionCommand = createMock(ExecutionCommand.class);
+    expect(executionCommand.getClusterId()).andReturn(clusterId).anyTimes();
     expect(executionCommand.getClusterName()).andReturn(clusterName).anyTimes();
     expect(executionCommand.getCommandParams()).andReturn(commandParams).anyTimes();
     expect(executionCommand.getRoleCommand()).andReturn(RoleCommand.EXECUTE).anyTimes();

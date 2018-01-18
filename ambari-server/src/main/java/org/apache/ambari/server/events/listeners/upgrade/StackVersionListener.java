@@ -63,11 +63,9 @@ public class StackVersionListener {
    * Used for looking up a component's advertising version status given a stack
    * and name.
    */
-  @Inject
   private Provider<AmbariMetaInfo> ambariMetaInfoProvider;
 
-  @Inject
-  private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
+  private final Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
 
   /**
    * Constructor.
@@ -75,7 +73,11 @@ public class StackVersionListener {
    * @param eventPublisher  the publisher
    */
   @Inject
-  public StackVersionListener(VersionEventPublisher eventPublisher) {
+  public StackVersionListener(VersionEventPublisher eventPublisher,
+                              Provider<AmbariMetaInfo> ambariMetaInfoProvider,
+                              Provider<HostLevelParamsHolder> m_hostLevelParamsHolder) {
+    this.ambariMetaInfoProvider = ambariMetaInfoProvider;
+    this.m_hostLevelParamsHolder = m_hostLevelParamsHolder;
     eventPublisher.register(this);
   }
 

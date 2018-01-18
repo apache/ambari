@@ -1337,6 +1337,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     desiredStateEntity.setHostEntity(hostEntity);
+    desiredStateEntity.setHostId(hostEntity.getHostId());
 
     stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     stateEntity.setHostEntity(hostEntity);

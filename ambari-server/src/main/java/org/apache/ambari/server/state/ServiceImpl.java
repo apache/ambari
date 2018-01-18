@@ -601,6 +601,8 @@ public class ServiceImpl implements Service {
     if (deleteMetaData.getAmbariException() != null) {
       return;
     }
+
+    StackId stackId = getDesiredStackId();
     try {
       deleteAllServiceConfigs();
 
@@ -609,8 +611,6 @@ public class ServiceImpl implements Service {
       deleteMetaData.setAmbariException(e);
       return;
     }
-
-    StackId stackId = getDesiredStackId();
 
     // publish the service removed event
     if (null == stackId) {

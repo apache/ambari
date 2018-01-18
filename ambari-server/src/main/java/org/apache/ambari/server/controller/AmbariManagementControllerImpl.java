@@ -363,10 +363,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private Provider<TopologyHolder> m_topologyHolder;
 
-  @Inject
   private Provider<MetadataHolder> m_metadataHolder;
 
-  @Inject
   private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   @Inject
@@ -427,6 +425,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
     maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
     kerberosHelper = injector.getInstance(KerberosHelper.class);
+    m_metadataHolder = injector.getProvider(MetadataHolder.class);
+    m_agentConfigsHolder = injector.getProvider(AgentConfigsHolder.class);
     if(configs != null)
     {
       if (configs.getApiSSLAuthentication()) {

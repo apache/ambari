@@ -25,15 +25,11 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.ambari.server.agent.ActionQueue;
-import org.apache.ambari.server.agent.AlertDefinitionCommand;
-import org.apache.ambari.server.agent.AlertExecutionCommand;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -371,35 +367,6 @@ public class AlertDefinitionHashTest extends TestCase {
     String expected = Hex.encodeHexString(hashBytes);
 
     assertEquals(expected, m_hash.getHash(CLUSTERNAME, HOSTNAME));
-  }
-
-  @Test
-  public void testActionQueueInvalidation() throws Exception{
-    ActionQueue actionQueue = m_injector.getInstance(ActionQueue.class);
-
-    AlertDefinitionCommand definitionCommand1 = new AlertDefinitionCommand(
-        CLUSTERNAME, HOSTNAME, HOSTNAME, "12345", null);
-
-    AlertDefinitionCommand definitionCommand2 = new AlertDefinitionCommand(
-        CLUSTERNAME, "anotherHost", "anotherHost", "67890", null);
-
-    AlertExecutionCommand executionCommand = new AlertExecutionCommand(
-        CLUSTERNAME, HOSTNAME, null);
-
-    /*actionQueue.enqueue(HOSTNAME, definitionCommand1);
-    actionQueue.enqueue(HOSTNAME, executionCommand);
-    actionQueue.enqueue("anotherHost", definitionCommand2);*/
-
-    assertEquals(2, actionQueue.size(HOSTNAME));
-    assertEquals(1, actionQueue.size("anotherHost"));
-
-    Set<String> hosts = new HashSet<>();
-    hosts.add(HOSTNAME);
-
-    // should invalidate both alert commands, and add a new definition command
-    m_hash.enqueueAgentCommands(1L, hosts);
-    assertEquals(1, actionQueue.size(HOSTNAME));
-    assertEquals(1, actionQueue.size("anotherHost"));
   }
 
   /**

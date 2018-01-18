@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -33,6 +34,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,9 +48,11 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.AmbariManagementControllerImplTest;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -75,6 +79,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -83,8 +88,8 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.google.gson.Gson;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 
 /**
  * Tests for the component resource provider.
@@ -543,7 +548,7 @@ public class ComponentResourceProviderTest {
     expect(serviceComponentHost.getDesiredState()).andReturn(hostComponentState);
 
 
-    service.deleteServiceComponent("Component100", new DeleteHostComponentStatusMetaData());
+    service.deleteServiceComponent(eq("Component100"), anyObject(DeleteHostComponentStatusMetaData.class));
     expectLastCall().once();
     // replay
 
@@ -552,7 +557,7 @@ public class ComponentResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    ResourceProvider provider = new ComponentResourceProvider(managementController,
+    ResourceProvider provider = getComponentProvider(managementController,
         maintenanceStateHelper);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -574,6 +579,30 @@ public class ComponentResourceProviderTest {
 
     // verify
     verify(managementController, service);
+  }
+  public static ComponentResourceProvider getComponentProvider(
+      AmbariManagementController managementController,
+      MaintenanceStateHelper maintenanceStateHelper)
+      throws NoSuchFieldException, IllegalAccessException {
+    ComponentResourceProvider provider = new ComponentResourceProvider(managementController,
+        maintenanceStateHelper);
+
+    Field topologyDeleteFormerField = ComponentResourceProvider.class.getDeclaredField("topologyDeleteFormer");
+    topologyDeleteFormerField.setAccessible(true);
+    TopologyDeleteFormer topologyDeleteFormer = new TopologyDeleteFormer();
+    topologyDeleteFormerField.set(provider, topologyDeleteFormer);
+
+    Field topologyHolderProviderField = TopologyDeleteFormer.class.getDeclaredField("m_topologyHolder");
+    topologyHolderProviderField.setAccessible(true);
+    Provider<TopologyHolder> m_topologyHolder = createMock(Provider.class);
+    topologyHolderProviderField.set(topologyDeleteFormer, m_topologyHolder);
+
+    TopologyHolder topologyHolder = createNiceMock(TopologyHolder.class);
+
+    expect(m_topologyHolder.get()).andReturn(topologyHolder).anyTimes();
+
+    replay(m_topologyHolder, topologyHolder);
+    return provider;
   }
 
   @Test
@@ -957,10 +986,8 @@ public class ComponentResourceProviderTest {
 
     // expectations
     // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+    AmbariManagementControllerImplTest.constructorInit(injector, controllerCapture, null, maintHelper,
+        createNiceMock(KerberosHelper.class), null, null);
 
     // getComponents
     expect(clusters.getCluster("cluster1")).andReturn(cluster);

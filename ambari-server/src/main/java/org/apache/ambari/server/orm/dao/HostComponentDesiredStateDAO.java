@@ -123,11 +123,12 @@ public class HostComponentDesiredStateDAO {
   }
 
   @RequiresSession
-  public List<HostComponentDesiredStateEntity> findByHosts(Collection<Long> hostIds) {
+  public List<HostComponentDesiredStateEntity> findByHostsAndCluster(Collection<Long> hostIds, Long clusterId) {
     final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
-      .createNamedQuery("HostComponentDesiredStateEntity.findByHosts", HostComponentDesiredStateEntity.class);
+      .createNamedQuery("HostComponentDesiredStateEntity.findByHostsAndCluster", HostComponentDesiredStateEntity.class);
 
     query.setParameter("hostIds", hostIds);
+    query.setParameter("clusterId", clusterId);
 
     return daoUtils.selectList(query);
   }

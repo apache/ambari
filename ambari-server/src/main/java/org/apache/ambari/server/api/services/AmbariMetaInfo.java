@@ -133,7 +133,7 @@ public class AmbariMetaInfo {
 
   // all the supported OS'es
   @Inject
-  private OsFamily os_family;
+  private OsFamily osFamily;
 
   @Inject
   private Gson gson;
@@ -255,12 +255,12 @@ public class AmbariMetaInfo {
   @Inject
   public void init() throws Exception {
     // Need to be initialized before all actions
-    ALL_SUPPORTED_OS = new ArrayList<>(os_family.os_list());
+    ALL_SUPPORTED_OS = new ArrayList<>(osFamily.os_list());
 
     readServerVersion();
 
     stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
-        os_family, false);
+        osFamily, false);
 
     getCustomActionDefinitions(customActionRoot);
   }
@@ -1544,7 +1544,7 @@ public class AmbariMetaInfo {
         // !!! a repository version entity has all the repos worked out.  We shouldn't use
         // the stack at all.
         for (OperatingSystemEntity osEntity : rve.getOperatingSystems()) {
-          String osEntityFamily = os_family.find(osEntity.getOsType());
+          String osEntityFamily = osFamily.find(osEntity.getOsType());
           if (osEntityFamily.equals(host.getOsFamily())) {
             command.setRepositories(osEntity.getOsType(), osEntity.getRepositories());
 
@@ -1589,7 +1589,7 @@ public class AmbariMetaInfo {
     Map<String, List<RepositoryInfo>> repos = getRepository(
         stackId.getStackName(), stackId.getStackVersion());
 
-    String family = os_family.find(hostOsType);
+    String family = osFamily.find(hostOsType);
     if (null == family) {
       family = hostOsFamily;
     }

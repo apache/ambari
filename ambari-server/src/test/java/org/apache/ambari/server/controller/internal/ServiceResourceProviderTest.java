@@ -59,6 +59,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.utilities.state.DefaultServiceCalculatedState;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -76,10 +77,12 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -90,6 +93,14 @@ import com.google.common.collect.ImmutableMap;
  * ServiceResourceProvider tests.
  */
 public class ServiceResourceProviderTest {
+
+  @BeforeClass
+  public static void resetDefaultServiceCalculatedState() throws NoSuchFieldException, IllegalAccessException {
+    Field clustersProviderField = DefaultServiceCalculatedState.class.getDeclaredField("clustersProvider");
+    clustersProviderField.setAccessible(true);
+    clustersProviderField.set(null, null);
+  }
+
   @Before
   public void clearAuthentication() {
     SecurityContextHolder.getContext().setAuthentication(null);
@@ -870,7 +881,7 @@ public class ServiceResourceProviderTest {
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
     expect(service.getCluster()).andReturn(cluster);
-    cluster.deleteService(serviceName, new DeleteHostComponentStatusMetaData());
+    cluster.deleteService(eq(serviceName), anyObject(DeleteHostComponentStatusMetaData.class));
 
     // replay
     replay(managementController, clusters, cluster, service);
@@ -918,7 +929,7 @@ public class ServiceResourceProviderTest {
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<>());
     expect(service.getCluster()).andReturn(cluster);
-    cluster.deleteService(serviceName, new DeleteHostComponentStatusMetaData());
+    cluster.deleteService(eq(serviceName), anyObject(DeleteHostComponentStatusMetaData.class));
 
     // replay
     replay(managementController, clusters, cluster, service);
@@ -1086,7 +1097,7 @@ public class ServiceResourceProviderTest {
     expect(sch3.canBeRemoved()).andReturn(sch3State.isRemovableState()).anyTimes();
 
     expect(service.getCluster()).andReturn(cluster);
-    cluster.deleteService(serviceName, new DeleteHostComponentStatusMetaData());
+    cluster.deleteService(eq(serviceName), anyObject(DeleteHostComponentStatusMetaData.class));
 
     // replay
     replay(managementController, clusters, cluster, service,
@@ -1367,7 +1378,7 @@ public class ServiceResourceProviderTest {
   }
 
   private static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController,
-      boolean mockFindByStack, Capture<Long> pkCapture) throws  AmbariException {
+      boolean mockFindByStack, Capture<Long> pkCapture) throws AmbariException, NoSuchFieldException, IllegalAccessException {
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
     RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
@@ -1394,7 +1405,8 @@ public class ServiceResourceProviderTest {
    * This factory method creates default MaintenanceStateHelper mock.
    * It's useful in most cases (when we don't care about Maintenance State)
    */
-  public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) throws  AmbariException {
+  public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController)
+      throws AmbariException, NoSuchFieldException, IllegalAccessException {
     return getServiceProvider(managementController, false, null);
   }
 
@@ -1403,21 +1415,31 @@ public class ServiceResourceProviderTest {
    */
   public static ServiceResourceProvider getServiceProvider(
       AmbariManagementController managementController,
-      MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
+      MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO)
+      throws NoSuchFieldException, IllegalAccessException {
     Resource.Type type = Resource.Type.Service;
-    return new ServiceResourceProvider(managementController, maintenanceStateHelper, repositoryVersionDAO);
+    ServiceResourceProvider serviceResourceProvider =
+        new ServiceResourceProvider(managementController, maintenanceStateHelper, repositoryVersionDAO);
+
+    Field topologyDeleteFormerField = ServiceResourceProvider.class.getDeclaredField("topologyDeleteFormer");
+    topologyDeleteFormerField.setAccessible(true);
+    TopologyDeleteFormer topologyDeleteFormer = createNiceMock(TopologyDeleteFormer.class);
+    topologyDeleteFormerField.set(serviceResourceProvider, topologyDeleteFormer);
+    replay(topologyDeleteFormer);
+    return serviceResourceProvider;
   }
 
   public static void createServices(AmbariManagementController controller,
       RepositoryVersionDAO repositoryVersionDAO, Set<ServiceRequest> requests)
-      throws AmbariException, AuthorizationException {
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
     ServiceResourceProvider provider = getServiceProvider(controller, maintenanceStateHelperMock, repositoryVersionDAO);
     provider.createServices(requests);
   }
 
   public static Set<ServiceResponse> getServices(AmbariManagementController controller,
-                                                 Set<ServiceRequest> requests) throws AmbariException {
+                                                 Set<ServiceRequest> requests)
+      throws AmbariException, NoSuchFieldException, IllegalAccessException {
     ServiceResourceProvider provider = getServiceProvider(controller);
     return provider.getServices(requests);
   }
@@ -1426,7 +1448,7 @@ public class ServiceResourceProviderTest {
                                                      Set<ServiceRequest> requests,
                                                      Map<String, String> requestProperties, boolean runSmokeTest,
                                                      boolean reconfigureClients)
-      throws AmbariException, AuthorizationException {
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     return updateServices(controller, requests, requestProperties, runSmokeTest, reconfigureClients, null);
   }
 
@@ -1439,7 +1461,7 @@ public class ServiceResourceProviderTest {
                                                      Map<String, String> requestProperties, boolean runSmokeTest,
                                                      boolean reconfigureClients,
                                                      MaintenanceStateHelper maintenanceStateHelper)
-      throws AmbariException, AuthorizationException {
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     ServiceResourceProvider provider;
     if (maintenanceStateHelper != null) {
       provider = getServiceProvider(controller, maintenanceStateHelper, null);
@@ -1453,7 +1475,7 @@ public class ServiceResourceProviderTest {
   }
 
   public static RequestStatusResponse deleteServices(AmbariManagementController controller, Set<ServiceRequest> requests)
-      throws AmbariException, AuthorizationException {
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     ServiceResourceProvider provider = getServiceProvider(controller);
     return provider.deleteServices(requests);
   }

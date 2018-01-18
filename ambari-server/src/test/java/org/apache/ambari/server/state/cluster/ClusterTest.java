@@ -2022,6 +2022,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfig1);
     clusterEntity.getClusterConfigEntities().add(clusterConfig1);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    Config config = configFactory.createExisting(cluster, clusterConfig1);
+    cluster.addConfig(config);
 
     cluster.createServiceConfigVersion(serviceName, "", "version-1", null);
 
@@ -2039,6 +2041,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfig2);
     clusterEntity.getClusterConfigEntities().add(clusterConfig2);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    config = configFactory.createExisting(cluster, clusterConfig1);
+    cluster.addConfig(config);
 
     // before creating the new service config version, we need to push the
     // service's desired repository forward
@@ -2145,6 +2149,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfigNewStack);
     clusterEntity.getClusterConfigEntities().add(clusterConfigNewStack);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    Config config = configFactory.createExisting(cluster, clusterConfigNewStack);
+    cluster.addConfig(config);
 
     // before creating the new service config version, we need to push the
     // service's desired repository forward
@@ -2285,6 +2291,8 @@ public class ClusterTest {
     clusterDAO.createConfig(clusterConfig);
     clusterEntity.getClusterConfigEntities().add(clusterConfig);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    Config config = configFactory.createExisting(cluster, clusterConfig);
+    cluster.addConfig(config);
 
     // create the service version association
     cluster.createServiceConfigVersion(serviceName, "", "version-1", null);
@@ -2307,6 +2315,8 @@ public class ClusterTest {
     clusterDAO.createConfig(newClusterConfig);
     clusterEntity.getClusterConfigEntities().add(newClusterConfig);
     clusterEntity = clusterDAO.merge(clusterEntity);
+    config = configFactory.createExisting(cluster, newClusterConfig);
+    cluster.addConfig(config);
 
     // before creating the new service config version, we need to push the
     // service's desired repository forward
