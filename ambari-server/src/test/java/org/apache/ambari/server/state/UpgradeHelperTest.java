@@ -2218,9 +2218,15 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
-    // initially, no conditions should be met
+    // initially, no conditions should be met, so only 1 group should be
+    // available
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
-    assertEquals(0, groups.size());
+    assertEquals(1, groups.size());
+
+    // from that 1 group, only 1 task is condition-less
+    List<StageWrapper> stageWrappers = groups.get(0).items;
+    assertEquals(1, stageWrappers.size());
+    assertEquals(1, stageWrappers.get(0).getTasks().size());
 
     // set the configuration property and try again
     Map<String, String> fooConfigs = new HashMap<>();
@@ -2239,14 +2245,14 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     // the config condition should now be set
     groups = m_upgradeHelper.createSequence(upgrade, context);
-    assertEquals(1, groups.size());
+    assertEquals(2, groups.size());
     assertEquals("ZOOKEEPER_CONFIG_CONDITION_TEST", groups.get(0).name);
 
     // now change the cluster security so the other conditions come back too
     cluster.setSecurityType(SecurityType.KERBEROS);
 
     groups = m_upgradeHelper.createSequence(upgrade, context);
-    assertEquals(3, groups.size());
+    assertEquals(4, groups.size());
   }
 
   /**

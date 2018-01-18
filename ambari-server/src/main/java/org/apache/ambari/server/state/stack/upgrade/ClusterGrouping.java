@@ -197,6 +197,15 @@ public class ClusterGrouping extends Grouping {
             }
           }
 
+          // tasks can have their own condition, so check that too
+          if (null != execution.task.condition
+              && !execution.task.condition.isSatisfied(upgradeContext)) {
+            LOG.info("Skipping {} while building upgrade orchestration due to {}", execution,
+                execution.task.condition);
+
+            continue;
+          }
+
           Task task = execution.task;
 
           StageWrapper wrapper = null;

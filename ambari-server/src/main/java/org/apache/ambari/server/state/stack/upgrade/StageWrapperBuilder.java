@@ -229,7 +229,15 @@ public abstract class StageWrapperBuilder {
 
     List<Task> tasks = new ArrayList<>();
     for (Task t : interim) {
-      if (context.isScoped(t.scope)) {
+      boolean taskPassesScoping = context.isScoped(t.scope);
+      boolean taskPassesCondition = true;
+
+      // tasks can have conditions on them, so check to make sure the condition is satisfied
+      if (null != t.condition && !t.condition.isSatisfied(context)) {
+        taskPassesCondition = false;
+      }
+
+      if (taskPassesScoping && taskPassesCondition) {
         tasks.add(t);
       }
     }
