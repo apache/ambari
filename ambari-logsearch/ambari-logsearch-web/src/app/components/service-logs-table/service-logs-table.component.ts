@@ -18,8 +18,6 @@
 
 import {Component, AfterViewInit, AfterViewChecked, ViewChild, ElementRef, Input, ChangeDetectorRef} from '@angular/core';
 
-import {upperFirst} from 'angular-pipes/src/utils/utils';
-
 import {ListItem} from '@app/classes/list-item';
 import {LogsTableComponent} from '@app/classes/components/logs-table/logs-table-component';
 import {LogsContainerService} from '@app/services/logs-container.service';
@@ -35,7 +33,7 @@ export enum ListLayout {
   templateUrl: './service-logs-table.component.html',
   styleUrls: ['./service-logs-table.component.less']
 })
-export class ServiceLogsTableComponent extends LogsTableComponent implements AfterViewInit, AfterViewChecked {
+export class ServiceLogsTableComponent extends LogsTableComponent implements AfterViewChecked {
 
   constructor(
     private logsContainer: LogsContainerService,
@@ -45,21 +43,10 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
     super();
   }
 
-  ngAfterViewInit() {
-    if (this.contextMenu) {
-      this.contextMenuElement = this.contextMenu.nativeElement;
-    }
-  }
-
   ngAfterViewChecked() {
     this.checkListLayout();
     this.cdRef.detectChanges();
   }
-
-  @ViewChild('contextmenu', {
-    read: ElementRef
-  })
-  contextMenu: ElementRef;
 
   /**
    * The element reference is used to check if the table is broken or not.
@@ -139,7 +126,23 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
 
   private readonly messageFilterParameterName: string = 'log_message';
 
-  private contextMenuElement: HTMLElement;
+  /**
+   * The goal is to show or hide the context menu on right click.
+   * @type {boolean}
+   */
+  private isContextMenuDisplayed: boolean = false;
+
+  /**
+   * 'left' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  private contextMenuLeft: number = 0;
+
+  /**
+   * 'top' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  private contextMenuTop:number = 0;
 
   private selectedText: string = '';
 
@@ -170,14 +173,10 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
   openMessageContextMenu(event: MouseEvent): void {
     const selectedText = getSelection().toString();
     if (selectedText) {
-      let contextMenuStyle = this.contextMenuElement.style;
-      Object.assign(contextMenuStyle, {
-        left: `${event.clientX}px`,
-        top: `${event.clientY}px`,
-        display: 'block'
-      });
+      this.isContextMenuDisplayed = true;
+      this.contextMenuLeft = event.clientX;
+      this.contextMenuTop = event.clientY;
       this.selectedText = selectedText;
-      document.body.addEventListener('click', this.dismissContextMenu);
       event.preventDefault();
     }
   }
@@ -190,10 +189,12 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
     });
   }
 
-  private dismissContextMenu = (): void => {
+  /**
+   * Handle the event when the contextual menu component hide itself.
+   */
+  private onContextMenuDismiss = (): void => {
+    this.isContextMenuDisplayed = false;
     this.selectedText = '';
-    this.contextMenuElement.style.display = 'none';
-    document.body.removeEventListener('click', this.dismissContextMenu);
   };
 
   /**
