@@ -133,18 +133,9 @@ export class ServiceLogsTableComponent extends LogsTableComponent implements Aft
 
   readonly customStyledColumns: string[] = ['level', 'type', 'logtime', 'log_message', 'path'];
 
-  readonly contextMenuItems: ListItem[] = [
-    {
-      label: 'logs.addToQuery',
-      iconClass: 'fa fa-search-plus',
-      value: false // 'isExclude' is false
-    },
-    {
-      label: 'logs.excludeFromQuery',
-      iconClass: 'fa fa-search-minus',
-      value: true // 'isExclude' is true
-    }
-  ];
+  get contextMenuItems(): ListItem[] {
+    return this.logsContainer.queryContextMenuItems;
+  }
 
   private readonly messageFilterParameterName: string = 'log_message';
 
