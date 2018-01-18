@@ -539,10 +539,12 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       displayName: 's1',
       configCategories: [
         {
-          name: 'C1'
+          name: 'C1',
+          errorCount: 0
         },
         {
-          name: 'C2'
+          name: 'C2',
+          errorCount: 0
         }
       ]
     };
@@ -562,15 +564,14 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
     });
 
     it('selectedService should be set', function() {
-      expect(JSON.stringify(controller.get('selectedService'))).to.be.equal(JSON.stringify(App.ServiceConfig.create({
-        serviceName: 'S1',
-        displayName: 's1',
-        configCategories: [{
-          name: 'C1'
-        }],
-        showConfig: true,
-        configs: []
-      })));
+      expect(JSON.stringify(controller.get('selectedService.configCategories'))).to.be.equal(JSON.stringify([{
+        name: 'C1',
+        errorCount: 0
+      }]));
+      expect(controller.get('selectedService.serviceName')).to.be.equal('S1');
+      expect(controller.get('selectedService.displayName')).to.be.equal('s1');
+      expect(controller.get('selectedService.showConfig')).to.be.true;
+      expect(controller.get('selectedService.configs')).to.be.empty;
     });
 
     it('once should be true', function() {
