@@ -67,9 +67,8 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.authorization.UserType;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
@@ -79,6 +78,7 @@ import org.apache.ambari.server.upgrade.AbstractUpgradeCatalog;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.ambari.server.utils.HostUtils;
+import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
@@ -167,7 +167,7 @@ public class Configuration {
    */
   @Inject
   private OsFamily osFamily;
-  
+
   /**
    * The filename of the {@link Properties} file which contains all of the
    * configurations for Ambari.
@@ -679,6 +679,16 @@ public class Configuration {
       "common.services.path", null);
 
   /**
+   * Determines whether an existing local users will be updated as LDAP users.
+   */
+  @Markdown(
+      description = "Determines how to handle username collision while updating from LDAP.",
+      examples = {"skip", "convert", "add"}
+  )
+  public static final ConfigurationProperty<String> LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR = new ConfigurationProperty<>(
+      "ldap.sync.username.collision.behavior", "add");
+
+  /**
    * The location on the Ambari Server where stack extensions exist.
    */
   @Markdown(
@@ -797,7 +807,7 @@ public class Configuration {
    * @see ClientSecurityType
    */
   @Markdown(
-      examples = { "local", "ldap" },
+      examples = { "local", "ldap", "pam" },
       description = "The type of authentication mechanism used by Ambari.")
   public static final ConfigurationProperty<String> CLIENT_SECURITY = new ConfigurationProperty<>(
       "client.security", null);
@@ -1204,14 +1214,6 @@ public class Configuration {
   @Markdown(description = "The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO")
   public static final ConfigurationProperty<String> KERBEROS_AUTH_SPNEGO_KEYTAB_FILE = new ConfigurationProperty<>(
       "authentication.kerberos.spnego.keytab.file", "/etc/security/keytabs/spnego.service.keytab");
-
-  /**
-   * A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user
-   * account for the user-supplied Kerberos identity during authentication via SPNEGO.
-   */
-  @Markdown(description = "A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user account for the user-supplied Kerberos identity during authentication via SPNEGO")
-  public static final ConfigurationProperty<String> KERBEROS_AUTH_USER_TYPES = new ConfigurationProperty<>(
-      "authentication.kerberos.user.types", "LDAP");
 
   /**
    * The auth-to-local rules set to use when translating a user's principal name to a local user name
@@ -2515,6 +2517,20 @@ public class Configuration {
   public static final ConfigurationProperty<Boolean> SECURITY_PASSWORD_ENCRYPTON_ENABLED = new ConfigurationProperty<Boolean>("security.passwords.encryption.enabled", false);
 
   /**
+   * The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures
+   */
+  @Markdown(description = "The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures.")
+  public static final ConfigurationProperty<Integer> MAX_LOCAL_AUTHENTICATION_FAILURES = new ConfigurationProperty<>(
+    "authentication.local.max.failures", 10);
+
+  /**
+   * A flag to determine whether locked out messages are to be shown to users, if relevant, when authenticating into Ambari
+   */
+  @Markdown(description = "Show or hide whether the user account is disabled or locked out, if relevant, when an authentication attempt fails.")
+  public static final ConfigurationProperty<String> SHOW_LOCKED_OUT_USER_MESSAGE = new ConfigurationProperty<>(
+    "authentication.local.show.locked.account.messages", "false");
+
+  /**
    * The core pool size of the executor service that runs server side alerts.
    */
   @Markdown(description = "The core pool size of the executor service that runs server side alerts.")
@@ -2552,6 +2568,42 @@ public class Configuration {
     else {
       DEF_ARCHIVE_EXTENSION = ".tar.gz";
       DEF_ARCHIVE_CONTENT_TYPE = "application/x-ustar";
+    }
+  }
+
+  /**
+   * Ldap username collision handling behavior.
+   * ADD - append the new LDAP entry to the set of existing authentication methods.
+   * CONVERT - remove all authentication methods except for the new LDAP entry.
+   * SKIP - skip existing local users.
+   */
+  public enum LdapUsernameCollisionHandlingBehavior {
+    ADD,
+    CONVERT,
+    SKIP;
+
+    /**
+     * Safely translates a user-supplied behavior name to a {@link LdapUsernameCollisionHandlingBehavior}.
+     * <p>
+     * If the user-supplied value is empty or invalid, the default value is returned.
+     *
+     * @param value        a user-supplied behavior name value
+     * @param defaultValue the default value
+     * @return a {@link LdapUsernameCollisionHandlingBehavior}
+     */
+    public static LdapUsernameCollisionHandlingBehavior translate(String value, LdapUsernameCollisionHandlingBehavior defaultValue) {
+      String processedValue = StringUtils.upperCase(StringUtils.trim(value));
+
+      if (StringUtils.isEmpty(processedValue)) {
+        return defaultValue;
+      } else {
+        try {
+          return valueOf(processedValue);
+        } catch (IllegalArgumentException e) {
+          LOG.warn("Invalid LDAP username collision value ({}), using the default value ({})", value, defaultValue.name().toLowerCase());
+          return defaultValue;
+        }
+      }
     }
   }
 
@@ -4646,8 +4698,6 @@ public class Configuration {
   }
 
   /**
-
-  /**
    * Gets the default KDC port to use when no port is specified in KDC hostname
    *
    * @return the default KDC port to use.
@@ -4685,6 +4735,16 @@ public class Configuration {
     return Boolean.parseBoolean(getProperty(KERBEROS_CHECK_JAAS_CONFIGURATION));
   }
 
+  /**
+   * Determines whether an existing local users will be skipped on updated during LDAP sync.
+   *
+   * @return true if ambari need to skip existing user during LDAP sync.
+   */
+  public LdapUsernameCollisionHandlingBehavior getLdapSyncCollisionHandlingBehavior() {
+    return LdapUsernameCollisionHandlingBehavior.translate(
+        getProperty(LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR),
+        LdapUsernameCollisionHandlingBehavior.ADD);
+  }
 
   /**
    * Gets the type of database by examining the {@link #getDatabaseUrl()} JDBC
@@ -4941,7 +5001,7 @@ public class Configuration {
     if (enableJwt) {
       String providerUrl = getProperty(JWT_AUTH_PROVIDER_URL);
       if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.", providerUrl);
+        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.");
         return null;
       }
       String publicKeyPath = getProperty(JWT_PUBLIC);
@@ -5713,37 +5773,6 @@ public class Configuration {
       return kerberosAuthProperties;
     }
 
-    // Get and process the configured user type values to convert the comma-delimited string of
-    // user types into a ordered (as found in the comma-delimited value) list of UserType values.
-    String userTypes = getProperty(KERBEROS_AUTH_USER_TYPES);
-    List<UserType> orderedUserTypes = new ArrayList<>();
-
-    String[] types = userTypes.split(",");
-    for (String type : types) {
-      type = type.trim();
-
-      if (!type.isEmpty()) {
-        try {
-          orderedUserTypes.add(UserType.valueOf(type.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-          String message = String.format("While processing ordered user types from %s, " +
-                  "%s was found to be an invalid user type.",
-              KERBEROS_AUTH_USER_TYPES.getKey(), type);
-          LOG.error(message);
-          throw new IllegalArgumentException(message, e);
-        }
-      }
-    }
-
-    // If no user types have been specified, assume only LDAP users...
-    if (orderedUserTypes.isEmpty()) {
-      LOG.info("No (valid) user types were specified in {}. Using the default value of LOCAL.",
-          KERBEROS_AUTH_USER_TYPES.getKey());
-      orderedUserTypes.add(UserType.LDAP);
-    }
-
-    kerberosAuthProperties.setOrderedUserTypes(orderedUserTypes);
-
     // Get and process the SPNEGO principal name.  If it exists and contains the host replacement
     // indicator (_HOST), replace it with the hostname of the current host.
     String spnegoPrincipalName = getProperty(KERBEROS_AUTH_SPNEGO_PRINCIPAL);
@@ -5804,7 +5833,6 @@ public class Configuration {
             "\t{}: {}\n" +
             "\t{}: {}\n" +
             "\t{}: {}\n" +
-            "\t{}: {}\n" +
             "\t{}: {}\n",
         KERBEROS_AUTH_ENABLED.getKey(),
         kerberosAuthProperties.isKerberosAuthenticationEnabled(),
@@ -5812,8 +5840,6 @@ public class Configuration {
         kerberosAuthProperties.getSpnegoPrincipalName(),
         KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(),
         kerberosAuthProperties.getSpnegoKeytabFilePath(),
-        KERBEROS_AUTH_USER_TYPES.getKey(),
-        kerberosAuthProperties.getOrderedUserTypes(),
         KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(),
         kerberosAuthProperties.getAuthToLocalRules());
 
@@ -5854,6 +5880,14 @@ public class Configuration {
 
   public String getAutoGroupCreation() {
     return getProperty(AUTO_GROUP_CREATION);
+  }
+
+  public int getMaxAuthenticationFailures() {
+    return Integer.parseInt(getProperty(MAX_LOCAL_AUTHENTICATION_FAILURES));
+  }
+
+  public boolean showLockedOutUserMessage() {
+    return Boolean.parseBoolean(getProperty(SHOW_LOCKED_OUT_USER_MESSAGE));
   }
 
   public int getAlertServiceCorePoolSize() {

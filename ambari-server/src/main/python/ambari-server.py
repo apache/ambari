@@ -625,7 +625,6 @@ def init_kerberos_setup_parser_options(parser):
   parser.add_option('--kerberos-enabled', default=False, help="Kerberos enabled", dest="kerberos_enabled")
   parser.add_option('--kerberos-spnego-principal', default="HTTP/_HOST", help="Kerberos SPNEGO principal", dest="kerberos_spnego_principal")
   parser.add_option('--kerberos-spnego-keytab-file', default="/etc/security/keytabs/spnego.service.keytab", help="Kerberos SPNEGO keytab file", dest="kerberos_spnego_keytab_file")
-  parser.add_option('--kerberos-spnego-user-types', default="LDAP", help="User type search order (comma-delimited)", dest="kerberos_user_types")
   parser.add_option('--kerberos-auth-to-local-rules', default="DEFAULT", help="Auth-to-local rules", dest="kerberos_auth_to_local_rules")
 
 
