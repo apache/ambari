@@ -471,16 +471,6 @@ class ActionQueue(threading.Thread):
 
     self.commandStatuses.put_command_status(handle.command, roleResult)
 
-  def execute_status_command_and_security_status(self, command):
-    component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
-    return command, component_status_result
-
-  def status_update_callback(self):
-    """
-    Actions that are executed every time when command status changes
-    """
-    self.controller.trigger_heartbeat()
-
   # Removes all commands from the queue
   def reset(self):
     queue = self.commandQueue
