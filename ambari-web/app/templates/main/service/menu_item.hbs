@@ -23,7 +23,7 @@
   {{#if view.content.alertsCount}}
     <span {{bindAttr class=":icon-circle view.hasCriticalAlerts:service-alerts-critical:service-alerts-warning"}}></span>
   {{/if}}
-  <span {{bindAttr class=":menu-item-name view.content.workStatus" data-original-title="view.content.toolTipContent"}} rel="serviceHealthTooltip">
+  <span {{bindAttr class="view.isClientOnlyService:client-only-service :menu-item-name view.content.workStatus" data-original-title="view.content.toolTipContent"}} rel="serviceHealthTooltip">
       {{unbound view.content.displayName}}
   </span>
 </a>
