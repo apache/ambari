@@ -60,6 +60,7 @@ public class LdapServerProperties {
 
   private String groupSearchFilter;
   private String userSearchFilter;
+  private boolean alternateUserSearchFilterEnabled;
   private String alternateUserSearchFilter; // alternate user search filter to be used when users use their alternate login id (e.g. User Principal Name)
 
   private String syncUserMemberFilter = "";
@@ -241,6 +242,14 @@ public class LdapServerProperties {
 
   public void setUserSearchFilter(String userSearchFilter) {
     this.userSearchFilter = userSearchFilter;
+  }
+
+  public void setAlternateUserSearchFilterEnabled(boolean alternateUserSearchFilterEnabled) {
+    this.alternateUserSearchFilterEnabled = alternateUserSearchFilterEnabled;
+  }
+
+  public boolean isAlternateUserSearchFilterEnabled() {
+    return alternateUserSearchFilterEnabled;
   }
 
   public void setAlternateUserSearchFilter(String alternateUserSearchFilter) {

@@ -22,7 +22,6 @@ import java.util.Properties;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
-import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
 import org.apache.directory.server.core.annotations.ApplyLdifFiles;
@@ -73,9 +72,11 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
 
   @Mock(type = MockType.NICE)
-  private UserDAO userDAO;
+  private Users users;
 
   private AmbariLdapAuthenticationProvider authenticationProvider;
+
+  private Configuration configuration;
 
   @Before
   public void setUp() {
@@ -87,13 +88,13 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
     properties.setProperty(Configuration.OS_VERSION.getKey(),"centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
     Configuration configuration = new Configuration(properties);
-    
+
     final AmbariLdapConfiguration ldapConfiguration = new AmbariLdapConfiguration();
     ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "dc=apache,dc=org");
     ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_HOST, "localhost");
     ldapConfiguration.setValueFor(AmbariLdapConfigurationKeys.SERVER_PORT, String.valueOf(getLdapServer().getPort()));
 
-    authenticationProvider = new AmbariLdapAuthenticationProvider(configuration, ldapConfiguration, authoritiesPopulator, userDAO);
+    authenticationProvider = new AmbariLdapAuthenticationProvider(users, configuration, ldapConfiguration, authoritiesPopulator);
   }
 
   @Test

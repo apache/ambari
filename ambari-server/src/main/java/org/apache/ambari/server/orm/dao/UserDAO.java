@@ -17,13 +17,11 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
@@ -31,9 +29,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.security.authorization.UserType;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -58,12 +54,7 @@ public class UserDAO {
     return daoUtils.selectList(query);
   }
 
-  /**
-   * Results in Exception if two users with same name but different types present in DB
-   * As such situation is valid, use {@link #findUserByNameAndType(String, UserType)} instead
-   */
   @RequiresSession
-  @Deprecated
   public UserEntity findUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("userByName", UserEntity.class);
     query.setParameter("username", userName.toLowerCase());
@@ -75,81 +66,9 @@ public class UserDAO {
   }
 
   /**
-   * <p>Finds user by name. If duplicate users exists (with different type), the returned one will be chosen by this user
-   * type precedence: LOCAL -> LDAP -> JWT -> PAM</p>
-   * <p>In Ambari 3.0, user management will be rethought hence the deprecation</p>
-   * @param userName the user name
-   * @return The corresponding user or {@code null} if none is found. If multiple users exist with different types, user
-   *   type precedence (see above) will decide.
-   */
-   @RequiresSession
-   @Deprecated
-   @Nullable
-   public UserEntity findSingleUserByName(String userName) {
-     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("userByName", UserEntity.class);
-     query.setParameter("username", userName.toLowerCase());
-     List<UserEntity> resultList = query.getResultList();
-     switch (resultList.size()) {
-       case 0:
-         return null;
-       case 1:
-         return resultList.get(0);
-       default:
-         ImmutableMap.Builder<UserType, UserEntity> mapBuilder = ImmutableMap.builder();
-         for (UserEntity user: resultList) {
-           mapBuilder.put(user.getUserType(), user);
-         }
-         ImmutableMap<UserType, UserEntity> usersByType = mapBuilder.build();
-         UserEntity user =
-             usersByType.containsKey(UserType.LOCAL) ? usersByType.get(UserType.LOCAL) :
-                 usersByType.containsKey(UserType.LOCAL.LDAP) ? usersByType.get(UserType.LDAP) :
-                     usersByType.containsKey(UserType.JWT) ? usersByType.get(UserType.JWT) :
-                         usersByType.get(UserType.PAM);
-         return user;
-     }
-   }
-
-
-  @RequiresSession
-  public UserEntity findUserByNameAndType(String userName, UserType userType) {
-    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user WHERE " +
-        "user.userType=:type AND lower(user.userName)=lower(:name)", UserEntity.class); // do case insensitive compare
-    query.setParameter("type", userType);
-    query.setParameter("name", userName);
-    try {
-      return query.getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    }
-  }
-
-  @RequiresSession
-  public UserEntity findLocalUserByName(String userName) {
-    TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("localUserByName", UserEntity.class);
-    query.setParameter("username", userName.toLowerCase());
-    try {
-      return query.getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    }
-  }
-
-  @RequiresSession
-  public UserEntity findLdapUserByName(String userName) {
-    TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("ldapUserByName", UserEntity.class);
-    query.setParameter("username", userName.toLowerCase());
-    try {
-      return query.getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    }
-  }
-
-  /**
    * Find the user entities for the given list of admin principal entities.
    *
-   * @param principalList  the list of principal entities
-   *
+   * @param principalList the list of principal entities
    * @return the matching list of user entities
    */
   @RequiresSession
@@ -166,7 +85,6 @@ public class UserDAO {
    * Find the user entity for the given admin principal entity.
    *
    * @param principal the principal entity
-   *
    * @return the matching user entity
    */
   @RequiresSession
@@ -182,27 +100,24 @@ public class UserDAO {
 
   @Transactional
   public void create(UserEntity user) {
-    create(new HashSet<>(Arrays.asList(user)));
+    create(new HashSet<>(Collections.singleton(user)));
   }
 
   @Transactional
   public void create(Set<UserEntity> users) {
-    for (UserEntity user: users) {
-//      user.setUserName(user.getUserName().toLowerCase());
+    for (UserEntity user : users) {
       entityManagerProvider.get().persist(user);
     }
   }
 
   @Transactional
   public UserEntity merge(UserEntity user) {
-//    user.setUserName(user.getUserName().toLowerCase());
     return entityManagerProvider.get().merge(user);
   }
 
   @Transactional
   public void merge(Set<UserEntity> users) {
-    for (UserEntity user: users) {
-//      user.setUserName(user.getUserName().toLowerCase());
+    for (UserEntity user : users) {
       entityManagerProvider.get().merge(user);
     }
   }
@@ -215,7 +130,7 @@ public class UserDAO {
 
   @Transactional
   public void remove(Set<UserEntity> users) {
-    for (UserEntity userEntity: users) {
+    for (UserEntity userEntity : users) {
       entityManagerProvider.get().remove(entityManagerProvider.get().merge(userEntity));
     }
   }

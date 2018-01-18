@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -42,7 +41,6 @@ import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.utils.PasswordUtils;
 import org.apache.ambari.server.utils.StageUtils;
@@ -222,7 +220,7 @@ public class ConfigurationTest {
     String encrypted = "fake-encrypted-password";
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), unencrypted);
     Configuration conf = spy(new Configuration(ambariProperties));
-    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);    
+    PowerMock.stub(PowerMock.method(PasswordUtils.class, "readPasswordFromStore", String.class, File.class, boolean.class, File.class)).toReturn(null);
     conf.loadSSLParams();
     Assert.assertEquals(System.getProperty(Configuration.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), unencrypted);
   }
@@ -738,7 +736,6 @@ public class ConfigurationTest {
     properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), keytabFile.getAbsolutePath());
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
-    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
     properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
 
     Configuration configuration = new Configuration(properties);
@@ -749,7 +746,6 @@ public class ConfigurationTest {
     Assert.assertEquals(keytabFile.getAbsolutePath(), kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
     Assert.assertEquals("spnego/principal@REALM", kerberosAuthenticationProperties.getSpnegoPrincipalName());
     Assert.assertEquals("DEFAULT", kerberosAuthenticationProperties.getAuthToLocalRules());
-    Assert.assertEquals(Arrays.asList(UserType.LDAP, UserType.LOCAL), kerberosAuthenticationProperties.getOrderedUserTypes());
   }
 
   /**
@@ -774,7 +770,6 @@ public class ConfigurationTest {
     Assert.assertEquals(keytabFile.getAbsolutePath(), kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
     Assert.assertEquals("HTTP/" + StageUtils.getHostName(), kerberosAuthenticationProperties.getSpnegoPrincipalName());
     Assert.assertEquals("DEFAULT", kerberosAuthenticationProperties.getAuthToLocalRules());
-    Assert.assertEquals(Collections.singletonList(UserType.LDAP), kerberosAuthenticationProperties.getOrderedUserTypes());
   }
 
   /**
@@ -794,7 +789,6 @@ public class ConfigurationTest {
     Assert.assertNull(kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
     Assert.assertNull(kerberosAuthenticationProperties.getSpnegoPrincipalName());
     Assert.assertNull(kerberosAuthenticationProperties.getAuthToLocalRules());
-    Assert.assertEquals(Collections.emptyList(), kerberosAuthenticationProperties.getOrderedUserTypes());
   }
 
   @Test
@@ -803,7 +797,6 @@ public class ConfigurationTest {
     properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "false");
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), "/path/to/spnego/keytab/file");
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
-    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
     properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
 
     Configuration configuration = new Configuration(properties);
@@ -814,7 +807,6 @@ public class ConfigurationTest {
     Assert.assertNull(kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
     Assert.assertNull(kerberosAuthenticationProperties.getSpnegoPrincipalName());
     Assert.assertNull(kerberosAuthenticationProperties.getAuthToLocalRules());
-    Assert.assertEquals(Collections.emptyList(), kerberosAuthenticationProperties.getOrderedUserTypes());
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -825,7 +817,6 @@ public class ConfigurationTest {
     properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), keytabFile.getAbsolutePath());
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "");
-    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
     properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
 
     new Configuration(properties);
@@ -837,7 +828,6 @@ public class ConfigurationTest {
     properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), "");
     properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
-    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
     properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
 
     new Configuration(properties);

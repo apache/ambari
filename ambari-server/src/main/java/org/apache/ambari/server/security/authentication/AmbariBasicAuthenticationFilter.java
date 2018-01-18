@@ -26,13 +26,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.security.AmbariEntryPoint;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.PermissionHelper;
-import org.apache.ambari.server.utils.RequestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -53,31 +47,25 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter implements AmbariAuthenticationFilter {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariBasicAuthenticationFilter.class);
 
-  /**
-   * Audit logger
-   */
-  private AuditLogger auditLogger;
-
-  /**
-   * PermissionHelper to help create audit entries
-   */
-  private PermissionHelper permissionHelper;
+  private final AmbariAuthenticationEventHandler eventHandler;
 
   /**
    * Constructor.
    *
-   * @param authenticationManager the Spring authencation manager
+   * @param authenticationManager the Spring authentication manager
    * @param ambariEntryPoint      the Spring entry point
-   * @param auditLogger           an Audit Logger
-   * @param permissionHelper      a permission helper
+   * @param eventHandler          the authentication event handler
    */
   public AmbariBasicAuthenticationFilter(AuthenticationManager authenticationManager,
                                          AmbariEntryPoint ambariEntryPoint,
-                                         AuditLogger auditLogger,
-                                         PermissionHelper permissionHelper) {
+                                         AmbariAuthenticationEventHandler eventHandler) {
     super(authenticationManager, ambariEntryPoint);
-    this.auditLogger = auditLogger;
-    this.permissionHelper = permissionHelper;
+
+    if(eventHandler == null) {
+      throw new IllegalArgumentException("The AmbariAuthenticationEventHandler must not be null");
+    }
+
+    this.eventHandler = eventHandler;
   }
 
   /**
@@ -104,6 +92,11 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
     return (header != null) && header.startsWith("Basic ");
   }
 
+  @Override
+  public boolean shouldIncrementFailureCount() {
+    return true;
+  }
+
   /**
    * Checks whether the authentication information is filled. If it is not, then a login failed audit event is logged
    *
@@ -115,16 +108,9 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
    */
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
-    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
-    if (auditLogger.isEnabled() && shouldApply(httpServletRequest) && (AuthorizationHelper.getAuthenticatedName() == null)) {
-      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(httpServletRequest))
-          .withTimestamp(System.currentTimeMillis())
-          .withReasonOfFailure("Authentication required")
-          .withUserName(null)
-          .build();
-      auditLogger.log(loginFailedAuditEvent);
+    if (eventHandler != null) {
+      eventHandler.beforeAttemptAuthentication(this, servletRequest, servletResponse);
     }
 
     super.doFilter(servletRequest, servletResponse, chain);
@@ -142,14 +128,9 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
   protected void onSuccessfulAuthentication(HttpServletRequest servletRequest,
                                             HttpServletResponse servletResponse,
                                             Authentication authResult) throws IOException {
-    if (auditLogger.isEnabled()) {
-      AuditEvent loginSucceededAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
-          .withUserName(authResult.getName())
-          .withTimestamp(System.currentTimeMillis())
-          .withRoles(permissionHelper.getPermissionLabels(authResult))
-          .build();
-      auditLogger.log(loginSucceededAuditEvent);
+
+    if (eventHandler != null) {
+      eventHandler.onSuccessfulAuthentication(this, servletRequest, servletResponse, authResult);
     }
   }
 
@@ -158,28 +139,30 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
    *
    * @param servletRequest  the request
    * @param servletResponse the response
-   * @param authExecption   the exception, if any, causing the unsuccessful authentication attempt
+   * @param authException   the exception, if any, causing the unsuccessful authentication attempt
    * @throws IOException
    */
   @Override
   protected void onUnsuccessfulAuthentication(HttpServletRequest servletRequest,
                                               HttpServletResponse servletResponse,
-                                              AuthenticationException authExecption) throws IOException {
-    String header = servletRequest.getHeader("Authorization");
-    String username = null;
-    try {
-      username = getUsernameFromAuth(header, getCredentialsCharset(servletRequest));
-    } catch (Exception e) {
-      LOG.warn("Error occurred during decoding authorization header.", e);
-    }
-    if (auditLogger.isEnabled()) {
-      AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-          .withRemoteIp(RequestUtils.getRemoteAddress(servletRequest))
-          .withTimestamp(System.currentTimeMillis())
-          .withReasonOfFailure("Invalid username/password combination")
-          .withUserName(username)
-          .build();
-      auditLogger.log(loginFailedAuditEvent);
+                                              AuthenticationException authException) throws IOException {
+    if (eventHandler != null) {
+      AmbariAuthenticationException cause;
+      if (authException instanceof AmbariAuthenticationException) {
+        cause = (AmbariAuthenticationException) authException;
+      } else {
+        String header = servletRequest.getHeader("Authorization");
+        String username = null;
+        try {
+          username = getUsernameFromAuth(header, getCredentialsCharset(servletRequest));
+        } catch (Exception e) {
+          LOG.warn("Error occurred during decoding authorization header.", e);
+        }
+
+        cause = new AmbariAuthenticationException(username, authException.getMessage(), false, authException);
+      }
+
+      eventHandler.onUnsuccessfulAuthentication(this, servletRequest, servletResponse, cause);
     }
   }
 

@@ -285,16 +285,28 @@ CREATE TABLE adminprincipal (
 CREATE TABLE users (
   user_id INTEGER,
   principal_id BIGINT NOT NULL,
-  create_time TIMESTAMP DEFAULT NOW(),
-  ldap_user INTEGER NOT NULL DEFAULT 0,
-  user_type VARCHAR(100) NOT NULL DEFAULT 'LOCAL',
-  user_name VARCHAR(100) NOT NULL,
-  user_password VARCHAR(255),
+  user_name VARCHAR(255) NOT NULL,
   active INTEGER NOT NULL DEFAULT 1,
+  consecutive_failures INTEGER NOT NULL DEFAULT 0,
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
+  display_name VARCHAR(255) NOT NULL,
+  local_username VARCHAR(255) NOT NULL,
+  create_time TIMESTAMP DEFAULT NOW(),
+  version BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
-  CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type));
+  CONSTRAINT UNQ_users_0 UNIQUE (user_name));
+
+CREATE TABLE user_authentication (
+  user_authentication_id INTEGER,
+  user_id INTEGER NOT NULL,
+  authentication_type VARCHAR(50) NOT NULL,
+  authentication_key TEXT,
+  create_time TIMESTAMP NOT NULL DEFAULT 0,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
+);
 
 CREATE TABLE groups (
   group_id INTEGER,
@@ -1095,6 +1107,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('host_id_seq', 0),
   ('host_role_command_id_seq', 1),
   ('user_id_seq', 2),
+  ('user_authentication_id_seq', 2),
   ('group_id_seq', 1),
   ('member_id_seq', 1),
   ('configgroup_id_seq', 1),
@@ -1168,8 +1181,14 @@ INSERT INTO adminprincipal (principal_id, principal_type_id) VALUES
   (12, 8),
   (13, 8);
 
-INSERT INTO users(user_id, principal_id, user_name, user_password)
-  SELECT 1, 1, 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
+-- Insert the default administrator user.
+INSERT INTO users(user_id, principal_id, user_name, display_name, local_username, create_time)
+  SELECT 1, 1, 'admin', 'Administrator', 'admin', NOW();
+
+-- Insert the LOCAL authentication data for the default administrator user.
+-- The authentication_key value is the salted digest of the password: admin
+INSERT INTO user_authentication(user_authentication_id, user_id, authentication_type, authentication_key, create_time, update_time)
+  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', NOW(), NOW();
 
 INSERT INTO adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 UNION ALL
