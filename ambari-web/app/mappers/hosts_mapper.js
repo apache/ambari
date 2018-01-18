@@ -28,6 +28,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     public_host_name: 'Hosts.public_host_name',
     cluster_id: 'cluster_id',// Hosts.cluster_name
     rack: 'Hosts.rack_info',
+    slot: 'Hosts.slot_info',
     host_components_key: 'host_components',
     host_components_type: 'array',
     host_components: {

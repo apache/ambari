@@ -121,6 +121,7 @@ CREATE TABLE hosts (
   ph_cpu_count INTEGER NOT NULL,
   public_host_name VARCHAR2(255) NULL,
   rack_info VARCHAR2(255) NOT NULL,
+  slot_info VARCHAR(255) NOT NULL,
   total_mem INTEGER NOT NULL,
   CONSTRAINT PK_hosts PRIMARY KEY (host_id),
   CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));

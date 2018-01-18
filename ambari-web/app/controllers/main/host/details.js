@@ -946,6 +946,17 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     hostsManagement.setRackInfo(operationData, hosts, rack);
   },
 
+   /**
+    * Call <code>setSlotInfo</code> function to show Set Slot Id popup
+    * @param data
+    */
+   setSlotId: function (data) {
+     var slot = data.context.get('slot');
+     var hosts = [data.context];
+     var operationData = {message: Em.I18n.t('hosts.host.details.setSlotId')};
+     hostsManagement.setSlotInfo(operationData, hosts, slot);
+   },
+
   /**
    * Success callback for load configs request
    * @param {object} data
@@ -2302,6 +2313,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       case "setRackId":
         this.setRackIdForHost();
         break;
+      case "setSlotId":
+        this.setSlotIdForHost();    
       case "checkHost":
         this.runHostCheckConfirmation();
         break;
@@ -2342,6 +2355,17 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var operationData = {message: Em.I18n.t('hosts.host.details.setRackId')};
     hostsManagement.setRackInfo(operationData, hostNames, rack);
   },
+
+    /**
+     * Set slot id for host
+     * @method setSlotIdForHost
+     */
+    setSlotIdForHost: function () {
+      var hostNames = [{hostName: this.get('content.hostName')}];
+      var slot = this.get('content.slot');
+      var operationData = {message: Em.I18n.t('hosts.host.details.setSlotId')};
+      hostsManagement.setSlotIdInfo(operationData, hostNames, slot);
+    },
 
   /**
    * Send request to get passive state for host

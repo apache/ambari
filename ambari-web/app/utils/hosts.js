@@ -263,6 +263,49 @@ module.exports = {
   },
 
   /**
+     * Bulk setting of for slot id
+     * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+     * @param {Ember.Enumerable} hosts - list of affected hosts
+     */
+    setSlotInfo: function (operationData, hosts, slotId) {
+      var self = this;
+      var hostNames = hosts.mapProperty('hostName');
+      return App.ModalPopup.show({
+        header: Em.I18n.t('hosts.host.details.setSlotId'),
+        disablePrimary: true,
+        slotId: slotId,
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/host/slot_id_popup'),
+          errorMessage: null,
+          isValid: true,
+          validation: function () {
+            this.set('isValid', validator.isValidRackId(this.get('parentView.slotId')));
+            this.set('errorMessage', this.get('isValid') ? '' : Em.I18n.t('hostPopup.setSlotId.invalid'));
+            this.set('parentView.disablePrimary', !this.get('isValid'));
+          }.observes('parentView.slotId')
+        }),
+        onPrimary: function() {
+          var slotId = this.get('slotId');
+          if (hostNames.length) {
+            App.ajax.send({
+              name: 'bulk_request.hosts.update_slot_id',
+              sender: self,
+              data: {
+                hostNames: hostNames.join(','),
+                requestInfo: operationData.message,
+                slotId: slotId,
+                hostNamesArray: hostNames
+              },
+              success: 'successSlotId',
+              error: 'errorSlotId'
+            });
+          }
+          this.hide();
+        }
+      });
+    },
+
+  /**
    * Success callback for set rack id request
    */
   successRackId: function (response, request, params) {
@@ -278,5 +321,23 @@ module.exports = {
    */
   errorRackId: function () {
     App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('hostPopup.setRackId.error'));
+  },
+
+  /**
+    * Success callback for set slot id request
+    */
+  successSlotId: function (response, request, params) {
+  App.Host.find().forEach(function(host){
+  if (params.hostNamesArray.contains(host.get('hostName'))) {
+    host.set('slot', params.slotId)
+  }
+  });
+  },
+
+  /**
+    * Warn user that the slot id will not be updated
+    */
+  errorSlotId: function () {
+    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('hostPopup.setSlotId.error'));
   }
 };

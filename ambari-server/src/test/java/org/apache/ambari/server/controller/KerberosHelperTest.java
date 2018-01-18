@@ -4215,6 +4215,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(host.getState()).andReturn(HostState.HEALTHY).anyTimes();
     expect(host.getCurrentPingPort()).andReturn(1).anyTimes();
     expect(host.getRackInfo()).andReturn("rack1").anyTimes();
+    expect(host.getSlotInfo()).andReturn("slot1").anyTimes();
     expect(host.getIPv4()).andReturn("1.2.3.4").anyTimes();
     return host;
   }

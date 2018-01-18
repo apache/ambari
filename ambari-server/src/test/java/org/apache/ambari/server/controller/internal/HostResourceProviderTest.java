@@ -1382,7 +1382,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Host host = createMock(Host.class);
     HostHealthStatus hostHealthStatus = new HostHealthStatus(HealthStatus.HEALTHY, "");
     HostResponse hostResponse = new HostResponse(hostName, clusterName, null, 1, 1, null,
-        "centos6", 1024, null, 1, 1, null, null, null, hostHealthStatus, HostState.HEALTHY, status);
+        "centos6", 1024, null, 1, 1, null, null, null, null, hostHealthStatus, HostState.HEALTHY, status);
 
     hostResponse.setRecoverySummary(recoverySummary);
     hostResponse.setRecoveryReport(recoveryReport);
@@ -1397,6 +1397,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     }
     expect(host.getHostName()).andReturn(hostName).anyTimes();
     expect(host.getRackInfo()).andReturn("rackInfo").anyTimes();
+    expect(host.getSlotInfo()).andReturn("slotInfo").anyTimes();
     host.setRackInfo(EasyMock.anyObject());
     expectLastCall().anyTimes();
     return host;

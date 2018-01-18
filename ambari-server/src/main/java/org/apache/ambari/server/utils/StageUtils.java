@@ -81,6 +81,7 @@ public class StageUtils {
 
   public static final Integer DEFAULT_PING_PORT = 8670;
   public static final String DEFAULT_RACK = "/default-rack";
+  public static final String DEFAULT_SLOT = "/default-slot";
   public static final String DEFAULT_IPV4_ADDRESS = "127.0.0.1";
 
   private static final Logger LOG = LoggerFactory.getLogger(StageUtils.class);
@@ -90,6 +91,7 @@ public class StageUtils {
   protected static final String HOSTS_LIST = "all_hosts";
   protected static final String PORTS = "all_ping_ports";
   protected static final String RACKS = "all_racks";
+  protected static final String SLOTS = "all_slots";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
 
   private static Map<String, String> componentToClusterInfoKeyMap =
@@ -283,6 +285,7 @@ public class StageUtils {
     Set<String>   hostsSet  = new LinkedHashSet<>();
     List<Integer> portsList = new ArrayList<>();
     List<String>  rackList  = new ArrayList<>();
+    List<String>  slotList  = new ArrayList<>();
     List<String>  ipV4List  = new ArrayList<>();
 
     Collection<Host> allHosts = cluster.getHosts();
@@ -296,6 +299,9 @@ public class StageUtils {
       String rackInfo = host.getRackInfo();
       rackList.add(StringUtils.isEmpty(rackInfo) ? DEFAULT_RACK : rackInfo );
 
+      String slotInfo = host.getSlotInfo();
+      slotList.add(StringUtils.isEmpty(slotInfo) ? DEFAULT_SLOT : slotInfo );
+
       String iPv4 = host.getIPv4();
       ipV4List.add(StringUtils.isEmpty(iPv4) ? DEFAULT_IPV4_ADDRESS : iPv4 );
     }
@@ -307,6 +313,7 @@ public class StageUtils {
         hostsSet.add(hostname);
         portsList.add(DEFAULT_PING_PORT);
         rackList.add(DEFAULT_RACK);
+        slotList.add(DEFAULT_SLOT);
         ipV4List.add(DEFAULT_IPV4_ADDRESS);
       }
     }

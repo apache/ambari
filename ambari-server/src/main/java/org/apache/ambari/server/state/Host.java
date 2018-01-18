@@ -238,6 +238,16 @@ public interface Host extends Comparable {
   void setRackInfo(String rackInfo);
 
   /**
+   * @return the slotInfo
+   */
+  String getSlotInfo();
+
+  /**
+   * @param slotInfo the slotInfo to set
+   */
+  void setSlotInfo(String slotInfo);
+
+  /**
    * Last time the host registered with the Ambari Server
    * ( Unix timestamp )
    * @return the lastRegistrationTime

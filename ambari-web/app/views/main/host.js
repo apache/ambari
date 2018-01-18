@@ -339,6 +339,12 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     displayName: Em.I18n.t('common.rack'),
     type: 'rack'
   }),
+  slotSort: sort.fieldView.extend({
+      column: 12,
+      name:'slot',
+      displayName: Em.I18n.t('common.slot'),
+      type: 'rack'
+    }),
   cpuSort: sort.fieldView.extend({
     column: 3,
     name:'cpu',

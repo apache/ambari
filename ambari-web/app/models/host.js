@@ -36,6 +36,7 @@ App.Host = DS.Model.extend({
   osArch: DS.attr('string'),
   ip: DS.attr('string'),
   rack: DS.attr('string'),
+  slot: DS.attr('string'),
   healthStatus: DS.attr('string'),
   lastHeartBeatTime: DS.attr('number'),
   rawLastHeartBeatTime: DS.attr('number'),

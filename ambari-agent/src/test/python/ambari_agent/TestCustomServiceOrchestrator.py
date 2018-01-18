@@ -163,6 +163,7 @@ class TestCustomServiceOrchestrator(TestCase):
       'clusterHostInfo':{'namenode_host' : ['1'],
                          'slave_hosts'   : ['0', '1'],
                          'all_racks'   : [u'/default-rack:0'],
+                         'all_slots'   : [u'/default-slot:0'],
                          'ambari_server_host' : 'a.b.c',
                          'ambari_server_port' : '123',
                          'ambari_server_use_ssl' : 'false',

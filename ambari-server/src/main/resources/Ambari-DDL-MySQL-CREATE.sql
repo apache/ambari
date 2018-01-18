@@ -140,6 +140,7 @@ CREATE TABLE hosts (
   ph_cpu_count INTEGER,
   public_host_name VARCHAR(255),
   rack_info VARCHAR(255) NOT NULL,
+  slot_info VARCHAR(255) NOT NULL,
   total_mem BIGINT NOT NULL,
   CONSTRAINT PK_hosts PRIMARY KEY (host_id),
   CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));

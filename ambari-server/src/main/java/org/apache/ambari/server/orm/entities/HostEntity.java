@@ -117,6 +117,10 @@ public class HostEntity implements Comparable<HostEntity> {
   @Basic
   private String rackInfo = "/default-rack";
 
+  @Column(name = "slot_info", nullable = false, insertable = true, updatable = true)
+  @Basic
+  private String slotInfo = "/default-slot";
+
   @Column(name = "host_attributes", insertable = true, updatable = true,
       length = 20000)
   @Basic
@@ -263,6 +267,14 @@ public class HostEntity implements Comparable<HostEntity> {
 
   public void setRackInfo(String rackInfo) {
     this.rackInfo = rackInfo;
+  }
+
+  public String getSlotInfo() {
+    return slotInfo;
+  }
+
+  public void setSlotInfo(String slotInfo) {
+    this.slotInfo = slotInfo;
   }
 
   public String getHostAttributes() {

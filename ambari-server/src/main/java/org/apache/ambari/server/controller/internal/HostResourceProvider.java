@@ -111,6 +111,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String PHYSICAL_CPU_COUNT_PROPERTY_ID = "ph_cpu_count";
   public static final String PUBLIC_NAME_PROPERTY_ID = "public_host_name";
   public static final String RACK_INFO_PROPERTY_ID = "rack_info";
+  public static final String SLOT_INFO_PROPERTY_ID = "slot_info";
   public static final String RECOVERY_REPORT_PROPERTY_ID = "recovery_report";
   public static final String RECOVERY_SUMMARY_PROPERTY_ID = "recovery_summary";
   public static final String STATE_PROPERTY_ID = "host_state";
@@ -135,6 +136,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + PHYSICAL_CPU_COUNT_PROPERTY_ID;
   public static final String HOST_PUBLIC_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + PUBLIC_NAME_PROPERTY_ID;
   public static final String HOST_RACK_INFO_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RACK_INFO_PROPERTY_ID;
+  public static final String HOST_SLOT_INFO_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SLOT_INFO_PROPERTY_ID;
   public static final String HOST_RECOVERY_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RECOVERY_REPORT_PROPERTY_ID;
   public static final String HOST_RECOVERY_SUMMARY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RECOVERY_SUMMARY_PROPERTY_ID;
   public static final String HOST_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + STATE_PROPERTY_ID;
@@ -289,6 +291,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           response.getOsFamily(), requestedIds);
       setResourceProperty(resource, HOST_RACK_INFO_PROPERTY_ID,
           response.getRackInfo(), requestedIds);
+      setResourceProperty(resource, HOST_SLOT_INFO_PROPERTY_ID,
+          response.getSlotInfo(), requestedIds);
       setResourceProperty(resource, HOST_LAST_HEARTBEAT_TIME_PROPERTY_ID,
           response.getLastHeartbeatTime(), requestedIds);
       setResourceProperty(resource, HOST_LAST_AGENT_ENV_PROPERTY_ID,
@@ -378,6 +382,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     baseUnsupported.remove(HOST_COUNT_PROPERTY_ID);
     baseUnsupported.remove(HOST_PREDICATE_PROPERTY_ID);
     baseUnsupported.remove(RACK_INFO_PROPERTY_ID);
+    baseUnsupported.remove(SLOT_INFO_PROPERTY_ID);
 
     return checkConfigPropertyIds(baseUnsupported, "Hosts");
   }
@@ -433,8 +438,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     String rackInfo = (String) ((null != properties.get(HOST_RACK_INFO_PROPERTY_ID))? properties.get(HOST_RACK_INFO_PROPERTY_ID):
             properties.get(RACK_INFO_PROPERTY_ID));
+    String slotInfo = (String) ((null != properties.get(HOST_SLOT_INFO_PROPERTY_ID))? properties.get(HOST_SLOT_INFO_PROPERTY_ID):
+            properties.get(SLOT_INFO_PROPERTY_ID));
 
     hostRequest.setRackInfo(rackInfo);
+    hostRequest.setSlotInfo(slotInfo);
     hostRequest.setBlueprintName((String) properties.get(BLUEPRINT_PROPERTY_ID));
     hostRequest.setHostGroupName((String) properties.get(HOST_GROUP_PROPERTY_ID));
 
@@ -803,6 +811,17 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
 
       boolean rackChange = updateHostRackInfoIfChanged(cluster, host, request);
+	  
+      String  slotInfo        = host.getSlotInfo();
+      String  requestSlotInfo = request.getSlotInfo();
+      boolean slotChange      = requestSlotInfo != null && !requestSlotInfo.equals(slotInfo);
+
+      if(slotChange) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
+          throw new AuthorizationException("The authenticated user is not authorized to update host slot information");
+        }
+        host.setSlotInfo(requestSlotInfo);
+      }
 
 
       if (null != request.getPublicHostName()) {

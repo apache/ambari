@@ -100,6 +100,11 @@ public class HostResponse {
   private String rackInfo;
 
   /**
+   * Slot to which the Host belongs to
+   */
+  private String slotInfo;
+
+  /**
    * Additional Host attributes
    */
   private Map<String, String> hostAttributes;
@@ -150,7 +155,7 @@ public class HostResponse {
                       String ipv4, int cpuCount, int phCpuCount, String osArch, String osType,
                       long totalMemBytes,
                       List<DiskInfo> disksInfo, long lastHeartbeatTime,
-                      long lastRegistrationTime, String rackInfo,
+                      long lastRegistrationTime, String rackInfo, String slotInfo,
                       Map<String, String> hostAttributes, AgentVersion agentVersion,
                       HostHealthStatus healthStatus, HostState hostState, String status) {
     this.hostname = hostname;
@@ -165,6 +170,7 @@ public class HostResponse {
     this.lastHeartbeatTime = lastHeartbeatTime;
     this.lastRegistrationTime = lastRegistrationTime;
     this.rackInfo = rackInfo;
+    this.slotInfo = slotInfo;
     this.hostAttributes = hostAttributes;
     this.agentVersion = agentVersion;
     this.healthStatus = healthStatus;
@@ -177,7 +183,7 @@ public class HostResponse {
     this(hostname, "", "",
       0, 0, "", "",
       0, new ArrayList<>(),
-      0, 0, "",
+      0, 0, "", "",
       new HashMap<>(),
       null, null, null, null);
   }
@@ -302,6 +308,15 @@ public class HostResponse {
     this.rackInfo = rackInfo;
   }
 
+  @ApiModelProperty(name = HostResourceProvider.SLOT_INFO_PROPERTY_ID)
+  public String getSlotInfo() {
+    return slotInfo;
+  }
+
+  public void setSlotInfo(String slotInfo) {
+    this.slotInfo = slotInfo;
+  }
+  
   @ApiModelProperty(hidden = true)
   public Map<String, String> getHostAttributes() {
     return hostAttributes;

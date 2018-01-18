@@ -51,6 +51,7 @@
         <th> </th>
         {{view view.parentView.ipSort}}
         {{view view.parentView.rackSort}}
+        {{view view.parentView.slotSort}}
         {{view view.parentView.cpuSort}}
         {{view view.parentView.memorySort}}
         {{view view.parentView.diskUsageSort}}
@@ -96,6 +97,9 @@
           <td class="rack-id">
             <span rel="UsageTooltip" {{bindAttr data-original-title="host.rack"}}>{{host.rack}}</span>
           </td>
+	  <td class="rack-id">
+            <span rel="UsageTooltip" {{bindAttr data-original-title="host.slot"}}>{{host.slot}}</span>
+          </td>
           <td class="cores-formatted">{{host.coresFormatted}}</td>
           <td class="memory-formatted">{{host.memoryFormatted}}</td>
 
@@ -121,7 +125,7 @@
     {{else}}
       <tr>
         <td class="first"></td>
-        <td colspan="12">
+        <td colspan="13">
           {{t hosts.table.noHosts}}
         </td>
       </tr>

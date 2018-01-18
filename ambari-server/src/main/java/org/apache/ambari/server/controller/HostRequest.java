@@ -30,6 +30,7 @@ public class HostRequest implements ApiModel {
   private String publicHostname;
   private String clusterName; // CREATE/UPDATE
   private String rackInfo;
+  private String slotInfo;
   private List<ConfigurationRequest> desiredConfigs; // UPDATE
   private String maintenanceState; // UPDATE
   private String blueprint;
@@ -65,6 +66,14 @@ public class HostRequest implements ApiModel {
   
   public void setRackInfo(String info) {
     rackInfo = info;
+  }
+  
+  public String getSlotInfo() {
+    return slotInfo;
+  }
+
+  public void setSlotInfo(String slotInfo) {
+    this.slotInfo = slotInfo;
   }
 
   @ApiModelProperty(name = HostResourceProvider.PUBLIC_NAME_PROPERTY_ID)

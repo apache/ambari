@@ -172,6 +172,12 @@
                     class="glyphicon glyphicon-pencil"></i></a>
                 {{/isAuthorized}}
               </div>
+	      <div class="col-md-8 summary-rack-value">&nbsp;{{formatWordBreak view.content.slot}}
+                {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
+                  <a href="#" class="set-rack-id" {{action setSlotId view.content target="controller"}}><i
+                    class="glyphicon glyphicon-pencil"></i></a>
+                {{/isAuthorized}}
+              </div>
             </div>
             <div class="row row-no-pad">
               <div class="col-md-4 summary-label summary-os-label">{{t common.os}}:</div>

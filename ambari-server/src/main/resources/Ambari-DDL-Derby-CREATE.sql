@@ -120,6 +120,7 @@ CREATE TABLE hosts (
   os_info VARCHAR(1000) NOT NULL,
   os_type VARCHAR(255) NOT NULL,
   rack_info VARCHAR(255) NOT NULL,
+  slot_info VARCHAR(255) NOT NULL,
   total_mem BIGINT NOT NULL,
   CONSTRAINT PK_hosts PRIMARY KEY (host_id),
   CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));

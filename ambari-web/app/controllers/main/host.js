@@ -103,6 +103,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       type: 'MATCH'
     },
     {
+      name: 'slot',
+      key: 'Hosts/slot_info',
+      type: 'MATCH'
+    },
+    {
       name: 'hostComponents',
       key: 'host_components/HostRoles/component_name',
       type: 'EQUAL',
@@ -200,6 +205,10 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     {
       name: 'rack',
       key: 'Hosts/rack_info'
+    },
+    {
+      name: 'slot',
+      key: 'Hosts/slot_info'
     },
     {
       name: 'loadAvg',
