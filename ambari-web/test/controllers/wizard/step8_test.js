@@ -2074,7 +2074,7 @@ describe('App.WizardStep8Controller', function () {
             return Em.get(this, key);
           });
           installerStep8Controller.set('content.controllerName', item.controllerName);
-          installerStep8Controller._startDeploy();
+          installerStep8Controller.startDeploy();
         });
 
         stubbedNames.forEach(function (name) {

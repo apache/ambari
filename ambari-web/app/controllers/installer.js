@@ -1517,11 +1517,8 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         this.set('content.clients', clients);
         this.save('clients');
 
-        //TODO: mpacks
-        // - for now, pull the stack from the single mpack that we can install
-        // - when we can support multiple mpacks, make this an array of selectedStacks (or just use the selectedServices array?) and add the repo data to it
-        const selectedService = selectedServices[0];
-        this.set('content.selectedStack', { name: selectedService.stackName, version: selectedService.stackVersion });
+        //TODO: mpacks - hard coding this for now. We need to get rid of the concept of "selected stack".
+        this.set('content.selectedStack', { name: "HDP", version: "3.0.0" });
         this.save('selectedStack');
       });
     });
