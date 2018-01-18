@@ -19,7 +19,6 @@ package org.apache.ambari.server.agent;
 
 
 import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
-import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 
 import java.util.ArrayList;
