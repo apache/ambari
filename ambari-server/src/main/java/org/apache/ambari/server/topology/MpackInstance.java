@@ -23,19 +23,28 @@ import java.util.Collection;
 
 import org.apache.ambari.server.controller.internal.Stack;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MpackInstance {
-  String mpackName;
-  String mpackVersion;
-  String uri;
-  Stack stack;
-  Configuration configuration;
-  Collection<ServiceInstance> serviceInstances = new ArrayList<>();
 
-  public MpackInstance(String mpackName, String mpackVersion, String uri, Stack stack, Configuration configuration) {
+public class MpackInstance implements Configurable {
+  @JsonProperty("name")
+  private String mpackName;
+  @JsonProperty("version")
+  private String mpackVersion;
+  @JsonProperty("uri")
+  private String url;
+
+  private Stack stack;
+  private Configuration configuration = new Configuration();
+
+  @JsonProperty("service_instances")
+  private Collection<ServiceInstance> serviceInstances = new ArrayList<>();
+
+  public MpackInstance(String mpackName, String mpackVersion, String url, Stack stack, Configuration configuration) {
     this.mpackName = mpackName;
     this.mpackVersion = mpackVersion;
-    this.uri = uri;
+    this.url = url;
     this.stack = stack;
     this.configuration = configuration;
   }
@@ -58,6 +67,7 @@ public class MpackInstance {
     this.mpackVersion = mpackVersion;
   }
 
+  @JsonIgnore
   public Stack getStack() {
     return stack;
   }
@@ -66,10 +76,12 @@ public class MpackInstance {
     this.stack = stack;
   }
 
+  @JsonIgnore
   public Configuration getConfiguration() {
     return configuration;
   }
 
+  @JsonIgnore
   public void setConfiguration(Configuration configuration) {
     this.configuration = configuration;
   }
@@ -88,11 +100,11 @@ public class MpackInstance {
     serviceInstance.setMpackInstance(this);
   }
 
-  public String getUri() {
-    return uri;
+  public String getUrl() {
+    return url;
   }
 
-  public void setUri(String uri) {
-    this.uri = uri;
+  public void setUrl(String url) {
+    this.url = url;
   }
 }

@@ -19,6 +19,7 @@
 
 package org.apache.ambari.server.topology;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +40,9 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
 /**
@@ -70,6 +74,8 @@ public class BlueprintFactory {
   protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
 
   protected static final String SETTINGS_PROPERTY_ID = "settings";
+
+  protected static final String MPACK_INSTANCES_PROPERTY = "mpack_instances";
 
   private static BlueprintDAO blueprintDAO;
   private ConfigurationFactory configFactory = new ConfigurationFactory();
@@ -106,26 +112,71 @@ public class BlueprintFactory {
       throw new IllegalArgumentException("Blueprint name must be provided");
     }
 
-    Stack stack = createStack(properties);
+    Stack stack;
+    Collection<MpackInstance> mpackInstances = createMpackInstances(properties);
+    if (mpackInstances.isEmpty()) {
+      stack = createStack(properties);
+    }
+    else {
+      stack = mpackInstances.iterator().next().getStack();
+    }
+
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
             properties.get(CONFIGURATION_PROPERTY_ID));
-    Setting setting =  SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTINGS_PROPERTY_ID));
+    Setting setting = SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTINGS_PROPERTY_ID));
 
-    return new BlueprintImpl(name, hostGroups, stack, configuration, securityConfiguration, setting);
+    if (!mpackInstances.isEmpty()) {
+      return new BlueprintImpl(name, hostGroups, mpackInstances, configuration, securityConfiguration, setting);
+    }
+    else {
+      // Legacy constructor for old blueprints without mpacks
+      return new BlueprintImpl(name, hostGroups, stack, configuration, securityConfiguration, setting);
+    }
+  }
+
+  private Collection<MpackInstance> createMpackInstances(Map<String, Object> properties) throws NoSuchStackException {
+    if (properties.containsKey(MPACK_INSTANCES_PROPERTY)) {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      try {
+        String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY));
+          Collection<MpackInstance> mpacks = mapper.readValue(mpackInstancesJson, new TypeReference<Collection<MpackInstance>>(){});
+          for (MpackInstance mpack: mpacks) {
+            resolveStack(mpack);
+          }
+          return mpacks;
+      }
+      catch (IOException ex) {
+        throw new RuntimeException("Unable to parse mpack instances for blueprint: " +
+          String.valueOf(properties.get(BLUEPRINT_NAME_PROPERTY_ID)), ex);
+      }
+    } else {
+      return Collections.emptyList();
+    }
+  }
+
+  protected void resolveStack(MpackInstance mpack) throws NoSuchStackException {
+    Stack stack = loadStack(mpack.getMpackName(), mpack.getMpackVersion());
+    mpack.setStack(stack);
   }
 
   protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {
     String stackName = String.valueOf(properties.get(STACK_NAME_PROPERTY_ID));
     String stackVersion = String.valueOf(properties.get(STACK_VERSION_PROPERTY_ID));
+    return loadStack(stackName, stackVersion);
+  }
+
+  protected Stack loadStack(String stackName, String stackVersion) throws NoSuchStackException {
     try {
       //todo: don't pass in controller
       return stackFactory.createStack(stackName, stackVersion, AmbariServer.getController());
     } catch (ObjectNotFoundException e) {
       throw new NoSuchStackException(stackName, stackVersion);
     } catch (AmbariException e) {
-      //todo:
-      throw new RuntimeException("An error occurred parsing the stack information.", e);
+      // todo
+      throw new RuntimeException(
+        String.format("An error occurred parsing the stack information for %s-%s", stackName, stackVersion) , e);
     }
   }
 
@@ -230,7 +281,7 @@ public class BlueprintFactory {
    * simulate various Stack or error conditions.
    */
   interface StackFactory {
-      Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
+    Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
   }
 
   /**

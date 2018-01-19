@@ -18,11 +18,15 @@
 
 package org.apache.ambari.server.topology;
 
-public class ServiceInstance {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public class ServiceInstance implements Configurable {
   private String name;
   private String type;
   private Configuration configuration;
   private MpackInstance mpackInstance;
+
+  public ServiceInstance() { }
 
   public ServiceInstance(String name, String type, Configuration configuration) {
     this.name = name;
@@ -46,18 +50,22 @@ public class ServiceInstance {
     this.type = type;
   }
 
+  @JsonIgnore
   public Configuration getConfiguration() {
     return configuration;
   }
 
+  @JsonIgnore
   public void setConfiguration(Configuration configuration) {
     this.configuration = configuration;
   }
 
+  @JsonIgnore
   public MpackInstance getMpackInstance() {
     return mpackInstance;
   }
 
+  @JsonIgnore
   void setMpackInstance(MpackInstance mpackInstance) {
     this.mpackInstance = mpackInstance;
   }

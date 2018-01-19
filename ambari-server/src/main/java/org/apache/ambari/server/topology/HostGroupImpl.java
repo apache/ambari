@@ -31,16 +31,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Sets;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 
 /**
  * Host Group implementation.
@@ -302,8 +303,11 @@ public class HostGroupImpl implements HostGroup {
    */
   private void parseComponents(HostGroupEntity entity) {
     for (HostGroupComponentEntity componentEntity : entity.getComponents() ) {
-      Component component = new Component(componentEntity.getName(), componentEntity.getMpackName(),
-        componentEntity.getServiceName(), ProvisionAction.valueOf(componentEntity.getProvisionAction()));
+      Component component = new Component(
+        componentEntity.getName(),
+        componentEntity.getMpackName(),
+        componentEntity.getServiceName(),
+        null == componentEntity.getProvisionAction() ? null : ProvisionAction.valueOf(componentEntity.getProvisionAction()));
       addComponent(component);
     }
   }

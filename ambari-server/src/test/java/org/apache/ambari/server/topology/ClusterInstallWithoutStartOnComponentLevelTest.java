@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
-import static org.apache.directory.server.core.integ.AbstractLdapTestUnit.service;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;

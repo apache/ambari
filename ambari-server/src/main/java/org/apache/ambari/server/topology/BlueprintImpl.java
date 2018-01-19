@@ -23,16 +23,13 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Supplier;
-import edu.emory.mathcs.backport.java.util.Collections;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -51,10 +48,11 @@ import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
-
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Supplier;
+import com.google.gson.Gson;
 
 /**
  * Blueprint implementation.
@@ -88,7 +86,7 @@ public class BlueprintImpl implements Blueprint {
       LOG.info("Ignoring stack declaration in blueprint {} as management packs are also declared.", name);
     }
     // Parse mpacks
-    parseMpacks(entity);
+    mpacks.addAll(parseMpacks(entity));
 
     // create config first because it is set as a parent on all host-group configs
     configuration = processConfiguration(entity.getConfigurations());
@@ -393,7 +391,8 @@ public class BlueprintImpl implements Blueprint {
     mpacks.forEach(mpack -> {
       BlueprintMpackReferenceEntity mpackEntity = new BlueprintMpackReferenceEntity();
       mpackEntity.setBlueprint(entity);
-      mpackEntity.setMpackUri(mpack.getUri());
+      mpackEntity.setMpackUri(mpack.getUrl());
+      mpackEntity.setMpackName(mpack.getMpackName());
       mpackEntity.setMpackVersion(mpack.getMpackVersion());
       Collection<BlueprintMpackConfigEntity> mpackConfigEntities = toConfigEntities(mpack.getConfiguration(), () -> new BlueprintMpackConfigEntity());
       mpackConfigEntities.forEach( configEntity -> configEntity.setMpackReference(mpackEntity) );
@@ -407,7 +406,12 @@ public class BlueprintImpl implements Blueprint {
           toConfigEntities(serviceInstance.getConfiguration(), () -> new BlueprintServiceConfigEntity());
         serviceConfigEntities.forEach( configEntity -> configEntity.setService(serviceEntity) );
         serviceEntity.setConfigurations(serviceConfigEntities);
+        mpackEntity.getServiceInstances().add(serviceEntity);
+        serviceEntity.setMpackReference(mpackEntity);
       });
+
+      entity.getMpackReferences().add(mpackEntity);
+      mpackEntity.setBlueprint(entity);
     });
   }
 
@@ -438,10 +442,9 @@ public class BlueprintImpl implements Blueprint {
       MpackInstance mpackInstance = new MpackInstance();
       mpackInstance.setMpackName(mpack.getMpackName());
       mpackInstance.setMpackVersion(mpack.getMpackVersion());
-      mpackInstance.setUri(mpack.getMpackUri());
+      mpackInstance.setUrl(mpack.getMpackUri());
       mpackInstance.setConfiguration(processConfiguration(mpack.getConfigurations()));
-      Iterator<String> stackNameAndVersion = Splitter.on('-').split(mpack.getMpackName()).iterator();
-      mpackInstance.setStack(parseStack(stackNameAndVersion.next(), stackNameAndVersion.next()));
+      mpackInstance.setStack(parseStack(mpack.getMpackName(), mpack.getMpackVersion()));
       for(BlueprintServiceEntity serviceEntity: mpack.getServiceInstances()) {
         ServiceInstance serviceInstance = new ServiceInstance(
           serviceEntity.getName(),
