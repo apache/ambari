@@ -134,7 +134,14 @@ public interface ConfigGroup {
   /**
    * Name of service which config group is wired to
    */
-  String getServiceName();
+  Long getServiceId();
 
-  void setServiceName(String serviceName);
+  void setServiceId(Long serviceId);
+
+  /**
+   * Id of service group which config group is wired to
+   */
+  Long getServiceGroupId();
+
+  void setServiceGroupId(Long serviceGroupId);
 }

@@ -1913,7 +1913,7 @@ public class ViewRegistryTest {
     replay(securityHelper, configuration, viewInstanceDAO, clusters, cluster, service, viewInstanceEntity);
 
 
-    ServiceInstalledEvent event = new ServiceInstalledEvent(99L, "HDP", "2.0", "HIVE");
+    ServiceInstalledEvent event = new ServiceInstalledEvent(99L, "HDP", "2.0", "HIVE", "", "");
 
     registry.onAmbariEvent(event);
 

@@ -22,6 +22,7 @@
   <type>NON_ROLLING</type>
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
+    <check>org.apache.ambari.server.checks.LZOCheck</check>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
@@ -76,7 +77,7 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
-      
+
       <service name="ACCUMULO">
         <component>ACCUMULO_TRACER</component>
         <component>ACCUMULO_GC</component>
@@ -354,7 +355,7 @@
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
           <summary>Validate Root Queue Ordering Policy</summary>
         </task>
-      </execute-stage> 
+      </execute-stage>
 
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
@@ -488,6 +489,10 @@
         <task xsi:type="configure" id="atlas_log4j_update_logger_settings"/>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Applying Atlas proxy-user configurations.">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.AtlasProxyUserConfigCalculation"/>
+      </execute-stage>
+
       <!--KAFKA-->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">
         <task xsi:type="configure" id="kafka_log4j_parameterize">
@@ -521,6 +526,9 @@
         <task xsi:type="configure" id="storm_cluster_log4j_parameterize">
           <summary>Updating the Storm cluster Log4J properties to include parameterizations</summary>
         </task>
+      </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
+        <task xsi:type="configure" id="storm_remove_jmxetric"/>
       </execute-stage>
 
       <!-- PIG -->
@@ -671,6 +679,15 @@
           <summary>Add queue customization property</summary>
         </task>
       </execute-stage>
+      <execute-stage service="SPARK2" component="SPARK2_THRIFTSERVER" title="Apply config changes for Spark2 ThriftServer log4j">
+        <task xsi:type="configure" id="hdp_2_5_0_0_spark2_thriftserver_log4j"/>
+      </execute-stage>
+      <execute-stage service="SPARK2" component="SPARK2_JOBHISTORYSERVER" title="Apply config changes for Spark2 Job HistoryServer log4j">
+        <task xsi:type="configure" id="hdp_2_5_0_0_spark2_jobhistoryserver_log4j"/>
+      </execute-stage>
+      <execute-stage service="SPARK2" component="SPARK2_CLIENT" title="Apply config changes for Spark2 Client log4j">
+        <task xsi:type="configure" id="hdp_2_5_0_0_spark2_client_log4j"/>
+      </execute-stage>
     </group>
 
     <!--
@@ -712,7 +729,7 @@
         </task>
       </execute-stage>
     </group>
-    
+
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
@@ -1075,7 +1092,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -1104,7 +1121,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -1184,7 +1201,7 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
@@ -1207,7 +1224,7 @@
             <function>configure_atlas_user_for_tagsync</function>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade copy-upgrade="true" />
 
         <upgrade>

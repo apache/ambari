@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.List;
+
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
@@ -41,6 +44,7 @@ public interface ServiceFactory {
    * @return
    */
   Service createNew(Cluster cluster, ServiceGroup serviceGroup,
+                    List<ServiceKey> serviceDependencies,
                     @Assisted("serviceName") String serviceName,
                     @Assisted("serviceType") String serviceType,
                     RepositoryVersionEntity desiredRepositoryVersion);

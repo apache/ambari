@@ -33,7 +33,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
@@ -452,7 +452,7 @@ public class AlertDispatchDAO {
 
     // AMBARI is a special service that we let through, otherwise we need to
     // verify that the service exists before we create the default group
-    String ambariServiceName = Services.AMBARI.name();
+    String ambariServiceName = RootService.AMBARI.name();
     if (!ambariServiceName.equals(serviceName)) {
       Cluster cluster = m_clusters.get().getClusterById(clusterId);
       Map<String, Service> services = cluster.getServices();

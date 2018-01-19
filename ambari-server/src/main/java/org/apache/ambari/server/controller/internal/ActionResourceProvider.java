@@ -43,8 +43,12 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ActionResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ActionResourceProvider.class);
 
   public static final String ACTION_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "action_name");
@@ -52,6 +56,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       .getPropertyId("Actions", "action_type");
   public static final String INPUTS_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "inputs");
+  public static final String TARGET_SERVICE_GROUP_PROPERTY_ID = PropertyHelper
+      .getPropertyId("Actions", "target_service_group");
   public static final String TARGET_SERVICE_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "target_service");
   public static final String TARGET_COMPONENT_PROPERTY_ID = PropertyHelper
@@ -126,6 +132,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
           response.getActionType(), requestedIds);
       setResourceProperty(resource, INPUTS_PROPERTY_ID,
           response.getInputs(), requestedIds);
+      setResourceProperty(resource, TARGET_SERVICE_GROUP_PROPERTY_ID,
+          response.getTargetServiceGroup(), requestedIds);
       setResourceProperty(resource, TARGET_SERVICE_PROPERTY_ID,
           response.getTargetService(), requestedIds);
       setResourceProperty(resource, TARGET_COMPONENT_PROPERTY_ID,
@@ -153,6 +161,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
         (String) properties.get(ACTION_NAME_PROPERTY_ID),
         (String) properties.get(ACTION_TYPE_PROPERTY_ID),
         (String) properties.get(INPUTS_PROPERTY_ID),
+        (String) properties.get(TARGET_SERVICE_GROUP_PROPERTY_ID),
         (String) properties.get(TARGET_SERVICE_PROPERTY_ID),
         (String) properties.get(TARGET_COMPONENT_PROPERTY_ID),
         (String) properties.get(DESCRIPTION_PROPERTY_ID),

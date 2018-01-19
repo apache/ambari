@@ -535,6 +535,19 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets the cluster setting sub-resource.
+   *
+   * @param request      the request
+   * @param clusterName  the cluster name
+   *
+   * @return the 'cluster setting' service
+   */
+  @Path("{clusterName}/settings")
+  public ClusterSettingService getSettingsHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+    return new ClusterSettingService(clusterName);
+  }
+
+  /**
    * Gets the requests sub-resource.
    *
    * @param request      the request

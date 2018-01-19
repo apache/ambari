@@ -30,6 +30,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.api.services.ServiceGroupKey;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -46,6 +48,8 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.testing.DeadlockWarningThread;
@@ -85,6 +89,9 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
   private ServiceComponentHostFactory serviceComponentHostFactory;
 
   @Inject
+  private ServiceGroupFactory serviceGroupFactory;
+
+  @Inject
   private ConfigFactory configFactory;
 
   @Inject
@@ -98,6 +105,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
    * The cluster.
    */
   private Cluster cluster;
+  private ServiceGroup serviceGroup;
 
   /**
    * Creates 1 host and add it to the cluster.
@@ -113,12 +121,12 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     injector.injectMembers(this);
 
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
-    helper.createStack(stackId);
 
+    m_repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
+    helper.createStack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    m_repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
-
+    serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", new HashSet<ServiceGroupKey>());
     Config config1 = configFactory.createNew(cluster, "test-type1", null, new HashMap<>(), new HashMap<>());
 
     Config config2 = configFactory.createNew(cluster, "test-type2", null, new HashMap<>(), new HashMap<>());
@@ -242,7 +250,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName, m_repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, m_repositoryVersion);
       cluster.addService(service);
     }
 

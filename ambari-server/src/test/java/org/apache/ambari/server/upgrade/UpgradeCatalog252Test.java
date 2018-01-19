@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.upgrade;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -190,6 +192,8 @@ public class UpgradeCatalog252Test {
     final Config livyConfNew = createMock(Config.class);
     final Config livy2Conf = createMock(Config.class);
     final Config livy2ConfNew = createMock(Config.class);
+    final Service sparkMock = createNiceMock(Service.class);
+    final Service spark2Mock = createNiceMock(Service.class);
     final AmbariManagementController controller = createMock(AmbariManagementController.class);
 
     StackId stackId = new StackId("HDP", "2.2");
@@ -215,11 +219,11 @@ public class UpgradeCatalog252Test {
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster.getDesiredConfigByType("zeppelin-env")).andReturn(zeppelinEnv).atLeastOnce();
-    expect(cluster.getServiceByConfigType("livy-conf")).andReturn("SPARK").atLeastOnce();
+    expect(cluster.getServiceByConfigType("livy-conf")).andReturn(sparkMock).atLeastOnce();
     expect(cluster.getDesiredConfigByType("livy-conf")).andReturn(livyConf).atLeastOnce();
     expect(cluster.getConfigsByType("livy-conf")).andReturn(Collections.singletonMap("tag1", livyConf)).atLeastOnce();
     expect(cluster.getConfig(eq("livy-conf"), anyString())).andReturn(livyConfNew).atLeastOnce();
-    expect(cluster.getServiceByConfigType("livy2-conf")).andReturn("SPARK2").atLeastOnce();
+    expect(cluster.getServiceByConfigType("livy2-conf")).andReturn(spark2Mock).atLeastOnce();
     expect(cluster.getDesiredConfigByType("livy2-conf")).andReturn(livy2Conf).atLeastOnce();
     expect(cluster.getConfigsByType("livy2-conf")).andReturn(Collections.singletonMap("tag1", livy2Conf)).atLeastOnce();
     expect(cluster.getConfig(eq("livy2-conf"), anyString())).andReturn(livy2ConfNew).atLeastOnce();
@@ -227,25 +231,28 @@ public class UpgradeCatalog252Test {
 
     expect(zeppelinEnv.getProperties()).andReturn(Collections.singletonMap("zeppelin.server.kerberos.principal", "zeppelin_user@AMBARI.LOCAL")).once();
 
+    expect(sparkMock.getName()).andReturn("SPARK").atLeastOnce();
+    expect(spark2Mock.getName()).andReturn("SPARK2").atLeastOnce();
+
     expect(livyConf.getProperties()).andReturn(Collections.singletonMap("livy.superusers", "zeppelin-c1, some_user")).atLeastOnce();
     expect(livyConf.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).atLeastOnce();
     expect(livy2Conf.getProperties()).andReturn(Collections.<String, String>emptyMap()).atLeastOnce();
     expect(livy2Conf.getPropertiesAttributes()).andReturn(Collections.<String, Map<String, String>>emptyMap()).atLeastOnce();
 
-    expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy-conf"), capture(captureLivyConfProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy-conf"), capture(captureLivyConfProperties), anyString(), anyObject(Map.class), anyLong()))
         .andReturn(livyConfNew)
         .once();
-    expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy2-conf"), capture(captureLivy2ConfProperties), anyString(), anyObject(Map.class)))
+    expect(controller.createConfig(eq(cluster), eq(stackId), eq("livy2-conf"), capture(captureLivy2ConfProperties), anyString(), anyObject(Map.class), anyLong()))
         .andReturn(livy2ConfNew)
         .once();
 
-    replay(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller);
+    replay(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, sparkMock, spark2Mock);
 
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog252 upgradeCatalog252 = injector.getInstance(UpgradeCatalog252.class);
     upgradeCatalog252.fixLivySuperusers();
 
-    verify(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller);
+    verify(clusters, cluster, zeppelinEnv, livy2Conf, livyConf, controller, sparkMock, spark2Mock);
 
     Assert.assertTrue(captureLivyConfProperties.hasCaptured());
     Assert.assertEquals("some_user,zeppelin_user", captureLivyConfProperties.getValue().get("livy.superusers"));

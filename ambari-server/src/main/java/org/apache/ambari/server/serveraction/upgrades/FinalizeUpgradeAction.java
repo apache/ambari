@@ -200,7 +200,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // move host versions from CURRENT to INSTALLED if their repos are no
       // longer used
-      finalizeHostRepositoryVersions(cluster);
+      finalizeHostVersionsNotDesired(cluster);
 
       if (upgradeContext.getOrchestrationType() == RepositoryType.STANDARD) {
         outSB.append(String.format("Finalizing the version for cluster %s.\n", cluster.getClusterName()));
@@ -271,7 +271,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
             errors.size())).append(System.lineSeparator());
 
         for (InfoTuple error : errors) {
-          messageBuff.append(String.format("%s: $s (current = %s, desired = %s ", error.hostName,
+          messageBuff.append(String.format("%s: %s (current = %s, desired = %s)", error.hostName,
               error.componentName, error.currentVersion, error.targetVersion));
 
           messageBuff.append(System.lineSeparator());
@@ -280,38 +280,36 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         throw new AmbariException(messageBuff.toString());
       }
 
+      finalizeHostVersionsNotDesired(cluster);
 
-      if (upgradeContext.isPatchRevert()) {
-        finalizeHostRepositoryVersions(cluster);
-      } else {
-        // for every repository being downgraded to, ensure the host versions are correct
-        Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
-        Set<RepositoryVersionEntity> targetRepositoryVersions = new HashSet<>();
-        for (String service : targetVersionsByService.keySet()) {
-          targetRepositoryVersions.add(targetVersionsByService.get(service));
-        }
+      // for every repository being downgraded to, ensure the host versions are correct
+      Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
+      Set<RepositoryVersionEntity> targetRepositoryVersions = new HashSet<>();
+      for (String service : targetVersionsByService.keySet()) {
+        targetRepositoryVersions.add(targetVersionsByService.get(service));
+      }
 
-        for (RepositoryVersionEntity targetRepositoryVersion : targetRepositoryVersions) {
-          // find host versions
-          List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
-              cluster.getClusterId(), targetRepositoryVersion);
+      // move host versions in the downgrade back to CURRENT if they are not
+      for (RepositoryVersionEntity targetRepositoryVersion : targetRepositoryVersions) {
+        // find host versions
+        List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
+            cluster.getClusterId(), targetRepositoryVersion);
 
-          outSB.append(String.format("Finalizing %d host(s) back to %s", hostVersions.size(),
-              targetRepositoryVersion.getVersion())).append(System.lineSeparator());
+        outSB.append(String.format("Finalizing %d host(s) back to %s", hostVersions.size(),
+            targetRepositoryVersion.getVersion())).append(System.lineSeparator());
 
-          for (HostVersionEntity hostVersion : hostVersions) {
-            if (hostVersion.getState() != RepositoryVersionState.CURRENT) {
-              hostVersion.setState(RepositoryVersionState.CURRENT);
-              hostVersionDAO.merge(hostVersion);
-            }
+        for (HostVersionEntity hostVersion : hostVersions) {
+          if (hostVersion.getState() != RepositoryVersionState.CURRENT) {
+            hostVersion.setState(RepositoryVersionState.CURRENT);
+            hostVersionDAO.merge(hostVersion);
+          }
 
-            List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(
-                hostVersion.getHostName());
+          List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(
+              hostVersion.getHostName());
 
-            for (HostComponentStateEntity hostComponentState : hostComponentStates) {
-              hostComponentState.setUpgradeState(UpgradeState.NONE);
-              hostComponentStateDAO.merge(hostComponentState);
-            }
+          for (HostComponentStateEntity hostComponentState : hostComponentStates) {
+            hostComponentState.setUpgradeState(UpgradeState.NONE);
+            hostComponentStateDAO.merge(hostComponentState);
           }
         }
       }
@@ -327,8 +325,8 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
           outSB.append(
               String.format("Removing %s configurations for %s", sourceStackId,
                   serviceName)).append(System.lineSeparator());
-
-          cluster.removeConfigurations(sourceStackId, serviceName);
+          //TODO pass serviceGroupName
+          cluster.removeConfigurations(sourceStackId, cluster.getService(null, serviceName).getServiceId());
         }
       }
 
@@ -367,13 +365,12 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     Set<InfoTuple> errors = new TreeSet<>();
 
     Cluster cluster = upgradeContext.getCluster();
-    RepositoryVersionEntity repositoryVersionEntity = upgradeContext.getRepositoryVersion();
-    StackId targetStackId = repositoryVersionEntity.getStackId();
-
     Set<String> servicesParticipating = upgradeContext.getSupportedServices();
     for (String serviceName : servicesParticipating) {
       Service service = cluster.getService(serviceName);
-      String targetVersion = upgradeContext.getTargetVersion(serviceName);
+      RepositoryVersionEntity repositoryVersionEntity = upgradeContext.getTargetRepositoryVersion(serviceName);
+      StackId targetStackId = repositoryVersionEntity.getStackId();
+      String targetVersion = repositoryVersionEntity.getVersion();
 
       for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
         for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
@@ -384,15 +381,16 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
             continue;
           }
 
+
           if (!StringUtils.equals(targetVersion, serviceComponentHost.getVersion())) {
             errors.add(new InfoTuple(service.getName(), serviceComponent.getName(),
-                serviceComponentHost.getHostName(), serviceComponentHost.getVersion(),
-                targetVersion));
+                    serviceComponentHost.getHostName(), serviceComponentHost.getVersion(),
+                    targetVersion));
+
           }
         }
       }
     }
-
 
     return errors;
   }
@@ -407,7 +405,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
    * @param cluster
    * @throws AmbariException
    */
-  private void finalizeHostRepositoryVersions(Cluster cluster) throws AmbariException {
+  private void finalizeHostVersionsNotDesired(Cluster cluster) throws AmbariException {
     // create a set of all of the repos that the services are on
     Set<RepositoryVersionEntity> desiredRepoVersions = new HashSet<>();
     Set<String> serviceNames = cluster.getServices().keySet();

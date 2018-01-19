@@ -108,6 +108,9 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity")
   private Collection<ServiceGroupEntity> serviceGroupEntities;
 
+  @OneToMany(mappedBy = "clusterEntity")
+  private Collection<ClusterSettingEntity> clusterSettingEntities;
+
   @OneToOne(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
   private ClusterStateEntity clusterStateEntity;
 
@@ -279,6 +282,14 @@ public class ClusterEntity {
 
   public void setServiceGroupEntities(Collection<ServiceGroupEntity> serviceGroupEntities) {
     this.serviceGroupEntities = serviceGroupEntities;
+  }
+
+  public Collection<ClusterSettingEntity> getClusterSettingEntities() {
+    return clusterSettingEntities;
+  }
+
+  public void setClusterSettingEntities(Collection<ClusterSettingEntity> clusterSettingEntities) {
+    this.clusterSettingEntities = clusterSettingEntities;
   }
 
   public ClusterStateEntity getClusterStateEntity() {

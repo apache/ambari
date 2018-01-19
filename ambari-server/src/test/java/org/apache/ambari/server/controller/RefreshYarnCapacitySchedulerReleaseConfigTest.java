@@ -21,13 +21,13 @@ package org.apache.ambari.server.controller;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
+import org.apache.ambari.server.controller.internal.ServiceGroupResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -57,7 +57,6 @@ import com.google.inject.Injector;
 
 import junit.framework.Assert;
 
-@SuppressWarnings("serial")
 public class RefreshYarnCapacitySchedulerReleaseConfigTest {
 
   private Injector injector;
@@ -102,12 +101,12 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     // Start
     ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), "c1", cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","capacity-scheduler","version2", new HashMap<>(), null)));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","capacity-scheduler","version2", new HashMap<>(), null, 1L, 1L)));
 
     controller.updateClusters(Collections.singleton(cr) , null);
 
 
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null);
     r.setStaleConfig("true");
     Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
     Assert.assertEquals(1, resps.size());
@@ -123,12 +122,12 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     // Start
     ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), "c1", cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","core-site","version2", new HashMap<>(),null)));
+    cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest("c1","core-site","version2", new HashMap<>(),null, 1L, 1L)));
 
     controller.updateClusters(Collections.singleton(cr) , null);
 
 
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null);
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest("c1", null, null, null, null, null);
     r.setStaleConfig("true");
     Set<ServiceComponentHostResponse> resps = controller.getHostComponents(Collections.singleton(r));
     Assert.assertEquals(4, resps.size());
@@ -162,22 +161,26 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   }
 
   private void createClusterFixture(String stackName) throws AmbariException, AuthorizationException {
-    createCluster("c1", stackName);
-    addHost("c6401","c1");
-    addHost("c6402","c1");
+    String clusterName = "c1";
+    createCluster(clusterName, stackName);
+    addHost("c6401", clusterName);
+    addHost("c6402", clusterName);
 
-    clusters.getCluster("c1");
-    createService("c1", "YARN", null);
+    String serviceGroupName = "CORE";
+    ServiceGroupResourceProviderTest.createServiceGroup(controller, clusterName, serviceGroupName);
 
-    createServiceComponent("c1","YARN","RESOURCEMANAGER", State.INIT);
-    createServiceComponent("c1","YARN","NODEMANAGER", State.INIT);
-    createServiceComponent("c1","YARN","YARN_CLIENT", State.INIT);
+    String serviceName = "YARN";
+    createService(clusterName, serviceGroupName, serviceName, null);
 
-    createServiceComponentHost("c1","YARN","RESOURCEMANAGER","c6401", null);
-    createServiceComponentHost("c1","YARN","NODEMANAGER","c6401", null);
+    createServiceComponent(clusterName, serviceGroupName, serviceName,"RESOURCEMANAGER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName,"NODEMANAGER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, serviceName,"YARN_CLIENT", State.INIT);
 
-    createServiceComponentHost("c1","YARN","NODEMANAGER","c6402", null);
-    createServiceComponentHost("c1","YARN","YARN_CLIENT","c6402", null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName,"RESOURCEMANAGER","c6401", null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName,"NODEMANAGER","c6401", null);
+
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName,"NODEMANAGER","c6402", null);
+    createServiceComponentHost(clusterName, serviceGroupName, serviceName,"YARN_CLIENT","c6402", null);
   }
 
   private void addHost(String hostname, String clusterName) throws AmbariException {
@@ -202,55 +205,24 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     controller.createCluster(r);
   }
 
-  private void createService(String clusterName,
+  private void createService(String clusterName, String serviceGroupName,
       String serviceName, State desiredState) throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-
-    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
-        new StackId("HDP-2.0.7"), "2.0.7-1234");
-
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getId(), dStateStr);
-
-    Set<ServiceRequest> requests = new HashSet<>();
-    requests.add(r1);
-
-    ServiceResourceProviderTest.createServices(controller,
-        injector.getInstance(RepositoryVersionDAO.class), requests);
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(new StackId("HDP-2.0.7"), "2.0.7-1234");
+    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, repositoryVersion.getId(), desiredState != null ? desiredState.toString() : null, null);
+    ServiceResourceProviderTest.createServices(controller, injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(request));
   }
 
-  private void createServiceComponent(String clusterName,
+  private void createServiceComponent(String clusterName, String serviceGroupName,
       String serviceName, String componentName, State desiredState)
       throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
-        serviceName, componentName, dStateStr);
-    Set<ServiceComponentRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    ComponentResourceProviderTest.createComponents(controller, requests);
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ComponentResourceProviderTest.createComponents(controller, Collections.singleton(r));
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState)
+  private void createServiceComponentHost(String clusterName, String serviceGroupName, String serviceName, String componentName, String hostname, State desiredState)
       throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
-        serviceName, componentName, hostname, dStateStr);
-    Set<ServiceComponentHostRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    controller.createHostComponents(requests);
-
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    controller.createHostComponents(Collections.singleton(r));
 
     //set actual config
       Service service = clusters.getCluster(clusterName).getService(serviceName);

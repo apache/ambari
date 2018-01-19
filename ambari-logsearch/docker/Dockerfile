@@ -34,11 +34,11 @@ RUN wget --no-check-certificate -O /root/selenium-server-standalone.jar http://s
 #Install Maven
 RUN mkdir -p /opt/maven
 WORKDIR /opt/maven
-RUN wget http://archive.apache.org/dist/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz
-RUN tar -xvzf /opt/maven/apache-maven-3.0.5-bin.tar.gz
-RUN rm -rf /opt/maven/apache-maven-3.0.5-bin.tar.gz
+RUN wget http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+RUN tar -xvzf /opt/maven/apache-maven-3.3.9-bin.tar.gz
+RUN rm -rf /opt/maven/apache-maven-3.3.9-bin.tar.gz
 
-ENV M2_HOME /opt/maven/apache-maven-3.0.5
+ENV M2_HOME /opt/maven/apache-maven-3.3.9
 ENV MAVEN_OPTS -Xmx2048m
 ENV PATH $PATH:$JAVA_HOME/bin:$M2_HOME/bin
 
@@ -53,14 +53,8 @@ RUN echo 'X11DisplayOffset 10\n' /etc/ssh/sshd_config
 #To allow bower install behind proxy. See https://github.com/bower/bower/issues/731
 RUN git config --global url."https://".insteadOf git://
 
-# Install python, nodejs and npm
-RUN yum -y install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-RUN yum -y install nodejs npm --enablerepo=epel
-RUN npm install -g npm@2.1.11
-RUN npm install -g brunch@1.7.20
-
 # Install Solr
-ENV SOLR_VERSION 6.6.0
+ENV SOLR_VERSION 6.6.2
 RUN wget --no-check-certificate -O /root/solr-$SOLR_VERSION.tgz http://public-repo-1.hortonworks.com/ARTIFACTS/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN cd /root && tar -zxvf /root/solr-$SOLR_VERSION.tgz
 ADD bin/start.sh /root/start.sh
@@ -83,6 +77,9 @@ RUN mkdir -p /var/run/ambari-logsearch-solr /var/log/ambari-logsearch-solr /var/
 
 RUN cp /root/test-config/solr/solr.xml /root/logsearch_solr_index/data
 RUN cp /root/test-config/solr/zoo.cfg /root/logsearch_solr_index/data
+
+RUN mkdir -p /root/config
+RUN chmod -R 777 /root/config
 
 WORKDIR /root
 CMD /root/start.sh

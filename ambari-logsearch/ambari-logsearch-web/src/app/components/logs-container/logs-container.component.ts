@@ -16,82 +16,52 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Input} from '@angular/core';
+import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
-import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
+import {TabsService} from '@app/services/storage/tabs.service';
 import {AuditLog} from '@app/classes/models/audit-log';
 import {ServiceLog} from '@app/classes/models/service-log';
-import {LogField} from '@app/classes/models/log-field';
+import {Tab} from '@app/classes/models/tab';
+import {BarGraph} from '@app/classes/models/bar-graph';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 import {HistogramOptions} from '@app/classes/histogram-options';
+import {ListItem} from '@app/classes/list-item';
+import {LogsType} from '@app/classes/string';
 
 @Component({
   selector: 'logs-container',
   templateUrl: './logs-container.component.html',
   styleUrls: ['./logs-container.component.less']
 })
-export class LogsContainerComponent implements OnInit {
+export class LogsContainerComponent {
 
-  constructor(private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
-    serviceLogsHistogramStorage.getAll().subscribe(data => this.histogramData = this.logsContainer.getHistogramData(data));
+  constructor(
+    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService,
+    private tabsStorage: TabsService, private logsContainer: LogsContainerService
+  ) {
+    this.logsContainer.loadColumnsNames();
+    appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
+    serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
+      this.histogramData = this.logsContainer.getHistogramData(data);
+    });
     appState.getParameter('isServiceLogContextView').subscribe((value: boolean) => this.isServiceLogContextView = value);
   }
 
-  ngOnInit() {
-    const fieldsModel = this.logsTypeMapObject.fieldsModel,
-      logsModel = this.logsTypeMapObject.logsModel;
-    this.appState.getParameter(this.logsTypeMapObject.isSetFlag).subscribe((value: boolean) => this.isLogsSet = value);
-    this.availableColumns = fieldsModel.getAll().map(fields => {
-      return fields.filter(field => field.isAvailable).map(field => {
-        return {
-          value: field.name,
-          label: field.displayName || field.name,
-          isChecked: field.isDisplayed
-        };
-      });
-    });
-    fieldsModel.getAll().subscribe(columns => {
-      const availableFields = columns.filter(field => field.isAvailable),
-        availableNames = availableFields.map(field => field.name);
-      if (availableNames.length && !this.isLogsSet) {
-        this.logs = logsModel.getAll().map((logs: (AuditLog | ServiceLog)[]): (AuditLog | ServiceLog)[] => {
-          return logs.map((log: AuditLog | ServiceLog): AuditLog | ServiceLog => {
-            return availableNames.reduce((obj, key) => Object.assign(obj, {
-              [key]: log[key]
-            }), {});
-          });
-        });
-        this.appState.setParameter(this.logsTypeMapObject.isSetFlag, true);
-      }
-      this.displayedColumns = columns.filter(column => column.isAvailable && column.isDisplayed);
-    });
-    this.logsContainer.loadLogs(this.logsType);
-    this.filtersForm.valueChanges.subscribe(() => this.logsContainer.loadLogs(this.logsType));
-  }
+  tabs: Observable<Tab[]> = this.tabsStorage.getAll();
 
-  @Input()
-  logsType: string;
+  get filtersForm(): FormGroup {
+    return this.logsContainer.filtersForm;
+  };
 
-  private isLogsSet: boolean = false;
-
-  get logsTypeMapObject(): any {
-    return this.logsContainer.logsTypeMap[this.logsType];
-  }
+  private logsType: LogsType;
 
   get totalCount(): number {
     return this.logsContainer.totalCount;
   }
-
-  logs: Observable<AuditLog[] | ServiceLog[]>;
-
-  availableColumns: Observable<LogField[]>;
-
-  displayedColumns: any[] = [];
 
   histogramData: {[key: string]: number};
 
@@ -99,17 +69,23 @@ export class LogsContainerComponent implements OnInit {
     keysWithColors: this.logsContainer.colors
   };
 
-  private get filtersForm(): FormGroup {
-    return this.filtering.filtersForm;
-  }
-
   get autoRefreshRemainingSeconds(): number {
-    return this.filtering.autoRefreshRemainingSeconds;
+    return this.logsContainer.autoRefreshRemainingSeconds;
   }
 
-  get autoRefreshMessageParams(): any {
+  get autoRefreshMessageParams(): object {
     return {
       remainingSeconds: this.autoRefreshRemainingSeconds
+    };
+  }
+
+  /**
+   * The goal is to provide the single source for the parameters of 'xyz events found' message.
+   * @returns {Object}
+   */
+  get totalEventsFoundMessageParams(): object {
+    return {
+      totalCount: this.totalCount
     };
   }
 
@@ -123,7 +99,34 @@ export class LogsContainerComponent implements OnInit {
     return this.logsContainer.activeLog;
   }
 
+  get auditLogs(): Observable<AuditLog[]> {
+    return this.logsContainer.auditLogs;
+  }
+
+  get auditLogsColumns(): Observable<ListItem[]> {
+    return this.logsContainer.auditLogsColumns;
+  }
+
+  get serviceLogs(): Observable<ServiceLog[]> {
+    return this.logsContainer.serviceLogs;
+  }
+
+  get serviceLogsColumns(): Observable<ListItem[]> {
+    return this.logsContainer.serviceLogsColumns;
+  }
+
   setCustomTimeRange(startTime: number, endTime: number): void {
-    this.filtering.setCustomTimeRange(startTime, endTime);
+    this.logsContainer.setCustomTimeRange(startTime, endTime);
+  }
+
+  onSwitchTab(activeTab: Tab): void {
+    this.logsContainer.switchTab(activeTab);
+  }
+
+  onCloseTab(activeTab: Tab, newActiveTab: Tab): void {
+    this.tabsStorage.deleteObjectInstance(activeTab);
+    if (newActiveTab) {
+      this.onSwitchTab(newActiveTab);
+    }
   }
 }

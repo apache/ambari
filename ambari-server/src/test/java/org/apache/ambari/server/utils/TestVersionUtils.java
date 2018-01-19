@@ -48,6 +48,9 @@ public class TestVersionUtils {
     Assert.assertEquals(0, VersionUtils.compareVersions("2.2", "2.2.VER"));
     Assert.assertEquals(0, VersionUtils.compareVersions("2.2.VAR", "2.2.VER"));
     Assert.assertEquals(0, VersionUtils.compareVersions("2.2.3", "2.2.3.VER1.V"));
+
+    Assert.assertEquals(0, VersionUtils.compareVersions("2.2.0.1-200", "2.2.0.1-100"));
+    Assert.assertEquals(1, VersionUtils.compareVersionsWithBuild("2.2.0.1-200", "2.2.0.1-100", 4));
   }
 
   @Test
@@ -118,6 +121,7 @@ public class TestVersionUtils {
     //Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.4_MYAMBARI_000000"));
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.4_MYAMBARI_000000", "1.2.3_MYAMBARI_000000"));
     Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000"));
+    Assert.assertEquals(0, VersionUtils.compareVersions("2.99.99.0", "2.99.99"));
 
     Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.4_MYAMBARI_000000", 3));
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.4_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", 3));

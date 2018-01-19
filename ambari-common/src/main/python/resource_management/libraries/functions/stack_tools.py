@@ -27,7 +27,7 @@ import ambari_simplejson as json
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.utils import pad
-
+from resource_management.libraries.functions import stack_settings
 
 STACK_SELECTOR_NAME = "stack_selector"
 CONF_SELECTOR_NAME = "conf_selector"
@@ -46,10 +46,15 @@ def get_stack_tool(name):
     Logger.warning("Cannot find the stack name in the command. Stack tools cannot be loaded")
     return None, None, None
 
-  stack_tools = None
-  stack_tools_config = default("/configurations/cluster-env/stack_tools", None)
-  if stack_tools_config:
-    stack_tools = json.loads(stack_tools_config)
+  stack_tools_setting = stack_settings.get_stack_setting_value(stack_settings.STACK_TOOLS_SETTING)
+  # TODO : Removed the below if of reading from cluster_env, once we have removed stack_tools from there
+  # and have started using /stackSettings as source of truth.
+  if stack_tools_setting is None:
+    Logger.info("Couldn't retrieve 'stack_tools' from /stackSettings. Retrieving from cluster_env now.")
+    stack_tools_setting = default("/configurations/cluster-env/"+stack_settings.STACK_TOOLS_SETTING, None)
+
+  if stack_tools_setting:
+    stack_tools = json.loads(stack_tools_setting)
 
   if stack_tools is None:
     Logger.warning("The stack tools could not be found in cluster-env")

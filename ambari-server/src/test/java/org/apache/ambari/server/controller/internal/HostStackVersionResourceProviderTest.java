@@ -68,11 +68,12 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
@@ -215,12 +216,12 @@ public class HostStackVersionResourceProviderTest {
 
 
 
-    final ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
+    final OsSpecific.Package hivePackage = new OsSpecific.Package();
     hivePackage.setName("hive");
-    final ServiceOsSpecific.Package mysqlPackage = new ServiceOsSpecific.Package();
+    final OsSpecific.Package mysqlPackage = new OsSpecific.Package();
     mysqlPackage.setName("mysql");
     mysqlPackage.setSkipUpgrade(Boolean.TRUE);
-    List<ServiceOsSpecific.Package> packages = Arrays.asList(hivePackage, mysqlPackage);
+    List<OsSpecific.Package> packages = Arrays.asList(hivePackage, mysqlPackage);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
@@ -231,7 +232,7 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
-    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+    expect(managementController.getPackagesForStackServiceHost(anyObject(StackInfo.class),anyObject(ServiceInfo.class),
             EasyMock.anyObject(), anyObject(String.class))).andReturn(packages).anyTimes();
 
     expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
@@ -241,10 +242,12 @@ public class HostStackVersionResourceProviderTest {
     expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(schs).anyTimes();
 
     expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
+    expect(sch.getServiceType()).andReturn("HIVE").anyTimes();
 
     expect(
         repositoryVersionDAOMock.findByStackAndVersion(
@@ -311,12 +314,12 @@ public class HostStackVersionResourceProviderTest {
 
     ServiceComponentHost sch = createMock(ServiceComponentHost.class);
 
-    final ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
+    final OsSpecific.Package hivePackage = new OsSpecific.Package();
     hivePackage.setName("hive");
-    final ServiceOsSpecific.Package mysqlPackage = new ServiceOsSpecific.Package();
+    final OsSpecific.Package mysqlPackage = new OsSpecific.Package();
     mysqlPackage.setName("mysql");
     mysqlPackage.setSkipUpgrade(Boolean.TRUE);
-    List<ServiceOsSpecific.Package> packages = Arrays.asList(hivePackage, mysqlPackage);
+    List<OsSpecific.Package> packages = Arrays.asList(hivePackage, mysqlPackage);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
@@ -327,7 +330,7 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
-    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+    expect(managementController.getPackagesForStackServiceHost(anyObject(StackInfo.class),anyObject(ServiceInfo.class),
       anyObject(Map.class), anyObject(String.class))).andReturn(packages).anyTimes();
 
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
@@ -337,6 +340,7 @@ public class HostStackVersionResourceProviderTest {
     expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     expect(
@@ -412,9 +416,9 @@ public class HostStackVersionResourceProviderTest {
     ServiceComponentHost sch = createMock(ServiceComponentHost.class);
     List<ServiceComponentHost> schs = Collections.singletonList(sch);
 
-    ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
+    OsSpecific.Package hivePackage = new OsSpecific.Package();
     hivePackage.setName("hive");
-    List<ServiceOsSpecific.Package> packages = Collections.singletonList(hivePackage);
+    List<OsSpecific.Package> packages = Collections.singletonList(hivePackage);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
@@ -425,7 +429,7 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
-    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+    expect(managementController.getPackagesForStackServiceHost(anyObject(StackInfo.class),anyObject(ServiceInfo.class),
             EasyMock.anyObject(), anyObject(String.class))).andReturn(packages).anyTimes();
 
     expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
@@ -436,9 +440,11 @@ public class HostStackVersionResourceProviderTest {
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(schs).anyTimes();
 
     expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
+    expect(sch.getServiceType()).andReturn("HIVE").anyTimes();
 
     expect(
         repositoryVersionDAOMock.findByStackAndVersion(

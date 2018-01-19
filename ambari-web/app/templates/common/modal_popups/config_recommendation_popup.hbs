@@ -16,34 +16,25 @@
 * limitations under the License.
 }}
 
-<p>{{view.messageBody}}</p>
-<div id="config-validation-warnings" class="limited-height-2">
-  <table class="table table-hover">
-    <thead>
-    <tr>
-      <th>{{t common.type}}</th>
-      <th>{{t common.service}}</th>
-      <th>{{t common.property}}</th>
-      <th>{{t common.value}}</th>
-      <th>{{t common.description}}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {{#each error in view.configErrors}}
-      <tr {{bindAttr class="error.isError:error:warning"}}>
-        <td>
-          {{#if error.isError}}
-            {{t common.error}}
-          {{else}}
-            {{t common.warning}}
-          {{/if}}
-        </td>
-
-        {{#if error.isGeneral}}
-          {{#each message in error.messages}}
-            <td colspan="4">{{error.message}}</td>
-          {{/each}}
-        {{else}}
+{{#if view.configErrors.criticalIssues.length}}
+  <p>{{t installer.step7.popup.validation.criticalIssues.body}}</p>
+  <div class="limited-height-2 config-validation-warnings">
+    <table class="table table-hover">
+      <thead>
+      <tr>
+        <th>{{t common.type}}</th>
+        <th>{{t common.service}}</th>
+        <th>{{t common.property}}</th>
+        <th>{{t common.value}}</th>
+        <th>{{t common.description}}</th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each error in view.configErrors.criticalIssues}}
+        <tr class="error">
+          <td>
+            {{t common.critical}}
+          </td>
           <td>{{error.serviceName}}</td>
           <td>{{error.propertyName}}</td>
           <td>{{error.value}}</td>
@@ -53,9 +44,54 @@
             {{/each}}
             <div class="property-description">{{error.description}}</div>
           </td>
-        {{/if}}
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
+{{/if}}
+{{#if view.configErrors.issues.length}}
+  <p>{{t installer.step7.popup.validation.issues.body}}</p>
+  <div class="limited-height-2 config-validation-warnings">
+    <table class="table table-hover">
+      <thead>
+      <tr>
+        <th>{{t common.type}}</th>
+        <th>{{t common.service}}</th>
+        <th>{{t common.property}}</th>
+        <th>{{t common.value}}</th>
+        <th>{{t common.description}}</th>
       </tr>
-    {{/each}}
-    </tbody>
-  </table>
-</div>
+      </thead>
+      <tbody>
+      {{#each error in view.configErrors.issues}}
+        <tr {{bindAttr class="error.isError:error:warning"}}>
+          <td>
+            {{#if error.isError}}
+              {{t common.error}}
+            {{else}}
+              {{t common.warning}}
+            {{/if}}
+          </td>
+
+          {{#if error.isGeneral}}
+            {{#each message in error.messages}}
+              <td colspan="4">{{error.message}}</td>
+            {{/each}}
+          {{else}}
+            <td>{{error.serviceName}}</td>
+            <td>{{error.propertyName}}</td>
+            <td>{{error.value}}</td>
+            <td>
+              {{#each message in error.messages}}
+                <div class="property-message">{{message}}</div>
+              {{/each}}
+              <div class="property-description">{{error.description}}</div>
+            </td>
+          {{/if}}
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
+{{/if}}

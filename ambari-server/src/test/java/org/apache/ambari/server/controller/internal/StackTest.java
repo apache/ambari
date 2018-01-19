@@ -38,8 +38,9 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
+//import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
+import org.apache.ambari.server.controller.StackLevelConfigurationResponse;
 import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
@@ -71,7 +72,7 @@ public class StackTest {
     StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
     Capture<Set<StackConfigurationRequest>> stackConfigurationRequestCapture = EasyMock.newCapture();
     Capture<Set<StackLevelConfigurationRequest>> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
-    StackConfigurationResponse stackConfigurationResponse = EasyMock.createNiceMock(StackConfigurationResponse.class);
+    StackLevelConfigurationResponse stackConfigurationResponse = EasyMock.createNiceMock(StackLevelConfigurationResponse.class);
 
     expect(controller.getStackServices(capture(stackServiceRequestCapture))).
         andReturn(Collections.singleton(stackServiceResponse)).anyTimes();
@@ -134,7 +135,7 @@ public class StackTest {
 
     Set<PropertyDependencyInfo> setOfDependencyInfo = new HashSet<>();
 
-    StackConfigurationResponse mockResponse = mockSupport.createMock(StackConfigurationResponse.class);
+    StackLevelConfigurationResponse mockResponse = mockSupport.createMock(StackLevelConfigurationResponse.class);
     expect(mockResponse.getPropertyName()).andReturn("test-property-one");
     expect(mockResponse.getPropertyValue()).andReturn("test-value-one");
     expect(mockResponse.getPropertyAttributes()).andReturn(Collections.emptyMap());
@@ -166,8 +167,8 @@ public class StackTest {
     StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
     Capture<Set<StackConfigurationRequest>> stackConfigurationRequestCapture = EasyMock.newCapture();
     Capture<Set<StackLevelConfigurationRequest>> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
-    StackConfigurationResponse stackConfigurationResponse = EasyMock.createNiceMock(StackConfigurationResponse.class);
-    StackConfigurationResponse stackConfigurationResponse2 = EasyMock.createNiceMock(StackConfigurationResponse.class);
+    StackLevelConfigurationResponse stackConfigurationResponse = EasyMock.createNiceMock(StackLevelConfigurationResponse.class);
+    StackLevelConfigurationResponse stackConfigurationResponse2 = EasyMock.createNiceMock(StackLevelConfigurationResponse.class);
 
     expect(controller.getStackServices(capture(stackServiceRequestCapture))).
         andReturn(Collections.singleton(stackServiceResponse)).anyTimes();
@@ -249,8 +250,8 @@ public class StackTest {
     AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
     StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
     StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
-    StackConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackConfigurationResponse.class);
-    StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
+    StackLevelConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackLevelConfigurationResponse.class);
+    StackLevelConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackLevelConfigurationResponse.class);
 
     String testServiceName = "service1";
     String testEmptyConfigType = "test-empty-config-type";
@@ -320,7 +321,7 @@ public class StackTest {
     AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
     StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
     StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
-    StackConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackConfigurationResponse.class);
+    StackLevelConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackLevelConfigurationResponse.class);
 
     String testServiceName = "service1";
     String testEmptyConfigType = "test-empty-config-type";

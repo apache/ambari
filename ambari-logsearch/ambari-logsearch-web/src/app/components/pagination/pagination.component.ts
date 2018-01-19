@@ -18,6 +18,8 @@
 
 import {Component, OnInit, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
+import {ListItem} from '@app/classes/list-item';
+import {FilterCondition} from '@app/classes/filtering';
 
 @Component({
   selector: 'pagination',
@@ -27,15 +29,17 @@ import {FormGroup} from '@angular/forms';
 export class PaginationComponent implements OnInit {
 
   ngOnInit() {
-    this.setPageSizeFromString(this.filterInstance.defaultValue);
-    this.filtersForm.controls.pageSize.valueChanges.subscribe(value => this.setPageSizeFromString(value));
+    this.setPageSizeFromString(this.filterInstance.defaultSelection[0].value);
+    this.filtersForm.controls.pageSize.valueChanges.subscribe((selection: ListItem): void => {
+      this.setPageSizeFromString(selection[0].value);
+    });
   }
 
   @Input()
   filtersForm: FormGroup;
 
   @Input()
-  filterInstance: any;
+  filterInstance: FilterCondition;
 
   @Input()
   currentCount?: number;
@@ -45,7 +49,7 @@ export class PaginationComponent implements OnInit {
 
   private pageSize: number = 0;
 
-  setPageSizeFromString(value: string) {
+  private setPageSizeFromString(value: string) {
     this.pageSize = parseInt(value);
   }
 

@@ -118,13 +118,13 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <artifactItems>*</artifactItems>
                   <excludeArtifactIds>ambari-logsearch-web</excludeArtifactIds>
                   <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
                   <outputDirectory>${basedir}/target/libs</outputDirectory>
                   <overWriteReleases>false</overWriteReleases>
                   <overWriteSnapshots>false</overWriteSnapshots>
                   <overWriteIfNewer>true</overWriteIfNewer>
+                  <includeScope>compile</includeScope>
                 </configuration>
               </execution>
             </executions>
@@ -379,6 +379,10 @@
         <exclusion>
           <artifactId>guava</artifactId>
           <groupId>com.google.guava</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>jdk.tools</groupId>
+          <artifactId>jdk.tools</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

@@ -1187,9 +1187,17 @@ App.BulkOperationsController = Em.Controller.extend({
       hostNamesSkipped = this._getSkippedForPassiveStateHosts(hosts);
     }
 
-    var message = operationData.componentNameFormatted ?
-      Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length) :
-      Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
+    var message = "";
+    if (operationData.componentNameFormatted) {
+      message = Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length);
+    } else {
+      if (operationData.action == 'DELETE') {
+        message = Em.I18n.t('hosts.bulkOperation.confirmation.delete.hosts').format(hostNames.length);
+      } else {
+        message = Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
+      }
+    }
+
 
     return App.ModalPopup.show({
       header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),

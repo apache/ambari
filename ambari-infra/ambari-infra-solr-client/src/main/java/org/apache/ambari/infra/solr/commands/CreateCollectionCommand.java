@@ -23,9 +23,6 @@ import org.apache.ambari.infra.solr.util.ShardUtils;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CreateCollectionCommand extends AbstractSolrRetryCommand<CollectionAdminRequest.Create ,String> {
 
   public CreateCollectionCommand(int maxRetries, int interval) {
@@ -39,12 +36,9 @@ public class CreateCollectionCommand extends AbstractSolrRetryCommand<Collection
 
   @Override
   public CollectionAdminRequest.Create createRequest(AmbariSolrCloudClient client) {
-    CollectionAdminRequest.Create request = new CollectionAdminRequest.Create();
-    request.setConfigName(client.getConfigSet());
-    request.setCollectionName(client.getCollection());
-    request.setNumShards(client.getShards());
-    request.setReplicationFactor(client.getReplication());
-    request.setMaxShardsPerNode(client.getMaxShardsPerNode());
+    CollectionAdminRequest.Create request =
+      CollectionAdminRequest.createCollection(client.getCollection(), client.getConfigSet(), client.getShards(), client.getReplication());
+    request.setMaxShardsPerNode(client.getMaxShardsPerNode());;
     if (client.getRouterField() != null && client.getRouterName()!= null) {
       request.setRouterName(client.getRouterName());
       request.setRouterField(client.getRouterField());

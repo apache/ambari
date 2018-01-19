@@ -81,7 +81,7 @@ import com.google.inject.persist.Transactional;
 
 public class DatabaseConsistencyCheckHelper {
 
-  static Logger LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
 
   @Inject
   private static Injector injector;
@@ -901,28 +901,28 @@ public class DatabaseConsistencyCheckHelper {
   static void checkServiceConfigs()  {
     LOG.info("Checking services and their configs");
 
-    String GET_SERVICES_WITHOUT_CONFIGS_QUERY = "select c.cluster_name, service_name from clusterservices cs " +
+    String GET_SERVICES_WITHOUT_CONFIGS_QUERY = "select c.cluster_name, id from clusterservices cs " +
             "join clusters c on cs.cluster_id=c.cluster_id " +
-            "where service_name not in (select service_name from serviceconfig sc where sc.cluster_id=cs.cluster_id and sc.service_name=cs.service_name and sc.group_id is null)";
-    String GET_SERVICE_CONFIG_WITHOUT_MAPPING_QUERY = "select c.cluster_name, sc.service_name, sc.version from serviceconfig sc " +
+            "where id not in (select service_id from serviceconfig sc where sc.cluster_id=cs.cluster_id and sc.service_id=cs.id and sc.group_id is null)";
+    String GET_SERVICE_CONFIG_WITHOUT_MAPPING_QUERY = "select c.cluster_name, sc.service_group_id, sc.service_id, sc.version from serviceconfig sc " +
             "join clusters c on sc.cluster_id=c.cluster_id " +
             "where service_config_id not in (select service_config_id from serviceconfigmapping) and group_id is null";
     String GET_STACK_NAME_VERSION_QUERY = "select c.cluster_name, s.stack_name, s.stack_version from clusters c " +
             "join stack s on c.desired_stack_id = s.stack_id";
-    String GET_SERVICES_WITH_CONFIGS_QUERY = "select c.cluster_name, cs.service_name, cc.type_name, sc.version from clusterservices cs " +
-            "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
+    String GET_SERVICES_WITH_CONFIGS_QUERY = "select c.cluster_name, cs.id, cs.service_type, cc.type_name, sc.version from clusterservices cs " +
+            "join serviceconfig sc on cs.id=sc.service_id and cs.cluster_id=sc.cluster_id " +
             "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
             "join clusterconfig cc on scm.config_id=cc.config_id and sc.cluster_id=cc.cluster_id " +
             "join clusters c on cc.cluster_id=c.cluster_id and sc.stack_id=c.desired_stack_id " +
-            "where sc.group_id is null and sc.service_config_id=(select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
-            "group by c.cluster_name, cs.service_name, cc.type_name, sc.version";
-    String GET_NOT_SELECTED_SERVICE_CONFIGS_QUERY = "select c.cluster_name, cs.service_name, cc.type_name from clusterservices cs " +
-            "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
+            "where sc.group_id is null and sc.service_config_id=(select max(service_config_id) from serviceconfig sc2 where sc2.service_id=sc.service_id and sc2.cluster_id=sc.cluster_id) " +
+            "group by c.cluster_name, cs.id, cs.service_type, cc.type_name, sc.version";
+    String GET_NOT_SELECTED_SERVICE_CONFIGS_QUERY = "select c.cluster_name, cs.id, cc.type_name from clusterservices cs " +
+            "join serviceconfig sc on cs.id=sc.service_id and cs.cluster_id=sc.cluster_id " +
             "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
             "join clusterconfig cc on scm.config_id=cc.config_id and cc.cluster_id=sc.cluster_id " +
             "join clusters c on cc.cluster_id=c.cluster_id " +
-            "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
-            "group by c.cluster_name, cs.service_name, cc.type_name " +
+            "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_id=sc.service_id and sc2.cluster_id=sc.cluster_id) " +
+            "group by c.cluster_name, cs.id, cc.type_name " +
             "having sum(cc.selected) < 1";
     Multimap<String, String> clusterServiceMap = HashMultimap.create();
     Map<String, Map<String, String>>  clusterStackInfo = new HashMap<>();
@@ -945,37 +945,37 @@ public class DatabaseConsistencyCheckHelper {
       rs = statement.executeQuery(GET_SERVICES_WITHOUT_CONFIGS_QUERY);
       if (rs != null) {
         while (rs.next()) {
-          clusterServiceMap.put(rs.getString("cluster_name"), rs.getString("service_name"));
+          clusterServiceMap.put(rs.getString("cluster_name"), rs.getString("id"));
         }
 
         for (String clusterName : clusterServiceMap.keySet()) {
-          warning("Service(s): {}, from cluster {} has no config(s) in serviceconfig table!", StringUtils.join(clusterServiceMap.get(clusterName), ","), clusterName);
+          warning("Service(s) with ID(s): {}, from cluster {} has no config(s) in serviceconfig table!", StringUtils.join(clusterServiceMap.get(clusterName), ","), clusterName);
         }
 
       }
       LOG.info("Executing query 'GET_SERVICE_CONFIG_WITHOUT_MAPPING'");
       rs = statement.executeQuery(GET_SERVICE_CONFIG_WITHOUT_MAPPING_QUERY);
       if (rs != null) {
-        String serviceName = null, version = null, clusterName = null;
+        String serviceId = null, version = null, clusterName = null;
         while (rs.next()) {
-          serviceName = rs.getString("service_name");
+          serviceId = rs.getString("id");
           clusterName = rs.getString("cluster_name");
           version = rs.getString("version");
 
           if (clusterServiceVersionMap.get(clusterName) != null) {
             Multimap<String, String> serviceVersion = clusterServiceVersionMap.get(clusterName);
-            serviceVersion.put(serviceName, version);
+            serviceVersion.put(serviceId, version);
           } else {
             Multimap<String, String> serviceVersion = HashMultimap.create();;
-            serviceVersion.put(serviceName, version);
+            serviceVersion.put(serviceId, version);
             clusterServiceVersionMap.put(clusterName, serviceVersion);
           }
         }
 
         for (String clName : clusterServiceVersionMap.keySet()) {
           Multimap<String, String> serviceVersion = clusterServiceVersionMap.get(clName);
-          for (String servName : serviceVersion.keySet()) {
-            warning("In cluster {}, service config mapping is unavailable (in table serviceconfigmapping) for service {} with version(s) {}! ", clName, servName, StringUtils.join(serviceVersion.get(servName), ","));
+          for (String servId : serviceVersion.keySet()) {
+            warning("In cluster {}, service config mapping is unavailable (in table serviceconfigmapping) for service {} with version(s) {}! ", clName, servId, StringUtils.join(serviceVersion.get(servId), ","));
           }
         }
 
@@ -994,38 +994,49 @@ public class DatabaseConsistencyCheckHelper {
 
 
       Set<String> serviceNames = new HashSet<>();
-      Map<String, Map<Integer, Multimap<String, String>>> dbClusterServiceVersionConfigs = new HashMap<>();
+      Map<String, Map<Integer, Map<String, Multimap<String, String>>>> dbClusterServiceVersionConfigs = new HashMap<>();
       Multimap<String, String> stackServiceConfigs = HashMultimap.create();
 
       LOG.info("Executing query 'GET_SERVICES_WITH_CONFIGS'");
       rs = statement.executeQuery(GET_SERVICES_WITH_CONFIGS_QUERY);
       if (rs != null) {
-        String serviceName = null, configType = null, clusterName = null;
+        String serviceType = null, serviceId = null, configType = null, clusterName = null;
         Integer serviceVersion = null;
         while (rs.next()) {
           clusterName = rs.getString("cluster_name");
-          serviceName = rs.getString("service_name");
+          serviceId = rs.getString("id");
+          serviceType = rs.getString("service_type");
           configType = rs.getString("type_name");
           serviceVersion = rs.getInt("version");
 
-          serviceNames.add(serviceName);
+          serviceNames.add(serviceType);
 
           //collect data about mapped configs to services from db
           if (dbClusterServiceVersionConfigs.get(clusterName) != null) {
-            Map<Integer, Multimap<String, String>> dbServiceVersionConfigs = dbClusterServiceVersionConfigs.get(clusterName);
+            Map<Integer, Map<String, Multimap<String, String>>> dbServiceVersionConfigs = dbClusterServiceVersionConfigs.get(clusterName);
 
             if (dbServiceVersionConfigs.get(serviceVersion) != null) {
-              dbServiceVersionConfigs.get(serviceVersion).put(serviceName, configType);
+              if (dbServiceVersionConfigs.get(serviceVersion).get(serviceType) != null) {
+                dbServiceVersionConfigs.get(serviceVersion).get(serviceType).put(serviceId, configType);
+              } else {
+                Multimap<String, String> dbServiceConfigs = HashMultimap.create();
+                dbServiceConfigs.put(serviceId, configType);
+                dbServiceVersionConfigs.get(serviceVersion).put(serviceType, dbServiceConfigs);
+              }
             } else {
               Multimap<String, String> dbServiceConfigs = HashMultimap.create();
-              dbServiceConfigs.put(serviceName, configType);
-              dbServiceVersionConfigs.put(serviceVersion, dbServiceConfigs);
+              dbServiceConfigs.put(serviceId, configType);
+              Map<String, Multimap<String, String>> serviceTypeServiceConfigsMap = new HashMap<>();
+              serviceTypeServiceConfigsMap.put(serviceType, dbServiceConfigs);
+              dbServiceVersionConfigs.put(serviceVersion, serviceTypeServiceConfigsMap);
             }
           } else {
-            Map<Integer, Multimap<String, String>> dbServiceVersionConfigs = new HashMap<>();
+            Map<Integer, Map<String, Multimap<String, String>>> dbServiceVersionConfigs = new HashMap<>();
             Multimap<String, String> dbServiceConfigs = HashMultimap.create();
-            dbServiceConfigs.put(serviceName, configType);
-            dbServiceVersionConfigs.put(serviceVersion, dbServiceConfigs);
+            dbServiceConfigs.put(serviceId, configType);
+            Map<String, Multimap<String, String>> serviceTypeServiceConfigsMap = new HashMap<>();
+            serviceTypeServiceConfigsMap.put(serviceType, dbServiceConfigs);
+            dbServiceVersionConfigs.put(serviceVersion, serviceTypeServiceConfigsMap);
             dbClusterServiceVersionConfigs.put(clusterName, dbServiceVersionConfigs);
           }
         }
@@ -1057,37 +1068,42 @@ public class DatabaseConsistencyCheckHelper {
 
         //compare required service configs from stack with mapped service configs from db
         LOG.info("Comparing required service configs from stack with mapped service configs from db");
-        Map<Integer, Multimap<String, String>> dbServiceVersionConfigs = dbClusterServiceVersionConfigs.get(clusterName);
+        Map<Integer, Map<String, Multimap<String, String>>> dbServiceVersionConfigs = dbClusterServiceVersionConfigs.get(clusterName);
         if (dbServiceVersionConfigs != null) {
           for (Integer serviceVersion : dbServiceVersionConfigs.keySet()) {
-            Multimap<String, String> dbServiceConfigs = dbServiceVersionConfigs.get(serviceVersion);
+            Map<String, Multimap<String, String>> dbServiceConfigs = dbServiceVersionConfigs.get(serviceVersion);
             if (dbServiceConfigs != null) {
-              for (String serviceName : dbServiceConfigs.keySet()) {
-                ServiceInfo serviceInfo = serviceInfoMap.get(serviceName);
-                Collection<String> serviceConfigsFromStack = stackServiceConfigs.get(serviceName);
-                Collection<String> serviceConfigsFromDB = dbServiceConfigs.get(serviceName);
-                if (serviceConfigsFromDB != null && serviceConfigsFromStack != null) {
-                  serviceConfigsFromStack.removeAll(serviceConfigsFromDB);
-                  if (serviceInfo != null && serviceInfo.getComponents() != null) {
-                    for (ComponentInfo componentInfo : serviceInfo.getComponents()) {
-                      if (componentInfo.getClientConfigFiles() != null) {
-                        for (ClientConfigFileDefinition clientConfigFileDefinition : componentInfo.getClientConfigFiles()) {
-                          if (clientConfigFileDefinition.isOptional()) {
-                            serviceConfigsFromStack.remove(clientConfigFileDefinition.getDictionaryName());
+              for (String serviceType : dbServiceConfigs.keySet()) {
+                ServiceInfo serviceInfo = serviceInfoMap.get(serviceType);
+                Collection<String> serviceConfigsFromStack = stackServiceConfigs.get(serviceType);
+                Multimap<String, String> serviceConfigsFromDBByIds = dbServiceConfigs.get(serviceType);
+                if (serviceConfigsFromDBByIds != null && serviceConfigsFromStack != null) {
+                  for (String serviceId : serviceConfigsFromDBByIds.keySet()) {
+                    //create separate copy for each iteration
+                    Collection<String> serviceConfigsFromStackCopy = new HashSet<>(serviceConfigsFromStack);
+                    Collection<String> configTypesForServiceId = serviceConfigsFromDBByIds.get(serviceId);
+                    serviceConfigsFromStackCopy.removeAll(configTypesForServiceId);
+                    if (serviceInfo != null && serviceInfo.getComponents() != null) {
+                      for (ComponentInfo componentInfo : serviceInfo.getComponents()) {
+                        if (componentInfo.getClientConfigFiles() != null) {
+                          for (ClientConfigFileDefinition clientConfigFileDefinition : componentInfo.getClientConfigFiles()) {
+                            if (clientConfigFileDefinition.isOptional()) {
+                              serviceConfigsFromStackCopy.remove(clientConfigFileDefinition.getDictionaryName());
+                            }
                           }
                         }
                       }
                     }
-                  }
 
-                  // skip ranger-{service_name}-* from being checked, unless ranger is installed
-                  if(!dbServiceConfigs.containsKey("RANGER")) {
-                    removeStringsByRegexp(serviceConfigsFromStack, "^ranger-"+ serviceName.toLowerCase() + "-" + "*");
-                  }
+                    // skip ranger-{service_type}-* from being checked, unless ranger is installed
+                    if (!dbServiceConfigs.containsKey("RANGER")) {
+                      removeStringsByRegexp(serviceConfigsFromStackCopy, "^ranger-" + serviceType.toLowerCase() + "-" + "*");
+                    }
 
-                  if (!serviceConfigsFromStack.isEmpty()) {
-                    warning("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
-                            StringUtils.join(serviceConfigsFromStack, ","), serviceName, Integer.toString(serviceVersion), clusterName);
+                    if (!serviceConfigsFromStackCopy.isEmpty()) {
+                      warning("Required config(s): {} is(are) not available for service ID {} of service type {} with service config version {} in cluster {}",
+                          StringUtils.join(serviceConfigsFromStackCopy, ","), serviceId, serviceType, Integer.toString(serviceVersion), clusterName);
+                    }
                   }
                 }
               }
@@ -1100,20 +1116,20 @@ public class DatabaseConsistencyCheckHelper {
       LOG.info("Getting services which has mapped configs which are not selected in clusterconfig");
       rs = statement.executeQuery(GET_NOT_SELECTED_SERVICE_CONFIGS_QUERY);
       if (rs != null) {
-        String serviceName = null, configType = null, clusterName = null;
+        String serviceId = null, configType = null, clusterName = null;
         while (rs.next()) {
           clusterName = rs.getString("cluster_name");
-          serviceName = rs.getString("service_name");
+          serviceId = rs.getString("id");
           configType = rs.getString("type_name");
 
 
           if (clusterServiceConfigType.get(clusterName) != null) {
             Multimap<String, String> serviceConfigs = clusterServiceConfigType.get(clusterName);
-            serviceConfigs.put(serviceName, configType);
+            serviceConfigs.put(serviceId, configType);
           } else {
 
             Multimap<String, String> serviceConfigs = HashMultimap.create();
-            serviceConfigs.put(serviceName, configType);
+            serviceConfigs.put(serviceId, configType);
             clusterServiceConfigType.put(clusterName, serviceConfigs);
 
           }
@@ -1123,8 +1139,8 @@ public class DatabaseConsistencyCheckHelper {
 
       for (String clusterName : clusterServiceConfigType.keySet()) {
         Multimap<String, String> serviceConfig = clusterServiceConfigType.get(clusterName);
-        for (String serviceName : serviceConfig.keySet()) {
-          warning("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
+        for (String serviceId : serviceConfig.keySet()) {
+          warning("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceId), ","), serviceId, clusterName);
         }
       }
     } catch (SQLException | AmbariException e) {

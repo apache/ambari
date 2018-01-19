@@ -20,9 +20,10 @@
 </div>
 <br>
 <div class="clearfix register-version-options" ng-click="selectedLocalOption.index=1">
-    <div class="option-radio-button">
-        <label class="option-label">
-            <input type="radio" ng-model="selectedLocalOption.index" value="1"> {{'versions.uploadFile' | translate}}
+    <div class="option-radio-button checkbox">
+        <input type="radio" id="upload-file" ng-model="selectedLocalOption.index" value="1">
+        <label for="upload-file" class="option-label">
+           {{'versions.uploadFile' | translate}}
         </label>
     </div>
     <div class="col-sm-7 choose-file-input">
@@ -31,9 +32,10 @@
     </div>
 </div>
 <div class="clearfix register-version-options bottom-margin" ng-click="selectedLocalOption.index=2">
-    <div class="option-radio-button">
-        <label class="option-label">
-            <input type="radio" ng-model="selectedLocalOption.index" value="2"> {{'versions.enterURL' | translate}}
+    <div class="option-radio-button checkbox">
+        <input type="radio" id="entire-url" ng-model="selectedLocalOption.index" value="2">
+        <label for="entire-url" class="option-label">
+             {{'versions.enterURL' | translate}}
         </label>
     </div>
     <div class="col-sm-9">

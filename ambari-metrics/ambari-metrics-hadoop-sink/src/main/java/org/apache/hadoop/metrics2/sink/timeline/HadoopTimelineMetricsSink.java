@@ -17,7 +17,8 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
-import org.apache.commons.configuration.SubsetConfiguration;
+import org.apache.commons.configuration2.SubsetConfiguration;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -34,7 +35,6 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -143,7 +143,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     metricsCache = new TimelineMetricsCache(maxRowCacheSize,
       metricsSendInterval, conf.getBoolean(SKIP_COUNTER_TRANSFROMATION, true));
 
-    conf.setListDelimiter(',');
+    conf.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
     Iterator<String> it = (Iterator<String>) conf.getKeys();
     while (it.hasNext()) {
       String propertyName = it.next();

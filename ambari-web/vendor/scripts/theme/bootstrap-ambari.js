@@ -51,11 +51,11 @@ $(document).ready(function () {
         // make scrolling effect on side nav ONLY, i.e. not effected on ambari main contents
         $(this).find('.side-nav-menu').on('DOMMouseScroll mousewheel', function (ev) {
           var $this = $(this),
-            scrollTop = this.scrollTop,
-            scrollHeight = this.scrollHeight,
-            height = $this.innerHeight(),
-            delta = ev.originalEvent.wheelDelta,
-            up = delta > 0;
+              scrollTop = this.scrollTop,
+              scrollHeight = this.scrollHeight,
+              height = $this.innerHeight(),
+              delta = ev.originalEvent.wheelDelta,
+              up = delta > 0;
           var prevent = function prevent() {
             ev.stopPropagation();
             ev.preventDefault();
@@ -147,23 +147,6 @@ $(document).ready(function () {
         return false;
       });
 
-      /**
-       * Hovering effects for "more actions icon": "..."
-       */
-      $(this).find('.mainmenu-li>a').hover(function () {
-        var $moreIcon = $(this).siblings('.more-actions');
-        if ($moreIcon.length && !$navigationContainer.hasClass('collapsed')) {
-          $moreIcon.css('display', 'inline-block');
-        }
-      }, function () {
-        var $moreIcon = $(this).siblings('.more-actions');
-        if ($moreIcon.length && !$navigationContainer.hasClass('collapsed')) {
-          $moreIcon.hide();
-        }
-      });
-      $moreActions.hover(function () {
-        $(this).css('display', 'inline-block');
-      });
       if (settings.fitHeight) {
         $moreActions.on('click', function () {
           // set actions submenu position
@@ -175,13 +158,6 @@ $(document).ready(function () {
           });
         });
       }
-      $dropdownMenu.on('click', function () {
-        // some action was triggered, should hide this icon
-        var moreIcon = $(this).parent();
-        setTimeout(function () {
-          moreIcon.hide();
-        }, 1000);
-      });
       $navigationContainer.children('.side-nav-menu').scroll(function () {
         $moreActions.removeClass('open');
       });
@@ -222,6 +198,7 @@ $(document).ready(function () {
             });
             $subMenuItems.unbind('mouseenter mouseleave');
             $navigationContainer.find('.toggle-icon').removeClass(settings.menuLeftClass).addClass(settings.menuDownClass);
+            $moreActions.show();
             // set sub-menu position
             if (settings.fitHeight) {
               $(_this).find(subMenuSelector).css({

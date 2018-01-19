@@ -7,14 +7,14 @@
         "name": "default",
         "tabs": [
           {
-            "name": "metadata_storage",
-            "display-name": "META DATA STORAGE CONFIG",
+            "name": "superset_metadata_storage",
+            "display-name": "SUPERSET META DATA STORAGE CONFIG",
             "layout": {
               "tab-columns": "1",
               "tab-rows": "1",
               "sections": [
                 {
-                  "name": "section-metadata-storage",
+                  "name": "section-superset-metadata-storage",
                   "display-name": "",
                   "row-index": "0",
                   "column-index": "0",
@@ -24,7 +24,7 @@
                   "section-rows": "1",
                   "subsections": [
                     {
-                      "name": "subsection-metadata-storage-row1-col1",
+                      "name": "subsection-superset-metadata-storage-row1-col1",
                       "display-name": "SUPERSET META DATA STORAGE",
                       "row-index": "0",
                       "column-index": "0",
@@ -44,31 +44,31 @@
       "configs": [
         {
           "config": "superset/SUPERSET_DATABASE_NAME",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
         },
         {
           "config": "superset/SUPERSET_DATABASE_TYPE",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
         },
         {
           "config": "superset/SUPERSET_DATABASE_USER",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
         },
         {
           "config": "superset/SUPERSET_DATABASE_PASSWORD",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
         },
         {
           "config": "superset/SUPERSET_DATABASE_HOSTNAME",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
         },
         {
           "config": "superset/SUPERSET_DATABASE_PORT",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
         },
         {
           "config": "superset/SECRET_KEY",
-          "subsection-name": "subsection-metadata-storage-row1-col1"
+          "subsection-name": "subsection-superset-metadata-storage-row1-col1"
         }
       ]
     },

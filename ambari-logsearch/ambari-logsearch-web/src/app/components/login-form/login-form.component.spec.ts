@@ -22,6 +22,7 @@ import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {LoginFormComponent} from './login-form.component';
 
@@ -58,7 +59,8 @@ describe('LoginFormComponent', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        }
+        },
+        AuthService
       ]
     })
     .compileComponents();
@@ -101,9 +103,6 @@ describe('LoginFormComponent', () => {
           expect(component.isLoginAlertDisplayed).toEqual(test.isLoginAlertDisplayed);
         });
 
-        it('isLoginInProgress', () => {
-          expect(component.isLoginInProgress).toEqual(false);
-        });
       });
     });
 

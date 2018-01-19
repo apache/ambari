@@ -828,7 +828,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     if self.isServiceDeployed(services, "SPARK"):
       timeline_plugin_classes_values.append('org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
-      timeline_plugin_classpath_values.append(stack_root + "/${hdp.version}/spark/hdpLib/*")
+      timeline_plugin_classpath_values.append(stack_root + "/{{spark_version}}/spark/hdpLib/*")
 
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', ",".join(timeline_plugin_classes_values))
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath', ":".join(timeline_plugin_classpath_values))
@@ -865,6 +865,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
     putTezInteractiveSiteProperty = self.putProperty(configurations, "tez-interactive-site", services)
+    putTezInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "tez-interactive-site")
     llap_daemon_selected_queue_name = None
     selected_queue_is_ambari_managed_llap = None  # Queue named 'llap' at root level is Ambari managed.
     llap_selected_queue_am_percent = None
@@ -1336,7 +1337,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putTezInteractiveSiteProperty('tez.runtime.io.sort.mb', tez_runtime_io_sort_mb)
     if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
-        putTezInteractiveSiteProperty("tez.runtime.io.sort.mb", "maximum", 1800)
+        putTezInteractiveSitePropertyAttribute("tez.runtime.io.sort.mb", "maximum", 1800)
 
     putTezInteractiveSiteProperty('tez.runtime.unordered.output.buffer.size-mb', tez_runtime_unordered_output_buffer_size)
     putHiveInteractiveSiteProperty('hive.auto.convert.join.noconditionaltask.size', hive_auto_convert_join_noconditionaltask_size)

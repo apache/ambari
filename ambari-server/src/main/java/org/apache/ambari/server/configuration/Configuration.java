@@ -739,6 +739,14 @@ public class Configuration {
       "server.version.file", null);
 
   /**
+   * Whether user accepted GPL license
+   */
+  @Markdown(
+      description = "Whether user accepted GPL license.")
+  public static final ConfigurationProperty<Boolean> GPL_LICENSE_ACCEPTED = new ConfigurationProperty<>(
+      "gpl.license.accepted", false);
+
+  /**
    * The location of the JDK on the Ambari Agent hosts.
    */
   @Markdown(
@@ -2046,6 +2054,13 @@ public class Configuration {
       "server.task.timeout", 1200);
 
   /**
+   * A location of hooks folder relative to resources folder.
+   */
+  @Markdown(description = "A location of hooks folder relative to resources folder.")
+  public static final ConfigurationProperty<String> HOOKS_FOLDER = new ConfigurationProperty<>(
+      "stack.hooks.folder", "stack-hooks");
+
+  /**
    * The location on the Ambari Server where custom actions are defined.
    */
   @Markdown(description = "The location on the Ambari Server where custom actions are defined.")
@@ -2076,6 +2091,10 @@ public class Configuration {
   @Markdown(description = "Determines whether Ambari Agent instances have already have the necessary stack software installed")
   public static final ConfigurationProperty<String> SYS_PREPPED_HOSTS = new ConfigurationProperty<>(
       "packages.pre.installed", "false");
+
+  @Markdown(description = "This property is used in specific testing circumstances only. Its use otherwise will lead to very unpredictable results with repository management and package installation")
+  public static final ConfigurationProperty<String> LEGACY_OVERRIDE = new ConfigurationProperty<>(
+    "repositories.legacy-override.enabled", "false");
 
   private static final String LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT = "";
 
@@ -3441,6 +3460,15 @@ public class Configuration {
 
   public String areHostsSysPrepped(){
     return getProperty(SYS_PREPPED_HOSTS);
+  }
+
+  /**
+   * Return {@code true} if we forced to work with legacy repositories
+   *
+   * @return {@link Boolean}
+   */
+  public boolean arePackagesLegacyOverridden(){
+    return getProperty(LEGACY_OVERRIDE).equalsIgnoreCase("true");
   }
 
   public CommandExecutionType getStageExecutionType(){
@@ -5439,6 +5467,10 @@ public class Configuration {
    */
   public int getVersionDefinitionReadTimeout() {
     return NumberUtils.toInt(getProperty(VERSION_DEFINITION_READ_TIMEOUT));
+  }
+
+  public Boolean getGplLicenseAccepted(){
+    return Boolean.valueOf(getProperty(GPL_LICENSE_ACCEPTED));
   }
 
   public String getAgentStackRetryOnInstallCount(){

@@ -61,6 +61,8 @@ import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -72,6 +74,8 @@ import com.google.inject.Inject;
  */
 @StaticallyInject
 public class AlertDefinitionResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AlertDefinitionResourceProvider.class);
 
   protected static final String ALERT_DEF = "AlertDefinition";
 

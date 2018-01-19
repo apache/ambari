@@ -29,7 +29,7 @@ public class ServiceConfigEntityTest {
   @Test
   public void testSettersGetters() {
     ServiceConfigEntity entity = new ServiceConfigEntity();
-    entity.setServiceName("foo");
+    //entity.setServiceName("foo");
     entity.setUser("bar");
     entity.setNote("note");
     entity.setVersion(1L);

@@ -56,8 +56,8 @@ public class KerberosPrincipalHostDAO {
     entityManagerProvider.get().persist(kerberosPrincipalHostEntity);
   }
 
-  public void create(String principal, Long hostId) {
-    create(new KerberosPrincipalHostEntity(principal, hostId));
+  public void create(String principal, Long hostId, String keytabPath) {
+    create(new KerberosPrincipalHostEntity(principal, hostId, keytabPath));
   }
 
   /**
@@ -121,6 +121,19 @@ public class KerberosPrincipalHostDAO {
   }
 
   /**
+   * Find KerberosPrincipalHostEntities for the requested host
+   *
+   * @return a List of requested KerberosPrincipalHostEntities or null if none were found
+   */
+  @RequiresSession
+  public List<KerberosPrincipalHostEntity> findByKeytabPath(String keytabPath) {
+    final TypedQuery<KerberosPrincipalHostEntity> query = entityManagerProvider.get()
+        .createNamedQuery("KerberosPrincipalHostEntityFindByKeytabPath", KerberosPrincipalHostEntity.class);
+    query.setParameter("keytabPath", keytabPath);
+    return query.getResultList();
+  }
+
+  /**
    * Find the KerberosPrincipalHostEntity for the specified primary key
    *
    * @param primaryKey a KerberosPrincipalHostEntityPK containing the requested principal and host names
@@ -139,9 +152,9 @@ public class KerberosPrincipalHostDAO {
    * @return the KerberosPrincipalHostEntity or null if not found
    */
   @RequiresSession
-  public KerberosPrincipalHostEntity find(String principalName, Long hostId) {
+  public KerberosPrincipalHostEntity find(String principalName, Long hostId, String keytabPath) {
     return entityManagerProvider.get().find(KerberosPrincipalHostEntity.class,
-        new KerberosPrincipalHostEntityPK(principalName, hostId));
+        new KerberosPrincipalHostEntityPK(principalName, hostId, keytabPath));
   }
 
   /**
@@ -179,6 +192,15 @@ public class KerberosPrincipalHostDAO {
   }
 
   /**
+   * Remove KerberosPrincipalHostEntity instances for the specified host
+   *
+   * @param keytabPath a String indicating the keytab path of principal
+   */
+  @Transactional
+  public void removeByKeytabPath(String keytabPath) {
+    remove(findByKeytabPath(keytabPath));
+  }
+  /**
    * Remove KerberosPrincipalHostEntity instance for the specified principal and host
    *
    * @param principalName a String indicating the name of the principal
@@ -186,8 +208,8 @@ public class KerberosPrincipalHostDAO {
    * @see #remove(org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity)
    */
   @Transactional
-  public void remove(String principalName, Long hostId) {
-    remove(new KerberosPrincipalHostEntity(principalName, hostId));
+  public void remove(String principalName, Long hostId, String keytabPath) {
+    remove(new KerberosPrincipalHostEntity(principalName, hostId, keytabPath));
   }
 
   /**
@@ -210,8 +232,8 @@ public class KerberosPrincipalHostDAO {
    * @return true if the requested principal exists
    */
   @RequiresSession
-  public boolean exists(String principalName, Long hostId) {
-    return find(principalName, hostId) != null;
+  public boolean exists(String principalName, Long hostId, String keytabPath) {
+    return find(principalName, hostId, keytabPath) != null;
   }
 
   /**
@@ -219,7 +241,7 @@ public class KerberosPrincipalHostDAO {
    *
    * @param entities a collection of KerberosPrincipalHostEntity items to remove
    */
-  private void remove(List<KerberosPrincipalHostEntity> entities) {
+  public void remove(List<KerberosPrincipalHostEntity> entities) {
     if (entities != null) {
       for (KerberosPrincipalHostEntity entity : entities) {
         entityManagerProvider.get().remove(entity);

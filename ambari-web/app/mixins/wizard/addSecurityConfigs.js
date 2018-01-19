@@ -657,6 +657,13 @@ App.AddSecurityConfigs = Em.Mixin.create({
       return p;
     }, {});
 
+    if (this.get('isWithinAddService')) {
+      this.get('content.masterComponentHosts').filterProperty('isInstalled', false).forEach(function(item) {
+        var hostGroupName = blueprintUtils.getHostGroupByFqdn(recommendations, item.hostName);
+        blueprintUtils.addComponentToHostGroup(recommendations, item.component, hostGroupName);
+      }, this);
+    }
+
     return recommendations;
   },
 

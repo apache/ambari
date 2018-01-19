@@ -28,6 +28,7 @@ from resource_management.libraries.functions import get_port_from_url
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.lzo_utils import should_install_lzo
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.get_architecture import get_architecture
@@ -366,6 +367,4 @@ HdfsResource = functools.partial(
 
 is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']
 
-# The logic for LZO also exists in HDFS' params.py
-io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
+lzo_enabled = should_install_lzo()

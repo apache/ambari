@@ -58,7 +58,7 @@ import com.google.inject.Injector;
 * now we will use DatabaseConsistencyChecker*/
 public class DatabaseChecker {
 
-  static Logger LOG = LoggerFactory.getLogger(DatabaseChecker.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseChecker.class);
 
   @Inject
   static Injector injector;

@@ -48,11 +48,13 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
+import org.apache.ambari.server.controller.ServiceGroupRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
@@ -106,6 +108,7 @@ public class AmbariContextTest {
   private static final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
   private static final ClusterController clusterController = createStrictMock(ClusterController.class);
   private static final HostResourceProvider hostResourceProvider = createStrictMock(HostResourceProvider.class);
+  private static final ServiceGroupResourceProvider serviceGroupResourceProvider = createStrictMock(ServiceGroupResourceProvider.class);
   private static final ServiceResourceProvider serviceResourceProvider = createStrictMock(ServiceResourceProvider.class);
   private static final ComponentResourceProvider componentResourceProvider = createStrictMock(ComponentResourceProvider.class);
   private static final HostComponentResourceProvider hostComponentResourceProvider = createStrictMock(HostComponentResourceProvider.class);
@@ -135,6 +138,10 @@ public class AmbariContextTest {
 
   @Before
   public void setUp() throws Exception {
+    reset(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
+      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
+      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
+
     // "inject" context state
     Class<AmbariContext> clazz = AmbariContext.class;
     Field f = clazz.getDeclaredField("controller");
@@ -148,6 +155,10 @@ public class AmbariContextTest {
     f = clazz.getDeclaredField("hostResourceProvider");
     f.setAccessible(true);
     f.set(null, hostResourceProvider);
+
+    f = clazz.getDeclaredField("serviceGroupResourceProvider");
+    f.setAccessible(true);
+    f.set(null, serviceGroupResourceProvider);
 
     f = clazz.getDeclaredField("serviceResourceProvider");
     f.setAccessible(true);
@@ -270,17 +281,13 @@ public class AmbariContextTest {
 
   @After
   public void tearDown() throws Exception {
-    verify(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
-        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
-
-    reset(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
+    verify(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
         cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   private void replayAll() {
-    replay(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
+    replay(controller, clusterController, hostResourceProvider, serviceGroupResourceProvider, serviceResourceProvider, componentResourceProvider,
       hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
       cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
@@ -291,15 +298,16 @@ public class AmbariContextTest {
     Capture<ClusterRequest> clusterRequestCapture = EasyMock.newCapture();
     controller.createCluster(capture(clusterRequestCapture));
     expectLastCall().once();
+    expect(cluster.getServiceGroups()).andReturn(Collections.emptyMap()).anyTimes();
     expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
 
+    Capture<Set<ServiceGroupRequest>> serviceGroupRequestCapture = EasyMock.newCapture();
     Capture<Set<ServiceRequest>> serviceRequestCapture = EasyMock.newCapture();
     Capture<Set<ServiceComponentRequest>> serviceComponentRequestCapture = EasyMock.newCapture();
 
-    serviceResourceProvider.createServices(capture(serviceRequestCapture));
-    expectLastCall().once();
-    componentResourceProvider.createComponents(capture(serviceComponentRequestCapture));
-    expectLastCall().once();
+    expect(serviceGroupResourceProvider.createServiceGroups(capture(serviceGroupRequestCapture))).andReturn(null).once();
+    expect(serviceResourceProvider.createServices(capture(serviceRequestCapture))).andReturn(null).once();
+    expect(componentResourceProvider.createComponents(capture(serviceComponentRequestCapture))).andReturn(null).once();
 
     Capture<Request> serviceInstallRequestCapture = EasyMock.newCapture();
     Capture<Request> serviceStartRequestCapture = EasyMock.newCapture();
@@ -321,6 +329,10 @@ public class AmbariContextTest {
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();
     assertEquals(CLUSTER_NAME, clusterRequest.getClusterName());
     assertEquals(String.format("%s-%s", STACK_NAME, STACK_VERSION), clusterRequest.getStackVersion());
+
+    Set<ServiceGroupRequest> serviceGroupRequests = serviceGroupRequestCapture.getValue();
+    Set<ServiceGroupRequest> expectedServiceGroupRequests = Collections.singleton(new ServiceGroupRequest(cluster.getClusterName(), AmbariContext.DEFAULT_SERVICE_GROUP_NAME));
+    assertEquals(expectedServiceGroupRequests, serviceGroupRequests);
 
     Collection<ServiceRequest> serviceRequests = serviceRequestCapture.getValue();
     assertEquals(2, serviceRequests.size());
@@ -385,8 +397,7 @@ public class AmbariContextTest {
     expect(cluster.getService("service2")).andReturn(mockService1).once();
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
-    controller.createHostComponents(capture(requestsCapture));
-    expectLastCall().once();
+    expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
 
     replayAll();
 
@@ -415,8 +426,7 @@ public class AmbariContextTest {
     expect(cluster.getService("service1")).andReturn(mockService1).times(2);
     Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
 
-    controller.createHostComponents(capture(requestsCapture));
-    expectLastCall().once();
+    expect(controller.createHostComponents(capture(requestsCapture))).andReturn(null).once();
 
     replayAll();
 
@@ -731,12 +741,12 @@ public class AmbariContextTest {
 
     controller.createCluster(capture(Capture.<ClusterRequest>newInstance()));
     expectLastCall().once();
+    expect(cluster.getServiceGroups()).andReturn(Collections.emptyMap()).anyTimes();
     expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
 
-    serviceResourceProvider.createServices(capture(Capture.<Set<ServiceRequest>>newInstance()));
-    expectLastCall().once();
-    componentResourceProvider.createComponents(capture(Capture.<Set<ServiceComponentRequest>>newInstance()));
-    expectLastCall().once();
+    expect(serviceGroupResourceProvider.createServiceGroups(anyObject())).andReturn(null).once();
+    expect(serviceResourceProvider.createServices(anyObject())).andReturn(null).once();
+    expect(componentResourceProvider.createComponents(anyObject())).andReturn(null).once();
 
     expect(serviceResourceProvider.updateResources(
         capture(Capture.<Request>newInstance()), capture(Capture.<Predicate>newInstance()))).andReturn(null).atLeastOnce();

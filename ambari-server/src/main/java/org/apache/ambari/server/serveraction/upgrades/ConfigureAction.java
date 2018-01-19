@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
@@ -181,7 +182,12 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
     // such as hdfs-site or hbase-env
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
-    String serviceName = cluster.getServiceByConfigType(configType);
+    String serviceName = cluster.getServiceByConfigType(configType).getName();
+
+    // !!! we couldn't get the service based on its config type, so try the associated
+    if (StringUtils.isBlank(serviceName)) {
+      serviceName = commandParameters.get(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE);
+    }
 
     RepositoryVersionEntity sourceRepoVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
     RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
@@ -591,9 +597,9 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     // has the correct config type (ie oozie-site or hdfs-site) then add it to
     // the list of original stack propertiess
     Set<String> stackPropertiesForType = new HashSet<>(50);
-    for (String serviceName : cluster.getServices().keySet()) {
+    for (Service service : cluster.getServices().values()) {
       Set<PropertyInfo> serviceProperties = m_ambariMetaInfo.get().getServiceProperties(
-          oldStack.getStackName(), oldStack.getStackVersion(), serviceName);
+          oldStack.getStackName(), oldStack.getStackVersion(), service.getServiceType());
 
       for (PropertyInfo property : serviceProperties) {
         String type = ConfigHelper.fileNameToConfigType(property.getFilename());

@@ -294,6 +294,64 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
       Logger.warning("Could not change symlink for package {0} to point to current directory. Error: {1}".format(package, e))
 
 
+def get_restricted_packages():
+  """
+  Gets the list of conf-select 'package' names that need to be invoked on the command.
+  When the server passes down the list of packages to install, check the service names
+  and use the information in stack_packages json to determine the list of packages that should
+  be executed.  That is valid only for PATCH or MAINT upgrades.  STANDARD upgrades should be
+  conf-select'ing everything it can find.
+  """
+  package_names = []
+
+  # shortcut the common case if we are not patching
+  cluster_version_summary = default("/roleParameters/cluster_version_summary/services", None)
+
+  if cluster_version_summary is None:
+    Logger.info("Cluster Summary is not available, there are no restrictions for conf-select")
+    return package_names
+
+  service_names = []
+
+  # pick out the services that are targeted
+  for servicename, servicedetail in cluster_version_summary.iteritems():
+    if servicedetail['upgrade']:
+      service_names.append(servicename)
+
+  if 0 == len(service_names):
+    Logger.info("No services found, there are no restrictions for conf-select")
+    return package_names
+
+  stack_name = default("/hostLevelParams/stack_name", None)
+  if stack_name is None:
+    Logger.info("The stack name is not present in the command. Restricted names skipped.")
+    return package_names
+
+  stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
+  if stack_packages_config is None:
+    Logger.info("The stack packages are not defined on the command. Restricted names skipped.")
+    return package_names
+
+  data = json.loads(stack_packages_config)
+
+  if stack_name not in data:
+    Logger.info("Cannot find conf-select packages for the {0} stack".format(stack_name))
+    return package_names
+
+  conf_select_key = "conf-select-patching"
+  if conf_select_key not in data[stack_name]:
+    Logger.info("There are no conf-select-patching elements defined for this command for the {0} stack".format(stack_name))
+    return package_names
+
+  service_dict = data[stack_name][conf_select_key]
+
+  for servicename in service_names:
+    if servicename in service_dict and 'packages' in service_dict[servicename]:
+      package_names.extend(service_dict[servicename]['packages'])
+
+  return package_names
+
+
 def _seed_new_configuration_directories(package, created_directories):
   """
   Copies any files from the "current" configuration directory to the directories which were

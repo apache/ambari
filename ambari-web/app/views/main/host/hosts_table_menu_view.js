@@ -70,7 +70,7 @@ App.HostTableMenuView = Em.View.extend({
   slaveItemView: Em.View.extend({
 
     tagName: 'li',
-    classNames: ['dropdown-submenu'],
+    classNames: ['dropdown-submenu', 'submenu-left'],
 
     /**
      * Get third-level menu items ingo for slave components
@@ -240,7 +240,7 @@ App.HostTableMenuView = Em.View.extend({
   hostItemView: Em.View.extend({
 
     tagName: 'li',
-    classNames: ['dropdown-submenu'],
+    classNames: ['dropdown-submenu', 'submenu-left'],
 
     label: Em.I18n.t('common.hosts'),
 

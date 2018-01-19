@@ -131,6 +131,42 @@
                       </div>
                       {{! Add OS END}}
                     </div>
+                    <div class="span9 repo-name-url">
+                      {{#each repository in operatingSystem.repositories}}
+                        {{#if repository.showRepo}}
+                        <div {{bindAttr class=":clearfix :repo-name-url-inner repository.repoName"}}>
+                          <div class="span3">
+                            <label class="repo-name-label control-label">{{repository.repoId}}</label>
+                          </div>
+                          <div class="validation-td span1">
+                            {{#if repository.validation}}
+                              {{view view.popoverView repositoryBinding="repository"}}
+                            {{/if}}
+                          </div>
+                          <div {{bindAttr class=":span8 :repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
+                            {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite"}}
+                            {{#if controller.selectedStack.usePublicRepo}}
+                              {{#if repository.undo}}
+                                <i class="icon-undo" data-toggle="tooltip"
+                                  {{action "doRestoreDefaultValue" repository target="controller"}}
+                                  {{translateAttr title="common.undo"}}>
+                                </i>
+                              {{/if}}
+                            {{else}}
+                              {{#if repository.notEmpty}}
+                                <i class="icon-undo" data-toggle="tooltip"
+                                  {{action "doRestoreToEmpty" repository target="controller"}}
+                                  {{translateAttr title="common.undo"}}>
+                                </i>
+                              {{/if}}
+                            {{/if}}
+                          </div>
+                        </div>
+                        {{/if}}
+                      {{/each}}
+                    </div>
+                    <div {{bindAttr class=":span1 :remove-icon controller.selectedStack.useRedhatSatellite:disabled"}} {{action "removeOS" operatingSystem target="controller"}}>
+                      <i class="icon-minus"></i>{{t common.remove}}</div>
                   </div>
                 </div>
                 <table class="table table-hover">

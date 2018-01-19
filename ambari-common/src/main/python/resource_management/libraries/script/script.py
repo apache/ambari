@@ -53,6 +53,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
+from resource_management.libraries.functions.repository_util import CommandRepository
 from resource_management.core.resources.system import Execute
 from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -775,10 +776,9 @@ class Script(object):
     if self.available_packages_in_repos:
       return self.available_packages_in_repos
 
-
     pkg_provider = get_provider("Package")   
     try:
-      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(self.get_config()['repositoryFile']['repositories'])
+      self.available_packages_in_repos = pkg_provider.get_available_packages_in_repos(CommandRepository(self.get_config()['repositoryFile']))
     except Exception as err:
       Logger.exception("Unable to load available packages")
       self.available_packages_in_repos = []

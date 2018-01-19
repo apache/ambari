@@ -41,6 +41,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.BufferedThreadPoolExecutorCompletionService;
 import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
@@ -74,6 +76,8 @@ import com.google.inject.Inject;
  *
  */
 public abstract class ThreadPoolEnabledPropertyProvider extends AbstractPropertyProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ThreadPoolEnabledPropertyProvider.class);
 
   protected static Configuration configuration;
 

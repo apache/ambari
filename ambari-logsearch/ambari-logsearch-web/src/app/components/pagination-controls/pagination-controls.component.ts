@@ -51,16 +51,80 @@ export class PaginationControlsComponent implements ControlValueAccessor {
   }
 
   set value(newValue: number) {
-    this.currentPage = newValue;
-    this.currentPageChange.emit(newValue);
-    this.onChange(newValue);
+    if (this.isValidValue(newValue)) { // this is the last validation check
+      this.currentPage = newValue;
+      this.currentPageChange.emit(newValue);
+      if (this.onChange) {
+        this.onChange(newValue);
+      }
+    } else {
+      throw new Error(`Invalid value ${newValue}. The currentPage should be between 0 and ${this.pagesCount}.`);
+    }
   }
 
-  updateValue(isDecrement?: boolean) {
-    isDecrement? this.value-- : this.value++;
+  /**
+   * A simple check if the given value is valid for the current pagination instance
+   * @param {number} value The new value to test
+   * @returns {boolean}
+   */
+  private isValidValue(value: number): boolean {
+    return value <= this.pagesCount || value >= 0;
   }
 
-  writeValue() {
+  /**
+   * The goal is to set the value to the first page... obviously to zero. It is just to have a centralized api for that.
+   */
+  setFirstPage(): void {
+    this.value = 0;
+  }
+
+  /**
+   * The goal is to set the value to the last page which is the pagesCount property anyway.
+   */
+  setLastPage(): void {
+    this.value = this.pagesCount - 1;
+  }
+
+  /**
+   * The goal is to decrease the value (currentPage) property if it is possible (checking with 'hasPreviousPage').
+   * @returns {number} The new value of the currentPage
+   */
+  setPreviousPage(): number {
+    if (this.hasPreviousPage()) {
+      this.value -= 1;
+    }
+    return this.value;
+  }
+
+  /**
+   * The goal is to increase the value (currentPage) property if it is possible (checking with 'hasNextPage').
+   * @returns {number} The new value of the currentPage
+   */
+  setNextPage(): number {
+    if (this.hasNextPage()){
+      this.value += 1;
+    }
+    return this.value;
+  }
+
+  /**
+   * The goal is to have a single source of true to check if we can set a next page or not.
+   * @returns {boolean}
+   */
+  hasNextPage(): boolean {
+    return this.pagesCount > 0 && this.value < this.pagesCount - 1;
+  }
+
+  /**
+   * The goal is to have a single source of true to check if we can set a previous page or not.
+   * @returns {boolean}
+   */
+  hasPreviousPage(): boolean {
+    return this.pagesCount > 0 && this.value > 0;
+  }
+
+  writeValue(value: number) {
+    this.value = value;
   }
 
   registerOnChange(callback: any): void {

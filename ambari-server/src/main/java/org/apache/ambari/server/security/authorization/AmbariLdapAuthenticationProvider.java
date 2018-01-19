@@ -42,7 +42,7 @@ import com.google.inject.Inject;
  * Provides LDAP user authorization logic for Ambari Server
  */
 public class AmbariLdapAuthenticationProvider implements AuthenticationProvider {
-  Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class);
+  static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class); // exposed and mutable for "test"
 
   Configuration configuration;
 

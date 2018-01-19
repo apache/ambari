@@ -46,16 +46,16 @@
         <button {{bindAttr disabled="view.disabledActionAttr.view" class=":btn :btn-default view.serviceVersion.isDisplayed:not-allowed-cursor" title="view.disabledActionMessages.view"}} {{action doAction view.serviceVersion view.actionTypes.SWITCH target="view.parentView"}}>
           <i class="glyphicon glyphicon-search"></i>&nbsp;{{t common.view}}
         </button>
-        {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
+        {{#havePermissions "SERVICE.COMPARE_CONFIGS"}}
           <button {{bindAttr disabled="view.disabledActionAttr.compare" class=":btn :btn-default view.serviceVersion.isDisplayed:not-allowed-cursor" title="view.disabledActionMessages.compare"}} {{action doAction view.serviceVersion view.actionTypes.COMPARE target="view.parentView"}}>
             <i class="glyphicon glyphicon-copy"></i>&nbsp;{{t common.compare}}
           </button>
-        {{/isAuthorized}}
-        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+        {{/havePermissions}}
+        {{#havePermissions "SERVICE.MODIFY_CONFIGS"}}
           <button {{bindAttr disabled="view.disabledActionAttr.revert" class=":btn :btn-default view.serviceVersion.isCurrent:not-allowed-cursor view.serviceVersion.isCompatible::hidden" title="view.disabledActionMessages.revert"}} {{action doAction view.serviceVersion view.actionTypes.REVERT target="view.parentView"}}>
             {{t dashboard.configHistory.info-bar.revert.button}}
           </button>
-        {{/isAuthorized}}
+        {{/havePermissions}}
       </div>
     </div>
   </div>

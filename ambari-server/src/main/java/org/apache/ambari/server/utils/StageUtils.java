@@ -222,7 +222,7 @@ public class StageUtils {
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent("NAMENODE", hostname, now, "HDP-1.2.0"), "cluster1",
-        "HDFS", false, false);
+        "core", "HDFS", false, false);
     ExecutionCommand execCmd = s.getExecutionCommandWrapper(hostname, "NAMENODE").getExecutionCommand();
 
     execCmd.setRequestAndStage(s.getRequestId(), s.getStageId());

@@ -92,13 +92,13 @@ public class ComponentServiceTest extends BaseServiceTest {
     private String m_componentId;
 
     private TestComponentService(String clusterId, String serviceId, String componentId) {
-      super(clusterId, serviceId);
+      super(null, null, null);
       m_clusterId = clusterId;
       m_serviceId = serviceId;
       m_componentId = componentId;
     }
 
-    @Override
+
     ResourceInstance createComponentResource(String clusterName, String serviceName, String componentName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);

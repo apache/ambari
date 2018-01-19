@@ -1090,14 +1090,26 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container ul.nav.side-nav-menu .more-actions .dropdown-menu > li > a,
 .navigation-bar-container ul.nav.side-nav-footer .more-actions .dropdown-menu > li > a {
-  color: #666;
+  color: #333;
 }
 .navigation-bar-container ul.nav.side-nav-menu .more-actions .dropdown-menu > li > a i,
 .navigation-bar-container ul.nav.side-nav-footer .more-actions .dropdown-menu > li > a i {
-  color: #666;
+  color: #333;
 }
 .navigation-bar-container ul.nav.side-nav-menu .more-actions .dropdown-menu > li > a:hover,
 .navigation-bar-container ul.nav.side-nav-footer .more-actions .dropdown-menu > li > a:hover {
+  background: #f5f5f5;
+}
+.navigation-bar-container ul.nav.side-nav-menu .more-actions .dropdown-menu > li > a.disabled,
+.navigation-bar-container ul.nav.side-nav-footer .more-actions .dropdown-menu > li > a.disabled {
+  color: #666;
+}
+.navigation-bar-container ul.nav.side-nav-menu .more-actions .dropdown-menu > li > a.disabled i,
+.navigation-bar-container ul.nav.side-nav-footer .more-actions .dropdown-menu > li > a.disabled i {
+  color: #666;
+}
+.navigation-bar-container ul.nav.side-nav-menu .more-actions .dropdown-menu > li > a.disabled:hover,
+.navigation-bar-container ul.nav.side-nav-footer .more-actions .dropdown-menu > li > a.disabled:hover {
   background: #f5f5f5;
 }
 .navigation-bar-container ul.nav.side-nav-menu .menu-item-name,

@@ -18,36 +18,26 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import junit.framework.Assert;
-
-public class IPAKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
-  private static final String DEFAULT_ADMIN_PRINCIPAL = "admin";
-  private static final String DEFAULT_ADMIN_PASSWORD = "Hadoop12345";
-
-  private static final String DEFAULT_REALM = "IPA01.LOCAL";
-
-  private static Injector injector;
-
-  private static boolean hasIpa = false;
+public class IPAKerberosOperationHandlerTest extends KDCKerberosOperationHandlerTest {
 
   private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
     {
@@ -58,8 +48,10 @@ public class IPAKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     }
   };
 
+  private static Injector injector;
+
   @BeforeClass
-  public static void beforeClass() throws AmbariException {
+  public static void beforeIPAKerberosOperationHandlerTest() throws Exception {
     injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -72,85 +64,74 @@ public class IPAKerberosOperationHandlerTest extends KerberosOperationHandlerTes
         bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
       }
     });
-    if (System.getenv("HAS_IPA") != null) {
-      hasIpa = true;
-    }
   }
 
-  @Test
-  public void testSetPrincipalPasswordExceptions() throws Exception {
-    if (!hasIpa) {
-      return;
-    }
-
-    IPAKerberosOperationHandler handler = injector.getInstance(IPAKerberosOperationHandler.class);
-    handler.open(new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD), DEFAULT_REALM, KERBEROS_ENV_MAP);
-    try {
-      handler.setPrincipalPassword(DEFAULT_ADMIN_PRINCIPAL, null);
-      Assert.fail("KerberosOperationException not thrown for null password");
-    } catch (Throwable t) {
-      Assert.assertEquals(KerberosOperationException.class, t.getClass());
-    }
-
-    try {
-      handler.setPrincipalPassword(DEFAULT_ADMIN_PRINCIPAL, "");
-      Assert.fail("KerberosOperationException not thrown for empty password");
-      handler.createPrincipal("", "1234", false);
-      Assert.fail("AmbariException not thrown for empty principal");
-    } catch (Throwable t) {
-      Assert.assertEquals(KerberosOperationException.class, t.getClass());
-    }
-
-    try {
-      handler.setPrincipalPassword(null, DEFAULT_ADMIN_PASSWORD);
-      Assert.fail("KerberosOperationException not thrown for null principal");
-    } catch (Throwable t) {
-      Assert.assertEquals(KerberosOperationException.class, t.getClass());
-    }
-
-    try {
-      handler.setPrincipalPassword("", DEFAULT_ADMIN_PASSWORD);
-      Assert.fail("KerberosOperationException not thrown for empty principal");
-    } catch (Throwable t) {
-      Assert.assertEquals(KerberosOperationException.class, t.getClass());
-    }
+  @Override
+  protected IPAKerberosOperationHandler createMockedHandler(Method... mockedMethods) {
+    IPAKerberosOperationHandler handler = createMockBuilder(IPAKerberosOperationHandler.class)
+        .addMockedMethods(mockedMethods)
+        .createMock();
+    injector.injectMembers(handler);
+    return handler;
   }
 
-  @Test
-  public void testCreateServicePrincipal_Exceptions() throws Exception {
-    if (!hasIpa) {
-      return;
-    }
-
-    IPAKerberosOperationHandler handler = new IPAKerberosOperationHandler();
-    handler.open(new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD), DEFAULT_REALM, KERBEROS_ENV_MAP);
-
-    try {
-      handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, null, false);
-      Assert.fail("KerberosOperationException not thrown for null password");
-    } catch (Throwable t) {
-      Assert.fail("KerberosOperationException thrown on null password with IPA");
-    }
-
-    try {
-      handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, "", false);
-    } catch (Throwable t) {
-      Assert.fail("KerberosOperationException thrown for empty password");
-    }
-
-    try {
-      handler.createPrincipal(null, DEFAULT_ADMIN_PASSWORD, false);
-      Assert.fail("KerberosOperationException not thrown for null principal");
-    } catch (Throwable t) {
-      Assert.assertEquals(KerberosOperationException.class, t.getClass());
-    }
-
-    try {
-      handler.createPrincipal("", DEFAULT_ADMIN_PASSWORD, false);
-      Assert.fail("KerberosOperationException not thrown for empty principal");
-    } catch (Throwable t) {
-      Assert.assertEquals(KerberosOperationException.class, t.getClass());
-    }
+  @Override
+  protected Map<String, String> getKerberosEnv() {
+    return KERBEROS_ENV_MAP;
   }
 
+  @Override
+  protected void setupPrincipalAlreadyExists(KerberosOperationHandler handler, boolean service) throws Exception {
+    ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
+    expect(result.getExitCode()).andReturn(1).anyTimes();
+    expect(result.isSuccessful()).andReturn(false).anyTimes();
+    if(service) {
+      expect(result.getStderr()).andReturn("ipa: ERROR: service with name \"service/host@EXAMPLE.COM\" already exists").anyTimes();
+    }
+    else {
+      expect(result.getStderr()).andReturn("ipa: ERROR: user with name \"user\" already exists").anyTimes();
+    }
+    expect(result.getStdout()).andReturn("").anyTimes();
+
+    expect(handler.executeCommand(arrayContains(new String[]{"ipa", (service) ? "service-add" : "user-add"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+        .andReturn(result)
+        .anyTimes();
+  }
+
+  @Override
+  protected void setupPrincipalDoesNotExist(KerberosOperationHandler handler, boolean service) throws Exception {
+    ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
+    expect(result.getExitCode()).andReturn(2).anyTimes();
+    expect(result.isSuccessful()).andReturn(false).anyTimes();
+    expect(result.getStderr()).andReturn(String.format("ipa: ERROR: %s: user not found", (service) ? "service/host" : "user")).anyTimes();
+    expect(result.getStdout()).andReturn("").anyTimes();
+
+
+    expect(handler.executeCommand(arrayContains(new String[]{"ipa", (service) ? "service-show" : "user-show"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+        .andReturn(result)
+        .anyTimes();
+  }
+
+  @Override
+  protected void setupPrincipalExists(KerberosOperationHandler handler, boolean service) throws Exception {
+    ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
+    expect(result.getExitCode()).andReturn(0).anyTimes();
+    expect(result.isSuccessful()).andReturn(true).anyTimes();
+    expect(result.getStderr()).andReturn("").anyTimes();
+    expect(result.getStdout()).andReturn(String.format("  User login: %s\n" +
+        "  Last name: User\n" +
+        "  Home directory: /home/user\n" +
+        "  Login shell: /bin/bash\n" +
+        "  Principal alias: user@EXAMPLE.COM\n" +
+        "  UID: 324200000\n" +
+        "  GID: 324200000\n" +
+        "  Account disabled: False\n" +
+        "  Password: True\n" +
+        "  Member of groups: users\n" +
+        "  Kerberos keys available: True", (service) ? "service/host" : "user")).anyTimes();
+
+    expect(handler.executeCommand(arrayContains(new String[]{"ipa", (service) ? "service-show" : "user-show"}), anyObject(Map.class), anyObject(KDCKerberosOperationHandler.InteractivePasswordHandler.class)))
+        .andReturn(result)
+        .anyTimes();
+  }
 }

@@ -32,6 +32,8 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Calculator of Oozie service state.
@@ -39,6 +41,8 @@ import org.apache.ambari.server.state.State;
 @StaticallyInject
 public final class OozieServiceCalculatedState extends DefaultServiceCalculatedState
   implements ServiceCalculatedState {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultServiceCalculatedState.class);
 
   @Override
   public State getState(String clusterName, String serviceName) {

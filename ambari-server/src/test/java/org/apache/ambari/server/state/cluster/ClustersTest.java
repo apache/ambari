@@ -49,7 +49,6 @@ import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -66,6 +65,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -188,7 +188,7 @@ public class ClustersTest {
 
     Cluster changed = clusters.getCluster("foobar");
     Assert.assertNotNull(changed);
-    Assert.assertEquals(cId, changed.getClusterId());
+    Assert.assertTrue(cId == changed.getClusterId().longValue());
 
     Assert.assertEquals("foobar",
         clusters.getClusterById(cId).getClusterName());
@@ -427,9 +427,10 @@ public class ClustersTest {
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
 
-    Service hdfs = cluster.addService("HDFS", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service hdfs = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
-    Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
+    //Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
@@ -446,12 +447,13 @@ public class ClustersTest {
     serviceCheckNodeHost.setState(State.UNKNOWN);
 
     Assert.assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
-      nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
+      nameNodeHost.getClusterId(), 1L, 1L,
       nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()));
 
     Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(
       nameNodeHost.getClusterId(),
-      nameNodeHost.getServiceName(),
+      1L,
+      1L,
       nameNodeHost.getServiceComponentName(),
       nameNodeHostEntity.getHostId()
     ));
@@ -472,7 +474,7 @@ public class ClustersTest {
 
     ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();
@@ -489,11 +491,11 @@ public class ClustersTest {
 
     Assert.assertEquals(2, hostDAO.findAll().size());
     Assert.assertNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
-      nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
+      nameNodeHost.getClusterId(), 1L, 1L,
       nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()));
 
     Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(
-      nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
+      nameNodeHost.getClusterId(), 1L, 1L,
       nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()
     ));
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
@@ -576,7 +578,7 @@ public class ClustersTest {
 
     ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
     expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();

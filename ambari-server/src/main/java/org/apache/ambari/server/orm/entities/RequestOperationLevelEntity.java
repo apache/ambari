@@ -74,6 +74,10 @@ public class RequestOperationLevelEntity {
   @Basic
   private String clusterName;
 
+  @Column(name = "service_group_name")
+  @Basic
+  private String serviceGroupName;
+
   @Column(name = "service_name")
   @Basic
   private String serviceName;
@@ -100,6 +104,14 @@ public class RequestOperationLevelEntity {
 
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public void setServiceGroupName(String serviceGroupName) {
+    this.serviceGroupName = serviceGroupName;
   }
 
   public String getServiceName() {

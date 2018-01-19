@@ -56,6 +56,8 @@ import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 
 import com.google.gson.Gson;
@@ -65,6 +67,8 @@ import com.google.gson.Gson;
  * Resource provider for cluster resources.
  */
 public class ClusterResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ClusterResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -202,7 +206,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("blueprint");
     baseUnsupported.remove("host_groups");
     baseUnsupported.remove("default_password");
-    baseUnsupported.remove("services");
+    baseUnsupported.remove("configurations");
     baseUnsupported.remove("credentials");
     baseUnsupported.remove("config_recommendation_strategy");
     baseUnsupported.remove("provision_action");
@@ -328,8 +332,14 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
           for (Collection<ServiceConfigVersionResponse> scvCollection : serviceConfigVersions.values()) {
             for (ServiceConfigVersionResponse serviceConfigVersionResponse : scvCollection) {
               Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_NAME_PROPERTY_ID,
+                serviceConfigVersionResponse.getServiceGroupName());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_GROUP_ID_PROPERTY_ID,
+                  serviceConfigVersionResponse.getServiceGroupId());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID,
                 serviceConfigVersionResponse.getServiceName());
+              resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_SERVICE_ID_PROPERTY_ID,
+                serviceConfigVersionResponse.getServiceId());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_PROPERTY_ID,
                 serviceConfigVersionResponse.getVersion());
               resource.setProperty(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID,

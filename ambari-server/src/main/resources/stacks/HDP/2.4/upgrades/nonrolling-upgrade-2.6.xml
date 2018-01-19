@@ -24,6 +24,7 @@
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
     <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
+    <check>org.apache.ambari.server.checks.LZOCheck</check>
 
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
@@ -590,6 +591,9 @@
         <task xsi:type="configure" id="storm_worker_log4j_directory">
           <summary>Update Storm log directory in storm worker log4j</summary>
         </task>
+      </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Removing jmxetric from childopts">
+        <task xsi:type="configure" id="storm_remove_jmxetric"/>
       </execute-stage>
 
       <!-- KAFKA -->
