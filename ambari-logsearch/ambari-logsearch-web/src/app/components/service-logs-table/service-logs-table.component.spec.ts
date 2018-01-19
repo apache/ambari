@@ -22,6 +22,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
+import {TooltipModule} from 'ngx-bootstrap';
 import {TranslationModules} from '@app/test-config.spec';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
@@ -47,7 +48,7 @@ import {AuthService} from '@app/services/auth.service';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 
-import {ServiceLogsTableComponent} from './service-logs-table.component';
+import {ServiceLogsTableComponent, ListLayout} from './service-logs-table.component';
 
 describe('ServiceLogsTableComponent', () => {
   let component: ServiceLogsTableComponent;
@@ -88,7 +89,8 @@ describe('ServiceLogsTableComponent', () => {
           clusters,
           components,
           hosts
-        })
+        }),
+        TooltipModule.forRoot()
       ],
       providers: [
         LogsContainerService,
@@ -128,4 +130,15 @@ describe('ServiceLogsTableComponent', () => {
   it('should create component', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should change the layout to TABLE', () => {
+    component.setLayout(ListLayout.Table);
+    expect(component.layout).toEqual(ListLayout.Table);
+  });
+
+  it('should change the layout to FLEX', () => {
+    component.setLayout(ListLayout.Flex);
+    expect(component.layout).toEqual(ListLayout.Flex);
+  });
+
 });
