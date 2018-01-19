@@ -21,12 +21,13 @@ import {NgModule, CUSTOM_ELEMENTS_SCHEMA, Injector} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HttpModule, Http, XHRBackend, BrowserXhr, ResponseOptions, XSRFStrategy} from '@angular/http';
 import {InMemoryBackendService} from 'angular-in-memory-web-api';
-import {TypeaheadModule} from 'ngx-bootstrap';
+import {TypeaheadModule, TooltipModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
+import {NgStringPipesModule} from 'angular-pipes';
 
 import {environment} from '@envs/environment';
 
@@ -167,6 +168,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ReactiveFormsModule,
     HttpModule,
     TypeaheadModule.forRoot(),
+    TooltipModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -176,7 +178,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     }),
     StoreModule.provideStore(reducer),
     MomentModule,
-    MomentTimezoneModule
+    MomentTimezoneModule,
+    NgStringPipesModule
   ],
   providers: [
     HttpClientService,

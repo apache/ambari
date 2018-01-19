@@ -20,5 +20,5 @@
   'log-message-container-open': isOpen
   }">
   <button *ngIf="addCaret" (click)="onCaretClick($event)"><i class="caret"></i></button>
-  <div #content class="log-message-content"><ng-content></ng-content></div>
+  <div #content class="log-message-content">{{isOpen ? message : (message | replace: multiLineTestRegexp : ' ')}}</div>
 </div>
