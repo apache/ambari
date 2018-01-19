@@ -17,12 +17,11 @@
  */
 package org.apache.ambari.server.utils;
 
+import junit.framework.Assert;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import junit.framework.Assert;
 
 public class TestVersionUtils {
 
@@ -167,5 +166,99 @@ public class TestVersionUtils {
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("maxLengthToCompare cannot be less than 0");
     VersionUtils.compareVersions("2", "1", -1);
+  }
+
+  @Test
+  public void testCompareVersionsWithHotfixAndBuildNumber() {
+    String errMessage = null;
+    try {
+      MpackVersion.parse(null);
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Mpack version can't be empty or null".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      MpackVersion.parse("");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Mpack version can't be empty or null".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      MpackVersion.parseStackVersion(null);
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Stack version can't be empty or null".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      MpackVersion.parseStackVersion("");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Stack version can't be empty or null".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      ModuleVersion.parse(null);
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Module version can't be empty or null".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      ModuleVersion.parse("");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Module version can't be empty or null".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      MpackVersion.parse("1.2.3.4-b10");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Wrong format for mpack version, should be N.N.N-bN or N.N.N-hN-bN".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      MpackVersion.parseStackVersion("1.2.3-10");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Wrong format for stack version, should be N.N.N.N-N or N.N.N-hN-bN".equals(errMessage));
+
+
+    try {
+      errMessage = null;
+      ModuleVersion.parse("1.2.3-10");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertTrue("Wrong format for module version, should be N.N.N.N-bN or N.N.N-hN-bN".equals(errMessage));
+
+
+    Assert.assertEquals(1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+    Assert.assertEquals(1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parse("1.2.3-b888")));
+    Assert.assertEquals(0, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-b10")));
+
+
+    Assert.assertEquals(1, ModuleVersion.parse("1.2.3.4-h10-b10").compareTo(ModuleVersion.parse("1.2.3.4-b888")));
+    Assert.assertEquals(1, ModuleVersion.parse("1.2.3.5-h10-b10").compareTo(ModuleVersion.parse("1.2.3.4-b888")));
+    Assert.assertEquals(0, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+
   }
 }
