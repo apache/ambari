@@ -112,6 +112,7 @@ JDBC_RCA_PASSWORD_FILENAME = "rca_password.dat"
 
 CLIENT_API_PORT_PROPERTY = "client.api.port"
 CLIENT_API_PORT = "8080"
+CLIENT_SECURITY = "client.security"
 
 SERVER_VERSION_FILE_PATH = "server.version.file"
 
@@ -158,12 +159,8 @@ RESOURCES_DIR_PROPERTY = "resources.dir"
 STACK_LOCATION_KEY = 'metadata.path'
 
 # LDAP security
-IS_LDAP_CONFIGURED = "ambari.ldap.isConfigured"
 LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
-LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
-LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
-LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
-LDAP_PRIMARY_URL_PROPERTY = "authentication.ldap.primaryUrl"
+LDAP_MGR_PASSWORD_PROPERTY = "ambari.ldap.connectivity.bind_password"
 
 # SSL truststore
 SSL_TRUSTSTORE_PASSWORD_ALIAS = "ambari.ssl.trustStore.password"
