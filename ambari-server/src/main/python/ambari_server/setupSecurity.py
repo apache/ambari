@@ -42,10 +42,10 @@ from ambari_server.serverConfiguration import configDefaults, parse_properties_f
   get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, get_db_type, write_property, \
   get_original_master_key, get_value_from_properties, get_java_exe_path, is_alias_string, read_ambari_user, \
   read_passwd_for_alias, remove_password_file, save_passwd_for_alias, store_password_file, update_properties_2, \
-  BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, IS_LDAP_CONFIGURED, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
+  BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
   JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_USE_INTEGRATED_AUTH_PROPERTY, \
-  LDAP_MGR_PASSWORD_ALIAS, LDAP_MGR_PASSWORD_FILENAME, LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_USERNAME_PROPERTY, \
-  LDAP_PRIMARY_URL_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
+  LDAP_MGR_PASSWORD_ALIAS, LDAP_MGR_PASSWORD_PROPERTY, CLIENT_SECURITY, \
+  SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
   SECURITY_PROVIDER_KEY_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY, \
   SSL_API, SSL_API_PORT, DEFAULT_SSL_API_PORT, CLIENT_API_PORT, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, JAVA_HOME_PROPERTY, \
@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+REGEX_PORT = "^([0-9]{1,5}$)"
 REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
 REGEX_TRUE_FALSE = "^(true|false)?$"
 REGEX_SKIP_CONVERT = "^(skip|convert)?$"
@@ -70,14 +71,16 @@ LDAP_TO_PAM_MIGRATION_HELPER_CMD = "{0} -cp {1} " + \
                                    "org.apache.ambari.server.security.authentication.LdapToPamMigrationHelper" + \
                                    " >> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
-CLIENT_SECURITY_KEY = "client.security"
-
 AUTO_GROUP_CREATION = "auto.group.creation"
 
 SERVER_API_LDAP_URL = 'ldap_sync_events'
+SETUP_LDAP_CONFIG_URL = 'services/AMBARI/components/AMBARI_SERVER/configurations/ldap-configuration'
 
 PAM_CONFIG_FILE = 'pam.configuration'
 
+IS_LDAP_CONFIGURED = "ambari.ldap.authentication.enabled"
+LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
+LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 
 def read_master_key(isReset=False, options = None):
   passwordPattern = ".*"
@@ -278,7 +281,7 @@ def sync_ldap(options):
 
   properties = get_ambari_properties()
 
-  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'pam':
+  if get_value_from_properties(properties,CLIENT_SECURITY,"") == 'pam':
     err = "PAM is configured. Can not sync LDAP."
     raise FatalException(1, err)
 
@@ -587,37 +590,76 @@ class LdapPropTemplate:
 def init_ldap_properties_list_reqd(properties, options):
   # python2.x dict is not ordered
   ldap_properties = [
-    LdapPropTemplate(properties, options.ldap_url, "authentication.ldap.primaryUrl", "Primary URL* {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, False),
-    LdapPropTemplate(properties, options.ldap_secondary_url, "authentication.ldap.secondaryUrl", "Secondary URL {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, True),
-    LdapPropTemplate(properties, options.ldap_ssl, "authentication.ldap.useSSL", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
-    LdapPropTemplate(properties, options.ldap_user_attr, "authentication.ldap.usernameAttribute", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
-    LdapPropTemplate(properties, options.ldap_base_dn, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
-    LdapPropTemplate(properties, options.ldap_referral, "authentication.ldap.referral", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
-    LdapPropTemplate(properties, options.ldap_bind_anonym, "authentication.ldap.bindAnonymously" "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
+    LdapPropTemplate(properties, options.ldap_url_host, "ambari.ldap.connectivity.server.host", "Primary URL Host* {0}: ", REGEX_HOSTNAME, False),
+    LdapPropTemplate(properties, options.ldap_url_port, "ambari.ldap.connectivity.server.port", "Primary URL Port* {0}: ", REGEX_PORT, False),
+    LdapPropTemplate(properties, options.ldap_secondary_url_host, "ambari.ldap.connectivity.secondary.server.host", "Secondary URL Host {0}: ", REGEX_HOSTNAME, True),
+    LdapPropTemplate(properties, options.ldap_secondary_url_port, "ambari.ldap.connectivity.secondary.server.port", "Secondary URL Port {0}: ", REGEX_PORT, True),
+    LdapPropTemplate(properties, options.ldap_ssl, "ambari.ldap.connectivity.use_ssl", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+    LdapPropTemplate(properties, options.ldap_user_attr, "ambari.ldap.attributes.user.name_attr", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
+    LdapPropTemplate(properties, options.ldap_base_dn, "ambari.ldap.attributes.user.search_base", "Base DN* {0}: ", REGEX_ANYTHING, False, "dc=ambari,dc=apache,dc=org"),
+    LdapPropTemplate(properties, options.ldap_referral, "ambari.ldap.advanced.referrals", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
+    LdapPropTemplate(properties, options.ldap_bind_anonym, "ambari.ldap.connectivity.anonymous_bind" "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
   ]
   return ldap_properties
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_ldap_properties_list_reqd(properties, options):
   ldap_properties = [
-    LdapPropTemplate(properties, options.ldap_url, LDAP_PRIMARY_URL_PROPERTY, "Primary URL* {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, False),
-    LdapPropTemplate(properties, options.ldap_secondary_url, "authentication.ldap.secondaryUrl", "Secondary URL {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, True),
-    LdapPropTemplate(properties, options.ldap_ssl, "authentication.ldap.useSSL", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
-    LdapPropTemplate(properties, options.ldap_user_class, "authentication.ldap.userObjectClass", "User object class* {0}: ", REGEX_ANYTHING, False, "posixAccount"),
-    LdapPropTemplate(properties, options.ldap_user_attr, "authentication.ldap.usernameAttribute", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
-    LdapPropTemplate(properties, options.ldap_group_class, "authentication.ldap.groupObjectClass", "Group object class* {0}: ", REGEX_ANYTHING, False, "posixGroup"),
-    LdapPropTemplate(properties, options.ldap_group_attr, "authentication.ldap.groupNamingAttr", "Group name attribute* {0}: ", REGEX_ANYTHING, False, "cn"),
-    LdapPropTemplate(properties, options.ldap_member_attr, "authentication.ldap.groupMembershipAttr", "Group member attribute* {0}: ", REGEX_ANYTHING, False, "memberUid"),
-    LdapPropTemplate(properties, options.ldap_dn, "authentication.ldap.dnAttribute", "Distinguished name attribute* {0}: ", REGEX_ANYTHING, False, "dn"),
-    LdapPropTemplate(properties, options.ldap_base_dn, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
-    LdapPropTemplate(properties, options.ldap_referral, "authentication.ldap.referral", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
-    LdapPropTemplate(properties, options.ldap_bind_anonym, "authentication.ldap.bindAnonymously", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
-    LdapPropTemplate(properties, options.ldap_sync_username_collisions_behavior, "ldap.sync.username.collision.behavior", "Handling behavior for username collisions [convert/skip] for LDAP sync* {0}: ", REGEX_SKIP_CONVERT, False, "convert"),
+    LdapPropTemplate(properties, options.ldap_url_host, "ambari.ldap.connectivity.server.host", "Primary URL Host* {0}: ", REGEX_HOSTNAME, False),
+    LdapPropTemplate(properties, options.ldap_url_port, "ambari.ldap.connectivity.server.port", "Primary URL Port* {0}: ", REGEX_PORT, False),
+    LdapPropTemplate(properties, options.ldap_secondary_url_host, "ambari.ldap.connectivity.secondary.server.host", "Secondary URL Host {0}: ", REGEX_HOSTNAME, True),
+    LdapPropTemplate(properties, options.ldap_secondary_url_port, "ambari.ldap.connectivity.secondary.server.port", "Secondary URL Port {0}: ", REGEX_PORT, True),
+    LdapPropTemplate(properties, options.ldap_ssl, "ambari.ldap.connectivity.use_ssl", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+    LdapPropTemplate(properties, options.ldap_user_class, "ambari.ldap.attributes.user.object_class", "User object class* {0}: ", REGEX_ANYTHING, False, "person"),
+    LdapPropTemplate(properties, options.ldap_user_attr, "ambari.ldap.attributes.user.name_attr", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
+    LdapPropTemplate(properties, options.ldap_group_class, "ambari.ldap.attributes.group.object_class", "Group object class* {0}: ", REGEX_ANYTHING, False, "ou=groups,dc=ambari,dc=apache,dc=org"),
+    LdapPropTemplate(properties, options.ldap_group_attr, "ambari.ldap.attributes.group.name_attr", "Group name attribute* {0}: ", REGEX_ANYTHING, False, "cn"),
+    LdapPropTemplate(properties, options.ldap_member_attr, "ambari.ldap.attributes.group.member_attr", "Group member attribute* {0}: ", REGEX_ANYTHING, False, "memberUid"),
+    LdapPropTemplate(properties, options.ldap_dn, "ambari.ldap.attributes.dn_attr", "Distinguished name attribute* {0}: ", REGEX_ANYTHING, False, "dn"),
+    LdapPropTemplate(properties, options.ldap_base_dn, "ambari.ldap.attributes.user.search_base", "Base DN* {0}: ", REGEX_ANYTHING, False, "dc=ambari,dc=apache,dc=org"),
+    LdapPropTemplate(properties, options.ldap_referral, "ambari.ldap.advanced.referrals", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
+    LdapPropTemplate(properties, options.ldap_bind_anonym, "ambari.ldap.connectivity.anonymous_bind", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+    LdapPropTemplate(properties, options.ldap_sync_username_collisions_behavior, "ambari.ldap.advance.collision_behavior", "Handling behavior for username collisions [convert/skip] for LDAP sync* {0}: ", REGEX_SKIP_CONVERT, False, "convert"),
+    LdapPropTemplate(properties, options.ldap_force_lowercase_usernames, "ambari.ldap.advanced.force_lowercase_usernames", "Force lower-case user names [true/false] {0}:", REGEX_TRUE_FALSE, True),
+    LdapPropTemplate(properties, options.ldap_pagination_enabled, "ambari.ldap.advanced.pagination_enabled", "Results from LDAP are paginated when requested [true/false] {0}:", REGEX_TRUE_FALSE, True)
   ]
   return ldap_properties
 
+def update_ldap_configuration(properties, ldap_property_value_map):
+  admin_login = get_validated_string_input("Enter Ambari Admin login: ", None, None, None, False, False)
+  admin_password = get_validated_string_input("Enter Ambari Admin password: ", None, None, None, True, False)
+  url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  data = {
+    "Configuration": {
+      "service_name": "AMBARI",
+      "component_name": "AMBARI_SERVER",
+      "category": "ldap-configuration",
+      "properties": {
+      }
+    }
+  }
+  data['Configuration']['properties'] = ldap_property_value_map
+  request.add_data(json.dumps(data))
+  request.get_method = lambda: 'PUT'
+
+  try:
+    response = urllib2.urlopen(request)
+  except Exception as e:
+    err = 'Updating LDAP configuration failed. Error details: %s' % e
+    raise FatalException(1, err)
+
+  response_status_code = response.getcode()
+  if response_status_code != 200:
+    err = 'Error during syncing. Http status code - ' + str(response_status_code)
+    raise FatalException(1, err)
+
 def setup_ldap(options):
   logger.info("Setup LDAP.")
+
   if not is_root():
     err = 'Ambari-server setup-ldap should be run with ' \
           'root-level privileges'
@@ -625,7 +667,12 @@ def setup_ldap(options):
 
   properties = get_ambari_properties()
 
-  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'pam':
+  server_status, pid = is_server_runing()
+  if not server_status:
+    err = 'Ambari Server is not running.'
+    raise FatalException(1, err)
+
+  if get_value_from_properties(properties,CLIENT_SECURITY,"") == 'pam':
     query = "PAM is currently configured, do you wish to use LDAP instead [y/n] (n)? "
     if get_YN_input(query, False):
       pass
@@ -637,20 +684,16 @@ def setup_ldap(options):
 
   ldap_property_list_reqd = init_ldap_properties_list_reqd(properties, options)
 
-  ldap_property_list_opt = ["authentication.ldap.managerDn",
+  ldap_property_list_opt = ["ambari.ldap.connectivity.bind_dn",
                             LDAP_MGR_PASSWORD_PROPERTY,
                             SSL_TRUSTSTORE_TYPE_PROPERTY,
                             SSL_TRUSTSTORE_PATH_PROPERTY,
                             SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
-  ldap_property_list_truststore=[SSL_TRUSTSTORE_TYPE_PROPERTY,
-                                 SSL_TRUSTSTORE_PATH_PROPERTY,
-                                 SSL_TRUSTSTORE_PASSWORD_PROPERTY]
-
   ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY,
                                 SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
-  LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_opt[0])
+  LDAP_MGR_DN_DEFAULT = None
 
   SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
   SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
@@ -663,7 +706,7 @@ def setup_ldap(options):
     if input is not None and input != "":
       ldap_property_value_map[ldap_prop.prop_name] = input
 
-  bindAnonymously = ldap_property_value_map["authentication.ldap.bindAnonymously"]
+  bindAnonymously = ldap_property_value_map["ambari.ldap.connectivity.anonymous_bind"]
   anonymous = (bindAnonymously and bindAnonymously.lower() == 'true')
   mgr_password = None
   # Ask for manager credentials only if bindAnonymously is false
@@ -675,7 +718,7 @@ def setup_ldap(options):
     mgr_password = configure_ldap_password(options)
     ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = mgr_password
 
-  useSSL = ldap_property_value_map["authentication.ldap.useSSL"]
+  useSSL = ldap_property_value_map["ambari.ldap.connectivity.use_ssl"]
   ldaps = (useSSL and useSSL.lower() == 'true')
   ts_password = None
 
@@ -725,7 +768,7 @@ def setup_ldap(options):
   print 'Review Settings'
   print '=' * 20
   for property in ldap_property_list_reqd:
-    if property in ldap_property_value_map:
+    if ldap_property_value_map.has_key(property):
       print("%s: %s" % (property, ldap_property_value_map[property]))
 
   for property in ldap_property_list_opt:
@@ -738,7 +781,6 @@ def setup_ldap(options):
   save_settings = True if options.ldap_save_settings is not None else get_YN_input("Save settings [y/n] (y)? ", True)
 
   if save_settings:
-    ldap_property_value_map[CLIENT_SECURITY_KEY] = 'ldap'
     if isSecure:
       if mgr_password:
         encrypted_passwd = encrypt_password(LDAP_MGR_PASSWORD_ALIAS, mgr_password, options)
@@ -753,11 +795,21 @@ def setup_ldap(options):
     pass
 
     # Persisting values
-    ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
     if mgr_password:
       ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(mgr_password, LDAP_MGR_PASSWORD_FILENAME)
+
+    print 'Saving LDAP properties...'
+
+    ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
+    #Saving LDAP configuration in Ambari DB using the REST API
+    update_ldap_configuration(properties, ldap_property_value_map)
+
+    #The only property we want to write out in Ambari.properties is the client.security type being LDAP
+    ldap_property_value_map.clear()
+    ldap_property_value_map[CLIENT_SECURITY] = 'ldap'
     update_properties_2(properties, ldap_property_value_map)
-    print 'Saving...done'
+
+    print 'Saving LDAP properties finished'
 
   return 0
 
@@ -855,7 +907,7 @@ def setup_pam(options):
 
   properties = get_ambari_properties()
 
-  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'ldap':
+  if get_value_from_properties(properties,CLIENT_SECURITY,"") == 'ldap':
     query = "LDAP is currently configured, do you wish to use PAM instead [y/n] (n)? "
     if get_YN_input(query, False):
       pass
@@ -866,7 +918,7 @@ def setup_pam(options):
   pam_property_list_reqd = init_pam_properties_list_reqd(properties, options)
 
   pam_property_value_map = {}
-  pam_property_value_map[CLIENT_SECURITY_KEY] = 'pam'
+  pam_property_value_map[CLIENT_SECURITY] = 'pam'
 
   for pam_prop in pam_property_list_reqd:
     input = get_validated_string_input(pam_prop.pam_prop_val_prompt, pam_prop.pam_prop_name, pam_prop.prompt_regex,
@@ -891,7 +943,7 @@ def setup_pam(options):
 def migrate_ldap_pam(args):
   properties = get_ambari_properties()
 
-  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") != 'pam':
+  if get_value_from_properties(properties,CLIENT_SECURITY,"") != 'pam':
     err = "PAM is not configured. Please configure PAM authentication first."
     raise FatalException(1, err)
 
