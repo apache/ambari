@@ -47,6 +47,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -298,11 +299,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @return a new resource instance for the given blueprint entity
    */
   protected Resource toResource(BlueprintEntity entity, Set<String> requestedIds) throws NoSuchResourceException {
-    StackEntity stackEntity = entity.getStack();
     Resource resource = new ResourceImpl(Resource.Type.Blueprint);
     setResourceProperty(resource, BLUEPRINT_NAME_PROPERTY_ID, entity.getBlueprintName(), requestedIds);
-    setResourceProperty(resource, STACK_NAME_PROPERTY_ID, stackEntity.getStackName(), requestedIds);
-    setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, stackEntity.getStackVersion(), requestedIds);
 
     List<Map<String, Object>> listGroupProps = new ArrayList<>();
     Collection<HostGroupEntity> hostGroups = entity.getHostGroups();
@@ -366,11 +364,14 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
         Map<String, String> properties = jsonSerializer.<Map<String, String>>fromJson(
             config.getConfigData(), Map.class);
 
-        StackEntity stack = ((BlueprintConfigEntity)config).getBlueprintEntity().getStack();
+
+        // TODO: use multiple mpacks
+        BlueprintMpackReferenceEntity mpack =
+          ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackReferences().iterator().next();
         StackInfo metaInfoStack;
 
         try {
-          metaInfoStack = ambariMetaInfo.getStack(stack.getStackName(), stack.getStackVersion());
+          metaInfoStack = ambariMetaInfo.getStack(mpack.getMpackName(), mpack.getMpackVersion());
         } catch (AmbariException e) {
           throw new NoSuchResourceException(e.getMessage());
         }

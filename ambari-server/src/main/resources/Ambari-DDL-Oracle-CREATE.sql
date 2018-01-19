@@ -582,11 +582,9 @@ CREATE TABLE requestschedulebatchrequest (
 
 CREATE TABLE blueprint (
   blueprint_name VARCHAR2(255) NOT NULL,
-  stack_id NUMBER(19),
   security_type VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   security_descriptor_reference VARCHAR2(255),
-  CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name),
-  CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
 
 CREATE TABLE blueprint_mpack_reference(
   id NUMBER(19) NOT NULL,

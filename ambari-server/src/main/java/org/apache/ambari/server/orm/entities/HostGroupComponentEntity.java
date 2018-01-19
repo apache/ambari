@@ -163,34 +163,64 @@ public class HostGroupComponentEntity {
     this.provisionAction = provisionAction;
   }
 
+  /**
+   * @return the database id
+   */
   public Long getId() {
     return id;
   }
 
+  /**
+   * @param id the database id
+   */
   public void setId(Long id) {
     this.id = id;
   }
 
+  /**
+   * @return the name of the mpack defining this component
+   *         (only needs to be set if multiple mpack define the same component)
+   */
   public String getMpackName() {
     return mpackName;
   }
 
+  /**
+   * @param mpackName the name of the mpack defining this component
+   *        (only needs to be set if multiple mpack define the same component)
+   */
   public void setMpackName(String mpackName) {
     this.mpackName = mpackName;
   }
 
+  /**
+   * @return the version of the mpack defining this component
+   *         (only needs to be set if multiple mpack define the same component)
+   */
   public String getMpackVersion() {
     return mpackVersion;
   }
 
+  /**
+   * @param mpackVersion the version of the mpack defining this component
+   *        (only needs to be set if multiple mpack define the same component)
+   */
   public void setMpackVersion(String mpackVersion) {
     this.mpackVersion = mpackVersion;
   }
 
+  /**
+   * @return the name of the service instance defining this component
+   *         (only needs to be set if component resolution would be ambigous otherwise)
+   */
   public String getServiceName() {
     return serviceName;
   }
 
+  /**
+   * @param serviceName the name of the service instance defining this component
+   *        (only needs to be set if component resolution would be ambigous otherwise)
+   */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }

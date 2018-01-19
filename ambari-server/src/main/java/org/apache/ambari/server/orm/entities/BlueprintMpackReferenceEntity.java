@@ -33,6 +33,11 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+/**
+ * Entity referencing a management pack from the blueprint. The reference contains the name and
+ * the version of the mpack, but no direct database reference to the mpack entity as a blueprint
+ * can be saved without the referenced mpack being present.
+ */
 @Entity
 @Table(name = "blueprint_mpack_reference")
 @TableGenerator(name = "blueprint_mpack_reference_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name",
@@ -63,58 +68,100 @@ public class BlueprintMpackReferenceEntity {
   @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
   private BlueprintEntity blueprint;
 
+  /**
+   * @return the service instances belonging to this mpack
+   */
   public Collection<BlueprintServiceEntity> getServiceInstances() {
     return serviceInstances;
   }
 
+  /**
+   * @param serviceInstances the service instances belonging to this mpack
+   */
   public void setServiceInstances(Collection<BlueprintServiceEntity> serviceInstances) {
     this.serviceInstances = serviceInstances;
   }
 
+  /**
+   * @return the name of the mpack
+   */
   public String getMpackName() {
     return mpackName;
   }
 
+  /**
+   * @param mpackName the name of the mpack
+   */
   public void setMpackName(String mpackName) {
     this.mpackName = mpackName;
   }
 
+  /**
+   * @return the version of the mpack
+   */
   public String getMpackVersion() {
     return mpackVersion;
   }
 
+  /**
+   * @param mpackVersion the version of the mpack
+   */
   public void setMpackVersion(String mpackVersion) {
     this.mpackVersion = mpackVersion;
   }
 
+  /**
+   * @return the uri of the mpack
+   */
   public String getMpackUri() {
     return mpackUri;
   }
 
+  /**
+   * @param mpackUri the uri of the mpack
+   */
   public void setMpackUri(String mpackUri) {
     this.mpackUri = mpackUri;
   }
 
+  /**
+   * @return the database id
+   */
   public Long getId() {
     return id;
   }
 
+  /**
+   * @param id the database id
+   */
   public void setId(Long id) {
     this.id = id;
   }
 
+  /**
+   * @return the blueprint
+   */
   public BlueprintEntity getBlueprint() {
     return blueprint;
   }
 
+  /**
+   * @param blueprint the blueprint
+   */
   public void setBlueprint(BlueprintEntity blueprint) {
     this.blueprint = blueprint;
   }
 
+  /**
+   * @return the mpack level configurations for this mpack
+   */
   public Collection<BlueprintMpackConfigEntity> getConfigurations() {
     return configurations;
   }
 
+  /**
+   * @param configurations the mpack level configurations for this mpack
+   */
   public void setConfigurations(Collection<BlueprintMpackConfigEntity> configurations) {
     this.configurations = configurations;
   }

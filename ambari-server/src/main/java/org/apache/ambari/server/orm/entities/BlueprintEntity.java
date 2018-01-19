@@ -59,14 +59,7 @@ public class BlueprintEntity {
   @Basic
   @Column(name = "security_descriptor_reference", nullable = true, insertable = true, updatable = true)
   private String securityDescriptorReference;
-
-  /**
-   * Unidirectional one-to-one association to {@link StackEntity}
-   */
-  @OneToOne
-  @JoinColumn(name = "stack_id", unique = false, nullable = true, insertable = true, updatable = false)
-  private StackEntity stack;
-
+  
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
   private Collection<HostGroupEntity> hostGroups = new ArrayList<>();
 
@@ -96,25 +89,6 @@ public class BlueprintEntity {
    */
   public void setBlueprintName(String blueprintName) {
     this.blueprintName = blueprintName;
-  }
-
-  /**
-   * Gets the blueprint's stack.
-   *
-   * @return the stack.
-   */
-  public StackEntity getStack() {
-    return stack;
-  }
-
-  /**
-   * Sets the blueprint's stack.
-   *
-   * @param stack
-   *          the stack to set for the blueprint (not {@code null}).
-   */
-  public void setStack(StackEntity stack) {
-    this.stack = stack;
   }
 
   /**

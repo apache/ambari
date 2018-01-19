@@ -23,6 +23,9 @@ import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Id;
 
+/**
+ * Composite primary key for {@link BlueprintServiceConfigEntity}
+ */
 public class BlueprintServiceConfigEntityPk {
 
   @Id

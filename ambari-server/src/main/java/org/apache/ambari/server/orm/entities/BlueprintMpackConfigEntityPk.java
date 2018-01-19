@@ -23,6 +23,9 @@ import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Id;
 
+/**
+ * Composite primary key for {@link BlueprintMpackConfigEntity}
+ */
 public class BlueprintMpackConfigEntityPk {
   @Id
   @Column(name = "mpack_ref_id", nullable = false, insertable = true, updatable = false)

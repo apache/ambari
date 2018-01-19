@@ -29,6 +29,9 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+/**
+ * Entity to represent an mpack level configuration in the blueprint.
+ */
 @Entity
 @Table(name = "blueprint_mpack_configuration")
 @IdClass(BlueprintMpackConfigEntityPk.class)
@@ -56,54 +59,90 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   @JoinColumn(name = "mpack_ref_id", referencedColumnName = "id", nullable = false)
   private BlueprintMpackReferenceEntity mpackReference;
 
+  /**
+   * @return the id of the mpack referency entity this configuration belongs to
+   */
   public Long getMpackRefId() {
     return mpackRefId;
   }
 
+  /**
+   * @param mpackRefId the id of the mpack referency entity this configuration belongs to
+   */
   public void setMpackRefId(Long mpackRefId) {
     this.mpackRefId = mpackRefId;
   }
 
+  /**
+   * @return the configuration type
+   */
   @Override
   public String getType() {
     return type;
   }
 
+  /**
+   * @param typeName the type of the configuration
+   */
   @Override
   public void setType(String typeName) {
     this.type = typeName;
   }
 
+  /**
+   * @return the configuration data encoded in json
+   */
   public String getConfigData() {
     return configData;
   }
 
+  /**
+   * @param blueprintName the name of the blueprint
+   */
   @Override
   public void setBlueprintName(String blueprintName) {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * @return the name of the blueprint
+   */
   @Override
   public String getBlueprintName() {
     return getMpackReference().getBlueprint().getBlueprintName();
   }
 
+  /**
+   * @param configData the configuration data encoded in json
+   */
   public void setConfigData(String configData) {
     this.configData = configData;
   }
 
+  /**
+   * @return the configuration attributes encoded in json
+   */
   public String getConfigAttributes() {
     return configAttributes;
   }
 
+  /**
+   * @param configAttributes  the configuration attributes encoded in json
+   */
   public void setConfigAttributes(String configAttributes) {
     this.configAttributes = configAttributes;
   }
 
+  /**
+   * @return the mpack referency entity this configuration belongs to
+   */
   public BlueprintMpackReferenceEntity getMpackReference() {
     return mpackReference;
   }
 
+  /**
+   * @param mpackReference the mpack referency entity this configuration belongs to
+   */
   public void setMpackReference(BlueprintMpackReferenceEntity mpackReference) {
     this.mpackReference = mpackReference;
   }

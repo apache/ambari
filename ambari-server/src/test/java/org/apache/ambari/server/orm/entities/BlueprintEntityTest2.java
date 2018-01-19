@@ -82,27 +82,6 @@ public class BlueprintEntityTest2 {
     verifyBlueprint(blueprintDAO.findByName(BLUEPRINT_NAME));
   }
 
-  /**
-   * Test loading and saving a blueprint with stack (this needs to be supported for backward compatibility)
-   */
-  @Test
-  public void testCreateAndLoadBlueprintWithStack() throws AmbariException {
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName("HDPCORE");
-    stackEntity.setStackVersion("3.0.0.0");
-    stackDAO.create(stackEntity);
-
-    BlueprintEntity blueprintEntity = createTestBlueprint();
-    blueprintEntity.setStack(stackEntity);
-    blueprintDAO.create(blueprintEntity);
-
-    BlueprintEntity savedBlueprint = blueprintDAO.findByName(BLUEPRINT_NAME);
-    verifyBlueprint(savedBlueprint);
-    assertNotNull(savedBlueprint.getStack());
-    assertEquals("HDPCORE", savedBlueprint.getStack().getStackName());
-    assertEquals("3.0.0.0", savedBlueprint.getStack().getStackVersion());
-  }
-
   private void verifyBlueprint(BlueprintEntity blueprintEntity) {
     assertEquals(1, blueprintEntity.getMpackReferences().size());
 
