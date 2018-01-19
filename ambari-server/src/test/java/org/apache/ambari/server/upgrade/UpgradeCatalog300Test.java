@@ -195,6 +195,7 @@ public class UpgradeCatalog300Test {
     Method updateLogSearchConfigs = UpgradeCatalog300.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateKerberosConfigurations = UpgradeCatalog300.class.getDeclaredMethod("updateKerberosConfigurations");
     Method upgradeLdapConfiguration = UpgradeCatalog300.class.getDeclaredMethod("upgradeLdapConfiguration");
+    Method createRoleAuthorizations = UpgradeCatalog300.class.getDeclaredMethod("createRoleAuthorizations");
 
     UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
         .addMockedMethod(showHcatDeletedUserMessage)
@@ -203,6 +204,7 @@ public class UpgradeCatalog300Test {
         .addMockedMethod(updateLogSearchConfigs)
         .addMockedMethod(updateKerberosConfigurations)
         .addMockedMethod(upgradeLdapConfiguration)
+        .addMockedMethod(createRoleAuthorizations)
         .createMock();
 
 
@@ -210,6 +212,9 @@ public class UpgradeCatalog300Test {
     expectLastCall().once();
 
     upgradeCatalog300.showHcatDeletedUserMessage();
+    expectLastCall().once();
+
+    upgradeCatalog300.createRoleAuthorizations();
     expectLastCall().once();
 
     upgradeCatalog300.setStatusOfStagesAndRequests();

@@ -560,6 +560,13 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateLogSearchConfigs();
     updateKerberosConfigurations();
     upgradeLdapConfiguration();
+    createRoleAuthorizations();
+  }
+
+  protected void createRoleAuthorizations() throws SQLException {
+    addRoleAuthorization("AMBARI.MANAGE_CONFIGURATION",
+        "Manage ambari configuration",
+        Collections.singleton("AMBARI.ADMINISTRATOR:AMBARI"));
   }
 
   protected void showHcatDeletedUserMessage() {
