@@ -271,7 +271,10 @@
       </commandScript>
       
       <requiredServices>
-        <service>ZOOKEEPER</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <scope>INSTALL</scope>
+        </service>
         <service>YARN</service>
       </requiredServices>
 

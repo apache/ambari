@@ -80,9 +80,18 @@
 	  </components>
       
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>YARN</service>
-        <service>TEZ</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>YARN</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>TEZ</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
             
     </service>

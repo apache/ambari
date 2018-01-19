@@ -26,7 +26,10 @@
           <version>1.5.2</version>
           <extends>common-services/SPARK/1.4.1</extends>
           <requiredServices>
-            <service>YARN</service>
+              <service>
+                  <name>YARN</name>
+                  <scope>INSTALL</scope>
+              </service>
           </requiredServices>
           <!-- No new components compared to 1.4.1 -->
           <configuration-dependencies>

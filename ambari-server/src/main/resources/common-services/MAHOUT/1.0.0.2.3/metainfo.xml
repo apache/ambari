@@ -66,7 +66,10 @@
       </commandScript>
 
       <requiredServices>
-        <service>YARN</service>
+        <service>
+          <name>YARN</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

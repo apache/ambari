@@ -61,7 +61,10 @@
       </quickLinksConfigurations>
 
       <requiredServices>
-        <service>KAFKA</service>
+        <service>
+          <name>KAFKA</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <themes>

@@ -89,7 +89,10 @@
       </commandScript>
 
       <requiredServices>
-        <service>OOZIE</service>
+        <service>
+          <name>OOZIE</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

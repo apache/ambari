@@ -284,7 +284,7 @@ public class ServiceInfo implements Validable, Cloneable {
 
   @XmlElementWrapper(name="requiredServices")
   @XmlElement(name="service")
-  private List<String> requiredServices = new ArrayList<>();
+  private List<RequiredService> requiredServices = new ArrayList<>();
 
   /**
    * Meaning: stores subpath from stack root to exact directory, that contains
@@ -417,7 +417,7 @@ public class ServiceInfo implements Validable, Cloneable {
   public void setComment(String comment) {
     this.comment = comment;
   }
-  public List<String> getRequiredServices() {
+  public List<RequiredService> getRequiredServices() {
     return requiredServices;
   }
 
@@ -437,7 +437,7 @@ public class ServiceInfo implements Validable, Cloneable {
     this.metricsFileName = metricsFileName;
   }
 
-  public void setRequiredServices(List<String> requiredServices) {
+  public void setRequiredServices(List<RequiredService> requiredServices) {
     this.requiredServices = requiredServices;
   }
   public List<PropertyInfo> getProperties() {

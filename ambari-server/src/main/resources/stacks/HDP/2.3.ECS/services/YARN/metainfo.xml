@@ -23,9 +23,18 @@
       <name>YARN</name>
       <version>2.7.1.2.3</version>
       <requiredServices>
-        <service>ECS</service>
-        <service>MAPREDUCE2</service>
-        <service>ZOOKEEPER</service>
+        <service>
+          <name>ECS</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>MAPREDUCE2</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
       <components>
         <component>
@@ -135,7 +144,10 @@
       </components>
 
       <requiredServices>
-        <service>YARN</service>
+        <service>
+          <name>YARN</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <configuration-dir>configuration-mapred</configuration-dir>
