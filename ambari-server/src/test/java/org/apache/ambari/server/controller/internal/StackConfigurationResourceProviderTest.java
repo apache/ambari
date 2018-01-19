@@ -29,7 +29,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
+import org.apache.ambari.server.controller.StackLevelConfigurationResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -54,9 +55,9 @@ public class StackConfigurationResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<StackConfigurationResponse> allResponse = new HashSet<>();
+    Set<ReadOnlyConfigurationResponse> allResponse = new HashSet<>();
     
-    allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
+    allResponse.add(new StackLevelConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
    
     // set expectations
     expect(managementController.getStackConfigurations(
@@ -126,9 +127,9 @@ public class StackConfigurationResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<StackConfigurationResponse> allResponse = new HashSet<>();
+    Set<ReadOnlyConfigurationResponse> allResponse = new HashSet<>();
 
-    allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
+    allResponse.add(new StackLevelConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
 
     // set expectations
     expect(managementController.getStackConfigurations(

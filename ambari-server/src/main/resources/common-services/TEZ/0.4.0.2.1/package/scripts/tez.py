@@ -23,8 +23,8 @@ import os
 
 # Local Imports
 from resource_management.core.resources.system import Directory, File
+from resource_management.libraries.functions import lzo_utils
 from resource_management.libraries.resources.xml_config import XmlConfig
-from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -36,6 +36,9 @@ def tez(config_dir):
   :param config_dir: Which config directory to save configs to, which is different during rolling upgrade.
   """
   import params
+
+  # ensure that matching LZO libraries are installed for Tez
+  lzo_utils.install_lzo_if_needed()
 
   Directory(params.tez_etc_dir, mode=0755)
 

@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collections;
+import java.util.Set;
+
+import org.apache.ambari.server.state.stack.RepoTag;
+
 /**
  * Emulates entity to provide a quick way to change it to real entity in future.
  */
@@ -29,6 +34,8 @@ public class RepositoryEntity {
   private String repositoryId;
   private String mirrorsList;
   private boolean unique;
+
+  private Set<RepoTag> tags;
 
   public String getName() {
     return name;
@@ -70,6 +77,36 @@ public class RepositoryEntity {
     this.repositoryId = repositoryId;
   }
 
+  public String getMirrorsList() {
+    return mirrorsList;
+  }
+
+  public void setMirrorsList(String mirrorsList) {
+    this.mirrorsList = mirrorsList;
+  }
+
+  public boolean isUnique() {
+    return unique;
+  }
+
+  public void setUnique(boolean unique) {
+    this.unique = unique;
+  }
+
+  /**
+   * @return the repo tags
+   */
+  public Set<RepoTag> getTags() {
+    return tags == null ? Collections.<RepoTag>emptySet() : tags;
+  }
+
+  /**
+   * @param repoTags the tags to set
+   */
+  public void setTags(Set<RepoTag> repoTags) {
+    tags = repoTags;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -94,21 +131,5 @@ public class RepositoryEntity {
     result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
     result = 31 * result + (repositoryId != null ? repositoryId.hashCode() : 0);
     return result;
-  }
-
-  public String getMirrorsList() {
-    return mirrorsList;
-  }
-
-  public void setMirrorsList(String mirrorsList) {
-    this.mirrorsList = mirrorsList;
-  }
-
-  public boolean isUnique() {
-    return unique;
-  }
-
-  public void setUnique(boolean unique) {
-    this.unique = unique;
   }
 }

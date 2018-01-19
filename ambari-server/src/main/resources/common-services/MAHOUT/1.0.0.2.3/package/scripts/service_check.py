@@ -71,8 +71,7 @@ class MahoutServiceCheck(Script):
     Execute( mahout_command,
              tries = 3,
              try_sleep = 5,
-             environment={'HADOOP_HOME': params.hadoop_home,'HADOOP_CONF_DIR': params.hadoop_conf_dir,
-                          'MAHOUT_HOME': params.mahout_home,'JAVA_HOME': params.java64_home},
+             environment={'MAHOUT_HOME': params.mahout_home,'JAVA_HOME': params.java64_home},
              path = format('/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'),
              user = params.smokeuser
     )

@@ -23,6 +23,7 @@ import java.util.Properties;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.notifications.dispatchers.EmailDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.SNMPDispatcher;
 import org.junit.Assert;
@@ -55,7 +56,7 @@ public class DispatchFactoryTest {
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(),sourceResourceDirectory);
     properties.setProperty(Configuration.ALERTS_SNMP_DISPATCH_UDP_PORT.getKey(),snmpPort.toString());
 
-    Injector injector = Guice.createInjector(new AuditLoggerModule(), new ControllerModule(properties));
+    Injector injector = Guice.createInjector(new AuditLoggerModule(), new ControllerModule(properties), new LdapModule());
     DispatchFactory dispatchFactory = injector.getInstance(DispatchFactory.class);
     DispatchFactory dispatchFactory2 = injector.getInstance(DispatchFactory.class);
 

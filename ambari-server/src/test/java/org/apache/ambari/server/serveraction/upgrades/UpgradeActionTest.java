@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
@@ -312,17 +314,18 @@ public class UpgradeActionTest {
     Cluster cluster = clusters.getCluster(clusterName);
 
     // Install ZK and HDFS with some components
-    Service zk = installService(cluster, "ZOOKEEPER", repositoryVersion2110);
-    addServiceComponent(cluster, zk, "ZOOKEEPER_SERVER");
-    addServiceComponent(cluster, zk, "ZOOKEEPER_CLIENT");
-    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
-    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_CLIENT", "h1");
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service zk = installService(cluster, serviceGroup, "ZOOKEEPER", repositoryVersion2110);
+    addServiceComponent(zk, "ZOOKEEPER_SERVER");
+    addServiceComponent(zk, "ZOOKEEPER_CLIENT");
+    createNewServiceComponentHost(cluster, serviceGroup, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
+    createNewServiceComponentHost(cluster, serviceGroup, "ZOOKEEPER", "ZOOKEEPER_CLIENT", "h1");
 
-    Service hdfs = installService(cluster, "HDFS", repositoryVersion2110);
-    addServiceComponent(cluster, hdfs, "NAMENODE");
-    addServiceComponent(cluster, hdfs, "DATANODE");
-    createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
-    createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
+    Service hdfs = installService(cluster, serviceGroup, "HDFS", repositoryVersion2110);
+    addServiceComponent(hdfs, "NAMENODE");
+    addServiceComponent(hdfs, "DATANODE");
+    createNewServiceComponentHost(cluster, serviceGroup, "HDFS", "NAMENODE", "h1");
+    createNewServiceComponentHost(cluster, serviceGroup, "HDFS", "DATANODE", "h1");
 
     makeCrossStackUpgradeTargetRepo(targetStack, repositoryVersion2201.getVersion(), hostName);
     createUpgrade(cluster, repositoryVersion2201);
@@ -449,8 +452,6 @@ public class UpgradeActionTest {
   /**
    * Tests that finalize still works when there are hosts which are already
    * {@link RepositoryVersionState#CURRENT}.
-   *
-   * @throws Exception
    */
   @Test
   public void testFinalizeWithHostsAlreadyCurrent() throws Exception {
@@ -500,8 +501,6 @@ public class UpgradeActionTest {
    * Tests that all host versions are correct after upgrade. This test will
    * ensure that the prior CURRENT versions are moved to INSTALLED while not
    * touching any others.
-   *
-   * @throws Exception
    */
   @Test
   public void testHostVersionsAfterUpgrade() throws Exception {
@@ -511,11 +510,12 @@ public class UpgradeActionTest {
     createHostVersions(repositoryVersion2201, hostName);
 
     // Install ZK with some components
-    Service zk = installService(cluster, "ZOOKEEPER", repositoryVersion2110);
-    addServiceComponent(cluster, zk, "ZOOKEEPER_SERVER");
-    addServiceComponent(cluster, zk, "ZOOKEEPER_CLIENT");
-    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", hostName);
-    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service zk = installService(cluster, serviceGroup, "ZOOKEEPER", repositoryVersion2110);
+    addServiceComponent(zk, "ZOOKEEPER_SERVER");
+    addServiceComponent(zk, "ZOOKEEPER_CLIENT");
+    createNewServiceComponentHost(cluster, serviceGroup, "ZOOKEEPER", "ZOOKEEPER_SERVER", hostName);
+    createNewServiceComponentHost(cluster, serviceGroup, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostName);
 
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
     assertEquals(3, hostVersions.size());
@@ -581,11 +581,12 @@ public class UpgradeActionTest {
     }
   }
 
-  private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,
-                                                             String svcComponent, String hostName) throws AmbariException {
+  private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, ServiceGroup serviceGroup, String svc,
+    String svcComponent, String hostName
+  ) throws AmbariException {
     Assert.assertNotNull(cluster.getConfigGroups());
-    Service s = installService(cluster, svc, sourceRepositoryVersion);
-    ServiceComponent sc = addServiceComponent(cluster, s, svcComponent);
+    Service s = installService(cluster, serviceGroup, svc, sourceRepositoryVersion);
+    ServiceComponent sc = addServiceComponent(s, svcComponent);
 
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc, hostName);
 
@@ -595,23 +596,25 @@ public class UpgradeActionTest {
     return sch;
   }
 
-  private Service installService(Cluster cluster, String serviceName,
-      RepositoryVersionEntity repositoryVersionEntity) throws AmbariException {
-    Service service = null;
+  private Service installService(Cluster cluster, ServiceGroup serviceGroup, String serviceName,
+    RepositoryVersionEntity repositoryVersionEntity
+  ) throws AmbariException {
+    Service service;
 
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName, repositoryVersionEntity);
+      service = serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersionEntity);
       cluster.addService(service);
     }
 
     return service;
   }
 
-  private ServiceComponent addServiceComponent(Cluster cluster, Service service,
-      String componentName) throws AmbariException {
-    ServiceComponent serviceComponent = null;
+  private ServiceComponent addServiceComponent(Service service,
+    String componentName
+  ) throws AmbariException {
+    ServiceComponent serviceComponent;
     try {
       serviceComponent = service.getServiceComponent(componentName);
     } catch (ServiceComponentNotFoundException e) {

@@ -27,6 +27,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
+import org.apache.ambari.server.orm.entities.ServiceDependencyEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -61,6 +62,22 @@ public class ClusterServiceDAO {
   }
 
   @RequiresSession
+  public ClusterServiceEntity findByName(String clusterName, String serviceGroupName, String serviceName) {
+    TypedQuery<ClusterServiceEntity> query = entityManagerProvider.get()
+            .createNamedQuery("clusterServiceByName" , ClusterServiceEntity.class);
+    query.setParameter("clusterName", clusterName);
+    query.setParameter("serviceGroupName", serviceGroupName);
+    query.setParameter("serviceName", serviceName);
+
+    try {
+      return query.getSingleResult();
+    }
+    catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  @RequiresSession
   public List<ClusterServiceEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), ClusterServiceEntity.class);
   }
@@ -76,13 +93,28 @@ public class ClusterServiceDAO {
   }
 
   @Transactional
+  public void createServiceDependency(ServiceDependencyEntity serviceDependencyEntity) {
+    entityManagerProvider.get().persist(serviceDependencyEntity);
+  }
+
+  @Transactional
   public ClusterServiceEntity merge(ClusterServiceEntity clusterServiceEntity) {
     return entityManagerProvider.get().merge(clusterServiceEntity);
   }
 
   @Transactional
+  public ServiceDependencyEntity mergeServiceDependency(ServiceDependencyEntity serviceDependencyEntity) {
+    return entityManagerProvider.get().merge(serviceDependencyEntity);
+  }
+
+  @Transactional
   public void remove(ClusterServiceEntity clusterServiceEntity) {
     entityManagerProvider.get().remove(merge(clusterServiceEntity));
+  }
+
+  @Transactional
+  public void removeServiceDependency(ServiceDependencyEntity serviceDependencyEntity) {
+    entityManagerProvider.get().remove(mergeServiceDependency(serviceDependencyEntity));
   }
 
   @Transactional

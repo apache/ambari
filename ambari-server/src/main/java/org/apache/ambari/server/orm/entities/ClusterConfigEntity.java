@@ -90,6 +90,17 @@ public class ClusterConfigEntity {
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 
+  @Column(name = "service_id", nullable = true)
+  private Long serviceId;
+
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
+  }
+
   @Column(name = "type_name")
   private String type;
 

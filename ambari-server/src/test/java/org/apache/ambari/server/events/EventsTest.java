@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -78,13 +80,11 @@ public class EventsTest {
   private AlertDefinitionDAO m_definitionDao;
   private AlertDispatchDAO m_alertDispatchDao;
 
-  private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
+  private static final String STACK_VERSION = "2.0.6";
+  private static final String REPO_VERSION = "2.0.6-1234";
   private RepositoryVersionEntity m_repositoryVersion;
+  private ServiceGroup serviceGroup;
 
-  /**
-   *
-   */
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -121,15 +121,14 @@ public class EventsTest {
     m_cluster = m_clusters.getCluster(m_clusterName);
     Assert.assertNotNull(m_cluster);
 
+    serviceGroup = m_cluster.addServiceGroup("CORE");
+
     m_cluster.setDesiredStackVersion(stackId);
     m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }
 
-  /**
-   * @throws Exception
-   */
   @After
   public void teardown() throws Exception {
     H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
@@ -138,8 +137,6 @@ public class EventsTest {
 
   /**
    * Tests that {@link ServiceInstalledEvent}s are fired correctly.
-   *
-   * @throws Exception
    */
   @Test
   public void testServiceInstalledEvent() throws Exception {
@@ -151,8 +148,6 @@ public class EventsTest {
 
   /**
    * Tests that {@link ServiceRemovedEvent}s are fired correctly.
-   *
-   * @throws Exception
    */
   @Test
   public void testServiceRemovedEvent() throws Exception {
@@ -166,8 +161,6 @@ public class EventsTest {
   /**
    * Tests that {@link ServiceRemovedEvent}s are fired correctly and alerts and
    * the default alert group are removed.
-   *
-   * @throws Exception
    */
   @Test
   public void testServiceRemovedEventForAlerts() throws Exception {
@@ -214,8 +207,6 @@ public class EventsTest {
   /**
    * Tests that {@link ServiceRemovedEvent}s are fired correctly and the default alert group
    * is removed even though alerts were already removed at the time the event is fired.
-   *
-   * @throws Exception
    */
   @Test
   public void testServiceRemovedEventForDefaultAlertGroup() throws Exception {
@@ -259,8 +250,6 @@ public class EventsTest {
   /**
    * Tests that {@link ServiceRemovedEvent}s are fired correctly and alerts are removed
    * even though the default alert group was already removed at the time the event is fired .
-   *
-   * @throws Exception
    */
   @Test
   public void testServiceRemovedEventForAlertDefinitions() throws Exception {
@@ -307,8 +296,6 @@ public class EventsTest {
 
   /**
    * Tests that {@link ServiceComponentUninstalledEvent}s are fired correctly.
-   *
-   * @throws Exception
    */
   @Test
   public void testServiceComponentUninstalledEvent() throws Exception {
@@ -323,8 +310,6 @@ public class EventsTest {
 
   /**
    * Tests that {@link MaintenanceModeEvent}s are fired correctly.
-   *
-   * @throws Exception
    */
   @Test
   public void testMaintenanceModeEvents() throws Exception {
@@ -360,8 +345,6 @@ public class EventsTest {
 
   /**
    * Tests that {@link ServiceComponentUninstalledEvent}s are fired correctly.
-   *
-   * @throws Exception
    */
   @Test
   public void testClusterRenameEvent() throws Exception {
@@ -379,8 +362,8 @@ public class EventsTest {
 
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    Service service = m_serviceFactory.createNew(m_cluster, serviceName, m_repositoryVersion);
-    service = m_cluster.getService(serviceName);
+    m_serviceFactory.createNew(m_cluster, serviceGroup, new ArrayList<>(), serviceName, serviceName, m_repositoryVersion);
+    Service service = m_cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
     ServiceComponent component = m_componentFactory.createNew(service, "DATANODE");

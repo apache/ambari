@@ -461,6 +461,16 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     else:
       putHbaseSiteProperty('hbase.master.ui.readonly', 'false')
 
+  """
+  Returns the list of Phoenix Query Server host names, or None.
+  """
+  def get_phoenix_query_server_hosts(self, services, hosts):
+    if len(hosts['items']) > 0:
+      phoenix_query_server_hosts = self.getHostsWithComponent("HBASE", "PHOENIX_QUERY_SERVER", services, hosts)
+      if phoenix_query_server_hosts is None:
+        return []
+      return [host['Hosts']['host_name'] for host in phoenix_query_server_hosts]
+
 
   def recommendHBASEConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
     if 'hbase-env' in services['configurations'] and 'hbase_user' in services['configurations']['hbase-env']['properties']:

@@ -26,7 +26,8 @@ public class HostConfigMappingImpl implements HostConfigMapping {
   private String type;
   private Long createTimestamp;
   private String version;
-  private String serviceName;
+  private Long serviceId;
+  private Long serviceGroupId;
   private String user;
   private Integer selected;
   
@@ -38,7 +39,8 @@ public class HostConfigMappingImpl implements HostConfigMapping {
     setType(entry.getType());
     setCreateTimestamp(entry.getCreateTimestamp());
     setVersion(entry.getVersion());
-    setServiceName(entry.getServiceName());
+    setServiceGroupId(entry.getServiceGroupId());
+    setServiceId(entry.getServiceId());
     setUser(entry.getUser());
     setSelected(entry.getSelected());
   }
@@ -105,15 +107,27 @@ public class HostConfigMappingImpl implements HostConfigMapping {
       throw new RuntimeException("Version couldn't be null");
     this.version = version;
   }
-  public String getServiceName() {
-    return serviceName;
-  }
-  
+
   @Override
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public Long getServiceId() {
+    return serviceId;
   }
-  
+
+  @Override
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
+  }
+
+  @Override
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  @Override
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
   @Override
   public String getUser() {
     return user;

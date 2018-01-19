@@ -20,6 +20,7 @@ import * as moment from 'moment';
 
 export const mockData = {
   login: {},
+  logout: {},
   api: {
     v1: {
       audit: {
@@ -46,7 +47,7 @@ export const mockData = {
               proxyUsers: [
                 'admin'
               ],
-              evtTime: '2017-05-29T11:30:22.531Z',
+              evtTime: 1496057422531,
               enforcer: 'ambari-acl',
               reqContext: 'ambari',
               cliType: 'GET',
@@ -93,7 +94,7 @@ export const mockData = {
               proxyUsers: [
                 'user'
               ],
-              evtTime: '2017-05-29T11:30:22.531Z',
+              evtTime: 1496057422531,
               enforcer: 'hdfs',
               reqContext: 'ambari_server',
               cliType: 'PUT',

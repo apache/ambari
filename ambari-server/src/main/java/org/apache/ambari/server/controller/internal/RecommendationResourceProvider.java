@@ -43,8 +43,12 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RecommendationResourceProvider extends StackAdvisorResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RecommendationResourceProvider.class);
 
   protected static final String RECOMMENDATION_ID_PROPERTY_ID = PropertyHelper.getPropertyId(
       "Recommendation", "id");

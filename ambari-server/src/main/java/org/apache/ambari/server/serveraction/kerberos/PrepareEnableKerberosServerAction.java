@@ -119,7 +119,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
     Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor, false, false);
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-        configurations, kerberosConfigurations, true, propertiesToIgnore, false);
+        configurations, kerberosConfigurations, true, propertiesToIgnore);
 
     // Calculate the set of configurations to update and replace any variables
     // using the previously calculated Map of configurations for the host.

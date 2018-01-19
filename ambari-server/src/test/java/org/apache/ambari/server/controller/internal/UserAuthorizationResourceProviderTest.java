@@ -63,6 +63,7 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.registry.RegistryFactory;
 import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -71,6 +72,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -94,7 +96,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-
 
 /**
  * UserAuthorizationResourceProvider tests.
@@ -431,7 +432,8 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
         bind(RegistryManager.class).toInstance(createNiceMock(RegistryManager.class));
         bind(RegistryFactory.class).toInstance(createNiceMock(RegistryFactory.class));
-
+        bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
+        bind(ClusterSettingFactory.class).toInstance(createNiceMock(ClusterSettingFactory.class));
       }
     });
   }

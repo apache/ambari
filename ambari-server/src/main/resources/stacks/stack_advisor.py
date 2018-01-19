@@ -1749,6 +1749,15 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     return {"level": "ERROR", "message": message}
 
+  def getNotApplicableItem(self, message):
+    '''
+    Creates report about validation error that can not be ignored. 
+    UI should not allow the proceeding of work.
+    :param message: error description.
+    :return: report about error.
+    '''
+    return {"level": "NOT_APPLICABLE", "message": message}
+
   def getComponentHostNames(self, servicesDict, serviceName, componentName):
     for service in servicesDict["services"]:
       if service["StackServices"]["service_name"] == serviceName:

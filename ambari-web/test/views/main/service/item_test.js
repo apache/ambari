@@ -614,7 +614,7 @@ describe('App.MainServiceItemView', function () {
 
   describe('#hasConfigTab', function() {
     beforeEach(function() {
-      this.mockAuthorized = sinon.stub(App, 'isAuthorized');
+      this.mockAuthorized = sinon.stub(App, 'havePermissions');
       this.mockGet = sinon.stub(App, 'get').returns(['S2']);
     });
     afterEach(function() {
@@ -622,7 +622,7 @@ describe('App.MainServiceItemView', function () {
       this.mockGet.restore();
     });
 
-    it('should return false when not authorized', function() {
+    it('should return false when have not permissions', function() {
       this.mockAuthorized.returns(false);
       view.set('controller.content.serviceName', 'S1');
       expect(view.get('hasConfigTab')).to.be.false;
@@ -634,7 +634,7 @@ describe('App.MainServiceItemView', function () {
       expect(view.get('hasConfigTab')).to.be.false;
     });
 
-    it('should return true when authorized', function() {
+    it('should return true when have permissions', function() {
       this.mockAuthorized.returns(true);
       view.set('controller.content.serviceName', 'S1');
       expect(view.get('hasConfigTab')).to.be.true;

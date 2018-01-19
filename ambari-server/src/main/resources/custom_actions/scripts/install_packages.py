@@ -103,7 +103,7 @@ class InstallPackages(Script):
     self.repository_version = self.repository_version.strip()
 
     try:
-      if not command_repository.repositories:
+      if not command_repository.items:
         Logger.warning(
           "Repository list is empty. Ambari may not be managing the repositories for {0}.".format(
             self.repository_version))
@@ -179,8 +179,18 @@ class InstallPackages(Script):
             and not sudo.path_exists("/usr/bin/conf-select") and sudo.path_exists("/usr/bin/hdfconf-select"):
       Link("/usr/bin/conf-select", to="/usr/bin/hdfconf-select")
 
+
+    restricted_packages = conf_select.get_restricted_packages()
+
+    if 0 == len(restricted_packages):
+      Logger.info("There are no restricted conf-select packages for this installation")
+    else:
+      Logger.info("Restricting conf-select packages to {0}".format(restricted_packages))
+
     for package_name, directories in conf_select.get_package_dirs().iteritems():
-      conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
+      if 0 == len(restricted_packages) or package_name in restricted_packages:
+        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
+
 
   def compute_actual_version(self):
     """
@@ -328,6 +338,7 @@ class InstallPackages(Script):
       # specific repo that the stack-select tools are coming out of in case there are multiple
       # patches installed
       repositories = config['repositoryFile']['repositories']
+      command_repos = CommandRepository(config['repositoryFile'])
       repository_ids = [repository['repoId'] for repository in repositories]
       repos_to_use = {}
       for repo_id in repository_ids:
@@ -345,7 +356,7 @@ class InstallPackages(Script):
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       try:
-        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(repositories)
+        available_packages_in_repos = self.pkg_provider.get_available_packages_in_repos(command_repos)
       except Exception:
         available_packages_in_repos = []
       for package in filtered_package_list:

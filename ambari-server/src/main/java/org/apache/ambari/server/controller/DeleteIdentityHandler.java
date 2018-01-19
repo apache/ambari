@@ -146,7 +146,8 @@ class DeleteIdentityHandler {
 
     Map<String, String> requestParams = new HashMap<>();
     List<RequestResourceFilter> requestResourceFilters = new ArrayList<>();
-    RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", new ArrayList<>(hostFilter));
+    //TODO figure kerberos service group if any
+    RequestResourceFilter reqResFilter = new RequestResourceFilter("", "KERBEROS", "KERBEROS_CLIENT", new ArrayList<>(hostFilter));
     requestResourceFilters.add(reqResFilter);
 
     ActionExecutionContext actionExecContext = new ActionExecutionContext(
@@ -228,8 +229,7 @@ class DeleteIdentityHandler {
         calculateConfig(kerberosDescriptor, serviceNames()),
         new HashMap<>(),
         false,
-        new HashMap<>(),
-          false);
+        new HashMap<>());
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
     }
 

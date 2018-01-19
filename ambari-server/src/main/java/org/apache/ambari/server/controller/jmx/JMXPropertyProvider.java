@@ -116,7 +116,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
                                  "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
   }
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
       LoggerFactory.getLogger(JMXPropertyProvider.class);
 
   private static final Pattern dotReplacementCharPattern =

@@ -44,52 +44,46 @@
 <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
 <![endif]-->
 
-<div id="top-nav" ng-controller="MainCtrl">
-  <header class="navbar navbar-static-top navbar-inverse">
-    <div class="navbar-inner">
-      <div class="container">
-        <a href="{{fromSiteRoot('/#/main/dashboard')}}" class="logo"><img src="/img/ambari-logo.png" alt="{{'common.apacheAmbari' | translate}}" title="{{'common.apacheAmbari' | translate}}" data-qa="ambari-logo"></a>
-        <a href="{{fromSiteRoot('/#/main/dashboard')}}" class="brand" title="{{'common.apacheAmbari' | translate}}" data-qa="ambari-title">{{'common.ambari' | translate}}</a>
-        <ul class="nav navbar-nav navbar-right">
-          <li>
-            <div class="btn-group navbar-views-dropdown" dropdown is-open="viewsdropdown.isopen" ng-mouseover="viewsdropdown.isopen=true" ng-mouseout="viewsdropdown.isopen=false">
-              <a href="{{fromSiteRoot('/#/main/views')}}" ng-click="gotoViewsDashboard()" class="dropdown-toggle"><i class="fa fa-th"></i></a>
-              <ul class="dropdown-menu" role="menu">
-                <li ng-repeat="instance in viewInstances"><a href="{{fromSiteRoot('/#/main/views/' + instance.viewUrl)}}" target="_blank">{{instance.label}}</a></li>
-                <li ng-show="!viewInstances.length" class="disabled"><a>{{'common.noViews' | translate}}</a></li>
-              </ul>
-            </div>
-          </li>
-          <li>
-            <div class="btn-group" dropdown is-open="status.isopen">
-              <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
-                <i class="fa fa-user"></i> {{currentUser}} <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href ng-click="about()">{{'common.about' | translate}}</a></li>
-                <li class="divider"></li>
-                <li><a href ng-click="signOut()">{{'common.signOut' | translate}}</a></li>
-              </ul>
-            </div>
-          </li>
-        </ul>
+<div id="wrapper" ng-controller="AppCtrl">
+
+  <div ng-include="'views/sideNav.html'" ng-controller="SideNavCtrl"></div>
+
+  <div id="main">
+    <div id="top-nav">
+     <nav class="navbar navbar-default navbar-static-top">
+       <div class="container">
+         <div class="navbar-header navbar-nav">
+           <ol class="breadcrumb">
+             <li ng-repeat="breadcrumb in breadcrumbs" ng-class="$last && 'active'">{{breadcrumb}}</li>
+           </ol>
+         </div>
+         <ul class="nav navbar-nav navbar-right">
+           <li>
+             <p class="navbar-text">{{cluster.Clusters.cluster_name}}</p>
+           </li>
+           <li class="dropdown">
+             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" ng-disabled="disabled">
+               <i class="fa fa-user"></i>&nbsp;{{currentUser}}&nbsp;<span class="caret"></span>
+             </a>
+             <ul class="dropdown-menu">
+               <li><a href ng-click="about()">{{'common.about' | translate}}</a></li>
+               <li role="separator" class="divider"></li>
+               <li><a href ng-click="signOut()">{{'common.signOut' | translate}}</a></li>
+             </ul>
+           </li>
+         </ul>
+       </div>
+     </nav>
+    </div>
+    <div class="container main-container">
+      <div class="row">
+        <div class="col-sm-12">
+          <ng-view></ng-view>
+        </div>
       </div>
-    </div>
-  </header>
-</div>
-
-
-<div class="container">
-  <div class="row">
-    <div class="col-sm-3">
-      <div ng-include="'views/leftNavbar.html'" ng-controller="NavbarCtrl"></div>
-    </div>
-    <div class="col-sm-9">
-      <ng-view></ng-view>
     </div>
   </div>
 </div>
-
 
 <!-- build:js scripts/vendor.js -->
 <!-- bower:js -->
@@ -119,6 +113,7 @@
 <script src="bower_components/bootstrap/js/scrollspy.js"></script>
 <script src="bower_components/bootstrap/js/collapse.js"></script>
 <script src="bower_components/bootstrap/js/tab.js"></script>
+<script src="scripts/theme/bootstrap-ambari.js"></script>
 
 <!-- endbuild -->
 
@@ -126,26 +121,25 @@
 <script src="scripts/app.js"></script>
 <script src="scripts/routes.js"></script>
 <script src="scripts/i18n.config.js"></script>
-<script src="scripts/controllers/mainCtrl.js"></script>
-<script src="scripts/controllers/NavbarCtrl.js"></script>
+<script src="scripts/controllers/clusters/ClusterInformationCtrl.js"></script>
+<script src="scripts/controllers/AppCtrl.js"></script>
+<script src="scripts/controllers/SideNavCtrl.js"></script>
 <script src="scripts/controllers/authentication/AuthenticationMainCtrl.js"></script>
 <script src="scripts/controllers/loginActivities/LoginActivitiesMainCtrl.js"></script>
 <script src="scripts/controllers/loginActivities/LoginMessageMainCtrl.js"></script>
 <script src="scripts/controllers/loginActivities/HomeDirectoryCtrl.js"></script>
-<script src="scripts/controllers/users/UsersCreateCtrl.js"></script>
-<script src="scripts/controllers/users/UsersListCtrl.js"></script>
-<script src="scripts/controllers/users/UsersShowCtrl.js"></script>
-<script src="scripts/controllers/groups/GroupsListCtrl.js"></script>
-<script src="scripts/controllers/groups/GroupsCreateCtrl.js"></script>
-<script src="scripts/controllers/groups/GroupsEditCtrl.js"></script>
+<script src="scripts/controllers/userManagement/UserManagementCtrl.js"></script>
+<script src="scripts/controllers/userManagement/UserCreateCtrl.js"></script>
+<script src="scripts/controllers/userManagement/UsersListCtrl.js"></script>
+<script src="scripts/controllers/userManagement/UserEditCtrl.js"></script>
+<script src="scripts/controllers/userManagement/GroupsListCtrl.js"></script>
+<script src="scripts/controllers/userManagement/GroupCreateCtrl.js"></script>
+<script src="scripts/controllers/userManagement/GroupEditCtrl.js"></script>
 <script src="scripts/controllers/ambariViews/ViewsListCtrl.js"></script>
 <script src="scripts/controllers/ambariViews/ViewsEditCtrl.js"></script>
 <script src="scripts/controllers/ambariViews/ViewUrlCtrl.js"></script>
 <script src="scripts/controllers/ambariViews/ViewUrlEditCtrl.js"></script>
 <script src="scripts/controllers/ambariViews/CreateViewInstanceCtrl.js"></script>
-<script src="scripts/controllers/clusters/ClustersManageAccessCtrl.js"></script>
-<script src="scripts/controllers/clusters/UserAccessListCtrl.js"></script>
-<script src="scripts/controllers/clusters/ExportBlueprintCtrl.js"></script>
 <script src="scripts/controllers/stackVersions/StackVersionsCreateCtrl.js"></script>
 <script src="scripts/controllers/stackVersions/StackVersionsListCtrl.js"></script>
 <script src="scripts/controllers/stackVersions/StackVersionsEditCtrl.js"></script>
@@ -159,7 +153,6 @@
 <script src="scripts/services/Utility.js"></script>
 <script src="scripts/services/UserConstants.js"></script>
 <script src="scripts/services/User.js"></script>
-<script src="scripts/services/GroupConstants.js"></script>
 <script src="scripts/services/Group.js"></script>
 <script src="scripts/services/RemoteCluster.js"></script>
 <script src="scripts/services/View.js"></script>

@@ -27,6 +27,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.libraries.resources.xml_config import XmlConfig
@@ -44,6 +45,8 @@ def yarn(name=None, config_dir=None):
   :param config_dir: Which config directory to write configs to, which could be different during rolling upgrade.
   """
   import params
+
+  install_lzo_if_needed()
 
   if config_dir is None:
     config_dir = params.hadoop_conf_dir

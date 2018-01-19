@@ -25,7 +25,7 @@ public class ActionResponseTest {
   @Test
   public void testBasicGetAndSet() {
     ActionResponse r1 =
-        new ActionResponse("a1", "SYSTEM", "fileName", "HDFS", "DATANODE", "Desc1", "Any", "100");
+        new ActionResponse("a1", "SYSTEM", "fileName", "core", "HDFS", "DATANODE", "Desc1", "Any", "100");
     
     Assert.assertEquals("a1", r1.getActionName());
     Assert.assertEquals("SYSTEM", r1.getActionType());
@@ -39,7 +39,7 @@ public class ActionResponseTest {
 
   @Test
   public void testToString() {
-    ActionResponse r = new ActionResponse(null, null, null, null, null, null, null, null);
+    ActionResponse r = new ActionResponse(null, null, null, null, null, null, null, null, null);
     r.toString();
   }
 }

@@ -105,16 +105,15 @@ public class ConfigImpl implements Config {
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
       ClusterDAO clusterDAO, StackDAO stackDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
-    this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
+    this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,null,
         clusterDAO, stackDAO, gson, eventPublisher, lockFactory);
   }
-
 
   @AssistedInject
   ConfigImpl(@Assisted @Nullable StackId stackId, @Assisted Cluster cluster, @Assisted("type") String type,
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
-      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,@Assisted @Nullable Long serviceId,
       ClusterDAO clusterDAO, StackDAO stackDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
 
@@ -149,6 +148,10 @@ public class ConfigImpl implements Config {
     entity.setTimestamp(System.currentTimeMillis());
     entity.setStack(stackEntity);
     entity.setData(gson.toJson(properties));
+
+    if (null != serviceId) {
+      entity.setServiceId(serviceId);
+    }
 
     if (null != propertiesAttributes) {
       entity.setAttributes(gson.toJson(propertiesAttributes));
@@ -347,7 +350,11 @@ public class ConfigImpl implements Config {
     persistEntitiesInTransaction(entity);
 
     // ensure that the in-memory state of the cluster is kept consistent
-    cluster.addConfig(this);
+    if(entity.getServiceId() == null) {
+      cluster.addConfig(this);
+    }else{
+      cluster.addConfig(this,entity.getServiceId());
+    }
 
     // re-load the entity associations for the cluster
     cluster.refresh();

@@ -42,7 +42,7 @@ public class CredentialProvider {
       '2', '3', '4', '5', '6', '7', '8', '9'};
 
   private CredentialStore keystoreService;
-  static final Logger LOG = LoggerFactory.getLogger(CredentialProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CredentialProvider.class);
 
   public CredentialProvider(String masterKey, File masterKeyLocation,
                             boolean isMasterKeyPersisted, File masterKeyStoreLocation) throws AmbariException {

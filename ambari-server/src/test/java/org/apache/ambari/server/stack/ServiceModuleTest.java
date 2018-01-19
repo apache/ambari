@@ -44,9 +44,9 @@ import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CredentialStoreInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.ServicePropertyInfo;
 import org.junit.Test;
 
@@ -231,8 +231,8 @@ public class ServiceModuleTest {
 
   @Test
   public void testResolve_OsSpecifics() throws Exception {
-    Map<String, ServiceOsSpecific> osSpecifics = new HashMap<>();
-    osSpecifics.put("foo", new ServiceOsSpecific());
+    Map<String, OsSpecific> osSpecifics = new HashMap<>();
+    osSpecifics.put("foo", new OsSpecific());
 
     // specified in child only
     ServiceInfo info = new ServiceInfo();
@@ -250,8 +250,8 @@ public class ServiceModuleTest {
     assertEquals(osSpecifics, service.getModuleInfo().getOsSpecifics());
 
     // specified in both
-    Map<String, ServiceOsSpecific> osSpecifics2 = new HashMap<>();
-    osSpecifics.put("bar", new ServiceOsSpecific());
+    Map<String, OsSpecific> osSpecifics2 = new HashMap<>();
+    osSpecifics.put("bar", new OsSpecific());
 
     info.setOsSpecifics(osSpecifics);
     parentInfo.setOsSpecifics(osSpecifics2);
@@ -496,6 +496,36 @@ public class ServiceModuleTest {
     parent.getModuleInfo().setChecksFolder(new File("other"));
     resolveService(child, parent);
     assertEquals(checks.getPath(), child.getModuleInfo().getChecksFolder().getPath());
+  }
+
+  @Test
+  public void testResolve_ServerActionDirectory() throws Exception {
+    File serverActions = new File("server_actions");
+
+    // check directory specified in child only
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    ServiceModule child = createServiceModule(info);
+    ServiceModule parent = createServiceModule(parentInfo);
+    child.getModuleInfo().setServerActionsFolder(serverActions);
+    resolveService(child, parent);
+    assertEquals(serverActions.getPath(), child.getModuleInfo().getServerActionsFolder().getPath());
+
+    // check directory specified in parent only
+    child = createServiceModule(info);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setServerActionsFolder(serverActions);
+    resolveService(child, parent);
+    assertEquals(serverActions.getPath(), child.getModuleInfo().getServerActionsFolder().getPath());
+
+    // check directory set in both
+    info.setServerActionsFolder(serverActions);
+    child = createServiceModule(info);
+    child.getModuleInfo().setServerActionsFolder(serverActions);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setServerActionsFolder(new File("other"));
+    resolveService(child, parent);
+    assertEquals(serverActions.getPath(), child.getModuleInfo().getServerActionsFolder().getPath());
   }
 
   @Test

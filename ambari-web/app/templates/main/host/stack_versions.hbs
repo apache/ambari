@@ -54,9 +54,9 @@
           {{/if}}
         </td>
         <td class="install-repo-version align-center">
-          {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
+          {{#havePermissions "AMBARI.MANAGE_STACK_VERSIONS"}}
             <button class="btn btn-default" {{action installVersionConfirmation version target="controller"}} {{bindAttr disabled="version.installDisabled"}}><i class="glyphicon glyphicon-off"></i>&nbsp;{{t common.install}}</button>
-          {{/isAuthorized}}
+          {{/havePermissions}}
         </td>
       </tr>
     {{/each}}

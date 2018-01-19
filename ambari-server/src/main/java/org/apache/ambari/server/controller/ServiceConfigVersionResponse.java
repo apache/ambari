@@ -54,6 +54,15 @@ public class ServiceConfigVersionResponse {
   @JsonProperty("service_name")
   private final String serviceName;
 
+  @JsonProperty("service_id")
+  private final Long serviceId;
+
+  @JsonProperty("service_group_name")
+  private final String serviceGroupName;
+
+  @JsonProperty("service_group_id")
+  private final Long serviceGroupId;
+
   @JsonProperty("service_config_version")
   private final Long version;
 
@@ -106,6 +115,9 @@ public class ServiceConfigVersionResponse {
 
     clusterName = clusterEntity.getClusterName();
     serviceName = serviceConfigEntity.getServiceName();
+    serviceId = serviceConfigEntity.getServiceId();
+    serviceGroupName = serviceConfigEntity.getServiceGroupName();
+    serviceGroupId = serviceConfigEntity.getServiceGroupId();
     version = serviceConfigEntity.getVersion();
     userName = serviceConfigEntity.getUser();
     createTime = serviceConfigEntity.getCreateTimestamp();
@@ -233,6 +245,18 @@ public class ServiceConfigVersionResponse {
       .append(configurations)
       .append(hosts)
       .toHashCode();
+  }
+
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  public Long getServiceGroupId() {
+    return serviceGroupId;
   }
 }
 

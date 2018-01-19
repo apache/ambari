@@ -49,6 +49,8 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -60,6 +62,8 @@ import com.google.inject.Inject;
 @StaticallyInject
 public class AlertGroupResourceProvider extends
     AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AlertGroupResourceProvider.class);
 
   public static final String ALERT_GROUP = "AlertGroup";
   public static final String ALERT_GROUP_ID = "AlertGroup/id";

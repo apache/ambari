@@ -21,13 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -45,6 +43,8 @@ import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
@@ -92,7 +92,7 @@ import com.google.inject.Provider;
         query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion.version = :version ORDER BY repositoryVersion.id DESC"),
     @NamedQuery(
         name = "findByServiceDesiredVersion",
-        query = "SELECT DISTINCT sd.desiredRepositoryVersion from ServiceDesiredStateEntity sd WHERE sd.desiredRepositoryVersion IN ?1") })
+        query = "SELECT repositoryVersion FROM RepositoryVersionEntity repositoryVersion WHERE repositoryVersion IN (SELECT DISTINCT sd1.desiredRepositoryVersion FROM ServiceDesiredStateEntity sd1 WHERE sd1.desiredRepositoryVersion IN ?1)") })
 @StaticallyInject
 public class RepositoryVersionEntity {
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
@@ -129,7 +129,6 @@ public class RepositoryVersionEntity {
   @Enumerated(value = EnumType.STRING)
   private RepositoryType type = RepositoryType.STANDARD;
 
-  @Basic(fetch=FetchType.LAZY)
   @Lob
   @Column(name="version_xml", insertable = true, updatable = true)
   private String versionXml;
@@ -155,6 +154,9 @@ public class RepositoryVersionEntity {
    */
   @Column(name = "resolved", nullable = false)
   private short resolved = 0;
+
+  @Column(name = "legacy", nullable = false)
+  private short isLegacy = 0;
 
   @ManyToOne
   @JoinColumn(name = "parent_id")
@@ -489,6 +491,28 @@ public class RepositoryVersionEntity {
    */
   public boolean isResolved() {
     return resolved == 1;
+  }
+
+  /**
+   * Gets whether this repository is legacy
+   *
+   * @return
+   */
+  @Deprecated
+  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
+  public boolean isLegacy(){
+    return isLegacy == 1;
+  }
+
+  /**
+   * Sets whether this repository is legacy. Scoped for moving from old-style repository naming to new
+   *
+   * @param isLegacy
+   */
+  @Deprecated
+  @Experimental(feature= ExperimentalFeature.PATCH_UPGRADES)
+  public void setLegacy(boolean isLegacy){
+    this.isLegacy = isLegacy ? (short) 1 : (short) 0;
   }
 
   /**

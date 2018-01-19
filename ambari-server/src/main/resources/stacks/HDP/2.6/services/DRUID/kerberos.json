@@ -16,7 +16,7 @@
         {
           "name": "druid",
           "principal": {
-            "value": "${druid-env/druid_user}@${realm}",
+            "value": "${druid-env/druid_user}${principal_suffix}@${realm}",
             "type": "user",
             "configuration": "druid-common/druid.hadoop.security.kerberos.principal",
             "local_username": "${druid-env/druid_user}"
@@ -41,49 +41,22 @@
       ],
       "components": [
         {
-          "name": "DRUID_HISTORICAL",
-          "identities": [
-            {
-              "name": "druid_druid_historical_druid",
-              "reference": "/druid"
-            }
-          ]
+          "name": "DRUID_HISTORICAL"
         },
         {
-          "name": "DRUID_BROKER",
-          "identities": [
-            {
-              "name": "druid_druid_broker_druid",
-              "reference": "/druid"
-            }
-          ]
+          "name": "DRUID_BROKER"
         },
         {
-          "name": "DRUID_OVERLORD",
-          "identities": [
-            {
-              "name": "druid_druid_historical_druid",
-              "reference": "/druid"
-            }
-          ]
+          "name": "DRUID_OVERLORD"
         },
         {
-          "name": "DRUID_COORDINATOR",
-          "identities": [
-            {
-              "name": "druid_druid_coordinator_druid",
-              "reference": "/druid"
-            }
-          ]
+          "name": "DRUID_COORDINATOR"
         },
         {
-          "name": "DRUID_MIDDLEMANAGER",
-          "identities": [
-            {
-              "name": "druid_druid_middlemanager_druid",
-              "reference": "/druid"
-            }
-          ]
+          "name": "DRUID_MIDDLEMANAGER"
+        },
+        {
+          "name": "DRUID_ROUTER"
         }
       ],
       "configurations": [

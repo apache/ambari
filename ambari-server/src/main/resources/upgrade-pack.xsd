@@ -87,7 +87,7 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="security">
     <xs:complexContent>
       <xs:extension base="abstract-condition-type">  
@@ -345,6 +345,13 @@
     </xs:complexContent>
   </xs:complexType>
   
+  <xs:complexType name="create_and_configure">
+    <xs:complexContent>
+      <xs:extension base="configure">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:complexType name="configure_function">
     <xs:complexContent>
       <xs:extension base="abstract-task-type">

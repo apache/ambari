@@ -18,27 +18,36 @@
 
 package org.apache.ambari.server.controller;
 
+
+import java.util.List;
+
 public class ServiceConfigVersionRequest {
   private String clusterName;
   private String serviceName;
+  private String serviceGroupName;
   private Long version;
   private Long createTime;
   private Long applyTime;
   private String userName;
   private String note;
   private Boolean isCurrent;
+  private List<ConfigurationRequest> configs;
+  private String stackId;
 
   public ServiceConfigVersionRequest() {
   }
 
-  public ServiceConfigVersionRequest(String clusterName, String serviceName, Long version, Long createTime, Long applyTime, String userName, Boolean isCurrent) {
+  public ServiceConfigVersionRequest(String clusterName, String serviceGroupName, String serviceName, Long version, Long createTime, Long applyTime, String userName, Boolean isCurrent, String note, String stackId) {
     this.clusterName = clusterName;
+    this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
     this.version = version;
     this.createTime = createTime;
     this.applyTime = applyTime;
     this.userName = userName;
     this.isCurrent = isCurrent;
+    this.note = note;
+    this.stackId = stackId;
   }
 
   public String getServiceName() {
@@ -105,10 +114,35 @@ public class ServiceConfigVersionRequest {
     this.isCurrent = isCurrent;
   }
 
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public void setServiceGroupName(String serviceGroupName) {
+    this.serviceGroupName = serviceGroupName;
+  }
+
+  public String getStackId() {
+    return stackId;
+  }
+
+  public void setStackId(String stackId) {
+    this.stackId = stackId;
+  }
+
+  public void setConfigs(List<ConfigurationRequest> configRequests) {
+    configs = configRequests;
+  }
+
+  public List<ConfigurationRequest> getConfigs() {
+    return configs;
+  }
+
   @Override
   public String toString() {
     return "ServiceConfigVersionRequest{" +
         "clusterName='" + clusterName + '\'' +
+        ", serviceGroupName='" + serviceGroupName + '\'' +
         ", serviceName='" + serviceName + '\'' +
         ", version=" + version +
         ", createTime=" + createTime +

@@ -49,6 +49,7 @@ public class ServiceGroupResourceDefinition extends BaseResourceDefinition {
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
     Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
     subs.add(new SubResourceDefinition(Resource.Type.Service));
+    subs.add(new SubResourceDefinition(Resource.Type.ServiceGroupDependency));
     return subs;
   }
 }

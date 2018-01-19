@@ -17,6 +17,7 @@
  */
 
 import {QueryParams} from '@app/classes/queries/query-params';
+import {SortingType} from '@app/classes/string';
 
 export const defaultParams = {
   page: '0',
@@ -35,7 +36,7 @@ export class AuditLogsQueryParams extends QueryParams {
   pageSize: string;
   startIndex: string;
   sortBy?: string;
-  sortType?: 'asc' | 'desc';
+  sortType?: SortingType;
   clusters?: string;
   mustBe?: string;
   mustNot?: string;

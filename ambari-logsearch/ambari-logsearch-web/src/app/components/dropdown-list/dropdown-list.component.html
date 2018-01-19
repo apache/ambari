@@ -17,7 +17,7 @@
 
 <li *ngFor="let item of items">
   <label class="list-item-label" *ngIf="isMultipleChoice">
-    <input type="checkbox" [attr.id]="item.id || item.value" [attr.checked]="item.isChecked ? 'checked' : null"
+    <input type="checkbox" [attr.id]="item.id || item.value" [(ngModel)]="item.isChecked"
            (change)="changeSelectedItem({value: item.value, isChecked: $event.currentTarget.checked})">
     <label [attr.for]="item.id || item.value" class="label-container">
       <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>

@@ -54,6 +54,13 @@ public enum RepositoryType {
       RepositoryType.PATCH);
 
   /**
+   * The types of repositories which can participate in an upgrade where only
+   * some services are orchestrated.
+   */
+  public static final EnumSet<RepositoryType> PARTIAL = EnumSet.of(RepositoryType.MAINT,
+      RepositoryType.PATCH, RepositoryType.SERVICE);
+
+  /**
    * Gets whether applications of this repository are revertable after they have
    * been finalized.
    *
@@ -71,5 +78,16 @@ public enum RepositoryType {
       default:
         return false;
     }
+  }
+
+  /**
+   * Gets whether this repository type can be used to upgrade only a subset of
+   * services.
+   *
+   * @return {@code true} if the repository can be be applied to a subset of
+   *         isntalled services, {@code false} otherwise.
+   */
+  public boolean isPartial() {
+    return PARTIAL.contains(this);
   }
 }

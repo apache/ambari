@@ -297,6 +297,13 @@ public class RootServiceService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
+  @Path("{serviceName}/components/{componentName}/configurations")
+  public RootServiceComponentConfigurationService getAmbariServerConfigurationHandler(@Context javax.ws.rs.core.Request request,
+                                                                                      @PathParam("serviceName") String serviceName,
+                                                                                      @PathParam("componentName") String componentName) {
+    return new RootServiceComponentConfigurationService(serviceName, componentName);
+  }
+
   protected ResourceInstance createServiceResource(String serviceName) {
     Map<Resource.Type, String> mapIds = Collections.singletonMap(Resource.Type.RootService, serviceName);
     return createResource(Resource.Type.RootService, mapIds);

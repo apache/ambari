@@ -228,6 +228,9 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("HIVE"));
 
+    org.apache.ambari.server.configuration.Configuration serverConfig =
+        BlueprintImplTest.setupConfigurationWithGPLLicense(true);
+
     Configuration config = new Configuration(new HashMap<>(), new HashMap<>());
     expect(group1.getConfiguration()).andReturn(config).anyTimes();
 
@@ -237,7 +240,7 @@ public class BlueprintValidatorImplTest {
 
     expect(blueprint.getHostGroupsForComponent("HIVE_METASTORE")).andReturn(Collections.singleton(group1)).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1);
+    replay(blueprint, stack, group1, group2, dependency1, serverConfig);
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
     validator.validateRequiredProperties();
   }
@@ -252,6 +255,9 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("OOZIE"));
 
+    org.apache.ambari.server.configuration.Configuration serverConfig =
+        BlueprintImplTest.setupConfigurationWithGPLLicense(true);
+
     Configuration config = new Configuration(new HashMap<>(), new HashMap<>());
     expect(group1.getConfiguration()).andReturn(config).anyTimes();
 
@@ -261,7 +267,7 @@ public class BlueprintValidatorImplTest {
 
     expect(blueprint.getHostGroupsForComponent("OOZIE_SERVER")).andReturn(Collections.singleton(group1)).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1);
+    replay(blueprint, stack, group1, group2, dependency1, serverConfig);
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
     validator.validateRequiredProperties();
   }

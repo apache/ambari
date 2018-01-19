@@ -381,6 +381,7 @@ def create_server_script(server_host_name):
   "echo 'alerts.cache.size=100000' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "echo 'alerts.execution.scheduler.maxThreads=4' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "echo 'security.temporary.keystore.retention.minutes=180' >> /etc/ambari-server/conf/ambari.properties\n" + \
+  "echo 'stack.hooks.folder=stacks/PERF/1.0/hooks' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "\n" + \
   "ambari-server start --skip-database-check\n" + \
   "exit 0"

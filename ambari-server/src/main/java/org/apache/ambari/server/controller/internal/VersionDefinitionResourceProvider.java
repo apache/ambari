@@ -61,6 +61,7 @@ import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -71,6 +72,8 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -85,6 +88,8 @@ import com.google.inject.Provider;
  */
 @StaticallyInject
 public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VersionDefinitionResourceProvider.class);
 
   public static final String VERSION_DEF                             = "VersionDefinition";
   public static final String VERSION_DEF_BASE64_PROPERTY             = "version_base64";
@@ -778,6 +783,14 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             entity.getStackName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),
             entity.getStackVersion());
+
+        ArrayNode tagsNode = factory.arrayNode();
+        for (RepoTag repoTag : repo.getTags()) {
+          tagsNode.add(repoTag.toString());
+        }
+        repoElement.put(PropertyHelper.getPropertyName(
+            RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID), tagsNode);
+
         repoBase.put(PropertyHelper.getPropertyCategory(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
             repoElement);
 

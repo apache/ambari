@@ -122,6 +122,14 @@ Number.isFinite = Number.isFinite || function(value) {
   return typeof value === 'number' && isFinite(value);
 };
 
+Object.values = Object.values || function (obj) {
+  var values = [];
+  for (var key in obj) {
+    values.push(obj[key]);
+  }
+  return values;
+};
+
 if (!window.performance) {
   window.performance = {
     now: Em.K

@@ -108,13 +108,21 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   setDependentHostComponents: function (componentName) {
     var installedServices = App.Service.find().mapProperty('serviceName');
-    var installedComponents = App.Host.find(this.get('content.reassignHosts.target'))
+    var hostInstalledComponents = App.Host.find(this.get('content.reassignHosts.target'))
         .get('hostComponents')
         .mapProperty('componentName');
+    var clusterInstalledComponents = App.MasterComponent.find().toArray()
+        .concat(App.ClientComponent.find().toArray())
+        .concat(App.SlaveComponent.find().toArray())
+        .filter(function(service){
+          return service.get("installedCount") > 0;
+        })
+        .mapProperty('componentName');
+
     var dependenciesToInstall = App.StackServiceComponent.find(componentName)
         .get('dependencies')
         .filter(function (component) {
-          return !installedComponents.contains(component.componentName) && installedServices.contains(component.serviceName);
+          return !(component.scope == 'host' ? hostInstalledComponents : clusterInstalledComponents).contains(component.componentName) && (installedServices.contains(component.serviceName));
         })
         .mapProperty('componentName');
     this.set('dependentHostComponents', dependenciesToInstall);

@@ -77,7 +77,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.AvailableService;
@@ -88,7 +87,8 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -103,6 +103,8 @@ import com.google.inject.persist.Transactional;
  */
 @StaticallyInject
 public class ClusterStackVersionResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ClusterStackVersionResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -258,7 +260,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       Collections.sort(entities, new Comparator<RepositoryVersionEntity>() {
         @Override
         public int compare(RepositoryVersionEntity o1, RepositoryVersionEntity o2) {
-          return compareVersions(o1.getVersion(), o2.getVersion());
+          return VersionUtils.compareVersionsWithBuild(o1.getVersion(), o2.getVersion(), 4);
         }
       });
 
@@ -442,6 +444,32 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           String.format("Version %s is backed by a version definition, but it could not be parsed", desiredRepoVersion), e);
     }
 
+    // stop the VDF distribution right now if there are problems with service
+    // dependencies
+    try {
+      if (repoVersionEntity.getType().isPartial()) {
+        Map<String, Set<String>> missingDependencies = desiredVersionDefinition.getMissingDependencies(cluster);
+
+        if (!missingDependencies.isEmpty()) {
+          StringBuilder message = new StringBuilder(
+              "The following services are included in this repository, but the repository is missing their dependencies: ").append(
+                  System.lineSeparator());
+
+          for (String failedService : missingDependencies.keySet()) {
+            message.append(String.format("%s requires the following services: %s", failedService,
+                StringUtils.join(missingDependencies.get(failedService), ','))).append(
+                    System.lineSeparator());
+          }
+
+          throw new SystemException(message.toString());
+        }
+      }
+    } catch (AmbariException ambariException) {
+      throw new SystemException(
+          "Unable to determine if this repository contains the necessary service dependencies",
+          ambariException);
+    }
+
     // if true, then we need to force all new host versions into the INSTALLED state
     boolean forceInstalled = Boolean.parseBoolean((String)propertyMap.get(
         CLUSTER_STACK_VERSION_FORCE));
@@ -476,7 +504,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           continue;
         }
 
-        int compare = compareVersions(hostRepoVersion.getVersion(), desiredRepoVersion);
+        int compare = VersionUtils.compareVersionsWithBuild(hostRepoVersion.getVersion(), desiredRepoVersion, 4);
 
         // ignore earlier versions
         if (compare <= 0) {
@@ -676,23 +704,14 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     // Determine repositories for host
     String osFamily = host.getOsFamily();
+    OperatingSystemEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
 
-    OperatingSystemEntity osEntity = null;
-    for (OperatingSystemEntity os : repoVersion.getOperatingSystems()) {
-      if (os.getOsType().equals(osFamily)) {
-        osEntity = os;
-        break;
-      }
-    }
-
-    if (null == osEntity || CollectionUtils.isEmpty(osEntity.getRepositories())) {
-      throw new SystemException(String.format("Repositories for os type %s are " +
-          "not defined for version %s of Stack %s.",
+    if (CollectionUtils.isEmpty(osEntity.getRepositories())) {
+      throw new SystemException(String.format("Repositories for os type %s are not defined for version %s of Stack %s.",
             osFamily, repoVersion.getVersion(), stackId));
     }
 
     // determine packages for all services that are installed on host
-    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
     Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {
@@ -706,12 +725,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       return null;
     }
 
-
     Map<String, String> roleParams = repoVersionHelper.buildRoleParams(managementController, repoVersion,
         osFamily, servicesOnHost);
 
     // add host to this stage
-    RequestResourceFilter filter = new RequestResourceFilter(null, null,
+    RequestResourceFilter filter = new RequestResourceFilter(null, null, null,
             Collections.singletonList(host.getHostName()));
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
@@ -720,7 +738,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     actionContext.setRepositoryVersion(repoVersion);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
-    repoVersionHelper.addCommandRepository(actionContext, repoVersion, osEntity);
+    repoVersionHelper.addCommandRepositoryToContext(actionContext, osEntity);
 
     return actionContext;
   }
@@ -781,39 +799,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
   /**
-   * Additional check over {@link VersionUtils#compareVersions(String, String)} that
-   * compares build numbers
-   */
-  private static int compareVersions(String version1, String version2) {
-    version1 = (null == version1) ? "0" : version1;
-    version2 = (null == version2) ? "0" : version2;
-
-    // check _exact_ equality
-    if (StringUtils.equals(version1, version2)) {
-      return 0;
-    }
-
-    int compare = VersionUtils.compareVersions(version1, version2);
-    if (0 != compare) {
-      return compare;
-    }
-
-    int v1 = 0;
-    int v2 = 0;
-    if (version1.indexOf('-') > -1) {
-      v1 = NumberUtils.toInt(version1.substring(version1.indexOf('-')), 0);
-    }
-
-    if (version2.indexOf('-') > -1) {
-      v2 = NumberUtils.toInt(version2.substring(version2.indexOf('-')), 0);
-    }
-
-    compare = v2 - v1;
-
-    return Integer.compare(compare, 0);
-  }
-
-  /**
    * Ensures that the stack tools and stack features are set on
    * {@link ConfigHelper#CLUSTER_ENV} for the stack of the repository being
    * distributed. This step ensures that the new repository can be distributed
@@ -849,10 +834,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     Config clusterEnv = cluster.getDesiredConfigByType(ConfigHelper.CLUSTER_ENV);
     Map<String, String> clusterEnvProperties = clusterEnv.getProperties();
 
-    // the 3 properties we need to check and update
+    // the 4 properties we need to check and update
     Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
         ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY);
+        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
+        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
 
     // any updates are stored here and merged into the existing config type
     Map<String, String> updatedProperties = new HashMap<>();

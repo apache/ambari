@@ -68,7 +68,7 @@ public class MaintenanceStateHelperTest {
     Cluster cluster = createMock(Cluster.class);
     Method isOperationAllowed = MaintenanceStateHelper.class.getDeclaredMethod(
             "isOperationAllowed", new Class[]{Cluster.class, Type.class,
-            String.class, String.class, String.class});
+            String.class, String.class, String.class, String.class});
     MaintenanceStateHelper maintenanceStateHelper =
             createMockBuilder(MaintenanceStateHelper.class)
                     .withConstructor(injector)
@@ -80,11 +80,11 @@ public class MaintenanceStateHelperTest {
     expect(level.getLevel()).andReturn(Type.Cluster);
     expect(maintenanceStateHelper.isOperationAllowed(
             anyObject(Cluster.class), anyObject(Type.class),
-            anyObject(String.class),
+            anyObject(String.class), anyObject(String.class),
             anyObject(String.class), anyObject(String.class))).andStubReturn(true);
     // Case when level is defined
     replay(cluster, maintenanceStateHelper, level);
-    maintenanceStateHelper.isOperationAllowed(cluster, level, filter, "service", "component", "hostname");
+    maintenanceStateHelper.isOperationAllowed(cluster, level, filter, "core", "service", "component", "hostname");
     verify(maintenanceStateHelper, level);
 
     maintenanceStateHelper =
@@ -97,11 +97,11 @@ public class MaintenanceStateHelperTest {
     expect(maintenanceStateHelper.guessOperationLevel(anyObject(RequestResourceFilter.class))).andReturn(Type.Cluster);
     expect(maintenanceStateHelper.isOperationAllowed(
             anyObject(Cluster.class), anyObject(Type.class),
-            anyObject(String.class),
+            anyObject(String.class), anyObject(String.class),
             anyObject(String.class), anyObject(String.class))).andStubReturn(true);
     // Case when level is not defined
     replay(maintenanceStateHelper);
-    maintenanceStateHelper.isOperationAllowed(cluster, null, filter, "service", "component", "hostname");
+    maintenanceStateHelper.isOperationAllowed(cluster, null, filter, "core", "service", "component", "hostname");
     verify(maintenanceStateHelper);
   }
 
@@ -443,25 +443,25 @@ public class MaintenanceStateHelperTest {
 
     Assert.assertEquals(Resource.Type.Cluster, maintenanceStateHelper.guessOperationLevel(null));
 
-    RequestResourceFilter resourceFilter = new RequestResourceFilter(null, null, null);
+    RequestResourceFilter resourceFilter = new RequestResourceFilter(null, null, null, null);
     Assert.assertEquals(Resource.Type.Cluster, maintenanceStateHelper.guessOperationLevel(resourceFilter));
 
-    resourceFilter = new RequestResourceFilter("HDFS", null, null);
+    resourceFilter = new RequestResourceFilter("core", "HDFS", null, null);
     Assert.assertEquals(Resource.Type.Service, maintenanceStateHelper.guessOperationLevel(resourceFilter));
 
-    resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", null);
+    resourceFilter = new RequestResourceFilter("core", "HDFS", "NAMENODE", null);
     Assert.assertEquals(Resource.Type.Service, maintenanceStateHelper.guessOperationLevel(resourceFilter));
 
     ArrayList<String> hosts = new ArrayList<>();
     hosts.add("host1");
     hosts.add("host2");
-    resourceFilter = new RequestResourceFilter("HDFS", null, hosts);
+    resourceFilter = new RequestResourceFilter("core", "HDFS", null, hosts);
     Assert.assertEquals(Resource.Type.Cluster, maintenanceStateHelper.guessOperationLevel(resourceFilter));
 
-    resourceFilter = new RequestResourceFilter(null, null, hosts);
+    resourceFilter = new RequestResourceFilter(null, null, null, hosts);
     Assert.assertEquals(Resource.Type.Host, maintenanceStateHelper.guessOperationLevel(resourceFilter));
 
-    resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", hosts);
+    resourceFilter = new RequestResourceFilter("core", "HDFS", "NAMENODE", hosts);
     Assert.assertEquals(Resource.Type.HostComponent, maintenanceStateHelper.guessOperationLevel(resourceFilter));
 
   }

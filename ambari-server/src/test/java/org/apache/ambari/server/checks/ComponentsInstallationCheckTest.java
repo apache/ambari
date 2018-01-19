@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
@@ -86,6 +87,8 @@ public class ComponentsInstallationCheckTest {
     MockitoAnnotations.initMocks(this);
 
     m_services.clear();
+
+    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn("2.2.0.0-1234");
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
@@ -267,12 +270,12 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(hcsMetricsMonitor.getHostName()).thenReturn("host3");
 
     // Mock the static method
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenReturn(Arrays.asList(hcsZKFC));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(1L, 1L, 1L, "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(1L, 1L, 1L, "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(1L, 1L, 1L, "ZKFC")).thenReturn(Arrays.asList(hcsZKFC));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(1L, 1L, 1L, "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(1L, 1L, 1L, "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries(1L, 1L, 1L, "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
     for (String hostName : hosts.keySet()) {
       Mockito.when(clusters.getHost(hostName)).thenReturn(hosts.get(hostName));
     }

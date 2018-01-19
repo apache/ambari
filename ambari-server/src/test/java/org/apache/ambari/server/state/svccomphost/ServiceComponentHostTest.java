@@ -62,6 +62,8 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
@@ -108,11 +110,14 @@ public class ServiceComponentHostTest {
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
   private HostComponentStateDAO hostComponentStateDAO;
+  @Inject
+  private ServiceGroupFactory serviceGroupFactory;
 
   private String clusterName = "c1";
   private String hostName1 = "h1";
   private Map<String, String> hostAttributes = new HashMap<>();
   private RepositoryVersionEntity repositoryVersion;
+  private ServiceGroup serviceGroup;
 
 
   @Before
@@ -124,10 +129,11 @@ public class ServiceComponentHostTest {
     EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
 
     StackId stackId = new StackId("HDP-2.0.6");
-    createCluster(stackId, clusterName);
-
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    createCluster(stackId, clusterName, repositoryVersion.getVersion());
 
+
+    serviceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "test_group", new HashSet<>());
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     Set<String> hostNames = new HashSet<>();
@@ -141,7 +147,7 @@ public class ServiceComponentHostTest {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
-  private ClusterEntity createCluster(StackId stackId, String clusterName) throws AmbariException {
+  private ClusterEntity createCluster(StackId stackId, String clusterName, String repoVersion) throws AmbariException {
     helper.createStack(stackId);
     clusters.addCluster(clusterName, stackId);
     ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
@@ -171,27 +177,28 @@ public class ServiceComponentHostTest {
       String hostName, boolean isClient) throws AmbariException{
     Cluster c = clusters.getCluster(clusterName);
     Assert.assertNotNull(c.getConfigGroups());
-    return createNewServiceComponentHost(c, svc, svcComponent, hostName);
+    return createNewServiceComponentHost(c, svc, svcComponent, hostName, serviceGroup);
   }
 
   private ServiceComponentHost createNewServiceComponentHost(
       Cluster c,
       String svc,
       String svcComponent,
-      String hostName) throws AmbariException{
+      String hostName,
+      ServiceGroup customServiceGroup) throws AmbariException{
 
-    Service s = null;
+    Service s;
 
     try {
       s = c.getService(svc);
     } catch (ServiceNotFoundException e) {
       LOG.debug("Calling service create, serviceName={}", svc);
 
-      s = serviceFactory.createNew(c, svc, repositoryVersion);
+      s = serviceFactory.createNew(c, customServiceGroup, Collections.emptyList(), svc, svc, repositoryVersion);
       c.addService(s);
     }
 
-    ServiceComponent sc = null;
+    ServiceComponent sc;
     try {
       sc = s.getServiceComponent(svcComponent);
     } catch (ServiceComponentNotFoundException e) {
@@ -550,8 +557,8 @@ public class ServiceComponentHostTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    final ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS",
-      "cg1", "t1", "", new HashMap<>(), new HashMap<>());
+    final ConfigGroup configGroup = configGroupFactory.createNew(cluster, 1L, 1L, "HDFS",
+      "t1", "", new HashMap<>(), new HashMap<>());
 
     cluster.addConfigGroup(configGroup);
 
@@ -704,7 +711,9 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName);
+    createCluster(stackId, clusterName, "");
+
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -719,9 +728,9 @@ public class ServiceComponentHostTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
-    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
 
     sch1.getServiceComponent().setDesiredRepositoryVersion(repositoryVersion);
 
@@ -804,7 +813,7 @@ public class ServiceComponentHostTest {
       new HashMap<>());
 
     host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS", "g1",
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, customServiceGroup.getServiceGroupId(), sch1.getServiceId(), "HDFS",
       "t1", "", new HashMap<String, Config>() {{ put("hdfs-site", c); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);
@@ -860,7 +869,7 @@ public class ServiceComponentHostTest {
     final Config c1 = configFactory.createNew(cluster, "core-site", "version2",
       new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }},
       new HashMap<>());
-    configGroup = configGroupFactory.createNew(cluster, "HDFS", "g2",
+    configGroup = configGroupFactory.createNew(cluster, customServiceGroup.getServiceGroupId(), sch1.getServiceId(), "HDFS",
       "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);
@@ -895,7 +904,9 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName);
+    createCluster(stackId, clusterName, "");
+
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -906,9 +917,9 @@ public class ServiceComponentHostTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
-    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
 
     sch1.getServiceComponent().setDesiredRepositoryVersion(repositoryVersion);
 
@@ -1012,7 +1023,7 @@ public class ServiceComponentHostTest {
    * @param tag the config tag
    * @param values the values for the config
    */
-  private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) {
+  private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) throws AmbariException {
     Config config = configFactory.createNew(cluster, type, tag, values, attributes);
     cluster.addDesiredConfig("user", Collections.singleton(config));
   }
@@ -1022,7 +1033,9 @@ public class ServiceComponentHostTest {
     String stackVersion = "HDP-2.0.6";
     StackId stackId = new StackId(stackVersion);
     String clusterName = "c2";
-    createCluster(stackId, clusterName);
+    createCluster(stackId, clusterName, "");
+
+    ServiceGroup customServiceGroup = serviceGroupFactory.createNew(clusters.getCluster(clusterName), "custom_group", new HashSet<>());
 
     final String hostName = "h3";
     Set<String> hostNames = new HashSet<>();
@@ -1036,13 +1049,14 @@ public class ServiceComponentHostTest {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     Assert.assertNotNull(hostEntity);
 
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
-    //ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
-    //ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, customServiceGroup);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, customServiceGroup);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, customServiceGroup);
 
     HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByIndex(
       cluster.getClusterId(),
-      sch1.getServiceName(),
+      customServiceGroup.getServiceGroupId(),
+      sch1.getServiceId(),
       sch1.getServiceComponentName(),
       hostEntity.getHostId()
     );
@@ -1054,7 +1068,8 @@ public class ServiceComponentHostTest {
 
     entity = hostComponentDesiredStateDAO.findByIndex(
       cluster.getClusterId(),
-      sch1.getServiceName(),
+      customServiceGroup.getServiceGroupId(),
+      sch1.getServiceId(),
       sch1.getServiceComponentName(),
       hostEntity.getHostId()
     );
@@ -1067,8 +1082,6 @@ public class ServiceComponentHostTest {
    * for their own repo versions. This assures that the host version logic is
    * scoped to the repo that is transitioning and is not affected by other
    * components.
-   *
-   * @throws Exception
    */
   @Test
   public void testHostVersionTransitionIsScopedByRepository() throws Exception {
@@ -1099,7 +1112,7 @@ public class ServiceComponentHostTest {
     hostEntity = hostDAO.findByName(hostName1);
     Collection<HostComponentStateEntity> hostComponentStates = hostEntity.getHostComponentStateEntities();
     for( HostComponentStateEntity hostComponentState : hostComponentStates ) {
-      if( StringUtils.equals("HDFS", hostComponentState.getServiceName() ) ) {
+      if( StringUtils.equals("HDFS", "" ) ) {
         hostComponentState.setVersion(State.UNKNOWN.name());
         hostComponentStateDAO.merge(hostComponentState);
       }
@@ -1119,7 +1132,7 @@ public class ServiceComponentHostTest {
     hostEntity = hostDAO.findByName(hostName1);
     hostComponentStates = hostEntity.getHostComponentStateEntities();
     for( HostComponentStateEntity hostComponentState : hostComponentStates ) {
-      if( StringUtils.equals("ZOOKEEPER", hostComponentState.getServiceName() ) ) {
+      if( StringUtils.equals("ZOOKEEPER", "" ) ) {
         hostComponentState.setVersion(patchRepositoryVersion.getVersion());
         hostComponentState.setUpgradeState(UpgradeState.COMPLETE);
         hostComponentStateDAO.merge(hostComponentState);

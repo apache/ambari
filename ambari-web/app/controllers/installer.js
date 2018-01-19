@@ -449,7 +449,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       App.Repository.find().findProperty('id', repo.id).set('baseUrl', repo.base_url);
     });
     _oses.forEach(function (os) {
-      App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
+      if (App.OperatingSystem.find().findProperty('id', os.id)) {
+        App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
+      }
     });
     //should delete the record on going to step 2, on going back to step 1, still need the record
     if (App.router.get('currentState.name') != "step1") {
@@ -952,11 +954,12 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
             "base_url": repository.get('baseUrl'),
             "repo_id": repository.get('repoId'),
             "repo_name": repository.get('repoName'),
-            "unique": repository.get('unique')
+            "unique": repository.get('unique'),
             //removed the following properties because they were not present on the server
             //and are therefore undefined on the client, so there is no need to pass them back
             // "components": repository.get('components'),
             // "distribution": repository.get('distribution')
+            "tags": repository.get('tags'),
           }
         });
       });
@@ -976,7 +979,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     var dfd = $.Deferred();
     if (selectedStack && selectedStack.get('operatingSystems')) {
       this.set('validationCnt', selectedStack.get('operatingSystems').filterProperty('isSelected').filterProperty('isEmpty', false).map(function (os) {
-        return os.get('repositories.length');
+        return os.get('repositories').filterProperty('showRepo', true).length;
       }).reduce(Em.sum, 0));
       var verifyBaseUrl = !wizardStep1Controller.get('skipValidationChecked') && !wizardStep1Controller.get('selectedStack.useRedhatSatellite');
       if (!verifyBaseUrl) {
@@ -985,32 +988,35 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       selectedStack.get('operatingSystems').forEach(function (os) {
         if (os.get('isSelected') && !os.get('isEmpty')) {
           os.get('repositories').forEach(function (repo) {
-            repo.setProperties({
-              errorTitle: '',
-              errorContent: '',
-              validation: 'INPROGRESS'
-            });
-            this.set('content.isCheckInProgress', true);
-            App.ajax.send({
-              name: 'wizard.advanced_repositories.valid_url',
-              sender: this,
-              data: {
-                stackName: stackName,
-                stackVersion: stackVersion,
-                repoId: repo.get('repoId'),
-                osType: os.get('osType'),
-                osId: os.get('id'),
-                dfd: dfd,
+            if (repo.get('showRepo')) {
+              repo.setProperties({
+                errorTitle: '',
+                errorContent: '',
+                validation: 'INPROGRESS'
+              });
+              this.set('content.isCheckInProgress', true);
+              App.ajax.send({
+                name: 'wizard.advanced_repositories.valid_url',
+                sender: this,
                 data: {
-                  'Repositories': {
-                    'base_url': repo.get('baseUrl'),
-                    "verify_base_url": verifyBaseUrl
+                  stackName: stackName,
+                  stackVersion: stackVersion,
+                  repoId: repo.get('repoId'),
+                  osType: os.get('osType'),
+                  osId: os.get('id'),
+                  dfd: dfd,
+                  data: {
+                    'Repositories': {
+                      'base_url': repo.get('baseUrl'),
+                      'repo_name': repo.get('repoName'),
+                      "verify_base_url": verifyBaseUrl
+                    }
                   }
-                }
-              },
-              success: 'checkRepoURLSuccessCallback',
-              error: 'checkRepoURLErrorCallback'
-            });
+                },
+                success: 'checkRepoURLSuccessCallback',
+                error: 'checkRepoURLErrorCallback'
+              });
+            }
           }, this);
         } else if (os.get('isSelected') && os.get('isEmpty')) {
           os.set('isSelected', false);

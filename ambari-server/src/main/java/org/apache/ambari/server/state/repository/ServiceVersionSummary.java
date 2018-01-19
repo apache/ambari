@@ -20,25 +20,26 @@ package org.apache.ambari.server.state.repository;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Used to hold information about Service's ability to upgrade for a repository version.
  */
 public class ServiceVersionSummary {
 
-  @JsonProperty("display_name")
-  private String m_displayName;
-
+  @SerializedName("version")
   @JsonProperty("version")
   private String m_version;
 
+  @SerializedName("release_version")
   @JsonProperty("release_version")
   private String m_releaseVersion;
 
+  @SerializedName("upgrade")
   @JsonProperty("upgrade")
   private boolean m_upgrade = false;
 
-  ServiceVersionSummary(String displayName) {
-    m_displayName = displayName;
+  ServiceVersionSummary() {
   }
 
   /**

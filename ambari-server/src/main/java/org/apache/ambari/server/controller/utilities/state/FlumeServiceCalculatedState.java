@@ -28,6 +28,8 @@ import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Determines the service status for Flume.  Generically, this means that
@@ -40,6 +42,8 @@ import org.apache.ambari.server.state.State;
 @StaticallyInject
 public final class FlumeServiceCalculatedState extends DefaultServiceCalculatedState
   implements ServiceCalculatedState {
+
+  private static final Logger LOG = LoggerFactory.getLogger(FlumeServiceCalculatedState.class);
 
   @Override
   public State getState(String clusterName, String serviceName) {

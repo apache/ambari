@@ -27,6 +27,13 @@ public class ServiceNotFoundException extends ObjectNotFoundException {
         + ", serviceName=" + serviceName);
   }
 
+  public ServiceNotFoundException(String clusterName, String serviceGroupName, String serviceName) {
+    super("Service not found"
+        + ", clusterName=" + clusterName
+        + ", serviceGroupName=" + serviceGroupName
+        + ", serviceName=" + serviceName);
+  }
+
   public ServiceNotFoundException(String clusterName, Long serviceId) {
     super("Service not found"
       + ", clusterName=" + clusterName

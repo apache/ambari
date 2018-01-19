@@ -19,14 +19,17 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Collection;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -59,6 +62,16 @@ public class TopologyRequestEntity {
   @Column(name = "bp_name", length = 100, nullable = false)
   private String blueprintName;
 
+  @Column(name = "cluster_properties")
+  @Basic(fetch = FetchType.LAZY)
+  @Lob
+  private String clusterProperties;
+
+  @Column(name = "cluster_attributes")
+  @Basic(fetch = FetchType.LAZY)
+  @Lob
+  private String clusterAttributes;
+
   @Column(name = "description", length = 1024, nullable = false)
   private String description;
 
@@ -67,9 +80,6 @@ public class TopologyRequestEntity {
 
   @OneToOne(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
   private TopologyLogicalRequestEntity topologyLogicalRequestEntity;
-
-  @OneToMany(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
-  private Collection<TopologyConfigurationsEntity> topologyConfigurationsEntities;
 
   @Column(name = "provision_action", length = 255, nullable = true)
   @Enumerated(EnumType.STRING)
@@ -107,6 +117,22 @@ public class TopologyRequestEntity {
     this.blueprintName = blueprintName;
   }
 
+  public String getClusterProperties() {
+    return clusterProperties;
+  }
+
+  public void setClusterProperties(String clusterProperties) {
+    this.clusterProperties = clusterProperties;
+  }
+
+  public String getClusterAttributes() {
+    return clusterAttributes;
+  }
+
+  public void setClusterAttributes(String clusterAttributes) {
+    this.clusterAttributes = clusterAttributes;
+  }
+
   public String getDescription() {
     return description;
   }
@@ -129,14 +155,6 @@ public class TopologyRequestEntity {
 
   public void setTopologyLogicalRequestEntity(TopologyLogicalRequestEntity topologyLogicalRequestEntity) {
     this.topologyLogicalRequestEntity = topologyLogicalRequestEntity;
-  }
-
-  public Collection<TopologyConfigurationsEntity> getTopologyConfigurationsEntities() {
-    return topologyConfigurationsEntities;
-  }
-
-  public void setTopologyConfigurationsEntities(Collection<TopologyConfigurationsEntity> topologyConfigurationsEntity) {
-    this.topologyConfigurationsEntities = topologyConfigurationsEntity;
   }
 
   public ProvisionAction getProvisionAction() {

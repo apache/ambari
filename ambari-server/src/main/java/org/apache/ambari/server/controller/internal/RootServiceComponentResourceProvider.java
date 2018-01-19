@@ -25,9 +25,9 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootServiceComponentRequest;
 import org.apache.ambari.server.controller.RootServiceComponentResponse;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -99,7 +99,7 @@ public class RootServiceComponentResourceProvider extends ReadOnlyResourceProvid
       setResourceProperty(resource, PROPERTIES_PROPERTY_ID, response.getProperties(), requestedIds);
       setResourceProperty(resource, COMPONENT_VERSION_PROPERTY_ID, response.getComponentVersion(), requestedIds);
       
-      if (Components.AMBARI_SERVER.name().equals(response.getComponentName())) {
+      if (RootComponent.AMBARI_SERVER.name().equals(response.getComponentName())) {
         setResourceProperty(resource, SERVER_CLOCK_PROPERTY_ID, response.getServerClock(), requestedIds);
       }      
 

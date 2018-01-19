@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -150,6 +151,10 @@ public class RepositoryXml implements Validable{
     private String components = null;
     private boolean unique = false;
 
+    @XmlElementWrapper(name="tags")
+    @XmlElement(name="tag")
+    private Set<RepoTag> tags = new HashSet<>();
+
     private Repo() {
     }
 
@@ -201,6 +206,13 @@ public class RepositoryXml implements Validable{
     public void setUnique(boolean unique) {
       this.unique = unique;
     }
+
+    /**
+     * @return the repo tags
+     */
+    public Set<RepoTag> getTags() {
+      return tags;
+    }
   }
 
   /**
@@ -224,6 +236,7 @@ public class RepositoryXml implements Validable{
           ri.setDistribution(r.getDistribution());
           ri.setComponents(r.getComponents());
           ri.setUnique(r.isUnique());
+          ri.setTags(r.tags);
 
           repos.add(ri);
         }

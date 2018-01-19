@@ -1021,7 +1021,8 @@ public class HostImpl implements Host {
 
       DesiredConfig dc = new DesiredConfig();
       dc.setTag(e.getVersion());
-      dc.setServiceName(e.getServiceName());
+      dc.setServiceGroupId(e.getServiceGroupId());
+      dc.setServiceId(e.getServiceId());
       map.put(e.getType(), dc);
 
     }

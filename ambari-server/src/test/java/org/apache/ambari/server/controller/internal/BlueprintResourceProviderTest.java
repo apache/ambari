@@ -56,7 +56,6 @@ import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -342,8 +341,8 @@ public class BlueprintResourceProviderTest {
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     ((ObservableResourceProvider)provider).addObserver(observer);
 
-    RequestStatus resources = provider.createResources(request);
-    System.out.println(resources);
+    provider.createResources(request);
+
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     assertNotNull(lastEvent);
     assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());

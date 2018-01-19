@@ -31,7 +31,7 @@
   <!-- These configs were inherited from HDP 2.2 -->
   <property>
     <name>mapreduce.admin.user.env</name>
-    <value>LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64</value>
+    <value>LD_LIBRARY_PATH=./mr-framework/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64</value>
     <description>
       Additional execution environment entries for map and reduce task processes.
       This is not an additive property. You must preserve the original value if

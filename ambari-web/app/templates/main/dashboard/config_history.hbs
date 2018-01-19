@@ -16,9 +16,22 @@
 * limitations under the License.
 }}
 
-<div id="config_history">
+<div id="config_history" class="container-wrap-table">
   <div class="row">
-    <h2 class="table-title col-md-12">{{t dashboard.configHistory.title}}</h2>
+    <h2 class="table-title col-md-2">{{t dashboard.configHistory.title}}</h2>
+    <div class="table-controls row col-sm-10 pull-right">
+      <div class="col-sm-12">
+        <div class="VS-open-box pull-right">
+          <button class="btn btn-default">
+            <i class="icon-search"></i>
+          </button>
+          <div class="popup-arrow-up hide"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row search-box-row hide">
+    {{view App.MainConfigHistorySearchBoxView}}
   </div>
   <table class="table advanced-header-table table-hover">
     <thead>
@@ -29,14 +42,6 @@
       {{view view.parentView.authorSort}}
       {{view view.parentView.notesSort}}
     {{/view}}
-
-    <tr class="filter-row config-history-filter-row">
-      <th class="first cg-service">{{view view.serviceFilterView}}</th>
-      <th class="cg-name">{{view view.configGroupFilterView}}</th>
-      <th class="cg-created">{{view view.modifiedFilterView}}</th>
-      <th class="cg-author">{{view view.authorFilterView}}</th>
-      <th class="cg-notes">{{view view.notesFilterView}}</th>
-    </tr>
     </thead>
     <tbody class="services-menu">
     {{#if view.filteringComplete}}

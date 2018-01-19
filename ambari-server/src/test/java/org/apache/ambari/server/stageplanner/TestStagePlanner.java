@@ -121,10 +121,10 @@ public class TestStagePlanner {
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_MASTER",
-            "host2", now), "cluster1", "HBASE", false, false);
+            "host2", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
         RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
-            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+            "host3", now), "cluster1", "core", "ZOOKEEPER", false, false);
     log.info("Build and ready to detect circular dependencies - short chain");
     rg.build(stage);
     boolean exceptionThrown = false;
@@ -160,13 +160,13 @@ public class TestStagePlanner {
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.STOP, new ServiceComponentHostStartEvent("HBASE_MASTER",
-            "host2", now), "cluster1", "HBASE", false, false);
+            "host2", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
         RoleCommand.STOP, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
-            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+            "host3", now), "cluster1", "core", "ZOOKEEPER", false, false);
     stage.addHostRoleExecutionCommand("host2", Role.RESOURCEMANAGER,
         RoleCommand.STOP, new ServiceComponentHostStartEvent("RESOURCEMANAGER",
-            "host4", now), "cluster1", "YARN", false, false);
+            "host4", now), "cluster1", "core", "YARN", false, false);
 
     log.info("Build and ready to detect circular dependencies - long chain");
     rg.build(stage);
@@ -200,13 +200,13 @@ public class TestStagePlanner {
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.UPGRADE, new ServiceComponentHostStartEvent("HBASE_MASTER",
-            "host2", now), "cluster1", "HBASE", false, false);
+            "host2", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
         RoleCommand.UPGRADE, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
-            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+            "host3", now), "cluster1", "core", "ZOOKEEPER", false, false);
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_REGIONSERVER,
         RoleCommand.UPGRADE, new ServiceComponentHostStartEvent("HBASE_REGIONSERVER",
-            "host4", now), "cluster1", "HBASE", false, false);
+            "host4", now), "cluster1", "core", "HBASE", false, false);
 
     log.info("Build and ready to detect circular dependencies - long chain");
     rg.build(stage);
@@ -240,13 +240,13 @@ public class TestStagePlanner {
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.STOP, new ServiceComponentHostStartEvent("HBASE_MASTER",
-            "host2", now), "cluster1", "HBASE", false, false);
+            "host2", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
         RoleCommand.STOP, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
-            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+            "host3", now), "cluster1", "core", "ZOOKEEPER", false, false);
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_REGIONSERVER,
         RoleCommand.STOP, new ServiceComponentHostStartEvent("HBASE_REGIONSERVER",
-            "host4", now), "cluster1", "HBASE", false, false);
+            "host4", now), "cluster1", "core", "HBASE", false, false);
     log.info("Build and ready to detect circular dependencies");
     rg.build(stage);
     boolean exceptionThrown = false;
@@ -280,10 +280,10 @@ public class TestStagePlanner {
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_MASTER",
-            "host2", now), "cluster1", "HBASE", false, false);
+            "host2", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
         RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
-            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+            "host3", now), "cluster1", "core", "ZOOKEEPER", false, false);
     log.info(stage.toString());
 
     rg.build(stage);
@@ -375,37 +375,37 @@ public class TestStagePlanner {
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host11", Role.SECONDARY_NAMENODE,
         RoleCommand.START, new ServiceComponentHostStartEvent("SECONDARY_NAMENODE",
-            "host11", now), "cluster1", "HDFS", false, false);
+            "host11", now), "cluster1", "core", "HDFS", false, false);
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_MASTER",
-            "host2", now), "cluster1", "HBASE", false, false);
+            "host2", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
         RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
-            "host3", now), "cluster1", "ZOOKEEPER", false, false);
+            "host3", now), "cluster1", "core", "ZOOKEEPER", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.DATANODE,
         RoleCommand.START, new ServiceComponentHostStartEvent("DATANODE",
-            "host4", now), "cluster1", "HDFS", false, false);
+            "host4", now), "cluster1", "core", "HDFS", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.HBASE_REGIONSERVER,
         RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_REGIONSERVER",
-            "host4", now), "cluster1", "HBASE", false, false);
+            "host4", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.TASKTRACKER,
         RoleCommand.START, new ServiceComponentHostStartEvent("TASKTRACKER",
-            "host4", now), "cluster1", "MAPREDUCE", false, false);
+            "host4", now), "cluster1", "core", "MAPREDUCE", false, false);
     stage.addHostRoleExecutionCommand("host5", Role.JOBTRACKER,
         RoleCommand.START, new ServiceComponentHostStartEvent("JOBTRACKER",
-            "host5", now), "cluster1", "MAPREDUCE", false, false);
+            "host5", now), "cluster1", "core", "MAPREDUCE", false, false);
     stage.addHostRoleExecutionCommand("host6", Role.OOZIE_SERVER,
         RoleCommand.START, new ServiceComponentHostStartEvent("OOZIE_SERVER",
-            "host6", now), "cluster1", "OOZIE", false, false);
+            "host6", now), "cluster1", "core", "OOZIE", false, false);
     stage.addHostRoleExecutionCommand("host7", Role.WEBHCAT_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
-        "host7", now), "cluster1", "WEBHCAT", false, false);
+        "host7", now), "cluster1", "core", "WEBHCAT", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.GANGLIA_MONITOR,
       RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
-        "host4", now), "cluster1", "GANGLIA", false, false);
+        "host4", now), "cluster1", "core", "GANGLIA", false, false);
     stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
-        "host9", now), "cluster1", "GANGLIA", false, false);
+        "host9", now), "cluster1", "core", "GANGLIA", false, false);
 
     log.info(stage.toString());
     rg.build(stage);
@@ -428,37 +428,37 @@ public class TestStagePlanner {
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host11", Role.SECONDARY_NAMENODE,
       RoleCommand.START, new ServiceComponentHostStartEvent("SECONDARY_NAMENODE",
-        "host11", now), "cluster1", "HDFS", false, false);
+        "host11", now), "cluster1", "core", "HDFS", false, false);
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
       RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_MASTER",
-        "host2", now), "cluster1", "HBASE", false, false);
+        "host2", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
-        "host3", now), "cluster1", "ZOOKEEPER", false, false);
+        "host3", now), "cluster1", "core", "ZOOKEEPER", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.DATANODE,
       RoleCommand.START, new ServiceComponentHostStartEvent("DATANODE",
-        "host4", now), "cluster1", "HDFS", false, false);
+        "host4", now), "cluster1", "core", "HDFS", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.HBASE_REGIONSERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_REGIONSERVER",
-        "host4", now), "cluster1", "HBASE", false, false);
+        "host4", now), "cluster1", "core", "HBASE", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.TASKTRACKER,
       RoleCommand.START, new ServiceComponentHostStartEvent("TASKTRACKER",
-        "host4", now), "cluster1", "MAPREDUCE", false, false);
+        "host4", now), "cluster1", "core", "MAPREDUCE", false, false);
     stage.addHostRoleExecutionCommand("host5", Role.JOBTRACKER,
       RoleCommand.START, new ServiceComponentHostStartEvent("JOBTRACKER",
-        "host5", now), "cluster1", "MAPREDUCE", false, false);
+        "host5", now), "cluster1", "core", "MAPREDUCE", false, false);
     stage.addHostRoleExecutionCommand("host6", Role.OOZIE_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("OOZIE_SERVER",
-        "host6", now), "cluster1", "OOZIE", false, false);
+        "host6", now), "cluster1", "core", "OOZIE", false, false);
     stage.addHostRoleExecutionCommand("host7", Role.WEBHCAT_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
-        "host7", now), "cluster1", "WEBHCAT", false, false);
+        "host7", now), "cluster1", "core", "WEBHCAT", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.GANGLIA_MONITOR,
       RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
-        "host4", now), "cluster1", "GANGLIA", false, false);
+        "host4", now), "cluster1", "core", "GANGLIA", false, false);
     stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
-        "host9", now), "cluster1", "GANGLIA", false, false);
+        "host9", now), "cluster1", "core", "GANGLIA", false, false);
     log.info(stage.toString());
     rg.build(stage);
     log.info(rg.stringifyGraph());

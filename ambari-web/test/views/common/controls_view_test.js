@@ -59,7 +59,7 @@ describe('App.ServiceConfigRadioButtons', function () {
           propertyAppendTo1: 'javax.jdo.option.ConnectionURL',
           propertyAppendTo2: 'hive_database',
           isAdditionalView1Null: true,
-          isAdditionalView2Null: true,
+          isAdditionalView2Null: false,
           title: 'Hive, embedded database'
         },
         {

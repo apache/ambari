@@ -416,7 +416,7 @@ public class TestActionScheduler {
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand(hostname, Role.SECONDARY_NAMENODE, RoleCommand.INSTALL,
             new ServiceComponentHostInstallEvent("SECONDARY_NAMENODE", hostname, System.currentTimeMillis(), "HDP-1.2.0"),
-            "cluster1", "HDFS", false, false);
+            "cluster1", "core", "HDFS", false, false);
     s.setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
     List<Stage> stages = Collections.singletonList(s);
 
@@ -592,9 +592,9 @@ public class TestActionScheduler {
     final Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
       "{\"command_param\":\"param_value\"}", "{\"host_param\":\"param_value\"}");
     addInstallTaskToStage(stage, hostname1, "cluster1", Role.DATANODE,
-      RoleCommand.INSTALL, Service.Type.HDFS, 1);
+      RoleCommand.INSTALL, "core", Service.Type.HDFS, 1);
     addInstallTaskToStage(stage, hostname2, "cluster1", Role.NAMENODE,
-      RoleCommand.INSTALL, Service.Type.HDFS, 2);
+      RoleCommand.INSTALL, "core", Service.Type.HDFS, 2);
     final List<Stage> stages = Collections.singletonList(stage);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -816,16 +816,16 @@ public class TestActionScheduler {
 
     List<Stage> stages = new ArrayList<>();
     Stage stage01 = createStage(clusterName, 0, 1);
-    addTask(stage01, Stage.INTERNAL_HOSTNAME, clusterName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, "AMBARI", 1);
+    addTask(stage01, Stage.INTERNAL_HOSTNAME, clusterName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, null,"AMBARI", 1);
 
     Stage stage11 = createStage("cluster1", 1, 1);
-    addTask(stage11, hostname1, clusterName, Role.KERBEROS_CLIENT, RoleCommand.CUSTOM_COMMAND, "KERBEROS", 2);
+    addTask(stage11, hostname1, clusterName, Role.KERBEROS_CLIENT, RoleCommand.CUSTOM_COMMAND, "core", "KERBEROS", 2);
 
     Stage stage02 = createStage("cluster1", 0, 2);
-    addTask(stage02, Stage.INTERNAL_HOSTNAME, clusterName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, "AMBARI", 3);
+    addTask(stage02, Stage.INTERNAL_HOSTNAME, clusterName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, null, "AMBARI", 3);
 
     Stage stage12 = createStage("cluster1", 1, 2);
-    addTask(stage12, hostname2, clusterName, Role.KERBEROS_CLIENT, RoleCommand.CUSTOM_COMMAND, "KERBEROS", 4);
+    addTask(stage12, hostname2, clusterName, Role.KERBEROS_CLIENT, RoleCommand.CUSTOM_COMMAND, "core", "KERBEROS", 4);
 
     stages.add(stage01);
     stages.add(stage11);
@@ -1222,23 +1222,23 @@ public class TestActionScheduler {
     firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname1, "cluster1", Role.DATANODE,
-                    RoleCommand.START, Service.Type.HDFS, 1, 1, 1));
+                    RoleCommand.START, "core", Service.Type.HDFS, 1, 1, 1));
 
     // Stage with the same hostname, should not be scheduled
     firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname1, "cluster1", Role.GANGLIA_MONITOR,
-                    RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+                    RoleCommand.START, "core", Service.Type.GANGLIA, 2, 2, 2));
 
     firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname2, "cluster1", Role.DATANODE,
-                    RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
+                    RoleCommand.START, "core", Service.Type.HDFS, 3, 3, 3));
 
     firstStageInProgressPerRequest.add(
         getStageWithSingleTask(
             hostname3, "cluster1", Role.DATANODE,
-            RoleCommand.START, Service.Type.HDFS, 4, 4, 4));
+            RoleCommand.START, "core", Service.Type.HDFS, 4, 4, 4));
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -1308,7 +1308,7 @@ public class TestActionScheduler {
     List<Stage> stages = new ArrayList<>();
     Stage stage = getStageWithSingleTask(
             hostname1, "cluster1", Role.HIVE_CLIENT,
-            RoleCommand.INSTALL, Service.Type.HIVE, 1, 1, 1);
+            RoleCommand.INSTALL, "core", Service.Type.HIVE, 1, 1, 1);
     Map<String, String> hiveSite = new TreeMap<>();
     hiveSite.put("javax.jdo.option.ConnectionPassword", "password");
     hiveSite.put("hive.server2.thrift.port", "10000");
@@ -1321,22 +1321,22 @@ public class TestActionScheduler {
     stages.add( // Stage with the same hostname, should not be scheduled
         getStageWithSingleTask(
             hostname1, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+            RoleCommand.START, "core", Service.Type.GANGLIA, 2, 2, 2));
 
     stages.add(
         getStageWithSingleTask(
             hostname2, "cluster1", Role.HIVE_CLIENT,
-            RoleCommand.INSTALL, Service.Type.HIVE, 3, 3, 3));
+            RoleCommand.INSTALL, "core", Service.Type.HIVE, 3, 3, 3));
 
     stages.add(
         getStageWithSingleTask(
             hostname3, "cluster1", Role.DATANODE,
-            RoleCommand.START, Service.Type.HDFS, 4, 4, 4));
+            RoleCommand.START, "core", Service.Type.HDFS, 4, 4, 4));
 
     stages.add( // Stage with the same request id, should not be scheduled
         getStageWithSingleTask(
             hostname4, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 5, 5, 4));
+            RoleCommand.START, "core", Service.Type.GANGLIA, 5, 5, 4));
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -1384,7 +1384,7 @@ public class TestActionScheduler {
     ServiceComponentHost sch = mock(ServiceComponentHost.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
-    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(oneClusterMock.getService(anyString(), anyString())).thenReturn(serviceObj);
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
@@ -1401,19 +1401,19 @@ public class TestActionScheduler {
     Stage backgroundStage = null;
     stages.add(//stage with background command
         backgroundStage = getStageWithSingleTask(
-            hostname1, "cluster1", Role.NAMENODE, RoleCommand.CUSTOM_COMMAND, "REBALANCEHDFS", Service.Type.HDFS, 1, 1, 1));
+            hostname1, "cluster1", Role.NAMENODE, RoleCommand.CUSTOM_COMMAND, "REBALANCEHDFS", "core", Service.Type.HDFS, 1, 1, 1));
 
     Assert.assertEquals(AgentCommandType.BACKGROUND_EXECUTION_COMMAND ,backgroundStage.getExecutionCommands(hostname1).get(0).getExecutionCommand().getCommandType());
 
     stages.add( // Stage with the same hostname, should be scheduled
         getStageWithSingleTask(
             hostname1, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+            RoleCommand.START, "core", Service.Type.GANGLIA, 2, 2, 2));
 
     stages.add(
         getStageWithSingleTask(
             hostname2, "cluster1", Role.DATANODE,
-            RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
+            RoleCommand.START, "core", Service.Type.HDFS, 3, 3, 3));
 
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -1471,13 +1471,13 @@ public class TestActionScheduler {
 
     stages.add(
         getStageWithSingleTask(
-            hostname, "cluster1", Role.NAMENODE, RoleCommand.UPGRADE, Service.Type.HDFS, 1, 1, 1));
+            hostname, "cluster1", Role.NAMENODE, RoleCommand.UPGRADE, "core", Service.Type.HDFS, 1, 1, 1));
 
     List<Stage> firstStageInProgress = Collections.singletonList(stages.get(0));
 
     stages.add(
         getStageWithSingleTask(
-            hostname, "cluster1", Role.DATANODE, RoleCommand.UPGRADE, Service.Type.HDFS, 2, 2, 1));
+            hostname, "cluster1", Role.DATANODE, RoleCommand.UPGRADE, "core", Service.Type.HDFS, 2, 2, 1));
 
     Host host = mock(Host.class);
     when(fsm.getHost(anyString())).thenReturn(host);
@@ -1638,25 +1638,25 @@ public class TestActionScheduler {
         "testRequestFailureBasedOnSuccessFactor", "", "");
     stage.setStageId(1);
 
-    addHostRoleExecutionCommand(now, stage, Role.SQOOP, Service.Type.SQOOP,
+    addHostRoleExecutionCommand(now, stage, Role.SQOOP, "core", Service.Type.SQOOP,
         RoleCommand.INSTALL, host1, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.OOZIE_CLIENT, Service.Type.OOZIE,
+    addHostRoleExecutionCommand(now, stage, Role.OOZIE_CLIENT,  "core", Service.Type.OOZIE,
         RoleCommand.INSTALL, host1, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.MAPREDUCE_CLIENT, Service.Type.MAPREDUCE,
+    addHostRoleExecutionCommand(now, stage, Role.MAPREDUCE_CLIENT,  "core", Service.Type.MAPREDUCE,
         RoleCommand.INSTALL, host1, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT, Service.Type.HBASE,
+    addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT,  "core", Service.Type.HBASE,
         RoleCommand.INSTALL, host1, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR, Service.Type.GANGLIA,
+    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR,  "core", Service.Type.GANGLIA,
         RoleCommand.INSTALL, host1, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT, Service.Type.HBASE,
+    addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT,  "core", Service.Type.HBASE,
         RoleCommand.INSTALL, host2, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR, Service.Type.GANGLIA,
+    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR,  "core", Service.Type.GANGLIA,
         RoleCommand.INSTALL, host2, "cluster1");
 
     final List<Stage> stages = Collections.singletonList(stage);
@@ -1806,11 +1806,11 @@ public class TestActionScheduler {
     }
   }
 
-  private void addHostRoleExecutionCommand(long now, Stage stage, Role role, Service.Type service,
+  private void addHostRoleExecutionCommand(long now, Stage stage, Role role, String serviceGroup, Service.Type service,
                                            RoleCommand command, String host, String cluster) {
     stage.addHostRoleExecutionCommand(host, role, command,
         new ServiceComponentHostInstallEvent(role.toString(), host, now, "HDP-0.2"),
-        cluster, service.toString(), false, false);
+        cluster, serviceGroup, service.toString(), false, false);
     stage.getExecutionCommandWrapper(host,
         role.toString()).getExecutionCommand();
   }
@@ -1839,19 +1839,19 @@ public class TestActionScheduler {
     stage.setStageId(1);
     stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
-        "cluster1", Service.Type.HDFS.toString(), false, false);
+        "cluster1", "core", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host1",
         Role.DATANODE.toString()).getExecutionCommand();
 
     stage.addHostRoleExecutionCommand("host2", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host2", now, "HDP-0.2"),
-        "cluster1", Service.Type.HDFS.toString(), false, false);
+        "cluster1", "core", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host2",
         Role.DATANODE.toString()).getExecutionCommand();
 
     stage.addHostRoleExecutionCommand("host3", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host3", now, "HDP-0.2"),
-        "cluster1", Service.Type.HDFS.toString(), false, false);
+        "cluster1", "core", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host3",
         Role.DATANODE.toString()).getExecutionCommand();
 
@@ -1864,7 +1864,7 @@ public class TestActionScheduler {
 
     stages.add(
         getStageWithSingleTask(
-            "host1", "cluster1", Role.HDFS_CLIENT, RoleCommand.UPGRADE, Service.Type.HDFS, 4, 2, 1));
+            "host1", "cluster1", Role.HDFS_CLIENT, RoleCommand.UPGRADE, "core", Service.Type.HDFS, 4, 2, 1));
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -1992,10 +1992,10 @@ public class TestActionScheduler {
   }
 
   private Stage addTask(Stage stage, String hostname, String clusterName, Role role,
-                        RoleCommand roleCommand, String serviceName, int taskId) {
+                        RoleCommand roleCommand, String serviceGroupName, String serviceName, int taskId) {
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
         new ServiceComponentHostUpgradeEvent(role.toString(), hostname, System.currentTimeMillis(), "HDP-0.2"),
-        clusterName, serviceName, false, false);
+        clusterName, serviceGroupName, serviceName, false, false);
     stage.getExecutionCommandWrapper(hostname,
         role.toString()).getExecutionCommand();
     stage.getOrderedHostRoleCommands().get(0).setTaskId(taskId);
@@ -2003,16 +2003,16 @@ public class TestActionScheduler {
   }
 
   private Stage getStageWithSingleTask(String hostname, String clusterName, Role role,
-                                       RoleCommand roleCommand, Service.Type service, int taskId,
+                                       RoleCommand roleCommand, String serviceGroupName, Service.Type service, int taskId,
                                        int stageId, int requestId) {
     Stage stage = createStage(clusterName, stageId, requestId);
-    return addTask(stage, hostname, clusterName, role, roleCommand, service.name(), taskId);
+    return addTask(stage, hostname, clusterName, role, roleCommand, serviceGroupName, service.name(), taskId);
   }
 
 
   private Stage getStageWithSingleTask(String hostname, String clusterName, Role role, RoleCommand roleCommand,
-      String customCommandName, Service.Type service, int taskId, int stageId, int requestId) {
-    Stage stage = getStageWithSingleTask(hostname, clusterName, role, roleCommand, service, taskId, stageId, requestId);
+      String customCommandName, String serviceGroupName, Service.Type service, int taskId, int stageId, int requestId) {
+    Stage stage = getStageWithSingleTask(hostname, clusterName, role, roleCommand, serviceGroupName, service, taskId, stageId, requestId);
 
     HostRoleCommand cmd = stage.getHostRoleCommand(hostname, role.name());
     if (cmd != null) {
@@ -2025,12 +2025,12 @@ public class TestActionScheduler {
 
   private void addInstallTaskToStage(Stage stage, String hostname,
                               String clusterName, Role role,
-                              RoleCommand roleCommand, Service.Type service,
+                              RoleCommand roleCommand, String serviceGroup, Service.Type service,
                               int taskId) {
 
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
       new ServiceComponentHostInstallEvent(role.toString(), hostname,
-        System.currentTimeMillis(), "HDP-0.2"), clusterName, service.toString(), false, false);
+        System.currentTimeMillis(), "HDP-0.2"), clusterName, serviceGroup, service.toString(), false, false);
     ExecutionCommand command = stage.getExecutionCommandWrapper
       (hostname, role.toString()).getExecutionCommand();
     command.setTaskId(taskId);
@@ -2204,9 +2204,9 @@ public class TestActionScheduler {
     Stage stage1 = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
             "", "");
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_MASTER,
-            RoleCommand.INSTALL, Service.Type.HBASE, 1);
+            RoleCommand.INSTALL, "core", Service.Type.HBASE, 1);
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_REGIONSERVER,
-            RoleCommand.INSTALL, Service.Type.HBASE, 2);
+            RoleCommand.INSTALL, "core", Service.Type.HBASE, 2);
     final List<Stage> stages = Collections.singletonList(stage1);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -2385,7 +2385,7 @@ public class TestActionScheduler {
     int datanodeCmdTaskId = 3;
 
     Stage stageWithTask = getStageWithSingleTask(
-        hostname, "cluster1", Role.SECONDARY_NAMENODE, RoleCommand.START,
+        hostname, "cluster1", Role.SECONDARY_NAMENODE, RoleCommand.START, "core",
         Service.Type.HDFS, secondaryNamenodeCmdTaskId, 1, (int) requestId);
 
     // complete the first stage
@@ -2393,7 +2393,7 @@ public class TestActionScheduler {
     allStages.add(stageWithTask);
 
     stageWithTask = getStageWithSingleTask(
-        hostname, "cluster1", Role.NAMENODE, RoleCommand.START,
+        hostname, "cluster1", Role.NAMENODE, RoleCommand.START, "core",
         Service.Type.HDFS, namenodeCmdTaskId, 2, (int) requestId);
 
     tasksInProgress.addAll(stageWithTask.getOrderedHostRoleCommands());
@@ -2402,7 +2402,7 @@ public class TestActionScheduler {
     allStages.add(stageWithTask);
 
     stageWithTask = getStageWithSingleTask(
-        hostname, "cluster1", Role.DATANODE, RoleCommand.START,
+        hostname, "cluster1", Role.DATANODE, RoleCommand.START, "core",
         Service.Type.HDFS, datanodeCmdTaskId, 3, (int) requestId);
 
     tasksInProgress.addAll(stageWithTask.getOrderedHostRoleCommands());
@@ -2583,19 +2583,19 @@ public class TestActionScheduler {
     int namenodeCmdTaskId = 1;
 
     Stage request1Stage1 = getStageWithSingleTask(hostname1, "cluster1", Role.NAMENODE,
-        RoleCommand.START,
+        RoleCommand.START, "core",
         Service.Type.HDFS, namenodeCmdTaskId, 1, (int) requestId1);
 
     Stage request1Stage2 = getStageWithSingleTask(hostname1, "cluster1", Role.DATANODE,
-        RoleCommand.START,
+        RoleCommand.START, "core",
         Service.Type.HDFS, 2, 2, (int) requestId1);
 
     Stage request2Stage1 = getStageWithSingleTask(hostname2, "cluster1", Role.DATANODE,
-        RoleCommand.STOP, // Exclusive
+        RoleCommand.STOP,  "core",// Exclusive
         Service.Type.HDFS, 3, 3, (int) requestId2);
 
     Stage request3Stage1 = getStageWithSingleTask(hostname3, "cluster1", Role.DATANODE,
-        RoleCommand.START,
+        RoleCommand.START, "core",
         Service.Type.HDFS, 4, 4, (int) requestId3);
 
     firstStageInProgressByRequest.add(request1Stage1);
@@ -2857,13 +2857,13 @@ public class TestActionScheduler {
     final List<Stage> stages = new ArrayList<>();
     final List<Stage> firstStageInProgress = new ArrayList<>();
     stages.add(stage = getStageWithSingleTask(hostname1, "cluster1", Role.NAMENODE,
-        RoleCommand.STOP, Service.Type.HDFS, 1, 1, 1));
+        RoleCommand.STOP, "core", Service.Type.HDFS, 1, 1, 1));
 
     addInstallTaskToStage(stage, hostname1, "cluster1", Role.HBASE_MASTER, RoleCommand.INSTALL,
-        Service.Type.HBASE, 1);
+        "core", Service.Type.HBASE, 1);
 
     stages.add(stage2 = getStageWithSingleTask(hostname1, "cluster1", Role.DATANODE,
-        RoleCommand.STOP, Service.Type.HDFS, 1, 1, 1));
+        RoleCommand.STOP, "core", Service.Type.HDFS, 1, 1, 1));
 
     // !!! this is the test; make the stages skippable so that when their
     // commands fail, the entire request is not aborted

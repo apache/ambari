@@ -27,43 +27,35 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 public class StackAdvisorResourceProviderTest {
 
+  private RecommendationResourceProvider provider;
+
   @Test
   public void testCalculateConfigurations() throws Exception {
-
-    Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
-    Set<String> propertyIds = Collections.emptySet();
-    AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
-    RecommendationResourceProvider provider = new RecommendationResourceProvider(propertyIds,
-        keyPropertyIds, ambariManagementController);
-
-    Request request = mock(Request.class);
-    Set<Map<String, Object>> propertiesSet = new HashSet<>();
-    Map<String, Object> propertiesMap = new HashMap<>();
-    propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string");
-    List<Object> array = new ArrayList<>();
-    array.add("array1");
-    array.add("array2");
-    propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", array);
-    propertiesSet.add(propertiesMap);
-
-    doReturn(propertiesSet).when(request).getProperties();
+    Request request = createMockRequest(
+        CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string",
+        CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", Lists.newArrayList("array1", "array2"));
 
     Map<String, Map<String, Map<String, String>>> calculatedConfigurations = provider.calculateConfigurations(request);
 
@@ -79,27 +71,37 @@ public class StackAdvisorResourceProviderTest {
     assertEquals("[array1, array2]", properties.get("array_prop"));
   }
 
-  @Test
-  public void testReadUserContext() throws Exception {
-
+  @Nonnull
+  private RecommendationResourceProvider createRecommendationResourceProvider() {
     Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
     Set<String> propertyIds = Collections.emptySet();
     AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
-    RecommendationResourceProvider provider = new RecommendationResourceProvider(propertyIds,
-                                                                                 keyPropertyIds, ambariManagementController);
+    return new RecommendationResourceProvider(propertyIds,
+        keyPropertyIds, ambariManagementController);
+  }
 
+  @Nonnull
+  private Request createMockRequest(Object... propertyKeysAndValues) {
     Request request = mock(Request.class);
     Set<Map<String, Object>> propertiesSet = new HashSet<>();
     Map<String, Object> propertiesMap = new HashMap<>();
-    propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string");
-    List<Object> array = new ArrayList<>();
-    array.add("array1");
-    array.add("array2");
-    propertiesMap.put(USER_CONTEXT_OPERATION_PROPERTY, "op1");
-    propertiesMap.put(USER_CONTEXT_OPERATION_DETAILS_PROPERTY, "op_det");
+    Iterator<Object> it = Arrays.asList(propertyKeysAndValues).iterator();
+    while(it.hasNext()) {
+      String key = (String)it.next();
+      Object value = it.next();
+      propertiesMap.put(key, value);
+    }
     propertiesSet.add(propertiesMap);
-
     doReturn(propertiesSet).when(request).getProperties();
+    return request;
+  }
+
+  @Test
+  public void testReadUserContext() throws Exception {
+    Request request = createMockRequest(
+        CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string",
+        USER_CONTEXT_OPERATION_PROPERTY, "op1",
+        USER_CONTEXT_OPERATION_DETAILS_PROPERTY, "op_det");
 
     Map<String, String> userContext = provider.readUserContext(request);
 
@@ -111,24 +113,9 @@ public class StackAdvisorResourceProviderTest {
 
   @Test
   public void testCalculateConfigurationsWithNullPropertyValues() throws Exception {
-
-    Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
-    Set<String> propertyIds = Collections.emptySet();
-    AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
-    RecommendationResourceProvider provider = new RecommendationResourceProvider(propertyIds,
-      keyPropertyIds, ambariManagementController);
-
-    Request request = mock(Request.class);
-    Set<Map<String, Object>> propertiesSet = new HashSet<>();
-    Map<String, Object> propertiesMap = new HashMap<>();
-    propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", null); //null value means no value specified for the property
-    List<Object> array = new ArrayList<>();
-    array.add("array1");
-    array.add("array2");
-    propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", array);
-    propertiesSet.add(propertiesMap);
-
-    doReturn(propertiesSet).when(request).getProperties();
+    Request request = createMockRequest(
+        CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", null,
+        CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", Lists.newArrayList("array1", "array2"));
 
     Map<String, Map<String, Map<String, String>>> calculatedConfigurations = provider.calculateConfigurations(request);
 
@@ -142,19 +129,18 @@ public class StackAdvisorResourceProviderTest {
 
     assertEquals("[array1, array2]", properties.get("array_prop"));
 
-
     // config properties with null values should be ignored
     assertFalse(properties.containsKey("string_prop"));
-
   }
 
+ 
   @Test
   public void testStackAdvisorWithEmptyHosts() {
     Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
     Set<String> propertyIds = Collections.emptySet();
     AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
     RecommendationResourceProvider provider = new RecommendationResourceProvider(propertyIds,
-      keyPropertyIds, ambariManagementController);
+            keyPropertyIds, ambariManagementController);
 
     Request request = mock(Request.class);
     Set<Map<String, Object>> propertiesSet = new HashSet<>();
@@ -169,5 +155,10 @@ public class StackAdvisorResourceProviderTest {
       Assert.fail();
     } catch (Exception e) {
     }
+  }
+
+  @Before
+  public void init() {
+    provider = createRecommendationResourceProvider();
   }
 }

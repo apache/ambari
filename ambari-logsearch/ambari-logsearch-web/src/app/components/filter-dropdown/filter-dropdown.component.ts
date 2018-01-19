@@ -20,6 +20,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
+import {ListItem} from '@app/classes/list-item';
 
 @Component({
   selector: 'filter-dropdown',
@@ -41,16 +42,25 @@ export class FilterDropdownComponent extends DropdownButtonComponent implements 
 
   private onChange: (fn: any) => void;
 
-  get value(): any {
-    return this.selectedValue;
+  get selection(): ListItem[] {
+    return this.selectedItems;
   }
 
-  set value(newValue: any) {
-    this.selectedValue = newValue;
-    this.onChange(newValue);
+  set selection(items: ListItem[]) {
+    this.selectedItems = items;
+    if (this.isMultipleChoice) {
+      this.options.forEach((option: ListItem): void => {
+        const selectionItem = items.find((item: ListItem): boolean => this.utils.isEqual(item.value, option.value));
+        option.isChecked = Boolean(selectionItem);
+      });
+    }
+    if (this.onChange) {
+      this.onChange(items);
+    }
   }
 
-  writeValue() {
+  writeValue(items: ListItem[]) {
+    this.selection = items;
   }
 
   registerOnChange(callback: any): void {

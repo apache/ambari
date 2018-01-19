@@ -72,6 +72,7 @@ public class DeleteServiceTest extends ServerTestBase {
     public void testDeleteService() throws Exception {
         String clusterName = "c1";
         String serviceName = "HDFS";
+        Long serviceId = 1L;
         ConnectionParams params = new ConnectionParams();
 
         params.setServerName("localhost");
@@ -128,7 +129,7 @@ public class DeleteServiceTest extends ServerTestBase {
         List<ServiceDesiredStateEntity> serviceDesiredStateEntities = serviceDesiredStateDAO.findAll();
         assertEquals(serviceDesiredStateEntities.size(), 1);
         ServiceDesiredStateEntity serviceDesiredStateEntity = serviceDesiredStateEntities.get(0);
-        assertEquals(serviceDesiredStateEntity.getServiceName(), serviceName);
+        assertEquals(serviceDesiredStateEntity.getServiceId(),serviceId);
         assertEquals(serviceDesiredStateEntity.getDesiredState(), State.INSTALLED);
 
         /**
@@ -166,7 +167,8 @@ public class DeleteServiceTest extends ServerTestBase {
         /**
          * ClusterServiceDAO - the service entry should have been removed.
          */
-        clusterServiceEntity = clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
+        //TODO : Requires logic change
+        clusterServiceEntity = clusterServiceDAO.findById(1L,1L,1L);
         assertTrue(clusterServiceEntity == null);
 
         /**
@@ -174,7 +176,8 @@ public class DeleteServiceTest extends ServerTestBase {
          */
         ServiceDesiredStateEntityPK serviceDesiredStateEntityPK = injector.getInstance(ServiceDesiredStateEntityPK.class);
         serviceDesiredStateEntityPK.setClusterId(clusterId);
-        serviceDesiredStateEntityPK.setServiceName(serviceName);
+        //TODO : Requires logic change
+        serviceDesiredStateEntityPK.setServiceId(1L);
         serviceDesiredStateEntity =  serviceDesiredStateDAO.findByPK(serviceDesiredStateEntityPK);
         assertTrue(serviceDesiredStateEntity == null);
 
@@ -187,7 +190,7 @@ public class DeleteServiceTest extends ServerTestBase {
         /**
          * HostComponentStateDAO
          */
-        hostComponentStateEntities = hostComponentStateDAO.findByService(serviceName);
+        hostComponentStateEntities = hostComponentStateDAO.findByService(1L, 1L, 1L);
         assertEquals(hostComponentStateEntities.size(), 0);
 
 

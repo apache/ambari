@@ -566,6 +566,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setMinJdk(smx.getMinJdk());
       stackInfo.setMaxJdk(smx.getMaxJdk());
       stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
+      stackInfo.setOsSpecifics(smx.getOsSpecifics());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
@@ -650,6 +651,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    */
   private void populateConfigurationModules() {
     //todo: can't exclude types in stack config
+    // TODO : Correct naming for 'SERVICE_CONFIG_FOLDER_NAME' and 'SERVICE_PROPERTIES_FOLDER_NAME',
+    // as we are currently in stack version folder (not in services). It's reuse of macros,
+    // which is misleading given that both stack's version and services dirs can have 'configurations' and 'properties'
+    // folder.
     ConfigurationDirectory configDirectory = stackDirectory.getConfigurationDirectory(
         StackDirectory.SERVICE_CONFIG_FOLDER_NAME, StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME);
 
@@ -659,8 +664,20 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
           stackInfo.setValid(config.isValid());
           stackInfo.addErrors(config.getErrors());
         }
-        stackInfo.getProperties().addAll(config.getModuleInfo().getProperties());
-        stackInfo.setConfigTypeAttributes(config.getConfigType(), config.getModuleInfo().getAttributes());
+        // TODO : Remove this switch case as part of removing case "cluster-env" as part of AMBARI-22197, where we are
+        // phasing out cluster-env entirely.
+        switch(config.getConfigType()) {
+          case "settings":
+            stackInfo.setStackSettings((List<PropertyInfo>) config.getModuleInfo().getProperties());
+            stackInfo.setStackSettingsConfigTypeAttributes(config.getConfigType(), config.getModuleInfo().getAttributes());
+            break;
+          case "cluster-env":
+            stackInfo.getProperties().addAll(config.getModuleInfo().getProperties());
+            stackInfo.setConfigTypeAttributes(config.getConfigType(), config.getModuleInfo().getAttributes());
+            break;
+          default:
+            break;
+        }
         configurationModules.put(config.getConfigType(), config);
       }
     }

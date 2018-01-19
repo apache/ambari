@@ -38,7 +38,6 @@ CREATE TABLE stack (
   stack_id NUMERIC(19) NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
-  repo_version VARCHAR(255) NOT NULL,
   current_mpack_id BIGINT,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
   CONSTRAINT FK_mpacks FOREIGN KEY (current_mpack_id) REFERENCES mpacks(id),
@@ -85,6 +84,17 @@ CREATE TABLE clusters (
   CONSTRAINT FK_clusters_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id));
 
+CREATE TABLE configuration_base (
+  id NUMERIC(19) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  version NUMERIC(19) NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  data TEXT NOT NULL,
+  attributes TEXT,
+  create_timestamp NUMERIC(19) NOT NULL,
+  CONSTRAINT PK_configuration_base PRIMARY KEY (id)
+);
+
 CREATE TABLE clusterconfig (
   config_id NUMERIC(19) NOT NULL,
   version_tag VARCHAR(255) NOT NULL,
@@ -104,19 +114,11 @@ CREATE TABLE clusterconfig (
   CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
 
-CREATE TABLE serviceconfig (
-  service_config_id NUMERIC(19) NOT NULL,
-  cluster_id NUMERIC(19) NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
-  version NUMERIC(19) NOT NULL,
-  create_timestamp NUMERIC(19) NOT NULL,
-  stack_id NUMERIC(19) NOT NULL,
-  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
-  group_id NUMERIC(19),
-  note TEXT,
-  CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
-  CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version));
+CREATE TABLE ambari_configuration (
+  category_name VARCHAR(100) NOT NULL,
+  property_name VARCHAR(100) NOT NULL,
+  property_value VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_ambari_configuration PRIMARY KEY (category_name, property_name));
 
 CREATE TABLE hosts (
   host_id NUMERIC(19) NOT NULL,
@@ -138,6 +140,93 @@ CREATE TABLE hosts (
   CONSTRAINT PK_hosts PRIMARY KEY (host_id),
   CONSTRAINT UQ_hosts_host_name UNIQUE (host_name));
 
+CREATE TABLE clustersettings (
+  id NUMERIC(19) NOT NULL,
+  setting_name VARCHAR(255) NOT NULL,
+  setting_value VARCHAR(255) NOT NULL,
+  cluster_id NUMERIC(19) NOT NULL,
+  CONSTRAINT PK_clustersettings PRIMARY KEY (id),
+  CONSTRAINT FK_clustersettings_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
+CREATE TABLE servicegroups (
+  id NUMERIC(19) NOT NULL,
+  service_group_name VARCHAR(255) NOT NULL,
+  cluster_id NUMERIC(19) NOT NULL,
+  CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
+  CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
+CREATE TABLE servicegroupdependencies (
+  id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_group_cluster_id NUMBER(19) NOT NULL,
+  dependent_service_group_id NUMBER(19) NOT NULL,
+  dependent_service_group_cluster_id NUMBER(19) NOT NULL,
+  CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
+  CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
+  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_servicegroupdependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+
+CREATE TABLE clusterservices (
+  id NUMERIC(19) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  service_type VARCHAR(255) NOT NULL,
+  cluster_id NUMERIC(19) NOT NULL,
+  service_group_id NUMERIC(19) NOT NULL,
+  service_enabled INTEGER NOT NULL,
+  CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
+  CONSTRAINT UQ_service_id UNIQUE (id),
+  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
+
+CREATE TABLE clusterconfig (
+  config_id NUMERIC(19) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  version NUMERIC(19) NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  cluster_id NUMERIC(19) NOT NULL,
+  stack_id NUMERIC(19) NOT NULL,
+  selected SMALLINT NOT NULL DEFAULT 0,
+  config_data TEXT NOT NULL,
+  config_attributes TEXT,
+  create_timestamp NUMERIC(19) NOT NULL,
+  unmapped SMALLINT NOT NULL DEFAULT 0,
+  selected_timestamp NUMERIC(19) NOT NULL DEFAULT 0,
+  service_id BIGINT,
+  CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
+  CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
+  CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_clusterconfig_service_id FOREIGN KEY (service_id) REFERENCES clusterservices(id),
+  CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag),
+  CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
+
+CREATE TABLE servicedependencies (
+  id NUMBER(19) NOT NULL,
+  service_id NUMBER(19) NOT NULL,
+  service_group_id NUMBER(19) NOT NULL,
+  service_cluster_id NUMBER(19) NOT NULL,
+  dependent_service_id NUMBER(19) NOT NULL,
+  dependent_service_group_id NUMBER(19) NOT NULL,
+  dependent_service_cluster_id NUMBER(19) NOT NULL,
+  CONSTRAINT PK_servicedependencies PRIMARY KEY (id),
+  CONSTRAINT UQ_servicedependencies UNIQUE (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
+  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
+  CONSTRAINT FK_servicedependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+
+CREATE TABLE serviceconfig (
+  service_config_id NUMERIC(19) NOT NULL,
+  cluster_id NUMERIC(19) NOT NULL,
+  service_id NUMERIC(19) NOT NULL,
+  service_group_id NUMERIC(19) NOT NULL,
+  version NUMERIC(19) NOT NULL,
+  create_timestamp NUMERIC(19) NOT NULL,
+  stack_id NUMERIC(19) NOT NULL,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  group_id NUMERIC(19),
+  note TEXT,
+  CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
+  CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_serviceconfig_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version));
+
 CREATE TABLE serviceconfighosts (
   service_config_id NUMERIC(19) NOT NULL,
   host_id NUMERIC(19) NOT NULL,
@@ -151,23 +240,6 @@ CREATE TABLE serviceconfigmapping (
   CONSTRAINT PK_serviceconfigmapping PRIMARY KEY (service_config_id, config_id),
   CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id),
   CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
-
-CREATE TABLE servicegroups (
-  id NUMERIC(19) NOT NULL,
-  service_group_name VARCHAR(255) NOT NULL,
-  cluster_id NUMERIC(19) NOT NULL,
-  CONSTRAINT PK_servicegroups PRIMARY KEY (id, cluster_id),
-  CONSTRAINT FK_servicegroups_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
-
-CREATE TABLE clusterservices (
-  id NUMERIC(19) NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
-  service_type VARCHAR(255) NOT NULL,
-  cluster_id NUMERIC(19) NOT NULL,
-  service_group_id NUMERIC(19) NOT NULL,
-  service_enabled INTEGER NOT NULL,
-  CONSTRAINT PK_clusterservices PRIMARY KEY (id, service_group_id, cluster_id),
-  CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (service_group_id, cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterstate (
   cluster_id NUMERIC(19) NOT NULL,
@@ -186,6 +258,7 @@ CREATE TABLE repo_version (
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   hidden SMALLINT NOT NULL DEFAULT 0,
   resolved BIT NOT NULL DEFAULT 0,
+  legacy BIT NOT NULL DEFAULT 0,
   version_url VARCHAR(1024),
   version_xml TEXT,
   version_xsd VARCHAR(512),
@@ -424,6 +497,7 @@ CREATE TABLE role_success_criteria (
 CREATE TABLE requestresourcefilter (
   filter_id NUMERIC(19) NOT NULL,
   request_id NUMERIC(19) NOT NULL,
+  service_group_name VARCHAR(255),
   service_name VARCHAR(255),
   component_name VARCHAR(255),
   hosts IMAGE,
@@ -435,6 +509,7 @@ CREATE TABLE requestoperationlevel (
   request_id NUMERIC(19) NOT NULL,
   level_name VARCHAR(255),
   cluster_name VARCHAR(255),
+  service_group_name VARCHAR(255),
   service_name VARCHAR(255),
   host_component_name VARCHAR(255),
   host_id NUMERIC(19) NULL,      -- unlike most host_id columns, this one allows NULLs because the request can be at the service level
@@ -451,11 +526,13 @@ CREATE TABLE hostconfigmapping (
   cluster_id NUMERIC(19) NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   selected INTEGER NOT NULL DEFAULT 0,
-  service_name VARCHAR(255),
+  service_id NUMERIC(19) NOT NULL,
+  service_group_id NUMERIC(19) NOT NULL,
   version_tag VARCHAR(255) NOT NULL,
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
   CONSTRAINT PK_hostconfigmapping PRIMARY KEY (create_timestamp, host_id, cluster_id, type_name),
   CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
+  CONSTRAINT FK_hostconfmapping_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
 CREATE TABLE metainfo (
@@ -482,8 +559,10 @@ CREATE TABLE configgroup (
   tag VARCHAR(1024) NOT NULL,
   description VARCHAR(1024),
   create_timestamp NUMERIC(19) NOT NULL,
-  service_name VARCHAR(255),
+  service_id NUMERIC(19) NOT NULL,
+  service_group_id NUMERIC(19) NOT NULL,
   CONSTRAINT PK_configgroup PRIMARY KEY (group_id),
+  CONSTRAINT FK_configgroup_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE confgroupclusterconfigmapping (
@@ -524,16 +603,6 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name),
   CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
-
-CREATE TABLE blueprintv2 (
-  blueprint_name VARCHAR(255) NOT NULL,
-  security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
-  security_descriptor_reference VARCHAR(255),
-  stack_id NUMERIC(19) NOT NULL,
-  content TEXT NOT NULL,
-  CONSTRAINT PK_blueprintv2 PRIMARY KEY (blueprint_name),
-  CONSTRAINT FK_blueprintv2_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
-
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,
@@ -761,18 +830,6 @@ CREATE TABLE topology_request (
   CONSTRAINT PK_topology_request PRIMARY KEY (id),
   CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
 
-CREATE TABLE topology_configurations (
-  id NUMERIC(19) NOT NULL,
-  request_id NUMERIC(19) NOT NULL,
-  service_group_name VARCHAR(100) NOT NULL,
-  service_name VARCHAR(100) NOT NULL,
-  component_name VARCHAR(100),
-  host_group_name VARCHAR(100),
-  cluster_properties TEXT,
-  cluster_attributes TEXT,
-  CONSTRAINT PK_topology_configurations PRIMARY KEY (id),
-  CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id));
-
 CREATE TABLE topology_hostgroup (
   id NUMERIC(19) NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -957,12 +1014,21 @@ CREATE TABLE kerberos_principal (
   CONSTRAINT PK_kerberos_principal PRIMARY KEY (principal_name)
 );
 
+CREATE TABLE kerberos_keytab (
+  keytab_path VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_krb_keytab_path_host_id PRIMARY KEY (keytab_path)
+);
+
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
+  keytab_path VARCHAR(255) NOT NULL,
+  is_distributed SMALLINT NOT NULL DEFAULT 0,
   host_id NUMERIC(19) NOT NULL,
-  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY (principal_name, host_id),
+  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY (principal_name, keytab_path, host_id),
   CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name));
+  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
+  CONSTRAINT FK_krb_pr_host_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path)
+);
 
 CREATE TABLE kerberos_descriptor
 (
@@ -1093,7 +1159,10 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_setting_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_dependency_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_dependency_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 1);
@@ -1249,6 +1318,7 @@ insert into adminpermission(permission_id, permission_name, resource_type_id, pe
     SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' UNION ALL
     SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' UNION ALL
     SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage settings' UNION ALL
+    SELECT 'AMBARI.MANAGE_CONFIGURATION', 'Manage ambari configuration' UNION ALL
     SELECT 'AMBARI.MANAGE_USERS', 'Manage users' UNION ALL
     SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' UNION ALL
     SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' UNION ALL
@@ -1454,6 +1524,7 @@ insert into adminpermission(permission_id, permission_name, resource_type_id, pe
     SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_SETTINGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+    SELECT permission_id, 'AMBARI.MANAGE_CONFIGURATION' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
     SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

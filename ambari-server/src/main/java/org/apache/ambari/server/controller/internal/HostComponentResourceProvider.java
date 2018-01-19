@@ -67,6 +67,8 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.ambari.server.topology.Setting;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -79,6 +81,8 @@ import com.google.inject.assistedinject.AssistedInject;
 public class HostComponentResourceProvider extends AbstractControllerResourceProvider {
   public static final String RESPONSE_KEY = "HostRoles";
   public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
+
+  private static final Logger LOG = LoggerFactory.getLogger(HostComponentResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

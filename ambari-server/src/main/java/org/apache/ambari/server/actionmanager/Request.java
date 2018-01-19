@@ -256,6 +256,7 @@ public class Request {
       List<RequestResourceFilterEntity> filterEntities = new ArrayList<>();
       for (RequestResourceFilter resourceFilter : resourceFilters) {
         RequestResourceFilterEntity filterEntity = new RequestResourceFilterEntity();
+        filterEntity.setServiceGroupName(resourceFilter.getServiceGroupName());
         filterEntity.setServiceName(resourceFilter.getServiceName());
         filterEntity.setComponentName(resourceFilter.getComponentName());
         filterEntity.setHosts(resourceFilter.getHostNames() != null ?
@@ -275,6 +276,7 @@ public class Request {
       RequestOperationLevelEntity operationLevelEntity = new RequestOperationLevelEntity();
       operationLevelEntity.setLevel(operationLevel.getLevel().toString());
       operationLevelEntity.setClusterName(operationLevel.getClusterName());
+      operationLevelEntity.setServiceGroupName(operationLevel.getServiceGroupName());
       operationLevelEntity.setServiceName(operationLevel.getServiceName());
       operationLevelEntity.setHostComponentName(operationLevel.getHostComponentName());
       operationLevelEntity.setHostId(hostId);
@@ -436,6 +438,7 @@ public class Request {
       for (RequestResourceFilterEntity resourceFilterEntity : resourceFilterEntities) {
         RequestResourceFilter resourceFilter =
           new RequestResourceFilter(
+            resourceFilterEntity.getServiceGroupName(),
             resourceFilterEntity.getServiceName(),
             resourceFilterEntity.getComponentName(),
             getHostsList(resourceFilterEntity.getHosts()));
@@ -465,6 +468,7 @@ public class Request {
       level = new RequestOperationLevel(
           Resource.Type.valueOf(operationLevelEntity.getLevel()),
           operationLevelEntity.getClusterName(),
+          operationLevelEntity.getServiceGroupName(),
           operationLevelEntity.getServiceName(),
           operationLevelEntity.getHostComponentName(),
           hostName);

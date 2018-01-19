@@ -70,12 +70,12 @@
         </div>
         <div class="version-operations-buttons">
           <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.view" class=":btn :btn-default view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.view"}} {{action doAction undefined view.parentView.actionTypes.SWITCH target="view.parentView"}}><i class="glyphicon glyphicon-search"></i>&nbsp;{{t common.view}}</button>
-          {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
+          {{#havePermissions "SERVICE.COMPARE_CONFIGS"}}
             <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.compare" class=":btn :btn-default view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.compare"}} {{action doAction undefined view.parentView.actionTypes.COMPARE target="view.parentView"}}><i class="glyphicon glyphicon-copy"></i>&nbsp;{{t common.compare}}</button>
-          {{/isAuthorized}}
-          {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+          {{/havePermissions}}
+          {{#havePermissions "SERVICE.MODIFY_CONFIGS"}}
             <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.revert" class=":btn :btn-default view.parentView.hoveredServiceVersion.isCurrent:not-allowed-cursor view.parentView.hoveredServiceVersion.isCompatible::hidden" title="view.parentView.hoveredServiceVersion.disabledActionMessages.revert"}} {{action doAction undefined view.parentView.actionTypes.REVERT target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
-          {{/isAuthorized}}
+          {{/havePermissions}}
         </div>
       {{/if}}
     {{/view}}
