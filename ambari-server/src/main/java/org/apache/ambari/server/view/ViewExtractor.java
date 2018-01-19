@@ -52,7 +52,7 @@ public class ViewExtractor {
   /**
    * The logger.
    */
-  protected final static Logger LOG = LoggerFactory.getLogger(ViewExtractor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewExtractor.class);
 
 
   // ----- ViewExtractor -----------------------------------------------------

@@ -66,6 +66,8 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
@@ -78,6 +80,9 @@ import com.google.inject.persist.Transactional;
 public class ComponentResourceProvider extends AbstractControllerResourceProvider {
   public static final String RESPONSE_KEY = "ServiceComponentInfo";
   public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
+
+  private static final Logger LOG = LoggerFactory.getLogger(ComponentResourceProvider.class);
+
   // ----- Property ID constants ---------------------------------------------
 
   // Components

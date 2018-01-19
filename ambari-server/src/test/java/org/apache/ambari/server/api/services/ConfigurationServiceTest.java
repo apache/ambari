@@ -60,7 +60,7 @@ public class ConfigurationServiceTest extends BaseServiceTest {
       m_clusterId = clusterId;
     }
 
-    @Override
+
     ResourceInstance createConfigurationResource(String clusterName) {
       assertEquals(m_clusterId, clusterName);
       return getTestResource();

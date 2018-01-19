@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 
+import java.util.Objects;
 
 public class ServiceComponentHostRequest {
 
@@ -37,11 +38,10 @@ public class ServiceComponentHostRequest {
 
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceGroupName,
-                                     String serviceDisplayName,
+                                     String serviceName,
                                      String componentName,
                                      String hostname,
                                      String desiredState) {
-    super();
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
@@ -188,4 +188,35 @@ public class ServiceComponentHostRequest {
   public String getPublicHostname() { return publicHostname; }
 
   public void setPublicHostname(String publicHostname) { this.publicHostname = publicHostname; }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ServiceComponentHostRequest other = (ServiceComponentHostRequest) obj;
+
+    return Objects.equals(clusterName, other.clusterName) &&
+      Objects.equals(serviceGroupName, other.serviceGroupName) &&
+      Objects.equals(serviceName, other.serviceName) &&
+      Objects.equals(componentName, other.componentName) &&
+      Objects.equals(hostname, other.hostname) &&
+      Objects.equals(publicHostname, other.publicHostname) &&
+      Objects.equals(desiredState, other.desiredState) &&
+      Objects.equals(state, other.state) &&
+      Objects.equals(desiredStackId, other.desiredStackId) &&
+      Objects.equals(staleConfig, other.staleConfig) &&
+      Objects.equals(adminState, other.adminState) &&
+      Objects.equals(maintenanceState, other.maintenanceState);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(clusterName, serviceGroupName, serviceName, componentName, hostname, publicHostname,
+      desiredState, state, desiredStackId, staleConfig, adminState, maintenanceState);
+  }
 }

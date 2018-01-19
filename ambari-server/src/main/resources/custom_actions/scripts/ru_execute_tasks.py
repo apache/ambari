@@ -102,8 +102,8 @@ class ExecuteUpgradeTasks(Script):
     version = default('/roleParams/version', None)
 
     # These 2 variables are optional
-    service_package_folder = default('/roleParams/service_package_folder', None)
-    hooks_folder = default('/roleParams/hooks_folder', None)
+    service_package_folder = default('/commandParams/service_package_folder', None)
+    hooks_folder = default('/commandParams/hooks_folder', None)
 
     tasks = json.loads(config['roleParams']['tasks'])
     if tasks:
@@ -153,6 +153,7 @@ class ExecuteUpgradeTasks(Script):
         if task.command:
           task.command = replace_variables(task.command, host_name, version)
           shell.checked_call(task.command, logoutput=True, quiet=True)
+
 
 if __name__ == "__main__":
   ExecuteUpgradeTasks().execute()

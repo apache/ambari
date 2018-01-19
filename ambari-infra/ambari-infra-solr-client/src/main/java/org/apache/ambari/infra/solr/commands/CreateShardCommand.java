@@ -38,10 +38,7 @@ public class CreateShardCommand extends AbstractSolrRetryCommand<CollectionAdmin
 
   @Override
   public CollectionAdminRequest.CreateShard createRequest(AmbariSolrCloudClient client) {
-    CollectionAdminRequest.CreateShard createShardRequest = new CollectionAdminRequest.CreateShard();
-    createShardRequest.setCollectionName(client.getCollection());
-    createShardRequest.setShardName(shardName);
-    return createShardRequest;
+    return CollectionAdminRequest.createShard(client.getCollection(), shardName);
   }
 
   @Override

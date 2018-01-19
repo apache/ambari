@@ -77,7 +77,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   @Test
   public void removesAllKerberosIdentitesOfComponentAfterComponentWasUninstalled() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1", "/OOZIE/OOZIE_SERVER/oozie_server2"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1", "/OOZIE/OOZIE_SERVER/oozie_server2"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -95,7 +95,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityThatIsSharedByPrincipalName() throws Exception {
     installComponent(OOZIE, OOZIE_SERVER, HOST);
     installComponent(OOZIE_2, OOZIE_SERVER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, OOZIE, OOZIE_SERVER, -1l)), newHashSet("/OOZIE/OOZIE_SERVER/oozie_server1"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(OOZIE, OOZIE_SERVER, HOST);
@@ -106,7 +106,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   public void skipsRemovingIdentityThatIsSharedByKeyTabFilePath() throws Exception {
     installComponent(YARN, RESOURCE_MANAGER, HOST);
     installComponent(YARN_2, RESOURCE_MANAGER_2, HOST);
-    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER)), newHashSet("/YARN/RESOURCE_MANAGER/rm_unique"));
+    kerberosHelper.deleteIdentities(cluster, singletonList(new Component(HOST, YARN, RESOURCE_MANAGER, -1l)), newHashSet("/YARN/RESOURCE_MANAGER/rm_unique"));
     expectLastCall().once();
     replayAll();
     uninstallComponent(YARN, RESOURCE_MANAGER, HOST);
@@ -141,7 +141,7 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   }
 
   private ArrayList<Component> hdfsComponents() {
-    return newArrayList(new Component(HOST, HDFS, NAMENODE), new Component(HOST, HDFS, DATANODE));
+    return newArrayList(new Component(HOST, HDFS, NAMENODE, 0l), new Component(HOST, HDFS, DATANODE, 0l));
   }
 
   private void installComponent(String serviceName, String componentName, String... hostNames) {
@@ -163,11 +163,12 @@ public class KerberosIdentityCleanerTest extends EasyMockSupport {
   }
 
   private void uninstallComponent(String service, String component, String host) throws KerberosMissingAdminCredentialsException {
-    kerberosIdentityCleaner.componentRemoved(new ServiceComponentUninstalledEvent(CLUSTER_ID, "any", "any", service, component, host, false));
+    kerberosIdentityCleaner.componentRemoved(new ServiceComponentUninstalledEvent(CLUSTER_ID, "any", "any", service, "", "", component, host, false, null));
+
   }
 
   private void uninstallService(String service, List<Component> components) throws KerberosMissingAdminCredentialsException {
-    kerberosIdentityCleaner.serviceRemoved(new ServiceRemovedEvent(CLUSTER_ID, "any", "any", service, components));
+    kerberosIdentityCleaner.serviceRemoved(new ServiceRemovedEvent(CLUSTER_ID, "any", "any", service, "", "", components));
   }
 
   @Before

@@ -79,6 +79,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   public static final String SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
   public static final String SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
 
+
   private static Set<String> pkPropertyIds =
     new HashSet<String>(Arrays.asList(new String[]{
       SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID,
@@ -314,7 +315,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     return response;
   }
 
-  // Get services from the given request.
+  // Get services groups from the given request.
   private Set<ServiceGroupResponse> getServiceGroups(ServiceGroupRequest request)
     throws AmbariException {
     if (request.getClusterName() == null) {
@@ -349,7 +350,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   }
 
 
-  // Delete services based on the given set of requests
+  // Delete services groups based on the given set of requests
   protected void deleteServiceGroups(Set<ServiceGroupRequest> request)
     throws AmbariException, AuthorizationException {
 

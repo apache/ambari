@@ -34,7 +34,6 @@ import {environment} from '@envs/environment';
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
-import {FilteringService} from '@app/services/filtering.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
@@ -53,6 +52,8 @@ import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
+import {TabsService} from '@app/services/storage/tabs.service';
+import {AuthService} from '@app/services/auth.service';
 import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
@@ -65,12 +66,15 @@ import {FilterDropdownComponent} from '@app/components/filter-dropdown/filter-dr
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 import {FilterButtonComponent} from '@app/components/filter-button/filter-button.component';
 import {AccordionPanelComponent} from '@app/components/accordion-panel/accordion-panel.component';
-import {LogsListComponent} from '@app/components/logs-list/logs-list.component';
+import {CollapsiblePanelComponent} from '@app/components/collapsible-panel/collapsible-panel.component';
+import {LogMessageComponent} from '@app/components/log-message/log-message.component';
+import {LogLevelComponent} from '@app/components/log-level/log-level.component';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {PaginationComponent} from '@app/components/pagination/pagination.component';
 import {PaginationControlsComponent} from '@app/components/pagination-controls/pagination-controls.component';
 import {TimeHistogramComponent} from '@app/components/time-histogram/time-histogram.component';
 import {LogsContainerComponent} from '@app/components/logs-container/logs-container.component';
+import {ActionMenuComponent} from "@app/components/action-menu/action-menu.component";
 import {ModalComponent} from '@app/components/modal/modal.component';
 import {TimeZonePickerComponent} from '@app/components/timezone-picker/timezone-picker.component';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
@@ -79,6 +83,9 @@ import {TimeRangePickerComponent} from '@app/components/time-range-picker/time-r
 import {DatePickerComponent} from '@app/components/date-picker/date-picker.component';
 import {LogContextComponent} from '@app/components/log-context/log-context.component';
 import {LogFileEntryComponent} from '@app/components/log-file-entry/log-file-entry.component';
+import {TabsComponent} from '@app/components/tabs/tabs.component';
+import {ServiceLogsTableComponent} from '@app/components/service-logs-table/service-logs-table.component';
+import {AuditLogsTableComponent} from '@app/components/audit-logs-table/audit-logs-table.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -115,12 +122,15 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     FilterDropdownComponent,
     FilterButtonComponent,
     AccordionPanelComponent,
-    LogsListComponent,
+    CollapsiblePanelComponent,
+    LogLevelComponent,
+    LogMessageComponent,
     DropdownButtonComponent,
     PaginationComponent,
     PaginationControlsComponent,
     TimeHistogramComponent,
     LogsContainerComponent,
+    ActionMenuComponent,
     ModalComponent,
     TimeZonePickerComponent,
     NodeBarComponent,
@@ -129,6 +139,9 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     DatePickerComponent,
     LogContextComponent,
     LogFileEntryComponent,
+    TabsComponent,
+    ServiceLogsTableComponent,
+    AuditLogsTableComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -153,7 +166,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
   providers: [
     HttpClientService,
     ComponentActionsService,
-    FilteringService,
     UtilsService,
     LogsContainerService,
     ComponentGeneratorService,
@@ -171,11 +183,13 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ComponentsService,
     ServiceLogsFieldsService,
     AuditLogsFieldsService,
+    TabsService,
     {
       provide: XHRBackend,
       useFactory: getXHRBackend,
       deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
-    }
+    },
+    AuthService
   ],
   bootstrap: [AppComponent],
   entryComponents: [NodeBarComponent],

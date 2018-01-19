@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.alerts;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
@@ -76,14 +78,11 @@ public class InitialAlertEventTest {
 
   private OrmTestHelper m_helper;
 
-  private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
-  private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
+  private static final String STACK_VERSION = "2.0.6";
+  private static final String REPO_VERSION = "2.0.6-1234";
+  private static final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
   private RepositoryVersionEntity m_repositoryVersion;
 
-  /**
-   *
-   */
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(Modules.override(
@@ -121,9 +120,6 @@ public class InitialAlertEventTest {
     Assert.assertEquals(6, m_definitionDao.findAll().size());
   }
 
-  /**
-   * @throws Exception
-   */
   @After
   public void teardown() throws Exception {
     H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
@@ -133,8 +129,6 @@ public class InitialAlertEventTest {
   /**
    * Tests that when a new alert is received that an {@link InitialAlertEvent}
    * is fired.
-   *
-   * @throws Exception
    */
   @Test
   public void testInitialAlertEvent() throws Exception {
@@ -187,22 +181,17 @@ public class InitialAlertEventTest {
 
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
-    Service service = m_serviceFactory.createNew(m_cluster, serviceName, m_repositoryVersion);
-    service = m_cluster.getService(serviceName);
+    ServiceGroup serviceGroup = m_cluster.addServiceGroup("CORE");
+    m_serviceFactory.createNew(m_cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, m_repositoryVersion);
+    Service service = m_cluster.getService(serviceName);
 
     Assert.assertNotNull(service);
   }
 
-  /**
-   *
-   */
   private static class MockModule implements Module {
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void configure(Binder binder) {
-      // sychronize on the ambari event bus for this test to work properly
+      // synchronize on the ambari event bus for this test to work properly
       EventBusSynchronizer.synchronizeAmbariEventPublisher(binder);
     }
   }

@@ -79,6 +79,8 @@ import org.apache.ambari.server.state.State;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -88,6 +90,7 @@ import com.google.inject.assistedinject.AssistedInject;
  * Resource provider for service resources.
  */
 public class ServiceResourceProvider extends AbstractControllerResourceProvider {
+
   public static final String RESPONSE_KEY = "ServiceInfo";
   public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
 
@@ -106,6 +109,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_stack";
   public static final String SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "desired_repository_version_id";
   protected static final String SERVICE_REPOSITORY_STATE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_state";
+
+  private static final Logger LOG = LoggerFactory.getLogger(ServiceResourceProvider.class);
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
@@ -276,8 +281,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, SERVICE_SERVICE_TYPE_PROPERTY_ID,
         response.getServiceType(), requestedIds);
       setResourceProperty(resource, SERVICE_SERVICE_STATE_PROPERTY_ID,
-          calculateServiceState(response.getClusterName(), response.getServiceName()),
-          requestedIds);
+          calculateServiceState(response.getClusterName(), response.getServiceType(), response.getServiceName()), requestedIds);
       setResourceProperty(resource, SERVICE_MAINTENANCE_STATE_PROPERTY_ID,
           response.getMaintenanceState(), requestedIds);
       setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID,
@@ -484,7 +488,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (repositoryVersion.getType() != RepositoryType.STANDARD
           && cluster.getProvisioningState() == State.INIT) {
         throw new AmbariException(String.format(
-            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: $s",
+            "Unable to add %s to %s because the cluster is still being provisioned and the repository for the service is not %s: %s",
             request.getServiceName(), cluster.getClusterName(), RepositoryType.STANDARD,
             repositoryVersion));
       }
@@ -1004,9 +1008,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // calculate the service state, accounting for the state of the host components
-  private String calculateServiceState(String clusterName, String serviceName) {
-    ServiceCalculatedState serviceCalculatedState = ServiceCalculatedStateFactory.getServiceStateProvider(serviceName);
-    return serviceCalculatedState.getState(clusterName, serviceName).toString();
+  private State calculateServiceState(String clusterName, String serviceType, String serviceName) {
+    ServiceCalculatedState serviceCalculatedState = ServiceCalculatedStateFactory.getServiceStateProvider(serviceType);
+    return serviceCalculatedState.getState(clusterName, serviceName);
   }
 
   /**

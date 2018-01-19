@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -115,7 +116,8 @@ public class ExecutionCommandWrapperTest {
 
     OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster1);
-    cluster1.addService("HDFS", repositoryVersion);
+    ServiceGroup serviceGroup = cluster1.addServiceGroup("CORE");
+    cluster1.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
     SERVICE_SITE_CLUSTER = new HashMap<>();
     SERVICE_SITE_CLUSTER.put(SERVICE_SITE_NAME1, SERVICE_SITE_VAL1);
@@ -162,7 +164,7 @@ public class ExecutionCommandWrapperTest {
     s.addHostRoleExecutionCommand(hostName, Role.NAMENODE,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.NAMENODE.toString(),
-            hostName, System.currentTimeMillis()), clusterName, "HDFS", false, false);
+            hostName, System.currentTimeMillis()), clusterName, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
@@ -312,8 +314,7 @@ public class ExecutionCommandWrapperTest {
     commandParams = processedExecutionCommand.getCommandParams();
     Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
 
-    // now try with a START command which should populate the version even
-    // though the state is INSTALLING
+    // now try with a START command, but still unresolved
     executionCommand = new ExecutionCommand();
     commandParams = new HashMap<>();
 
@@ -334,6 +335,17 @@ public class ExecutionCommandWrapperTest {
 
     processedExecutionCommand = execCommWrap.getExecutionCommand();
     commandParams = processedExecutionCommand.getCommandParams();
+    Assert.assertFalse(commandParams.containsKey(KeyNames.VERSION));
+
+    // now that the repositoryVersion is resolved, it should populate the version even
+    // though the state is INSTALLING
+    repositoryVersion.setResolved(true);
+    ormTestHelper.repositoryVersionDAO.merge(repositoryVersion);
+    execCommWrap = new ExecutionCommandWrapper(json);
+    injector.injectMembers(execCommWrap);
+
+    processedExecutionCommand = execCommWrap.getExecutionCommand();
+    commandParams = processedExecutionCommand.getCommandParams();
     Assert.assertEquals("0.1-0000", commandParams.get(KeyNames.VERSION));
     }
 
@@ -346,6 +358,7 @@ public class ExecutionCommandWrapperTest {
 
     StackId stackId = cluster.getDesiredStackVersion();
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId, "0.1-0000");
+    repositoryVersion.setResolved(true); // has build number
     Service service = cluster.getService("HDFS");
     service.setDesiredRepositoryVersion(repositoryVersion);
 

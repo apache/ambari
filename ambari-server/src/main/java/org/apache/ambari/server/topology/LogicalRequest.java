@@ -222,7 +222,7 @@ public class LogicalRequest extends Request {
 
     //todo: synchronization
     for (HostRequest hostRequest : allHostRequests) {
-      HostGroupV2 hostGroup = hostRequest.getHostGroup();
+      HostGroup hostGroup = hostRequest.getHostGroup();
       for (String host : topology.getHostGroupInfo().get(hostGroup.getName()).getHostNames()) {
         Collection<String> hostComponents = hostComponentMap.get(host);
         if (hostComponents == null) {
@@ -407,7 +407,7 @@ public class LogicalRequest extends Request {
 
   private void createHostRequests(TopologyRequest request, ClusterTopology topology) {
     Map<String, HostGroupInfo> hostGroupInfoMap = request.getHostGroupInfo();
-    BlueprintV2 blueprint = topology.getBlueprint();
+    Blueprint blueprint = topology.getBlueprint();
     boolean skipFailure = topology.getBlueprint().shouldSkipFailure();
     for (HostGroupInfo hostGroupInfo : hostGroupInfoMap.values()) {
       String groupName = hostGroupInfo.getHostGroupName();

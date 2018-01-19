@@ -125,7 +125,7 @@ public class AmbariSolrCloudClientBuilder {
   }
 
   public AmbariSolrCloudClientBuilder withSolrCloudClient() {
-    this.solrCloudClient = new CloudSolrClient(this.zkConnectString);
+    this.solrCloudClient = new CloudSolrClient.Builder().withZkHost(this.zkConnectString).build();
     return this;
   }
 
@@ -209,7 +209,7 @@ public class AmbariSolrCloudClientBuilder {
   private void setupSecurity(String jaasFile) {
     if (jaasFile != null) {
       System.setProperty("java.security.auth.login.config", jaasFile);
-      HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+      HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
     }
   }
 }

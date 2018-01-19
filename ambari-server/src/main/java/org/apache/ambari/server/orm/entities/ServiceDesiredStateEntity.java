@@ -37,8 +37,8 @@ import org.apache.ambari.server.state.State;
 @Entity
 public class ServiceDesiredStateEntity {
 
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)  
   private Long clusterId;
 
   @Column(name = "service_group_id", nullable = false, insertable = false, updatable = false, length = 10)
@@ -53,8 +53,8 @@ public class ServiceDesiredStateEntity {
   @Enumerated(value = EnumType.STRING)
   private State desiredState = State.INIT;
 
-  @Column(name = "desired_host_role_mapping", nullable = false, insertable = true, updatable = true, length = 10)
   @Basic
+  @Column(name = "desired_host_role_mapping", nullable = false, insertable = true, updatable = true, length = 10)  
   private int desiredHostRoleMapping = 0;
 
   @Column(name = "maintenance_state", nullable = false, insertable = true, updatable = true)

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
@@ -47,7 +48,7 @@ import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MpackRequest;
 import org.apache.ambari.server.controller.MpackResponse;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
@@ -63,8 +64,8 @@ import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.resources.ResourceLevelClusterSettingManager;
-import org.apache.ambari.server.resources.ResourceLevelClusterSettingManagerFactory;
+import org.apache.ambari.server.resources.RootLevelSettingsManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -96,6 +97,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -143,8 +146,8 @@ public class AmbariMetaInfo {
 
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
-  private String clusterSettingFileName = "cluster-settings.xml";
-
+  private final String clusterSettingsTypeName = "cluster-settings";
+  private final String clusterSettingFileName = clusterSettingsTypeName + ".xml";
   private File resourcesRoot;
   private File stackRoot;
   private File commonServicesRoot;
@@ -226,16 +229,15 @@ public class AmbariMetaInfo {
   private MpackManager mpackManager;
 
   /**
-   * Factory for injecting {@link ResourceLevelClusterSettingManager} instances.
+   * Factory for injecting {@link RootLevelSettingsManager} instances.
    */
   @Inject
-  private ResourceLevelClusterSettingManagerFactory resourceLevelClusterSettingManagerFactory;
+  private RootLevelSettingsManagerFactory rootLevelSettingsManagerFactory;
 
   /**
    * Singleton instance of Resource Level 'Cluster Setting' Manager
    */
-  private ResourceLevelClusterSettingManager resourceLevelClusterSettingManager;
-
+  private RootLevelSettingsManager rootLevelClusterSettingManager;
 
   private Configuration conf;
 
@@ -298,7 +300,9 @@ public class AmbariMetaInfo {
 
     mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
 
-    resourceLevelClusterSettingManager = resourceLevelClusterSettingManagerFactory.create(conf.getResourceDirPath());
+    // Manager for cluster's read-only default settings
+    rootLevelClusterSettingManager = rootLevelSettingsManagerFactory.create(conf.getResourceDirPath(),
+            clusterSettingFileName, clusterSettingsTypeName);
 
     getCustomActionDefinitions(customActionRoot);
   }
@@ -813,14 +817,14 @@ public class AmbariMetaInfo {
  Returns Resource Level read only 'Cluster Properties'.
  */
   public Set<PropertyInfo> getClusterProperties() {
-    return new HashSet<>(resourceLevelClusterSettingManager.getClusterSettingsMap());
+    return new HashSet<>(rootLevelClusterSettingManager.getClusterSettingsMap());
   }
 
   /*
    Returns specific Resource Level read only 'Cluster Property'.
    */
   public Set<PropertyInfo> getClusterPropertiesByName(String propertyName) throws AmbariException {
-    HashSet<PropertyInfo> properties = new HashSet<>(resourceLevelClusterSettingManager.getClusterSettingsMap());
+    HashSet<PropertyInfo> properties = new HashSet<>(rootLevelClusterSettingManager.getClusterSettingsMap());
     if (properties.size() == 0) {
       throw new PropertyNotFoundException("'" + propertyName + "', in " + clusterSettingFileName);
     }
@@ -836,6 +840,58 @@ public class AmbariMetaInfo {
       throw new PropertyNotFoundException("'" + propertyName + "', in " + clusterSettingFileName);
     }
     return propertyResult;
+  }
+
+  /*
+  Returns read only 'Stack Settings'.
+  */
+  public Set<PropertyInfo> getStackSettings(String stackName, String version)
+          throws AmbariException {
+    Collection<PropertyInfo> stackSettings = getStack(stackName, version).getStackSettings();
+    return stackSettings != null ? ImmutableSet.copyOf(stackSettings) : ImmutableSet.of();
+  }
+
+  /*
+  Returns read only 'Stack Settings' name and value as map.
+  If stack settings are not fond, returns an Empty Map.
+  */
+  public Map<String, String> getStackSettingsNameValueMap(StackId stackId)
+          throws AmbariException {
+    Set<PropertyInfo> stackSettings = getStackSettings(stackId.getStackName(), stackId.getStackVersion());
+    if (stackSettings != null && !stackSettings.isEmpty()) {
+      return stackSettings.stream().collect(
+              Collectors.toMap(PropertyInfo::getName, PropertyInfo::getValue));
+    }
+    return Maps.newHashMap();
+  }
+
+  /*
+  Returns specific read only 'Stack Setting'.
+  */
+  public Set<PropertyInfo> getStackSettingsByName(String stackName, String version, String settingName)
+          throws AmbariException {
+    Set<PropertyInfo> settings = getStackSettings(stackName, version);
+    if (settings.size() == 0) {
+      throw new StackAccessException("stackName=" + stackName
+              + ", stackVersion=" + version
+              + ", settingName=" + settingName);
+    }
+
+    Set<PropertyInfo> settingResult = new HashSet<>();
+
+    for (PropertyInfo setting : settings) {
+      if (setting.getName().equals(settingName)) {
+        settingResult.add(setting);
+      }
+    }
+
+    if (settingResult.isEmpty()) {
+      throw new StackAccessException("stackName=" + stackName
+              + ", stackVersion=" + version
+              + ", settingName=" + settingName);
+    }
+
+    return settingResult;
   }
 
   public Set<PropertyInfo> getStackPropertiesByName(String stackName, String version, String propertyName)
@@ -1293,7 +1349,7 @@ public class AmbariMetaInfo {
         String componentName = definition.getComponentName();
 
         // the AMBARI service is special, skip it here
-        if (Services.AMBARI.name().equals(serviceName)) {
+        if (RootService.AMBARI.name().equals(serviceName)) {
           continue;
         }
 

@@ -19,7 +19,6 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-import os
 import tempfile
 from mock.mock import patch
 from mock.mock import MagicMock
@@ -35,13 +34,14 @@ class TestRegistration(TestCase):
 
   @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
+  @patch("__builtin__.open", new=MagicMock())
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("resource_management.core.shell.call")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_registration_build(self, get_os_version_mock, get_os_type_mock, run_os_cmd_mock, Popen_mock):
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
     config.set('agent', 'current_ping_port', '33777')
@@ -58,7 +58,6 @@ class TestRegistration(TestCase):
     self.assertEquals(data['timestamp'] > 1353678475465L, True, "timestamp should not be empty")
     self.assertEquals(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
     self.assertEquals(data['agentVersion'], reference_version, "agentVersion should not be empty")
-    print data['agentEnv']['umask']
     self.assertEquals(not data['agentEnv']['umask']== "", True, "agents umask should not be empty")
     self.assertEquals(data['currentPingPort'] == 33777, True, "current ping port should be 33777")
     self.assertEquals(data['prefix'], config.get('agent', 'prefix'), 'The prefix path does not match')

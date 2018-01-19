@@ -30,6 +30,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.repository.ClusterVersionSummary;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
@@ -120,6 +121,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     expect(cluster.getServices()).andReturn(services).atLeastOnce();
 
     RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
     expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
         m_clusterVersionSummary).atLeastOnce();
@@ -170,6 +172,7 @@ public class AbstractCheckDescriptorTest extends EasyMockSupport {
     expect(cluster.getServices()).andReturn(services).atLeastOnce();
 
     RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(repositoryVersion.getRepositoryXml()).andReturn(m_vdfXml).atLeastOnce();
     expect(m_vdfXml.getClusterSummary(EasyMock.anyObject(Cluster.class))).andReturn(
         m_clusterVersionSummary).atLeastOnce();

@@ -120,6 +120,9 @@
                       <sources>
                         <source>
                           <location>${solr.client.dir}/target/package</location>
+                          <excludes>
+                            <exclude>libs/checkstyle*.jar</exclude>
+                          </excludes>
                         </source>
                       </sources>
                     </mapping>
@@ -324,6 +327,7 @@
                         <group>root</group>
                         <prefix>${solr.client.mapping.path}</prefix>
                       </mapper>
+                      <excludes>libs/checkstyle*.jar</excludes>
                     </data>
                   </dataSet>
                 </configuration>

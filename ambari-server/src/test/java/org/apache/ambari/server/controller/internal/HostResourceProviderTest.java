@@ -320,11 +320,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L,"Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L,"Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -418,11 +418,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -513,11 +513,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
         "Host100", "Host100", "INSTALLED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -706,7 +706,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -793,11 +793,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Component 100",
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component100", "Component 100",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Component 102",
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component102", "Component 102",
         "Host100", "Host100", "INSTALLED", "", null, null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Component 103",
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse(1L, "Cluster100", 1L, "", 1L, "Service100", "", 1L, "Component103", "Component 103",
         "Host100", "Host100", "STARTED", "", null, null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<>();
@@ -1346,11 +1346,11 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     HostResourceProvider provider = getHostProvider(controller);
     HostResourceProvider.setTopologyManager(topologyManager);
-    provider.deleteHosts(requests, false, false);
+    provider.deleteHosts(requests, false);
   }
 
   public static DeleteStatusMetaData deleteHosts(AmbariManagementController controller,
-                                                 Set<HostRequest> requests, boolean dryRun, boolean forceDelete)
+                                                 Set<HostRequest> requests, boolean dryRun)
       throws AmbariException {
     TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
     expect(topologyManager.getRequests(Collections.emptyList())).andReturn(Collections.emptyList()).anyTimes();
@@ -1359,7 +1359,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     HostResourceProvider provider = getHostProvider(controller);
     HostResourceProvider.setTopologyManager(topologyManager);
-    return provider.deleteHosts(requests, dryRun, forceDelete);
+    return provider.deleteHosts(requests, dryRun);
   }
 
   public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)

@@ -14,6 +14,8 @@
 
 package org.apache.ambari.server.topology.validators;
 
+import static org.easymock.EasyMock.expect;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -24,7 +26,6 @@ import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -61,10 +62,10 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
 
   @Before
   public void before() {
-    EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
-    EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
+    expect(clusterTopologyMock.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
+    expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
 
-    EasyMock.expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
+    expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
   }
 
   @After
@@ -76,9 +77,9 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
   @Test(expected = InvalidTopologyException.class)
   public void testShouldValidationFailWhenUnknownConfigTypeComesIn() throws Exception {
     // GIVEN
-    EasyMock.expect(stackMock.getConfiguration()).andReturn(stackConfigurationMock);
-    EasyMock.expect(stackConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("core-site", "yarn-site")));
-    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("invalid-site")));
+    expect(stackMock.getConfiguration()).andReturn(stackConfigurationMock);
+    expect(stackConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("core-site", "yarn-site")));
+    expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("invalid-site")));
 
     replayAll();
 
@@ -93,9 +94,9 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
   @Test
   public void testShouldValidationPassifNoConfigTypesomeIn() throws Exception {
     // GIVEN
-    EasyMock.expect(stackMock.getConfiguration()).andReturn(stackConfigurationMock);
-    EasyMock.expect(stackConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("core-site", "yarn-site")));
-    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Collections.emptyList()));
+    expect(stackMock.getConfiguration()).andReturn(stackConfigurationMock);
+    expect(stackConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("core-site", "yarn-site")));
+    expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Collections.emptyList()));
 
     replayAll();
 
@@ -110,9 +111,9 @@ public class StackConfigTypeValidatorTest extends EasyMockSupport {
   @Test(expected = InvalidTopologyException.class)
   public void testShouldValidationFailIfMultipleInvalidConfigTypesComeIn() throws Exception {
     // GIVEN
-    EasyMock.expect(stackMock.getConfiguration()).andReturn(stackConfigurationMock);
-    EasyMock.expect(stackConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("core-site", "yarn-site")));
-    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("invalid-site-1", "invalid-default")));
+    expect(stackMock.getConfiguration()).andReturn(stackConfigurationMock);
+    expect(stackConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("core-site", "yarn-site")));
+    expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(new HashSet<>(Arrays.asList("invalid-site-1", "invalid-default")));
 
     replayAll();
 

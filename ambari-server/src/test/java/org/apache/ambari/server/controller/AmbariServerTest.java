@@ -52,6 +52,7 @@ import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -268,6 +269,7 @@ public class AmbariServerTest {
         bind(Clusters.class).toInstance(mockClusters);
         bind(Configuration.class).toInstance(mockConfiguration);
         bind(MpackManagerFactory.class).toInstance(mpackManagerFactory);
+        bind(RootLevelSettingsManagerFactory.class).toInstance(easyMockSupport.createNiceMock(RootLevelSettingsManagerFactory.class));
       }
     });
 
@@ -342,6 +344,7 @@ public class AmbariServerTest {
         bind(Clusters.class).toInstance(mockClusters);
         bind(Configuration.class).toInstance(mockConfiguration);
         bind(MpackManagerFactory.class).toInstance(mpackManagerFactory);
+        bind(RootLevelSettingsManagerFactory.class).toInstance(easyMockSupport.createNiceMock(RootLevelSettingsManagerFactory.class));
       }
     });
 

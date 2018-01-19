@@ -322,7 +322,7 @@ public class AmbariMetaInfoTest {
   }
 
   /**
-   * Method: Map<String, ServiceInfo> getServiceConfigs(String stackName, String
+   * Method: Map<String, ServiceInfo> getServices(String stackName, String
    * version, String serviceName)
    * @throws AmbariException
    */

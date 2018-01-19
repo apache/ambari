@@ -34,8 +34,11 @@ public interface HostConfigMapping {
   String getVersion();
   void setVersion(String version);
   
-  String getServiceName();
-  void setServiceName(String serviceName);
+  Long getServiceId();
+  void setServiceId(Long serviceId);
+
+  Long getServiceGroupId();
+  void setServiceGroupId(Long serviceGroupId);
   
   String getUser();
   void setUser(String user);

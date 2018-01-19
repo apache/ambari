@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.infra.manager;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.ambari.infra.model.ExecutionContextResponse;
 import org.apache.ambari.infra.model.JobDetailsResponse;
@@ -28,16 +29,14 @@ import org.apache.ambari.infra.model.JobOperationParams;
 import org.apache.ambari.infra.model.StepExecutionContextResponse;
 import org.apache.ambari.infra.model.StepExecutionInfoResponse;
 import org.apache.ambari.infra.model.StepExecutionProgressResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.admin.history.StepExecutionHistory;
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.service.NoSuchStepExecutionException;
 import org.springframework.batch.admin.web.JobInfo;
 import org.springframework.batch.admin.web.StepExecutionProgress;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobInstance;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobInstanceAlreadyExistsException;
 import org.springframework.batch.core.launch.JobOperator;
@@ -54,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +61,8 @@ import java.util.TimeZone;
 
 @Named
 public class JobManager {
+
+  private static final Logger LOG = LoggerFactory.getLogger(JobManager.class);
 
   @Inject
   private JobService jobService;
@@ -83,9 +83,14 @@ public class JobManager {
   public JobExecutionInfoResponse launchJob(String jobName, String params)
     throws JobParametersInvalidException, JobInstanceAlreadyExistsException, NoSuchJobException,
     JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
-    // TODO: handle params
     JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
-    jobParametersBuilder.addDate("date", new Date());
+    if (params != null) {
+      LOG.info("Parsing parameters of job {} '{}'", jobName, params);
+      Splitter.on(',')
+              .trimResults()
+              .withKeyValueSeparator(Splitter.on('=').limit(2).trimResults())
+              .split(params).entrySet().forEach(entry -> jobParametersBuilder.addString(entry.getKey(), entry.getValue()));
+    }
     return new JobExecutionInfoResponse(jobService.launch(jobName, jobParametersBuilder.toJobParameters()), timeZone);
   }
 

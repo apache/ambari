@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -49,11 +51,11 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceGroupRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
-import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
@@ -61,12 +63,17 @@ import org.apache.ambari.server.controller.internal.HostComponentResourceProvide
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.internal.ServiceDependencyResourceProvider;
+import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -84,9 +91,12 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
@@ -124,10 +134,13 @@ public class AmbariContext {
   private static ClusterController clusterController;
   //todo: task id's.  Use existing mechanism for getting next task id sequence
   private final static AtomicLong nextTaskId = new AtomicLong(10000);
+  static final String DEFAULT_SERVICE_GROUP_NAME = "default_service_group"; // exposed for test
 
   private static HostRoleCommandFactory hostRoleCommandFactory;
   private static HostResourceProvider hostResourceProvider;
   private static ServiceGroupResourceProvider serviceGroupResourceProvider;
+  private static ServiceDependencyResourceProvider serviceDependencyResourceProvider;
+  private static ServiceGroupDependencyResourceProvider serviceGroupDependencyResourceProvider;
   private static ServiceResourceProvider serviceResourceProvider;
   private static ComponentResourceProvider componentResourceProvider;
   private static HostComponentResourceProvider hostComponentResourceProvider;
@@ -198,12 +211,95 @@ public class AmbariContext {
     return getController().getActionManager().getTasks(ids);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
+                                    String repoVersionString, Long repoVersionId) {
+    Stack stack = topology.getBlueprint().getStack();
+    StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
-    StackV2 stack = topology.getBlueprint().getStacks().iterator().next();
+    RepositoryVersionEntity repoVersion = null;
+    if (StringUtils.isEmpty(repoVersionString) && null == repoVersionId) {
+      List<RepositoryVersionEntity> stackRepoVersions = repositoryVersionDAO.findByStack(stackId);
+
+      if (stackRepoVersions.isEmpty()) {
+        // !!! no repos, try to get the version for the stack
+        VersionDefinitionResourceProvider vdfProvider = getVersionDefinitionResourceProvider();
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(VersionDefinitionResourceProvider.VERSION_DEF_AVAILABLE_DEFINITION, stackId.toString());
+
+        Request request = new RequestImpl(Collections.<String>emptySet(),
+            Collections.singleton(properties), Collections.<String, String>emptyMap(), null);
+
+        Long defaultRepoVersionId = null;
+
+        try {
+          RequestStatus requestStatus = vdfProvider.createResources(request);
+          if (!requestStatus.getAssociatedResources().isEmpty()) {
+            Resource resource = requestStatus.getAssociatedResources().iterator().next();
+            defaultRepoVersionId = (Long) resource.getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
+          }
+        } catch (Exception e) {
+          throw new IllegalArgumentException(String.format(
+              "Failed to create a default repository version definition for stack %s. "
+              + "This typically is a result of not loading the stack correctly or being able "
+              + "to load information about released versions.  Create a repository version "
+              + " and try again.", stackId), e);
+        }
+
+        repoVersion = repositoryVersionDAO.findByPK(defaultRepoVersionId);
+        // !!! better not!
+        if (null == repoVersion) {
+          throw new IllegalArgumentException(String.format(
+              "Failed to load the default repository version definition for stack %s. "
+              + "Check for a valid repository version and try again.", stackId));
+        }
+
+      } else if (stackRepoVersions.size() > 1) {
+
+        Function<RepositoryVersionEntity, String> function = new Function<RepositoryVersionEntity, String>() {
+          @Override
+          public String apply(RepositoryVersionEntity input) {
+            return input.getVersion();
+          }
+        };
+
+        Collection<String> versions = Collections2.transform(stackRepoVersions, function);
+
+        throw new IllegalArgumentException(String.format("Several repositories were found for %s:  %s.  Specify the version"
+            + " with '%s'", stackId, StringUtils.join(versions, ", "), ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+      } else {
+        repoVersion = stackRepoVersions.get(0);
+        LOG.warn("Cluster is being provisioned using the single matching repository version {}", repoVersion.getVersion());
+      }
+    } else if (null != repoVersionId){
+      repoVersion = repositoryVersionDAO.findByPK(repoVersionId);
+
+      if (null == repoVersion) {
+        throw new IllegalArgumentException(String.format(
+          "Could not identify repository version with repository version id %s for installing services. "
+            + "Specify a valid repository version id with '%s'",
+          repoVersionId, ProvisionClusterRequest.REPO_VERSION_ID_PROPERTY));
+      }
+    } else {
+      repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, repoVersionString);
+
+      if (null == repoVersion) {
+        throw new IllegalArgumentException(String.format(
+          "Could not identify repository version with stack %s and version %s for installing services. "
+            + "Specify a valid version with '%s'",
+          stackId, repoVersionString, ProvisionClusterRequest.REPO_VERSION_PROPERTY));
+      }
+    }
+
+    // only use a STANDARD repo when creating a new cluster
+    if (repoVersion.getType() != RepositoryType.STANDARD) {
+      throw new IllegalArgumentException(String.format(
+          "Unable to create a cluster using the following repository since it is not a STANDARD type: %s",
+          repoVersion));
+    }
 
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
-    createAmbariServiceAndComponentResources(topology, clusterName);
+    createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion.getId());
   }
 
   public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
@@ -229,51 +325,41 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName) {
+  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName,
+      StackId stackId, Long repositoryVersionId) {
 
-    Collection<ServiceGroup> serviceGroups = topology.getBlueprint().getServiceGroups();
-    Set<ServiceGroupRequest> serviceGroupRequests = new HashSet<>();
+    Set<String> serviceGroups = Sets.newHashSet(DEFAULT_SERVICE_GROUP_NAME);
+    Collection<String> services = topology.getBlueprint().getServices();
+
+    try {
+      Cluster cluster = getController().getClusters().getCluster(clusterName);
+      serviceGroups.removeAll(cluster.getServiceGroups().keySet());
+      services.removeAll(cluster.getServices().keySet());
+    } catch (AmbariException e) {
+      throw new RuntimeException("Failed to persist service and component resources: " + e, e);
+    }
+
+    Set<ServiceGroupRequest> serviceGroupRequests = serviceGroups.stream()
+      .map(serviceGroupName -> new ServiceGroupRequest(clusterName, serviceGroupName))
+      .collect(toSet());
+
     Set<ServiceRequest> serviceRequests = new HashSet<>();
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
+    for (String service : services) {
+      String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
+      serviceRequests.add(new ServiceRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, service,
+              repositoryVersionId, null, credentialStoreEnabled, null));
 
-    for (ServiceGroup serviceGroup : serviceGroups) {
-      serviceGroupRequests.add(new ServiceGroupRequest(clusterName, serviceGroup.getName()));
-
-      for (Service service : serviceGroup.getServices()) {
-        String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service.getType());
-
-        String stackIdStr = service.getStackId();
-        StackV2 stack = topology.getBlueprint().getStackById(stackIdStr);
-        StackId stackId = new StackId(stack.getName(), stack.getVersion());
-        RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByStackAndVersion(stackId, stack.getRepoVersion());
-
-        if (null == repoVersion) {
-          throw new IllegalArgumentException(String.format(
-            "Could not identify repository version with stack %s and version %s for installing services. "
-              + "Specify a valid version with '%s'",
-            stackId, stack.getRepoVersion(), ProvisionClusterRequest.REPO_VERSION_PROPERTY));
-        }
-
-        // only use a STANDARD repo when creating a new cluster
-        if (repoVersion.getType() != RepositoryType.STANDARD) {
-          throw new IllegalArgumentException(String.format(
-            "Unable to create a cluster using the following repository since it is not a STANDARD type: %s",
-            repoVersion));
-        }
-
-        serviceRequests.add(new ServiceRequest(clusterName, serviceGroup.getName(), service.getType(), service.getName(),
-          repoVersion.getId(), null, credentialStoreEnabled, null));
-
-        for (ComponentV2 component : topology.getBlueprint().getComponents(service)) {
-          String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(component);
-          componentRequests.add(new ServiceComponentRequest(clusterName, serviceGroup.getName(), service.getName(),
-            component.getName(), null, recoveryEnabled));
-        }
+      for (String component : topology.getBlueprint().getComponents(service)) {
+        String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
+        componentRequests.add(new ServiceComponentRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, component, null, recoveryEnabled));
       }
-
     }
+
     try {
-      getServiceGroupResourceProvider().createServiceGroups(serviceGroupRequests);
+      if (!serviceGroupRequests.isEmpty()) {
+        getServiceGroupResourceProvider().createServiceGroups(serviceGroupRequests);
+      }
       getServiceResourceProvider().createServices(serviceRequests);
       getComponentResourceProvider().createComponents(componentRequests);
     } catch (AmbariException | AuthorizationException e) {
@@ -289,20 +375,20 @@ public class AmbariContext {
     startProps.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "STARTED");
     startProps.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
     Predicate predicate = new EqualsPredicate<>(
-    ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
+      ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
     try {
       getServiceResourceProvider().updateResources(
-      new RequestImpl(null, Collections.singleton(installProps), null, null), predicate);
+          new RequestImpl(null, Collections.singleton(installProps), null, null), predicate);
 
       getServiceResourceProvider().updateResources(
-      new RequestImpl(null, Collections.singleton(startProps), null, null), predicate);
+        new RequestImpl(null, Collections.singleton(startProps), null, null), predicate);
     } catch (Exception e) {
       // just log as this won't prevent cluster from being provisioned correctly
       LOG.error("Unable to update state of services during cluster provision: " + e, e);
     }
   }
 
-  public void createAmbariHostResources(long  clusterId, String hostName, Map<Service, Collection<ComponentV2>> components)  {
+  public void createAmbariHostResources(long  clusterId, String hostName, Map<String, Collection<String>> components)  {
     Host host;
     try {
       host = getController().getClusters().getHost(hostName);
@@ -336,14 +422,13 @@ public class AmbariContext {
 
     final Set<ServiceComponentHostRequest> requests = new HashSet<>();
 
-    for (Map.Entry<Service, Collection<ComponentV2>> entry : components.entrySet()) {
-      Service service = entry.getKey();
-      for (ComponentV2 component : entry.getValue()) {
+    for (Map.Entry<String, Collection<String>> entry : components.entrySet()) {
+      String service = entry.getKey();
+      for (String component : entry.getValue()) {
         //todo: handle this in a generic manner.  These checks are all over the code
         try {
-          if (cluster.getService(service.getName()) != null && !component.getType().equals("AMBARI_SERVER")) {
-            requests.add(new ServiceComponentHostRequest(clusterName, service.getServiceGroup().getName(),
-              service.getName(), component.getName(), hostName, null));
+          if (cluster.getService(service) != null && !component.equals(RootComponent.AMBARI_SERVER.name())) {
+            requests.add(new ServiceComponentHostRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, component, hostName, null));
           }
         } catch(AmbariException se) {
           LOG.warn("Service already deleted from cluster: {}", service);
@@ -657,32 +742,34 @@ public class AmbariContext {
    * and the hosts associated with the host group are assigned to the config group.
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
+    Map<String, Map<String, Config>> groupConfigs = new HashMap<>();
+    Stack stack = topology.getBlueprint().getStack();
 
-    Map<Service, Map<String, Config>> groupConfigs = new HashMap<>();
+    // get the host-group config with cluster creation template overrides
+    Configuration topologyHostGroupConfig = topology.
+        getHostGroupInfo().get(groupName).getConfiguration();
 
+    // only get user provided configuration for host group which includes only CCT/HG and BP/HG properties
+    Map<String, Map<String, String>> userProvidedGroupProperties =
+        topologyHostGroupConfig.getFullProperties(1);
 
-    // only get user provided configuration for host group per service which includes only CCT/HG and BP/HG properties
-    Collection<Service> serviceConfigurations = topology.getHostGroupInfo().get(groupName).getServiceConfigs();
-    serviceConfigurations.forEach(service -> {
-      Map<String, Map<String, String>> userProvidedGroupProperties = service.getConfiguration().getProperties();
-
-      // iterate over topo host group configs which were defined in
-      for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {
-        String type = entry.getKey();
-        Config config = configFactory.createReadOnly(type, groupName, entry.getValue(), null);
-        //todo: attributes
-        Map<String, Config> serviceConfigs = groupConfigs.get(service);
-        if (serviceConfigs == null) {
-          serviceConfigs = new HashMap<>();
-          groupConfigs.put(service, serviceConfigs);
-        }
-        serviceConfigs.put(type, config);
+    // iterate over topo host group configs which were defined in
+    for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {
+      String type = entry.getKey();
+      String service = stack.getServiceForConfigType(type);
+      Config config = configFactory.createReadOnly(type, groupName, entry.getValue(), null);
+      //todo: attributes
+      Map<String, Config> serviceConfigs = groupConfigs.get(service);
+      if (serviceConfigs == null) {
+        serviceConfigs = new HashMap<>();
+        groupConfigs.put(service, serviceConfigs);
       }
-    });
+      serviceConfigs.put(type, config);
+    }
 
     String bpName = topology.getBlueprint().getName();
-    for (Map.Entry<Service, Map<String, Config>> entry : groupConfigs.entrySet()) {
-      Service service = entry.getKey();
+    for (Map.Entry<String, Map<String, Config>> entry : groupConfigs.entrySet()) {
+      String service = entry.getKey();
       Map<String, Config> serviceConfigs = entry.getValue();
       String absoluteGroupName = getConfigurationGroupName(bpName, groupName);
       Collection<String> groupHosts;
@@ -708,7 +795,7 @@ public class AmbariContext {
       });
 
       ConfigGroupRequest request = new ConfigGroupRequest(null, clusterName,
-        absoluteGroupName, service.getName(), service.getName(), "Host Group Configuration",
+        absoluteGroupName, service, DEFAULT_SERVICE_GROUP_NAME, service, "Host Group Configuration",
         Sets.newHashSet(filteredGroupHosts), serviceConfigs);
 
       // get the config group provider and create config group resource
@@ -769,6 +856,22 @@ public class AmbariContext {
       getClusterController().ensureResourceProvider(Resource.Type.ServiceGroup);
     }
     return serviceGroupResourceProvider;
+  }
+
+  private synchronized ServiceGroupDependencyResourceProvider getServiceGroupDependencyResourceProvider() {
+    if (serviceGroupDependencyResourceProvider == null) {
+      serviceGroupDependencyResourceProvider = (ServiceGroupDependencyResourceProvider) ClusterControllerHelper.
+              getClusterController().ensureResourceProvider(Resource.Type.ServiceGroupDependency);
+    }
+    return serviceGroupDependencyResourceProvider;
+  }
+
+  private synchronized ServiceDependencyResourceProvider getServiceDependencyResourceProvider() {
+    if (serviceDependencyResourceProvider == null) {
+      serviceDependencyResourceProvider = (ServiceDependencyResourceProvider) ClusterControllerHelper.
+              getClusterController().ensureResourceProvider(Resource.Type.ServiceGroup);
+    }
+    return serviceDependencyResourceProvider;
   }
 
   private synchronized ServiceResourceProvider getServiceResourceProvider() {

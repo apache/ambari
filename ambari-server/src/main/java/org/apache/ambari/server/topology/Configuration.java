@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Configuration for a topology entity such as a blueprint, hostgroup or cluster.
  */
@@ -100,7 +98,6 @@ public class Configuration {
    *
    * @return complete map of merged properties keyed by config type
    */
-  @JsonIgnore
   public Map<String, Map<String, String>> getFullProperties() {
     return getFullProperties(Integer.MAX_VALUE);
   }
@@ -116,7 +113,6 @@ public class Configuration {
    *
    * @return map of merged properties keyed by config type
    */
-  @JsonIgnore
   public Map<String, Map<String, String>> getFullProperties(int depthLimit) {
     if (depthLimit == 0) {
       HashMap<String, Map<String, String>> propertiesCopy = new HashMap<>();
@@ -160,7 +156,6 @@ public class Configuration {
    *
    * @return complete map of merged attributes {configType -> {attributeName -> {propName, attributeValue}}}
    */
-  @JsonIgnore
   public Map<String, Map<String, Map<String, String>>> getFullAttributes() {
     Map<String, Map<String, Map<String, String>>> mergedAttributeMap = parentConfiguration == null ?
       new HashMap<>() :
@@ -319,7 +314,6 @@ public class Configuration {
    *
    * @return collection of all represented configuration types
    */
-  @JsonIgnore
   public Collection<String> getAllConfigTypes() {
     Collection<String> allTypes = new HashSet<>();
     for (String type : getFullProperties().keySet()) {
@@ -338,7 +332,6 @@ public class Configuration {
    *
    * @return the parent configuration or null if no parent is set
    */
-  @JsonIgnore
   public Configuration getParentConfiguration() {
     return parentConfiguration;
   }

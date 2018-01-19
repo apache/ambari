@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.CORE_SERVICE_GROUP;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
@@ -225,7 +226,7 @@ public class HeartbeatTestHelper {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE, false, false);
+            DummyHostname1, System.currentTimeMillis()), DummyCluster, CORE_SERVICE_GROUP, HBASE, false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);

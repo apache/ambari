@@ -31,6 +31,7 @@ import {serviceLogsTruncated} from '@app/services/storage/service-logs-truncated
 import {serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
 import {userConfigs} from '@app/services/storage/user-configs.service';
+import {tabs} from '@app/services/storage/tabs.service';
 
 export const reducers = {
   appSettings,
@@ -46,7 +47,8 @@ export const reducers = {
   clusters,
   components,
   serviceLogsFields,
-  auditLogsFields
+  auditLogsFields,
+  tabs
 };
 
 export function reducer(state: any, action: any) {

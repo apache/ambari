@@ -22,19 +22,18 @@ limitations under the License.
 Log Feeder is a component of the Log Search service that reads logs, parses them and stores them in Apache Solr for the purpose
 of later analysis.
 
-# Compilation
-```bash
-mvn clean compile package
-```
-# Deploy
-## Copy to remote
-copy target/logsearch-logfeeder.tgz to host machine
+## Start locally from maven / IDE
 
-## Setup environment
+First you need to start every required service (except logfeeder), go to `ambari-logsearch/docker` folder and run:
 ```bash
-mkdir /opt/logfeeder
-cd /opt/logfeeder
-tar xfz ~/logsearch-logfeeder.tar.gz 
+docker-compose up -d zookeeper solr logsearch
+```
+
+Secondly, if you are planning to run Log Feeder from an IDE, for running the LogFeeder main methoud, you will need to set the working directory to `ambari/ambari-logsearch/ambari-logsearch-logfeeder` and use `--monitor` as a command line argument.
+With Maven, you won't need these steps, just run this command from the ambari-logsearch-logfeeder folder:
+
+```bash
+mvn clean package -DskipTests exec:java
 ```
 
 # Input Configuration

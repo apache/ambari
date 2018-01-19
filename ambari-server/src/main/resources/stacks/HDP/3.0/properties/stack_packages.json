@@ -871,6 +871,12 @@
           "current_dir": "{0}/current/atlas-client/conf"
         }
       ],
+      "beacon": [
+        {
+          "conf_dir": "/etc/beacon/conf",
+          "current_dir": "{0}/current/beacon-client/conf"
+        }
+      ],
       "druid": [
         {
           "conf_dir": "/etc/druid/conf",
@@ -935,6 +941,12 @@
         {
           "conf_dir": "/etc/knox/conf",
           "current_dir": "{0}/current/knox-server/conf"
+        }
+      ],
+      "livy": [
+        {
+          "conf_dir": "/etc/livy/conf",
+          "current_dir": "{0}/current/livy-client/conf"
         }
       ],
       "mahout": [
@@ -1051,6 +1063,102 @@
           "current_dir": "{0}/current/zookeeper-client/conf"
         }
       ]
-    }
+    },
+    "conf-select-patching": {
+      "ACCUMULO": {
+        "packages": ["accumulo"]
+      },
+      "ATLAS": {
+        "packages": ["atlas"]
+      },
+      "BEACON": {
+        "packages": ["beacon"]
+      },
+      "DRUID": {
+        "packages": ["druid", "superset"]
+      },
+      "FALCON": {
+        "packages": ["falcon"]
+      },
+      "FLUME": {
+        "packages": ["flume"]
+      },
+      "HBASE": {
+        "packages": ["hbase"]
+      },
+      "HDFS": {
+        "packages": []
+      },
+      "HIVE": {
+        "packages": ["hive", "hive-hcatalog", "hive2", "tez_hive2"]
+      },
+      "KAFKA": {
+        "packages": ["kafka"]
+      },
+      "KNOX": {
+        "packages": ["knox"]
+      },
+      "MAHOUT": {
+        "packages": ["mahout"]
+      },
+      "MAPREDUCE2": {
+        "packages": []
+      },
+      "OOZIE": {
+        "packages": ["oozie"]
+      },
+      "PIG": {
+        "packages": ["pig"]
+      },
+      "R4ML": {
+        "packages": []
+      },
+      "RANGER": {
+        "packages": ["ranger-admin", "ranger-usersync", "ranger-tagsync"]
+      },
+      "RANGER_KMS": {
+        "packages": ["ranger-kms"]
+      },
+      "SLIDER": {
+        "packages": ["slider"]
+      },
+      "SPARK": {
+        "packages": ["spark", "livy"]
+      },
+      "SPARK2": {
+        "packages": ["spark2", "livy"]
+      },
+      "SQOOP": {
+        "packages": ["sqoop"]
+      },
+      "STORM": {
+        "packages": ["storm", "storm-slider-client"]
+      },
+      "SYSTEMML": {
+        "packages": []
+      },
+      "TEZ": {
+        "packages": ["tez"]
+      },
+      "TITAN": {
+        "packages": []
+      },
+      "YARN": {
+        "packages": []
+      },
+      "ZEPPELIN": {
+        "packages": ["zeppelin"]
+      },
+      "ZOOKEEPER": {
+        "packages": ["zookeeper"]
+      }
+    },
+    "upgrade-dependencies" : {
+      "HIVE": ["TEZ", "MAPREDUCE2"],
+      "TEZ": ["HIVE"],
+      "MAPREDUCE2": ["HIVE"],
+      "MAHOUT": ["MAPREDUCE2"],
+      "OOZIE": ["MAPREDUCE2"]
+    }    
   }
 }

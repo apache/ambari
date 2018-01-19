@@ -80,7 +80,6 @@ footer {
   color: #666;
   margin-top: -1 * @footer-height - 1;
   height: @footer-height - 60px;
-  margin-left: @side-navigation-width;
 }
 
 .editable-list-container {
@@ -2309,7 +2308,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 .table td.error { background-color: @error-background; }
 .table td.warning { background-color: @warning-background; }
 
-#config-validation-warnings {
+.config-validation-warnings {
   table {
     tbody{
       tr {
@@ -2332,7 +2331,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
   }
 }
-
 
 @config-dependency-t-name-width: 180px;
 @config-dependency-t-service-width: 100px;
@@ -2755,11 +2753,10 @@ a.abort-icon:hover {
   }
   .component-summary, .metrics-summary {
     .col-md-2 {
-      float:left;
-      padding-left: 0px;
+      float: left;
+      padding-left: 0;
       top: 7px;
-      font-size: 12px;
-      font-weight: bold;
+      font-size: 16px;
     }
     .col-md-10 {
       float: right;
@@ -2770,6 +2767,7 @@ a.abort-icon:hover {
     .info-desc {
       font-size: 12px;
       color: #999999;
+      text-transform: capitalize;
     }
   }
 }
@@ -2833,4 +2831,9 @@ a.abort-icon:hover {
   display: -moz-flex;
   display: -ms-flex;
   display: -o-flex;
+}
+
+.container-wrap-table {
+  padding: 0 10px;
+  background-color: @diff-background-equal;
 }

@@ -512,7 +512,7 @@ public class ConfigHelper {
     Set<String> result = new HashSet<>();
 
     for (Service service : clusters.getCluster(clusterName).getServices().values()) {
-      Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getServiceType());
       Set<PropertyInfo> stackLevelProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
       stackProperties.addAll(stackLevelProperties);
 
@@ -543,7 +543,7 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     Map<String, Map<String, String>> result = new HashMap<>();
     Map<String, String> passwordProperties;
-    Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+    Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getServiceType());
     for (PropertyInfo serviceProperty : serviceProperties) {
       if (serviceProperty.getPropertyTypes().contains(propertyType)) {
         if (!serviceProperty.getPropertyValueAttributes().isKeyStore()) {
@@ -846,7 +846,7 @@ public class ConfigHelper {
           stackId.getStackVersion());
 
       for (ServiceInfo serviceInfo : stack.getServices()) {
-        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getServiceType());
         Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
         serviceProperties.addAll(stackProperties);
 
@@ -922,7 +922,7 @@ public class ConfigHelper {
       StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
 
       for (ServiceInfo serviceInfo : stack.getServices()) {
-        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getServiceType());
 
         for (PropertyInfo stackProperty : serviceProperties) {
           String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
@@ -1117,7 +1117,7 @@ public class ConfigHelper {
       AmbariManagementController controller, Map<String, Map<String, String>> batchProperties,
       String authenticatedUserName, String serviceVersionNote) throws AmbariException {
 
-    Map<String, Set<Config>> serviceMapped = new HashMap<>();
+    Map<Long, Set<Config>> serviceMapped = new HashMap<>();
 
     for (Map.Entry<String, Map<String, String>> entry : batchProperties.entrySet()) {
       String type = entry.getKey();
@@ -1128,7 +1128,7 @@ public class ConfigHelper {
 
       if (null != baseConfig) {
         try {
-          String service = cluster.getServiceForConfigTypes(Collections.singleton(type));
+          Long service = cluster.getServiceForConfigTypes(Collections.singleton(type));
           if (!serviceMapped.containsKey(service)) {
             serviceMapped.put(service, new HashSet<>());
           }
@@ -1197,8 +1197,8 @@ public class ConfigHelper {
         }
       }
     }
-
-    return controller.createConfig(cluster, stackId, type, properties, tag, propertyAttributes);
+    //TODO check at the right use case
+    return controller.createConfig(cluster, stackId, type, properties, tag, propertyAttributes, null);
   }
 
   /**
@@ -1237,13 +1237,13 @@ public class ConfigHelper {
    *
    * @param stack
    *          the stack to pull stack-values from (not {@code null})
-   * @param serviceName
+   * @param stackServiceName
    *          the service name {@code null}).
    * @return a mapping of configuration type to map of key/value pairs for the
    *         default configurations.
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, String serviceName)
+  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, String stackServiceName)
       throws AmbariException {
     Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<>();
 
@@ -1264,7 +1264,7 @@ public class ConfigHelper {
 
     // for every installed service, populate the default service properties
     Set<org.apache.ambari.server.state.PropertyInfo> serviceConfigurationProperties = ambariMetaInfo.getServiceProperties(
-        stack.getStackName(), stack.getStackVersion(), serviceName);
+        stack.getStackName(), stack.getStackVersion(), stackServiceName);
 
     // !!! use new stack as the basis
     for (PropertyInfo serviceDefaultProperty : serviceConfigurationProperties) {
@@ -1508,22 +1508,22 @@ public class ConfigHelper {
   }
 
   /**
-   * Compares values as double in case they are numbers.
-   * @param actualValue
-   * @param newValue
-   * @return
+   * Checks for equality of parsed numbers if both values are numeric,
+   * otherwise using regular equality.
    */
-  private  boolean valuesAreEqual(String actualValue, String newValue) {
-    boolean actualValueIsNumber = NumberUtils.isNumber(actualValue);
-    boolean newValueIsNumber = NumberUtils.isNumber(newValue);
-    if (actualValueIsNumber && newValueIsNumber) {
-      Double ab = Double.parseDouble(actualValue);
-      Double bb = Double.parseDouble(newValue);
-      return ab.equals(bb);
-    } else if (!actualValueIsNumber && !newValueIsNumber) {
-      return actualValue.equals(newValue);
+  static boolean valuesAreEqual(String value1, String value2) { // exposed for unit test
+    if (NumberUtils.isNumber(value1) && NumberUtils.isNumber(value2)) {
+      try {
+        Number number1 = NumberUtils.createNumber(value1);
+        Number number2 = NumberUtils.createNumber(value2);
+        return Objects.equal(number1, number2) ||
+          number1.doubleValue() == number2.doubleValue();
+      } catch (NumberFormatException e) {
+        // fall back to regular equality
+      }
     }
-    return false;
+
+    return Objects.equal(value1, value2);
   }
 
   /**

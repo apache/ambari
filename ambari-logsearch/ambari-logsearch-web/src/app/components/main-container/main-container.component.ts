@@ -17,13 +17,7 @@
  */
 
 import {Component, ContentChild, TemplateRef} from '@angular/core';
-import {HttpClientService} from '@app/services/http-client.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
-import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
-import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
-import {AuditLogField} from '@app/classes/models/audit-log-field';
-import {ServiceLogField} from '@app/classes/models/service-log-field';
-import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 
 @Component({
   selector: 'main-container',
@@ -32,20 +26,9 @@ import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
 })
 export class MainContainerComponent {
 
-  constructor(private httpClient: HttpClientService, private appState: AppStateService, private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService) {
-    this.loadColumnsNames();
+  constructor(private appState: AppStateService) {
     appState.getParameter('isAuthorized').subscribe((value: boolean) => this.isAuthorized = value);
     appState.getParameter('isInitialLoading').subscribe((value: boolean) => this.isInitialLoading = value);
-    appState.getParameter('isServiceLogsFileView').subscribe((value: boolean) => this.isServiceLogsFileView = value);
-    appState.getParameter('activeLog').subscribe((value: ActiveServiceLogEntry | null) => {
-      if (value) {
-        this.activeLogHostName = value.host_name;
-        this.activeLogComponentName = value.component_name;
-      } else {
-        this.activeLogHostName = '';
-        this.activeLogComponentName = '';
-      }
-    });
   }
 
   @ContentChild(TemplateRef)
@@ -54,37 +37,5 @@ export class MainContainerComponent {
   isAuthorized: boolean = false;
 
   isInitialLoading: boolean = false;
-
-  isServiceLogsFileView: boolean = false;
-
-  activeLogHostName: string = '';
-
-  activeLogComponentName: string = '';
-
-  private loadColumnsNames(): void {
-    this.httpClient.get('serviceLogsFields').subscribe(response => {
-      const jsonResponse = response.json();
-      if (jsonResponse) {
-        this.serviceLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, ServiceLogField));
-      }
-    });
-    this.httpClient.get('auditLogsFields').subscribe(response => {
-      const jsonResponse = response.json();
-      if (jsonResponse) {
-        this.auditLogsFieldsStorage.addInstances(this.getColumnsArray(jsonResponse, AuditLogField));
-      }
-    });
-  }
-
-  private getColumnsArray(keysObject: any, fieldClass: any): any[] {
-    return Object.keys(keysObject).map(key => new fieldClass(key));
-  }
-
-  closeLog(): void {
-    this.appState.setParameters({
-      isServiceLogsFileView: false,
-      activeLog: null
-    });
-  }
 
 }

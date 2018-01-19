@@ -45,6 +45,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -67,12 +68,14 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -96,10 +99,12 @@ import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -210,23 +215,25 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     StackEntity stackEntity220 = stackDAO.find("HDP", "2.2.0");
     StackId stack211 = new StackId(stackEntity211);
 
+    String operatingSystems = "[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]";
+
     repoVersionEntity2110 = new RepositoryVersionEntity();
     repoVersionEntity2110.setDisplayName("My New Version 1");
-    repoVersionEntity2110.setOperatingSystems("");
+    repoVersionEntity2110.setOperatingSystems(operatingSystems);
     repoVersionEntity2110.setStack(stackEntity211);
     repoVersionEntity2110.setVersion("2.1.1.0");
     repoVersionDao.create(repoVersionEntity2110);
 
     repoVersionEntity2111 = new RepositoryVersionEntity();
     repoVersionEntity2111.setDisplayName("My New Version 2 for minor upgrade");
-    repoVersionEntity2111.setOperatingSystems("");
+    repoVersionEntity2111.setOperatingSystems(operatingSystems);
     repoVersionEntity2111.setStack(stackEntity211);
     repoVersionEntity2111.setVersion("2.1.1.1");
     repoVersionDao.create(repoVersionEntity2111);
 
     repoVersionEntity2112 = new RepositoryVersionEntity();
     repoVersionEntity2112.setDisplayName("My New Version 3 for patch upgrade");
-    repoVersionEntity2112.setOperatingSystems("");
+    repoVersionEntity2112.setOperatingSystems(operatingSystems);
     repoVersionEntity2112.setStack(stackEntity211);
     repoVersionEntity2112.setVersion("2.1.1.2");
     repoVersionEntity2112.setType(RepositoryType.PATCH);
@@ -235,7 +242,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     repoVersionEntity2200 = new RepositoryVersionEntity();
     repoVersionEntity2200.setDisplayName("My New Version 4 for major upgrade");
-    repoVersionEntity2200.setOperatingSystems("");
+    repoVersionEntity2200.setOperatingSystems(operatingSystems);
     repoVersionEntity2200.setStack(stackEntity220);
     repoVersionEntity2200.setVersion("2.2.0.0");
     repoVersionDao.create(repoVersionEntity2200);
@@ -256,7 +263,8 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZK server and client on 2.1.1.0
-    Service service = cluster.addService("ZOOKEEPER", repoVersionEntity2110);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER", repoVersionEntity2110);
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
@@ -317,7 +325,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
@@ -378,7 +386,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(2, upgradeGroups.size());
@@ -424,7 +432,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(2, upgradeGroups.size());
@@ -678,7 +686,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(2, upgrades.size());
 
     UpgradeEntity downgrade = upgrades.get(1);
-    assertEquals(cluster.getClusterId(), downgrade.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == downgrade.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = downgrade.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
@@ -776,7 +784,8 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Cluster cluster = clusters.getCluster("c1");
 
     // add additional service for the test
-    Service service = cluster.addService("HIVE", repoVersionEntity2110);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, "HIVE", "HIVE", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -1196,7 +1205,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertTrue(cluster.getClusterId().longValue() == entity.getClusterId().longValue());
     assertEquals(UpgradeType.ROLLING, entity.getUpgradeType());
 
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
@@ -1439,6 +1448,14 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS, hostsOrder);
     upgradeResourceProvider.createResources(request);
+
+
+    // make sure that the desired versions are updated
+    Cluster cluster = clusters.getCluster("c1");
+    assertNotNull(cluster);
+
+    Service service = cluster.getService("ZOOKEEPER");
+    assertEquals(repoVersionEntity2200, service.getDesiredRepositoryVersion());
   }
 
   /**
@@ -1451,7 +1468,8 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   @Test
   public void testCreateUpgradeDowngradeCycleAdvertisingVersion() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
-    Service service = cluster.addService("STORM", repoVersionEntity2110);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, "STORM", "STORM", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("DRPC_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -1634,7 +1652,8 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Cluster cluster = clusters.getCluster("c1");
 
     // add a single ZK server and client on 2.1.1.0
-    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, "HBASE", "HBASE", repoVersionEntity2110);
     ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
@@ -1721,7 +1740,8 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     Cluster cluster = clusters.getCluster("c1");
 
     // add a single ZK server and client on 2.1.1.0
-    Service service = cluster.addService("HBASE", repoVersionEntity2110);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, "HBASE", "HBASE", repoVersionEntity2110);
     ServiceComponent component = service.addServiceComponent("HBASE_MASTER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
@@ -1832,6 +1852,15 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
       if (StringUtils.isNotBlank(command.getCustomCommandName()) &&
           command.getCustomCommandName().equals(ConfigureAction.class.getName())) {
         foundConfigTask = true;
+
+        ExecutionCommandDAO dao = injector.getInstance(ExecutionCommandDAO.class);
+        ExecutionCommandEntity entity = dao.findByPK(command.getTaskId());
+        ExecutionCommandWrapperFactory factory = injector.getInstance(ExecutionCommandWrapperFactory.class);
+        ExecutionCommandWrapper wrapper = factory.createFromJson(new String(entity.getCommand()));
+        Map<String, String> params = wrapper.getExecutionCommand().getCommandParams();
+        assertTrue(params.containsKey(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE));
+        assertEquals("ZOOKEEPER", params.get(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE));
+
         break;
       }
     }
@@ -1910,7 +1939,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
-    repoVersionEntity.setOperatingSystems("");
+    repoVersionEntity.setOperatingSystems("[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]");
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setVersion("2.2.2.3");
     repoVersionDao.create(repoVersionEntity);

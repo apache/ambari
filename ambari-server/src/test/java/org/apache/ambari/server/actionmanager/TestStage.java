@@ -62,9 +62,9 @@ public class TestStage {
   public void testTaskTimeout() {
     Stage s = StageUtils.getATestStage(1, 1, "h1",  "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand("h1", Role.DATANODE, RoleCommand.INSTALL,
-        null, "c1", "HDFS", false, false);
+        null, "c1", "core", "HDFS", false, false);
     s.addHostRoleExecutionCommand("h1", Role.HBASE_MASTER, RoleCommand.INSTALL,
-        null, "c1", "HBASE", false, false);
+        null, "c1", "core", "HBASE", false, false);
     for (ExecutionCommandWrapper wrapper : s.getExecutionCommands("h1")) {
       Map<String, String> commandParams = new TreeMap<>();
       commandParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, "600");

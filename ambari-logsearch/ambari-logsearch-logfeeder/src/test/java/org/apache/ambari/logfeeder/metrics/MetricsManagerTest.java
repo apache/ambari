@@ -50,18 +50,20 @@ public class MetricsManagerTest {
   @Before
   public void init() throws Exception {
     manager = new MetricsManager();
-    manager.init();
-    
+
     mockClient = strictMock(LogFeederAMSClient.class);
     Field f = MetricsManager.class.getDeclaredField("amsClient");
     f.setAccessible(true);
     f.set(manager, mockClient);
-    
+
+    EasyMock.expect(mockClient.getCollectorUri(null)).andReturn("null://null:null/null").anyTimes();
     capture = EasyMock.newCapture(CaptureType.FIRST);
     mockClient.emitMetrics(EasyMock.capture(capture));
     EasyMock.expectLastCall().andReturn(true).once();
-    
+
     replay(mockClient);
+    manager.setAmsClient(mockClient);
+    manager.init();
   }
   
   @Test

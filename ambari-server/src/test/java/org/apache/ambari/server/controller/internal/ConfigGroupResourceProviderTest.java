@@ -172,14 +172,16 @@ public class ConfigGroupResourceProviderTest {
 
     Capture<Cluster> clusterCapture = newCapture();
     Capture<String> serviceName = newCapture();
+    Capture<Long> servcieId = newCapture();
+    Capture<Long> servcieGroupId = newCapture();
     Capture<String> captureName = newCapture();
     Capture<String> captureDesc = newCapture();
     Capture<String> captureTag = newCapture();
     Capture<Map<String, Config>> captureConfigs = newCapture();
     Capture<Map<Long, Host>> captureHosts = newCapture();
 
-    expect(configGroupFactory.createNew(capture(clusterCapture), capture(serviceName),
-        capture(captureName), capture(captureTag), capture(captureDesc),
+    expect(configGroupFactory.createNew(capture(clusterCapture), capture(servcieGroupId), capture(servcieId), capture(serviceName),
+        capture(captureTag), capture(captureDesc),
         capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
 
     replay(managementController, clusters, cluster, configGroupFactory,
@@ -283,8 +285,8 @@ public class ConfigGroupResourceProviderTest {
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(cluster.getConfigGroups()).andReturn(configGroupMap);
 
-    expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject(), EasyMock.anyObject(),
+    expect(configGroupFactory.createNew((Cluster) anyObject(), (Long) anyObject(), (Long) anyObject(),
+        (String) anyObject(), (String) anyObject(), (String) anyObject(), EasyMock.anyObject(),
         EasyMock.anyObject())).andReturn(configGroup).anyTimes();
 
     expect(configGroup.getClusterName()).andReturn("Cluster100").anyTimes();

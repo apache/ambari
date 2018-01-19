@@ -463,7 +463,7 @@ class BaseAlert(object):
       # get the host for dfs.namenode.http-address.c1ha.nn1 and see if it's
       # this host
       value = self._get_configuration_value(key)
-      if value is not None and (self.host_name in value or self.public_host_name in value):
+      if value is not None and (self.host_name.lower() in value.lower() or self.public_host_name.lower() in value.lower()):
         return AlertUri(uri=value, is_ssl_enabled=is_ssl_enabled)
 
     return None

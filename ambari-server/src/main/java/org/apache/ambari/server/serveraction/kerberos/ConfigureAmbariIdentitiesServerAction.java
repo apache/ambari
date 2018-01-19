@@ -26,11 +26,10 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
-import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.utils.StageUtils;
@@ -63,7 +62,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
   private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   @Inject
-  private HostDAO hostDAO;
+  private KerberosKeytabDAO kerberosKeytabDAO;
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -121,7 +120,8 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
       } else {
 
         String hostName = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
-        if (hostName != null && hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
+        String serviceName = identityRecord.get(KerberosIdentityDataFileReader.SERVICE);
+        if (hostName != null && serviceName.equals("AMBARI")) {
           String destKeytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
           File hostDirectory = new File(dataDirectory, hostName);
           File srcKeytabFile = new File(hostDirectory, DigestUtils.sha1Hex(destKeytabFilePath));
@@ -182,11 +182,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
           groupName, groupReadable, groupWritable);
 
       String ambariServerHostName = StageUtils.getHostName();
-      HostEntity ambariServerHostEntity = hostDAO.findByName(ambariServerHostName);
-      Long ambariServerHostID = (ambariServerHostEntity == null)
-          ? null
-          : ambariServerHostEntity.getHostId();
-
+      Long ambariServerHostID = ambariServerHostID();
       if (ambariServerHostID == null) {
         String message = String.format("Failed to add the kerberos_principal_host record for %s on " +
                 "the Ambari server host since the host id for Ambari server host, %s, was not found." +
@@ -196,8 +192,19 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
         if (actionLog != null) {
           actionLog.writeStdErr(message);
         }
-      } else if (!kerberosPrincipalHostDAO.exists(principal, ambariServerHostID)) {
-        kerberosPrincipalHostDAO.create(principal, ambariServerHostID);
+      } else if (!kerberosPrincipalHostDAO.exists(principal, ambariServerHostID, destKeytabFilePath)) {
+        if (!kerberosKeytabDAO.exists(destKeytabFilePath)) {
+          kerberosKeytabDAO.create(destKeytabFilePath);
+        }
+        if(!kerberosPrincipalHostDAO.exists(principal, ambariServerHostID, destKeytabFilePath)) {
+          kerberosPrincipalHostDAO.create(
+              new KerberosPrincipalHostEntity(principal, ambariServerHostID, destKeytabFilePath, true)
+          );
+        } else {
+          KerberosPrincipalHostEntity kphe = kerberosPrincipalHostDAO.find(principal, ambariServerHostID, destKeytabFilePath);
+          kphe.setDistributed(true);
+          kerberosPrincipalHostDAO.merge(kphe);
+        }
       }
 
       if (actionLog != null) {

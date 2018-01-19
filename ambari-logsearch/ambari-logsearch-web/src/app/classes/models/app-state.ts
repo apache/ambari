@@ -17,27 +17,26 @@
  */
 
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
+import {LogsType} from '@app/classes/string';
 
 export interface AppState {
   isAuthorized: boolean;
   isInitialLoading: boolean;
   isLoginInProgress: boolean;
-  isAuditLogsSet: boolean;
-  isServiceLogsSet: boolean;
-  activeLogsType?: string;
+  activeLogsType?: LogsType;
   isServiceLogsFileView: boolean;
   isServiceLogContextView: boolean;
   activeLog: ActiveServiceLogEntry | null;
+  activeFilters: object;
 }
 
 export const initialState: AppState = {
   isAuthorized: false,
   isInitialLoading: false,
   isLoginInProgress: false,
-  isAuditLogsSet: false,
-  isServiceLogsSet: false,
-  activeLogsType: 'serviceLogs', // TODO implement setting the parameter depending on user's navigation
+  activeLogsType: 'serviceLogs',
   isServiceLogsFileView: false,
   isServiceLogContextView: false,
-  activeLog: null
-}
+  activeLog: null,
+  activeFilters: null
+};

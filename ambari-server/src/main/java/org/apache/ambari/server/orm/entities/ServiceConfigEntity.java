@@ -29,6 +29,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
@@ -51,19 +52,19 @@ import javax.persistence.TableGenerator;
         query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId ORDER BY serviceConfig.version DESC"),
     @NamedQuery(
         name = "ServiceConfigEntity.findNextServiceConfigVersion",
-        query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceName=:serviceName AND serviceConfig.clusterId=:clusterId"),
+        query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceId=:serviceId AND serviceConfig.clusterId=:clusterId"),
     @NamedQuery(
         name = "ServiceConfigEntity.findServiceConfigsByStack",
-        query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId AND serviceConfig.stack=:stack AND serviceConfig.serviceName=:serviceName"),
+        query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId AND serviceConfig.stack=:stack AND serviceConfig.serviceId=:serviceId"),
     @NamedQuery(
         name = "ServiceConfigEntity.findLatestServiceConfigsByStack",
-        query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId = :clusterId AND (serviceConfig.groupId = null OR serviceConfig.groupId IN (SELECT cg.groupId from ConfigGroupEntity cg)) AND serviceConfig.version = (SELECT MAX(serviceConfig2.version) FROM ServiceConfigEntity serviceConfig2 WHERE serviceConfig2.clusterId= :clusterId AND serviceConfig2.stack = :stack AND serviceConfig2.serviceName = serviceConfig.serviceName)"),
+        query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId = :clusterId AND (serviceConfig.groupId = null OR serviceConfig.groupId IN (SELECT cg.groupId from ConfigGroupEntity cg)) AND serviceConfig.version = (SELECT MAX(serviceConfig2.version) FROM ServiceConfigEntity serviceConfig2 WHERE serviceConfig2.clusterId= :clusterId AND serviceConfig2.stack = :stack AND serviceConfig2.serviceId = serviceConfig.serviceId)"),
     @NamedQuery(
         name = "ServiceConfigEntity.findLatestServiceConfigsByService",
-        query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceName = :serviceName AND (scv.groupId = null OR scv.groupId IN (SELECT cg.groupId from ConfigGroupEntity cg)) AND scv.version = (SELECT MAX(scv2.version) FROM ServiceConfigEntity scv2 WHERE (scv2.serviceName = :serviceName AND scv2.clusterId = :clusterId) AND (scv2.groupId = scv.groupId OR (scv2.groupId IS NULL AND scv.groupId IS NULL)))"),
+        query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceId = :serviceId AND (scv.groupId = null OR scv.groupId IN (SELECT cg.groupId from ConfigGroupEntity cg)) AND scv.version = (SELECT MAX(scv2.version) FROM ServiceConfigEntity scv2 WHERE (scv2.serviceId = :serviceId AND scv2.clusterId = :clusterId) AND (scv2.groupId = scv.groupId OR (scv2.groupId IS NULL AND scv.groupId IS NULL)))"),
     @NamedQuery(
         name = "ServiceConfigEntity.findLatestServiceConfigsByCluster",
-        query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceConfigId IN (SELECT MAX(scv1.serviceConfigId) FROM ServiceConfigEntity scv1 WHERE (scv1.clusterId = :clusterId) AND (scv1.groupId IS NULL) GROUP BY scv1.serviceName)") })
+        query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceConfigId IN (SELECT MAX(scv1.serviceConfigId) FROM ServiceConfigEntity scv1 WHERE (scv1.clusterId = :clusterId) AND (scv1.groupId IS NULL) GROUP BY scv1.serviceId)") })
 public class ServiceConfigEntity {
   @Id
   @Column(name = "service_config_id")
@@ -75,8 +76,21 @@ public class ServiceConfigEntity {
   private Long clusterId;
 
   @Basic
-  @Column(name = "service_name", nullable = false)
-  private String serviceName;
+  @Column(name = "service_id", nullable = false)
+  private Long serviceId;
+
+  @Basic
+  @Column(name = "service_group_id", nullable = false)
+  private Long serviceGroupId;
+
+  @ManyToOne
+  @JoinColumns(
+      {
+          @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, insertable = false, updatable = false),
+          @JoinColumn(name = "service_group_id", referencedColumnName = "service_group_id", insertable = false, updatable = false, nullable = false),
+          @JoinColumn(name = "service_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
+      })
+  private ClusterServiceEntity clusterServiceEntity;
 
   @Basic
   @Column(name = "group_id", nullable = true)
@@ -135,12 +149,12 @@ public class ServiceConfigEntity {
     this.serviceConfigId = serviceConfigId;
   }
 
-  public String getServiceName() {
-    return serviceName;
+  public Long getServiceId() {
+    return serviceId;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   public Long getVersion() {
@@ -274,5 +288,35 @@ public class ServiceConfigEntity {
       return false;
     }
     return true;
+  }
+
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
+  public ClusterServiceEntity getClusterServiceEntity() {
+    return clusterServiceEntity;
+  }
+
+  public void setClusterServiceEntity(ClusterServiceEntity clusterServiceEntity) {
+    this.clusterServiceEntity = clusterServiceEntity;
+  }
+
+  public String getServiceGroupName() {
+    if (clusterServiceEntity != null) {
+      return clusterServiceEntity.getServiceGroupName();
+    }
+    return null;
+  }
+
+  public String getServiceName() {
+    if (clusterServiceEntity != null) {
+      return clusterServiceEntity.getServiceName();
+    }
+    return null;
   }
 }

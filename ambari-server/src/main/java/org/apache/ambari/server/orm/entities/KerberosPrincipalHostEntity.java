@@ -23,6 +23,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -40,7 +41,9 @@ import javax.persistence.Table;
     @NamedQuery(name = "KerberosPrincipalHostEntityFindByPrincipal",
         query = "SELECT kph FROM KerberosPrincipalHostEntity kph WHERE kph.principalName=:principalName"),
     @NamedQuery(name = "KerberosPrincipalHostEntityFindByHost",
-        query = "SELECT kph FROM KerberosPrincipalHostEntity kph WHERE kph.hostId=:hostId")
+        query = "SELECT kph FROM KerberosPrincipalHostEntity kph WHERE kph.hostId=:hostId"),
+    @NamedQuery(name = "KerberosPrincipalHostEntityFindByKeytabPath",
+    query = "SELECT kph FROM KerberosPrincipalHostEntity kph WHERE kph.keytabPath=:keytabPath"),
 })
 public class KerberosPrincipalHostEntity {
 
@@ -52,6 +55,10 @@ public class KerberosPrincipalHostEntity {
   @Column(name = "host_id", insertable = true, updatable = false, nullable = false)
   private Long hostId;
 
+  @Id
+  @Column(name = "keytab_path", updatable = false, nullable = false)
+  private String keytabPath;
+
   @ManyToOne
   @JoinColumn(name = "principal_name", referencedColumnName = "principal_name", nullable = false, insertable = false, updatable = false)
   private KerberosPrincipalEntity principalEntity;
@@ -60,6 +67,14 @@ public class KerberosPrincipalHostEntity {
   @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false, insertable = false, updatable = false)
   private HostEntity hostEntity;
 
+  @ManyToOne
+  @JoinColumns({
+          @JoinColumn(name = "keytab_path", referencedColumnName = "keytab_path", nullable = false, insertable = false, updatable = false)
+  })
+  private KerberosKeytabEntity keytabEntity;
+
+  @Column(name = "is_distributed", insertable = true, updatable = true, nullable = false)
+  private Integer isDistributed = 0;
   /**
    * Constucts an empty KerberosPrincipalHostEntity
    */
@@ -72,9 +87,23 @@ public class KerberosPrincipalHostEntity {
    * @param principalName a String indicating this KerberosPrincipalHostEntity's principal name
    * @param hostId a Long indicating the KerberosPrincipalHostEntity's host id
    */
-  public KerberosPrincipalHostEntity(String principalName, Long hostId) {
+  public KerberosPrincipalHostEntity(String principalName, Long hostId, String keytabPath) {
     setPrincipalName(principalName);
     setHostId(hostId);
+    setKeytabPath(keytabPath);
+  }
+
+  /**
+   * Constructs a new KerberosPrincipalHostEntity
+   *
+   * @param principalName a String indicating this KerberosPrincipalHostEntity's principal name
+   * @param hostId a Long indicating the KerberosPrincipalHostEntity's host id
+   */
+  public KerberosPrincipalHostEntity(String principalName, Long hostId, String keytabPath, boolean isDistributed) {
+    setPrincipalName(principalName);
+    setHostId(hostId);
+    setKeytabPath(keytabPath);
+    setDistributed(isDistributed);
   }
 
   /**
@@ -156,5 +185,29 @@ public class KerberosPrincipalHostEntity {
    */
   public void setPrincipalEntity(KerberosPrincipalEntity principalEntity) {
     this.principalEntity = principalEntity;
+  }
+
+  public String getKeytabPath() {
+    return keytabPath;
+  }
+
+  public void setKeytabPath(String keytabPath) {
+    this.keytabPath = keytabPath;
+  }
+
+  public KerberosKeytabEntity getKeytabEntity() {
+    return keytabEntity;
+  }
+
+  public void setKeytabEntity(KerberosKeytabEntity keytabEntity) {
+    this.keytabEntity = keytabEntity;
+  }
+
+  public Boolean getDistributed() {
+    return isDistributed == 1;
+  }
+
+  public void setDistributed(Boolean isDistributed) {
+    this.isDistributed = (isDistributed) ? 1 : 0;
   }
 }

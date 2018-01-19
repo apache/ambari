@@ -130,14 +130,6 @@
             </package>
           </packages>
         </osSpecific>
-        <osSpecific>
-          <osFamily>suse11</osFamily>
-          <packages>
-            <package>
-              <name>mysql-client</name>
-            </package>
-          </packages>
-        </osSpecific>
       </osSpecifics>
 
       <commandScript>

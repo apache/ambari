@@ -32,6 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
 import org.apache.ambari.server.controller.MpackRequest;
 import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
@@ -41,6 +45,7 @@ import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.Packlet;
+import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -59,9 +64,13 @@ import com.google.inject.assistedinject.AssistedInject;
  */
 public class MpackManager {
   private static final String MPACK_METADATA = "mpack.json";
+  private static final String METAINFO_FILE_NAME = "metainfo.xml";
   private static final String MPACK_TAR_LOCATION = "staging";
   private static final String SERVICES_DIRECTORY = "services";
   private static final String PACKLETS_DIRECTORY = "packlets";
+  private static final String MIN_JDK_PROPERTY = "min-jdk";
+  private static final String MAX_JDK_PROPERTY = "max-jdk";
+  private static final String DEFAULT_JDK_VALUE = "1.8";
   private final static Logger LOG = LoggerFactory.getLogger(MpackManager.class);
   protected Map<Long, Mpack> mpackMap = new ConcurrentHashMap<>();
   private File mpacksStaging;
@@ -245,7 +254,59 @@ public class MpackManager {
         Paths.get(mpackDirectory), StandardCopyOption.REPLACE_EXISTING);
 
     createServicesDirectory(extractedMpackDirectory, mpack);
+
+    File metainfoFile = new File(extractedMpackDirectory + File.separator + METAINFO_FILE_NAME);
+    // if metainfo.xml doesn't exist in mpack generate it
+    if (!metainfoFile.exists()) {
+      generateMetainfo(metainfoFile, mpack);
+    }
+
     createSymLinks(mpack);
+  }
+
+  /**
+   * Generate metainfo.xml based on prerequisites of mpack and write it to the mpack directory.
+   * If required properties are missing in prerequisites fill them with default values.
+   *
+   * @param metainfoFile
+   * @param mpack
+   * @throws IOException
+   */
+  private void generateMetainfo(File metainfoFile, Mpack mpack) throws IOException {
+    LOG.info("Generating {} for mpack {}", metainfoFile, mpack.getName());
+    StackMetainfoXml generatedMetainfo = new StackMetainfoXml();
+    StackMetainfoXml.Version version = new StackMetainfoXml.Version();
+    version.setActive(true);
+    generatedMetainfo.setVersion(version);
+
+    Map<String, String> prerequisites = mpack.getPrerequisites();
+    if (prerequisites != null && prerequisites.containsKey(MIN_JDK_PROPERTY)) {
+      generatedMetainfo.setMinJdk(mpack.getPrerequisites().get(MIN_JDK_PROPERTY));
+    } else {
+      //this should not happen if mpack was configured correctly
+      LOG.warn("Couldn't detect {} for mpack {}. Using default value {}", MIN_JDK_PROPERTY, mpack.getName(), DEFAULT_JDK_VALUE);
+      generatedMetainfo.setMinJdk(DEFAULT_JDK_VALUE);
+    }
+    if (prerequisites != null && prerequisites.containsKey(MAX_JDK_PROPERTY)) {
+      generatedMetainfo.setMaxJdk(mpack.getPrerequisites().get(MAX_JDK_PROPERTY));
+    } else {
+      //this should not happen if mpack was configured correctly
+      LOG.warn("Couldn't detect {} for mpack {}. Using default value {}", MAX_JDK_PROPERTY, mpack.getName(), DEFAULT_JDK_VALUE);
+      generatedMetainfo.setMaxJdk(DEFAULT_JDK_VALUE);
+    }
+
+    // Export generatedMetainfo to metainfo.xml
+    try {
+      JAXBContext ctx = JAXBContext.newInstance(StackMetainfoXml.class);
+      Marshaller marshaller = ctx.createMarshaller();
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      FileOutputStream stackMetainfoFileStream = new FileOutputStream(metainfoFile);
+      marshaller.marshal(generatedMetainfo, stackMetainfoFileStream);
+      stackMetainfoFileStream.flush();
+      stackMetainfoFileStream.close();
+    } catch (JAXBException e) {
+      e.printStackTrace();
+    }
   }
 
   /***

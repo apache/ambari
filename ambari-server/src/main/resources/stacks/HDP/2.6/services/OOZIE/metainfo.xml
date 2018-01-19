@@ -20,7 +20,44 @@
   <services>
     <service>
       <name>OOZIE</name>
+      <comment>
+        System for workflow coordination and execution of Apache Hadoop jobs.
+      </comment>      
       <version>4.2.0</version>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>zip</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>oozie_${stack_version}</name>
+            </package>
+            <package>
+              <name>falcon_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>oozie-${stack_version}</name>
+            </package>
+            <package>
+              <name>falcon-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
       <configuration-dependencies>
         <config-type>application-properties</config-type>
       </configuration-dependencies>

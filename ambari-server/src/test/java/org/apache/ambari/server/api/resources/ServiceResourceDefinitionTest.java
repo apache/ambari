@@ -46,10 +46,12 @@ public class ServiceResourceDefinitionTest {
     ResourceDefinition resource = new ServiceResourceDefinition();
     Set<SubResourceDefinition> subResources = resource.getSubResourceDefinitions();
 
-    assertEquals(3, subResources.size());
-    assertTrue(includesType(subResources, Resource.Type.Component));
+    assertEquals(5, subResources.size());
     assertTrue(includesType(subResources, Resource.Type.Alert));
     assertTrue(includesType(subResources, Resource.Type.Artifact));
+    assertTrue(includesType(subResources, Resource.Type.Component));
+    assertTrue(includesType(subResources, Resource.Type.Configuration));
+    assertTrue(includesType(subResources, Resource.Type.ServiceDependency));
   }
 
   private boolean includesType(Set<SubResourceDefinition> resources, Resource.Type type) {

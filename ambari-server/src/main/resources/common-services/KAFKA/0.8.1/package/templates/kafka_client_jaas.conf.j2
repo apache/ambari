@@ -15,12 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #}
+
+{% if kerberos_security_enabled %}
 KafkaClient {
    com.sun.security.auth.module.Krb5LoginModule required
    useTicketCache=true
    renewTicket=true
    serviceName="{{kafka_bare_jaas_principal}}";
 };
+{% endif %}
 Client {
    com.sun.security.auth.module.Krb5LoginModule required
    useTicketCache=true

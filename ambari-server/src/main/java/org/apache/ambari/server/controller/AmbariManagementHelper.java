@@ -162,6 +162,32 @@ public class AmbariManagementHelper {
     }
   }
 
+  /**
+   * Updates the extension version of the currently linked extension to the stack version
+   */
+  public void updateExtensionLink(StackManager stackManager, ExtensionLinkEntity linkEntity, StackInfo stackInfo,
+                                  ExtensionInfo oldExtensionInfo, ExtensionInfo newExtensionInfo) throws AmbariException {
+    //validateUpdateExtensionLinkRequest(stackInfo, extensionInfo);
+    ExtensionHelper.validateUpdateLink(stackManager, stackInfo, oldExtensionInfo, newExtensionInfo);
+
+    ExtensionEntity extension = extensionDAO.find(newExtensionInfo.getName(), newExtensionInfo.getVersion());
+    linkEntity.setExtension(extension);
+
+    try {
+      linkEntity = linkDAO.merge(linkEntity);
+    } catch (RollbackException e) {
+      String message = "Unable to update extension link";
+      LOG.debug(message, e);
+      String errorMessage = message
+              + ", stackName=" + stackInfo.getName()
+              + ", stackVersion=" + stackInfo.getVersion()
+              + ", extensionName=" + newExtensionInfo.getName()
+              + ", extensionVersion=" + newExtensionInfo.getVersion();
+      LOG.warn(errorMessage);
+      throw new AmbariException(errorMessage, e);
+    }
+  }
+
   private ExtensionLinkEntity createExtensionLinkEntity(StackInfo stackInfo, ExtensionInfo extensionInfo) throws AmbariException {
     StackEntity stack = stackDAO.find(stackInfo.getName(), stackInfo.getVersion());
     ExtensionEntity extension = extensionDAO.find(extensionInfo.getName(), extensionInfo.getVersion());

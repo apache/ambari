@@ -37,6 +37,7 @@ describe('App.MainConfigHistoryView', function() {
         }
       ],
       doPolling: Em.K,
+      updateFilter: Em.K,
       load: function () {
         return {done: Em.K};
       },
@@ -51,161 +52,6 @@ describe('App.MainConfigHistoryView', function() {
       view.set('totalCount', 2);
       view.propertyDidChange('filteredContentInfo');
       expect(view.get('filteredContentInfo')).to.eql(Em.I18n.t('tableView.filters.filteredConfigVersionInfo').format(1, 2));
-    });
-  });
-
-  describe("#serviceFilterView", function () {
-    var subView = view.get('serviceFilterView').create({
-      parentView: view
-    });
-
-    before(function () {
-      sinon.stub(App.StackService, 'find').returns([Em.Object.create({
-        serviceName: 'S1',
-        displayName: 's1'
-      })])
-    });
-    after(function () {
-      App.StackService.find.restore();
-    });
-    it("content", function () {
-      expect(subView.get('content')).to.eql([
-        {
-          "value": "",
-          "label": Em.I18n.t('common.all')
-        },
-        {
-          "value": "S1",
-          "label": "s1"
-        }
-      ]);
-    });
-
-    before(function () {
-      sinon.stub(view, 'updateFilter', Em.K);
-    });
-    after(function () {
-      view.updateFilter.restore();
-    });
-    it("call onChangeValue()", function () {
-      subView.set('column', 1);
-      subView.set('value', 'value');
-      subView.onChangeValue();
-      expect(view.updateFilter.calledWith(1, 'value', 'select')).to.be.true;
-    });
-  });
-
-  describe("#configGroupFilterView", function () {
-    var subView = view.get('configGroupFilterView').create({
-      parentView: view
-    });
-
-    before(function () {
-      sinon.stub(App.ServiceConfigVersion, 'find').returns([
-        Em.Object.create({groupName: 'G1'}),
-        Em.Object.create({groupName: 'G1'}),
-        Em.Object.create({groupName: 'Default'}),
-        Em.Object.create({groupName: null})
-      ]);
-    });
-    after(function () {
-      App.ServiceConfigVersion.find.restore();
-    });
-    it("content", function () {
-      subView.observeContent();
-      expect(subView.get('content')).to.eql([
-        {
-          value: '',
-          label: Em.I18n.t('common.all')
-        },
-        {
-          value: 'G1',
-          label: 'G1'
-        },
-        {
-          value: 'Default',
-          label: 'Default'
-        }
-      ]);
-    });
-
-    before(function () {
-      sinon.stub(view, 'updateFilter', Em.K);
-    });
-    after(function () {
-      view.updateFilter.restore();
-    });
-    it("call onChangeValue()", function () {
-      subView.set('column', 1);
-      subView.set('value', 'value');
-      subView.onChangeValue();
-      expect(view.updateFilter.calledWith(1, 'value', 'select')).to.be.true;
-    });
-  });
-
-  /**
-   * for now we don't use this method
-  describe("#modifiedFilterView", function () {
-    var subView = view.get('modifiedFilterView').create({
-      parentView: view,
-      controller: {
-        modifiedFilter: {
-          actualValues: {
-            startTime: 0,
-            endTime: 1
-          }
-        }
-      }
-    });
-
-    before(function () {
-      sinon.stub(view, 'updateFilter', Em.K);
-    });
-    after(function () {
-      view.updateFilter.restore();
-    });
-    it("call onTimeChange()", function () {
-      subView.set('column', 1);
-      subView.onTimeChange();
-      expect(view.updateFilter.calledWith(1, [0, 1], 'range')).to.be.true;
-    });
-  });*/
-
-  describe("#authorFilterView", function () {
-    var subView = view.get('authorFilterView').create({
-      parentView: view
-    });
-
-    before(function () {
-      sinon.stub(view, 'updateFilter', Em.K);
-    });
-    after(function () {
-      view.updateFilter.restore();
-    });
-    it("call onChangeValue()", function () {
-      subView.set('column', 1);
-      subView.set('value', 'value');
-      subView.onChangeValue();
-      expect(view.updateFilter.calledWith(1, 'value', 'string')).to.be.true;
-    });
-  });
-
-  describe("#notesFilterView", function () {
-    var subView = view.get('notesFilterView').create({
-      parentView: view
-    });
-
-    before(function () {
-      sinon.stub(view, 'updateFilter', Em.K);
-    });
-    after(function () {
-      view.updateFilter.restore();
-    });
-    it("call onChangeValue()", function () {
-      subView.set('column', 1);
-      subView.set('value', 'value');
-      subView.onChangeValue();
-      expect(view.updateFilter.calledWith(1, 'value', 'string')).to.be.true;
     });
   });
 
@@ -289,35 +135,6 @@ describe('App.MainConfigHistoryView', function() {
     });
   });
 
-  describe('#updateFilter()', function () {
-    var cases = [
-      {
-        isInitialRendering: false,
-        updateFilterCalled: true,
-        title: 'updateFilter should be called'
-      },
-      {
-        isInitialRendering: true,
-        updateFilterCalled: false,
-        title: 'updateFilter should not be called'
-      }
-    ];
-    beforeEach(function () {
-      sinon.stub(view, 'saveFilterConditions', Em.K);
-      view.set('filteringComplete', true);
-    });
-    afterEach(function () {
-      view.saveFilterConditions.restore();
-    });
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        view.set('isInitialRendering', item.isInitialRendering);
-        view.updateFilter(1, 'value', 'string');
-        expect(view.get('saveFilterConditions').calledWith(1, 'value', 'string')).to.equal(item.updateFilterCalled);
-      });
-    });
-  });
-
   describe('#willDestroyElement()', function() {
     it('controller.isPolling is false', function() {
       view.willDestroyElement();
@@ -362,7 +179,4 @@ describe('App.MainConfigHistoryView', function() {
       expect(view.get('controller.resetStartIndex')).to.be.false;
     });
   });
-
-  App.TestAliases.testAsComputedAlias(view, 'colPropAssoc', 'controller.colPropAssoc', 'array');
-
 });

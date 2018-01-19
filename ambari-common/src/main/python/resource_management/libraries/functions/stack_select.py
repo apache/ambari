@@ -34,6 +34,7 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_tools
+from resource_management.libraries.functions import stack_settings
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.shell import call
@@ -71,7 +72,8 @@ HADOOP_DIR_DEFAULTS = {
   "libexec": "/usr/lib/hadoop/libexec",
   "sbin": "/usr/lib/hadoop/sbin",
   "bin": "/usr/bin",
-  "lib": "/usr/lib/hadoop/lib"
+  "lib": "/usr/lib/hadoop/lib",
+  "conf": "/etc/hadoop/conf"
 }
 
 PACKAGE_SCOPE_INSTALL = "INSTALL"
@@ -180,11 +182,17 @@ def get_packages(scope, service_name = None, component_name = None):
   if stack_name is None:
     raise Fail("The stack name is not present in the command. Packages for stack-select tool cannot be loaded.")
 
-  stack_packages_config = default("/configurations/cluster-env/stack_packages", None)
-  if stack_packages_config is None:
+  stack_packages_setting = stack_settings.get_stack_setting_value(stack_settings.STACK_PACKAGES_SETTING)
+  # TODO : Removed the below if of reading from cluster_env, once we have removed stack_packages from there
+  # and have started using /stackSettings as source of truth.
+  if stack_packages_setting is None:
+    Logger.info("Couldn't retrieve 'stack_packages' from /stackSettings. Retrieving from cluster_env now.")
+    stack_packages_setting = default("/configurations/cluster-env/"+stack_settings.STACK_PACKAGES_SETTING, None)
+
+  if stack_packages_setting is None:
     raise Fail("The stack packages are not defined on the command. Unable to load packages for the stack-select tool")
 
-  data = json.loads(stack_packages_config)
+  data = json.loads(stack_packages_setting)
 
   if stack_name not in data:
     raise Fail(

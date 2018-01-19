@@ -40,30 +40,22 @@ def webhcat_service(action='start', rolling_restart=False):
 def webhcat_service(action='start', upgrade_type=None):
   import params
 
-  environ = {
-    'HADOOP_HOME': params.hadoop_home
-  }
-
   cmd = format('{webhcat_bin_dir}/webhcat_server.sh')
 
   if action == 'start':
-    if upgrade_type is not None and params.version and params.stack_root:
-      environ['HADOOP_HOME'] = format("{stack_root}/{version}/hadoop")
-
     daemon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
     no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
     try:
       Execute(daemon_cmd,
               user=params.webhcat_user,
-              not_if=no_op_test,
-              environment = environ)
+              not_if=no_op_test)
     except:
       show_logs(params.hcat_log_dir, params.webhcat_user)
       raise
   elif action == 'stop':
     try:
       # try stopping WebHCat using its own script
-      graceful_stop(cmd, environ)
+      graceful_stop(cmd)
     except Fail:
       show_logs(params.hcat_log_dir, params.webhcat_user)
       Logger.info(traceback.format_exc())
@@ -95,17 +87,14 @@ def webhcat_service(action='start', upgrade_type=None):
 
     File(params.webhcat_pid_file, action="delete")
 
-def graceful_stop(cmd, environ):
+def graceful_stop(cmd):
   """
   Attemps to stop WebHCat using its own shell script. On some versions this may not correctly
   stop the daemon.
   :param cmd: the command to run to stop the daemon
-  :param environ: the environment variables to execute the command with
   :return:
   """
   import params
   daemon_cmd = format('{cmd} stop')
 
-  Execute(daemon_cmd,
-          user = params.webhcat_user,
-          environment = environ)
+  Execute(daemon_cmd, user = params.webhcat_user)

@@ -46,6 +46,7 @@ public class RequestOperationLevel {
   // Identifiers of properties as they appear at request properties
   public static final String OPERATION_LEVEL_ID = "operation_level/level";
   public static final String OPERATION_CLUSTER_ID = "operation_level/cluster_name";
+  public static final String OPERATION_SERVICE_GROUP_ID = "operation_level/service_group_name";
   public static final String OPERATION_SERVICE_ID = "operation_level/service_name";
   public static final String OPERATION_HOSTCOMPONENT_ID = "operation_level/hostcomponent_name";
   public static final String OPERATION_HOST_NAME = "operation_level/host_name";
@@ -81,10 +82,11 @@ public class RequestOperationLevel {
   }
 
   public RequestOperationLevel(Resource.Type level, String clusterName,
-                               String serviceName, String hostComponentName,
+                               String serviceGroupName, String serviceName, String hostComponentName,
                                String hostName) {
     this.level = level;
     this.clusterName = clusterName;
+    this.serviceGroupName = serviceGroupName;
     this.serviceName = serviceName;
     this.hostComponentName = hostComponentName;
     this.hostName = hostName;
@@ -114,6 +116,7 @@ public class RequestOperationLevel {
       throw new IllegalArgumentException(message);
     }
     this.clusterName = requestInfoProperties.get(OPERATION_CLUSTER_ID);
+    this.serviceGroupName = requestInfoProperties.get(OPERATION_SERVICE_GROUP_ID);
     this.serviceName = requestInfoProperties.get(OPERATION_SERVICE_ID);
     this.hostComponentName =
             requestInfoProperties.get(OPERATION_HOSTCOMPONENT_ID);
@@ -133,6 +136,12 @@ public class RequestOperationLevel {
    * Source cluster for request. Specified for all requests
    */
   private String clusterName;
+
+  /**
+   * Source service group for request. Specified for Service-level
+   * and HostComponent-level requests.
+   */
+  private String serviceGroupName;
 
   /**
    * Source service for request. Specified for Service-level
@@ -171,6 +180,10 @@ public class RequestOperationLevel {
 
   public String getHostName() {
     return hostName;
+  }
+
+  public String getServiceGroupName() {
+    return serviceGroupName;
   }
 
   @Override

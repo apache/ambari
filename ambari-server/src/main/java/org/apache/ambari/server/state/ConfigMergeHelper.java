@@ -63,11 +63,11 @@ public class ConfigMergeHelper {
       Service service = cluster.getService(serviceName);
       oldStack = service.getDesiredStackId();
       Set<PropertyInfo> oldStackProperties = m_ambariMetaInfo.get().getServiceProperties(
-          oldStack.getStackName(), oldStack.getStackVersion(), serviceName);
+          oldStack.getStackName(), oldStack.getStackVersion(), service.getServiceType());
       addToMap(oldMap, oldStackProperties);
 
       Set<PropertyInfo> newStackProperties = m_ambariMetaInfo.get().getServiceProperties(
-          targetStack.getStackName(), targetStack.getStackVersion(), serviceName);
+          targetStack.getStackName(), targetStack.getStackVersion(), service.getServiceType());
       addToMap(newMap, newStackProperties);
     }
 

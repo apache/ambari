@@ -112,6 +112,7 @@ component_directory_interactive = status_params.component_directory_interactive
 hadoop_home = stack_select.get_hadoop_dir("home")
 
 hive_bin = format('{stack_root}/current/{component_directory}/bin')
+hive_cmd = os.path.join(hive_bin, "hive")
 hive_schematool_ver_bin = format('{stack_root}/{version}/hive/bin')
 hive_schematool_bin = format('{stack_root}/current/{component_directory}/bin')
 hive_lib = format('{stack_root}/current/{component_directory}/lib')
@@ -186,8 +187,6 @@ hive_server_conf_dir = status_params.hive_server_conf_dir
 
 hcat_conf_dir = '/etc/hive-hcatalog/conf'
 config_dir = '/etc/hive-webhcat/conf'
-hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
-webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
 # there are no client versions of these, use server versions directly
 hcat_lib = format('{stack_root}/current/hive-webhcat/share/hcatalog')
@@ -871,3 +870,7 @@ if 'druid-common' in config['configurations'] \
 
 
 manage_hive_fsroot = default('/configurations/cluster-env/manage_hive_fsroot', True)
+
+# replication directories
+hive_repl_cmrootdir = default('/configurations/hive-site/hive.repl.cmrootdir', None)
+hive_repl_rootdir = default('/configurations/hive-site/hive.repl.rootdir', None)

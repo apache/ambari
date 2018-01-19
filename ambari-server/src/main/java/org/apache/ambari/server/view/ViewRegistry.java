@@ -205,7 +205,7 @@ public class ViewRegistry {
   /**
    * The logger.
    */
-  protected final static Logger LOG = LoggerFactory.getLogger(ViewRegistry.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewRegistry.class);
 
   /**
    * View Data Migration Utility

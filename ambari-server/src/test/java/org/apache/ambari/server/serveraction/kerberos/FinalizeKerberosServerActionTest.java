@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -44,6 +46,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +55,7 @@ import org.junit.rules.TemporaryFolder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 
 import junit.framework.Assert;
 
@@ -193,6 +197,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
         bind(KerberosHelper.class).toInstance(createMock(KerberosHelper.class));
         bind(Clusters.class).toInstance(clusters);
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
+        bind(EntityManager.class).toProvider(EasyMock.createNiceMock(Provider.class));
       }
     });
   }

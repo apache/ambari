@@ -45,6 +45,8 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -55,6 +57,8 @@ import com.google.inject.assistedinject.AssistedInject;
  */
 @StaticallyInject
 public class CredentialResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CredentialResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

@@ -54,112 +54,114 @@
   </span>
 </div>
 <div class="col-md-5 col-lg-4">
-  {{#isAuthorized "SERVICE.DECOMMISSION_RECOMMISSION"}}
+  {{#havePermissions "SERVICE.DECOMMISSION_RECOMMISSION"}}
     <div class="dropdown">
-      <button {{ bindAttr class="view.disabled :btn :btn-default :btn-block :dropdown-toggle"}} data-toggle="dropdown">
+      <button {{ bindAttr class="view.disabled :btn :btn-default :btn-block :dropdown-toggle" disabled="App.router.wizardWatcherController.isNonWizardUser"}} data-toggle="dropdown">
         {{view.componentTextStatus}}
         <span class="caret pull-right button-caret-margin"></span>
       </button>
-      <ul class="dropdown-menu">
-        {{#if view.isComponentDecommissionAvailable}}
-          {{view view.decommissionView}}
-        {{/if}}
-        {{#if view.isComponentRecommissionAvailable}}
-          {{view view.decommissionView}}
-        {{/if}}
-        {{#if view.isRestartableComponent}}
-          <li {{bindAttr class="view.isRestartComponentDisabled:hidden"}}>
-            <a href="javascript:void(null)" data-toggle="modal" {{action "restartComponent" view.content target="controller"}}>
-              {{t common.restart}}
-            </a>
-          </li>
-        {{/if}}
-        {{#unless view.isInstalling}}
-          {{#isAuthorized "SERVICE.START_STOP"}}
-            {{#if view.isStart}}
-              <li {{bindAttr class="view.isComponentDecommissioning:hidden view.noActionAvailable"}}>
-                <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
-                  {{t common.stop}}
-                </a>
-              </li>
-            {{/if}}
-            {{#unless view.isStart}}
-              {{#unless view.isInit}}
-                <li {{bindAttr class="view.isUpgradeFailed:hidden view.isInstallFailed:hidden view.isDecommissioning:hidden view.noActionAvailable"}}>
-                  <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
-                    {{t common.start}}
-                  </a>
-                </li>
-              {{/unless}}
-            {{/unless}}
-          {{/isAuthorized}}
-          {{#if view.isUpgradeFailed}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
-                {{t common.reUpgrade}}
+      {{#unless App.router.wizardWatcherController.isNonWizardUser}}
+        <ul class="dropdown-menu">
+          {{#if view.isComponentDecommissionAvailable}}
+            {{view view.decommissionView}}
+          {{/if}}
+          {{#if view.isComponentRecommissionAvailable}}
+            {{view view.decommissionView}}
+          {{/if}}
+          {{#if view.isRestartableComponent}}
+            <li {{bindAttr class="view.isRestartComponentDisabled:hidden"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "restartComponent" view.content target="controller"}}>
+                {{t common.restart}}
               </a>
             </li>
           {{/if}}
-          {{#if view.isInstallFailed}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
+          {{#unless view.isInstalling}}
+            {{#isAuthorized "SERVICE.START_STOP"}}
+              {{#if view.isStart}}
+                <li {{bindAttr class="view.isComponentDecommissioning:hidden view.noActionAvailable"}}>
+                  <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
+                    {{t common.stop}}
+                  </a>
+                </li>
+              {{/if}}
+              {{#unless view.isStart}}
+                {{#unless view.isInit}}
+                  <li {{bindAttr class="view.isUpgradeFailed:hidden view.isInstallFailed:hidden view.isDecommissioning:hidden view.noActionAvailable"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
+                      {{t common.start}}
+                    </a>
+                  </li>
+                {{/unless}}
+              {{/unless}}
+            {{/isAuthorized}}
+            {{#if view.isUpgradeFailed}}
+              <li {{bindAttr class="view.noActionAvailable"}}>
+                <a href="javascript:void(null)" data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
+                  {{t common.reUpgrade}}
+                </a>
+              </li>
+            {{/if}}
+            {{#if view.isInstallFailed}}
+              <li {{bindAttr class="view.noActionAvailable"}}>
+                <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
+                  {{t common.reinstall}}
+                </a>
+              </li>
+            {{/if}}
+            {{#if view.isReassignable}}
+              {{#isAuthorized "SERVICE.MOVE"}}
+                <li {{bindAttr class="view.noActionAvailable view.isMoveComponentDisabled:disabled"}}>
+                  <a href="javascript:void(null)" data-toggle="modal" {{action "moveComponent" view.content target="controller"}}>
+                    {{t common.move}}
+                  </a>
+                </li>
+              {{/isAuthorized}}
+            {{/if}}
+            {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
+              <li {{bindAttr class="view.noActionAvailable view.content.isImpliedState:disabled :allow-tooltip"}}
+                {{bindAttr data-original-title="view.maintenanceTooltip"}} rel="passiveTooltip" >
+              <a href="javascript:void(null)"
+                 data-toggle="modal" {{action "toggleMaintenanceMode" view.content target="controller"}}>
+                {{#if view.isActive}}
+                  {{t passiveState.turnOn}}
+                {{else}}
+                  {{t passiveState.turnOff}}
+                {{/if}}
+              </a>
+            </li>
+            {{/isAuthorized}}
+          {{/unless}}
+          {{#if view.isInit}}
+            <li>
               <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
                 {{t common.reinstall}}
               </a>
             </li>
           {{/if}}
-          {{#if view.isReassignable}}
-            {{#isAuthorized "SERVICE.MOVE"}}
-              <li {{bindAttr class="view.noActionAvailable view.isMoveComponentDisabled:disabled"}}>
-                <a href="javascript:void(null)" data-toggle="modal" {{action "moveComponent" view.content target="controller"}}>
-                  {{t common.move}}
-                </a>
+          {{#if view.isDeletableComponent}}
+            {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
+              <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
+                  <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>
+                    {{t common.delete}}
+                  </a>
               </li>
             {{/isAuthorized}}
           {{/if}}
-          {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
-            <li {{bindAttr class="view.noActionAvailable view.content.isImpliedState:disabled :allow-tooltip"}}
-              {{bindAttr data-original-title="view.maintenanceTooltip"}} rel="passiveTooltip" >
-            <a href="javascript:void(null)"
-               data-toggle="modal" {{action "toggleMaintenanceMode" view.content target="controller"}}>
-              {{#if view.isActive}}
-                {{t passiveState.turnOn}}
-              {{else}}
-                {{t passiveState.turnOff}}
-              {{/if}}
-            </a>
-          </li>
-          {{/isAuthorized}}
-        {{/unless}}
-        {{#if view.isInit}}
-          <li>
-            <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
-              {{t common.reinstall}}
-            </a>
-          </li>
-        {{/if}}
-        {{#if view.isDeletableComponent}}
-          {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
-            <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
-                <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>
-                  {{t common.delete}}
-                </a>
-            </li>
-          {{/isAuthorized}}
-        {{/if}}
-        {{#if view.isRefreshConfigsAllowed}}
-            <li>
-                <a href="javascript:void(null)" data-toggle="modal" {{action "refreshComponentConfigs" view.content target="controller"}}>
-                  {{t hosts.host.details.refreshConfigs}}
-                </a>
-            </li>
-        {{/if}}
+          {{#if view.isRefreshConfigsAllowed}}
+              <li>
+                  <a href="javascript:void(null)" data-toggle="modal" {{action "refreshComponentConfigs" view.content target="controller"}}>
+                    {{t hosts.host.details.refreshConfigs}}
+                  </a>
+              </li>
+          {{/if}}
 
-      {{#each command in view.customCommands}}
-        <li {{bindAttr class="command.disabled:disabled"}}>
-          <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
-        </li>
-      {{/each}}
-      </ul>
+        {{#each command in view.customCommands}}
+          <li {{bindAttr class="command.disabled:disabled"}}>
+            <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
+          </li>
+        {{/each}}
+        </ul>
+      {{/unless}}
     </div>
-  {{/isAuthorized}}
+  {{/havePermissions}}
 </div>

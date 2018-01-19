@@ -118,7 +118,7 @@ public class ServiceGroupResponse {
    */
   public interface ServiceGroupResponseSwagger extends ApiModel {
     @ApiModelProperty(name = "ServiceGroupInfo")
-    ServiceResponse getServiceGroupResponse();
+    ServiceGroupResponse getServiceGroupResponse();
   }
 
 }

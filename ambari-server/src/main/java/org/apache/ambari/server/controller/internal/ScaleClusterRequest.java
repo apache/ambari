@@ -19,18 +19,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.stack.NoSuchStackException;
-import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
-import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +58,8 @@ public class ScaleClusterRequest extends BaseClusterRequest {
         setClusterName(String.valueOf(properties.get(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID)));
       }
       // currently don't allow cluster scoped configuration in scaling operation
-//      setConfiguration(new Configuration(Collections.emptyMap(),
-//          Collections.emptyMap()));
+      setConfiguration(new Configuration(Collections.emptyMap(),
+          Collections.emptyMap()));
 
       parseHostGroups(properties);
     }
@@ -112,7 +110,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
       throw new InvalidTopologyTemplateException("A name must be specified for all host groups");
     }
 
-    BlueprintV2 blueprint = getBlueprint();
+    Blueprint blueprint = getBlueprint();
     if (getBlueprint() == null) {
       blueprint = parseBlueprint(blueprintName);
       setBlueprint(blueprint);
@@ -199,14 +197,10 @@ public class ScaleClusterRequest extends BaseClusterRequest {
    *
    * @throws InvalidTopologyTemplateException if specified blueprint or stack doesn't exist
    */
-  private BlueprintV2 parseBlueprint(String blueprintName) throws InvalidTopologyTemplateException  {
-    BlueprintV2 blueprint;
+  private Blueprint parseBlueprint(String blueprintName) throws InvalidTopologyTemplateException  {
+    Blueprint blueprint;
     try {
       blueprint = getBlueprintFactory().getBlueprint(blueprintName);
-    } catch (NoSuchBlueprintException e) {
-      throw new InvalidTopologyTemplateException("Invalid blueprint specified: " + blueprintName);
-    } catch (IOException e) {
-      throw new InvalidTopologyTemplateException("Error reading blueprint: " + blueprintName);
     } catch (NoSuchStackException e) {
       throw new InvalidTopologyTemplateException("Invalid stack specified in the blueprint: " + blueprintName);
     }

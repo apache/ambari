@@ -18,10 +18,15 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.ServiceKey;
+import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {
@@ -41,6 +46,10 @@ public interface Service {
   String getServiceType();
 
   Cluster getCluster();
+
+  Set<ServiceDependencyResponse> getServiceDependencyResponses();
+
+  List<ServiceKey> getServiceDependencies();
 
   ServiceComponent getServiceComponent(String componentName)
       throws AmbariException;
@@ -79,6 +88,10 @@ public interface Service {
       throws AmbariException;
 
   boolean isClientOnlyService();
+
+  ClusterServiceEntity removeDependencyService(Long dependencyServiceId);
+
+  ClusterServiceEntity addDependencyService(Long dependencyServiceId) throws AmbariException;
 
   void delete() throws AmbariException;
 

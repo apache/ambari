@@ -88,7 +88,8 @@ App.stackMapper = App.QuickDataMapper.create({
     operating_system_id: 'os_id',
     components: 'components',
     distribution: 'distribution',
-    unique: 'unique'
+    unique: 'unique',
+    tags: 'tags'
   },
 
   map: function(json) {

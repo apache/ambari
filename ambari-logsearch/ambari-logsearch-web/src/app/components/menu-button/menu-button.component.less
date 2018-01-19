@@ -15,19 +15,34 @@
  * limitations under the License.
  */
 
+@import '../mixins';
+
 :host {
-  display: inline-block;
   cursor: pointer;
-
-  a:hover, a:focus {
+  display: inline-block;
+  position: relative;
+  a {
+    text-align: center;
     text-decoration: none;
+    .icon {
+      display: inline-block;
+      position: relative;
+      &.fa-caret-down {
+        padding: 0 .25em;
+      }
+    }
+    .menu-button-label {
+      display: block;
+    }
   }
 
-  .icon {
-    padding: 5px;
-  }
-
-  .unstyled-link {
-    color: inherit;
+  .badge {
+    background: @badge-bg;
+    font-size: 1rem;
+    min-width: 1em;
+    padding: @badge-padding;
+    position: absolute;
+    top: 0;
+    right: -1em;
   }
 }

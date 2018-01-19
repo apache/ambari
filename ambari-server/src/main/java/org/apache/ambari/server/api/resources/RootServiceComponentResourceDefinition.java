@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.resources;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
@@ -44,10 +45,12 @@ public class RootServiceComponentResourceDefinition extends
   public String getSingularName() {
     return "component";
   }
-  
+
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.singleton(new SubResourceDefinition(
-        Resource.Type.RootServiceHostComponent, Collections.singleton(Resource.Type.Host), true));
+    Set<SubResourceDefinition> definitions = new HashSet<>();
+    definitions.add(new SubResourceDefinition(Resource.Type.RootServiceHostComponent, Collections.singleton(Resource.Type.Host), true));
+    definitions.add(new SubResourceDefinition(Resource.Type.RootServiceComponentConfiguration));
+    return definitions;
   }
 }

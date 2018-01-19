@@ -43,6 +43,10 @@ public class ConfigurationResponse {
 
   private Long version;
 
+  private Long serviceId;
+
+  private Long serviceGroupId;
+
   private List<Long> serviceConfigVersions;
 
   private Map<String, String> configs;
@@ -94,6 +98,41 @@ public class ConfigurationResponse {
     this(clusterName, config.getStackId(), config.getType(), config.getTag(),
         config.getVersion(), config.getProperties(),
         config.getPropertiesAttributes(), config.getPropertiesTypes());
+
+  }
+
+
+  /**
+   * Constructor.
+   *
+   * @param clusterName
+   * @param config
+   */
+  public ConfigurationResponse(String clusterName, Config config, Long serviceId, Long serviceGroupId) {
+    this(clusterName, config.getStackId(), config.getType(), config.getTag(),
+            config.getVersion(), config.getProperties(),
+            config.getPropertiesAttributes(), config.getPropertiesTypes(), serviceId, serviceGroupId);
+
+  }
+
+  public ConfigurationResponse(String clusterName, StackId stackId,
+                               String type, String versionTag, Long version,
+                               Map<String, String> configs,
+                               Map<String, Map<String, String>> configAttributes,
+                               Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes, Long serviceId, Long serviceGroupId) {
+    this.clusterName = clusterName;
+    this.stackId = stackId;
+    this.configs = configs;
+    this.type = type;
+    this.versionTag = versionTag;
+    this.version = version;
+    this.configs = configs;
+    this.configAttributes = configAttributes;
+    this.propertiesTypes = propertiesTypes;
+    this.serviceId = serviceId;
+    this.serviceGroupId = serviceGroupId;
+    SecretReference.replacePasswordsWithReferences(propertiesTypes, configs, type, version);
+    SecretReference.replacePasswordsWithReferencesForCustomProperties(configAttributes, configs, type, version);
   }
 
   /**
@@ -154,6 +193,22 @@ public class ConfigurationResponse {
     this.version = version;
   }
 
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
+  }
+
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
   /**
    * Gets the Stack ID that this configuration is scoped for.
    *
@@ -190,6 +245,15 @@ public class ConfigurationResponse {
       return false;
     }
 
+    if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) {
+      return false;
+    }
+
+    if (serviceGroupId != null ? !serviceGroupId.equals(that.serviceGroupId) : that.serviceGroupId != null) {
+      return false;
+    }
+
+
     return true;
   }
 
@@ -199,6 +263,8 @@ public class ConfigurationResponse {
     result = 31 * result + (stackId != null ? stackId.hashCode() : 0);
     result = 31 * result + (type != null ? type.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
+    result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
+    result = 31 * result + (serviceGroupId != null ? serviceGroupId.hashCode() : 0);
     return result;
   }
 

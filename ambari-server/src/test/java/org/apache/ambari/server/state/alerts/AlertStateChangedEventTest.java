@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -501,7 +501,7 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
     // create the definition for the AMBARI service
     AlertDefinitionEntity definition = createNiceMock(AlertDefinitionEntity.class);
     EasyMock.expect(definition.getDefinitionId()).andReturn(1L).anyTimes();
-    EasyMock.expect(definition.getServiceName()).andReturn(Services.AMBARI.name()).anyTimes();
+    EasyMock.expect(definition.getServiceName()).andReturn(RootService.AMBARI.name()).anyTimes();
     EasyMock.expect(definition.getLabel()).andReturn("ambari-foo-alert").anyTimes();
     EasyMock.expect(definition.getDescription()).andReturn("Ambari Foo Alert").anyTimes();
 

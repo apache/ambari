@@ -19,4 +19,14 @@
     <versions>
 	  <upgrade>0.0</upgrade>
     </versions>
+    <osSpecifics>
+        <osSpecific>
+            <osFamily>suse11</osFamily>
+            <packages>
+                <package>
+                    <name>stack_pig</name>
+                </package>
+            </packages>
+        </osSpecific>
+    </osSpecifics>
 </metainfo>

@@ -43,6 +43,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.internal.ServiceGroupResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -214,7 +216,7 @@ public class AmbariCustomCommandExecutionHelperTest {
             put("forceRefreshConfigTagsBeforeExecution", "true");
           }
         }, false);
-    actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
 
@@ -245,6 +247,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       {
         put("context" , "Restart all components for GANGLIA");
         put("operation_level/level", "SERVICE");
+        put("operation_level/service_group_name", "CORE");
         put("operation_level/service_name", "GANGLIA");
         put("operation_level/cluster_name", "c1");
       }
@@ -253,11 +256,11 @@ public class AmbariCustomCommandExecutionHelperTest {
     ExecuteActionRequest actionRequest = new ExecuteActionRequest(
        "c1", "RESTART", null,
        Arrays.asList(
-           new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
-           new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
-           new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))
+           new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
+           new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
+           new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))
        ),
-       new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
+       new RequestOperationLevel(Resource.Type.Service, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -282,6 +285,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       {
         put("context", "Restart all components for GANGLIA");
         put("operation_level/level", "SERVICE");
+        put("operation_level/service_group_name", "CORE");
         put("operation_level/service_name", "GANGLIA");
         put("operation_level/cluster_name", "c1");
       }
@@ -289,10 +293,10 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "RESTART", null,
         Arrays.asList(
-            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
-        new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
+            new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
+        new RequestOperationLevel(Resource.Type.Service, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -319,6 +323,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       {
         put("context", "Restart all components for GANGLIA");
         put("operation_level/level", "SERVICE");
+        put("operation_level/service_group_name", "CORE");
         put("operation_level/service_name", "GANGLIA");
         put("operation_level/cluster_name", "c1");
       }
@@ -326,10 +331,10 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "RESTART", null,
         Arrays.asList(
-            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
-        new RequestOperationLevel(Resource.Type.Host, "c1", "GANGLIA", null, null),
+            new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("CORE", "GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
+        new RequestOperationLevel(Resource.Type.Host, "c1", "CORE", "GANGLIA", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -364,6 +369,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       {
         put("context", "Service Check ZooKeeper");
         put("operation_level/level", "SERVICE");
+        put("operation_level/service_group_name", "CORE");
         put("operation_level/service_name", "ZOOKEEPER");
         put("operation_level/cluster_name", "c1");
       }
@@ -372,10 +378,10 @@ public class AmbariCustomCommandExecutionHelperTest {
     // create the service check on the host in MM
     ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
         "ZOOKEEPER_QUORUM_SERVICE_CHECK",
-        null, Collections.singletonList(new RequestResourceFilter("ZOOKEEPER", "ZOOKEEPER_CLIENT",
+        null, Collections.singletonList(new RequestResourceFilter("CORE", "ZOOKEEPER", "ZOOKEEPER_CLIENT",
         Collections.singletonList("c6402"))),
 
-        new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
+        new RequestOperationLevel(Resource.Type.Service, "c1", "CORE", "ZOOKEEPER", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -412,10 +418,10 @@ public class AmbariCustomCommandExecutionHelperTest {
     // create the service check on the host in MM, passing in null for the
     // component name
     ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
-        "ZOOKEEPER_QUORUM_SERVICE_CHECK", null, Collections.singletonList(new RequestResourceFilter("ZOOKEEPER", null,
+        "ZOOKEEPER_QUORUM_SERVICE_CHECK", null, Collections.singletonList(new RequestResourceFilter("CORE", "ZOOKEEPER", null,
         Collections.singletonList("c6402"))),
 
-        new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
+        new RequestOperationLevel(Resource.Type.Service, "c1", "CORE", "ZOOKEEPER", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -429,7 +435,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
 
     List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
-      add(new RequestResourceFilter("FLUME", null, null));
+      add(new RequestResourceFilter("CORE", "FLUME", null, null));
     }};
     ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
     Stage stage = EasyMock.niceMock(Stage.class);
@@ -450,7 +456,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     // There are multiple hosts with ZK Client.
     List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
-      add(new RequestResourceFilter("ZOOKEEPER", "ZOOKEEPER_CLIENT", Arrays.asList(new String[]{"c1-c6401"})));
+      add(new RequestResourceFilter("CORE", "ZOOKEEPER", "ZOOKEEPER_CLIENT", Arrays.asList(new String[]{"c1-c6401"})));
     }};
     ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
     Stage stage = EasyMock.niceMock(Stage.class);
@@ -501,7 +507,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     // There are multiple hosts with ZK Client.
     List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
-      add(new RequestResourceFilter("ZOOKEEPER", "ZOOKEEPER_CLIENT", null));
+      add(new RequestResourceFilter("CORE", "ZOOKEEPER", "ZOOKEEPER_CLIENT", null));
     }};
     ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
     Stage stage = EasyMock.niceMock(Stage.class);
@@ -528,9 +534,9 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     createClusterFixture("c2", new StackId("HDP-2.1.1"), "2.1.1.0-1234", "c2");
 
-    Assert.assertTrue(helper.isTopologyRefreshRequired("START", "c2", "HDFS"));
-    Assert.assertTrue(helper.isTopologyRefreshRequired("RESTART", "c2", "HDFS"));
-    Assert.assertFalse(helper.isTopologyRefreshRequired("STOP", "c2", "HDFS"));
+    Assert.assertTrue(helper.isTopologyRefreshRequired("START", "c2", "CORE", "HDFS"));
+    Assert.assertTrue(helper.isTopologyRefreshRequired("RESTART", "c2", "CORE", "HDFS"));
+    Assert.assertFalse(helper.isTopologyRefreshRequired("STOP", "c2", "CORE", "HDFS"));
   }
 
   @Test
@@ -548,7 +554,7 @@ public class AmbariCustomCommandExecutionHelperTest {
                 put("forceRefreshConfigTags", "capacity-scheduler");
               }
             }, false);
-    actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
 
     ambariManagementController.createAction(actionRequest, requestProperties);
@@ -574,14 +580,15 @@ public class AmbariCustomCommandExecutionHelperTest {
     Host host = clusters.getHost("c1-c6401");
 
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    RepositoryVersionHelper repoHelper = injector.getInstance(RepositoryVersionHelper.class);
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     RepositoryVersionDAO repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     ServiceComponentDesiredStateDAO componentDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     RepositoryVersionHelper repoVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
 
-    CommandRepository commandRepo = helper.getCommandRepository(cluster, componentRM, host);
+    CommandRepository commandRepo = repoHelper.getCommandRepository(cluster, componentRM, host);
+    Assert.assertEquals(2, commandRepo.getRepositories().size());
 
-    Assert.assertEquals(0, commandRepo.getRepositories().size());
 
     RepositoryInfo ri = new RepositoryInfo();
     ri.setBaseUrl("http://foo");
@@ -598,8 +605,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     repositoryVersion = repoVersionDAO.merge(repositoryVersion);
 
     // add a repo version associated with a component
-    ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(),
-        serviceYARN.getName(), componentRM.getName());
+    ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(), serviceYARN.getServiceGroupId(),
+        serviceYARN.getServiceId(), componentRM.getName());
 
     ServiceComponentVersionEntity componentVersionEntity = new ServiceComponentVersionEntity();
     componentVersionEntity.setRepositoryVersion(repositoryVersion);
@@ -607,18 +614,18 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     componentEntity.setDesiredRepositoryVersion(repositoryVersion);
     componentEntity.addVersion(componentVersionEntity);
-    componentEntity = componentDAO.merge(componentEntity);
+    componentDAO.merge(componentEntity);
 
     // !!! make sure the override is set
-    commandRepo = helper.getCommandRepository(cluster, componentRM, host);
+    commandRepo = repoHelper.getCommandRepository(cluster, componentRM, host);
 
     Assert.assertEquals(1, commandRepo.getRepositories().size());
     CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
     Assert.assertEquals("http://foo", repo.getBaseUrl());
 
     // verify that ZK has no repositories, since we haven't defined a repo version for ZKC
-    commandRepo = helper.getCommandRepository(cluster, componentZKC, host);
-    Assert.assertEquals(0, commandRepo.getRepositories().size());
+    commandRepo = repoHelper.getCommandRepository(cluster, componentZKC, host);
+    Assert.assertEquals(2, commandRepo.getRepositories().size());
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,
@@ -637,31 +644,35 @@ public class AmbariCustomCommandExecutionHelperTest {
     addHost(hostC6402, clusterName);
 
     Cluster cluster = clusters.getCluster(clusterName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     Assert.assertNotNull(cluster);
 
-    createService(clusterName, "YARN", repositoryVersion);
-    createService(clusterName, "GANGLIA", repositoryVersion);
-    createService(clusterName, "ZOOKEEPER", repositoryVersion);
-    createService(clusterName, "FLUME", repositoryVersion);
+    String serviceGroupName = "CORE";
+    ServiceGroupResourceProviderTest.createServiceGroup(ambariManagementController, clusterName, serviceGroupName);
 
-    createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT);
-    createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT);
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_SERVER", State.INIT);
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_MONITOR", State.INIT);
-    createServiceComponent(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT);
+    createService(clusterName, serviceGroupName, "YARN", repositoryVersion);
+    createService(clusterName, serviceGroupName, "GANGLIA", repositoryVersion);
+    createService(clusterName, serviceGroupName, "ZOOKEEPER", repositoryVersion);
+    createService(clusterName, serviceGroupName, "FLUME", repositoryVersion);
+
+    createServiceComponent(clusterName, serviceGroupName, "YARN", "RESOURCEMANAGER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "YARN", "NODEMANAGER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_SERVER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_MONITOR", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT);
 
     // this component should be not installed on any host
-    createServiceComponent(clusterName, "FLUME", "FLUME_HANDLER", State.INIT);
+    createServiceComponent(clusterName, serviceGroupName, "FLUME", "FLUME_HANDLER", State.INIT);
 
-    createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null);
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
-    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "YARN", "RESOURCEMANAGER", hostC6401, null);
+    createServiceComponentHost(clusterName, serviceGroupName, "YARN", "NODEMANAGER", hostC6401, null);
+    createServiceComponentHost(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT);
 
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6402, null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT);
-    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "YARN", "NODEMANAGER", hostC6402, null);
+    createServiceComponentHost(clusterName, serviceGroupName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT);
+    createServiceComponentHost(clusterName, serviceGroupName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
@@ -685,46 +696,26 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariManagementController.createCluster(r);
   }
 
-  private void createService(String clusterName, String serviceName,
-      RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException {
-
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getId(), null, "false");
-
-    Set<ServiceRequest> requests = new HashSet<>();
-    requests.add(r1);
-
+  private void createService(
+    String clusterName, String serviceGroupName, String serviceName, RepositoryVersionEntity repositoryVersion
+  ) throws AmbariException, AuthorizationException {
+    ServiceRequest request = new ServiceRequest(clusterName, serviceGroupName, serviceName, serviceName, repositoryVersion.getId(), null, null, null);
     ServiceResourceProviderTest.createServices(ambariManagementController,
-        injector.getInstance(RepositoryVersionDAO.class), requests);
+        injector.getInstance(RepositoryVersionDAO.class), Collections.singleton(request));
   }
 
-  private void createServiceComponent(String clusterName,
-      String serviceName, String componentName, State desiredState)
-      throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
-        serviceName, componentName, dStateStr);
-    Set<ServiceComponentRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    ComponentResourceProviderTest.createComponents(ambariManagementController, requests);
+  private void createServiceComponent(
+    String clusterName, String serviceGroupName, String serviceName, String componentName, State desiredState
+  ) throws AmbariException, AuthorizationException {
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName, serviceGroupName, serviceName, componentName, desiredState != null ? desiredState.name() : null);
+    ComponentResourceProviderTest.createComponents(ambariManagementController, Collections.singleton(r));
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState)
-      throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
-        serviceName, componentName, hostname, dStateStr);
-    Set<ServiceComponentHostRequest> requests =
-      new HashSet<>();
-    requests.add(r);
-    ambariManagementController.createHostComponents(requests);
+  private void createServiceComponentHost(
+    String clusterName, String serviceGroupName, String serviceName, String componentName, String hostname, State desiredState
+  ) throws AmbariException, AuthorizationException {
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceGroupName, serviceName, componentName, hostname, desiredState != null ? desiredState.name() : null);
+    ambariManagementController.createHostComponents(Collections.singleton(r));
   }
 
 }

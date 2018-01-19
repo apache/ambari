@@ -55,6 +55,8 @@ public class DefaultRendererTest {
     expect(schemaFactory.getSchema(Resource.Type.Component)).andReturn(schema).anyTimes();
     expect(schemaFactory.getSchema(Resource.Type.Alert)).andReturn(schema).anyTimes();
     expect(schemaFactory.getSchema(Resource.Type.Artifact)).andReturn(schema).anyTimes();
+    expect(schemaFactory.getSchema(Resource.Type.ServiceDependency)).andReturn(schema).anyTimes();
+    expect(schemaFactory.getSchema(Resource.Type.Configuration)).andReturn(schema).anyTimes();
     expect(schema.getKeyPropertyId(Resource.Type.Component)).andReturn("ServiceComponentInfo/component_name").anyTimes();
     expect(schema.getKeyPropertyId(Resource.Type.Service)).andReturn("ServiceComponentInfo/service_name").anyTimes();
 
@@ -68,7 +70,7 @@ public class DefaultRendererTest {
     TreeNode<Set<String>> propertyTree = renderer.finalizeProperties(queryTree, false);
     // no properties should have been added
     assertTrue(propertyTree.getObject().isEmpty());
-    assertEquals(3, propertyTree.getChildren().size());
+    assertEquals(5, propertyTree.getChildren().size());
 
     TreeNode<Set<String>> componentNode = propertyTree.getChild("Component");
     assertEquals(2, componentNode.getObject().size());
