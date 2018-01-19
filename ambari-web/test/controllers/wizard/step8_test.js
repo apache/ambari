@@ -1992,9 +1992,9 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
-  describe('#_startDeploy', function () {
+  describe('#startDeploy', function () {
 
-    var stubbedNames = ['createCluster', 'createServiceGroup', 'createSelectedServices', 'createConfigurations',
+    var stubbedNames = ['createCluster', 'createServiceGroups', 'createSelectedServices', 'createConfigurations',
         'applyConfigurationsToCluster', 'createComponents', 'registerHostsToCluster', 'createConfigurationGroups',
         'createMasterHostComponents', 'createSlaveAndClientsHostComponents', 'createAdditionalClientComponents',
         'createAdditionalHostComponents'],
