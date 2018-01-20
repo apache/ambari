@@ -239,9 +239,11 @@ class TestFalconServer(RMFTestCase):
       action = ['delete'])
 
     self.assertResourceCalled('Execute', ('tar',
-     '-zcvhf',
+     '-zchf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
-     u'/hadoop/falcon'),
+     '-C',
+     u'/hadoop/falcon',
+     '.'),
         sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', u'2.2.1.0-2135'),
