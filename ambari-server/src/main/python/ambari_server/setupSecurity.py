@@ -668,12 +668,13 @@ def setup_ldap(options):
     err = 'Ambari Server is not running.'
     raise FatalException(1, err)
 
-  if get_value_from_properties(properties,CLIENT_SECURITY,"") == 'pam':
-    query = "PAM is currently configured, do you wish to use LDAP instead [y/n] (n)? "
+  current_client_security = get_value_from_properties(properties,CLIENT_SECURITY,"no auth method")
+  if current_client_security != 'ldap':
+    query = "Currently '" + current_client_security + "' is configured, do you wish to use LDAP instead [y/n] (n)? "
     if get_YN_input(query, False):
       pass
     else:
-      err = "PAM is configured. Can not setup LDAP."
+      err = "Currently '" + current_client_security + "' configured. Can not setup LDAP."
       raise FatalException(1, err)
 
   isSecure = get_is_secure(properties)
