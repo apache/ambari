@@ -532,10 +532,10 @@ def init_ldap_sync_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_ldap_setup_parser_options(parser):
-  parser.add_option('--ldap-url-host', default=None, help="Primary Host for LDAP", dest="ldap_url_host")
-  parser.add_option('--ldap-url-port', default=None, help="Primary Port for LDAP", dest="ldap_url_port")
-  parser.add_option('--ldap-secondary-url-host', default=None, help="Secondary Host for LDAP", dest="ldap_secondary_url_host")
-  parser.add_option('--ldap-secondary-url-port', default=None, help="Secondary Port for LDAP", dest="ldap_secondary_url_port")
+  parser.add_option('--ldap-primary-host', default=None, help="Primary Host for LDAP", dest="ldap_primary_host")
+  parser.add_option('--ldap-primary-port', default=None, help="Primary Port for LDAP", dest="ldap_primary_port")
+  parser.add_option('--ldap-secondary-host', default=None, help="Secondary Host for LDAP", dest="ldap_secondary_host")
+  parser.add_option('--ldap-secondary-port', default=None, help="Secondary Port for LDAP", dest="ldap_secondary_port")
   parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
   parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
   parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
