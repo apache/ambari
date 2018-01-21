@@ -81,6 +81,9 @@ PAM_CONFIG_FILE = 'pam.configuration'
 IS_LDAP_CONFIGURED = "ambari.ldap.authentication.enabled"
 LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
+LDAP_BIND_DN="ambari.ldap.connectivity.bind_dn"
+LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
+LDAP_USE_SSL="ambari.ldap.connectivity.use_ssl"
 
 def read_master_key(isReset=False, options = None):
   passwordPattern = ".*"
@@ -677,7 +680,7 @@ def setup_ldap(options):
 
   ldap_property_list_reqd = init_ldap_properties_list_reqd(properties, options)
 
-  ldap_property_list_opt = ["ambari.ldap.connectivity.bind_dn",
+  ldap_property_list_opt = [LDAP_BIND_DN,
                             LDAP_MGR_PASSWORD_PROPERTY,
                             SSL_TRUSTSTORE_TYPE_PROPERTY,
                             SSL_TRUSTSTORE_PATH_PROPERTY,
@@ -699,7 +702,7 @@ def setup_ldap(options):
     if input is not None and input != "":
       ldap_property_value_map[ldap_prop.prop_name] = input
 
-  bindAnonymously = ldap_property_value_map["ambari.ldap.connectivity.anonymous_bind"]
+  bindAnonymously = ldap_property_value_map[LDAP_ANONYMOUS_BIND]
   anonymous = (bindAnonymously and bindAnonymously.lower() == 'true')
   mgr_password = None
   # Ask for manager credentials only if bindAnonymously is false
@@ -711,7 +714,7 @@ def setup_ldap(options):
     mgr_password = configure_ldap_password(options)
     ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = mgr_password
 
-  useSSL = ldap_property_value_map["ambari.ldap.connectivity.use_ssl"]
+  useSSL = ldap_property_value_map[LDAP_USE_SSL]
   ldaps = (useSSL and useSSL.lower() == 'true')
   ts_password = None
 
