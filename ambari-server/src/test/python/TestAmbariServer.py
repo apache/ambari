@@ -7516,7 +7516,7 @@ class TestAmbariServer(TestCase):
     get_validated_string_input_method.side_effect = input_enable_ssl
     read_password_method.return_value = "password"
     get_YN_input_method.reset_mock()
-    get_YN_input_method.side_effect = [True, True]
+    get_YN_input_method.side_effect = [True, True, True]
     update_properties_method.reset_mock()
 
     options.ldap_primary_host = None
