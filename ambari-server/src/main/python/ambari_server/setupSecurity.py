@@ -81,7 +81,6 @@ PAM_CONFIG_FILE = 'pam.configuration'
 IS_LDAP_CONFIGURED = "ambari.ldap.authentication.enabled"
 LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
-LDAP_BIND_DN="ambari.ldap.connectivity.bind_dn"
 LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
 LDAP_USE_SSL="ambari.ldap.connectivity.use_ssl"
 
@@ -681,7 +680,7 @@ def setup_ldap(options):
 
   ldap_property_list_reqd = init_ldap_properties_list_reqd(properties, options)
 
-  ldap_property_list_opt = [LDAP_BIND_DN,
+  ldap_property_list_opt = [LDAP_MGR_USERNAME_PROPERTY,
                             LDAP_MGR_PASSWORD_PROPERTY,
                             SSL_TRUSTSTORE_TYPE_PROPERTY,
                             SSL_TRUSTSTORE_PATH_PROPERTY,
