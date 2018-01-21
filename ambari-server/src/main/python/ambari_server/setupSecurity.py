@@ -635,8 +635,6 @@ def update_ldap_configuration(properties, ldap_property_value_map):
   request.add_header('X-Requested-By', 'ambari')
   data = {
     "Configuration": {
-      "service_name": "AMBARI",
-      "component_name": "AMBARI_SERVER",
       "category": "ldap-configuration",
       "properties": {
       }
