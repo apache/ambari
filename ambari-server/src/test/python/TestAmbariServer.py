@@ -7435,8 +7435,8 @@ class TestAmbariServer(TestCase):
     get_YN_input_method.side_effect = [True, True]
     update_properties_method.reset_mock()
 
-    options.ldap_url_host = None
-    options.ldap_url_port = None
+    options.ldap_primary_host = None
+    options.ldap_primary_port = None
     options.ldap_member_attr = None
     setup_ldap(options)
 
@@ -8580,10 +8580,10 @@ class TestAmbariServer(TestCase):
 
   def _create_empty_options_mock(self):
     options = MagicMock()
-    options.ldap_url_host = None
-    options.ldap_url_port = None
-    options.ldap_secondary_url_host = None
-    options.ldap_secondary_url_port = None
+    options.ldap_primary_host = None
+    options.ldap_primary_port = None
+    options.ldap_secondary_host = None
+    options.ldap_secondary_port = None
     options.ldap_ssl = None
     options.ldap_user_class = None
     options.ldap_user_attr = None
