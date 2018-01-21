@@ -658,11 +658,6 @@ def update_ldap_configuration(properties, ldap_property_value_map):
 def setup_ldap(options):
   logger.info("Setup LDAP.")
 
-  if not is_root():
-    err = 'Ambari-server setup-ldap should be run with ' \
-          'root-level privileges'
-    raise FatalException(4, err)
-
   properties = get_ambari_properties()
 
   server_status, pid = is_server_runing()

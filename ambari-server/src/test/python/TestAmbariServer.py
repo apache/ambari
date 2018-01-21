@@ -7154,10 +7154,9 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.update_properties_2")
   @patch("ambari_server.setupSecurity.search_file")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
-  @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
   @patch("ambari_server.setupSecurity.is_server_runing")
-  def test_setup_ldap_invalid_input(self, is_server_runing_method, logger_mock, is_root_method, get_ambari_properties_method,
+  def test_setup_ldap_invalid_input(self, is_server_runing_method, logger_mock, get_ambari_properties_method,
                                     search_file_message,
                                     update_properties_method,
                                     get_YN_input_method,
@@ -7165,7 +7164,6 @@ class TestAmbariServer(TestCase):
                                     get_password_mock, raw_input_mock, urlopen_mock):
     out = StringIO.StringIO()
     sys.stdout = out
-    is_root_method.return_value = True
     is_server_runing_method.return_value = (True, 0)
     search_file_message.return_value = "filepath"
 
@@ -7241,27 +7239,10 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-  @patch("ambari_server.setupSecurity.is_root")
-  def test_setup_ldap_should_fail_if_executed_by_not_root_user(self, is_root_mock):
-    out = StringIO.StringIO()
-    sys.stdout = out
-    is_root_mock.return_value = False
-    try:
-      setup_ldap(self._create_empty_options_mock())
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      self.assertTrue("root-level" in fe.reason)
-      pass
-    
-    sys.stdout = sys.__stdout__
-    pass
-
   @patch("ambari_server.setupSecurity.is_server_runing")
-  @patch("ambari_server.setupSecurity.is_root")
-  def test_setup_ldap_should_fail_if_ambari_server_is_not_running(self, is_root_mock, is_server_runing_mock):
+  def test_setup_ldap_should_fail_if_ambari_server_is_not_running(self, is_server_runing_mock):
     out = StringIO.StringIO()
     sys.stdout = out
-    is_root_mock.return_value = True
     is_server_runing_mock.return_value = (False, 0)
     try:
       setup_ldap(self._create_empty_options_mock())
@@ -7336,12 +7317,11 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.serverConfiguration.search_file")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
-  @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.read_password")
   @patch("os.path.exists")
   @patch("ambari_server.setupSecurity.logger")
   @patch("ambari_server.setupSecurity.is_server_runing")
-  def test_setup_ldap(self, is_server_runing_method, logger_mock, exists_method, read_password_method, is_root_method, get_ambari_properties_method,
+  def test_setup_ldap(self, is_server_runing_method, logger_mock, exists_method, read_password_method, get_ambari_properties_method,
                       search_file_message,
                       get_validated_string_input_method,
                       configure_ldap_password_method, update_properties_method,
@@ -7351,7 +7331,6 @@ class TestAmbariServer(TestCase):
     sys.stdout = out
 
     options = self._create_empty_options_mock()
-    is_root_method.return_value = True
     is_server_runing_method.return_value = (True, 0)
 
     search_file_message.return_value = "filepath"
