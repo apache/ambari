@@ -605,10 +605,10 @@ def init_ldap_properties_list_reqd(properties, options):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_ldap_properties_list_reqd(properties, options):
   ldap_properties = [
-    LdapPropTemplate(properties, options.ldap_url_host, "ambari.ldap.connectivity.server.host", "Primary URL Host* {0}: ", REGEX_HOSTNAME, False),
-    LdapPropTemplate(properties, options.ldap_url_port, "ambari.ldap.connectivity.server.port", "Primary URL Port* {0}: ", REGEX_PORT, False),
-    LdapPropTemplate(properties, options.ldap_secondary_url_host, "ambari.ldap.connectivity.secondary.server.host", "Secondary URL Host {0}: ", REGEX_HOSTNAME, True),
-    LdapPropTemplate(properties, options.ldap_secondary_url_port, "ambari.ldap.connectivity.secondary.server.port", "Secondary URL Port {0}: ", REGEX_PORT, True),
+    LdapPropTemplate(properties, options.ldap_primary_host, "ambari.ldap.connectivity.server.host", "Primary URL Host* {0}: ", REGEX_HOSTNAME, False),
+    LdapPropTemplate(properties, options.ldap_primary_port, "ambari.ldap.connectivity.server.port", "Primary URL Port* {0}: ", REGEX_PORT, False),
+    LdapPropTemplate(properties, options.ldap_secondary_host, "ambari.ldap.connectivity.secondary.server.host", "Secondary URL Host {0}: ", REGEX_HOSTNAME, True),
+    LdapPropTemplate(properties, options.ldap_secondary_port, "ambari.ldap.connectivity.secondary.server.port", "Secondary URL Port {0}: ", REGEX_PORT, True),
     LdapPropTemplate(properties, options.ldap_ssl, "ambari.ldap.connectivity.use_ssl", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
     LdapPropTemplate(properties, options.ldap_user_class, "ambari.ldap.attributes.user.object_class", "User object class* {0}: ", REGEX_ANYTHING, False, "person"),
     LdapPropTemplate(properties, options.ldap_user_attr, "ambari.ldap.attributes.user.name_attr", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
