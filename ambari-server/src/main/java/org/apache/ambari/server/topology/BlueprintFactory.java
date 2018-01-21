@@ -19,6 +19,8 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,13 +33,17 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.internal.CompositeStack;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.StackId;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 /**
@@ -85,8 +91,12 @@ public class BlueprintFactory {
 
   public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
-    //todo: just return null?
-    return entity == null ? null : new BlueprintImpl(entity);
+    if (entity != null) {
+      Set<StackId> stackIds = fakeStackIds();
+      StackInfo stack = createCompositeStack(stackIds);
+      return new BlueprintImpl(entity, stack, stackIds);
+    }
+    return null;
   }
 
   /**
@@ -105,23 +115,33 @@ public class BlueprintFactory {
       throw new IllegalArgumentException("Blueprint name must be provided");
     }
 
-    Stack stack = createStack(properties);
+    Set<StackId> stackIds = fakeStackIds();
+    StackInfo stack = createCompositeStack(stackIds);
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
             properties.get(CONFIGURATION_PROPERTY_ID));
     Setting setting =  SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTINGS_PROPERTY_ID));
 
-    return new BlueprintImpl(name, hostGroups, stack, configuration, securityConfiguration, setting);
+    return new BlueprintImpl(name, hostGroups, stack, stackIds, configuration, securityConfiguration, setting);
   }
 
-  protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {
-    String stackName = String.valueOf(properties.get(STACK_NAME_PROPERTY_ID));
-    String stackVersion = String.valueOf(properties.get(STACK_VERSION_PROPERTY_ID));
+  CompositeStack createCompositeStack(Set<StackId> stackIds) {
+    return new CompositeStack(stackIds.stream().map(this::createStack).collect(toSet()));
+  }
+
+  static Set<StackId> fakeStackIds() {
+    return ImmutableSet.of(
+      new StackId("HDP", "3.0.0"),
+      new StackId("HDS", "3.0.0")
+    );
+  }
+
+  protected Stack createStack(StackId stackId) {
     try {
       //todo: don't pass in controller
-      return stackFactory.createStack(stackName, stackVersion, AmbariServer.getController());
+      return stackFactory.createStack(stackId.getStackName(), stackId.getStackVersion(), AmbariServer.getController());
     } catch (ObjectNotFoundException e) {
-      throw new NoSuchStackException(stackName, stackVersion);
+      throw new NoSuchStackException(stackId.getStackName(), stackId.getStackVersion());
     } catch (AmbariException e) {
       //todo:
       throw new RuntimeException("An error occurred parsing the stack information.", e);
@@ -130,7 +150,7 @@ public class BlueprintFactory {
 
   //todo: Move logic to HostGroupImpl
   @SuppressWarnings("unchecked")
-  private Collection<HostGroup> processHostGroups(String bpName, Stack stack, Map<String, Object> properties) {
+  private Collection<HostGroup> processHostGroups(String bpName, StackInfo stack, Map<String, Object> properties) {
     Set<HashMap<String, Object>> hostGroupProps = (HashSet<HashMap<String, Object>>)
         properties.get(HOST_GROUP_PROPERTY_ID);
 
@@ -162,7 +182,7 @@ public class BlueprintFactory {
     return hostGroups;
   }
 
-  private Collection<Component> processHostGroupComponents(Stack stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
+  private Collection<Component> processHostGroupComponents(StackInfo stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
     if (componentProps == null || componentProps.isEmpty()) {
       throw new IllegalArgumentException("Host group '" + groupName + "' must contain at least one component");
     }
@@ -200,7 +220,7 @@ public class BlueprintFactory {
    * @return collection of component names for the specified stack
    * @throws IllegalArgumentException if the specified stack doesn't exist
    */
-  private Collection<String> getAllStackComponents(Stack stack) {
+  private Collection<String> getAllStackComponents(StackInfo stack) {
     Collection<String> allComponents = new HashSet<>();
     for (Collection<String> components: stack.getComponents().values()) {
       allComponents.addAll(components);

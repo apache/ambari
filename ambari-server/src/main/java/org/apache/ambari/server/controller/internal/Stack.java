@@ -49,7 +49,8 @@ import org.apache.ambari.server.topology.Configuration;
 /**
  * Encapsulates stack information.
  */
-public class Stack {
+// TODO move to topology package
+public class Stack implements StackInfo {
   /**
    * Stack name
    */
@@ -207,6 +208,7 @@ public class Stack {
    *
    * @return collection of all services for the stack
    */
+  @Override
   public Collection<String> getServices() {
     return serviceComponents.keySet();
   }
@@ -218,6 +220,7 @@ public class Stack {
    *
    * @return collection of component names for the specified service
    */
+  @Override
   public Collection<String> getComponents(String service) {
     return serviceComponents.get(service);
   }
@@ -227,6 +230,7 @@ public class Stack {
    *
    * @return map of service to associated components
    */
+  @Override
   public Map<String, Collection<String>> getComponents() {
     Map<String, Collection<String>> serviceComponents = new HashMap<>();
     for (String service : getServices()) {
@@ -245,6 +249,7 @@ public class Stack {
    * @return component information for the requested component
    *         or null if the component doesn't exist in the stack
    */
+  @Override
   public ComponentInfo getComponentInfo(String component) {
     ComponentInfo componentInfo = null;
     String service = getServiceForComponent(component);
@@ -266,6 +271,7 @@ public class Stack {
    *
    * @return collection of all configuration types for the specified service
    */
+  @Override
   public Collection<String> getAllConfigurationTypes(String service) {
     return serviceConfigurations.get(service).keySet();
   }
@@ -278,6 +284,7 @@ public class Stack {
    *
    * @return collection of all configuration types for the specified service
    */
+  @Override
   public Collection<String> getConfigurationTypes(String service) {
     Set<String> serviceTypes = new HashSet<>(serviceConfigurations.get(service).keySet());
     serviceTypes.removeAll(getExcludedConfigurationTypes(service));
@@ -292,6 +299,7 @@ public class Stack {
    *
    * @return Set of names of excluded config types. Will not return null.
    */
+  @Override
   public Set<String> getExcludedConfigurationTypes(String service) {
     return excludedConfigurationTypes.containsKey(service) ?
         excludedConfigurationTypes.get(service) :
@@ -306,6 +314,7 @@ public class Stack {
    *
    * @return map of property names to values for the specified service and configuration type
    */
+  @Override
   public Map<String, String> getConfigurationProperties(String service, String type) {
     Map<String, String> configMap = new HashMap<>();
     Map<String, ConfigProperty> configProperties = serviceConfigurations.get(service).get(type);
@@ -317,6 +326,7 @@ public class Stack {
     return configMap;
   }
 
+  @Override
   public Map<String, ConfigProperty> getConfigurationPropertiesWithMetadata(String service, String type) {
     return serviceConfigurations.get(service).get(type);
   }
@@ -328,6 +338,7 @@ public class Stack {
    *
    * @return collection of all required properties for the given service
    */
+  @Override
   public Collection<ConfigProperty> getRequiredConfigurationProperties(String service) {
     Collection<ConfigProperty> requiredConfigProperties = new HashSet<>();
     Map<String, Map<String, ConfigProperty>> serviceProperties = requiredServiceConfigurations.get(service);
@@ -347,6 +358,7 @@ public class Stack {
    *
    * @return collection of required properties for the given service and property type
    */
+  @Override
   public Collection<ConfigProperty> getRequiredConfigurationProperties(String service, PropertyInfo.PropertyType propertyType) {
     Collection<ConfigProperty> matchingProperties = new HashSet<>();
     Map<String, Map<String, ConfigProperty>> requiredProperties = requiredServiceConfigurations.get(service);
@@ -363,6 +375,7 @@ public class Stack {
     return matchingProperties;
   }
 
+  @Override
   public boolean isPasswordProperty(String service, String type, String propertyName) {
     return (serviceConfigurations.containsKey(service) &&
             serviceConfigurations.get(service).containsKey(type) &&
@@ -372,6 +385,7 @@ public class Stack {
   }
 
   //todo
+  @Override
   public Map<String, String> getStackConfigurationProperties(String type) {
     Map<String, String> configMap = new HashMap<>();
     Map<String, ConfigProperty> configProperties = stackConfigurations.get(type);
@@ -383,6 +397,7 @@ public class Stack {
     return configMap;
   }
 
+  @Override
   public boolean isKerberosPrincipalNameProperty(String service, String type, String propertyName) {
     return (serviceConfigurations.containsKey(service) &&
             serviceConfigurations.get(service).containsKey(type) &&
@@ -399,6 +414,7 @@ public class Stack {
    * @return  map of attribute names to map of property names to attribute values
    *          for the specified service and configuration type
    */
+  @Override
   public Map<String, Map<String, String>> getConfigurationAttributes(String service, String type) {
     Map<String, Map<String, String>> attributesMap = new HashMap<>();
     Map<String, ConfigProperty> configProperties = serviceConfigurations.get(service).get(type);
@@ -426,6 +442,7 @@ public class Stack {
   }
 
   //todo:
+  @Override
   public Map<String, Map<String, String>> getStackConfigurationAttributes(String type) {
     Map<String, Map<String, String>> attributesMap = new HashMap<>();
     Map<String, ConfigProperty> configProperties = stackConfigurations.get(type);
@@ -457,6 +474,7 @@ public class Stack {
    *
    * @return service name that contains tha specified component
    */
+  @Override
   public String getServiceForComponent(String component) {
     return componentService.get(component);
   }
@@ -468,6 +486,7 @@ public class Stack {
    *
    * @return collection of services which contain the specified components
    */
+  @Override
   public Collection<String> getServicesForComponents(Collection<String> components) {
     Set<String> services = new HashSet<>();
     for (String component : components) {
@@ -484,6 +503,7 @@ public class Stack {
    *
    * @return name of service which corresponds to the specified configuration type
    */
+  @Override
   public String getServiceForConfigType(String config) {
     for (Map.Entry<String, Map<String, Map<String, ConfigProperty>>> entry : serviceConfigurations.entrySet()) {
       Map<String, Map<String, ConfigProperty>> typeMap = entry.getValue();
@@ -516,6 +536,7 @@ public class Stack {
    * @return collection of dependency information for the specified component
    */
   //todo: full dependency graph
+  @Override
   public Collection<DependencyInfo> getDependenciesForComponent(String component) {
     return dependencies.containsKey(component) ? dependencies.get(component) :
         Collections.emptySet();
@@ -529,10 +550,12 @@ public class Stack {
    * @return conditional service for provided component or null if dependency
    *         is not conditional on a service
    */
+  @Override
   public String getConditionalServiceForDependency(DependencyInfo dependency) {
     return dependencyConditionalServiceMap.get(dependency);
   }
 
+  @Override
   public String getExternalComponentConfig(String component) {
     return dbDependencyInfo.get(component);
   }
@@ -540,6 +563,7 @@ public class Stack {
   /**
    * Obtain the required cardinality for the specified component.
    */
+  @Override
   public Cardinality getCardinality(String component) {
     return new Cardinality(cardinalityRequirements.get(component));
   }
@@ -547,14 +571,17 @@ public class Stack {
   /**
    * Obtain auto-deploy information for the specified component.
    */
+  @Override
   public AutoDeployInfo getAutoDeployInfo(String component) {
     return componentAutoDeployInfo.get(component);
   }
 
+  @Override
   public boolean isMasterComponent(String component) {
     return masterComponents.contains(component);
   }
 
+  @Override
   public Configuration getConfiguration(Collection<String> services) {
     Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
     Map<String, Map<String, String>> properties = new HashMap<>();
@@ -590,6 +617,7 @@ public class Stack {
     return new Configuration(properties, attributes);
   }
 
+  @Override
   public Configuration getConfiguration() {
     Map<String, Map<String, Map<String, String>>> stackAttributes = new HashMap<>();
     Map<String, Map<String, String>> stackConfigs = new HashMap<>();

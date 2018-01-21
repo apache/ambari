@@ -67,7 +67,7 @@ import org.apache.ambari.server.controller.internal.ServiceDependencyResourcePro
 import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -213,8 +213,7 @@ public class AmbariContext {
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
                                     String repoVersionString, Long repoVersionId) {
-    Stack stack = topology.getBlueprint().getStack();
-    StackId stackId = new StackId(stack.getName(), stack.getVersion());
+    StackId stackId = topology.getBlueprint().getStackId();
 
     RepositoryVersionEntity repoVersion = null;
     if (StringUtils.isEmpty(repoVersionString) && null == repoVersionId) {
@@ -298,12 +297,12 @@ public class AmbariContext {
           repoVersion));
     }
 
-    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
+    createAmbariClusterResource(clusterName, stackId, securityType);
     createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion.getId());
   }
 
-  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
-    String stackInfo = String.format("%s-%s", stackName, stackVersion);
+  public void createAmbariClusterResource(String clusterName, StackId stackId, SecurityType securityType) {
+    String stackInfo = stackId.toString();
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
 
     try {
@@ -522,11 +521,10 @@ public class AmbariContext {
    * installed and started and that the monitoring screen for the cluster should be displayed to the user.
    *
    * @param clusterName  cluster name
-   * @param stackName    stack name
-   * @param stackVersion stack version
+   * @param stackId    stack ID
    */
-  public void persistInstallStateForUI(String clusterName, String stackName, String stackVersion) {
-    String stackInfo = String.format("%s-%s", stackName, stackVersion);
+  public void persistInstallStateForUI(String clusterName, StackId stackId) {
+    String stackInfo = stackId.toString();
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, "INSTALLED", null, stackInfo, null);
 
     try {
@@ -743,7 +741,7 @@ public class AmbariContext {
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
     Map<String, Map<String, Config>> groupConfigs = new HashMap<>();
-    Stack stack = topology.getBlueprint().getStack();
+    StackInfo stack = topology.getBlueprint().getStack();
 
     // get the host-group config with cluster creation template overrides
     Configuration topologyHostGroupConfig = topology.

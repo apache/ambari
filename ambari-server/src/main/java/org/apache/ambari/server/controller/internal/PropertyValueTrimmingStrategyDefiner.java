@@ -60,7 +60,7 @@ public class PropertyValueTrimmingStrategyDefiner {
     }
   }
 
-  public static TrimmingStrategy defineTrimmingStrategy(Stack stack, String propertyName, String configType) {
+  public static TrimmingStrategy defineTrimmingStrategy(StackInfo stack, String propertyName, String configType) {
     TrimmingStrategy result = null;
     String service = stack.getServiceForConfigType(configType);
     if (service != null) {

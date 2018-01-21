@@ -104,6 +104,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
+  private final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -144,6 +145,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Before
   public void init() throws Exception {
     expect(bp.getStack()).andReturn(stack).anyTimes();
+    expect(bp.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();

@@ -22,7 +22,6 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createStrictMock;
 import static org.powermock.api.easymock.PowerMock.replay;
@@ -44,6 +43,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.StackId;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
@@ -77,6 +77,7 @@ public class BlueprintFactoryTest {
     componentMap.put("test-service2", components2);
     components2.add("component2");
 
+    expect(stack.getServices()).andReturn(componentMap.keySet()).anyTimes();
     expect(stack.getComponents()).andReturn(componentMap).anyTimes();
     expect(stack.isMasterComponent("component1")).andReturn(true).anyTimes();
     expect(stack.isMasterComponent("component2")).andReturn(false).anyTimes();
@@ -123,7 +124,6 @@ public class BlueprintFactoryTest {
     Blueprint blueprint = testFactory.createBlueprint(props, null);
 
     assertEquals(BLUEPRINT_NAME, blueprint.getName());
-    assertSame(stack, blueprint.getStack());
     assertEquals(2, blueprint.getHostGroups().size());
 
     Map<String, HostGroup> hostGroups = blueprint.getHostGroups();
@@ -176,7 +176,7 @@ public class BlueprintFactoryTest {
 
     BlueprintFactory factoryUnderTest =
       new BlueprintFactory(mockStackFactory);
-    factoryUnderTest.createStack(new HashMap<>());
+    factoryUnderTest.createStack(new StackId("null", "null"));
 
     mockSupport.verifyAll();
   }
@@ -240,7 +240,7 @@ public class BlueprintFactoryTest {
     }
 
     @Override
-    protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {
+    protected Stack createStack(StackId stackId) throws NoSuchStackException {
       return stack;
     }
   }

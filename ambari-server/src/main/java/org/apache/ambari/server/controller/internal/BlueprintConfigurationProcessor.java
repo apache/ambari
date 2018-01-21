@@ -437,7 +437,7 @@ public class BlueprintConfigurationProcessor {
 
   private void trimProperties(Configuration clusterConfig, ClusterTopology clusterTopology) {
     Blueprint blueprint = clusterTopology.getBlueprint();
-    Stack stack = blueprint.getStack();
+    StackInfo stack = blueprint.getStack();
 
     Map<String, Map<String, String>> configTypes = clusterConfig.getFullProperties();
     for (String configType : configTypes.keySet()) {
@@ -448,7 +448,7 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
-  private void trimPropertyValue(Configuration clusterConfig, Stack stack, String configType, Map<String, String> properties, String propertyName) {
+  private void trimPropertyValue(Configuration clusterConfig, StackInfo stack, String configType, Map<String, String> properties, String propertyName) {
     if (propertyName != null && properties.get(propertyName) != null) {
 
       TrimmingStrategy trimmingStrategy =
@@ -2880,7 +2880,7 @@ public class BlueprintConfigurationProcessor {
    * @param configTypesUpdated
    * @param stack
    */
-  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, Stack stack) {
+  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, StackInfo stack) {
     Collection<String> blueprintServices = clusterTopology.getBlueprint().getServices();
 
     LOG.debug("Handling excluded properties for blueprint services: {}", blueprintServices);
@@ -2976,11 +2976,7 @@ public class BlueprintConfigurationProcessor {
   private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
       throws ConfigurationTopologyException {
     ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
-    Stack stack = clusterTopology.getBlueprint().getStack();
-    String stackName = stack.getName();
-    String stackVersion = stack.getVersion();
-
-    StackId stackId = new StackId(stackName, stackVersion);
+    StackId stackId = clusterTopology.getBlueprint().getStackId();
 
     Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
         ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
@@ -3101,7 +3097,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-        Stack stack = topology.getBlueprint().getStack();
+        StackInfo stack = topology.getBlueprint().getStack();
         final String serviceName = stack.getServiceForConfigType(configType);
         return !(stack.isPasswordProperty(serviceName, configType, propertyName) ||
                 stack.isKerberosPrincipalNameProperty(serviceName, configType, propertyName));
@@ -3198,7 +3194,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-      Stack stack = topology.getBlueprint().getStack();
+      StackInfo stack = topology.getBlueprint().getStack();
       Configuration configuration = topology.getConfiguration();
 
       final String serviceName = stack.getServiceForConfigType(configType);

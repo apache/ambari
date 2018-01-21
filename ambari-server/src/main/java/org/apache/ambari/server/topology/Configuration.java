@@ -43,6 +43,10 @@ public class Configuration {
    */
   private Configuration parentConfiguration;
 
+  public static Configuration createEmpty() {
+    return new Configuration(new HashMap<>(), new HashMap<>());
+  }
+
   /**
    * Constructor.
    *
@@ -358,5 +362,20 @@ public class Configuration {
     if (parentConfiguration != null) {
       parentConfiguration.removeConfigType(configType);
     }
+  }
+
+  public static Configuration combine(Configuration c1, Configuration c2) {
+    if (c1 == null || (c1.getProperties().isEmpty() && c1.getAttributes().isEmpty())) {
+      return c2;
+    }
+    if (c2 == null || (c2.getProperties().isEmpty() && c2.getAttributes().isEmpty())) {
+      return c1;
+    }
+    Configuration combined = new Configuration(new HashMap<>(), new HashMap<>());
+    combined.getProperties().putAll(c1.getProperties());
+    combined.getProperties().putAll(c2.getProperties());
+    combined.getAttributes().putAll(c1.getAttributes());
+    combined.getAttributes().putAll(c2.getAttributes());
+    return combined;
   }
 }

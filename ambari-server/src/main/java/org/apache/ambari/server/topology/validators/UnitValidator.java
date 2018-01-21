@@ -22,7 +22,7 @@ import static org.apache.ambari.server.controller.internal.UnitUpdater.PropertyV
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.controller.internal.UnitUpdater.PropertyUnit;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroupInfo;
@@ -42,33 +42,33 @@ public class UnitValidator implements TopologyValidator {
 
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
-    Stack stack = topology.getBlueprint().getStack();
+    StackInfo stack = topology.getBlueprint().getStack();
     validateConfig(topology.getConfiguration().getFullProperties(), stack);
     for (HostGroupInfo hostGroup : topology.getHostGroupInfo().values()) {
       validateConfig(hostGroup.getConfiguration().getFullProperties(), stack);
     }
   }
 
-  private void validateConfig(Map<String, Map<String, String>> configuration, Stack stack) {
+  private void validateConfig(Map<String, Map<String, String>> configuration, StackInfo stack) {
     for (Map.Entry<String, Map<String, String>> each : configuration.entrySet()) {
       validateConfigType(each.getKey(), each.getValue(), stack);
     }
   }
 
-  private void validateConfigType(String configType, Map<String, String> config, Stack stack) {
+  private void validateConfigType(String configType, Map<String, String> config, StackInfo stack) {
     for (String propertyName : config.keySet()) {
       validateProperty(configType, config, propertyName, stack);
     }
   }
 
-  private void validateProperty(String configType, Map<String, String> config, String propertyName, Stack stack) {
+  private void validateProperty(String configType, Map<String, String> config, String propertyName, StackInfo stack) {
     relevantProps.stream()
       .filter(each -> each.hasTypeAndName(configType, propertyName))
       .findFirst()
       .ifPresent(relevantProperty -> checkUnit(config, stack, relevantProperty));
   }
 
-  private void checkUnit(Map<String, String> configToBeValidated, Stack stack, UnitValidatedProperty prop) {
+  private void checkUnit(Map<String, String> configToBeValidated, StackInfo stack, UnitValidatedProperty prop) {
     PropertyUnit stackUnit = PropertyUnit.of(stack, prop);
     PropertyValue value = PropertyValue.of(prop.getPropertyName(), configToBeValidated.get(prop.getPropertyName()));
     if (value.hasAnyUnit() && !value.hasUnit(stackUnit)) {

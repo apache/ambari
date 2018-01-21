@@ -27,10 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -41,8 +38,10 @@ import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 
 /**
@@ -52,19 +51,24 @@ public class BlueprintImpl implements Blueprint {
 
   private String name;
   private Map<String, HostGroup> hostGroups = new HashMap<>();
-  private Stack stack;
+  private StackInfo stack;
+
+  private final Set<StackId> stackIds;
   private Configuration configuration;
   private BlueprintValidator validator;
   private SecurityConfiguration security;
   private Setting setting;
   private List<RepositorySetting> repoSettings;
 
-  public BlueprintImpl(BlueprintEntity entity) throws NoSuchStackException {
+  public BlueprintImpl(BlueprintEntity entity, StackInfo stack, Set<StackId> stackIds) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
     if (entity.getSecurityType() != null) {
       this.security = new SecurityConfiguration(entity.getSecurityType(), entity.getSecurityDescriptorReference(),
         null);
     }
+
+    this.stack = stack;
+    this.stackIds = stackIds;
 
     // create config first because it is set as a parent on all host-group configs
     processConfiguration(entity.getConfigurations());
@@ -75,15 +79,11 @@ public class BlueprintImpl implements Blueprint {
     processRepoSettings();
   }
 
-  public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration,
-                       SecurityConfiguration security) {
-    this(name, groups, stack, configuration, security, null);
-  }
-
-  public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration,
+  public BlueprintImpl(String name, Collection<HostGroup> groups, StackInfo stack, Set<StackId> stackIds, Configuration configuration,
                        SecurityConfiguration security, Setting setting) {
     this.name = name;
     this.stack = stack;
+    this.stackIds = stackIds;
     this.security = security;
 
     // caller should set host group configs
@@ -103,12 +103,20 @@ public class BlueprintImpl implements Blueprint {
     return name;
   }
 
+  public StackId getStackId() {
+    return Iterables.getFirst(stackIds, new StackId());
+  }
+
   public String getStackName() {
-    return stack.getName();
+    return getStackId().getStackName();
   }
 
   public String getStackVersion() {
-    return stack.getVersion();
+    return getStackId().getStackVersion();
+  }
+
+  public Set<StackId> getStackIds() {
+    return stackIds;
   }
 
   public SecurityConfiguration getSecurity() {
@@ -273,7 +281,7 @@ public class BlueprintImpl implements Blueprint {
   }
 
   @Override
-  public Stack getStack() {
+  public StackInfo getStack() {
     return stack;
   }
 
@@ -347,18 +355,6 @@ public class BlueprintImpl implements Blueprint {
   @Override
   public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
     validator.validateRequiredProperties();
-  }
-
-  private void parseStack(StackEntity stackEntity) throws NoSuchStackException {
-    try {
-      //todo: don't pass in controller
-      stack = new Stack(stackEntity.getStackName(), stackEntity.getStackVersion(), AmbariServer.getController());
-    } catch (StackAccessException e) {
-      throw new NoSuchStackException(stackEntity.getStackName(), stackEntity.getStackVersion());
-    } catch (AmbariException e) {
-      //todo:
-      throw new RuntimeException("An error occurred parsing the stack information.", e);
-    }
   }
 
   private Map<String, HostGroup> parseBlueprintHostGroups(BlueprintEntity entity) {

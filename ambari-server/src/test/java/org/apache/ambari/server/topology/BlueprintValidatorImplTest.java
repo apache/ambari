@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
@@ -98,6 +99,7 @@ public class BlueprintValidatorImplTest {
     autoDeploy.setEnabled(true);
     autoDeploy.setCoLocate("service1/component2");
 
+    expect(blueprint.getStackId()).andReturn(new StackId("HDP", "2.2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getServices()).andReturn(services).anyTimes();

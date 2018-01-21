@@ -34,7 +34,7 @@ import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -257,7 +257,7 @@ public class HostRequest implements Comparable<HostRequest> {
           "PENDING HOST ASSIGNMENT : HOSTGROUP=" + getHostgroupName();
 
       AmbariContext context = topology.getAmbariContext();
-      Stack stack = hostGroup.getStack();
+      StackInfo stack = hostGroup.getStack();
 
       // Skip INSTALL task in case server component is marked as START_ONLY, or the cluster provision_action is
       // START_ONLY, unless component is marked with INSTALL_ONLY or INSTALL_AND_START.

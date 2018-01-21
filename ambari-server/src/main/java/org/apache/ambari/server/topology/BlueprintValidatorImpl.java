@@ -27,10 +27,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
@@ -46,7 +47,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BlueprintValidatorImpl.class);
   private final Blueprint blueprint;
-  private final Stack stack;
+  private final StackInfo stack;
+  private final StackId stackId;
 
   public static final String LZO_CODEC_CLASS_PROPERTY_NAME = "io.compression.codec.lzo.class";
   public static final String CODEC_CLASSES_PROPERTY_NAME = "io.compression.codecs";
@@ -58,6 +60,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   public BlueprintValidatorImpl(Blueprint blueprint) {
     this.blueprint = blueprint;
     this.stack = blueprint.getStack();
+    this.stackId = blueprint.getStackId();
   }
 
   @Override
@@ -182,8 +185,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
           if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
             && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
+            && VersionUtils.compareVersions(stackId.getStackVersion(), "2.3.0.0") < 0
+            && stackId.getStackName().equalsIgnoreCase("HDP")) {
             throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
               "and repo version 2.3.2+!");
           }
@@ -193,8 +196,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
           if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
             && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
+            && VersionUtils.compareVersions(stackId.getStackVersion(), "2.3.0.0") < 0
+            && stackId.getStackName().equalsIgnoreCase("HDP")) {
             throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
               "and repo version 2.3.2+!");
           }
@@ -354,7 +357,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    *
    * @return true if the specified component managed by the cluster; false otherwise
    */
-  protected boolean isDependencyManaged(Stack stack, String component, Map<String, Map<String, String>> clusterConfig) {
+  protected boolean isDependencyManaged(StackInfo stack, String component, Map<String, Map<String, String>> clusterConfig) {
     boolean isManaged = true;
     String externalComponentConfig = stack.getExternalComponentConfig(component);
     if (externalComponentConfig != null) {

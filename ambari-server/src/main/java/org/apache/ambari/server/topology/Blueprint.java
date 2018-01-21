@@ -22,8 +22,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.state.StackId;
 
 /**
  * Blueprint representation.
@@ -117,7 +118,8 @@ public interface Blueprint {
    *
    * @return associated stack
    */
-  Stack getStack();
+  StackInfo getStack();
+  StackId getStackId();
 
   /**
    * Get the host groups which contain components for the specified service.

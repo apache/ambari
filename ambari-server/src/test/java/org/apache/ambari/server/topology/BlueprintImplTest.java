@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.emptySet;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -124,7 +125,7 @@ public class BlueprintImplTest {
     category2Props.put("prop2", "val");
 
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, securityConfiguration);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, securityConfiguration, null);
     blueprint.validateRequiredProperties();
     BlueprintEntity entity = blueprint.toEntity();
 
@@ -162,7 +163,7 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP:group1%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP:group2%");
     replay(stack, group1, group2, serverConfig);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, null, null);
     blueprint.validateRequiredProperties();
     BlueprintEntity entity = blueprint.toEntity();
     verify(stack, group1, group2, serverConfig);
@@ -202,7 +203,7 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
     replay(stack, group1, group2, serverConfig);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, null, null);
     blueprint.validateRequiredProperties();
     BlueprintEntity entity = blueprint.toEntity();
 
@@ -243,7 +244,7 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group3%");
     replay(stack, group1, group2, serverConfig);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, null, null);
     blueprint.validateRequiredProperties();
     verify(stack, group1, group2, serverConfig);
   }
@@ -279,7 +280,7 @@ public class BlueprintImplTest {
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
     replay(stack, group1, group2, serverConfig);
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, null, null);
     blueprint.validateRequiredProperties();
     verify(stack, group1, group2, serverConfig);
   }
@@ -294,7 +295,7 @@ public class BlueprintImplTest {
     hdfsProps.put("secret", "SECRET:hdfs-site:1:test");
     replay(stack, group1, group2, serverConfig);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, null, null);
     blueprint.validateRequiredProperties();
     verify(stack, group1, group2, serverConfig);
   }
@@ -311,7 +312,7 @@ public class BlueprintImplTest {
     serverConfig = setupConfigurationWithGPLLicense(false);
     replay(stack, group1, group2, serverConfig);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), lzoUsageConfiguration, null, null);
     blueprint.validateRequiredProperties();
     verify(stack, group1, group2, serverConfig);
   }
@@ -328,7 +329,7 @@ public class BlueprintImplTest {
     serverConfig = setupConfigurationWithGPLLicense(false);
     replay(stack, group1, group2, serverConfig);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), lzoUsageConfiguration, null, null);
     blueprint.validateRequiredProperties();
     verify(stack, group1, group2, serverConfig);
   }
@@ -346,14 +347,14 @@ public class BlueprintImplTest {
     expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
     replay(stack, group1, group2, serverConfig);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, lzoUsageConfiguration, null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), lzoUsageConfiguration, null, null);
     blueprint.validateRequiredProperties();
     verify(stack, group1, group2, serverConfig);
   }
 
   @Test
   public void testAutoSkipFailureEnabled() {
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null, setting);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, null, setting);
     HashMap<String, String> skipFailureSetting = new HashMap<>();
     skipFailureSetting.put(Setting.SETTING_NAME_SKIP_FAILURE, "true");
     expect(setting.getSettingValue(Setting.SETTING_NAME_DEPLOYMENT_SETTINGS)).andReturn(Collections.singleton(skipFailureSetting));
@@ -365,7 +366,7 @@ public class BlueprintImplTest {
 
   @Test
   public void testAutoSkipFailureDisabled() {
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null, setting);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, emptySet(), configuration, null, setting);
     HashMap<String, String> skipFailureSetting = new HashMap<>();
     skipFailureSetting.put(Setting.SETTING_NAME_SKIP_FAILURE, "false");
     expect(setting.getSettingValue(Setting.SETTING_NAME_DEPLOYMENT_SETTINGS)).andReturn(Collections.singleton(skipFailureSetting));

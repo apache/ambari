@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -66,11 +66,11 @@ public class HostGroupImpl implements HostGroup {
 
   private boolean containsMasterComponent = false;
 
-  private Stack stack;
+  private StackInfo stack;
 
   private String cardinality = "NOT SPECIFIED";
 
-  public HostGroupImpl(HostGroupEntity entity, String blueprintName, Stack stack) {
+  public HostGroupImpl(HostGroupEntity entity, String blueprintName, StackInfo stack) {
     this.name = entity.getName();
     this.cardinality = entity.getCardinality();
     this.blueprintName = blueprintName;
@@ -80,7 +80,7 @@ public class HostGroupImpl implements HostGroup {
     parseConfigurations(entity);
   }
 
-  public HostGroupImpl(String name, String bpName, Stack stack, Collection<Component> components, Configuration configuration, String cardinality) {
+  public HostGroupImpl(String name, String bpName, StackInfo stack, Collection<Component> components, Configuration configuration, String cardinality) {
     this.name = name;
     this.blueprintName = bpName;
     this.stack = stack;
@@ -236,7 +236,7 @@ public class HostGroupImpl implements HostGroup {
   }
 
   @Override
-  public Stack getStack() {
+  public StackInfo getStack() {
     return stack;
   }
 
