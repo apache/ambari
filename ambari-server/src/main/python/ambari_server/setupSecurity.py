@@ -652,7 +652,7 @@ def update_ldap_configuration(properties, ldap_property_value_map):
 
   response_status_code = response.getcode()
   if response_status_code != 200:
-    err = 'Error during syncing. Http status code - ' + str(response_status_code)
+    err = 'Error during setup-ldap. Http status code - ' + str(response_status_code)
     raise FatalException(1, err)
 
 def setup_ldap(options):
