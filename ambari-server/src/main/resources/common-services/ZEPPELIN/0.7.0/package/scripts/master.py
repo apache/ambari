@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import glob
+import json
 import os
 
 from resource_management.core import shell, sudo
@@ -265,6 +266,11 @@ class Master(Script):
     if not glob.glob(params.conf_dir + "/interpreter.json") and \
       not os.path.exists(params.conf_dir + "/interpreter.json"):
       self.create_interpreter_json()
+    else:
+      if params.conf_stored_in_hdfs:
+        zeppelin_conf_fs = self.get_zeppelin_conf_FS(params)
+        if not self.is_file_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
+          self.migrate_interpreter_json()
 
     if params.zeppelin_interpreter_config_upgrade == True:
       self.reset_interpreter_settings()
@@ -287,8 +293,29 @@ class Master(Script):
         pid_file = ''
     check_process_status(pid_file)
 
+  def migrate_interpreter_json(self):
+    import interpreter_json_template
+    interpreter_json_template = json.loads(interpreter_json_template.template)['interpreterSettings']
+    config_data = self.get_interpreter_settings()
+    interpreter_settings = config_data['interpreterSettings']
+    name_interpreter_key = {}
+    new_interpreter_settings = {}
+    for setting_key in interpreter_json_template.keys():
+      name_interpreter_key[interpreter_json_template[setting_key]['name']] = setting_key
+
+    for setting_key in interpreter_settings.keys():
+      new_key = name_interpreter_key[interpreter_settings[setting_key]['name']]
+      if new_key:
+        new_interpreter_settings[new_key] = interpreter_settings[setting_key]
+        new_interpreter_settings[new_key]['id'] = interpreter_json_template[new_key]['id']
+        new_interpreter_settings[new_key]['properties'].pop('zeppelin.interpreter.localRepo', None)
+        for sub_key in interpreter_json_template[new_key]['properties'].keys():
+          new_interpreter_settings[new_key]['properties'][sub_key] = interpreter_json_template[new_key]['properties'][sub_key]
+
+    config_data['interpreterSettings'] = new_interpreter_settings
+    self.set_interpreter_settings(config_data)
+
   def reset_interpreter_settings(self):
-    import json
     import interpreter_json_template
     interpreter_json_template = json.loads(interpreter_json_template.template)['interpreterSettings']
     config_data = self.get_interpreter_settings()
@@ -381,7 +408,6 @@ class Master(Script):
 
   def get_interpreter_settings(self):
     import params
-    import json
 
     self.copy_interpreter_from_HDFS_to_FS(params)
     interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
@@ -391,7 +417,6 @@ class Master(Script):
 
   def set_interpreter_settings(self, config_data):
     import params
-    import json
 
     interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
     File(interpreter_config,
