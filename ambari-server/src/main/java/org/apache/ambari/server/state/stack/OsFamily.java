@@ -53,7 +53,7 @@ public class OsFamily {
     private final String OS_VERSION = "versions";
     private final String LOAD_CONFIG_MSG = "Could not load OS family definition from %s file";
     private final String FILE_NAME = "os_family.json";
-    private final Logger LOG = LoggerFactory.getLogger(OsFamily.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OsFamily.class);
 
     private Map<String, JsonOsFamilyEntry> osMap = null;
     private JsonOsFamilyRoot jsonOsFamily = null;

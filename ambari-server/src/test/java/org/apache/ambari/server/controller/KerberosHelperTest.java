@@ -81,6 +81,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -189,7 +190,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
 
           @Override
-          public boolean principalExists(String principal) throws KerberosOperationException {
+          public boolean principalExists(String principal, boolean service) throws KerberosOperationException {
             return "principal".equals(principal);
           }
 
@@ -199,12 +200,12 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
 
           @Override
-          public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
+          public Integer setPrincipalPassword(String principal, String password, boolean service) throws KerberosOperationException {
             return null;
           }
 
           @Override
-          public boolean removePrincipal(String principal) throws KerberosOperationException {
+          public boolean removePrincipal(String principal, boolean service) throws KerberosOperationException {
             return false;
           }
 
@@ -262,6 +263,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+        bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
 
         requestStaticInjection(KerberosChecker.class);
       }
@@ -3458,6 +3460,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     if (managingIdentities) {
       final Host host = createMockHost("host1");
 
+      expect(host.getHostId()).andReturn(1l).anyTimes();
+
       expect(cluster.getHosts()).andReturn(Collections.singleton(host)).anyTimes();
 
       final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
@@ -3465,6 +3469,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
       expect(schKerberosClient.getHostName()).andReturn("host1").anyTimes();
       expect(schKerberosClient.getState()).andReturn(State.INSTALLED).anyTimes();
+      expect(schKerberosClient.getHost()).andReturn(host).anyTimes();
 
       final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
       expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
@@ -3493,6 +3498,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
 
       expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+      expect(cluster.getClusterId()).andReturn(1L).anyTimes();
       expect(cluster.getServices())
           .andReturn(new HashMap<String, Service>() {
             {
@@ -3624,12 +3630,15 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   private void testDeleteTestIdentity(final PrincipalKeyCredential PrincipalKeyCredential) throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    Host host1 = createMock(Host.class);
+    expect(host1.getHostId()).andReturn(1l).anyTimes();
 
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
     expect(schKerberosClient.getHostName()).andReturn("host1").anyTimes();
     expect(schKerberosClient.getState()).andReturn(State.INSTALLED).anyTimes();
+    expect(schKerberosClient.getHost()).andReturn(host1).anyTimes();
 
     final ServiceComponentHost sch1 = createMock(ServiceComponentHost.class);
     expect(sch1.getServiceName()).andReturn("SERVICE1").anyTimes();

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.query.QueryImpl;
+import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
 import org.apache.ambari.server.controller.internal.ClusterKerberosDescriptorResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
@@ -108,12 +109,24 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RootClusterSettingsResourceDefinition();
         break;
 
+      case ClusterSetting:
+        resourceDefinition = new ClusterSettingResourceDefinition();
+        break;
+
       case ServiceGroup:
         resourceDefinition = new ServiceGroupResourceDefinition();
         break;
 
+      case ServiceGroupDependency:
+        resourceDefinition = new ServiceGroupDependencyResourceDefinition();
+        break;
+
       case Service:
         resourceDefinition = new ServiceResourceDefinition();
+        break;
+
+      case ServiceDependency:
+        resourceDefinition = new ServiceDependencyResourceDefinition();
         break;
 
       case Host:
@@ -201,6 +214,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new StackLevelConfigurationResourceDefinition();
         break;
 
+      case RootStackSetting:
+        resourceDefinition = new RootStackSettingsResourceDefinition();
+        break;
+
       case StackService:
         resourceDefinition = new StackServiceResourceDefinition();
         break;
@@ -271,6 +288,12 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case RootServiceComponent:
         resourceDefinition = new RootServiceComponentResourceDefinition();
+        break;
+
+      case RootServiceComponentConfiguration:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.RootServiceComponentConfiguration,
+            "configuration", "configurations",
+            null, RootServiceComponentConfigurationService.DIRECTIVES_MAP);
         break;
 
       case RootServiceHostComponent:

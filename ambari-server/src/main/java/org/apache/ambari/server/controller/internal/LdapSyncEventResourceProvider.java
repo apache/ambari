@@ -155,7 +155,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
   /**
    * The logger.
    */
-  protected final static Logger LOG = LoggerFactory.getLogger(LdapSyncEventResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LdapSyncEventResourceProvider.class);
 
 
   // ----- Constructors ------------------------------------------------------

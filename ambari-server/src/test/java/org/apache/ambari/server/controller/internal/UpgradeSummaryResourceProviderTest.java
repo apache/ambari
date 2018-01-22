@@ -71,6 +71,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -173,7 +174,8 @@ public class UpgradeSummaryResourceProviderTest {
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZOOKEEPER server
-    Service service = cluster.addService("ZOOKEEPER", repoVersionEntity);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, "ZOOKEEPER", "ZOOKEEPER", repoVersionEntity);
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

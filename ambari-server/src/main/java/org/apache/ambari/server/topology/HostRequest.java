@@ -31,9 +31,9 @@ import java.util.Map;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
-import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -60,7 +60,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
   private long requestId;
   private String blueprint;
-  private HostGroupV2 hostGroup;
+  private HostGroup hostGroup;
   private String hostgroupName;
   private Predicate predicate;
   private String hostname = null;
@@ -84,7 +84,7 @@ public class HostRequest implements Comparable<HostRequest> {
   private static PredicateCompiler predicateCompiler = new PredicateCompiler();
 
   public HostRequest(long requestId, long id, long clusterId, String hostname, String blueprintName,
-                     HostGroupV2 hostGroup, Predicate predicate, ClusterTopology topology, boolean skipFailure) {
+                     HostGroup hostGroup, Predicate predicate, ClusterTopology topology, boolean skipFailure) {
     this.requestId = requestId;
     this.id = id;
     this.clusterId = clusterId;
@@ -164,7 +164,7 @@ public class HostRequest implements Comparable<HostRequest> {
     return blueprint;
   }
 
-  public HostGroupV2 getHostGroup() {
+  public HostGroup getHostGroup() {
     return hostGroup;
   }
 
@@ -206,13 +206,13 @@ public class HostRequest implements Comparable<HostRequest> {
     }
 
     // lower level logical component level tasks which get mapped to physical tasks
-    HostGroupV2 hostGroup = getHostGroup();
+    HostGroup hostGroup = getHostGroup();
     Collection<String> startOnlyComponents = hostGroup.getComponentNames(START_ONLY);
     Collection<String> installOnlyComponents = hostGroup.getComponentNames(INSTALL_ONLY);
     Collection<String> installAndStartComponents = hostGroup.getComponentNames(INSTALL_AND_START);
 
-    for (ComponentV2 component : hostGroup.getComponents()) {
-      if (component == null || component.getType().equals("AMBARI_SERVER")) {
+    for (String component : hostGroup.getComponentNames()) {
+      if (component == null || component.equals("AMBARI_SERVER")) {
         LOG.info("Skipping component {} when creating request\n", component);
         continue;
       }
@@ -222,31 +222,31 @@ public class HostRequest implements Comparable<HostRequest> {
           "PENDING HOST ASSIGNMENT : HOSTGROUP=" + getHostgroupName();
 
       AmbariContext context = topology.getAmbariContext();
-      StackV2 stack = component.getService().getStack();
+      Stack stack = hostGroup.getStack();
 
       // Skip INSTALL task in case server component is marked as START_ONLY, or the cluster provision_action is
       // START_ONLY, unless component is marked with INSTALL_ONLY or INSTALL_AND_START.
-      if (startOnlyComponents.contains(component.getName()) || (skipInstallTaskCreate &&
-        !installOnlyComponents.contains(component.getName()) && !installAndStartComponents.contains(component.getName()))
-          && stack != null && !stack.getComponentInfo(component.getType()).isClient()) {
-        LOG.info("Skipping create of INSTALL task for {} on {}.", component.getName(), hostName);
+      if (startOnlyComponents.contains(component) || (skipInstallTaskCreate &&
+        !installOnlyComponents.contains(component) && !installAndStartComponents.contains(component))
+          && stack != null && !stack.getComponentInfo(component).isClient()) {
+        LOG.info("Skipping create of INSTALL task for {} on {}.", component, hostName);
       } else {
         HostRoleCommand logicalInstallTask = context.createAmbariTask(
-          getRequestId(), id, component.getName(), hostName, AmbariContext.TaskType.INSTALL, skipFailure);
+          getRequestId(), id, component, hostName, AmbariContext.TaskType.INSTALL, skipFailure);
         logicalTasks.put(logicalInstallTask.getTaskId(), logicalInstallTask);
-        logicalTaskMap.get(installTask).put(component.getName(), logicalInstallTask.getTaskId());
+        logicalTaskMap.get(installTask).put(component, logicalInstallTask.getTaskId());
       }
 
       // Skip START task if component is a client, or ir marked as INSTALL_ONLY or cluster provision_action is
       // INSTALL_ONLY
-      if (installOnlyComponents.contains(component.getName()) || skipStartTaskCreate ||
-        (stack != null && stack.getComponentInfo(component.getType()).isClient())) {
-        LOG.info("Skipping create of START task for {} on {}.", component.getName(), hostName);
+      if (installOnlyComponents.contains(component) || skipStartTaskCreate ||
+        (stack != null && stack.getComponentInfo(component).isClient())) {
+        LOG.info("Skipping create of START task for {} on {}.", component, hostName);
       } else {
         HostRoleCommand logicalStartTask = context.createAmbariTask(
-            getRequestId(), id, component.getName(), hostName, AmbariContext.TaskType.START, skipFailure);
+            getRequestId(), id, component, hostName, AmbariContext.TaskType.START, skipFailure);
         logicalTasks.put(logicalStartTask.getTaskId(), logicalStartTask);
-        logicalTaskMap.get(startTask).put(component.getName(), logicalStartTask.getTaskId());
+        logicalTaskMap.get(startTask).put(component, logicalStartTask.getTaskId());
       }
     }
   }

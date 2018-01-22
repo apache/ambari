@@ -18,16 +18,21 @@
 
 import {Injectable} from '@angular/core';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
-import {AppStateService} from '@app/services/storage/app-state.service';
+import {TabsService} from '@app/services/storage/tabs.service';
 import {CollectionModelService} from '@app/classes/models/store';
-import {FilteringService} from '@app/services/filtering.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 import {ServiceLog} from '@app/classes/models/service-log';
+import {ListItem} from '@app/classes/list-item';
 
 @Injectable()
 export class ComponentActionsService {
 
-  constructor(private appSettings: AppSettingsService, private appState: AppStateService, private filtering: FilteringService, private logsContainer: LogsContainerService) {
+  constructor(
+    private appSettings: AppSettingsService, private tabsStorage: TabsService,
+    private logsContainer: LogsContainerService,
+    private authService: AuthService
+  ) {
   }
 
   //TODO implement actions
@@ -39,8 +44,7 @@ export class ComponentActionsService {
   }
 
   refresh(): void {
-    // TODO implement dynamic definition of logs type
-    this.logsContainer.loadLogs('serviceLogs');
+    this.logsContainer.loadLogs();
   }
 
   openHistory() {
@@ -78,14 +82,31 @@ export class ComponentActionsService {
   }
 
   openLog(log: ServiceLog): void {
-    this.appState.setParameters({
-      isServiceLogsFileView: true,
-      activeLog: {
-        id: log.id,
-        host_name: log.host,
-        component_name: log.type
+    const tab = {
+      id: log.id,
+      type: 'serviceLogs',
+      isCloseable: true,
+      label: `${log.host} >> ${log.type}`,
+      appState: {
+        activeLogsType: 'serviceLogs',
+        isServiceLogsFileView: true,
+        activeLog: {
+          id: log.id,
+          host_name: log.host,
+          component_name: log.type
+        },
+        activeFilters: Object.assign(this.logsContainer.getFiltersData('serviceLogs'), {
+          components: this.logsContainer.filters.components.options.find((option: ListItem): boolean => {
+            return option.value === log.type;
+          }),
+          hosts: this.logsContainer.filters.hosts.options.find((option: ListItem): boolean => {
+            return option.value === log.host;
+          })
+        })
       }
-    });
+    };
+    this.tabsStorage.addInstance(tab);
+    this.logsContainer.switchTab(tab);
   }
 
   openContext(log: ServiceLog): void {
@@ -93,11 +114,11 @@ export class ComponentActionsService {
   }
 
   startCapture(): void {
-    this.filtering.startCaptureTimer();
+    this.logsContainer.startCaptureTimer();
   }
 
   stopCapture(): void {
-    this.filtering.stopCaptureTimer();
+    this.logsContainer.stopCaptureTimer();
   }
 
   setTimeZone(timeZone: string): void {
@@ -110,9 +131,25 @@ export class ComponentActionsService {
     }));
   }
 
-  proceedWithExclude = (item: string): void => this.filtering.queryParameterNameChange.next({
-    item: item,
+  proceedWithExclude = (item: string): void => this.logsContainer.queryParameterNameChange.next({
+    value: item,
     isExclude: true
   });
+
+  /**
+   * Request a login action from the AuthService
+   * @param {string} username
+   * @param {string} password
+   */
+  login(username: string, password: string): void {
+    this.authService.login(username, password);
+  }
+
+  /**
+   * Request a logout action from AuthService
+   */
+  logout(): void {
+    this.authService.logout();
+  }
 
 }

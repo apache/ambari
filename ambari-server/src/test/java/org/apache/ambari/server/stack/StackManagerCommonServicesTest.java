@@ -46,10 +46,10 @@ import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.lang.StringUtils;
@@ -229,19 +229,31 @@ public class StackManagerCommonServicesTest {
     assertEquals("CLIENT", client.getCategory());
     assertEquals("configuration", pigService.getConfigDir());
     assertEquals("2.0", pigService.getSchemaVersion());
-    Map<String, ServiceOsSpecific> osInfoMap = pigService.getOsSpecifics();
+    Map<String, OsSpecific> osInfoMap = stack.getOsSpecifics();
     assertEquals(1, osInfoMap.size());
-    ServiceOsSpecific osSpecific = osInfoMap.get("centos6");
+    OsSpecific osSpecific = osInfoMap.get("suse11");
+    assertNotNull(osSpecific);
+    assertEquals("suse11", osSpecific.getOsFamily());
+    List<OsSpecific.Package> packages = osSpecific.getPackages();
+    assertEquals(1, packages.size());
+    OsSpecific.Package pkg = packages.get(0);
+    assertEquals("stack_pig", pkg.getName());
+    assertFalse(pkg.getSkipUpgrade());
+
+
+    osInfoMap = pigService.getOsSpecifics();
+    assertEquals(1, osInfoMap.size());
+    osSpecific = osInfoMap.get("centos6");
     assertNotNull(osSpecific);
     assertEquals("centos6", osSpecific.getOsFamily());
     assertNull(osSpecific.getRepo());
-    List<ServiceOsSpecific.Package> packages = osSpecific.getPackages();
+    packages = osSpecific.getPackages();
     assertEquals(2, packages.size());
-    ServiceOsSpecific.Package pkg = packages.get(0);
+    pkg = packages.get(0);
     assertEquals("pig", pkg.getName());
     assertFalse(pkg.getSkipUpgrade());
 
-    ServiceOsSpecific.Package lzoPackage = packages.get(1);
+    OsSpecific.Package lzoPackage = packages.get(1);
     assertEquals("lzo", lzoPackage.getName());
     assertTrue(lzoPackage.getSkipUpgrade());
 

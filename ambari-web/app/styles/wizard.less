@@ -878,6 +878,28 @@
   }
 }
 
+.install-wizard-content {
+  #top-nav .navbar.navbar-static-top {
+    margin-bottom: 0;
+  }
+  .navbar-static-top > .main-container,
+  >.main-container {
+    width: 100%;
+  }
+  >.main-container {
+    padding: 0;
+    .wizard {
+      border: none;
+      .wizard-nav {
+        width: 250px;
+      }
+      .wizard-content.col-md-9 {
+        width: calc(~"100% - 250px");
+      }
+    }
+  }
+}
+
 @media all and (max-width: 2560px) {
    .wizard-content {
     #serviceConfig {

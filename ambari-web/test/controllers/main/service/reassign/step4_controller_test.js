@@ -1104,15 +1104,18 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         dependencies: [
           Em.Object.create({
             componentName: 'C1',
-            serviceName: 'S1'
+            serviceName: 'S1',
+            scope: 'host'
           }),
           Em.Object.create({
             componentName: 'C2',
-            serviceName: 'S2'
+            serviceName: 'S2',
+            scope: 'host'
           }),
           Em.Object.create({
             componentName: 'C3',
-            serviceName: 'S3'
+            serviceName: 'S3',
+            scope: 'host'
           })
         ]
       }));

@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, OnDestroy, Output, EventEmitter, ViewChild, ElementRef} from '@angular/core';
+import {
+  Component, OnInit, OnChanges, OnDestroy, SimpleChanges, Input, Output, EventEmitter, ViewChild, ElementRef
+} from '@angular/core';
 import * as $ from 'jquery';
+import {Moment} from 'moment-timezone';
 import '@vendor/js/bootstrap-datetimepicker.min';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 
@@ -25,10 +28,10 @@ import {AppSettingsService} from '@app/services/storage/app-settings.service';
   selector: 'date-picker',
   templateUrl: './date-picker.component.html'
 })
-export class DatePickerComponent implements OnInit, OnDestroy {
+export class DatePickerComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(private appSettings: AppSettingsService) {
-    appSettings.getParameter('timeZone').subscribe(value => {
+    appSettings.getParameter('timeZone').subscribe((value: string): void => {
       this.destroyDatePicker();
       this.timeZone = value;
       if (this.datePickerElement) {
@@ -37,13 +40,26 @@ export class DatePickerComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.createDatePicker();
   }
 
-  ngOnDestroy() {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.hasOwnProperty('time') && this.datePickerElement) {
+      this.setTime(changes.time.currentValue);
+    }
+  }
+
+  ngOnDestroy(): void {
     this.destroyDatePicker();
   }
+
+  /**
+   * Value of time input field passed from parent component
+   * @type {Moment}
+   */
+  @Input()
+  time: Moment;
 
   @Output()
   timeChange: EventEmitter<number> = new EventEmitter();
@@ -60,6 +76,7 @@ export class DatePickerComponent implements OnInit, OnDestroy {
     this.datePickerElement.datetimepicker({
       timeZone: this.timeZone
     });
+    this.setTime(this.time);
     this.datePickerElement.on('dp.change', event => this.timeChange.emit(event.date));
   }
 
@@ -68,6 +85,14 @@ export class DatePickerComponent implements OnInit, OnDestroy {
     if (datePicker) {
       datePicker.data('DateTimePicker').destroy();
     }
+  }
+
+  /**
+   * Set value to time input field
+   * @param {Moment} time
+   */
+  private setTime(time: Moment): void {
+    this.datePickerElement.data('DateTimePicker').date(time);
   }
 
 }

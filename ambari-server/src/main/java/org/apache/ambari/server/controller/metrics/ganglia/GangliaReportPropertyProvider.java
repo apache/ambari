@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider {
   // ----- Constants --------------------------------------------------------
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
       LoggerFactory.getLogger(GangliaReportPropertyProvider.class);
 
 

@@ -157,7 +157,7 @@ public class ClusterBlueprintRendererTest {
 
     expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
@@ -209,7 +209,7 @@ public class ClusterBlueprintRendererTest {
 
     expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
     expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getBlueprint()).andReturn(null).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(topology.getClusterId()).andReturn(new Long(1)).anyTimes();
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();

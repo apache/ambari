@@ -100,17 +100,20 @@
     }
   }
   .table {
-    input[type="checkbox"] {
-      margin: -2px 0 0 0;
+    input[type="checkbox"] + label {
+      top: 1px;
     }
     th {
       padding-left: 6px;
     }
-    .col0,.col1,
+    .col1,
+    .col0,
     td:first-child,
     th:first-child,
     td:last-child,
-    th:last-child {
+    th:last-child,
+    td:first-child + td,
+    th:first-child + th {
       padding-left: 4px!important;
       padding-right: 1px!important;
       padding-right: 10px\9!important;
@@ -121,68 +124,62 @@
       }
     }
     .col2,
-    td:first-child + td,
-    th:first-child + th{
+    td:first-child + td + td,
+    th:first-child + th + th {
       width: 20%;
       padding-right: 1px;
     }
     .col3, .col4,
-    td:first-child + td + td,
-    th:first-child + th + th,
     td:first-child + td + td + td,
-    th:first-child + th + th + th{
+    th:first-child + th + th + th,
+    td:first-child + td + td + td + td,
+    th:first-child + th + th + th + th {
       padding-left: 1px!important;
       padding-right: 1px!important;
       width: 1.5%;
       width: 13px\9!important;
     }
     .col5,
-    td:first-child + td + td + td + td,
-    th:first-child + th + th + th + th {
+    td:first-child + td + td + td + td + td,
+    th:first-child + th + th + th + th + th {
       width: 10%!important;
     }
     .col6,
-    td:first-child + td + td + td + td + td,
-    th:first-child + th + th + th + th + th {
+    td:first-child + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th {
       width: 13%!important;
     }
     .col7,
-    td:first-child + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th{
+    td:first-child + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th {
       width: 5%!important;
     }
 
     .col8,
-    td:first-child + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th{
+    td:first-child + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th {
       width: 6%!important;
     }
 
     .col9,
-    td:first-child + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th{
+    td:first-child + td + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th + th {
       width: 9%!important;
     }
 
     .col10,
-    td:first-child + td + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th + th{
+    td:first-child + td + td + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th + th + th {
       width: 9%!important;
     }
 
     .col11,
-    td:first-child + td + td + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th + th +th{
+    td:first-child + td + td + td + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th + th + th + th {
       width: 11%!important;
       a {
         word-wrap: break-word;
       }
-    }
-
-    .col12,
-    td:first-child + td + td + td + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th + th + th +th{
-      width: 11%!important;
     }
 
     td.name {
@@ -432,8 +429,8 @@
   #hosts {
     .table {
       .col2,
-      td:first-child + td,
-      th:first-child + th {
+      td:first-child + td + td,
+      th:first-child + th + th {
         width: 15% !important;
 
         .filter-input-width {
@@ -442,45 +439,45 @@
       }
 
       .col4,
-      td:first-child + td + td + td,
-      th:first-child + th + th + th {
+      td:first-child + td + td + td + td,
+      th:first-child + th + th + th + th {
         width: 1.4%;
       }
 
       .col5,
-      td:first-child + td + td + td + td,
-      th:first-child + th + th + th + th {
+      td:first-child + td + td + td + td + td,
+      th:first-child + th + th + th + th + th {
         width: 11.7% !important;
       }
 
       .col6,
-      td:first-child + td + td + td + td + td,
-      th:first-child + th + th + th + th + th {
-        width: 9% !important;
-      }
-
-      .col7,
       td:first-child + td + td + td + td + td + td,
       th:first-child + th + th + th + th + th + th {
         width: 9% !important;
       }
 
-      .col8,
+      .col7,
       td:first-child + td + td + td + td + td + td + td,
       th:first-child + th + th + th + th + th + th + th {
         width: 9% !important;
       }
-      .col9,
+
+      .col8,
       td:first-child + td + td + td + td + td + td + td + td,
       th:first-child + th + th + th + th + th + th + th + th {
         width: 9% !important;
       }
+      .col9,
+      td:first-child + td + td + td + td + td + td + td + td + td,
+      th:first-child + th + th + th + th + th + th + th + th + th {
+        width: 9% !important;
+      }
       .col11,
       .col12,
-      td:first-child + td + td + td + td + td + td + td + td + td + td,
-      th:first-child + th + th + th + th + th + th + th + th + th + th,
       td:first-child + td + td + td + td + td + td + td + td + td + td + td,
-      th:first-child + th + th + th + th + th + th + th + th + th + th + th {
+      th:first-child + th + th + th + th + th + th + th + th + th + th + th,
+      td:first-child + td + td + td + td + td + td + td + td + td + td + td + td,
+      th:first-child + th + th + th + th + th + th + th + th + th + th + th + th {
         width: 11.2% !important;
       }
       td.name .trim_hostname {

@@ -15,6 +15,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #}
+
+/**
+* Example of SASL/PLAIN Configuration
+*
+* KafkaServer {
+*   org.apache.kafka.common.security.plain.PlainLoginModule required
+*   username="admin"
+*   password="admin-secret"
+*   user_admin="admin-secret"
+*   user_alice="alice-secret";
+*   };
+*
+* Example of SASL/SCRAM
+*
+* KafkaServer {
+*   org.apache.kafka.common.security.scram.ScramLoginModule required
+*   username="admin"
+*   password="admin-secret"
+*   };
+*
+* Example of Enabling multiple SASL mechanisms in a broker:
+*
+*   KafkaServer {
+*
+*    com.sun.security.auth.module.Krb5LoginModule required
+*    useKeyTab=true
+*    storeKey=true
+*    keyTab="/etc/security/keytabs/kafka_server.keytab"
+*    principal="kafka/kafka1.hostname.com@EXAMPLE.COM";
+*
+*    org.apache.kafka.common.security.plain.PlainLoginModule required
+*    username="admin"
+*    password="admin-secret"
+*    user_admin="admin-secret"
+*    user_alice="alice-secret";
+*
+*    org.apache.kafka.common.security.scram.ScramLoginModule required
+*    username="scram-admin"
+*    password="scram-admin-secret";
+*    };
+*
+**/
+
+{% if kerberos_security_enabled %}
+
 KafkaServer {
    com.sun.security.auth.module.Krb5LoginModule required
    useKeyTab=true
@@ -50,3 +95,5 @@ com.sun.security.jgss.krb5.initiate {
    serviceName="{{kafka_bare_jaas_principal}}"
    principal="{{kafka_jaas_principal}}";
 };
+
+{% endif %}

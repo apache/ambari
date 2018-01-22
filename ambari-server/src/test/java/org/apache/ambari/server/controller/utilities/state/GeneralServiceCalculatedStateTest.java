@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -86,7 +87,8 @@ public abstract class GeneralServiceCalculatedStateTest {
     clusters.addCluster(clusterName, stack211);
     cluster = clusters.getCluster(clusterName);
 
-    service = cluster.addService(getServiceName(), repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    service = cluster.addService(serviceGroup, getServiceName(), getServiceName(), repositoryVersion);
 
     createComponentsAndHosts();
 

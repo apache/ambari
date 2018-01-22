@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,9 +30,11 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 
 
 @IdClass(ServiceGroupEntityPK.class)
@@ -40,7 +44,11 @@ import javax.persistence.TableGenerator;
     "SELECT serviceGroup " +
       "FROM ServiceGroupEntity serviceGroup " +
       "JOIN serviceGroup.clusterEntity cluster " +
-      "WHERE serviceGroup.serviceGroupId=:serviceGroupId AND cluster.clusterId=:clusterId")
+      "WHERE serviceGroup.serviceGroupId=:serviceGroupId AND cluster.clusterId=:clusterId"),
+  @NamedQuery(name = ServiceGroupDAO.SERVICE_GROUP_BY_CLUSTER_ID_AND_SERVICE_GROUP_NAME, query =
+    "SELECT serviceGroup " +
+      "FROM ServiceGroupEntity serviceGroup " +
+      "WHERE serviceGroup.serviceGroupName = :serviceGroupName AND serviceGroup.clusterId = :clusterId")
 })
 @Entity
 @TableGenerator(name = "service_group_id_generator",
@@ -66,6 +74,12 @@ public class ServiceGroupEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
+  @OneToMany(mappedBy="serviceGroup")
+  private List<ServiceGroupDependencyEntity> serviceGroupDependencies;
+
+  @OneToMany(mappedBy="serviceGroupDependency")
+  private List<ServiceGroupDependencyEntity> dependencies;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -89,6 +103,22 @@ public class ServiceGroupEntity {
 
   public void setServiceGroupName(String serviceGroupName) {
     this.serviceGroupName = serviceGroupName;
+  }
+
+  public List<ServiceGroupDependencyEntity> getDependencies() {
+    return dependencies;
+  }
+
+  public void setDependencies(List<ServiceGroupDependencyEntity> dependencies) {
+    this.dependencies = dependencies;
+  }
+
+  public List<ServiceGroupDependencyEntity> getServiceGroupDependencies() {
+    return serviceGroupDependencies;
+  }
+
+  public void setServiceGroupDependencies(List<ServiceGroupDependencyEntity> serviceGroupDependencies) {
+    this.serviceGroupDependencies = serviceGroupDependencies;
   }
 
   @Override

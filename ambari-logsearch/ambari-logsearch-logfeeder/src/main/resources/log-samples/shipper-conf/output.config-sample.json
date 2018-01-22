@@ -1,0 +1,34 @@
+{
+  "output": [
+    {
+      "is_enabled": "true",
+      "comment": "Output to solr for service logs",
+      "destination": "solr",
+      "zk_connect_string": "localhost:2181",
+      "type": "service",
+      "skip_logtime": "true",
+      "conditions": {
+        "fields": {
+          "rowtype": [
+            "service"
+          ]
+        }
+      }
+    },
+    {
+      "comment": "Output to solr for audit records",
+      "is_enabled": "true",
+      "destination": "solr",
+      "zk_connect_string": "localhost:2181",
+      "type": "audit",
+      "skip_logtime": "true",
+      "conditions": {
+        "fields": {
+          "rowtype": [
+            "audit"
+          ]
+        }
+      }
+    }
+  ]
+}

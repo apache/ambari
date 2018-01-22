@@ -56,14 +56,14 @@
   </div>
     <hr>
     <div class="control-group" style="margin-bottom: 100px;">
-      {{#isAuthorized "CLUSTER.MANAGE_USER_PERSISTED_DATA"}}
+      {{#havePermissions "CLUSTER.MANAGE_USER_PERSISTED_DATA"}}
         <div class="pull-left" style="margin-bottom: 100px;">
-          <button class="btn btn-danger" {{action doResetUIStates target="controller"}}>{{t reset.ui.states}}</button>
+          <button class="btn btn-danger" {{bindAttr disabled="App.router.wizardWatcherController.isNonWizardUser"}} {{action doResetUIStates target="controller"}}>{{t reset.ui.states}}</button>
           <p class="pull-right" style="margin-left: 10px; padding-top: 5px;">
               Reset UI state locally and on the server
           </p>
         </div>
-      {{/isAuthorized}}
+      {{/havePermissions}}
     </div>
   {{else}}
     <div class="alert alert-danger">

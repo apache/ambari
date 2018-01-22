@@ -41,8 +41,12 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ThemeInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ThemeArtifactResourceProvider extends AbstractControllerResourceProvider {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ThemeArtifactResourceProvider.class);
 
   public static final String STACK_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("ThemeInfo", "stack_name");
   public static final String STACK_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("ThemeInfo", "stack_version");

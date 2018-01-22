@@ -143,6 +143,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     new HashMap<>();
 
   protected String ambariUpgradeConfigUpdatesFileName;
+  private Map<String,String> upgradeJsonOutput = new HashMap<>();
 
   @Inject
   public AbstractUpgradeCatalog(Injector injector) {
@@ -258,6 +259,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       return VersionUtils.compareVersions(upgradeCatalog1.getTargetVersion(),
         upgradeCatalog2.getTargetVersion(), 4);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Map<String,String> getUpgradeJsonOutput() {
+    return upgradeJsonOutput;
   }
 
   /**
@@ -555,7 +563,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
 
         Multimap<ConfigUpdateType, Entry<String, String>> propertiesToLog = ArrayListMultimap.create();
-        String serviceName = cluster.getServiceByConfigType(configType);
+        String serviceName = cluster.getServiceByConfigType(configType).getName();
 
         Map<String, String> mergedProperties =
           mergeProperties(oldConfigProperties, properties, updateIfExists, propertiesToLog);
@@ -587,8 +595,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             propertiesAttributes = Collections.emptyMap();
           }
 
+          //TODO check the serviceid = null for the right use case
           controller.createConfig(cluster, cluster.getDesiredStackVersion(), configType,
-              mergedProperties, newTag, propertiesAttributes);
+              mergedProperties, newTag, propertiesAttributes, null);
 
           Config baseConfig = cluster.getConfig(configType, newTag);
           if (baseConfig != null) {
@@ -1154,5 +1163,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       comment = "can only take the first stack we find until we can support multiple with Kerberos")
   private StackId getStackId(Cluster cluster) throws AmbariException {
     return cluster.getServices().values().iterator().next().getDesiredStackId();
+  }
+
+  protected void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
   }
 }

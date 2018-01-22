@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -45,7 +46,15 @@ import javax.persistence.TableGenerator;
       "JOIN clusterService.serviceGroupEntity serviceGroup " +
       "WHERE clusterService.serviceId=:serviceId " +
       "AND  serviceGroup.serviceGroupId=:serviceGroupId " +
-      "AND serviceGroup.clusterId=:clusterId")
+      "AND serviceGroup.clusterId=:clusterId"),
+   @NamedQuery(name = "clusterServiceByName", query =
+     "SELECT clusterService " +
+      "FROM ClusterServiceEntity clusterService " +
+       "JOIN clusterService.serviceGroupEntity serviceGroup " +
+        "JOIN clusterService.clusterEntity clusterEntity " +
+       "WHERE clusterService.serviceName=:serviceName " +
+       "AND  serviceGroup.serviceGroupName=:serviceGroupName " +
+        "AND clusterEntity.clusterName=:clusterName")
 })
 @Entity
 @TableGenerator(name = "service_id_generator",
@@ -94,6 +103,12 @@ public class ClusterServiceEntity {
   @OneToMany(mappedBy = "clusterServiceEntity")
   private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
 
+  @OneToMany(mappedBy="service")
+  private List<ServiceDependencyEntity> serviceDependencies;
+
+  @OneToMany(mappedBy="serviceDependency")
+  private List<ServiceDependencyEntity> dependencies;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -140,6 +155,22 @@ public class ClusterServiceEntity {
 
   public void setServiceEnabled(int serviceEnabled) {
     this.serviceEnabled = serviceEnabled;
+  }
+
+  public List<ServiceDependencyEntity> getDependencies() {
+    return dependencies;
+  }
+
+  public void setDependencies(List<ServiceDependencyEntity> dependencies) {
+    this.dependencies = dependencies;
+  }
+
+  public List<ServiceDependencyEntity> getServiceDependencies() {
+    return serviceDependencies;
+  }
+
+  public void setServiceDependencies(List<ServiceDependencyEntity> serviceDependencies) {
+    this.serviceDependencies = serviceDependencies;
   }
 
   @Override
@@ -201,4 +232,10 @@ public class ClusterServiceEntity {
     this.serviceComponentDesiredStateEntities = serviceComponentDesiredStateEntities;
   }
 
+  public String getServiceGroupName() {
+    if (serviceGroupEntity != null) {
+      return serviceGroupEntity.getServiceGroupName();
+    }
+    return null;
+  }
 }

@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+
+import org.apache.ambari.server.ClusterSettingNotFoundException;
 import org.apache.ambari.server.ServiceGroupNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -72,6 +74,11 @@ public interface Cluster {
   Service addService(ServiceGroup serviceGroup, String serviceName, String serviceType,
                      RepositoryVersionEntity repositoryVersion) throws AmbariException;
 
+  Service addDependencyToService(String  serviceGroupName, String serviceName,
+                                        Long dependencyServiceId) throws AmbariException;
+
+  Service removeDependencyFromService(String  serviceGroupName, String serviceName, Long dependencyServiceId);
+
   /**
    * Add service group to the cluster
    *
@@ -91,12 +98,55 @@ public interface Cluster {
   ServiceGroup addServiceGroup(String serviceGroupName) throws AmbariException;
 
   /**
+   * Add service group dependency to the service group
+   *
+   * @param serviceGroupName Service group name
+   * @param dependencyServiceGroupId Dependency service group id
+   * @return
+   * @throws AmbariException
+   */
+  void addServiceGroupDependency(String serviceGroupName, Long dependencyServiceGroupId) throws AmbariException;
+
+
+  ClusterSetting addClusterSetting(String clusterSettingName, String clusterSettingValue) throws AmbariException;
+
+  /**
+   * Add 'cluster setting' to the cluster
+   *
+   * @param clusterSetting
+   * @return
+   * @throws AmbariException
+   */
+  void addClusterSetting(ClusterSetting clusterSetting);
+
+  /**
+   * Update 'cluster setting' in the cluster
+   *
+   * @param clusterSettingName Cluster setting name
+   * @return
+   * @throws AmbariException
+   */
+  ClusterSetting updateClusterSetting(String clusterSettingName, String clusterSettingValue) throws AmbariException;
+
+  /**
+   * Add 'cluster setting' in the cluster
+   *
+   * @param clusterSetting
+   * @return
+   * @throws AmbariException
+   */
+  void updateClusterSetting(ClusterSetting clusterSetting);
+
+  //TODO remove when UI starts using service groups
+  /**
    * Get a service
    *
    * @param serviceName
    * @return
    */
   Service getService(String serviceName) throws AmbariException;
+
+  Service getService(String serviceGroupName, String serviceName) throws AmbariException;
 
   Service getService(Long serviceId) throws AmbariException;
 
@@ -140,6 +190,37 @@ public interface Cluster {
    * @return
    */
   Map<String, ServiceGroup> getServiceGroups() throws AmbariException;
+
+  /**
+   * Get a cluster setting
+   *
+   * @param clusterSettingName
+   * @return
+   */
+  ClusterSetting getClusterSetting(String clusterSettingName) throws ClusterSettingNotFoundException;
+
+  /**
+   * Get a cluster setting
+   *
+   * @param clusterSettingId
+   * @return
+   */
+  ClusterSetting getClusterSetting(Long clusterSettingId) throws ClusterSettingNotFoundException;
+
+  /**
+   * Get all cluster settings
+   *
+   * @return
+   */
+  Map<String, ClusterSetting> getClusterSettings() throws AmbariException;
+
+  /**
+   * Get all cluster settings name and value as Map.
+   * If cluster settings are not fonud, returns an Empty Map.
+   *
+   * @return
+   */
+  Map<String, String> getClusterSettingsNameValueMap() throws AmbariException;
 
   /**
    * Get all ServiceComponentHosts on a given host
@@ -314,6 +395,16 @@ public interface Cluster {
   Map<String, Config> getConfigsByType(String configType);
 
   /**
+   * Gets all configs that match the specified type.  Result is not the
+   * DESIRED configuration for a cluster.
+   *
+   * @param configType the config type to return
+   *        serviceId the serviceid for the config
+   * @return a map of configuration objects that have been set for the given type
+   */
+  Map<String, Config> getConfigsByServiceIdType(String configType, Long serviceId);
+
+  /**
    * Gets all properties types that mach the specified type.
    *
    * @param configType the config type to return
@@ -331,6 +422,18 @@ public interface Cluster {
    * and version have not been set.
    */
   Config getConfig(String configType, String versionTag);
+
+  /**
+   * Gets the specific config that matches the specified type and tag.  This not
+   * necessarily a DESIRED configuration that applies to a cluster.
+   *
+   * @param configType the config type to find
+   * @param versionTag the config version tag to find
+   * @param serviceId the service for the config
+   * @return a {@link Config} object, or <code>null</code> if the specific type
+   * and version have not been set.
+   */
+  Config getConfigByServiceId(String configType, String versionTag, Long serviceId);
 
   /**
    * Get latest (including inactive ones) configurations with any of the given types.
@@ -360,11 +463,27 @@ public interface Cluster {
   void addConfig(Config config);
 
   /**
+   * Sets a specific config.  NOTE:  This is not a DESIRED configuration that
+   * applies to a cluster.
+   *
+   * @param config the config instance to add
+   *        serviceId service id for the config
+   */
+  void addConfig(Config config, Long serviceId);
+
+  /**
    * Gets all configurations defined for a cluster.
    *
    * @return the collection of all configs that have been defined.
    */
   Collection<Config> getAllConfigs();
+
+  /**
+   * Gets all configurations defined for a cluster service.
+   *
+   * @return the collection of all configs that have been defined.
+   */
+  List<Config> getConfigsByServiceId(Long serviceId);
 
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
@@ -375,7 +494,7 @@ public interface Cluster {
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
-  ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs);
+  ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) throws AmbariException;
 
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
@@ -387,24 +506,24 @@ public interface Cluster {
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
-  ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote);
+  ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) throws AmbariException;
 
-  ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user, String note,
-                                                          ConfigGroup configGroup);
+  ServiceConfigVersionResponse createServiceConfigVersion(Long serviceId, String user, String note,
+                                                          ConfigGroup configGroup) throws AmbariException;
 
-  String getServiceForConfigTypes(Collection<String> configTypes);
+  Long getServiceForConfigTypes(Collection<String> configTypes);
 
   /**
    * Apply specified service config version (rollback)
    *
-   * @param serviceName service name
+   * @param serviceId   service Id
    * @param version     service config version
    * @param user        the user making the change for audit purposes
    * @param note
    * @return service config version created
    * @throws AmbariException
    */
-  ServiceConfigVersionResponse setServiceConfigVersion(String serviceName, Long version, String user, String note) throws AmbariException;
+  ServiceConfigVersionResponse setServiceConfigVersion(Long serviceId, Long version, String user, String note) throws AmbariException;
 
   /**
    * Get currently active service config versions for stack services
@@ -416,10 +535,10 @@ public interface Cluster {
   /**
    * Get active service config version responses for all config groups of a service
    *
-   * @param serviceName service name
+   * @param serviceId service ID
    * @return
    */
-  List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName);
+  List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(Long serviceId);
 
   /**
    * Get service config version history
@@ -509,6 +628,37 @@ public interface Cluster {
    * @throws AmbariException
    */
   void deleteServiceGroup(String serviceGroupName) throws AmbariException;
+
+  /**
+   * Delete service group dependency from the service group
+   *
+   * @param serviceGroupName
+   * @param dependencyServiceGroupId
+   * @throws AmbariException
+   */
+  void deleteServiceGroupDependency(String serviceGroupName, Long dependencyServiceGroupId) throws AmbariException;
+
+  /**
+   * Get all service groups
+   *
+   * @return map of service group ids as keys and service group objects as values.
+   */
+  Map<Long, ServiceGroup> getServiceGroupsById();
+
+  /**
+   * Delete all the cluster settings associated with this cluster
+   *
+   * @throws AmbariException
+   */
+  void deleteAllClusterSettings() throws AmbariException;
+
+  /**
+   * Delete the named cluster setting associated with this cluster
+   *
+   * @param clusterSettingName
+   * @throws AmbariException
+   */
+  void deleteClusterSetting(String clusterSettingName) throws AmbariException;
 
   /**
    * Gets if the cluster can be deleted
@@ -660,18 +810,18 @@ public interface Cluster {
    *
    * @param stackId     the stack to use when finding the latest configurations (not
    *                    {@code null}).
-   * @param serviceName the service to modify configurations for (not {@code null}).
+   * @param serviceId the service to modify configurations for (not {@code null}).
    */
-  void applyLatestConfigurations(StackId stackId, String serviceName);
+  void applyLatestConfigurations(StackId stackId, Long serviceId);
 
   /**
    * Removes all configurations for the specified service and stack.
    *
    * @param stackId     the stack to use when finding the configurations to remove (not
    *                    {@code null}).
-   * @param serviceName the service to rmeove configurations for (not {@code null}).
+   * @param serviceId the service to remove configurations for (not {@code null}).
    */
-  void removeConfigurations(StackId stackId, String serviceName);
+  void removeConfigurations(StackId stackId, Long serviceId);
 
   /**
    * Returns whether this cluster was provisioned by a Blueprint or not.
@@ -707,13 +857,13 @@ public interface Cluster {
   boolean isUpgradeSuspended();
 
   /**
-   * Returns the name of the service that the passed config type belongs to.
+   * Returns the service that the passed config type belongs to.
    *
    * @param configType the config type to look up the service by
-   * @return returns the name of the service that the config type belongs to if
+   * @return returns the service that the config type belongs to if
    * there is any otherwise returns null.
    */
-  String getServiceByConfigType(String configType);
+  Service getServiceByConfigType(String configType);
 
   /**
    * Gets the most recent value of {@code cluster-env/propertyName} where

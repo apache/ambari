@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpPropertyProvider extends BaseProvider implements PropertyProvider {
 
-  protected final static Logger LOG = LoggerFactory.getLogger(HttpPropertyProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HttpPropertyProvider.class);
 
   private final StreamProvider streamProvider;
   private final String clusterNamePropertyId;

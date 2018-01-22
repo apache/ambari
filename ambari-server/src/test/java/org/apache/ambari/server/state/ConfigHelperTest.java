@@ -22,6 +22,8 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -53,6 +55,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -156,9 +159,10 @@ public class ConfigHelperTest {
       cr2.setType("flume-conf");
       cr2.setVersionTag("version1");
 
-      cluster.addService("FLUME", repositoryVersion);
-      cluster.addService("OOZIE", repositoryVersion);
-      cluster.addService("HDFS", repositoryVersion);
+      ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+      cluster.addService(serviceGroup, "FLUME", "FLUME", repositoryVersion);
+      cluster.addService(serviceGroup, "OOZIE", "OOZIE", repositoryVersion);
+      cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -298,7 +302,10 @@ public class ConfigHelperTest {
         configMap.put(config.getType(), config);
       }
 
-      ConfigGroup configGroup = configGroupFactory.createNew(cluster, null, name,
+      long serviceGroupId = 1;
+      long serviceId = 1;
+
+      ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceGroupId, serviceId, name,
           tag, "", configMap, hostMap);
       LOG.info("Config group created with tag " + tag);
       configGroup.setTag(tag);
@@ -979,8 +986,9 @@ public class ConfigHelperTest {
       expect(sch.getHostName()).andReturn("h1").anyTimes();
       expect(sch.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
       expect(sch.getServiceName()).andReturn("FLUME").anyTimes();
+      expect(sch.getServiceType()).andReturn("FLUME").anyTimes();
       expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").anyTimes();
-      expect(sch.getServiceComponent()).andReturn(sc).anyTimes();
+      expect(sch.getServiceComponent()).andReturn(sc).anyTimes(); //
 
       replay(sc, sch);
       // Cluster level config changes
@@ -1054,6 +1062,7 @@ public class ConfigHelperTest {
     expect(sch.getHostName()).andReturn("h1").anyTimes();
     expect(sch.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
     expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(sch.getServiceType()).andReturn("HDFS").anyTimes();
     expect(sch.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
     expect(sch.getServiceComponent()).andReturn(sc).anyTimes();
 
@@ -1097,6 +1106,7 @@ public class ConfigHelperTest {
           bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactory.class));
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
           bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+          bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
         }
       });
 
@@ -1126,6 +1136,7 @@ public class ConfigHelperTest {
 
       expect(mockCluster.getService("SERVICE")).andReturn(mockService).once();
       expect(mockService.getDesiredStackId()).andReturn(mockStackVersion).once();
+      expect(mockService.getServiceType()).andReturn("SERVICE").once();
       expect(mockStackVersion.getStackName()).andReturn("HDP").once();
       expect(mockStackVersion.getStackVersion()).andReturn("2.2").once();
 
@@ -1212,6 +1223,51 @@ public class ConfigHelperTest {
       Assert.assertEquals("included-type.xml", result.iterator().next().getFilename());
 
       verify(mockAmbariMetaInfo, mockStackVersion, mockServiceInfo, mockPropertyInfo1, mockPropertyInfo2);
+    }
+  }
+
+  public static class RunWithoutModules {
+    @Test
+    public void nullsAreEqual() {
+      assertTrue(ConfigHelper.valuesAreEqual(null, null));
+    }
+
+    @Test
+    public void equalStringsAreEqual() {
+      assertTrue(ConfigHelper.valuesAreEqual("asdf", "asdf"));
+      assertTrue(ConfigHelper.valuesAreEqual("qwerty", "qwerty"));
+    }
+
+    @Test
+    public void nullIsNotEqualWithNonNull() {
+      assertFalse(ConfigHelper.valuesAreEqual(null, "asdf"));
+      assertFalse(ConfigHelper.valuesAreEqual("asdf", null));
+    }
+
+    @Test
+    public void equalNumbersInDifferentFormsAreEqual() {
+      assertTrue(ConfigHelper.valuesAreEqual("1.234", "1.2340"));
+      assertTrue(ConfigHelper.valuesAreEqual("12.34", "1.234e1"));
+      assertTrue(ConfigHelper.valuesAreEqual("123L", "123l"));
+      assertTrue(ConfigHelper.valuesAreEqual("-1.234", "-1.2340"));
+      assertTrue(ConfigHelper.valuesAreEqual("-12.34", "-1.234e1"));
+      assertTrue(ConfigHelper.valuesAreEqual("-123L", "-123l"));
+      assertTrue(ConfigHelper.valuesAreEqual("1f", "1.0f"));
+      assertTrue(ConfigHelper.valuesAreEqual("0", "000"));
+
+      // these are treated as different by NumberUtils (due to different types not being equal)
+      assertTrue(ConfigHelper.valuesAreEqual("123", "123L"));
+      assertTrue(ConfigHelper.valuesAreEqual("0", "0.0"));
+    }
+
+    @Test
+    public void differentNumbersAreNotEqual() {
+      assertFalse(ConfigHelper.valuesAreEqual("1.234", "1.2341"));
+      assertFalse(ConfigHelper.valuesAreEqual("123L", "124L"));
+      assertFalse(ConfigHelper.valuesAreEqual("-1.234", "1.234"));
+      assertFalse(ConfigHelper.valuesAreEqual("-123L", "123L"));
+      assertFalse(ConfigHelper.valuesAreEqual("-1.234", "-1.2341"));
+      assertFalse(ConfigHelper.valuesAreEqual("-123L", "-124L"));
     }
   }
 }

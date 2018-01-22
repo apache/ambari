@@ -72,7 +72,7 @@ import com.google.common.base.Objects;
         name = "HostComponentStateEntity.findByServiceAndComponentAndNotVersion",
         query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId " +
                 "AND hcs.serviceGroupId=:serviceGroupId AND hcs.serviceId=:serviceId " +
-                "AND hcs.componentName=:componentName AND hcs.hostEntity.hostName=:hostName " +
+                "AND hcs.componentName=:componentName " +
                 "AND hcs.version != :version"),
     @NamedQuery(
         name = "HostComponentStateEntity.findByIndex",

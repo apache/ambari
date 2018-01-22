@@ -37,7 +37,6 @@ import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.MemberRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.StackConfigurationDependencyRequest;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
@@ -317,15 +316,6 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
-    public static Set<ServiceComponentHostRequest> getHostComponentRequestSet(
-        String clusterName, String serviceName, String componentName, String hostName,
-        Map<String, String> configVersions, String desiredState)
-    {
-      EasyMock.reportMatcher(new HostComponentRequestSetMatcher(
-          clusterName, serviceName, componentName, hostName, configVersions, desiredState));
-      return null;
-    }
-
     public static Set<UserRequest> getUserRequestSet(String name)
     {
       EasyMock.reportMatcher(new UserRequestSetMatcher(name));
@@ -432,7 +422,7 @@ public class AbstractResourceProviderTest {
   public static class ConfigurationRequestMatcher extends ConfigurationRequest implements IArgumentMatcher {
 
     public ConfigurationRequestMatcher(String clusterName, String type, String tag, Map<String, String> configs, Map<String, Map<String, String>> configsAttributes) {
-      super(clusterName, type, tag, configs, configsAttributes);
+      super(clusterName, type, tag, configs, configsAttributes, 1L, 1L);
     }
 
     @Override
@@ -486,51 +476,6 @@ public class AbstractResourceProviderTest {
     @Override
     public void appendTo(StringBuffer stringBuffer) {
       stringBuffer.append("HostRequestSetMatcher(").append(hostRequest).append(")");
-    }
-  }
-
-  /**
-   * Matcher for a ServiceComponentHostRequest set containing a single request.
-   */
-  public static class HostComponentRequestSetMatcher extends HashSet<ServiceComponentHostRequest>
-      implements IArgumentMatcher {
-
-    private final ServiceComponentHostRequest hostComponentRequest;
-
-    public HostComponentRequestSetMatcher(String clusterName, String serviceName, String componentName, String hostName,
-                                      Map<String, String> configVersions, String desiredState) {
-      hostComponentRequest =
-          new ServiceComponentHostRequest(clusterName, serviceName, componentName,
-              hostName, desiredState);
-      add(hostComponentRequest);
-    }
-
-    @Override
-    public boolean matches(Object o) {
-
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
-      Set set = (Set) o;
-
-      if (set.size() != 1) {
-        return false;
-      }
-
-      Object request = set.iterator().next();
-
-      return request instanceof ServiceComponentHostRequest &&
-          eq(((ServiceComponentHostRequest) request).getClusterName(), hostComponentRequest.getClusterName()) &&
-          eq(((ServiceComponentHostRequest) request).getServiceName(), hostComponentRequest.getServiceName()) &&
-          eq(((ServiceComponentHostRequest) request).getComponentName(), hostComponentRequest.getComponentName()) &&
-          eq(((ServiceComponentHostRequest) request).getHostname(), hostComponentRequest.getHostname()) &&
-          eq(((ServiceComponentHostRequest) request).getDesiredState(), hostComponentRequest.getDesiredState());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("HostComponentRequestSetMatcher(").append(hostComponentRequest).append(")");
     }
   }
 

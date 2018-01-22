@@ -18,10 +18,17 @@
 
 package org.apache.ambari.server.serveraction;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,11 +45,17 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.UpgradeContext.UpgradeServiceSummary;
+import org.apache.ambari.server.state.UpgradeContext.UpgradeSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.ClassUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -495,7 +508,6 @@ public class ServerActionExecutor {
         throw new AmbariException("Missing ExecutionCommand data");
       } else {
         Map<String, String> roleParams = executionCommand.getRoleParams();
-
         if (roleParams == null) {
           throw new AmbariException("Missing RoleParams data");
         } else {
@@ -504,8 +516,30 @@ public class ServerActionExecutor {
           if (actionClassname == null) {
             throw new AmbariException("Missing action classname for server action");
           } else {
-            ServerAction action = createServerAction(actionClassname);
-
+            Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+            UpgradeSummary upgradeSummary = executionCommand.getUpgradeSummary();
+            if (upgradeSummary != null) {
+              Map<String, UpgradeServiceSummary> upgradeServiceSummaries = upgradeSummary.services;
+              LOG.debug("UpgradeServiceSummary: " + upgradeServiceSummaries);
+              AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+              AmbariMetaInfo ambariMetaInfo = ambariManagementController.getAmbariMetaInfo();
+              String serviceName = executionCommand.getServiceName();
+              if (serviceName != null && !serviceName.isEmpty()){
+                LOG.info(String.format("Server action %s is associated with service %s", actionClassname, serviceName));
+                //Execution stage of a given service, only need to examine stack information for this one service
+                UpgradeServiceSummary serviceSummary = upgradeServiceSummaries.get(serviceName);
+                addServiceInfo(services, ambariMetaInfo, serviceSummary.sourceStackId, serviceName);
+              } else {
+                LOG.info(String.format("Server action %s is not associated with a service", actionClassname));
+                //Load all Jars
+                for(String key: upgradeServiceSummaries.keySet()){
+                  UpgradeServiceSummary serviceSummary = upgradeServiceSummaries.get(key);
+                  addServiceInfo(services, ambariMetaInfo, serviceSummary.sourceStackId, key);
+                }
+              }
+              LOG.info(String.format("Attempt to load server action classes from %s", services.keySet().toString()));
+            }
+            ServerAction action = createServerAction(actionClassname, services);
             if (action == null) {
               throw new AmbariException("Failed to create server action: " + actionClassname);
             } else {
@@ -520,6 +554,30 @@ public class ServerActionExecutor {
       }
     }
 
+    private void addServiceInfo(Map<String, ServiceInfo> services, AmbariMetaInfo ambariMetaInfo, String stackId, String serviceName) {
+      List<String> stackInfo = getStackInfo(stackId);
+      LOG.debug(String.format("Stack info list: %s", stackInfo));
+      if (stackInfo.size() > 1) {
+        try {
+          ServiceInfo service = ambariMetaInfo.getService(stackInfo.get(0), stackInfo.get(1), serviceName);
+          LOG.debug(String.format("Adding %s to the list of services for loading external Jars...", service.getName()));
+          services.put(serviceName, service);
+        } catch (AmbariException e) {
+          LOG.error(String.format("Failed to obtain service info for stack %s, service name %s", stackId, serviceName), e);
+        }
+      }
+    }
+
+    private List<String> getStackInfo(String stackId) {
+      LOG.debug(String.format("Stack id: %s", stackId));
+      StringTokenizer tokens = new StringTokenizer(stackId, "-");
+      List<String> info = new ArrayList<String>();
+      while (tokens.hasMoreElements()) {
+        info.add((String)tokens.nextElement());
+      }
+      return info;
+    }
+
     /**
      * Attempts to create an instance of the ServerAction class implementation specified in
      * classname.
@@ -528,24 +586,85 @@ public class ServerActionExecutor {
      * @return the instantiated ServerAction implementation
      * @throws AmbariException
      */
-    private ServerAction createServerAction(String classname) throws AmbariException {
-      try {
-        Class<?> actionClass = Class.forName(classname);
+    private ServerAction createServerAction(String classname, Map<String, ServiceInfo> services) throws AmbariException {
+      Class<?> actionClass = null;
+      actionClass = getServerActionClass(classname);
+      if (actionClass == null) {
+        LOG.debug(String.format("Did not find %s in Ambari, try to load it from external directories", classname));
+        actionClass = getServiceLevelServerActionClass(classname, services);
+      }
 
-        if (actionClass == null) {
-          throw new AmbariException("Unable to load server action class: " + classname);
+      if (actionClass == null) {
+        throw new AmbariException("Unable to load server action class: " + classname);
+      } else {
+        LOG.debug(String.format("Ready to init server action %s", classname));
+        Class<? extends ServerAction> serverActionClass = actionClass.asSubclass(ServerAction.class);
+        if (serverActionClass == null) {
+          throw new AmbariException("Unable to execute server action class, invalid type: " + classname);
         } else {
-          Class<? extends ServerAction> serverActionClass = actionClass.asSubclass(ServerAction.class);
+          return injector.getInstance(serverActionClass);
+        }
+      }
+    }
 
-          if (serverActionClass == null) {
-            throw new AmbariException("Unable to execute server action class, invalid type: " + classname);
-          } else {
-            return injector.getInstance(serverActionClass);
+    /**
+     * Load server action classes defined in the service level Jar files
+     * */
+    private Class<?> getServiceLevelServerActionClass(String classname, Map<String, ServiceInfo> services) {
+      List<URL> urls = new ArrayList<>();
+      for (ServiceInfo service : services.values()) {
+        LOG.debug(String.format("Checking service %s", service));
+        File dir = service.getServerActionsFolder();
+        if ( dir != null) {
+          LOG.debug(String.format("Service %s, external dir %s",service.getName(), dir.getAbsolutePath()));
+          File[] jars = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+              LOG.debug(String.format("Checking folder %s", name));
+              return name.endsWith(".jar");
+            }
+          });
+          for (File jar : jars) {
+            try {
+              URL url = jar.toURI().toURL();
+              urls.add(url);
+              LOG.info("Adding server action jar to classpath: {}", url);
+            }
+            catch (Exception e) {
+              LOG.error("Failed to add server action jar to classpath: {}", jar.getAbsolutePath(), e);
+            }
           }
+        } else {
+          LOG.error(String.format("%s service server actions folder returned null", service));
+        }
+      }
+
+      ClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassUtils.getDefaultClassLoader());
+      Class<?> actionClass = null;
+      try {
+        actionClass = ClassUtils.resolveClassName(classname, classLoader);
+        LOG.debug(String.format("Found external server action %s", classname));
+      } catch(IllegalArgumentException illegalArgumentException) {
+        LOG.error(String.format("Unable to find server action %s in external server action directories", classname), illegalArgumentException);
+      }
+
+      return actionClass;
+    }
+
+    /**
+     * Load server action classes defined in Ambari source code
+     * */
+    private Class<?> getServerActionClass(String classname) throws AmbariException{
+      Class<?> actionClass = null;
+      try {
+        actionClass = Class.forName(classname);
+        if (actionClass == null) {
+          LOG.warn(String.format("Unable to load server action class: %s from Ambari", classname));
         }
       } catch (ClassNotFoundException e) {
-        throw new AmbariException("Unable to load server action class: " + classname, e);
+        LOG.error(String.format("Unable to load server action class: %s", classname), e);
       }
+      return actionClass;
     }
 
     /**

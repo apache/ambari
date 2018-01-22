@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.commons.collections.MapUtils;
@@ -85,6 +86,8 @@ public class ConfigGroupResourceProvider extends
     .getPropertyId("ConfigGroup", "group_name");
   protected static final String CONFIGGROUP_TAG_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "tag");
+  protected static final String CONFIGGROUP_SERVICEGROUPNAME_PROPERTY_ID = PropertyHelper
+    .getPropertyId("ConfigGroup", "service_group_name");
   protected static final String CONFIGGROUP_SERVICENAME_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "service_name");
   protected static final String CONFIGGROUP_DESC_PROPERTY_ID = PropertyHelper
@@ -475,7 +478,7 @@ public class ConfigGroupResourceProvider extends
       throw new ConfigGroupNotFoundException(cluster.getClusterName(), request.getId().toString());
     }
 
-    if (StringUtils.isEmpty(configGroup.getServiceName())) {
+    if (configGroup.getServiceId() == null) {
       if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
         RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
         throw new AuthorizationException("The authenticated user is not authorized to delete config groups");
@@ -564,18 +567,20 @@ public class ConfigGroupResourceProvider extends
       }
 
       verifyHostList(cluster, hosts, request);
-
-      String serviceName = request.getServiceName();
-      if (serviceName == null && !MapUtils.isEmpty(request.getConfigs())) {
+      Service service = cluster.getService(request.getServiceGroupName(), request.getServiceName());
+      Long serviceId = service.getServiceId();
+      Long serviceGroupId = service.getServiceGroupId();
+      if (serviceId == null && !MapUtils.isEmpty(request.getConfigs())) {
         try {
-          serviceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+          serviceId = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+          serviceGroupId = cluster.getService(serviceId).getServiceGroupId();
         } catch (IllegalArgumentException e) {
           // Ignore this since we may have hit a config type that spans multiple services. This may
           // happen in unit test cases but should not happen with later versions of stacks.
         }
       }
 
-      if (StringUtils.isEmpty(serviceName)) {
+      if (serviceId == null) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
             RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
           throw new AuthorizationException("The authenticated user is not authorized to create config groups");
@@ -592,14 +597,14 @@ public class ConfigGroupResourceProvider extends
 
       verifyConfigs(request.getConfigs(), cluster.getClusterName());
 
-      ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceName,
+      ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceGroupId, serviceId,
         request.getGroupName(),
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
 
       cluster.addConfigGroup(configGroup);
-      if (serviceName != null) {
-        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
+      if (serviceGroupId != null && serviceId != null) {
+        cluster.createServiceConfigVersion(serviceId, getManagementController().getAuthName(),
           request.getServiceConfigVersionNote(), configGroup);
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
@@ -648,10 +653,10 @@ public class ConfigGroupResourceProvider extends
                                  + ", groupId = " + request.getId());
       }
 
-      String serviceName = configGroup.getServiceName();
-      String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+      Long serviceId = configGroup.getServiceId();
+      Long requestServiceId = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
 
-      if (StringUtils.isEmpty(serviceName) && StringUtils.isEmpty(requestServiceName)) {
+      if (serviceId == null && requestServiceId == null) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
             RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
           throw new AuthorizationException("The authenticated user is not authorized to update config groups");
@@ -663,20 +668,20 @@ public class ConfigGroupResourceProvider extends
         }
       }
 
-      if (serviceName != null && requestServiceName != null && !StringUtils.equals(serviceName, requestServiceName)) {
+      if (serviceId != null && requestServiceId != null && !serviceId.equals(requestServiceId)) {
         throw new IllegalArgumentException("Config group " + configGroup.getId() +
-            " is mapped to service " + serviceName + ", " +
-            "but request contain configs from service " + requestServiceName);
-      } else if (serviceName == null && requestServiceName != null) {
-        configGroup.setServiceName(requestServiceName);
-        serviceName = requestServiceName;
+            " is mapped to service " + serviceId + ", " +
+            "but request contain configs from service " + requestServiceId);
+      } else if (serviceId == null && requestServiceId != null) {
+        configGroup.setServiceId(requestServiceId);
+        serviceId = requestServiceId;
       }
 
       int numHosts = (null != configGroup.getHosts()) ? configGroup.getHosts().size() : 0;
       configLogger.info("(configchange) Updating configuration group host membership or config value. cluster: '{}', changed by: '{}', " +
               "service_name: '{}', config group: '{}', tag: '{}', num hosts in config group: '{}', note: '{}'",
           cluster.getClusterName(), getManagementController().getAuthName(),
-          serviceName, request.getGroupName(), request.getTag(), numHosts, request.getServiceConfigVersionNote());
+          serviceId, request.getGroupName(), request.getTag(), numHosts, request.getServiceConfigVersionNote());
 
       if (!request.getConfigs().isEmpty()) {
         List<String> affectedConfigTypeList = new ArrayList(request.getConfigs().keySet());
@@ -718,8 +723,8 @@ public class ConfigGroupResourceProvider extends
       configGroup.setDescription(request.getDescription());
       configGroup.setTag(request.getTag());
 
-      if (serviceName != null) {
-        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
+      if (serviceId != null) {
+        cluster.createServiceConfigVersion(serviceId, getManagementController().getAuthName(),
                 request.getServiceConfigVersionNote(), configGroup);
 
         ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(configGroup.getId(), cluster.getClusterName(), configGroup.getName(),
@@ -754,6 +759,7 @@ public class ConfigGroupResourceProvider extends
       (String) properties.get(CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_NAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_TAG_PROPERTY_ID),
+      (String) properties.get(CONFIGGROUP_SERVICEGROUPNAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_SERVICENAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_DESC_PROPERTY_ID),
       null,

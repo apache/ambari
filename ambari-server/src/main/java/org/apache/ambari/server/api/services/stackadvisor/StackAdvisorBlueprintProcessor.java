@@ -28,15 +28,15 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
-import org.apache.ambari.server.controller.StackV2;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
-import org.apache.ambari.server.topology.BlueprintV2;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
+import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.HostGroupV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,14 +89,14 @@ public class StackAdvisorBlueprintProcessor {
   }
 
   private StackAdvisorRequest createStackAdvisorRequest(ClusterTopology clusterTopology, StackAdvisorRequestType requestType) {
-    StackV2 stack = clusterTopology.getBlueprint().getStacks().iterator().next();
+    Stack stack = clusterTopology.getBlueprint().getStack();
     Map<String, Set<String>> hgComponentsMap = gatherHostGroupComponents(clusterTopology);
     Map<String, Set<String>> hgHostsMap = gatherHostGroupBindings(clusterTopology);
     Map<String, Set<String>> componentHostsMap = gatherComponentsHostsMap(hgComponentsMap,
             hgHostsMap);
     return StackAdvisorRequest.StackAdvisorRequestBuilder
       .forStack(stack.getName(), stack.getVersion())
-      .forServices(new ArrayList<>(clusterTopology.getBlueprint().getAllServiceTypes()))
+      .forServices(new ArrayList<>(clusterTopology.getBlueprint().getServices()))
       .forHosts(gatherHosts(clusterTopology))
       .forHostsGroupBindings(gatherHostGroupBindings(clusterTopology))
       .forHostComponents(gatherHostGroupComponents(clusterTopology))
@@ -117,7 +117,7 @@ public class StackAdvisorBlueprintProcessor {
 
   private Map<String, Set<String>> gatherHostGroupComponents(ClusterTopology clusterTopology) {
     Map<String, Set<String>> hgComponentsMap = Maps.newHashMap();
-    for (Map.Entry<String, ? extends HostGroupV2> hgEnrty: clusterTopology.getBlueprint().getHostGroups().entrySet()) {
+    for (Map.Entry<String, HostGroup> hgEnrty: clusterTopology.getBlueprint().getHostGroups().entrySet()) {
       hgComponentsMap.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getComponentNames()));
     }
     return hgComponentsMap;
@@ -176,7 +176,7 @@ public class StackAdvisorBlueprintProcessor {
 
     Map<String, BlueprintConfigurations> recommendedConfigurations =
       response.getRecommendations().getBlueprint().getConfigurations();
-    BlueprintV2 blueprint = topology.getBlueprint();
+    Blueprint blueprint = topology.getBlueprint();
 
     for (Map.Entry<String, BlueprintConfigurations> configEntry : recommendedConfigurations.entrySet()) {
       String configType = configEntry.getKey();

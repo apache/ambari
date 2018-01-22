@@ -38,8 +38,14 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.KerberosKeytabDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.PreconfigureServiceType;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
@@ -56,6 +62,7 @@ import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -81,6 +88,18 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
   @Inject
   private VariableReplacementHelper variableReplacementHelper;
+
+  @Inject
+  private HostDAO hostDAO;
+
+  @Inject
+  private KerberosKeytabDAO kerberosKeytabDAO;
+
+  @Inject
+  KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
+
+  @Inject
+  KerberosPrincipalDAO kerberosPrincipalDAO;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws AmbariException, InterruptedException {
@@ -131,7 +150,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
             }
           }
 
-          processServiceComponentHosts(cluster, kerberosDescriptor, configurations, kerberosConfigurations, propertiesToIgnore);
+          processServiceComponentHosts(cluster, kerberosDescriptor, configurations, kerberosConfigurations, propertiesToIgnore, getDefaultRealm(configurations));
 
           // Calculate the set of configurations to update and replace any variables
           // using the previously calculated Map of configurations for the host.
@@ -280,7 +299,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
   private void processServiceComponentHosts(Cluster cluster, KerberosDescriptor kerberosDescriptor,
                                             Map<String, Map<String, String>> currentConfigurations,
                                             Map<String, Map<String, String>> kerberosConfigurations,
-                                            Map<String, Set<String>> propertiesToBeIgnored)
+                                            Map<String, Set<String>> propertiesToBeIgnored, String realm)
       throws AmbariException {
 
     Collection<Host> hosts = cluster.getHosts();
@@ -292,7 +311,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
       try {
         Map<String, Set<String>> propertiesToIgnore = null;
-
+        HashMap<String, ResolvedKerberosKeytab> resolvedKeytabs = new HashMap<>();
         for (Host host : hosts) {
           // Iterate over the components installed on the current host to get the service and
           // component-level Kerberos descriptors in order to determine which principals,
@@ -305,12 +324,26 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
             KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
 
+            if (!StringUtils.isEmpty(hostName)) {
+              // Update the configurations with the relevant hostname
+              Map<String, String> generalProperties = currentConfigurations.get("");
+              if (generalProperties == null) {
+                generalProperties = new HashMap<>();
+                currentConfigurations.put("", generalProperties);
+              }
+
+              // Add the current hostname under "host" and "hostname"
+              generalProperties.put("host", hostName);
+              generalProperties.put("hostname", hostName);
+            }
+
             if (serviceDescriptor != null) {
               List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true, filterContext);
 
               // Add service-level principals (and keytabs)
               kerberosHelper.addIdentities(null, serviceIdentities,
-                  null, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, false);
+                  null, hostName, host.getHostId(), serviceName, componentName, kerberosConfigurations, currentConfigurations,
+                  resolvedKeytabs, realm);
               propertiesToIgnore = gatherPropertiesToIgnore(serviceIdentities, propertiesToIgnore);
 
               KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
@@ -325,7 +358,8 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
                 // Add component-level principals (and keytabs)
                 kerberosHelper.addIdentities(null, componentIdentities,
-                    null, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, false);
+                    null, hostName, host.getHostId(), serviceName, componentName, kerberosConfigurations, currentConfigurations,
+                    resolvedKeytabs,realm);
                 propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
               }
             }
@@ -346,13 +380,19 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
 
             List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
             kerberosHelper.addIdentities(null, componentIdentities,
-                null, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, currentConfigurations, false);
+                null, KerberosHelper.AMBARI_SERVER_HOST_NAME, ambariServerHostID(), "AMBARI", componentName, kerberosConfigurations, currentConfigurations,
+                resolvedKeytabs, realm);
             propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
           }
         }
 
         if ((propertiesToBeIgnored != null) && (propertiesToIgnore != null)) {
           propertiesToBeIgnored.putAll(propertiesToIgnore);
+        }
+
+        // create database records for keytabs that must be presented on cluster
+        for (ResolvedKerberosKeytab keytab : resolvedKeytabs.values()) {
+          kerberosHelper.processResolvedKeytab(keytab);
         }
       } catch (IOException e) {
         throw new AmbariException(e.getMessage(), e);
@@ -449,7 +489,7 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
       for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
         String configType = entry.getKey();
 
-        String service = cluster.getServiceByConfigType(configType);
+        String service = cluster.getServiceByConfigType(configType).getName();
         Set<String> allowedProperties = propertyFilter.get(configType);
 
         // Update properties for services that are installed and not filtered out
@@ -569,5 +609,14 @@ public class PreconfigureKerberosAction extends AbstractUpgradeServerAction {
       }
     }
   }
+
+  protected Long ambariServerHostID(){
+    String ambariServerHostName = StageUtils.getHostName();
+    HostEntity ambariServerHostEntity = hostDAO.findByName(ambariServerHostName);
+    return (ambariServerHostEntity == null)
+        ? null
+        : ambariServerHostEntity.getHostId();
+  }
+
 }
 

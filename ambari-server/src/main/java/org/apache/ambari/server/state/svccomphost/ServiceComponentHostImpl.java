@@ -1324,8 +1324,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
           clusterId, stackName, stackVersion, serviceName, serviceType, serviceGroupName, componentName,
-          hostName, recoveryEnabled);
-
+          hostName, recoveryEnabled, null);
       eventPublisher.publish(event);
     }
   }

@@ -19,15 +19,21 @@ package org.apache.ambari.server.state.stack;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.stack.Validable;
+import org.apache.ambari.server.state.OsSpecific;
 
 /**
  * Represents the stack <code>metainfo.xml</code> file.
@@ -124,7 +130,43 @@ public class StackMetainfoXml implements Validable{
   public void setVersion(Version version) {
     this.version = version;
   }
-  
+
+  /**
+   * Internal list of os-specific details (loaded from xml). Added at schema ver 2
+   */
+  @XmlElementWrapper(name="osSpecifics")
+  @XmlElements(@XmlElement(name="osSpecific"))
+  private List<OsSpecific> osSpecifics;
+
+  /**
+   * Map of of os-specific details that is exposed (and initialised from list)
+   * at getter.
+   * Added at schema ver 2
+   */
+  @XmlTransient
+  private volatile Map<String, OsSpecific> stackOsSpecificsMap;
+
+  public Map<String,OsSpecific> getOsSpecifics() {
+    if (stackOsSpecificsMap == null) {
+      synchronized (this) { // Double-checked locking pattern
+        if (stackOsSpecificsMap == null) {
+          Map<String, OsSpecific> tmpMap =
+              new TreeMap<>();
+          if (osSpecifics != null) {
+            for (OsSpecific osSpecific : osSpecifics) {
+              tmpMap.put(osSpecific.getOsFamily(), osSpecific);
+            }
+          }
+          stackOsSpecificsMap = tmpMap;
+        }
+      }
+    }
+    return stackOsSpecificsMap;
+  }
+  public void setOsSpecifics(Map<String, OsSpecific> stackOsSpecificsMap) {
+    this.stackOsSpecificsMap = stackOsSpecificsMap;
+  }
+
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Version {
     public Version() {

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -38,20 +39,54 @@ public class ServiceConfigVersionService extends BaseService {
    */
   private String m_clusterName;
 
+  /**
+   * Parent service group name.
+   */
+  private String m_serviceGroupName = null;
+
+  /**
+   * Parent service name.
+   */
+  private String m_serviceName = null;
+
   public ServiceConfigVersionService(String m_clusterName) {
     this.m_clusterName = m_clusterName;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param clusterName cluster name
+   * @param serviceGroupName service group name
+   * @param serviceName service name
+   */
+  public ServiceConfigVersionService(String clusterName, String serviceGroupName, String serviceName) {
+    m_clusterName = clusterName;
+    m_serviceGroupName = serviceGroupName;
+    m_serviceName = serviceName;
+  }
+
+  @POST @ApiIgnore // until documented
+  @Produces("text/plain")
+  public Response createConfigurations(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST, createServiceConfigResource(m_clusterName, m_serviceGroupName, m_serviceName));
   }
 
   @GET @ApiIgnore // until documented
   @Produces("text/plain")
   public Response getServiceConfigVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createServiceConfigResource(m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.GET, createServiceConfigResource(m_clusterName, m_serviceGroupName, m_serviceName));
   }
 
-  ResourceInstance createServiceConfigResource(String clusterName) {
+  ResourceInstance createServiceConfigResource(String clusterName, String serviceGroupName, String serviceName) {
     Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ServiceConfigVersion, null);
+    if (serviceName != null && serviceGroupName != null) {
+      mapIds.put(Resource.Type.ServiceGroup, serviceGroupName);
+      mapIds.put(Resource.Type.Service, serviceName);
+    }
 
     return createResource(Resource.Type.ServiceConfigVersion, mapIds);
   }

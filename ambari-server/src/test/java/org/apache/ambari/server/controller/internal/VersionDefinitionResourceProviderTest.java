@@ -50,6 +50,7 @@ import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -695,7 +696,8 @@ public class VersionDefinitionResourceProviderTest {
       cluster = clusters.getCluster("c1");
     }
 
-    cluster.addService(serviceName, serviceRepo);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    cluster.addService(serviceGroup, serviceName, serviceName, serviceRepo);
   }
 
 }

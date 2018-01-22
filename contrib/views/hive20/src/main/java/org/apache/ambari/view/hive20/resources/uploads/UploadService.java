@@ -49,6 +49,7 @@ import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.parquet.Strings;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.json.simple.JSONObject;
@@ -301,7 +302,16 @@ public class UploadService extends BaseService {
     try {
       String insertQuery = generateInsertFromQuery(input);
       LOG.info("insertQuery : {}", insertQuery);
-
+      if( null != input.getGlobalSettings() && !Strings.isNullOrEmpty(input.getGlobalSettings().trim())){
+        String globalSettings = input.getGlobalSettings().trim();
+        if(!globalSettings.endsWith(";")){
+          globalSettings += ";\n";
+        }else{
+          globalSettings += "\n";
+        }
+        insertQuery = globalSettings + insertQuery;
+      }
+      LOG.info("creating job for query : {}", insertQuery);
       Job job = createJob(insertQuery, input.getFromDatabase(), "Insert from " +
               input.getFromDatabase() + "." + input.getFromTable() + " to " +
               input.getToDatabase() + "." + input.getToTable());

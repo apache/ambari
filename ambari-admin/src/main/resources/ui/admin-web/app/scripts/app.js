@@ -33,7 +33,8 @@ angular.module('ambariAdminConsole', [
   isLDAPConfigurationSupported: false,
   isLoginActivitiesSupported: false,
   maxStackTraceLength: 1000,
-  errorStorageSize: 500000
+  errorStorageSize: 500000,
+  minRowsToShowPagination: 10
 })
 .config(['RestangularProvider', '$httpProvider', '$provide', 'Settings', function(RestangularProvider, $httpProvider, $provide, Settings) {
   // Config Ajax-module
@@ -62,7 +63,7 @@ angular.module('ambariAdminConsole', [
     };
   }]);
 
-  $httpProvider.responseInterceptors.push(['$rootScope', '$q', function (scope, $q) {
+  $httpProvider.interceptors.push(['$rootScope', '$q', function (scope, $q) {
     function success(response) {
       return response;
     }

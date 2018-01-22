@@ -28,9 +28,11 @@
   <div class="form-horizontal">
     <div class="form-group col-sm-12">{{'authentication.description' | translate}}</div>
     <div class="form-group">
-      <label class="control-label col-sm-4">{{'authentication.ldap' | translate}}</label>
+      <label class="switch-inline-label col-sm-4">{{'authentication.ldap' | translate}}</label>
       <span class="col-sm-8">
-        <toggle-switch model="isLDAPEnabled" ng-disabled="isRequestRunning" on-label="{{'authentication.on' | translate}}" off-label="{{'authentication.off' | translate}}" class="switch-primary" data-off-color="danger" on-change="toggleAuthentication()"></toggle-switch>
+        <toggle-switch model="isLDAPEnabled" ng-disabled="isRequestRunning" class="switch-success" data-off-color="danger" on-change="toggleAuthentication()"></toggle-switch>
+        <span ng-if="isLDAPEnabled" class="switch-option-label">{{'authentication.on' | translate}}</span>
+        <span ng-if="!isLDAPEnabled" class="switch-option-label">{{'authentication.off' | translate}}</span>
       </span>
     </div>
   </div>
@@ -58,10 +60,8 @@
         </div>
       </div>
       <div class="form-group">
+        <input type="checkbox" id="ssl" ng-model="connectivity.ssl" class="col-sm-8">
         <label for="ssl" class="control-label col-sm-4">{{'authentication.connectivity.ssl' | translate}}</label>
-        <div class="col-sm-8">
-          <input type="checkbox" id="ssl" ng-model="connectivity.ssl">
-        </div>
       </div>
       <div class="form-group">
         <label for="trust-store" class="control-label col-sm-4">{{'authentication.connectivity.trustStore.label' | translate}}</label>
@@ -121,12 +121,12 @@
       <form class="form-horizontal" ng-submit="detectAttributes()">
         <div class="form-group col-sm-12">{{'authentication.attributes.detection.label' | translate}}</div>
         <div class="form-group">
+          <input type="radio" id="manual-detection" name="detection" ng-model="attributes.detection" ng-disabled="isAttributeDetectionRunning" value="manual">
           <label for="manual-detection" class="col-sm-12">
-            <input type="radio" id="manual-detection" name="detection" ng-model="attributes.detection" ng-disabled="isAttributeDetectionRunning" value="manual">
             {{'authentication.attributes.detection.options.manual' | translate}}
           </label>
+          <input type="radio" id="auto-detection" name="detection" ng-model="attributes.detection" ng-disabled="isAttributeDetectionRunning" value="auto">
           <label for="auto-detection" class="col-sm-12">
-            <input type="radio" id="auto-detection" name="detection" ng-model="attributes.detection" ng-disabled="isAttributeDetectionRunning" value="auto">
             {{'authentication.attributes.detection.options.auto' | translate}}
           </label>
         </div>

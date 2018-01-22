@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.ldap.LdapModule;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,13 +46,13 @@ public class LdapServerPropertiesTest {
   Configuration configuration;
 
   public LdapServerPropertiesTest() {
-    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule());
+    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModule(), new LdapModule());
     injector.injectMembers(this);
   }
 
   @Before
   public void setUp() throws Exception {
-    ldapServerProperties =  new LdapServerProperties();
+    ldapServerProperties = new LdapServerProperties();
     ldapServerProperties.setAnonymousBind(true);
     ldapServerProperties.setBaseDN("dc=ambari,dc=apache,dc=org");
     ldapServerProperties.setManagerDn("uid=manager," + ldapServerProperties.getBaseDN());

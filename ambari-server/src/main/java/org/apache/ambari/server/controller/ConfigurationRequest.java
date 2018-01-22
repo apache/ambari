@@ -36,6 +36,8 @@ public class ConfigurationRequest {
   private boolean selected = true;
   private Map<String, Map<String, String>> configsAttributes;
   private boolean includeProperties;
+  private Long serviceId;
+  private Long serviceGroupId;
 
   public ConfigurationRequest() {
     configs = new HashMap<>();
@@ -46,7 +48,7 @@ public class ConfigurationRequest {
                               String type,
                               String tag,
                               Map<String, String> configs,
-                              Map<String, Map<String, String>> configsAttributes) {
+                              Map<String, Map<String, String>> configsAttributes, Long serviceId, Long serviceGroupId) {
 
     this.clusterName = clusterName;
     this.configs = configs;
@@ -55,6 +57,23 @@ public class ConfigurationRequest {
     this.configs = configs;
     this.configsAttributes = configsAttributes;
     this.includeProperties = (type != null && tag != null);
+    this.serviceId = serviceId == null ? null : serviceId;
+    this.serviceGroupId = serviceGroupId == null ? null : serviceGroupId;
+
+  }
+
+  /**
+   * @return service id
+   */
+  public Long getServiceId() {
+    return serviceId;
+  }
+
+  /**
+   * @param serviceId
+   */
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
   /**
@@ -121,7 +140,24 @@ public class ConfigurationRequest {
   public void setSelected(boolean selected) {
     this.selected = selected;
   }
-  
+
+
+  /**
+   *
+   * @return serviceGroupId
+   */
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  /**
+   *
+   * @param serviceGroupId
+   */
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
+  }
+
   /**
    * Gets if the configuration is to be selected.
    * @return <code>true</code> if the configuration is selected.

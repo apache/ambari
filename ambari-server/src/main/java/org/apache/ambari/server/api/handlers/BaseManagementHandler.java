@@ -36,19 +36,11 @@ import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.RequestStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Base handler for operations that persist state to the back-end.
  */
 public abstract class BaseManagementHandler implements RequestHandler {
-
-  /**
-   * Logger instance.
-   */
-  protected final static Logger LOG =
-      LoggerFactory.getLogger(BaseManagementHandler.class);
 
   public static final String RESOURCES_NODE_NAME = "resources";
 

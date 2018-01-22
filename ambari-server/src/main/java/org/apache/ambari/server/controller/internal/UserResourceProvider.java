@@ -41,11 +41,15 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Resource provider for user resources.
  */
 public class UserResourceProvider extends AbstractControllerResourceProvider implements ResourcePredicateEvaluator {
+
+  private static final Logger LOG = LoggerFactory.getLogger(UserResourceProvider.class);
 
   // ----- Property ID constants ---------------------------------------------
 

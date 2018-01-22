@@ -34,10 +34,10 @@ public class DesiredConfigTest {
   @Test
   public void testDesiredConfig() throws Exception {
     DesiredConfig dc = new DesiredConfig();
-    dc.setServiceName("service");
+    //dc.setServiceName("service");
     dc.setTag("global");
 
-    Assert.assertEquals("Expected service 'service'", "service", dc.getServiceName());
+    //Assert.assertEquals("Expected service 'service'", "service", dc.getServiceName());
     Assert.assertEquals("Expected version 'global'", "global", dc.getTag());
     Assert.assertEquals("Expected no host overrides", 0, dc.getHostOverrides().size());
     

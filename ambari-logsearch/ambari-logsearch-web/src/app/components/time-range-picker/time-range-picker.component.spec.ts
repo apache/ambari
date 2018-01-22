@@ -25,8 +25,15 @@ import {AppStateService, appState} from '@app/services/storage/app-state.service
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
+import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
+import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {FilteringService} from '@app/services/filtering.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
 
 import {TimeRangePickerComponent} from './time-range-picker.component';
 
@@ -35,6 +42,14 @@ describe('TimeRangePickerComponent', () => {
   let fixture: ComponentFixture<TimeRangePickerComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [TimeRangePickerComponent],
       imports: [
@@ -43,18 +58,35 @@ describe('TimeRangePickerComponent', () => {
           appState,
           clusters,
           components,
-          hosts
+          hosts,
+          auditLogs,
+          auditLogsFields,
+          serviceLogs,
+          serviceLogsFields,
+          serviceLogsHistogramData,
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
       providers: [
-        HttpClientService,
-        FilteringService,
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
+        LogsContainerService,
         AppSettingsService,
         AppStateService,
         ClustersService,
         ComponentsService,
-        HostsService
+        HostsService,
+        AuditLogsService,
+        AuditLogsFieldsService,
+        ServiceLogsService,
+        ServiceLogsFieldsService,
+        ServiceLogsHistogramDataService,
+        ServiceLogsTruncatedService,
+        TabsService
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })

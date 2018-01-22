@@ -165,13 +165,15 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -246,13 +248,15 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

@@ -87,6 +87,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
@@ -404,13 +405,13 @@ public class OrmTestHelper {
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     cluster = initializeClusterWithStack(cluster);
 
     addHost(clusters, cluster, hostName);
 
-    installHdfsService(cluster, serviceFactory, componentFactory, schFactory, hostName);
-    installYarnService(cluster, serviceFactory, componentFactory, schFactory,
-        hostName);
+    installHdfsService(cluster, serviceFactory, componentFactory, schFactory, hostName, serviceGroup);
+    installYarnService(cluster, serviceFactory, componentFactory, schFactory, hostName, serviceGroup);
     return cluster;
   }
 
@@ -447,14 +448,14 @@ public class OrmTestHelper {
 
   public void installHdfsService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
-      ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+      ServiceComponentHostFactory schFactory, String hostName, ServiceGroup serviceGroup) throws Exception {
 
     RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(cluster.getDesiredStackVersion(),
         cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-    service = cluster.getService(serviceName);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
     ServiceComponent datanode = componentFactory.createNew(service, "DATANODE");
@@ -481,14 +482,14 @@ public class OrmTestHelper {
 
   public void installYarnService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
-      ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+      ServiceComponentHostFactory schFactory, String hostName, ServiceGroup serviceGroup) throws Exception {
 
     RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(cluster.getDesiredStackVersion(),
         cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "YARN";
-    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-    service = cluster.getService(serviceName);
+    serviceFactory.createNew(cluster, serviceGroup, Collections.emptyList(), serviceName, serviceName, repositoryVersion);
+    Service service = cluster.getService(serviceName);
     assertNotNull(service);
 
     ServiceComponent resourceManager = componentFactory.createNew(service,
@@ -670,8 +671,10 @@ public class OrmTestHelper {
 
     if (repositoryVersion == null) {
       try {
+        String operatingSystems = "[{\"OperatingSystems/ambari_managed_repositories\":\"true\",\"repositories\":[{\"Repositories/repo_id\":\"HDP\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP\"},{\"Repositories/repo_id\":\"HDP-UTILS\",\"Repositories/base_url\":\"\",\"Repositories/repo_name\":\"HDP-UTILS\"}],\"OperatingSystems/os_type\":\"redhat6\"}]";
+
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), operatingSystems);
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
 

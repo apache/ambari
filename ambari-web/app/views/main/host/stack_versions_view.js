@@ -22,7 +22,7 @@ var sort = require('views/common/sort_view');
 
 App.MainHostStackVersionsView = App.TableView.extend({
   templateName: require('templates/main/host/stack_versions'),
-  classNames: ['host-tab-content'],
+  classNames: ['host-tab-content', 'container-wrap-table'],
 
   /**
    * @type {Ember.Object}

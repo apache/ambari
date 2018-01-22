@@ -55,7 +55,8 @@
         "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
         "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
         "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
-        "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar"
+        "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
+        "gpl_license_accepted": "true"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {

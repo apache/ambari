@@ -36,12 +36,17 @@ public class KerberosPrincipalHostEntityPK implements Serializable{
   @Column(name = "host_id", insertable = false, updatable = false, nullable = false)
   private Long hostId = null;
 
+  @Id
+  @Column(name = "keytab_path", insertable = false, updatable = false, nullable = false)
+  private String keytabPath = null;
+
   public KerberosPrincipalHostEntityPK() {
   }
 
-  public KerberosPrincipalHostEntityPK(String principalName, Long hostId) {
+  public KerberosPrincipalHostEntityPK(String principalName, Long hostId, String keytabPath) {
     setPrincipalName(principalName);
     setHostId(hostId);
+    setKeytabPath(keytabPath);
   }
 
   /**
@@ -92,11 +97,19 @@ public class KerberosPrincipalHostEntityPK implements Serializable{
     KerberosPrincipalHostEntityPK that = (KerberosPrincipalHostEntityPK) o;
 
     return this.principalName.equals(that.principalName) &&
-        this.hostId.equals(that.hostId);
+        this.hostId.equals(that.hostId) && this.keytabPath.equals(that.keytabPath);
   }
 
   @Override
   public int hashCode() {
-    return 31 * principalName.hashCode() + hostId.hashCode();
+    return 31 * principalName.hashCode() + hostId.hashCode() + keytabPath.hashCode();
+  }
+
+  public String getKeytabPath() {
+    return keytabPath;
+  }
+
+  public void setKeytabPath(String keytabPath) {
+    this.keytabPath = keytabPath;
   }
 }

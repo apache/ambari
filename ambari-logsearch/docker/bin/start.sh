@@ -20,6 +20,8 @@ LOGFEEDER_PATH=$AMBARI_PATH/ambari-logsearch/ambari-logsearch-logfeeder/target/p
 SOLR_LOCATION=/root/solr-$SOLR_VERSION.tgz
 SOLR_SERVER_LOCATION=/root/solr-$SOLR_VERSION
 ZKCLI=$SOLR_SERVER_LOCATION/server/scripts/cloud-scripts/zkcli.sh
+ZK_CONNECT_STRING=${ZK_CONNECT_STRING:-"localhost:9983"}
+COMPONENT=${COMPONENT:-"ALL"}
 
 command="$1"
 
@@ -28,9 +30,35 @@ function build_all() {
   cd $AMBARI_PATH/ambari-logsearch && mvn clean package -DskipTests && mvn -pl ambari-logsearch-logfeeder clean package -DskipTests
 }
 
-function create_config() {
-  mkdir /root/config
+function set_custom_zookeeper_address() {
+  local file_to_update=${1:?"usage: <filename_to_update>"}
+  local zk_connect_string="$ZK_CONNECT_STRING"
+  if [ "$zk_connect_string" != "localhost:9983" ] ; then
+    sed -i "s|localhost:9983|$zk_connect_string|g" $file_to_update
+  fi
+}
 
+function create_logfeeder_configs() {
+  mkdir /root/config/logfeeder
+  cp -r /root/test-config/logfeeder/* /root/config/logfeeder/
+  set_custom_zookeeper_address /root/config/logfeeder/logfeeder.properties
+  set_custom_zookeeper_address /root/config/logfeeder/shipper-conf/output.config.json
+}
+
+function create_logsearch_configs() {
+  mkdir /root/config/logsearch
+  cp /root/test-config/logsearch/log4j.xml /root/config/logsearch/
+  cp /root/test-config/logsearch/logsearch-env.sh /root/config/logsearch/
+  if [ $LOGSEARCH_HTTPS_ENABLED == 'true' ]
+  then
+    cp /root/test-config/logsearch/logsearch-https.properties /root/config/logsearch/logsearch.properties
+  else
+    cp /root/test-config/logsearch/logsearch.properties /root/config/logsearch/logsearch.properties
+  fi
+  set_custom_zookeeper_address /root/config/logsearch/logsearch.properties
+}
+
+function create_solr_configs() {
   mkdir /root/config/solr
   cp /root/test-config/solr/log4j.properties /root/config/solr/
   cp /root/test-config/solr/zoo.cfg /root/config/solr/
@@ -41,21 +69,12 @@ function create_config() {
   else
     cp /root/test-config/solr/solr-env.sh /root/config/solr/solr-env.sh
   fi
+}
 
-  mkdir /root/config/logfeeder
-  cp -r /root/test-config/logfeeder/* /root/config/logfeeder/
-
-  mkdir /root/config/logsearch
-  cp /root/test-config/logsearch/log4j.xml /root/config/logsearch/
-  cp /root/test-config/logsearch/logsearch-env.sh /root/config/logsearch/
-  if [ $LOGSEARCH_HTTPS_ENABLED == 'true' ]
-  then
-    cp /root/test-config/logsearch/logsearch-https.properties /root/config/logsearch/logsearch.properties
-  else
-    cp /root/test-config/logsearch/logsearch.properties /root/config/logsearch/logsearch.properties
-  fi
-
-  chmod -R 777 /root/config
+function create_configs() {
+  create_solr_configs
+  create_logfeeder_configs
+  create_logsearch_configs
 }
 
 function generate_keys() {
@@ -114,10 +133,43 @@ function log() {
   esac
 }
 
-create_config
-generate_keys
-start_selenium_server
-start_solr
-start_logsearch
-start_logfeeder
-log
+function main() {
+  component=${COMPONENT:-"ALL"}
+  case $component in
+    "solr")
+      create_solr_configs
+      echo "Start Solr only.."
+      export COMPONENT_LOG="solr"
+      generate_keys
+      start_solr
+      log
+     ;;
+    "logfeeder")
+      create_logfeeder_configs
+      echo "Start Log Feeder only.."
+      export COMPONENT_LOG="logfeeder"
+      generate_keys
+      start_logfeeder
+      log
+     ;;
+    "logsearch")
+      create_logsearch_configs
+      echo "Start Log Search only.."
+      export COMPONENT_LOG="logsearch"
+      generate_keys
+      start_logsearch
+      log
+     ;;
+     *)
+      create_configs
+      generate_keys
+      start_selenium_server
+      start_solr
+      start_logfeeder
+      start_logsearch
+      log
+     ;;
+  esac
+}
+
+main

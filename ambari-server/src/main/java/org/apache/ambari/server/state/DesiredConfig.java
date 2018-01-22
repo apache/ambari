@@ -33,7 +33,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 public class DesiredConfig {
 
   private String tag;
-  private String serviceName;
+  private Long serviceId;
+  private Long serviceGroupId;
   private Long version;
   private List<HostOverride> hostOverrides = new ArrayList<>();
 
@@ -55,21 +56,39 @@ public class DesiredConfig {
   }
 
   /**
-   * Gets the service name (if any) for the desired config.
-   * @return the service name
+   * Gets the service id (if any) for the desired config.
+   * @return the service id
    */
   @JsonSerialize(include = Inclusion.NON_NULL)
-  @JsonProperty("service_name")
-  public String getServiceName() {
-    return serviceName;
+  @JsonProperty("service_id")
+  public Long getServiceId() {
+    return serviceId;
   }
 
   /**
-   * Sets the service name (if any) for the desired config.
-   * @param name the service name
+   * Sets the service id (if any) for the desired config.
+   * @param serviceId the service id
    */
-  public void setServiceName(String name) {
-    serviceName = name;
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
+  }
+
+  /**
+   * Gets the service group id (if any) for the desired config.
+   * @return the service group id
+   */
+  @JsonSerialize(include = Inclusion.NON_NULL)
+  @JsonProperty("service_group_id")
+  public Long getServiceGroupId() {
+    return serviceGroupId;
+  }
+
+  /**
+   * Sets the service group id (if any) for the desired config.
+   * @param serviceGroupId the service group id
+   */
+  public void setServiceGroupId(Long serviceGroupId) {
+    this.serviceGroupId = serviceGroupId;
   }
   
   /**
@@ -160,8 +179,10 @@ public class DesiredConfig {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
     sb.append("tag=").append(tag);
-    if (null != serviceName)
-      sb.append(", service=").append(serviceName);
+    if (null != serviceGroupId)
+      sb.append(", serviceGroupId=").append(serviceGroupId);
+    if (null != serviceId)
+      sb.append(", serviceId=").append(serviceId);
     if (null != hostOverrides && hostOverrides.size() > 0) {
       sb.append(", hosts=[");
       int i = 0;
@@ -189,7 +210,8 @@ public class DesiredConfig {
 
     return new EqualsBuilder()
       .append(tag, that.tag)
-      .append(serviceName, that.serviceName)
+      .append(serviceGroupId, that.serviceGroupId)
+      .append(serviceId, that.serviceId)
       .append(version, that.version)
       .append(hostOverrides, that.hostOverrides)
       .isEquals();
@@ -199,7 +221,8 @@ public class DesiredConfig {
   public int hashCode() {
     return new HashCodeBuilder(17, 37)
       .append(tag)
-      .append(serviceName)
+      .append(serviceGroupId)
+      .append(serviceId)
       .append(version)
       .append(hostOverrides)
       .toHashCode();

@@ -63,6 +63,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
+import org.apache.ambari.server.controller.internal.ClusterSettingResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
@@ -72,6 +73,9 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.KerberosDescriptorResourceProvider;
 import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
+import org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider;
+import org.apache.ambari.server.controller.internal.ServiceDependencyResourceProvider;
+import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
@@ -109,7 +113,7 @@ import org.apache.ambari.server.registry.RegistryFactory;
 import org.apache.ambari.server.registry.RegistryFactoryImpl;
 import org.apache.ambari.server.registry.RegistryManager;
 import org.apache.ambari.server.registry.RegistryManagerImpl;
-import org.apache.ambari.server.resources.ResourceLevelClusterSettingManagerFactory;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -126,6 +130,9 @@ import org.apache.ambari.server.serveraction.users.CsvFilePersisterService;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSetting;
+import org.apache.ambari.server.state.ClusterSettingFactory;
+import org.apache.ambari.server.state.ClusterSettingImpl;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -470,12 +477,17 @@ public class ControllerModule extends AbstractModule {
         Service.class, ServiceImpl.class).build(ServiceFactory.class));
     install(new FactoryModuleBuilder().implement(
         ServiceGroup.class, ServiceGroupImpl.class).build(ServiceGroupFactory.class));
+    install(new FactoryModuleBuilder().implement(
+        ClusterSetting.class, ClusterSettingImpl.class).build(ClusterSettingFactory.class));
 
     install(new FactoryModuleBuilder()
         .implement(ResourceProvider.class, Names.named("host"), HostResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostComponent"), HostComponentResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("service"), ServiceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("servicegroup"), ServiceGroupResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("servicedependency"), ServiceDependencyResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("servicegroupdependency"), ServiceGroupDependencyResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("clustersetting"), ClusterSettingResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("component"), ComponentResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("repositoryVersion"), RepositoryVersionResourceProvider.class)
@@ -486,6 +498,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("clusterStackVersion"), ClusterStackVersionResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("alertTarget"), AlertTargetResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("viewInstance"), ViewInstanceResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("rootServiceHostComponentConfiguration"), RootServiceComponentConfigurationResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
@@ -512,7 +525,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
     install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
     install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
-    install(new FactoryModuleBuilder().build(ResourceLevelClusterSettingManagerFactory.class));
+    install(new FactoryModuleBuilder().build(RootLevelSettingsManagerFactory.class));
 
     bind(RegistryFactory.class).to(RegistryFactoryImpl.class);
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
@@ -524,6 +537,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(CollectionPersisterService.class, CsvFilePersisterService.class).build(CollectionPersisterServiceFactory.class));
 
     install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
+
   }
 
   /**

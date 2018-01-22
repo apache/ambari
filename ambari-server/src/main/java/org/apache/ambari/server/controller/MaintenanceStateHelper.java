@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -66,6 +65,8 @@ public class MaintenanceStateHelper {
    *          operation level (can be null)
    * @param reqFilter
    *          request resource filter for operation (can't be null)
+   * @param serviceGroupName
+   *          service group name (can be null)
    * @param serviceName
    *          service name (can be null)
    * @param componentName
@@ -77,7 +78,7 @@ public class MaintenanceStateHelper {
    */
   public boolean isOperationAllowed(Cluster cluster,
       RequestOperationLevel levelObj, RequestResourceFilter reqFilter,
-      String serviceName, String componentName, String hostname)
+      String serviceGroupName, String serviceName, String componentName, String hostname)
       throws AmbariException {
     Resource.Type level;
     if (levelObj == null) {
@@ -85,7 +86,7 @@ public class MaintenanceStateHelper {
     } else {
       level = levelObj.getLevel();
     }
-    return isOperationAllowed(cluster, level, serviceName, componentName,
+    return isOperationAllowed(cluster, level, serviceGroupName, serviceName, componentName,
         hostname);
   }
 
@@ -94,6 +95,8 @@ public class MaintenanceStateHelper {
    *          cluster for request
    * @param level
    *          operation level (can't be null)
+   * @param serviceGroupName
+   *          service group name (can be null)
    * @param serviceName
    *          service name (can be null)
    * @param componentName
@@ -104,10 +107,12 @@ public class MaintenanceStateHelper {
    *         target's maintenance status).
    */
   boolean isOperationAllowed(Cluster cluster, Resource.Type level,
-      String serviceName, String componentName, String hostname)
+      String serviceGroupName, String serviceName, String componentName, String hostname)
       throws AmbariException {
+//    serviceGroupName != null && !serviceGroupName.isEmpty() &&
+//    TODO add service group null checks when the UI is updated
     if (serviceName != null && !serviceName.isEmpty()) {
-      Service service = cluster.getService(serviceName);
+      Service service = cluster.getService(serviceGroupName, serviceName);
       if (componentName != null && !componentName.isEmpty()) {
         ServiceComponentHost sch = service.getServiceComponent(componentName).getServiceComponentHost(
             hostname);
@@ -265,7 +270,7 @@ public class MaintenanceStateHelper {
     }
 
     // the AMBARI service is not a real service; it's never in MM
-    if( StringUtils.equals(Services.AMBARI.name(), serviceName)){
+    if( StringUtils.equals(RootService.AMBARI.name(), serviceName)){
       return MaintenanceState.OFF;
     }
 

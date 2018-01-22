@@ -51,6 +51,10 @@ public class RequestResourceFilterEntity {
   @Column(name = "request_id", nullable = false, insertable = true, updatable = true)
   private Long requestId;
 
+  @Column(name = "service_group_name")
+  @Basic
+  private String serviceGroupName;
+
   @Column(name = "service_name")
   @Basic
   private String serviceName;
@@ -113,5 +117,13 @@ public class RequestResourceFilterEntity {
 
   public void setRequestEntity(RequestEntity request) {
     this.requestEntity = request;
+  }
+
+  public String getServiceGroupName() {
+    return serviceGroupName;
+  }
+
+  public void setServiceGroupName(String serviceGroupName) {
+    this.serviceGroupName = serviceGroupName;
   }
 }

@@ -115,6 +115,7 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
+    ServiceResponse serviceResponse = createNiceMock(ServiceResponse.class);
     StackId stackId = new StackId("HDP-2.5");
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
@@ -123,7 +124,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(cluster.addService(eq("Service100"),
+    expect(cluster.addService(anyObject(), eq("Service100"), anyObject(),
         EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -132,12 +133,14 @@ public class ServiceResourceProviderTest {
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
+    expect(service.convertToResponse()).andReturn(serviceResponse).anyTimes();
+
     expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
     expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
     // replay
     replay(managementController, clusters, cluster, service,
-        ambariMetaInfo, serviceFactory, serviceInfo);
+        ambariMetaInfo, serviceFactory, serviceInfo, serviceResponse);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -152,6 +155,7 @@ public class ServiceResourceProviderTest {
     // add properties to the request map
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service100");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, "SERVICE_GROUP");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
     properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
     properties.put(ServiceResourceProvider.SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, "1");
@@ -606,6 +610,7 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service0 = createNiceMock(Service.class);
+    ServiceResponse serviceResponse = createNiceMock(ServiceResponse.class);
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     RequestStageContainer requestStages = createNiceMock(RequestStageContainer.class);
@@ -624,16 +629,20 @@ public class ServiceResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getService("Service102")).andReturn(service0);
+    expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service0.getServiceComponents()).andReturn(Collections.emptyMap()).anyTimes();
+    expect(service0.convertToResponse()).andReturn(serviceResponse).anyTimes();
+    expect(serviceResponse.getServiceName()).andReturn("Service102").anyTimes();
+    expect(serviceResponse.getClusterName()).andReturn("Cluster100").anyTimes();
 
     expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
     expect(stackId.getStackName()).andReturn("HDP").anyTimes();
     expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
     expect(service0.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(service0.getName()).andReturn("Service102").anyTimes();
+    expect(service0.getServiceType()).andReturn("Service102").anyTimes();
     expect(serviceInfo.isCredentialStoreSupported()).andReturn(true).anyTimes();
     expect(serviceInfo.isCredentialStoreEnabled()).andReturn(false).anyTimes();
     expect(ambariMetaInfo.getService("HDP", "2.5", "Service102")).andReturn(serviceInfo).anyTimes();
@@ -663,7 +672,7 @@ public class ServiceResourceProviderTest {
     // replay
     replay(managementController, clusters, cluster, rco, maintenanceStateHelper,
         repositoryVersionDAO, service0, serviceFactory, ambariMetaInfo, requestStages,
-        requestStatusResponse, stackId, serviceInfo);
+        requestStatusResponse, stackId, serviceInfo, serviceResponse);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -685,7 +694,7 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, maintenanceStateHelper,
-        service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse, stackId, serviceInfo);
+      service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse, stackId, serviceInfo);
   }
 
   @Test
@@ -1170,7 +1179,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(cluster.addService(eq("Service200"), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
+    expect(cluster.addService(anyObject(), eq("Service200"), anyObject(), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -1202,6 +1211,7 @@ public class ServiceResourceProviderTest {
     // add properties to the request map
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service200");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, "TEST_GROUP");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
     properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
 
@@ -1242,7 +1252,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(cluster.addService(eq("Service200"), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
+    expect(cluster.addService(anyObject(), eq("Service200"), anyObject(), EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service2);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -1404,7 +1414,6 @@ public class ServiceResourceProviderTest {
   public static ServiceResourceProvider getServiceProvider(
       AmbariManagementController managementController,
       MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
-    Resource.Type type = Resource.Type.Service;
     return new ServiceResourceProvider(managementController, maintenanceStateHelper, repositoryVersionDAO);
   }
 

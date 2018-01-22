@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.stack.Metric;
@@ -139,22 +140,23 @@ public class StackDefinedPropertyProviderTest {
 
     cluster.setDesiredStackVersion(stackId);
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    Service service = cluster.addService("HDFS", repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    Service service = cluster.addService(serviceGroup, "HDFS", "HDFS", repositoryVersion);
     service.addServiceComponent("NAMENODE");
     service.addServiceComponent("DATANODE");
     service.addServiceComponent("JOURNALNODE");
 
-    service = cluster.addService("YARN", repositoryVersion);
+    service = cluster.addService(serviceGroup, "YARN", "YARN", repositoryVersion);
     service.addServiceComponent("RESOURCEMANAGER");
 
-    service = cluster.addService("HBASE", repositoryVersion);
+    service = cluster.addService(serviceGroup, "HBASE", "HBASE", repositoryVersion);
     service.addServiceComponent("HBASE_MASTER");
     service.addServiceComponent("HBASE_REGIONSERVER");
 
     stackId = new StackId("HDP-2.1.1");
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    service = cluster.addService("STORM", repositoryVersion);
+    service = cluster.addService(serviceGroup, "STORM", "STORM", repositoryVersion);
     service.addServiceComponent("STORM_REST_API");
 
     clusters.addHost("h1");

@@ -255,6 +255,8 @@ public class HostGroupImpl implements HostGroup {
       } else {
         addComponent(componentEntity.getName());
       }
+
+
     }
   }
 

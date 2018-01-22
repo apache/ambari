@@ -40,6 +40,7 @@ public class ActionExecutionContext {
   private Map<String, String> parameters;
   private TargetHostType targetType;
   private Short timeout;
+  private String expectedServiceGroupName;
   private String expectedServiceName;
   private String expectedComponentName;
   private boolean hostsInMaintenanceModeExcluded = true;
@@ -61,7 +62,7 @@ public class ActionExecutionContext {
   public ActionExecutionContext(String clusterName, String actionName,
       List<RequestResourceFilter> resourceFilters,
       Map<String, String> parameters, TargetHostType targetType,
-      Short timeout, String expectedServiceName,
+      Short timeout, String expectedServiceGroupName, String expectedServiceName,
       String expectedComponentName) {
 
     this.clusterName = clusterName;
@@ -70,6 +71,7 @@ public class ActionExecutionContext {
     this.parameters = parameters;
     this.targetType = targetType;
     this.timeout = timeout;
+    this.expectedServiceGroupName = expectedServiceGroupName;
     this.expectedServiceName = expectedServiceName;
     this.expectedComponentName = expectedComponentName;
   }
@@ -124,6 +126,10 @@ public class ActionExecutionContext {
 
   public void setOperationLevel(RequestOperationLevel operationLevel) {
     this.operationLevel = operationLevel;
+  }
+
+  public String getExpectedServiceGroupName() {
+    return expectedServiceGroupName;
   }
 
   public String getExpectedServiceName() {
@@ -262,12 +268,12 @@ public class ActionExecutionContext {
   }
 
   /**
+   *
    * Interface that allows a final attempt to setting values on an {@link ExecutionCommand}
-   * @author ncole
    *
    */
-  public static interface ExecutionCommandVisitor {
-    public void visit(ExecutionCommand command);
+  public interface ExecutionCommandVisitor {
+    void visit(ExecutionCommand command);
   }
 
 }

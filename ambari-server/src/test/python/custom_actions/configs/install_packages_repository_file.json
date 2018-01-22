@@ -28,6 +28,7 @@
         "stackName": "HDP",
         "repoVersionId": 4,
         "repoVersion": "2.2.0.1-885",
+        "repoFileName": "ambari-hdp-4",
         "repositories": [
           {
             "repoName": "HDP-UTILS",

@@ -29,6 +29,7 @@ public class ActionRequest {
   static final String ACTION_TYPE = "action_type";
   static final String INPUTS = "inputs";
   static final String TARGET_SERVICE = "target_service";
+  static final String TARGET_SERVICE_GROUP = "target_service_group";
   static final String TARGET_COMPONENT = "target_component";
   static final String DESCRIPTION = "description";
   static final String TARGET_TYPE = "target_type";
@@ -37,6 +38,7 @@ public class ActionRequest {
   private String actionName;  //CRUD
   private String actionType;  //C
   private String inputs;  //C
+  private String targetServiceGroup;  //C
   private String targetService;  //C
   private String targetComponent;  //C
   private String description;  //CU
@@ -45,11 +47,12 @@ public class ActionRequest {
 
   public ActionRequest(
       String actionName, String actionType, String inputs,
-      String targetService, String targetComponent, String description, String targetType,
+      String targetServiceGroup, String targetService, String targetComponent, String description, String targetType,
       String defaultTimeout) {
     setActionName(actionName);
     setActionType(actionType);
     setInputs(inputs);
+    setTargetServiceGroup(targetServiceGroup);
     setTargetService(targetService);
     setTargetComponent(targetComponent);
     setDescription(description);
@@ -63,7 +66,7 @@ public class ActionRequest {
    * @return
    */
   public static ActionRequest getAllRequest() {
-    return new ActionRequest(null, null, null, null, null, null, null, null);
+    return new ActionRequest(null, null, null, null,null, null, null, null, null);
   }
 
   @ApiModelProperty(name = ACTION_NAME)
@@ -100,6 +103,15 @@ public class ActionRequest {
 
   public void setTargetService(String targetService) {
     this.targetService = targetService;
+  }
+
+  @ApiModelProperty(name = TARGET_SERVICE_GROUP)
+  public String getTargetServiceGroup() {
+    return targetServiceGroup;
+  }
+
+  public void setTargetServiceGroup(String targetServiceGroup) {
+    this.targetServiceGroup = targetServiceGroup;
   }
 
   @ApiModelProperty(name = TARGET_COMPONENT)

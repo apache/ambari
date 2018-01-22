@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * TODO injection as Guice singleon, static for now to avoid major modifications
  */
 public class RetryHelper {
-  protected final static Logger LOG = LoggerFactory.getLogger(RetryHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RetryHelper.class);
   private static Clusters s_clusters;
 
   private static ThreadLocal<Set<Cluster>> affectedClusters = new ThreadLocal<Set<Cluster>>(){

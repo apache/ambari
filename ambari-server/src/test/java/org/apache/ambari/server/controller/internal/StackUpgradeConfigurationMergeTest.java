@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
@@ -261,7 +261,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     ServiceConfigDAO serviceConfigDAOMock = m_injector.getInstance(ServiceConfigDAO.class);
     List<ServiceConfigEntity> latestServiceConfigs = Lists.newArrayList(zookeeperServiceConfig);
     expect(serviceConfigDAOMock.getLastServiceConfigsForService(EasyMock.anyLong(),
-        eq("ZOOKEEPER"))).andReturn(latestServiceConfigs).once();
+        anyLong())).andReturn(latestServiceConfigs).once();
 
     UpgradeContext context = createNiceMock(UpgradeContext.class);
     expect(context.getCluster()).andReturn(cluster).atLeastOnce();
@@ -393,7 +393,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     ServiceConfigDAO serviceConfigDAOMock = m_injector.getInstance(ServiceConfigDAO.class);
     List<ServiceConfigEntity> latestServiceConfigs = Lists.newArrayList(zookeeperServiceConfig);
     expect(serviceConfigDAOMock.getLastServiceConfigsForService(EasyMock.anyLong(),
-        eq(serviceName))).andReturn(latestServiceConfigs).once();
+        anyLong())).andReturn(latestServiceConfigs).once();
 
     UpgradeContext context = createNiceMock(UpgradeContext.class);
     expect(context.getCluster()).andReturn(cluster).atLeastOnce();

@@ -225,7 +225,7 @@ public class TestActionManager {
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
+            hostname, System.currentTimeMillis()), "cluster1", "core", "HBASE", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
@@ -238,11 +238,11 @@ public class TestActionManager {
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-          hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
+          hostname, System.currentTimeMillis()), "cluster1", "core", "HBASE", false, false);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_REGIONSERVER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER.toString(),
-          hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
+          hostname, System.currentTimeMillis()), "cluster1", "core", "HBASE", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);

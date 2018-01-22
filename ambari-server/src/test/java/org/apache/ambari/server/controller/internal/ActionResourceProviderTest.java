@@ -98,13 +98,13 @@ public class ActionResourceProviderTest {
 
     List<ActionDefinition> allDefinition = new ArrayList<>();
     allDefinition.add(new ActionDefinition(
-        "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        "a1", ActionType.SYSTEM, "fileName", "core", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
         Short.valueOf("100"), null));
     allDefinition.add(new ActionDefinition(
-        "a2", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        "a2", ActionType.SYSTEM, "fileName", "core", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
         Short.valueOf("100"), null));
     allDefinition.add(new ActionDefinition(
-        "a3", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        "a3", ActionType.SYSTEM, "fileName", "core", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
         Short.valueOf("100"), null));
 
     Set<ActionResponse> allResponse = new HashSet<>();
@@ -113,7 +113,7 @@ public class ActionResourceProviderTest {
     }
 
     ActionDefinition namedDefinition = new ActionDefinition(
-        "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        "a1", ActionType.SYSTEM, "fileName", "core", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
         Short.valueOf("100"), null);
 
     Set<ActionResponse> nameResponse = new HashSet<>();
@@ -140,6 +140,7 @@ public class ActionResourceProviderTest {
     propertyIds.add(ActionResourceProvider.TARGET_COMPONENT_PROPERTY_ID);
     propertyIds.add(ActionResourceProvider.TARGET_HOST_PROPERTY_ID);
     propertyIds.add(ActionResourceProvider.TARGET_SERVICE_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.TARGET_SERVICE_GROUP_PROPERTY_ID);
 
 
     // create the request
@@ -156,10 +157,11 @@ public class ActionResourceProviderTest {
       String description = (String) resource.getPropertyValue(ActionResourceProvider.DESCRIPTION_PROPERTY_ID);
       String inputs = (String) resource.getPropertyValue(ActionResourceProvider.INPUTS_PROPERTY_ID);
       String comp = (String) resource.getPropertyValue(ActionResourceProvider.TARGET_COMPONENT_PROPERTY_ID);
+      String serviceGroup = (String) resource.getPropertyValue(ActionResourceProvider.TARGET_SERVICE_GROUP_PROPERTY_ID);
       String svc = (String) resource.getPropertyValue(ActionResourceProvider.TARGET_SERVICE_PROPERTY_ID);
       String host = (String) resource.getPropertyValue(ActionResourceProvider.TARGET_HOST_PROPERTY_ID);
       Assert.assertTrue(allResponse.contains(new ActionResponse(actionName, actionType,
-          inputs, svc, comp, description, host, defaultTimeout)));
+          inputs, serviceGroup, svc, comp, description, host, defaultTimeout)));
     }
 
     // get actions named a1

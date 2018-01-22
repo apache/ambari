@@ -31,10 +31,11 @@ import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-log
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
-import {FilteringService} from '@app/services/filtering.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {MenuButtonComponent} from './menu-button.component';
 
@@ -43,6 +44,14 @@ describe('MenuButtonComponent', () => {
   let fixture: ComponentFixture<MenuButtonComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
       declarations: [MenuButtonComponent],
       imports: [
@@ -57,7 +66,8 @@ describe('MenuButtonComponent', () => {
           serviceLogs,
           serviceLogsFields,
           serviceLogsHistogramData,
-          serviceLogsTruncated
+          serviceLogsTruncated,
+          tabs
         }),
         ...TranslationModules
       ],
@@ -73,10 +83,14 @@ describe('MenuButtonComponent', () => {
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
+        TabsService,
         ComponentActionsService,
-        FilteringService,
-        HttpClientService,
-        LogsContainerService
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
+        LogsContainerService,
+        AuthService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

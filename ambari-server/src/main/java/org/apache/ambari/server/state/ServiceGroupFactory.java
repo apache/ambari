@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Set;
+
+import org.apache.ambari.server.api.services.ServiceGroupKey;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 
 import com.google.inject.assistedinject.Assisted;
@@ -25,7 +28,8 @@ import com.google.inject.assistedinject.Assisted;
 public interface ServiceGroupFactory {
 
   ServiceGroup createNew(Cluster cluster,
-                         @Assisted("serviceGroupName") String serviceGroupName);
+                         @Assisted("serviceGroupName") String serviceGroupName,
+                         @Assisted("serviceGroupDependencies") Set<ServiceGroupKey> serviceGroupDependencies);
 
   ServiceGroup createExisting(Cluster cluster, ServiceGroupEntity serviceGroupEntity);
 }

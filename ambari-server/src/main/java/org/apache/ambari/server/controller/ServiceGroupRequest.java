@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.Objects;
 
 public class ServiceGroupRequest {
 
@@ -56,10 +57,28 @@ public class ServiceGroupRequest {
     this.serviceGroupName = serviceGroupName;
   }
 
+  @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("clusterName=" + clusterName
-      + ", serviceGroupName=" + serviceGroupName);
-    return sb.toString();
+    return String.format("clusterName=%s, serviceGroupName=%s", clusterName, serviceGroupName);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ServiceGroupRequest other = (ServiceGroupRequest) obj;
+
+    return Objects.equals(clusterName, other.clusterName) &&
+      Objects.equals(serviceGroupName, other.serviceGroupName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(clusterName, serviceGroupName);
   }
 }
