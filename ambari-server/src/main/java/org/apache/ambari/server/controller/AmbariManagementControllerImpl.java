@@ -2494,8 +2494,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Set/update the unlimited_key_jce_required value as needed
     hostParams.put(UNLIMITED_KEY_JCE_REQUIRED, (unlimitedKeyJCEPolicyRequired) ? "true" : "false");
 
-    // set java home for each host depending on os type; if not found default will be used
-    String javaHomeValue = configs.getJavaHomeForOs(host.getOsType());
+    // set java home for each host depending on os family; if not found default will be used
+    String javaHomeValue = configs.getJavaHomeForOs(host.getOsFamily());
     hostParams.put(JAVA_HOME, javaHomeValue);
 
     execCmd.setHostLevelParams(hostParams);

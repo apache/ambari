@@ -417,14 +417,14 @@ class JDKSetup(object):
     jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
                     "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
 
-    server_os_type = OS_TYPE + OS_VERSION
+    server_os_family = OS_FAMILY + OS_VERSION
     if args.java_home:
-      if args.os_type and server_os_type != args.os_type:
-        #Do not set Java home for OS type unless default java.home is set
+      if args.os_family and server_os_family != args.os_family:
+        #Do not set Java home for OS family unless default java.home is set
         if not properties.get_property(JAVA_HOME_PROPERTY):
-          err = "JDK is not set for Ambari Server. Use ambari-server setup without --os-type option"
+          err = "JDK is not set for Ambari Server. Use ambari-server setup without --os-family option"
           raise FatalException(1, err)
-        properties.process_pair(JAVA_HOME_PROPERTY + '.' + args.os_type, args.java_home)
+        properties.process_pair(JAVA_HOME_PROPERTY + '.' + args.os_family, args.java_home)
         return
 
       #java_home was specified among the command-line arguments. Use it as custom JDK location.
@@ -437,7 +437,7 @@ class JDKSetup(object):
       IS_CUSTOM_JDK = True
 
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
-      properties.process_pair(JAVA_HOME_PROPERTY + '.' + server_os_type, args.java_home)
+      properties.process_pair(JAVA_HOME_PROPERTY + '.' + str(server_os_family), args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
 
@@ -504,7 +504,7 @@ class JDKSetup(object):
       print "Validating JDK on Ambari Server...done."
 
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
-      properties.process_pair(JAVA_HOME_PROPERTY + '.' + server_os_type, args.java_home)
+      properties.process_pair(JAVA_HOME_PROPERTY + '.' + str(server_os_family), args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
 
@@ -1148,14 +1148,14 @@ def check_setup_already_done():
   return not bool(get_missing_properties(properties, property_set=SETUP_DONE_PROPERTIES))
 
 def update_ambari_repo(options):
-  choice_prompt = "Enter OS type for which the Ambari repo URL is to be changed(eg: redhat7, redhat-ppc7, suse11, ubuntu12): "
-  os_type = get_validated_string_input(choice_prompt, None, None, None, False)
-  if os_type is None:
-    err = 'OS type cannot be empty'
+  choice_prompt = "Enter OS family for which the Ambari repo URL is to be changed(eg: redhat7, redhat-ppc7, suse11, ubuntu12): "
+  os_family = get_validated_string_input(choice_prompt, None, None, None, False)
+  if os_family is None:
+    err = 'OS family cannot be empty'
     raise FatalException(1, err)
 
   properties = get_ambari_properties()
-  properties.process_pair(AMBARI_REPO + '.' + os_type, options.ambari_repo)
+  properties.process_pair(AMBARI_REPO + '.' + os_family, options.ambari_repo)
   update_properties(properties)
 
 #
@@ -1198,8 +1198,8 @@ def setup(options):
   if _check_jdbc_options(options):
     proceedJDBCProperties(options)
 
-  if options.os_type and not options.java_home:
-    err = "Error: Specified os_type should be used with option --java-home or -j"
+  if options.os_family and not options.java_home:
+    err = "Error: Specified os_family should be used with option --java-home or -j"
     raise FatalException(1, err)
 
   print 'Checking JDK...'
