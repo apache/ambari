@@ -119,6 +119,16 @@ public class BlueprintImpl implements Blueprint {
     return stackIds;
   }
 
+  @Override
+  public StackId getStackIdForService(String service) {
+    return Iterables.getOnlyElement(stack.getStacksForService(service));
+  }
+
+  @Override
+  public Collection<StackId> getStackIdsForService(String service) {
+    return stack.getStacksForService(service);
+  }
+
   public SecurityConfiguration getSecurity() {
     return security;
   }

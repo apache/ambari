@@ -138,7 +138,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
       hostGroups.add(new HostGroupImpl(exportedHostGroup.getName(), bpName, stack, componentList,
           exportedHostGroup.getConfiguration(), String.valueOf(exportedHostGroup.getCardinality())));
     }
-    ImmutableSet<StackId> stackIds = ImmutableSet.of(new StackId(stack.getName(), stack.getVersion()));
+    ImmutableSet<StackId> stackIds = ImmutableSet.of(stack.getStackId());
     blueprint = new BlueprintImpl(bpName, hostGroups, stack, stackIds, configuration, null, null);
   }
 

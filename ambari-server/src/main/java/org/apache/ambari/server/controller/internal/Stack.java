@@ -42,9 +42,12 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Encapsulates stack information.
@@ -198,9 +201,17 @@ public class Stack implements StackInfo {
     return version;
   }
 
+  public StackId getStackId() {
+    return new StackId(name, version);
+  }
 
   Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
     return dependencyConditionalServiceMap;
+  }
+
+  @Override
+  public Collection<StackId> getStacksForService(String serviceName) {
+    return Collections.singleton(getStackId());
   }
 
   /**
@@ -273,7 +284,8 @@ public class Stack implements StackInfo {
    */
   @Override
   public Collection<String> getAllConfigurationTypes(String service) {
-    return serviceConfigurations.get(service).keySet();
+    Map<String, Map<String, ConfigProperty>> serviceConfigs = serviceConfigurations.get(service);
+    return serviceConfigs != null ? serviceConfigs.keySet() : ImmutableSet.of();
   }
 
   /**
@@ -286,9 +298,8 @@ public class Stack implements StackInfo {
    */
   @Override
   public Collection<String> getConfigurationTypes(String service) {
-    Set<String> serviceTypes = new HashSet<>(serviceConfigurations.get(service).keySet());
+    Set<String> serviceTypes = new HashSet<>(getAllConfigurationTypes(service));
     serviceTypes.removeAll(getExcludedConfigurationTypes(service));
-
     return serviceTypes;
   }
 

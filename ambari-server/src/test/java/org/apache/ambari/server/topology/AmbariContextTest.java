@@ -99,11 +99,11 @@ public class AmbariContextTest {
   private static final long CLUSTER_ID = 1L;
   private static final String STACK_NAME = "testStack";
   private static final String STACK_VERSION = "testVersion";
+  private static final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
   private static final String HOST_GROUP_1 = "group1";
   private static final String HOST_GROUP_2 = "group2";
   private static final String HOST1 = "host1";
   private static final String HOST2 = "host2";
-  StackId stackId = new StackId(STACK_NAME, STACK_VERSION);
 
   private static final AmbariContext context = new AmbariContext();
   private static final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
@@ -242,7 +242,8 @@ public class AmbariContextTest {
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackId()).andReturn(new StackId(STACK_NAME, STACK_VERSION)).anyTimes();
+    expect(blueprint.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
     expect(blueprint.getServices()).andReturn(blueprintServices).anyTimes();
     expect(blueprint.getComponents("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();
     expect(blueprint.getComponents("service2")).andReturn(Collections.singleton("s2Component1")).anyTimes();

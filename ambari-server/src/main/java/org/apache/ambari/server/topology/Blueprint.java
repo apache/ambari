@@ -21,6 +21,7 @@ package org.apache.ambari.server.topology;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -120,6 +121,9 @@ public interface Blueprint {
    */
   StackInfo getStack();
   StackId getStackId();
+  Set<StackId> getStackIds();
+  StackId getStackIdForService(String service);
+  Collection<StackId> getStackIdsForService(String service);
 
   /**
    * Get the host groups which contain components for the specified service.

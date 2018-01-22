@@ -93,7 +93,7 @@ public class BlueprintFactory {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
     if (entity != null) {
       Set<StackId> stackIds = fakeStackIds();
-      StackInfo stack = createCompositeStack(stackIds);
+      StackInfo stack = composeStacks(stackIds);
       return new BlueprintImpl(entity, stack, stackIds);
     }
     return null;
@@ -116,7 +116,7 @@ public class BlueprintFactory {
     }
 
     Set<StackId> stackIds = fakeStackIds();
-    StackInfo stack = createCompositeStack(stackIds);
+    StackInfo stack = composeStacks(stackIds);
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
             properties.get(CONFIGURATION_PROPERTY_ID));
@@ -125,8 +125,12 @@ public class BlueprintFactory {
     return new BlueprintImpl(name, hostGroups, stack, stackIds, configuration, securityConfiguration, setting);
   }
 
-  CompositeStack createCompositeStack(Set<StackId> stackIds) {
-    return new CompositeStack(stackIds.stream().map(this::createStack).collect(toSet()));
+  public StackInfo composeStacks(Set<StackId> stackIds) {
+    if (stackIds.size() == 1) {
+      return createStack(stackIds.iterator().next());
+    }
+    Set<Stack> stacks = stackIds.stream().map(this::createStack).collect(toSet());
+    return new CompositeStack(stacks);
   }
 
   static Set<StackId> fakeStackIds() {

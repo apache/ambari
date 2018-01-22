@@ -1102,7 +1102,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         LOG.debug("Received a createService request, clusterId={}, serviceName={}, request={}", clusterName, serviceName, request);
       }
 
-      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
         throw new AuthorizationException("The user is not authorized to create services");
       }
 
@@ -1121,8 +1121,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         State state = State.valueOf(request.getDesiredState());
         if (!state.isValidDesiredState() || state != State.INIT) {
           throw new IllegalArgumentException("Invalid desired state"
-                  + " only INIT state allowed during creation"
-                  + ", providedDesiredState=" + request.getDesiredState());
+            + " only INIT state allowed during creation"
+            + ", providedDesiredState=" + request.getDesiredState());
         }
       }
 
@@ -1148,7 +1148,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (null == desiredRepositoryVersion) {
         Set<Long> repoIds = new HashSet<>();
 
-        if(desiredStackId != null) {
+        if (desiredStackId != null) {
           //Todo : How to filter out the right repoversion entity based on the stack id?
           List<RepositoryVersionEntity> list = repositoryVersionDAO.findByStack(desiredStackId);
           RepositoryVersionEntity serviceRepo = list.remove(0);
@@ -1169,13 +1169,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
 
         LOG.info("{} was not specified; the following repository ids were found: {}",
-            SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, StringUtils.join(repoIds, ','));
+          SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, StringUtils.join(repoIds, ',')
+        );
 
         if (CollectionUtils.isEmpty(repoIds)) {
           throw new IllegalArgumentException("No repositories were found for service installation");
         } else if (repoIds.size() > 1) {
           throw new IllegalArgumentException(String.format("%s was not specified, and the cluster " +
-              "contains more than one standard-type repository", SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID));
+            "contains more than one standard-type repository", SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID));
         } else {
           desiredRepositoryVersion = repoIds.iterator().next();
         }
@@ -1191,8 +1192,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         throw new IllegalArgumentException(String.format("Could not find any repositories defined by %d", desiredRepositoryVersion));
       }
 
-      StackId stackId = repositoryVersion.getStackId();
-      //StackId stackId = desiredStackId; //Todo Replace after UI is ready
+      StackId stackId = desiredStackId;
+      if (stackId == null) {
+        stackId = repositoryVersion.getStackId();
+      }
 
       request.setResolvedRepository(repositoryVersion);
 

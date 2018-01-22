@@ -8,10 +8,14 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 
 public interface StackInfo {
+
+  Collection<StackId> getStacksForService(String serviceName);
+
   Collection<String> getServices();
 
   Collection<String> getComponents(String service);

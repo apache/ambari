@@ -22,24 +22,27 @@ import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.commons.lang3.tuple.Pair;
 
 // FIXME temporary
 /** Combine multiple mpacks into a single stack. */
 public class CompositeStack implements StackInfo {
 
-  private final Set<StackInfo> mpacks;
+  private final Set<Stack> mpacks;
   private final Collection<String> services;
   private final Map<String, Collection<String>> components;
 
-  public CompositeStack(Set<StackInfo> mpacks) {
+  public CompositeStack(Set<Stack> mpacks) {
     this.mpacks = mpacks;
 
     services = mpacks.stream()
@@ -49,6 +52,14 @@ public class CompositeStack implements StackInfo {
     components = mpacks.stream()
       .flatMap(m -> m.getComponents().entrySet().stream())
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  public Collection<StackId> getStacksForService(String serviceName) {
+    return mpacks.stream()
+      .map(m -> Pair.of(m.getStackId(), m.getServices()))
+      .filter(p -> p.getRight().contains(serviceName))
+      .map(Pair::getLeft)
+      .collect(toSet());
   }
 
   @Override
@@ -70,6 +81,7 @@ public class CompositeStack implements StackInfo {
   public ComponentInfo getComponentInfo(String component) {
     return mpacks.stream()
       .map(m -> m.getComponentInfo(component))
+      .filter(Objects::nonNull)
       .findAny()
       .orElse(null);
   }
@@ -160,6 +172,7 @@ public class CompositeStack implements StackInfo {
   public String getServiceForComponent(String component) {
     return mpacks.stream()
       .map(m -> m.getServiceForComponent(component))
+      .filter(Objects::nonNull)
       .findAny()
       .orElse(null);
   }
@@ -175,6 +188,7 @@ public class CompositeStack implements StackInfo {
   public String getServiceForConfigType(String config) {
     return mpacks.stream()
       .map(m -> m.getServiceForConfigType(config))
+      .filter(Objects::nonNull)
       .findAny()
       .orElse(null);
   }
@@ -190,6 +204,7 @@ public class CompositeStack implements StackInfo {
   public String getConditionalServiceForDependency(DependencyInfo dependency) {
     return mpacks.stream()
       .map(m -> m.getConditionalServiceForDependency(dependency))
+      .filter(Objects::nonNull)
       .findAny()
       .orElse(null);
   }
@@ -198,6 +213,7 @@ public class CompositeStack implements StackInfo {
   public String getExternalComponentConfig(String component) {
     return mpacks.stream()
       .map(m -> m.getExternalComponentConfig(component))
+      .filter(Objects::nonNull)
       .findAny()
       .orElse(null);
   }
@@ -206,6 +222,7 @@ public class CompositeStack implements StackInfo {
   public Cardinality getCardinality(String component) {
     return mpacks.stream()
       .map(m -> m.getCardinality(component))
+      .filter(Objects::nonNull)
       .findAny()
       .orElse(null);
   }
@@ -214,6 +231,7 @@ public class CompositeStack implements StackInfo {
   public AutoDeployInfo getAutoDeployInfo(String component) {
     return mpacks.stream()
       .map(m -> m.getAutoDeployInfo(component))
+      .filter(Objects::nonNull)
       .findAny()
       .orElse(null);
   }
