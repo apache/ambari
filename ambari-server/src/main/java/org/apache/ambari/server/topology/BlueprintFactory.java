@@ -143,9 +143,9 @@ public class BlueprintFactory {
   protected Stack createStack(StackId stackId) {
     try {
       //todo: don't pass in controller
-      return stackFactory.createStack(stackId.getStackName(), stackId.getStackVersion(), AmbariServer.getController());
+      return stackFactory.createStack(stackId, AmbariServer.getController());
     } catch (ObjectNotFoundException e) {
-      throw new NoSuchStackException(stackId.getStackName(), stackId.getStackVersion());
+      throw new NoSuchStackException(stackId);
     } catch (AmbariException e) {
       //todo:
       throw new RuntimeException("An error occurred parsing the stack information.", e);
@@ -253,7 +253,7 @@ public class BlueprintFactory {
    * simulate various Stack or error conditions.
    */
   interface StackFactory {
-      Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
+      Stack createStack(StackId stackId, AmbariManagementController managementController) throws AmbariException;
   }
 
   /**
@@ -264,8 +264,8 @@ public class BlueprintFactory {
    */
   private static class DefaultStackFactory implements StackFactory {
     @Override
-    public Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException {
-      return new Stack(stackName, stackVersion, managementController);
+    public Stack createStack(StackId stackId, AmbariManagementController managementController) throws AmbariException {
+      return new Stack(stackId.getStackName(), stackId.getStackVersion(), managementController);
     }
   }
 }

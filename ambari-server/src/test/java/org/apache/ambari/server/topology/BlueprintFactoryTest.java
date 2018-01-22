@@ -170,13 +170,13 @@ public class BlueprintFactoryTest {
       mockSupport.createMock(BlueprintFactory.StackFactory.class);
 
     // setup mock to throw exception, to simulate invalid stack request
-    expect(mockStackFactory.createStack("null", "null", null)).andThrow(new ObjectNotFoundException("Invalid Stack"));
+    expect(mockStackFactory.createStack(new StackId(), null)).andThrow(new ObjectNotFoundException("Invalid Stack"));
 
     mockSupport.replayAll();
 
     BlueprintFactory factoryUnderTest =
       new BlueprintFactory(mockStackFactory);
-    factoryUnderTest.createStack(new StackId("null", "null"));
+    factoryUnderTest.createStack(new StackId());
 
     mockSupport.verifyAll();
   }
