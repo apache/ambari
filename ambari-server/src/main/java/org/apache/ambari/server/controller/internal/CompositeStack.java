@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
@@ -186,11 +187,20 @@ public class CompositeStack implements StackInfo {
 
   @Override
   public String getServiceForConfigType(String config) {
+    if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
+      return null;
+    }
     return mpacks.stream()
-      .map(m -> m.getServiceForConfigType(config))
+      .map(m -> {
+        try {
+          return m.getServiceForConfigType(config);
+        } catch (IllegalArgumentException e) {
+          return null;
+        }
+      })
       .filter(Objects::nonNull)
       .findAny()
-      .orElse(null);
+      .orElseThrow(() -> new IllegalArgumentException(Stack.formatMissingServiceForConfigType(config, "ANY")));
   }
 
   @Override

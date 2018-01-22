@@ -12,6 +12,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 
+// FIXME move javadoc
 public interface StackInfo {
 
   Collection<StackId> getStacksForService(String serviceName);
@@ -40,14 +41,12 @@ public interface StackInfo {
 
   boolean isPasswordProperty(String service, String type, String propertyName);
 
-  //todo
   Map<String, String> getStackConfigurationProperties(String type);
 
   boolean isKerberosPrincipalNameProperty(String service, String type, String propertyName);
 
   Map<String, Map<String, String>> getConfigurationAttributes(String service, String type);
 
-  //todo:
   Map<String, Map<String, String>> getStackConfigurationAttributes(String type);
 
   String getServiceForComponent(String component);
@@ -56,7 +55,6 @@ public interface StackInfo {
 
   String getServiceForConfigType(String config);
 
-  //todo: full dependency graph
   Collection<DependencyInfo> getDependenciesForComponent(String component);
 
   String getConditionalServiceForDependency(DependencyInfo dependency);

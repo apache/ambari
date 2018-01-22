@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -329,18 +330,17 @@ public class Stack implements StackInfo {
   @Override
   public Map<String, String> getConfigurationProperties(String service, String type) {
     Map<String, String> configMap = new HashMap<>();
-    Map<String, ConfigProperty> configProperties = getServiceConfigurations(service).get(type);
-    if (configProperties != null) {
-      for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
-        configMap.put(configProperty.getKey(), configProperty.getValue().getValue());
-      }
+    Map<String, ConfigProperty> configProperties = getConfigurationPropertiesWithMetadata(service, type);
+    for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
+      configMap.put(configProperty.getKey(), configProperty.getValue().getValue());
     }
     return configMap;
   }
 
   @Override
   public Map<String, ConfigProperty> getConfigurationPropertiesWithMetadata(String service, String type) {
-    return getServiceConfigurations(service).get(type);
+    Map<String, ConfigProperty> map = getServiceConfigurations(service).get(type);
+    return map != null ? ImmutableMap.copyOf(map) : ImmutableMap.of();
   }
 
   /**
@@ -522,6 +522,9 @@ public class Stack implements StackInfo {
    */
   @Override
   public String getServiceForConfigType(String config) {
+    if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
+      return null;
+    }
     for (Map.Entry<String, Map<String, Map<String, ConfigProperty>>> entry : serviceConfigurations.entrySet()) {
       Map<String, Map<String, ConfigProperty>> typeMap = entry.getValue();
       String serviceName = entry.getKey();
@@ -529,8 +532,11 @@ public class Stack implements StackInfo {
         return serviceName;
       }
     }
-    throw new IllegalArgumentException(
-        "Specified configuration type is not associated with any service: " + config);
+    throw new IllegalArgumentException(formatMissingServiceForConfigType(config, getStackId().toString()));
+  }
+
+  static String formatMissingServiceForConfigType(String config, String stackId) {
+    return String.format("Specified configuration type %s is not associated with any service in %s stack.", config, stackId);
   }
 
   public List<String> getServicesForConfigType(String config) {
