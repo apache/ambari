@@ -141,17 +141,13 @@ class TestAmsAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_text = 'Warn: 4'
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     ca_connection = MagicMock()
@@ -165,8 +161,8 @@ class TestAmsAlert(TestCase):
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
     alert = AmsAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_helpers(mock_collector, {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
-    alert.set_cluster(cluster, host)
+    alert.set_helpers(mock_collector, MagicMock(), MagicMock())#{'foo-site/bar': 12, 'foo-site/baz': 'asd'})
+    alert.set_cluster(cluster, cluster_id, host)
 
     alert.collect()
 
@@ -212,17 +208,13 @@ class TestAmsAlert(TestCase):
     }
     cluster = 'c1'
     host = 'host1'
+    cluster_id = '0'
     expected_text = 'Crit: 10'
 
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
-      self.assertEquals(data['label'], alert_meta['label'])
       self.assertEquals(data['text'], expected_text)
-      self.assertEquals(data['service'], alert_meta['serviceName'])
-      self.assertEquals(data['component'], alert_meta['componentName'])
-      self.assertEquals(data['uuid'], alert_meta['uuid'])
-      self.assertEquals(data['enabled'], alert_meta['enabled'])
-      self.assertEquals(data['cluster'], cluster)
+      self.assertEquals(data['clusterId'], cluster_id)
       self.assertEquals(clus, cluster)
 
     ca_connection = MagicMock()
@@ -236,8 +228,8 @@ class TestAmsAlert(TestCase):
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
     alert = AmsAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_helpers(mock_collector, {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
-    alert.set_cluster(cluster, host)
+    alert.set_helpers(mock_collector, MagicMock(), MagicMock())#{'foo-site/bar': 12, 'foo-site/baz': 'asd'})
+    alert.set_cluster(cluster, cluster_id, host)
 
     alert.collect()
 

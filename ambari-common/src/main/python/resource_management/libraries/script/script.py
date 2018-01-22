@@ -28,6 +28,7 @@ import logging
 import platform
 import inspect
 import tarfile
+import traceback
 import time
 from optparse import OptionParser
 import resource_management
