@@ -47,6 +47,7 @@ import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -284,7 +285,7 @@ public class Stack implements StackInfo {
    */
   @Override
   public Collection<String> getAllConfigurationTypes(String service) {
-    Map<String, Map<String, ConfigProperty>> serviceConfigs = serviceConfigurations.get(service);
+    Map<String, Map<String, ConfigProperty>> serviceConfigs = getServiceConfigurations(service);
     return serviceConfigs != null ? serviceConfigs.keySet() : ImmutableSet.of();
   }
 
@@ -328,7 +329,7 @@ public class Stack implements StackInfo {
   @Override
   public Map<String, String> getConfigurationProperties(String service, String type) {
     Map<String, String> configMap = new HashMap<>();
-    Map<String, ConfigProperty> configProperties = serviceConfigurations.get(service).get(type);
+    Map<String, ConfigProperty> configProperties = getServiceConfigurations(service).get(type);
     if (configProperties != null) {
       for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
         configMap.put(configProperty.getKey(), configProperty.getValue().getValue());
@@ -339,7 +340,7 @@ public class Stack implements StackInfo {
 
   @Override
   public Map<String, ConfigProperty> getConfigurationPropertiesWithMetadata(String service, String type) {
-    return serviceConfigurations.get(service).get(type);
+    return getServiceConfigurations(service).get(type);
   }
 
   /**
@@ -388,10 +389,10 @@ public class Stack implements StackInfo {
 
   @Override
   public boolean isPasswordProperty(String service, String type, String propertyName) {
-    return (serviceConfigurations.containsKey(service) &&
-            serviceConfigurations.get(service).containsKey(type) &&
-            serviceConfigurations.get(service).get(type).containsKey(propertyName) &&
-            serviceConfigurations.get(service).get(type).get(propertyName).getPropertyTypes().
+    Map<String, Map<String, ConfigProperty>> serviceConfigurations = getServiceConfigurations(service);
+    return (serviceConfigurations.containsKey(type) &&
+            serviceConfigurations.get(type).containsKey(propertyName) &&
+            serviceConfigurations.get(type).get(propertyName).getPropertyTypes().
                 contains(PropertyInfo.PropertyType.PASSWORD));
   }
 
@@ -410,10 +411,10 @@ public class Stack implements StackInfo {
 
   @Override
   public boolean isKerberosPrincipalNameProperty(String service, String type, String propertyName) {
-    return (serviceConfigurations.containsKey(service) &&
-            serviceConfigurations.get(service).containsKey(type) &&
-            serviceConfigurations.get(service).get(type).containsKey(propertyName) &&
-            serviceConfigurations.get(service).get(type).get(propertyName).getPropertyTypes().
+    Map<String, Map<String, ConfigProperty>> serviceConfigurations = getServiceConfigurations(service);
+    return (serviceConfigurations.containsKey(type) &&
+            serviceConfigurations.get(type).containsKey(propertyName) &&
+            serviceConfigurations.get(type).get(propertyName).getPropertyTypes().
                 contains(PropertyInfo.PropertyType.KERBEROS_PRINCIPAL));
   }
   /**
@@ -428,7 +429,7 @@ public class Stack implements StackInfo {
   @Override
   public Map<String, Map<String, String>> getConfigurationAttributes(String service, String type) {
     Map<String, Map<String, String>> attributesMap = new HashMap<>();
-    Map<String, ConfigProperty> configProperties = serviceConfigurations.get(service).get(type);
+    Map<String, ConfigProperty> configProperties = getServiceConfigurations(service).get(type);
     if (configProperties != null) {
       for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
         String propertyName = configProperty.getKey();
@@ -450,6 +451,11 @@ public class Stack implements StackInfo {
       }
     }
     return attributesMap;
+  }
+
+  private Map<String, Map<String, ConfigProperty>> getServiceConfigurations(String service) {
+    Map<String, Map<String, ConfigProperty>> map = serviceConfigurations.get(service);
+    return map != null ? ImmutableMap.copyOf(map) : ImmutableMap.of();
   }
 
   //todo:
