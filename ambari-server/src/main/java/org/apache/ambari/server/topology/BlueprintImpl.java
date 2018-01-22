@@ -608,11 +608,12 @@ public class BlueprintImpl implements Blueprint {
     if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
       return true;
     }
-    String service = getStack().getServiceForConfigType(configType);
-    if (getServices().contains(service)) {
-        return true;
+    try {
+      String service = getStack().getServiceForConfigType(configType);
+      return getServices().contains(service);
+    } catch (IllegalArgumentException e) {
+      return false;
     }
-    return false;
   }
 
   /**
