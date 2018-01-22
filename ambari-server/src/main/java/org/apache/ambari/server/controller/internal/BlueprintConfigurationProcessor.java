@@ -2985,15 +2985,18 @@ public class BlueprintConfigurationProcessor {
 
     try {
       Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
-      Map<String,String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
+      if (defaultStackProperties.containsKey(CLUSTER_ENV_CONFIG_TYPE_NAME)) {
+        Map<String, String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
 
-      for( String property : properties ){
-        if (clusterEnvDefaultProperties.containsKey(property)) {
-          configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
-              clusterEnvDefaultProperties.get(property));
+        for (String property : properties) {
+          if (clusterEnvDefaultProperties.containsKey(property)) {
+            configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
+              clusterEnvDefaultProperties.get(property)
+            );
 
-          // make sure to include the configuration type as being updated
-          configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+            // make sure to include the configuration type as being updated
+            configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+          }
         }
       }
     } catch( AmbariException ambariException ){
