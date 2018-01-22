@@ -73,7 +73,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
     return kerberosHelper;
   }
 
-  void processServiceComponentHosts(Cluster cluster, KerberosDescriptor kerberosDescriptor,
+  public void processServiceComponentHosts(Cluster cluster, KerberosDescriptor kerberosDescriptor,
                                     List<ServiceComponentHost> schToProcess,
                                     Collection<String> identityFilter, String dataDirectory,
                                     Map<String, Map<String, String>> currentConfigurations,

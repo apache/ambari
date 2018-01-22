@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -748,6 +749,16 @@ public interface KerberosHelper {
    * @param expectedKeytabs collection to compare existent keytabs
    */
   void removeStaleKeytabs(Collection<ResolvedKerberosKeytab> expectedKeytabs);
+
+  /**
+   * Creates a temporary directory within the system temporary directory
+   * <p/>
+   * The resulting directory is to be removed by the caller when desired.
+   *
+   * @return a File pointing to the new temporary directory, or null if one was not created
+   * @throws AmbariException if a new temporary directory cannot be created
+   */
+  File createTemporaryDirectory() throws AmbariException;
 
   /**
    * Translates a collection of configuration specifications (<code>config-type/property-name</code>)
