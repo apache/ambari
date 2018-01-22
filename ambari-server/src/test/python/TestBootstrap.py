@@ -534,7 +534,7 @@ class TestBootstrap(TestCase):
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    bootstrap_obj.agent_os_type = "centos6"
+    bootstrap_obj.agent_os_family = "centos6"
     getRunSetupCommand_mock.return_value = "RunSetupCommand"
     expected = 42
     init_mock.return_value = None
@@ -562,9 +562,9 @@ class TestBootstrap(TestCase):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6", None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    bootstrap_obj.agent_os_type = "redhat-ppc7"
+    bootstrap_obj.agent_os_family = "redhat-ppc7"
     f = open("/tmp/ambari.properties","a")
-    f.write("ambari.repo." + bootstrap_obj.agent_os_type + "=ambariRepoUrl")
+    f.write("ambari.repo." + bootstrap_obj.agent_os_family + "=ambariRepoUrl")
     f.close()
     expected = {'log': 'log', 'exitstatus': 0}
     run_mock.return_value = {'log': 'log', 'exitstatus': 0}
@@ -576,7 +576,7 @@ class TestBootstrap(TestCase):
     f.close()
     f = open("/tmp/ambari.properties","w")
     for line in lines:
-      if not "ambari.repo." + bootstrap_obj.agent_os_type in line:
+      if not "ambari.repo." + bootstrap_obj.agent_os_family in line:
         f.write(line)
     f.close()
 
@@ -584,8 +584,8 @@ class TestBootstrap(TestCase):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6", None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    bootstrap_obj.agent_os_type = "redhat-ppc7"
-    expected = {"errormsg": "Ambari repo not found for os_type '{0}'".format(bootstrap_obj.agent_os_type), "exitstatus": 1, "log": "Ambari repo not found for os_type '{0}'. Please set ambari repo baseurl using command: ambari-server setup --ambari-repo <ambari repo baseurl>.".format(bootstrap_obj.agent_os_type)}
+    bootstrap_obj.agent_os_family = "redhat-ppc7"
+    expected = {"errormsg": "Ambari repo not found for os_family '{0}'".format(bootstrap_obj.agent_os_family), "exitstatus": 1, "log": "Ambari repo not found for os_family '{0}'. Please set ambari repo baseurl using command: ambari-server setup --ambari-repo <ambari repo baseurl>.".format(bootstrap_obj.agent_os_family)}
     run_mock.return_value = {'log': 'log', 'exitstatus': 0}
     res = bootstrap_obj.runSetupAgent()
     self.assertEqual(res,expected)
@@ -594,7 +594,7 @@ class TestBootstrap(TestCase):
     shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "redhat-ppc7", None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    bootstrap_obj.agent_os_type = "redhat-ppc7"
+    bootstrap_obj.agent_os_family = "redhat-ppc7"
     expected = {'log': 'log', 'exitstatus': 0}
     res = bootstrap_obj.runSetupAgent()
     self.assertEqual(res,expected)

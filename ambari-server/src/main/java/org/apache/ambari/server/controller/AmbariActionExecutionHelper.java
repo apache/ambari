@@ -457,7 +457,6 @@ public class AmbariActionExecutionHelper {
         resourceFilter.getComponentName() : componentName);
 
       Map<String, String> hostLevelParams = execCmd.getHostLevelParams();
-
       hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
       hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
       for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
@@ -495,8 +494,8 @@ public class AmbariActionExecutionHelper {
         cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
       }
 
-      // set java home for each host depending on os type; if not found default will be used
-      String javaHomeValue = configs.getJavaHomeForOs(clusters.getHost(hostName).getOsType());
+      // set java home for each host depending on os family; if not found default will be used
+      String javaHomeValue = configs.getJavaHomeForOs(clusters.getHost(hostName).getOsFamily());
       commandParams.put(JAVA_HOME, javaHomeValue);
       hostLevelParams.put(JAVA_HOME, javaHomeValue);
       roleParams.put(JAVA_HOME, javaHomeValue);

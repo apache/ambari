@@ -307,7 +307,7 @@ public class AmbariManagementControllerTest {
 
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
 
-    configuration.setProperty("java.home.redhat-ppc7", "ppc_java_home_path");
+    configuration.setProperty("java.home.redhat6", "redhat6_java_home_path");
   }
 
   @After
@@ -1260,19 +1260,15 @@ public class AmbariManagementControllerTest {
       String serviceName = "HDFS";
       createServiceComponentHostSimple(cluster1, host1, host2);
       clusters.getHost(host1).setState(HostState.HEALTHY);
-      clusters.getHost(host1).setOsType("redhat-ppc7");
 
       Cluster cluster = clusters.getCluster(cluster1);
       Service s1 = cluster.getService(serviceName);
 
-      ServiceComponentHost scHost=s1.getServiceComponent("DATANODE").getServiceComponentHost(host1);
-
+      ServiceComponentHost scHost = s1.getServiceComponent("DATANODE").getServiceComponentHost(host1);
       installService(cluster1, serviceName, false, false);
-
       ExecutionCommand ec = controller.getExecutionCommand(cluster, scHost, RoleCommand.START);
 
-      assertTrue(ec.getHostLevelParams().containsValue("ppc_java_home_path"));
-
+      assertTrue(ec.getHostLevelParams().containsValue("redhat6_java_home_path"));
     }
 
 
@@ -4097,7 +4093,6 @@ public class AmbariManagementControllerTest {
         "centos6");
 
     clusters.getHost(host1).setState(HostState.HEALTHY);
-    clusters.getHost(host1).setOsType("redhat-ppc7");
 
     Cluster cluster = clusters.getCluster(cluster1);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
@@ -4176,7 +4171,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(host1, task.getHostName());
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
 
-    assertTrue(cmd.getHostLevelParams().containsValue("ppc_java_home_path"));
+    assertTrue(cmd.getHostLevelParams().containsValue("redhat6_java_home_path"));
   }
 
   @Test
@@ -4689,7 +4684,6 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
 
     clusters.getHost(host1).setState(HostState.HEALTHY);
-    clusters.getHost(host1).setOsType("redhat-ppc7");
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion01;
 
@@ -4740,7 +4734,7 @@ public class AmbariManagementControllerTest {
     ExecutionCommand executionCommand = gson.fromJson(new StringReader(
         new String(commandEntity.getCommand())), ExecutionCommand.class);
 
-    assertTrue(executionCommand.getHostLevelParams().containsValue("ppc_java_home_path"));
+    assertTrue(executionCommand.getHostLevelParams().containsValue("redhat6_java_home_path"));
   }
 
   @Test
