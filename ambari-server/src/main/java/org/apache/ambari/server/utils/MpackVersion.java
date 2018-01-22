@@ -29,9 +29,9 @@ public class MpackVersion implements Comparable<MpackVersion> {
   private final static String VERSION_WITH_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
   private final static String LEGACY_STACK_VERSION_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-([0-9]+)";
 
-  private final static Pattern patternWithHotfix = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
-  private final static Pattern patternLegacyStackVersion = Pattern.compile(LEGACY_STACK_VERSION_PATTERN);
-  private final static Pattern patternWithoutHotfix = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
+  private final static Pattern PATTERN_WITH_HOTFIX = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
+  private final static Pattern PATTERN_LEGACY_STACK_VERSION = Pattern.compile(LEGACY_STACK_VERSION_PATTERN);
+  private final static Pattern PATTERN_WITHOUT_HOTFIX = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
 
   private int major;
   private int minor;
@@ -80,9 +80,9 @@ public class MpackVersion implements Comparable<MpackVersion> {
 
     String stackVersion = StringUtils.trim(version);
 
-    Matcher versionMatcher = patternWithHotfix.matcher(stackVersion);
+    Matcher versionMatcher = PATTERN_WITH_HOTFIX.matcher(stackVersion);
     if (!versionMatcher.find()) {
-      versionMatcher = patternLegacyStackVersion.matcher(stackVersion);
+      versionMatcher = PATTERN_LEGACY_STACK_VERSION.matcher(stackVersion);
       if (!versionMatcher.find()) {
         throw new IllegalArgumentException("Wrong format for stack version, should be N.N.N.N-N or N.N.N-hN-bN");
       }
@@ -98,9 +98,9 @@ public class MpackVersion implements Comparable<MpackVersion> {
 
     String mpackVersion = StringUtils.trim(version);
 
-    Matcher versionMatcher = patternWithHotfix.matcher(mpackVersion);
+    Matcher versionMatcher = PATTERN_WITH_HOTFIX.matcher(mpackVersion);
     if (!versionMatcher.find()) {
-      versionMatcher = patternWithoutHotfix.matcher(mpackVersion);
+      versionMatcher = PATTERN_WITHOUT_HOTFIX.matcher(mpackVersion);
       if (!versionMatcher.find()) {
         throw new IllegalArgumentException("Wrong format for mpack version, should be N.N.N-bN or N.N.N-hN-bN");
       }

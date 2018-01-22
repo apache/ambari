@@ -28,8 +28,8 @@ public class ModuleVersion implements Comparable<ModuleVersion> {
   private static final String VERSION_WITH_HOTFIX_AND_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
   private static final String VERSION_WITH_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
 
-  private static final Pattern patternWithHotfix = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
-  private static final Pattern patternWithoutHotfix = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
+  private static final Pattern PATTERN_WITH_HOTFIX = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
+  private static final Pattern PATTERN_WITHOUT_HOTFIX = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
 
   private int apacheMajor;
   private int apacheMinor;
@@ -75,9 +75,9 @@ public class ModuleVersion implements Comparable<ModuleVersion> {
 
     String moduleVersion = StringUtils.trim(version);
 
-    Matcher versionMatcher = patternWithHotfix.matcher(moduleVersion);
+    Matcher versionMatcher = PATTERN_WITH_HOTFIX.matcher(moduleVersion);
     if (!versionMatcher.find()) {
-      versionMatcher = patternWithoutHotfix.matcher(moduleVersion);
+      versionMatcher = PATTERN_WITHOUT_HOTFIX.matcher(moduleVersion);
       if (!versionMatcher.find()) {
         throw new IllegalArgumentException("Wrong format for module version, should be N.N.N.N-bN or N.N.N-hN-bN");
       }
