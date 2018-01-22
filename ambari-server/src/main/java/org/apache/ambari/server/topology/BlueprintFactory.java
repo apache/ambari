@@ -135,8 +135,8 @@ public class BlueprintFactory {
 
   static Set<StackId> fakeStackIds() {
     return ImmutableSet.of(
-      new StackId("HDP", "3.0.0"),
-      new StackId("HDS", "3.0.0")
+      new StackId("AmbariInfra", "3.0.0"),
+      new StackId("HDP", "3.0.0")
     );
   }
 
