@@ -230,7 +230,7 @@ if has_hbase_masters:
 repo_info = config['hostLevelParams']['repo_info']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
 
-user_to_groups_dict = {}
+user_to_groups_dict = collections.defaultdict(lambda:())
 
 #Append new user-group mapping to the dict
 try:
@@ -242,7 +242,7 @@ except ValueError:
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
-user_list = json.loads(config['hostLevelParams']['user_list'])
+user_list = set(json.loads(config['hostLevelParams']['user_list']) + [smoke_user])
 group_list = set(json.loads(config['hostLevelParams']['group_list']) + [user_group])
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
