@@ -388,6 +388,12 @@ class Master(Script):
          content=json.dumps(config_data, indent=2))
 
     if params.conf_stored_in_hdfs:
+      #delete file from HDFS, as the `replace_existing_files` logic checks length of file which can remain same.
+      params.HdfsResource(self.get_zeppelin_conf_FS(params),
+                          type="file",
+                          action="delete_on_execute")
+
+      #recreate file in HDFS from LocalFS
       params.HdfsResource(self.get_zeppelin_conf_FS(params),
                           type="file",
                           action="create_on_execute",
