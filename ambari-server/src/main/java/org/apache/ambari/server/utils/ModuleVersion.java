@@ -20,12 +20,16 @@ package org.apache.ambari.server.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 
 public class ModuleVersion implements Comparable<ModuleVersion> {
 
-  private static final String versionWithHotfixAndBuildPattern = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
-  private static final String versionWithBuildPattern = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
+  private static final String VERSION_WITH_HOTFIX_AND_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
+  private static final String VERSION_WITH_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
+
+  private static final Pattern patternWithHotfix = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
+  private static final Pattern patternWithoutHotfix = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
 
   private int apacheMajor;
   private int apacheMinor;
@@ -48,7 +52,7 @@ public class ModuleVersion implements Comparable<ModuleVersion> {
     Matcher versionMatcher = validateModuleVersion(moduleVersion);
     ModuleVersion result = null;
 
-    if (versionMatcher.pattern().pattern().equals(versionWithHotfixAndBuildPattern)) {
+    if (versionMatcher.pattern().pattern().equals(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN)) {
       result = new ModuleVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
               Integer.parseInt(versionMatcher.group(3)), Integer.parseInt(versionMatcher.group(4)),
               Integer.parseInt(versionMatcher.group(5)), Integer.parseInt(versionMatcher.group(6)));
@@ -70,9 +74,6 @@ public class ModuleVersion implements Comparable<ModuleVersion> {
     }
 
     String moduleVersion = StringUtils.trim(version);
-
-    Pattern patternWithHotfix = Pattern.compile(versionWithHotfixAndBuildPattern);
-    Pattern patternWithoutHotfix = Pattern.compile(versionWithBuildPattern);
 
     Matcher versionMatcher = patternWithHotfix.matcher(moduleVersion);
     if (!versionMatcher.find()) {
@@ -106,5 +107,31 @@ public class ModuleVersion implements Comparable<ModuleVersion> {
     return result > 0 ? 1 : result < 0 ? -1 : 0;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
+    ModuleVersion that = (ModuleVersion) o;
+
+    if (apacheMajor != that.apacheMajor) return false;
+    if (apacheMinor != that.apacheMinor) return false;
+    if (build != that.build) return false;
+    if (hotfix != that.hotfix) return false;
+    if (internalMaint != that.internalMaint) return false;
+    if (internalMinor != that.internalMinor) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = apacheMajor;
+    result = 31 * result + apacheMinor;
+    result = 31 * result + internalMinor;
+    result = 31 * result + internalMaint;
+    result = 31 * result + hotfix;
+    result = 31 * result + build;
+    return result;
+  }
 }

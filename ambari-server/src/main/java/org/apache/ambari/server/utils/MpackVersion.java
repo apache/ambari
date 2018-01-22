@@ -20,13 +20,18 @@ package org.apache.ambari.server.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 
 public class MpackVersion implements Comparable<MpackVersion> {
 
-  private final static String versionWithHotfixAndBuildPattern = "^([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
-  private final static String versionWithBuildPattern = "^([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
-  private final static String legacyStackVersionPattern = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-([0-9]+)";
+  private final static String VERSION_WITH_HOTFIX_AND_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
+  private final static String VERSION_WITH_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
+  private final static String LEGACY_STACK_VERSION_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-([0-9]+)";
+
+  private final static Pattern patternWithHotfix = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
+  private final static Pattern patternLegacyStackVersion = Pattern.compile(LEGACY_STACK_VERSION_PATTERN);
+  private final static Pattern patternWithoutHotfix = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
 
   private int major;
   private int minor;
@@ -47,7 +52,7 @@ public class MpackVersion implements Comparable<MpackVersion> {
     Matcher versionMatcher = validateMpackVersion(mpackVersion);
     MpackVersion result = null;
 
-    if (versionMatcher.pattern().pattern().equals(versionWithBuildPattern)) {
+    if (versionMatcher.pattern().pattern().equals(VERSION_WITH_BUILD_PATTERN)) {
       result = new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
               Integer.parseInt(versionMatcher.group(3)), 0, Integer.parseInt(versionMatcher.group(4)));
 
@@ -75,9 +80,6 @@ public class MpackVersion implements Comparable<MpackVersion> {
 
     String stackVersion = StringUtils.trim(version);
 
-    Pattern patternWithHotfix = Pattern.compile(versionWithHotfixAndBuildPattern);
-    Pattern patternLegacyStackVersion = Pattern.compile(legacyStackVersionPattern);
-
     Matcher versionMatcher = patternWithHotfix.matcher(stackVersion);
     if (!versionMatcher.find()) {
       versionMatcher = patternLegacyStackVersion.matcher(stackVersion);
@@ -95,9 +97,6 @@ public class MpackVersion implements Comparable<MpackVersion> {
     }
 
     String mpackVersion = StringUtils.trim(version);
-
-    Pattern patternWithHotfix = Pattern.compile(versionWithHotfixAndBuildPattern);
-    Pattern patternWithoutHotfix = Pattern.compile(versionWithBuildPattern);
 
     Matcher versionMatcher = patternWithHotfix.matcher(mpackVersion);
     if (!versionMatcher.find()) {
@@ -126,5 +125,31 @@ public class MpackVersion implements Comparable<MpackVersion> {
       }
     }
     return result > 0 ? 1 : result < 0 ? -1 : 0;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    MpackVersion that = (MpackVersion) o;
+
+    if (build != that.build) return false;
+    if (hotfix != that.hotfix) return false;
+    if (maint != that.maint) return false;
+    if (major != that.major) return false;
+    if (minor != that.minor) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = major;
+    result = 31 * result + minor;
+    result = 31 * result + maint;
+    result = 31 * result + hotfix;
+    result = 31 * result + build;
+    return result;
   }
 }

@@ -17,13 +17,18 @@
  */
 package org.apache.ambari.server.utils;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import junit.framework.Assert;
+
 public class TestVersionUtils {
+
+  private static final String MODULE_ERR_MESSAGE = "Module version can't be empty or null";
+  private static final String STACK_ERR_MESSAGE = "Stack version can't be empty or null";
+  private static final String MPACK_ERR_MESSAGE = "Mpack version can't be empty or null";
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -169,14 +174,14 @@ public class TestVersionUtils {
   }
 
   @Test
-  public void testCompareVersionsWithHotfixAndBuildNumber() {
+  public void testMpackVersionWithNotValidVersions() {
     String errMessage = null;
     try {
       MpackVersion.parse(null);
     } catch (IllegalArgumentException e) {
       errMessage = e.getMessage();
     }
-    Assert.assertTrue("Mpack version can't be empty or null".equals(errMessage));
+    Assert.assertEquals(MPACK_ERR_MESSAGE, errMessage);
 
 
     try {
@@ -185,16 +190,28 @@ public class TestVersionUtils {
     } catch (IllegalArgumentException e) {
       errMessage = e.getMessage();
     }
-    Assert.assertTrue("Mpack version can't be empty or null".equals(errMessage));
+    Assert.assertEquals(MPACK_ERR_MESSAGE, errMessage);
+
+    try {
+      errMessage = null;
+      MpackVersion.parse("1.2.3.4-b10");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertEquals("Wrong format for mpack version, should be N.N.N-bN or N.N.N-hN-bN", errMessage);
+  }
 
 
+  @Test
+  public void testStackVersionWithNotValidVersions() {
+    String errMessage = null;
     try {
       errMessage = null;
       MpackVersion.parseStackVersion(null);
     } catch (IllegalArgumentException e) {
       errMessage = e.getMessage();
     }
-    Assert.assertTrue("Stack version can't be empty or null".equals(errMessage));
+    Assert.assertEquals(STACK_ERR_MESSAGE, errMessage);
 
 
     try {
@@ -203,16 +220,28 @@ public class TestVersionUtils {
     } catch (IllegalArgumentException e) {
       errMessage = e.getMessage();
     }
-    Assert.assertTrue("Stack version can't be empty or null".equals(errMessage));
+    Assert.assertEquals(STACK_ERR_MESSAGE, errMessage);
+
+    try {
+      errMessage = null;
+      MpackVersion.parseStackVersion("1.2.3-10");
+    } catch (IllegalArgumentException e) {
+      errMessage = e.getMessage();
+    }
+    Assert.assertEquals("Wrong format for stack version, should be N.N.N.N-N or N.N.N-hN-bN", errMessage);
+  }
 
 
+  @Test
+  public void testModuleVersionWithNotValidVersions() {
+    String errMessage = null;
     try {
       errMessage = null;
       ModuleVersion.parse(null);
     } catch (IllegalArgumentException e) {
       errMessage = e.getMessage();
     }
-    Assert.assertTrue("Module version can't be empty or null".equals(errMessage));
+    Assert.assertEquals(MODULE_ERR_MESSAGE, errMessage);
 
 
     try {
@@ -221,25 +250,7 @@ public class TestVersionUtils {
     } catch (IllegalArgumentException e) {
       errMessage = e.getMessage();
     }
-    Assert.assertTrue("Module version can't be empty or null".equals(errMessage));
-
-
-    try {
-      errMessage = null;
-      MpackVersion.parse("1.2.3.4-b10");
-    } catch (IllegalArgumentException e) {
-      errMessage = e.getMessage();
-    }
-    Assert.assertTrue("Wrong format for mpack version, should be N.N.N-bN or N.N.N-hN-bN".equals(errMessage));
-
-
-    try {
-      errMessage = null;
-      MpackVersion.parseStackVersion("1.2.3-10");
-    } catch (IllegalArgumentException e) {
-      errMessage = e.getMessage();
-    }
-    Assert.assertTrue("Wrong format for stack version, should be N.N.N.N-N or N.N.N-hN-bN".equals(errMessage));
+    Assert.assertEquals(MODULE_ERR_MESSAGE, errMessage);
 
 
     try {
@@ -248,17 +259,55 @@ public class TestVersionUtils {
     } catch (IllegalArgumentException e) {
       errMessage = e.getMessage();
     }
-    Assert.assertTrue("Wrong format for module version, should be N.N.N.N-bN or N.N.N-hN-bN".equals(errMessage));
+    Assert.assertEquals("Wrong format for module version, should be N.N.N.N-bN or N.N.N-hN-bN", errMessage);
+  }
 
-
-    Assert.assertEquals(1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+  @Test
+  public void testMpackVersionWithValidVersions() {
     Assert.assertEquals(1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parse("1.2.3-b888")));
+    Assert.assertEquals(1, MpackVersion.parse("2.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-b888")));
+    Assert.assertEquals(1, MpackVersion.parse("1.3.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-b888")));
+    Assert.assertEquals(1, MpackVersion.parse("1.2.4-h0-b10").compareTo(MpackVersion.parse("1.2.3-b888")));
+    Assert.assertEquals(1, MpackVersion.parse("1.2.3-h0-b1000").compareTo(MpackVersion.parse("1.2.3-b888")));
     Assert.assertEquals(0, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-b10")));
+    Assert.assertEquals(0, MpackVersion.parse("1.2.3-b10").compareTo(MpackVersion.parse("1.2.3-b10")));
+    Assert.assertEquals(0, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-h0-b10")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.4-b10")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.3.3-b10")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("2.2.3-b10")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-h1-b10")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h0-b10").compareTo(MpackVersion.parse("1.2.3-h0-b11")));
+  }
 
+  @Test
+  public void testStackVersionWithValidVersions() {
+    Assert.assertEquals(1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+    Assert.assertEquals(1, MpackVersion.parseStackVersion("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.11-888")));
+    Assert.assertEquals(1, MpackVersion.parseStackVersion("1.2.3.4-999").compareTo(MpackVersion.parseStackVersion("1.2.3.4-888")));
+    Assert.assertEquals(0, MpackVersion.parseStackVersion("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3-h10-b10")));
+    Assert.assertEquals(0, MpackVersion.parseStackVersion("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("1.2.3.10-10")));
+    Assert.assertEquals(-1, MpackVersion.parse("1.2.3-h10-b10").compareTo(MpackVersion.parseStackVersion("2.2.3.4-888")));
+  }
 
-    Assert.assertEquals(1, ModuleVersion.parse("1.2.3.4-h10-b10").compareTo(ModuleVersion.parse("1.2.3.4-b888")));
-    Assert.assertEquals(1, ModuleVersion.parse("1.2.3.5-h10-b10").compareTo(ModuleVersion.parse("1.2.3.4-b888")));
+  @Test
+  public void testModuleVersionWithValidVersions() {
+    Assert.assertEquals(1, ModuleVersion.parse("1.2.3.4-h10-b888").compareTo(ModuleVersion.parse("1.2.3.4-b888")));
+    Assert.assertEquals(1, ModuleVersion.parse("1.2.3.5-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+    Assert.assertEquals(1, ModuleVersion.parse("1.2.4.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+    Assert.assertEquals(1, ModuleVersion.parse("1.3.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+    Assert.assertEquals(1, ModuleVersion.parse("2.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+    Assert.assertEquals(1, ModuleVersion.parse("1.2.3.4-h0-b11").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+
     Assert.assertEquals(0, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+    Assert.assertEquals(0, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-h0-b10")));
+    Assert.assertEquals(0, ModuleVersion.parse("1.2.3.4-b10").compareTo(ModuleVersion.parse("1.2.3.4-b10")));
+    Assert.assertEquals(0, ModuleVersion.parse("1.2.3.4-b10").compareTo(ModuleVersion.parse("1.2.3.4-h0-b10")));
 
+    Assert.assertEquals(-1, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.4-b888")));
+    Assert.assertEquals(-1, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.3.5-b10")));
+    Assert.assertEquals(-1, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.2.4.4-b10")));
+    Assert.assertEquals(-1, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("1.3.3.4-b10")));
+    Assert.assertEquals(-1, ModuleVersion.parse("1.2.3.4-h0-b10").compareTo(ModuleVersion.parse("2.2.3.4-b10")));
   }
 }
