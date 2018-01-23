@@ -107,7 +107,6 @@ describe('TimeHistogramComponent', () => {
       ],
       providers: [
         AppSettingsService,
-        ServiceLogsHistogramDataService,
         LogsContainerService,
         {
           provide: HttpClientService,

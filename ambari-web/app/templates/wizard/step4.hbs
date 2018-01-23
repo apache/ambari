@@ -17,6 +17,41 @@
 }}
 
 <div id="step4" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t installer.step4.headerFS}}</h4>
+  <p class="step-description">{{t installer.step4.bodyFS}}</p>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <table class="table table-hover">
+        <thead>
+        <tr>
+          <th {{QAAttr "service-name-header"}} class="col-md-3">{{t common.service}}</th>
+          <th {{QAAttr "service-version-header"}} id="service-version">{{t common.version}}</th>
+          <th {{QAAttr "service-description-header"}} id="service-description">{{t common.description}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each service in controller.fileSystems}}
+          {{#unless service.isHiddenOnSelectServicePage}}
+            <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}} >
+              <td {{QAAttr "service-name"}}>{{service.displayNameOnSelectServicePage}}</td>
+              <td {{QAAttr "service-version"}}>{{service.serviceVersionDisplay}}</td>
+              <td {{QAAttr "service-description"}}>{{{service.comments}}}</td>
+              <td>
+                <div class="checkbox">
+                  {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
+                         disabledBinding="service.isDisabled"
+                         checkedBinding="service.isSelected"
+                  }}
+                </div>
+              </td>
+            </tr>
+          {{/unless}}
+        {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <h4 class="step-title">{{t installer.step4.header}}</h4>
   <p class="step-description">{{t installer.step4.body}}</p>
 
@@ -35,20 +70,21 @@
         </thead>
         <tbody>
         {{#each service in controller}}
-          {{#unless isHiddenOnSelectServicePage}}
-            <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}}>
-              <td {{QAAttr "service-name"}}>{{service.displayNameOnSelectServicePage}}</td>
-              <td {{QAAttr "service-version"}}>{{service.serviceVersionDisplay}}</td>
-              <td {{QAAttr "service-description"}}>{{{service.comments}}}</td>
-              <td>
-                <div class="checkbox">
-                  {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
-                  disabledBinding="service.isDisabled"
-                  checkedBinding="service.isSelected"
-                  }}
-                </div>
-              </td>
-            </tr>
+          {{#unless service.isHiddenOnSelectServicePage}}
+            {{#unless service.isDFS}}
+              <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}}>
+                <td {{QAAttr "service-name"}}>{{service.displayNameOnSelectServicePage}}</td>
+                <td {{QAAttr "service-version"}}>{{service.serviceVersionDisplay}}</td>
+                <td {{QAAttr "service-description"}}>{{{service.comments}}}</td>
+                <td>
+                  <div class="checkbox">
+                    {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
+                        disabledBinding="service.isDisabled"
+                        checkedBinding="service.isSelected" }}
+                  </div>
+                </td>
+              </tr>
+            {{/unless}}
           {{/unless}}
         {{/each}}
         </tbody>

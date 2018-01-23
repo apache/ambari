@@ -19,9 +19,9 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import java.util.Map;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 
-import org.apache.ambari.logfeeder.input.InputMarker;
+import java.util.Map;
 
 /**
  * This contains the output json object and InputMarker.

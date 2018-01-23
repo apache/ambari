@@ -367,6 +367,21 @@ class TestZeppelin070(RMFTestCase):
                           mode=0644
                           )
 
+    self.assertResourceCalled('HdfsResource',
+                              'hdfs:///user/zeppelin/conf/interpreter.json',
+                              security_enabled=False,
+                              hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
+                              keytab=UnknownConfigurationMock(),
+                              default_fs='hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              principal_name=UnknownConfigurationMock(),
+                              user='hdfs',
+                              hadoop_conf_dir='/usr/hdp/2.5.0.0-1235/hadoop/conf',
+                              type='file',
+                              action=['delete_on_execute'],
+                              )
 
     self.assertResourceCalled('HdfsResource',
                               'hdfs:///user/zeppelin/conf/interpreter.json',
@@ -401,6 +416,22 @@ class TestZeppelin070(RMFTestCase):
                               security_enabled=False,
                               hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
                               keytab=UnknownConfigurationMock(),
+                              default_fs='hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              principal_name=UnknownConfigurationMock(),
+                              user='hdfs',
+                              hadoop_conf_dir='/usr/hdp/2.5.0.0-1235/hadoop/conf',
+                              type='file',
+                              action=['delete_on_execute'],
+                              )
+
+    self.assertResourceCalled('HdfsResource',
+                              'hdfs:///user/zeppelin/conf/interpreter.json',
+                              security_enabled=False,
+                              hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
+                              keytab=UnknownConfigurationMock(),
                               source='/etc/zeppelin/conf/interpreter.json',
                               default_fs='hdfs://c6401.ambari.apache.org:8020',
                               replace_existing_files=True,
@@ -422,6 +453,22 @@ class TestZeppelin070(RMFTestCase):
                               owner='zeppelin',
                               group='zeppelin',
                               mode=0644
+                              )
+
+    self.assertResourceCalled('HdfsResource',
+                              'hdfs:///user/zeppelin/conf/interpreter.json',
+                              security_enabled=False,
+                              hadoop_bin_dir='/usr/hdp/2.5.0.0-1235/hadoop/bin',
+                              keytab=UnknownConfigurationMock(),
+                              default_fs='hdfs://c6401.ambari.apache.org:8020',
+                              hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hdfs_site={u'a': u'b'},
+                              kinit_path_local='/usr/bin/kinit',
+                              principal_name=UnknownConfigurationMock(),
+                              user='hdfs',
+                              hadoop_conf_dir='/usr/hdp/2.5.0.0-1235/hadoop/conf',
+                              type='file',
+                              action=['delete_on_execute'],
                               )
 
     self.assertResourceCalled('HdfsResource', 'hdfs:///user/zeppelin/conf/interpreter.json',

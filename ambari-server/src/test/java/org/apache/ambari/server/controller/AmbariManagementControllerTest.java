@@ -4663,10 +4663,8 @@ public class AmbariManagementControllerTest {
     assertEquals("", response.getRequestContext());
   }
 
-  private void createUser(String userName) throws Exception {
-    UserRequest request = new UserRequest(userName);
-    request.setPassword("password");
 
+<<<<<<< HEAD
     controller.createUsers(new HashSet<>(Collections.singleton(request)));
   }
 
@@ -4810,6 +4808,8 @@ public class AmbariManagementControllerTest {
 
     Assert.assertEquals(0, responses.size());
   }
+=======
+>>>>>>> refs/remotes/upstream/trunk
 
   @Test
   public void testUpdateConfigForRunningService() throws Exception {

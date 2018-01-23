@@ -18,6 +18,10 @@
  */
 package org.apache.ambari.infra;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -36,6 +40,8 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
@@ -77,13 +83,28 @@ public class InfraClient implements AutoCloseable {
     }
   }
 
-  // TODO: return job data
-  public void startJob(String jobName, String parameters) {
+  public String startJob(String jobName, String parameters) {
     URIBuilder uriBuilder = new URIBuilder(baseUrl);
     uriBuilder.setScheme("http");
     uriBuilder.setPath(uriBuilder.getPath() + "/" + jobName);
     if (!isBlank(parameters))
       uriBuilder.addParameter("params", parameters);
+    try {
+      String responseText = execute(new HttpPost(uriBuilder.build()));
+      Map<String, Object> responseContent = new ObjectMapper().readValue(responseText, new TypeReference<HashMap<String,Object>>() {});
+      return responseContent.get("jobId").toString();
+    } catch (URISyntaxException | JsonParseException | JsonMappingException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  public void restartJob(String jobName, String jobId) {
+    URIBuilder uriBuilder = new URIBuilder(baseUrl);
+    uriBuilder.setScheme("http");
+    uriBuilder.setPath(String.format("%s/%s/%s/executions", uriBuilder.getPath(), jobName, jobId));
+    uriBuilder.addParameter("operation", "RESTART");
     try {
       execute(new HttpPost(uriBuilder.build()));
     } catch (URISyntaxException e) {

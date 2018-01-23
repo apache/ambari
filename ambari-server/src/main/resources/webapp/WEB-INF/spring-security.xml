@@ -55,24 +55,21 @@
   <beans:bean id="ambariBasicAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariBasicAuthenticationFilter">
     <beans:constructor-arg ref="authenticationManager"/>
     <beans:constructor-arg ref="ambariEntryPoint"/>
-    <beans:constructor-arg ref="auditLogger"/>
-    <beans:constructor-arg ref="permissionHelper"/>
+    <beans:constructor-arg ref="ambariAuthenticationEventHandler"/>
   </beans:bean>
 
-  <beans:bean id="ambariJwtAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariJWTAuthenticationFilter">
+  <beans:bean id="ambariJwtAuthenticationFilter" class="org.apache.ambari.server.security.authentication.jwt.AmbariJwtAuthenticationFilter">
     <beans:constructor-arg ref="ambariEntryPoint"/>
     <beans:constructor-arg ref="ambariConfiguration"/>
-    <beans:constructor-arg ref="ambariUsers"/>
-    <beans:constructor-arg ref="auditLogger"/>
-    <beans:constructor-arg ref="permissionHelper"/>
+    <beans:constructor-arg ref="ambariJwtAuthenticationProvider"/>
+    <beans:constructor-arg ref="ambariAuthenticationEventHandler"/>
   </beans:bean>
 
   <beans:bean id="ambariKerberosAuthenticationFilter" class="org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationFilter">
     <beans:constructor-arg ref="authenticationManager"/>
     <beans:constructor-arg ref="ambariEntryPoint"/>
     <beans:constructor-arg ref="ambariConfiguration"/>
-    <beans:constructor-arg ref="auditLogger"/>
-    <beans:constructor-arg ref="permissionHelper"/>
+    <beans:constructor-arg ref="ambariAuthenticationEventHandler"/>
   </beans:bean>
 
   <beans:bean id="ambariAuthorizationFilter" class="org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter">

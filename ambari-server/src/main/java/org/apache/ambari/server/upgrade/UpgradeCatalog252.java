@@ -59,6 +59,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
 
   static final String CLUSTERCONFIG_TABLE = "clusterconfig";
   static final String SERVICE_DELETED_COLUMN = "service_deleted";
+  static final String UNMAPPED_COLUMN = "unmapped";
 
   private static final String UPGRADE_TABLE = "upgrade";
   private static final String UPGRADE_TABLE_FROM_REPO_COLUMN = "from_repo_version_id";
@@ -141,8 +142,10 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
    * @throws java.sql.SQLException
    */
   private void addServiceDeletedColumnToClusterConfigTable() throws SQLException {
-    dbAccessor.addColumn(CLUSTERCONFIG_TABLE,
-        new DBColumnInfo(SERVICE_DELETED_COLUMN, Short.class, null, 0, false));
+    if (!dbAccessor.tableHasColumn(CLUSTERCONFIG_TABLE, UNMAPPED_COLUMN)) {
+      dbAccessor.addColumn(CLUSTERCONFIG_TABLE,
+          new DBColumnInfo(SERVICE_DELETED_COLUMN, Short.class, null, 0, false));
+    }
   }
 
   /**

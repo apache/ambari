@@ -512,6 +512,10 @@ angular-moment-timezone@^0.2.1:
     rxjs "^5.1.0"
     zone.js "^0.8.4"
 
+angular-pipes@^6.5.3:
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/angular-pipes/-/angular-pipes-6.5.3.tgz#6bed37c51ebc2adaf3412663bfe25179d0489b02"
+
 angular2-moment@^1.3.3:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/angular2-moment/-/angular2-moment-1.4.0.tgz#3d59c1ebc28934fcfe9b888ab461e261724987e8"

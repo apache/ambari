@@ -190,6 +190,7 @@ App.BreadcrumbsView = Em.View.extend({
   items: function () {
     let currentState = App.get('router.currentState');
     let items = [];
+    const wizardStepRegex = /^step[0-9]?/;
     while (currentState) {
       if (currentState.breadcrumbs !== undefined) {
         // breadcrumbs should be defined and be not null or any other falsie-value
@@ -208,7 +209,8 @@ App.BreadcrumbsView = Em.View.extend({
       }
       else {
         // generate breadcrumb if it is not defined
-        if (currentState.name && !['root', 'index'].contains(currentState.name)) {
+        // breadcrumbs of wizard step such as "Step #" should be ignored
+        if (currentState.name && !['root', 'index'].contains(currentState.name) && !wizardStepRegex.test(currentState.name)) {
           items.pushObject({label: _formatLabel(currentState.name)});
         }
       }

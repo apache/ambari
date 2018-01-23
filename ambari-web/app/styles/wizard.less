@@ -18,6 +18,8 @@
 
 @import 'common.less';
 
+@wizard-side-nav-width: 250px;
+
 #enable_security {
   .step3 {
     overflow: auto;
@@ -739,6 +741,17 @@
   }
 }
 
+.modal {
+  .wizard {
+    .wizard-nav {
+      width: @wizard-side-nav-width;
+    }
+    .wizard-content.col-md-9 {
+      width: calc(~"100% - 250px");
+    }
+  }
+}
+
 .install-wizard-content {
   #top-nav .navbar.navbar-static-top {
     margin-bottom: 0;
@@ -752,7 +765,7 @@
     .wizard {
       border: none;
       .wizard-nav {
-        width: 250px;
+        width: @wizard-side-nav-width;
       }
       .wizard-content.col-md-9 {
         width: calc(~"100% - 250px");

@@ -16,10 +16,14 @@
  * limitations under the License.
  */
 
-import {AfterViewInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input} from '@angular/core';
+import {
+  AfterViewInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input, Output, EventEmitter
+} from '@angular/core';
 import * as d3 from 'd3';
 import * as d3sc from 'd3-scale-chromatic';
-import {GraphPositionOptions, GraphMarginOptions, GraphTooltipInfo, LegendItem} from '@app/classes/graph';
+import {
+  GraphPositionOptions, GraphMarginOptions, GraphTooltipInfo, LegendItem, GraphEventData, GraphEmittedEvent
+} from '@app/classes/graph';
 import {HomogeneousObject} from '@app/classes/object';
 import {ServiceInjector} from '@app/classes/service-injector';
 import {UtilsService} from '@app/services/utils.service';
@@ -96,6 +100,63 @@ export class GraphComponent implements AfterViewInit, OnChanges {
   @Input()
   reverseYRange: boolean = false;
 
+  /**
+   * Indicates whether X axis ticks with fractional values should be displayed on chart (if any)
+   * @type {boolean}
+   */
+  @Input()
+  allowFractionalXTicks: boolean = true;
+
+  /**
+   * Indicates whether Y axis ticks with fractional values should be displayed on chart (if any)
+   * @type {boolean}
+   */
+  @Input()
+  allowFractionalYTicks: boolean = true;
+
+  /**
+   * Indicated whether Y values equal to 0 should be skipped in tooltip
+   * @type {boolean}
+   */
+  @Input()
+  skipZeroValuesInTooltip: boolean = true;
+
+  /**
+   * Indicates whether context menu for X axis ticks is available
+   * @type {boolean}
+   */
+  @Input()
+  hasXTickContextMenu: boolean = false;
+
+  /**
+   * Indicates whether context menu for Y axis ticks is available
+   * @type {boolean}
+   */
+  @Input()
+  hasYTickContextMenu: boolean = false;
+
+  /**
+   * Indicates whether X axis event should be emitted with formatted string values that are displayed
+   * (instead of raw values)
+   * @type {boolean}
+   */
+  @Input()
+  emitFormattedXTick: boolean = false;
+
+  /**
+   * Indicates whether Y axis event should be emitted with formatted string values that are displayed
+   * (instead of raw values)
+   * @type {boolean}
+   */
+  @Input()
+  emitFormattedYTick: boolean = false;
+
+  @Output()
+  xTickContextMenu: EventEmitter<GraphEmittedEvent<MouseEvent>> = new EventEmitter();
+
+  @Output()
+  yTickContextMenu: EventEmitter<GraphEmittedEvent<MouseEvent>> = new EventEmitter();
+
   @ViewChild('graphContainer')
   graphContainerRef: ElementRef;
 
@@ -103,6 +164,10 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     read: ElementRef
   })
   tooltipRef: ElementRef;
+
+  private readonly xAxisClassName: string = 'axis-x';
+
+  private readonly yAxisClassName: string = 'axis-y';
 
   protected utils: UtilsService;
 
@@ -134,8 +199,8 @@ export class GraphComponent implements AfterViewInit, OnChanges {
   protected tooltipInfo: GraphTooltipInfo | {} = {};
 
   /**
-   * This is the computed position of the tooltip relative to the @graphContainer which is the container of the histogram.
-   * It is set when the mousemoving over the bars in the @handleRectMouseMove method.
+   * This is the computed position of the tooltip relative to the @graphContainer which is the container of the graph.
+   * It is set when the mousemoving over the figures in the @handleRectMouseMove method.
    */
   private tooltipPosition: GraphPositionOptions;
 
@@ -230,8 +295,16 @@ export class GraphComponent implements AfterViewInit, OnChanges {
 
   protected populate(): void {}
 
+  /**
+   * Set the domain values for the x scale regarding the given data.
+   * @param formattedData
+   */
   protected setXScaleDomain(formattedData?: any): void {}
 
+  /**
+   * Set the domain for the y scale regarding the given data.
+   * @param formattedData
+   */
   protected setYScaleDomain(formattedData?: any): void {}
 
   /**
@@ -245,7 +318,16 @@ export class GraphComponent implements AfterViewInit, OnChanges {
       axis.ticks(ticksCount);
     }
     this.xAxis = axis;
-    this.svg.append('g').attr('class', 'axis axis-x').attr('transform', `translate(0,${this.height})`).call(this.xAxis);
+    this.svg.append('g').attr('class', `axis ${this.xAxisClassName}`).attr('transform', `translate(0,${this.height})`)
+      .call(this.xAxis);
+    if (this.hasXTickContextMenu) {
+      this.svg.selectAll(`.${this.xAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
+        const tick = this.emitFormattedXTick ? this.xAxisTickFormatter(tickValue, index) : tickValue,
+          nativeEvent = d3.event;
+        this.xTickContextMenu.emit({tick, nativeEvent});
+        event.preventDefault();
+      });
+    }
   }
 
   /**
@@ -259,7 +341,15 @@ export class GraphComponent implements AfterViewInit, OnChanges {
       axis.ticks(ticksCount);
     }
     this.yAxis = axis;
-    this.svg.append('g').attr('class', 'axis axis-y').call(this.yAxis).append('text');
+    this.svg.append('g').attr('class', `axis ${this.yAxisClassName}`).call(this.yAxis);
+    if (this.hasYTickContextMenu) {
+      this.svg.selectAll(`.${this.yAxisClassName} .tick`).on('contextmenu', (tickValue: any, index: number): void => {
+        const tick = this.emitFormattedYTick ? this.yAxisTickFormatter(tickValue, index): tickValue,
+          nativeEvent = d3.event;
+        this.yTickContextMenu.emit({tick, nativeEvent});
+        event.preventDefault();
+      });
+    }
   };
 
   /**
@@ -271,7 +361,11 @@ export class GraphComponent implements AfterViewInit, OnChanges {
    * @returns {string|undefined}
    */
   protected xAxisTickFormatter = (tick: any, index: number): string | undefined => {
-    return tick.toString();
+    if (this.allowFractionalXTicks) {
+      return tick.toString();
+    } else {
+      return Number.isInteger(tick) ? tick.toFixed(0) : undefined;
+    }
   };
 
   /**
@@ -283,45 +377,53 @@ export class GraphComponent implements AfterViewInit, OnChanges {
    * @returns {string|undefined}
    */
   protected yAxisTickFormatter = (tick: any, index: number): string | undefined => {
-    return tick.toString();
+    if (this.allowFractionalYTicks) {
+      return tick.toString();
+    } else {
+      return Number.isInteger(tick) ? tick.toFixed(0) : undefined;
+    }
   };
 
   /**
-   * The goal is to handle the mouse over event on the rect svg elements so that we can populate the tooltip info object
+   * The goal is to handle the mouse over event on the svg elements so that we can populate the tooltip info object
    * and set the initial position of the tooltip. So we call the corresponding methods.
-   * @param d The data for the currently "selected" bar
+   * @param {GraphEventData} d The data for the currently "selected" figure
    * @param {number} index The index of the current element in the selection
    * @param elements The selection of the elements
    */
-  protected handleRectMouseOver = (d: {data: any, [key: string]: any}, index: number, elements: any): void => {
+  protected handleMouseOver = (d: GraphEventData, index: number, elements: HTMLElement[]): void => {
     this.setTooltipDataFromChartData(d);
     this.setTooltipPosition();
   };
 
   /**
-   * The goal is to handle the movement of the mouse over the rect svg elements, so that we can set the position of
+   * The goal is to handle the movement of the mouse over the svg elements, so that we can set the position of
    * the tooltip by calling the @setTooltipPosition method.
    */
-  protected handleRectMouseMove = (): void => {
+  protected handleMouseMove = (): void => {
     this.setTooltipPosition();
   };
 
   /**
    * The goal is to reset the tooltipInfo object so that the tooltip will be hidden.
    */
-  protected handleRectMouseOut = (): void => {
+  protected handleMouseOut = (): void => {
     this.tooltipInfo = {};
   };
 
   /**
    * The goal is set the tooltip
-   * @param d
+   * @param {GraphEventData} d
    */
-  protected setTooltipDataFromChartData(d: {data: any, [key: string]: any}): void {
-    let {tick, ...data} = d.data;
-    let levelColors = this.colors;
+  protected setTooltipDataFromChartData(d: GraphEventData): void {
+    const {tick, ...data} = d.data,
+      levelColors = this.colors;
+    let tooltipKeys = Object.keys(levelColors);
+    if (this.skipZeroValuesInTooltip) {
+      tooltipKeys = tooltipKeys.filter((key: string): boolean => data[key] > 0)
+    }
     this.tooltipInfo = {
-      data: Object.keys(levelColors).filter((key: string): boolean => data[key] > 0).map((key: string): object => Object.assign({}, {
+      data: tooltipKeys.map((key: string): object => Object.assign({}, {
         color: this.colors[key],
         label: this.labels[key],
         value: data[key]

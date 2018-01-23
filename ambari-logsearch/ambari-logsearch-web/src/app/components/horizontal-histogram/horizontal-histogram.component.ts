@@ -28,7 +28,7 @@ import {HomogeneousObject} from '@app/classes/object';
 export class HorizontalHistogramComponent extends GraphComponent {
 
   /**
-   * Thickness of horizontal bar o the graph
+   * Thickness of horizontal bar of the graph
    * @type {number}
    */
   @Input()
@@ -81,9 +81,9 @@ export class HorizontalHistogramComponent extends GraphComponent {
       }).attr('height', item => item[0] === item[1] ? '0' : barSize.toString())
       .attr('width', item => this.xScale(item[1]) - this.xScale(item[0]))
       .style('fill', (item, index) => this.orderedColors[index])
-      .on('mouseover', this.handleRectMouseOver)
-      .on('mousemove', this.handleRectMouseMove)
-      .on('mouseout', this.handleRectMouseOut);
+      .on('mouseover', this.handleMouseOver)
+      .on('mousemove', this.handleMouseMove)
+      .on('mouseout', this.handleMouseOut);
   }
 
   protected setXScaleDomain(): void {

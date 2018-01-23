@@ -18,10 +18,10 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import org.apache.ambari.logfeeder.plugin.common.ConfigItem;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.ambari.logfeeder.common.ConfigBlock;
 
 /**
  * Holds all configuration relevant for S3 upload.
@@ -80,7 +80,7 @@ public class S3OutputConfiguration {
     return ((Map<String, String>) configs.get(ADDITIONAL_FIELDS_KEY)).get(CLUSTER_KEY);
   }
 
-  public static S3OutputConfiguration fromConfigBlock(ConfigBlock configBlock) {
+  public static S3OutputConfiguration fromConfigBlock(ConfigItem configItem) {
     Map<String, Object> configs = new HashMap<>();
     String[] stringValuedKeysToCopy = new String[] {
         SPOOL_DIR_KEY, S3_BUCKET_NAME_KEY, S3_LOG_DIR_KEY,
@@ -88,7 +88,7 @@ public class S3OutputConfiguration {
     };
 
     for (String key : stringValuedKeysToCopy) {
-      String value = configBlock.getStringValue(key);
+      String value = configItem.getStringValue(key);
       if (value != null) {
         configs.put(key, value);
       }
@@ -103,10 +103,10 @@ public class S3OutputConfiguration {
     };
 
     for (int i = 0; i < longValuedKeysToCopy.length; i++) {
-      configs.put(longValuedKeysToCopy[i], configBlock.getLongValue(longValuedKeysToCopy[i], defaultValuesForLongValuedKeys[i]));
+      configs.put(longValuedKeysToCopy[i], configItem.getLongValue(longValuedKeysToCopy[i], defaultValuesForLongValuedKeys[i]));
     }
 
-    configs.put(ADDITIONAL_FIELDS_KEY, configBlock.getNVList(ADDITIONAL_FIELDS_KEY));
+    configs.put(ADDITIONAL_FIELDS_KEY, configItem.getNVList(ADDITIONAL_FIELDS_KEY));
 
     return new S3OutputConfiguration(configs);
   }

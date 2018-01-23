@@ -19,6 +19,8 @@ package org.apache.ambari.server.controller.metrics;
 
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 
+import java.util.Optional;
+
 import org.apache.ambari.server.controller.spi.SystemException;
 
 public interface MetricHostProvider {
@@ -76,4 +78,11 @@ public interface MetricHostProvider {
    * @throws SystemException if unable to get the status of metrics server component
    */
   boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException;
+
+  /**
+   * If a component is installed to a host that is managed outside of Ambari (for example OneFS) then this method will return the external hostname.
+   */
+  default Optional<String> getExternalHostName(String clusterName, String componentName) {
+    return Optional.empty();
+  }
 }

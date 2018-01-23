@@ -154,15 +154,12 @@ class InstallPackages(Script):
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
-    self._fix_default_links("livy", "livy-server")
-    self._fix_default_links("livy2", "livy2-server")
-
+    self._fix_default_links_for_current()
     # if installing a version of HDP that needs some symlink love, then create them
     if is_package_install_successful and 'actual_version' in self.structured_output:
       self._relink_configurations_with_conf_select(stack_id, self.structured_output['actual_version'])
 
-
-  def _fix_default_links(self, package_name, component_name):
+  def _fix_default_links_for_current(self):
     """
     If a prior version of Ambari did not correctly reverse the conf symlinks, then they would
     be put into a bad state when distributing a new stack. For example:
@@ -181,19 +178,32 @@ class InstallPackages(Script):
 
     :return: None
     """
+    Logger.info("Attempting to fix any configuration symlinks which are not in the correct state")
     from resource_management.libraries.functions import stack_select
-    package_dirs = conf_select.get_package_dirs()
-    if package_name in package_dirs:
-      Logger.info("Determining if the default conf links for {0} need to be fixed".format(package_name))
+    restricted_packages = conf_select.get_restricted_packages()
 
-      directories = package_dirs[package_name]
-      Logger.info("The following directories will be checked for {0}: {1}".format(package_name,
-        str(directories)))
+    if 0 == len(restricted_packages):
+      Logger.info("There are no restricted conf-select packages for this installation")
+    else:
+      Logger.info("Restricting conf-select packages to {0}".format(restricted_packages))
 
-      stack_version = stack_select.get_stack_version_before_install(component_name)
-      if stack_version:
-        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
+    for package_name, directories in conf_select.get_package_dirs().iteritems():
+      Logger.info("Attempting to fix the default conf links for {0}".format(package_name))
+      Logger.info("The following directories will be fixed for {0}: {1}".format(package_name, str(directories)))
 
+      component_name = None
+      for directory_struct in directories:
+        if "component" in directory_struct:
+          component_name = directory_struct["component"]
+      if component_name:
+        stack_version = stack_select.get_stack_version_before_install(component_name)
+
+      if 0 == len(restricted_packages) or package_name in restricted_packages:
+        if stack_version:
+          conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories)
+        else:
+          Logger.warning(
+            "Unable to fix {0} since there is no known installed version for this component".format(package_name))
 
   def _relink_configurations_with_conf_select(self, stack_id, stack_version):
     """

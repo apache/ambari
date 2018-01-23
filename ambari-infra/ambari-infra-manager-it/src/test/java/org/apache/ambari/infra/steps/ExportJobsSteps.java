@@ -23,9 +23,12 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.apache.ambari.infra.InfraClient;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.jbehave.core.annotations.Alias;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
@@ -33,11 +36,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.ambari.infra.OffsetDateTimeConverter.SOLR_DATETIME_FORMATTER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsString;
@@ -47,6 +55,8 @@ import static org.junit.Assert.assertThat;
 
 public class ExportJobsSteps extends AbstractInfraSteps {
   private static final Logger LOG = LoggerFactory.getLogger(ExportJobsSteps.class);
+
+  private Map<String, String> launchedJobs = new HashMap<>();
 
   @Given("$count documents in solr")
   public void addDocuments(int count) throws Exception {
@@ -79,10 +89,18 @@ public class ExportJobsSteps extends AbstractInfraSteps {
   }
 
   @When("start $jobName job with parameters $parameters")
-  @Alias("restart $jobName job with parameters $parameters")
   public void startJob(String jobName, String parameters) throws Exception {
     try (InfraClient httpClient = getInfraClient()) {
-      httpClient.startJob(jobName, parameters);
+      String jobId = httpClient.startJob(jobName, parameters);
+      LOG.info("Job {} started jobId: {}", jobName, jobId);
+      launchedJobs.put(jobName, jobId);
+    }
+  }
+
+  @When("restart $jobName job")
+  public void restartJob(String jobName) throws Exception {
+    try (InfraClient httpClient = getInfraClient()) {
+      httpClient.restartJob(jobName, launchedJobs.get(jobName));
     }
   }
 
@@ -103,7 +121,7 @@ public class ExportJobsSteps extends AbstractInfraSteps {
   }
 
   @Then("Check $count files exists on s3 server with filenames containing the text $text after $waitSec seconds")
-  public void checkNumberOfFilesOnS3(int count, String text, int waitSec) {
+  public void checkNumberOfFilesOnS3(long count, String text, int waitSec) {
     AmazonS3Client s3Client = getS3client();
     ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
     doWithin(waitSec, "check uploaded files to s3", () -> s3Client.doesBucketExist(S3_BUCKET_NAME)
@@ -144,5 +162,38 @@ public class ExportJobsSteps extends AbstractInfraSteps {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  @Then("Check $count files exists on hdfs with filenames containing the text $text in the folder $path after $waitSec seconds")
+  public void checkNumberOfFilesOnHdfs(int count, String text, String path, int waitSec) throws Exception {
+    try (FileSystem fileSystem = getHdfs()) {
+      doWithin(waitSec, "check uploaded files to hdfs", () -> {
+        try {
+          int fileCount = 0;
+          RemoteIterator<LocatedFileStatus> it = fileSystem.listFiles(new Path(path), true);
+          while (it.hasNext()) {
+            if (it.next().getPath().getName().contains(text))
+              ++fileCount;
+          }
+          return fileCount == count;
+        }
+        catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      });
+    }
+  }
+
+  @Then("Check $count files exists on local filesystem with filenames containing the text $text in the folder $path")
+  public void checkNumberOfFilesOnLocalFilesystem(long count, String text, String path) {
+    File destinationDirectory = new File(getLocalDataFolder(), path);
+    LOG.info("Destination directory path: {}", destinationDirectory.getAbsolutePath());
+    doWithin(5, "Destination directory exists", destinationDirectory::exists);
+
+    File[] files = requireNonNull(destinationDirectory.listFiles(),
+            String.format("Path %s is not a directory or an I/O error occurred!", destinationDirectory.getAbsolutePath()));
+    assertThat(Arrays.stream(files)
+            .filter(file -> file.getName().contains(text))
+            .count(), is(count));
   }
 }

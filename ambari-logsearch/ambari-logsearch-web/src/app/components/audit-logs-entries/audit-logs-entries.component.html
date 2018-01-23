@@ -20,11 +20,17 @@
   <audit-logs-table *ngSwitchCase="'logs'" [totalCount]="totalCount" [logs]="logs" [columns]="columns"
                     [filtersForm]="filtersForm"></audit-logs-table>
   <div *ngSwitchCase="'summary'" class="row">
-    <collapsible-panel title="{{'logs.topUsers' | translate: usersGraphTitleParams}}" class="col-md-6">
-      <horizontal-histogram [data]="topUsersGraphData"></horizontal-histogram>
+    <collapsible-panel commonTitle="{{'logs.topUsers' | translate: usersGraphTitleParams}}" class="col-md-6">
+      <horizontal-histogram [data]="topUsersGraphData" [allowFractionalXTicks]="false"
+                            svgId="top-users-graph"></horizontal-histogram>
     </collapsible-panel>
-    <collapsible-panel title="{{'logs.topResources' | translate: resourcesGraphTitleParams}}" class="col-md-6">
-      <horizontal-histogram [data]="topResourcesGraphData"></horizontal-histogram>
+    <collapsible-panel commonTitle="{{'logs.topResources' | translate: resourcesGraphTitleParams}}" class="col-md-6">
+      <horizontal-histogram [data]="topResourcesGraphData" [allowFractionalXTicks]="false" [hasYTickContextMenu]="true"
+                            [emitFormattedYTick]="true" (yTickContextMenu)="showContextMenu($event)"
+                            svgId="top-resources-graph"></horizontal-histogram>
+      <context-menu [isDisplayed]="isContextMenuDisplayed" [contextMenuItems]="contextMenuItems"
+                    [leftPosition]="contextMenuLeft" [topPosition]="contextMenuTop" (itemSelect)="updateQuery($event)"
+                    (contextMenuDismiss)="onContextMenuDismiss()"></context-menu>
     </collapsible-panel>
   </div>
 </ng-container>

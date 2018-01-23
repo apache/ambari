@@ -63,7 +63,6 @@ import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
@@ -171,7 +170,7 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
     UserEntity userEntity = createMockUserEntity(requestedUsername);
 
     UserDAO userDAO = injector.getInstance(UserDAO.class);
-    expect(userDAO.findSingleUserByName(requestedUsername)).andReturn(userEntity).atLeastOnce();
+    expect(userDAO.findUserByName(requestedUsername)).andReturn(userEntity).atLeastOnce();
 
     WidgetLayoutDAO widgetLayoutDAO = injector.getInstance(WidgetLayoutDAO.class);
     expect(widgetLayoutDAO.findById(1L)).andReturn(createMockWidgetLayout(1L, requestedUsername)).atLeastOnce();
@@ -365,7 +364,6 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
     UserEntity userEntity = createMock(UserEntity.class);
     expect(userEntity.getUserId()).andReturn(username.hashCode()).anyTimes();
     expect(userEntity.getUserName()).andReturn(username).anyTimes();
-    expect(userEntity.getUserType()).andReturn(UserType.LOCAL).anyTimes();
     expect(userEntity.getActiveWidgetLayouts()).andReturn("[{\"id\":\"1\"},{\"id\":\"2\"}]").anyTimes();
 
     return userEntity;

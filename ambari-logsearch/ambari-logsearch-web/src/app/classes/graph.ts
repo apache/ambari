@@ -40,3 +40,27 @@ export interface GraphScaleItem {
   tick: number;
   [key: string]: number;
 }
+
+export interface ChartTimeGap {
+  value: number;
+  unit: string;
+  label: string;
+}
+
+export interface GraphEventData extends Array<number> {
+  data: GraphScaleItem;
+}
+
+export type GraphLinePoint = GraphScaleItem & {
+  color: string;
+}
+
+export interface GraphLineData {
+  points: GraphScaleItem[];
+  key: string;
+}
+
+export interface GraphEmittedEvent<EventType> {
+  tick: any;
+  nativeEvent: EventType;
+}
