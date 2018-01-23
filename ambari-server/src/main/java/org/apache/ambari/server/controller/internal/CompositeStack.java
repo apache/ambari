@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
@@ -34,6 +35,8 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.collect.ImmutableSet;
 
 // FIXME temporary
 /** Combine multiple mpacks into a single stack. */
@@ -55,12 +58,20 @@ public class CompositeStack implements StackInfo {
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  public Collection<StackId> getStacksForService(String serviceName) {
+  public Set<StackId> getStacksForService(String serviceName) {
     return mpacks.stream()
       .map(m -> Pair.of(m.getStackId(), m.getServices()))
       .filter(p -> p.getRight().contains(serviceName))
       .map(Pair::getLeft)
       .collect(toSet());
+  }
+
+  public Set<String> getServices(StackId stackId) {
+    return mpacks.stream()
+      .filter(m -> stackId.equals(m.getStackId()))
+      .findAny()
+      .flatMap(m -> Optional.of(ImmutableSet.copyOf(m.getServices())))
+      .orElse(ImmutableSet.of());
   }
 
   @Override

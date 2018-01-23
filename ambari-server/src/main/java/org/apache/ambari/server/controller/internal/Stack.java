@@ -212,8 +212,13 @@ public class Stack implements StackInfo {
   }
 
   @Override
-  public Collection<StackId> getStacksForService(String serviceName) {
+  public Set<StackId> getStacksForService(String serviceName) {
     return Collections.singleton(getStackId());
+  }
+
+  @Override
+  public Set<String> getServices(StackId stackId) {
+    return stackId.equals(getStackId()) ? ImmutableSet.copyOf(getServices()) : ImmutableSet.of();
   }
 
   /**

@@ -123,7 +123,7 @@ public interface Blueprint {
   StackId getStackId();
   Set<StackId> getStackIds();
   StackId getStackIdForService(String service);
-  Collection<StackId> getStackIdsForService(String service);
+  Collection<StackId> getStackIdsForService(String service); // will be used for validation
 
   /**
    * Get the host groups which contain components for the specified service.

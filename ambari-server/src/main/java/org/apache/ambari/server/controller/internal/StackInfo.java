@@ -15,7 +15,8 @@ import org.apache.ambari.server.topology.Configuration;
 // FIXME move javadoc
 public interface StackInfo {
 
-  Collection<StackId> getStacksForService(String serviceName);
+  Set<StackId> getStacksForService(String serviceName);
+  Set<String> getServices(StackId stackId);
 
   Collection<String> getServices();
 
