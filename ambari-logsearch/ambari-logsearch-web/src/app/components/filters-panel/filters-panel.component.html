@@ -30,8 +30,8 @@
   </div>
   <div class="filter-buttons col-md-4">
     <dropdown-button iconClass="fa fa-search-minus" label="{{'filter.exclude' | translate}}" [hideCaret]="true"
-                     [showSelectedValue]="false" [options]="searchBoxItems | async"
-                     (selectItem)="proceedWithExclude($event)"></dropdown-button>
+                     [showSelectedValue]="false" [showCommonLabelWithSelection]="true"
+                     [options]="searchBoxItems | async" (selectItem)="proceedWithExclude($event)"></dropdown-button>
     <filter-button *ngIf="isFilterConditionDisplayed('hosts')" formControlName="hosts"
                    label="{{filters.hosts.label | translate}}" [iconClass]="filters.hosts.iconClass"
                    [subItems]="filters.hosts.options" [isMultipleChoice]="true" [isRightAlign]="true"

@@ -20,7 +20,7 @@
 <form *ngIf="logs && logs.length" [formGroup]="filtersForm" class="row pull-right">
   <filter-dropdown class="col-md-12" label="{{filters.auditLogsSorting.label | translate}}"
                    formControlName="auditLogsSorting" [options]="filters.auditLogsSorting.options"
-                   [isRightAlign]="true"></filter-dropdown>
+                   [isRightAlign]="true" [showCommonLabelWithSelection]="true"></filter-dropdown>
 </form>
 <div class="panel panel-default">
   <div class="panel-body">
