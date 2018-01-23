@@ -47,8 +47,7 @@ public class ValidationResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
     Set<String> propertyIds = Collections.singleton(ValidationResourceProvider.VALIDATION_ID_PROPERTY_ID);
     AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
-    ValidationResourceProvider provider = spy(new ValidationResourceProvider(propertyIds,
-        keyPropertyIds, ambariManagementController));
+    ValidationResourceProvider provider = spy(new ValidationResourceProvider(ambariManagementController));
     StackAdvisorRequest stackAdvisorRequest = mock(StackAdvisorRequest.class);
     Request request = mock(Request.class);
     doReturn(stackAdvisorRequest).when(provider).prepareStackAdvisorRequest(request);

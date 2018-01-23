@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,6 +38,9 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHost;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * Resource Provider for HostComponent process resources.
  */
@@ -54,22 +56,36 @@ public class HostComponentProcessResourceProvider extends ReadOnlyResourceProvid
   public static final String HC_PROCESS_HOST_NAME_ID = "HostComponentProcess/host_name";
   public static final String HC_PROCESS_COMPONENT_NAME_ID = "HostComponentProcess/component_name";
 
-  // Primary Key Fields
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      HC_PROCESS_CLUSTER_NAME_ID, HC_PROCESS_HOST_NAME_ID, HC_PROCESS_COMPONENT_NAME_ID, HC_PROCESS_NAME_ID}));
+  /**
+   * The key property ids for a HostComponentProcess resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Cluster, HC_PROCESS_CLUSTER_NAME_ID)
+      .put(Resource.Type.Host, HC_PROCESS_HOST_NAME_ID)
+      .put(Resource.Type.Component, HC_PROCESS_COMPONENT_NAME_ID)
+      .put(Resource.Type.HostComponent, HC_PROCESS_COMPONENT_NAME_ID)
+      .put(Resource.Type.HostComponentProcess, HC_PROCESS_NAME_ID)
+      .build();
+
+  /**
+   * The property ids for a HostComponentProcess resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      HC_PROCESS_NAME_ID,
+      HC_PROCESS_STATUS_ID,
+      HC_PROCESS_CLUSTER_NAME_ID,
+      HC_PROCESS_HOST_NAME_ID,
+      HC_PROCESS_COMPONENT_NAME_ID);
 
   // ----- Constructors ----------------------------------------------------
 
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds     the property ids
-   * @param keyPropertyIds  the key property ids
+   * @param amc the management controller
    */
-  HostComponentProcessResourceProvider(Set<String> propertyIds,
-      Map<Resource.Type, String> keyPropertyIds, AmbariManagementController amc) {
-    super(propertyIds, keyPropertyIds, amc);
+  HostComponentProcessResourceProvider(AmbariManagementController amc) {
+    super(Resource.Type.HostComponentProcess, propertyIds, keyPropertyIds, amc);
   }
 
 
@@ -77,7 +93,7 @@ public class HostComponentProcessResourceProvider extends ReadOnlyResourceProvid
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 

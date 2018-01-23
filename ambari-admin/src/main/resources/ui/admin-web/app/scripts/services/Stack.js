@@ -92,7 +92,7 @@ angular.module('ambariAdminConsole')
 
       $http.get(Settings.baseUrl + '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/gpl.license.accepted&minimal_response=true', {mock: 'true'})
         .then(function(data) {
-          deferred.resolve(data.data.RootServiceComponents.properties['gpl.license.accepted']);
+          deferred.resolve(data.data.RootServiceComponents.properties && data.data.RootServiceComponents.properties['gpl.license.accepted']);
         })
         .catch(function(data) {
           deferred.reject(data);
@@ -189,28 +189,8 @@ angular.module('ambariAdminConsole')
       }
     },
 
-    allRepos: function (filter, pagination) {
-      var versionFilter = filter.version;
-      var nameFilter = filter.name;
-      var typeFilter = filter.type;
-      var stackFilter = filter.stack && filter.stack.current && filter.stack.current.value;
+    allRepos: function () {
       var url = '/stacks?fields=versions/repository_versions/RepositoryVersions';
-      if (versionFilter) {
-        url += '&versions/repository_versions/RepositoryVersions/repository_version.matches(.*' + versionFilter + '.*)';
-      }
-      if (nameFilter) {
-        url += '&versions/repository_versions/RepositoryVersions/display_name.matches(.*' + nameFilter + '.*)';
-      }
-      if (typeFilter){
-        url += '&versions/repository_versions/RepositoryVersions/type.matches(.*' + typeFilter.toUpperCase() + '.*)';
-      }
-      if (stackFilter) {
-        var stack = filter.stack.current.value.split('-'),
-          stackNameFilter = stack[0],
-          stackVersionFilter = stack[1];
-        url += '&versions/repository_versions/RepositoryVersions/stack_name=' + stackNameFilter;
-        url += '&versions/repository_versions/RepositoryVersions/stack_version=' + stackVersionFilter;
-      }
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
       .success(function (data) {
@@ -230,16 +210,8 @@ angular.module('ambariAdminConsole')
         });
         // prepare response data with client side pagination
         var response = {};
+        response.items = repos;
         response.itemTotal = repos.length;
-        if (pagination) {
-          var from = (pagination.currentPage - 1) * pagination.itemsPerPage;
-          var to = (repos.length - from > pagination.itemsPerPage)? from + pagination.itemsPerPage : repos.length;
-          response.items = repos.slice(from, to);
-          response.showed = to - from;
-        } else {
-          response.items = repos;
-          response.showed = repos.length;
-        }
         deferred.resolve(response);
       })
       .error(function (data) {

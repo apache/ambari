@@ -18,7 +18,9 @@
 package org.apache.ambari.server.upgrade;
 
 
+import java.sql.Clob;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,12 +37,16 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -51,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -77,6 +84,42 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN = "category_name";
   protected static final String AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN = "property_name";
   protected static final String AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN = "property_value";
+
+  protected static final String USER_AUTHENTICATION_TABLE = "user_authentication";
+  protected static final String USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN = "user_authentication_id";
+  protected static final String USER_AUTHENTICATION_USER_ID_COLUMN = "user_id";
+  protected static final String USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN = "authentication_type";
+  protected static final String USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN = "authentication_key";
+  protected static final String USER_AUTHENTICATION_CREATE_TIME_COLUMN = "create_time";
+  protected static final String USER_AUTHENTICATION_UPDATE_TIME_COLUMN = "update_time";
+  protected static final String USER_AUTHENTICATION_PRIMARY_KEY = "PK_user_authentication";
+  protected static final String USER_AUTHENTICATION_USER_AUTHENTICATION_USER_ID_INDEX = "IDX_user_authentication_user_id";
+  protected static final String USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY = "FK_user_authentication_users";
+
+  protected static final String USERS_TABLE = "users";
+  protected static final String USERS_USER_ID_COLUMN = "user_id";
+  protected static final String USERS_PRINCIPAL_ID_COLUMN = "principal_id";
+  protected static final String USERS_USER_TYPE_COLUMN = "user_type";
+  protected static final String USERS_USER_PASSWORD_COLUMN = "user_password";
+  protected static final String USERS_CREATE_TIME_COLUMN = "create_time";
+  protected static final String USERS_LDAP_USER_COLUMN = "ldap_user";
+  protected static final String USERS_CONSECUTIVE_FAILURES_COLUMN = "consecutive_failures";
+  protected static final String USERS_USER_NAME_COLUMN = "user_name";
+  protected static final String USERS_DISPLAY_NAME_COLUMN = "display_name";
+  protected static final String USERS_LOCAL_USERNAME_COLUMN = "local_username";
+  protected static final String USERS_VERSION_COLUMN = "version";
+  protected static final String UNIQUE_USERS_0_INDEX = "UNQ_users_0";
+
+  protected static final String MEMBERS_TABLE = "members";
+  protected static final String MEMBERS_MEMBER_ID_COLUMN = "member_id";
+  protected static final String MEMBERS_GROUP_ID_COLUMN = "group_id";
+  protected static final String MEMBERS_USER_ID_COLUMN = "user_id";
+
+  protected static final String ADMINPRIVILEGE_TABLE = "adminprivilege";
+  protected static final String ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN = "privilege_id";
+  protected static final String ADMINPRIVILEGE_PERMISSION_ID_COLUMN = "permission_id";
+  protected static final String ADMINPRIVILEGE_RESOURCE_ID_COLUMN = "resource_id";
+  protected static final String ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN = "principal_id";
 
   @Inject
   DaoUtils daoUtils;
@@ -124,6 +167,360 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     addOpsDisplayNameColumnToHostRoleCommand();
     removeSecurityState();
     addAmbariConfigurationTable();
+    upgradeUserTables();
+  }
+
+  /**
+   * Upgrade the users table as well as supporting tables.
+   * <p>
+   * Affected table are
+   * <ul>
+   * <li>users</li>
+   * <li>user_authentication (new)</li>
+   * <li>members</li>
+   * <li>adminprivilege</li>
+   * </ul>
+   *
+   * @throws SQLException if an error occurs while executing SQL statements
+   * @see #createUserAuthenticationTable()
+   * @see #updateGroupMembershipRecords()
+   * @see #updateAdminPrivilegeRecords()
+   * @see #updateUsersTable()
+   */
+  protected void upgradeUserTables() throws SQLException {
+    createUserAuthenticationTable();
+    updateGroupMembershipRecords();
+    updateAdminPrivilegeRecords();
+    updateUsersTable();
+  }
+
+  /**
+   * If the <code>users</code> table has not yet been migrated, create the <code>user_authentication</code>
+   * table and generate relevant records for that table based on data in the <code>users</code> table.
+   * <p>
+   * The records in the new <code>user_authentication</code> table represent all of the types associated
+   * with a given (case-insensitive) username.  If <code>UserA:LOCAL</code>, <code>usera:LOCAL</code> and
+   * <code>usera:LDAP</code> exist in the original <code>users</code> table, three records will be created
+   * in the <code>user_authentication</code> table: one for each t
+   * to <code>Role1</code>, the three <code>adminprivilege</code> records will be merged into a single
+   * record for <code>usera</code>.
+   *
+   * @throws SQLException if an error occurs while executing SQL statements
+   */
+  private void createUserAuthenticationTable() throws SQLException {
+    if (!usersTableUpgraded()) {
+      final String temporaryTable = USER_AUTHENTICATION_TABLE + "_tmp";
+
+      List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN, Long.class, null, null, false));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_ID_COLUMN, Long.class, null, null, false));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN, String.class, 50, null, false));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN, Clob.class, null, null, true));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Timestamp.class, null, null, true));
+      columns.add(new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_UPDATE_TIME_COLUMN, Timestamp.class, null, null, true));
+
+      // Make sure the temporary table does not exist
+      dbAccessor.dropTable(temporaryTable);
+
+      // Create temporary table
+      dbAccessor.createTable(temporaryTable, columns);
+
+      dbAccessor.executeUpdate(
+          "insert into " + temporaryTable +
+              "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
+              " select" +
+              "  u." + USERS_USER_ID_COLUMN + "," +
+              "  t.min_user_id," +
+              "  u." + USERS_USER_TYPE_COLUMN + "," +
+              "  u." + USERS_USER_PASSWORD_COLUMN + "," +
+              "  u." + USERS_CREATE_TIME_COLUMN + "," +
+              "  u." + USERS_CREATE_TIME_COLUMN +
+              " from " + USERS_TABLE + " as u inner join" +
+              "   (select" +
+              "     lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
+              "     min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
+              "    from " + USERS_TABLE +
+              "    group by lower(" + USERS_USER_NAME_COLUMN + ")) as t" +
+              " on (lower(u." + USERS_USER_NAME_COLUMN + ") = lower(t." + USERS_USER_NAME_COLUMN + "))"
+      );
+
+      // Ensure only LOCAL users have keys set in the user_authentication table
+      dbAccessor.executeUpdate("update " + temporaryTable +
+          " set " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + "=null" +
+          " where " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + "!='" + UserAuthenticationType.LOCAL.name() + "'");
+
+      dbAccessor.createTable(USER_AUTHENTICATION_TABLE, columns);
+      dbAccessor.addPKConstraint(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_PRIMARY_KEY, USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN);
+      dbAccessor.addFKConstraint(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY, USER_AUTHENTICATION_USER_ID_COLUMN, USERS_TABLE, USERS_USER_ID_COLUMN, false);
+
+      dbAccessor.executeUpdate(
+          "insert into " + USER_AUTHENTICATION_TABLE +
+              "(" + USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN + ")" +
+              " select distinct " +
+              USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN + ", " + USER_AUTHENTICATION_USER_ID_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN + ", " + USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN + ", " + USER_AUTHENTICATION_CREATE_TIME_COLUMN + ", " + USER_AUTHENTICATION_UPDATE_TIME_COLUMN +
+              " from " + temporaryTable
+      );
+
+      // Delete the temporary table
+      dbAccessor.dropTable(temporaryTable);
+    }
+  }
+
+  private boolean usersTableUpgraded() {
+    try {
+      dbAccessor.getColumnType(USERS_TABLE, USERS_USER_TYPE_COLUMN);
+      return false;
+    } catch (SQLException e) {
+      return true;
+    }
+  }
+
+  /**
+   * Update the <code>users</code> table by adjusting the relevant columns, contained data, and indicies.
+   * <p>
+   * This method should be executed after creating the <code>user_authentication</code> table and
+   * adjusting the <code>members</code> and <code>adminprivilege</code> data by merging data while
+   * combine user entries with the same username (but different type).
+   * <p>
+   * <ol>
+   * <li>
+   * Orphaned data is removed.  These will be the records where the usernamne is duplicated but
+   * the user type is different.  Only a single record with a given username should be left.
+   * </li>
+   * <li>
+   * Remove the unique record constraint so it may be added back later declaring new constraints
+   * </li>
+   * <li>
+   * Obsolete columns are removed: <code>user_type</code>, <code>ldap_user</code>, <code>user_password</code>.
+   * These columns are handled by the <codee>user_authentication</codee> table.
+   * </li>
+   * <li>
+   * Add new columns: <code>consecutive_failures</code>, <code>display_name</code>,
+   * <code>local_username</code>, <code>version</code>.
+   * The non-null constraints are to be set after all the date is set properly.
+   * </li>
+   * <li>
+   * Ensure the <code>display_name</code> and <code>local_username</code> columns have properly set data.
+   * </li>
+   * <li>
+   * Add the non-null constraint back for the <code>display_name</code> and <code>local_username</code> columns.
+   * </li>
+   * <li>
+   * Add a unique index on the <code>user_name</code> column
+   * </li>
+   * </ol>
+   *
+   * @throws SQLException if an error occurs while executing SQL statements
+   * @see #createUserAuthenticationTable()
+   * @see #updateGroupMembershipRecords()
+   * @see #updateAdminPrivilegeRecords()
+   */
+  private void updateUsersTable() throws SQLException {
+    // Remove orphaned user records...
+    dbAccessor.executeUpdate("delete from " + USERS_TABLE +
+        " where " + USERS_USER_ID_COLUMN + " not in (select " + USER_AUTHENTICATION_USER_ID_COLUMN + " from " + USER_AUTHENTICATION_TABLE + ")");
+
+    // Update the users table
+    dbAccessor.dropUniqueConstraint(USERS_TABLE, UNIQUE_USERS_0_INDEX);
+    dbAccessor.dropColumn(USERS_TABLE, USERS_USER_TYPE_COLUMN);
+    dbAccessor.dropColumn(USERS_TABLE, USERS_LDAP_USER_COLUMN);
+    dbAccessor.dropColumn(USERS_TABLE, USERS_USER_PASSWORD_COLUMN);
+    dbAccessor.addColumn(USERS_TABLE, new DBAccessor.DBColumnInfo(USERS_CONSECUTIVE_FAILURES_COLUMN, Integer.class, null, 0, false));
+    dbAccessor.addColumn(USERS_TABLE, new DBAccessor.DBColumnInfo(USERS_DISPLAY_NAME_COLUMN, String.class, 255, null, true)); // Set to non-null later
+    dbAccessor.addColumn(USERS_TABLE, new DBAccessor.DBColumnInfo(USERS_LOCAL_USERNAME_COLUMN, String.class, 255, null, true)); // Set to non-null later
+    dbAccessor.addColumn(USERS_TABLE, new DBAccessor.DBColumnInfo(USERS_VERSION_COLUMN, Long.class, null, 0, false));
+
+    // Set the display name and local username values based on the username value
+    dbAccessor.executeUpdate("update " + USERS_TABLE +
+        " set " + USERS_DISPLAY_NAME_COLUMN + "=" + USERS_USER_NAME_COLUMN +
+        ", " + USERS_LOCAL_USERNAME_COLUMN + "= lower(" + USERS_USER_NAME_COLUMN + ")" +
+        ", " + USERS_USER_NAME_COLUMN + "= lower(" + USERS_USER_NAME_COLUMN + ")");
+
+    // Change columns to non-null
+    dbAccessor.alterColumn(USERS_TABLE, new DBAccessor.DBColumnInfo(USERS_DISPLAY_NAME_COLUMN, String.class, 255, null, false));
+    dbAccessor.alterColumn(USERS_TABLE, new DBAccessor.DBColumnInfo(USERS_LOCAL_USERNAME_COLUMN, String.class, 255, null, false));
+
+    // Add a unique constraint on the user_name column
+    dbAccessor.addUniqueConstraint(USERS_TABLE, UNIQUE_USERS_0_INDEX, USERS_USER_NAME_COLUMN);
+  }
+
+  /**
+   * Update the <code>members</code> table to ensure records for the same username but different user
+   * records are referencing the main user record. Duplicate records will be be ignored when updating
+   * the <code>members</code> table.
+   * <p>
+   * If <code>UserA:LOCAL</code>, <code>usera:LOCAL</code> and <code>usera:LDAP</code> all belong to
+   * <code>Group1</code>, the three <code>members</code> records will be merged into a single record
+   * for <code>usera</code>.
+   * <p>
+   * This method may be executed multiple times and will yield the same results each time.
+   *
+   * @throws SQLException if an error occurs while executing SQL statements
+   */
+  private void updateGroupMembershipRecords() throws SQLException {
+    final String temporaryTable = MEMBERS_TABLE + "_tmp";
+
+    // Make sure the temporary table does not exist
+    dbAccessor.dropTable(temporaryTable);
+
+    // Create temporary table
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(MEMBERS_MEMBER_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(MEMBERS_USER_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(MEMBERS_GROUP_ID_COLUMN, Long.class, null, null, false));
+    dbAccessor.createTable(temporaryTable, columns);
+
+    // Insert updated data
+    /* *******
+     * Find the user id for the merged user records for the user that is related to each member record.
+     * - Using the user_id from the original member record, find the user_name of that user.
+     * - Using the found user_name, find the user_id for the _merged_ record.  This will be the value of the
+     *   smallest user_id for all user_ids where the user_name matches that found user_name.
+     * - The user_name value is case-insensitive.
+     * ******* */
+    dbAccessor.executeUpdate(
+        "insert into " + temporaryTable + " (" + MEMBERS_MEMBER_ID_COLUMN + ", " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN + ")" +
+            "  select" +
+            "    m." + MEMBERS_MEMBER_ID_COLUMN + "," +
+            "    u.min_user_id," +
+            "    m." + MEMBERS_GROUP_ID_COLUMN +
+            "  from " + MEMBERS_TABLE + " as m inner join" +
+            "    (" +
+            "      select" +
+            "        iu." + USERS_USER_NAME_COLUMN + "," +
+            "        iu." + USERS_USER_ID_COLUMN + "," +
+            "        t.min_user_id" +
+            "      from " + USERS_TABLE + " iu inner join" +
+            "        (" +
+            "          select" +
+            "           lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
+            "            min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
+            "          from " + USERS_TABLE +
+            "          group by lower(" + USERS_USER_NAME_COLUMN + ")" +
+            "        ) as t on (lower(t." + USERS_USER_NAME_COLUMN + ") = lower(iu." + USERS_USER_NAME_COLUMN + "))" +
+            "    ) as u on (m." + MEMBERS_USER_ID_COLUMN + " = u." + USERS_USER_ID_COLUMN + ")");
+
+    // Truncate existing membership records
+    dbAccessor.truncateTable(MEMBERS_TABLE);
+
+    // Insert temporary records into members table
+    /*
+     * Copy the generated data to the original <code>members</code> table, effectively skipping
+     * duplicate records.
+     */
+    dbAccessor.executeUpdate(
+        "insert into " + MEMBERS_TABLE + " (" + MEMBERS_MEMBER_ID_COLUMN + ", " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN + ")" +
+            "  select " +
+            "    min(" + MEMBERS_MEMBER_ID_COLUMN + ")," +
+            "    " + MEMBERS_USER_ID_COLUMN + "," +
+            "    " + MEMBERS_GROUP_ID_COLUMN +
+            "  from " + temporaryTable +
+            "  group by " + MEMBERS_USER_ID_COLUMN + ", " + MEMBERS_GROUP_ID_COLUMN);
+
+    // Delete the temporary table
+    dbAccessor.dropTable(temporaryTable);
+  }
+
+  /**
+   * Update the <code>adminprivilege</code> table to ensure records for the same username but different user
+   * records are referencing the main user record. Duplicate records will be be ignored when updating
+   * the <code>adminprivilege</code> table.
+   * <p>
+   * If <code>UserA:LOCAL</code>, <code>usera:LOCAL</code> and <code>usera:LDAP</code> are assigned
+   * to <code>Role1</code>, the three <code>adminprivilege</code> records will be merged into a single
+   * record for <code>usera</code>.
+   * <p>
+   * This method may be executed multiple times and will yield the same results each time.
+   *
+   * @throws SQLException if an error occurs while executing SQL statements
+   */
+  private void updateAdminPrivilegeRecords() throws SQLException {
+    final String temporaryTable = ADMINPRIVILEGE_TABLE + "_tmp";
+
+    // Make sure the temporary table does not exist
+    dbAccessor.dropTable(temporaryTable);
+
+    // Create temporary table
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_PERMISSION_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_RESOURCE_ID_COLUMN, Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN, Long.class, null, null, false));
+    dbAccessor.createTable(temporaryTable, columns);
+
+    // Insert updated data
+    /* *******
+     * Find the principal id for the merged user records for the user that is related to each relevant
+     * adminprivilege record.
+     * - Using the principal_id from the original adminprivilege record, find the user_name of that user.
+     * - Using the found user_name, find the user_id for the _merged_ record.  This will be the value of the
+     *   smallest user_id for all user_ids where the user_name matches that found user_name.
+     * - Using the found user_id, obtain the relevant principal_id
+     * - The user_name value is case-insensitive.
+     * ******* */
+     dbAccessor.executeUpdate(
+        "insert into " + temporaryTable + " (" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ", " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + ")" +
+            "  select" +
+            "    ap." + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + "," +
+            "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
+            "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
+            "    ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
+            "  from " + ADMINPRIVILEGE_TABLE + " as ap" +
+            "  where ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " not in" +
+            "        (" +
+            "          select " + USERS_PRINCIPAL_ID_COLUMN +
+            "          from " + USERS_TABLE +
+            "        )" +
+            "  union" +
+            "  select" +
+            "    ap." + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + "," +
+            "    ap." + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
+            "    ap." + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
+            "    t.new_principal_id" +
+            "  from " + ADMINPRIVILEGE_TABLE + " as ap inner join" +
+            "    (" +
+            "      select" +
+            "        u." + USERS_USER_ID_COLUMN + "," +
+            "        u." + USERS_USER_NAME_COLUMN + "," +
+            "        u." + USERS_PRINCIPAL_ID_COLUMN + " as new_principal_id," +
+            "        t1." + USERS_PRINCIPAL_ID_COLUMN + " as orig_principal_id" +
+            "      from " + USERS_TABLE + " as u inner join" +
+            "        (" +
+            "          select" +
+            "            u1." + USERS_USER_NAME_COLUMN + "," +
+            "            u1." + USERS_PRINCIPAL_ID_COLUMN + "," +
+            "            t2.min_user_id" +
+            "          from " + USERS_TABLE + " as u1 inner join" +
+            "            (" +
+            "              select" +
+            "                lower(" + USERS_USER_NAME_COLUMN + ") as " + USERS_USER_NAME_COLUMN + "," +
+            "                min(" + USERS_USER_ID_COLUMN + ") as min_user_id" +
+            "              from " + USERS_TABLE +
+            "              group by lower(" + USERS_USER_NAME_COLUMN + ")" +
+            "            ) as t2 on (lower(u1." + USERS_USER_NAME_COLUMN + ") = lower(t2." + USERS_USER_NAME_COLUMN + "))" +
+            "        ) as t1 on (u." + USERS_USER_ID_COLUMN + " = t1.min_user_id)" +
+            "    ) as t on (ap." + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + " = t.orig_principal_id);");
+
+    // Truncate existing adminprivilege records
+    dbAccessor.truncateTable(ADMINPRIVILEGE_TABLE);
+
+    // Insert temporary records into adminprivilege table
+    /*
+     * Copy the generated data to the original <code>adminprivilege</code> table, effectively skipping
+     * duplicate records.
+     */
+    dbAccessor.executeUpdate(
+        "insert into " + ADMINPRIVILEGE_TABLE + " (" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ", " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN + ")" +
+            "  select " +
+            "    min(" + ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN + ")," +
+            "    " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + "," +
+            "    " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + "," +
+            "    " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN +
+            "  from " + temporaryTable +
+            "  group by " + ADMINPRIVILEGE_PERMISSION_ID_COLUMN + ", " + ADMINPRIVILEGE_RESOURCE_ID_COLUMN + ", " + ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN);
+
+    // Delete the temporary table
+    dbAccessor.dropTable(temporaryTable);
   }
 
   protected void updateStageTable() throws SQLException {
@@ -162,6 +559,14 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
+    upgradeLdapConfiguration();
+    createRoleAuthorizations();
+  }
+
+  protected void createRoleAuthorizations() throws SQLException {
+    addRoleAuthorization("AMBARI.MANAGE_CONFIGURATION",
+        "Manage ambari configuration",
+        Collections.singleton("AMBARI.ADMINISTRATOR:AMBARI"));
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -382,5 +787,86 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   * Moves LDAP related properties from ambari.properties to ambari_configuration DB table
+   * @throws AmbariException if there was any issue when clearing ambari.properties
+   */
+  protected void upgradeLdapConfiguration() throws AmbariException {
+    LOG.info("Moving LDAP related properties from ambari.properties to ambari_congiuration DB table...");
+    final AmbariConfigurationDAO ambariConfigurationDao = injector.getInstance(AmbariConfigurationDAO.class);
+    final Map<String, String> propertiesToBeSaved = new HashMap<>();
+    final Map<AmbariLdapConfigurationKeys, String> ldapConfigurationMap = getLdapConfigurationMap();
+    ldapConfigurationMap.forEach((key, oldPropertyName) -> {
+      String ldapPropertyValue = configuration.getProperty(oldPropertyName);
+      if (StringUtils.isNotBlank(ldapPropertyValue)) {
+        if (AmbariLdapConfigurationKeys.SERVER_HOST == key || AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST == key) {
+          final HostAndPort hostAndPort = HostAndPort.fromString(ldapPropertyValue);
+          AmbariLdapConfigurationKeys keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_HOST
+              : AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST;
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), hostAndPort.getHostText());
+
+          keyToBesaved = AmbariLdapConfigurationKeys.SERVER_HOST == key ? AmbariLdapConfigurationKeys.SERVER_PORT : AmbariLdapConfigurationKeys.SECONDARY_SERVER_PORT;
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, keyToBesaved.key(), String.valueOf(hostAndPort.getPort()));
+        } else {
+          populateLdapConfigurationToBeUpgraded(propertiesToBeSaved, oldPropertyName, key.key(), ldapPropertyValue);
+        }
+      }
+    });
+
+    if (propertiesToBeSaved.isEmpty()) {
+      LOG.info("There was no LDAP related properties in ambari.properties; moved 0 elements");
+    } else {
+      ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), propertiesToBeSaved, false);
+      configuration.removePropertiesFromAmbariProperties(ldapConfigurationMap.values());
+      LOG.info(propertiesToBeSaved.size() + " LDAP related properties " + (propertiesToBeSaved.size() == 1 ? "has" : "have") + " been moved to DB");
+    }
+  }
+
+  private void populateLdapConfigurationToBeUpgraded(Map<String, String> propertiesToBeSaved, String oldPropertyName, String newPropertyName, String value) {
+    propertiesToBeSaved.put(newPropertyName, value);
+    LOG.info("About to upgrade '" + oldPropertyName + "' as '" + newPropertyName + "' (value=" + value + ")");
+  }
+  
+  /**
+   * @return a map describing the new LDAP configuration key to the old ambari.properties property name
+   */
+  @SuppressWarnings("serial")
+  private Map<AmbariLdapConfigurationKeys, String> getLdapConfigurationMap() {
+    return Collections.unmodifiableMap(new HashMap<AmbariLdapConfigurationKeys, String>() {
+      {
+        put(AmbariLdapConfigurationKeys.LDAP_ENABLED, "ambari.ldap.isConfigured");
+        put(AmbariLdapConfigurationKeys.SERVER_HOST, "authentication.ldap.primaryUrl");
+        put(AmbariLdapConfigurationKeys.SECONDARY_SERVER_HOST, "authentication.ldap.secondaryUrl");
+        put(AmbariLdapConfigurationKeys.USE_SSL, "authentication.ldap.useSSL");
+        put(AmbariLdapConfigurationKeys.ANONYMOUS_BIND, "authentication.ldap.bindAnonymously");
+        put(AmbariLdapConfigurationKeys.BIND_DN, "authentication.ldap.managerDn");
+        put(AmbariLdapConfigurationKeys.BIND_PASSWORD, "authentication.ldap.managerPassword");
+        put(AmbariLdapConfigurationKeys.DN_ATTRIBUTE, "authentication.ldap.dnAttribute");
+        put(AmbariLdapConfigurationKeys.USER_OBJECT_CLASS, "authentication.ldap.userObjectClass");
+        put(AmbariLdapConfigurationKeys.USER_NAME_ATTRIBUTE, "authentication.ldap.usernameAttribute");
+        put(AmbariLdapConfigurationKeys.USER_SEARCH_BASE, "authentication.ldap.baseDn");
+        put(AmbariLdapConfigurationKeys.USER_BASE, "authentication.ldap.userBase");
+        put(AmbariLdapConfigurationKeys.GROUP_OBJECT_CLASS, "authentication.ldap.groupObjectClass");
+        put(AmbariLdapConfigurationKeys.GROUP_NAME_ATTRIBUTE, "authentication.ldap.groupNamingAttr");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE, "authentication.ldap.groupMembershipAttr");
+        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_BASE, "authentication.ldap.baseDn");
+        put(AmbariLdapConfigurationKeys.GROUP_BASE, "authentication.ldap.groupBase");
+        put(AmbariLdapConfigurationKeys.USER_SEARCH_FILTER, "authentication.ldap.userSearchFilter");
+        put(AmbariLdapConfigurationKeys.USER_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.userMemberReplacePattern");
+        put(AmbariLdapConfigurationKeys.USER_MEMBER_FILTER, "authentication.ldap.sync.userMemberFilter");
+        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_ENABLED, "authentication.ldap.alternateUserSearchEnabled");
+        put(AmbariLdapConfigurationKeys.ALTERNATE_USER_SEARCH_FILTER, "authentication.ldap.alternateUserSearchFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_SEARCH_FILTER, "authorization.ldap.groupSearchFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_REPLACE_PATTERN, "authentication.ldap.sync.groupMemberReplacePattern");
+        put(AmbariLdapConfigurationKeys.GROUP_MEMBER_FILTER, "authentication.ldap.sync.groupMemberFilter");
+        put(AmbariLdapConfigurationKeys.GROUP_MAPPING_RULES, "authorization.ldap.adminGroupMappingRules");
+        put(AmbariLdapConfigurationKeys.FORCE_LOWERCASE_USERNAMES, "authentication.ldap.username.forceLowercase");
+        put(AmbariLdapConfigurationKeys.REFERRAL_HANDLING, "authentication.ldap.referral");
+        put(AmbariLdapConfigurationKeys.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
+        put(AmbariLdapConfigurationKeys.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
+      }
+    });
   }
 }

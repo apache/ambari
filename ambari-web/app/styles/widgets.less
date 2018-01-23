@@ -28,6 +28,7 @@
 
 @slider-widget-border-color: #999;
 @slider-widget-width: 220px;
+@slider-widget-wrapper-width: 68%;
 @slider-widget-tooltip-background-color: @green;
 @slider-widget-selection-background-color: @slider-dark-grey;
 @slider-widget-body-height: 10px;
@@ -143,6 +144,9 @@
       left: -@overriden-property-widget-padding;
     }
   }
+  .input-group-btn {
+    width: auto;
+  }
 }
 
 .widget-config-comparison .widget-config&.slider-widget {
@@ -155,7 +159,7 @@
 
 .directory-textarea-wrapper {
   float: left;
-  width: 80%;
+  width: @slider-widget-wrapper-width;
 }
 
 .list-widget {
@@ -280,9 +284,9 @@
 
   .ui-slider-wrapper {
     .ui-slider-wrapper-inner {
-      width: 68%;
+      width: @slider-widget-wrapper-width;
       width: calc(~"100% - 30px -"@controls-min-width);
-      max-width: 68%;
+      max-width: @slider-widget-wrapper-width;
       padding-left: 10px;
       .slider.slider-horizontal {
         width: 100%;
@@ -494,6 +498,4 @@
   padding: 10px 5px 0 10px;
 }
 
-.input-group-btn {
-  width: auto;
-}
+

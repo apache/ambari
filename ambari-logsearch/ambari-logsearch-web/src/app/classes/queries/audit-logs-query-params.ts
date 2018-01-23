@@ -25,7 +25,17 @@ export const defaultParams = {
 };
 
 export class AuditLogsQueryParams extends QueryParams {
-  constructor(options: AuditLogsQueryParams) {
+  clusters?: string;
+  mustBe?: string;
+  mustNot?: string;
+  includeQuery?: string;
+  excludeQuery?: string;
+  from?: string;
+  to?: string;
+}
+
+export class AuditLogsListQueryParams extends AuditLogsQueryParams {
+  constructor(options: AuditLogsListQueryParams) {
     let finalParams = Object.assign({}, defaultParams, options);
     const page = parseInt(finalParams.page),
       pageSize = parseInt(finalParams.pageSize);
@@ -37,11 +47,4 @@ export class AuditLogsQueryParams extends QueryParams {
   startIndex: string;
   sortBy?: string;
   sortType?: SortingType;
-  clusters?: string;
-  mustBe?: string;
-  mustNot?: string;
-  includeQuery?: string;
-  excludeQuery?: string;
-  from?: string;
-  to?: string;
 }

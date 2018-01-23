@@ -24,7 +24,10 @@ describe('App.ServiceConfigView', function () {
 
   var controller = App.WizardStep7Controller.create({
     selectedServiceObserver: Em.K,
-    switchConfigGroupConfigs: Em.K
+    switchConfigGroupConfigs: Em.K,
+    saveStepConfigs: Em.K,
+    content: Em.Object.create(),
+    selectedConfigGroup: Em.Object.create()
   });
 
   var view = App.ServiceConfigView.create({
@@ -155,6 +158,53 @@ describe('App.ServiceConfigView', function () {
         });
       });
 
+  });
+
+  describe('#save()', function () {
+
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show', Em.K);
+      sinon.stub(App.ServiceConfigVersion, 'find').returns([
+        { serviceName: 'service'}
+      ]);
+      sinon.stub(view.get('controller'), 'saveStepConfigs');
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+      App.ServiceConfigVersion.find.restore();
+      view.get('controller').saveStepConfigs.restore();
+    });
+
+    it('modal popup should be displayed', function () {
+      view.save();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+
+    it('controller properties should be modified on save', function () {
+      view.setProperties({
+        'serviceName': 'service',
+        'controller.saveConfigsFlag': false,
+        'controller.serviceConfigVersionNote': '',
+        'controller.preSelectedConfigVersion': null,
+        'controller.content.serviceName': 'service',
+        'controller.selectedConfigGroup.name': 'group'
+      });
+      var popup = view.save();
+      popup.set('serviceConfigNote', 'note');
+      popup.onSave();
+      expect(view.get('controller.saveConfigsFlag')).to.be.true;
+      expect(view.get('controller').getProperties(['saveConfigsFlag', 'serviceConfigVersionNote', 'preSelectedConfigVersion'])).to.eql({
+        saveConfigsFlag: true,
+        serviceConfigVersionNote: 'note',
+        preSelectedConfigVersion: Em.Object.create({
+          version: 2,
+          serviceName: 'service',
+          groupName: 'group'
+        })
+      });
+      expect(view.get('controller').saveStepConfigs.calledOnce).to.be.true;
+    });
   });
 
 });

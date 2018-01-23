@@ -25,6 +25,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +38,7 @@ import java.util.TreeMap;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.RootServiceComponentConfigurationService;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -47,14 +50,23 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.events.AmbariConfigurationChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.orm.entities.AmbariConfigurationEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.encryption.CredentialProvider;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -64,11 +76,40 @@ import com.google.inject.Injector;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 import junit.framework.Assert;
+import junit.framework.AssertionFailedError;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({FileUtils.class, AmbariServerConfigurationHandler.class})
 public class RootServiceComponentConfigurationResourceProviderTest extends EasyMockSupport {
 
   private static final String CATEGORY_NAME_1 = "test-category-1";
   private static final String CATEGORY_NAME_2 = "test-category-2";
+  private static final String LDAP_CONFIG_CATEGORY = AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName();
+
+  private Injector injector;
+  private Predicate predicate;
+  private ResourceProvider resourceProvider;
+  private RootServiceComponentConfigurationHandlerFactory factory;
+  private Request request;
+  private AmbariConfigurationDAO dao;
+  private Configuration configuration;
+  private AmbariEventPublisher publisher;
+  private Map<String, String> properties = new HashMap<>();
+  private Set<Map<String, Object>> propertySets = new HashSet<>();
+
+  @Before
+  public void init() throws Exception {
+    injector = createInjector();
+    resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
+    predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1);
+    request = createMock(Request.class);
+    dao = injector.getInstance(AmbariConfigurationDAO.class);
+    configuration = injector.getInstance(Configuration.class);
+    factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
+    publisher = injector.getInstance(AmbariEventPublisher.class);
+    properties = new HashMap<>();
+    propertySets = new HashSet<>();
+  }
 
   @After
   public void clearAuthentication() {
@@ -126,21 +167,14 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   }
 
   private void testCreateResources(Authentication authentication, String opDirective) throws Exception {
-    Injector injector = createInjector();
-
-    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
-
-    Set<Map<String, Object>> propertySets = new HashSet<>();
-
-    Map<String, String> properties1 = new HashMap<>();
-    properties1.put("property1a", "value1");
-    properties1.put("property2a", "value2");
-    propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties1));
+    properties.put(Configuration.AMBARI_PYTHON_WRAP.getKey(), "value1");
+    properties.put(Configuration.AMBARI_DISPLAY_URL.getKey(), "value2");
+    propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties));
 
     Map<String, String> properties2 = new HashMap<>();
     if (opDirective == null) {
-      properties2.put("property1b", "value1");
-      properties2.put("property2b", "value2");
+      properties2.put(Configuration.SSL_TRUSTSTORE_TYPE.getKey(), "value1");
+      properties2.put(Configuration.SSL_TRUSTSTORE_PATH.getKey(), "value2");
       propertySets.add(toRequestProperties(CATEGORY_NAME_2, properties2));
     }
 
@@ -151,7 +185,6 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
       requestInfoProperties = Collections.singletonMap(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION, opDirective);
     }
 
-    Request request = createMock(Request.class);
     expect(request.getProperties()).andReturn(propertySets).once();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).once();
 
@@ -159,7 +192,6 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     Capture<Map<String, String>> capturedProperties2 = newCapture();
 
     if (opDirective == null) {
-      AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
       expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(true)))
           .andReturn(true)
           .once();
@@ -168,12 +200,10 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
           .once();
 
 
-      AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
       publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
       expectLastCall().times(2);
     }
 
-    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
         .andReturn(new AmbariServerConfigurationHandler())
         .once();
@@ -205,7 +235,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     verifyAll();
 
     if (opDirective == null) {
-      validateCapturedProperties(properties1, capturedProperties1);
+      validateCapturedProperties(properties, capturedProperties1);
       validateCapturedProperties(properties2, capturedProperties2);
     } else {
       Assert.assertFalse(capturedProperties1.hasCaptured());
@@ -239,22 +269,11 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   }
 
   private void testDeleteResources(Authentication authentication) throws Exception {
-    Injector injector = createInjector();
-
-    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
-
-    Predicate predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1);
-
-    Request request = createMock(Request.class);
-
-    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
     expect(dao.removeByCategory(CATEGORY_NAME_1)).andReturn(1).once();
 
-    AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
     publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
     expectLastCall().once();
 
-    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
         .andReturn(new AmbariServerConfigurationHandler())
         .once();
@@ -294,25 +313,15 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   }
 
   private void testGetResources(Authentication authentication) throws Exception {
-    Injector injector = createInjector();
-
-    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
-
-    Predicate predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1);
-
-    Request request = createMock(Request.class);
     expect(request.getPropertyIds()).andReturn(null).anyTimes();
 
-    Map<String, String> properties = new HashMap<>();
-    properties.put("property1a", "value1");
-    properties.put("property2a", "value2");
+    properties.put(AmbariLdapConfigurationKeys.ANONYMOUS_BIND.key(), "value1");
+    properties.put(AmbariLdapConfigurationKeys.GROUP_MEMBER_ATTRIBUTE.key(), "value2");
 
-    AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
     expect(dao.findByCategory(CATEGORY_NAME_1)).andReturn(createEntities(CATEGORY_NAME_1, properties)).once();
 
-    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
-        .andReturn(new AmbariServerConfigurationHandler())
+        .andReturn(new AmbariServerLDAPConfigurationHandler())
         .once();
 
     replayAll();
@@ -330,16 +339,19 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     Assert.assertEquals(Resource.Type.RootServiceComponentConfiguration, resource.getType());
 
     Map<String, Map<String, Object>> propertiesMap = resource.getPropertiesMap();
-    Assert.assertEquals(2, propertiesMap.size());
+    Assert.assertEquals(3, propertiesMap.size());
 
     Assert.assertEquals(CATEGORY_NAME_1, propertiesMap.get(RootServiceComponentConfigurationResourceProvider.RESOURCE_KEY).get("category"));
 
-    Map<String, Object> retrievedProperties = propertiesMap.get(RootServiceComponentConfigurationResourceProvider.RESOURCE_KEY + "/properties");
+    Map<String, Object> retrievedProperties = propertiesMap.get(RootServiceComponentConfigurationResourceProvider.CONFIGURATION_PROPERTIES_PROPERTY_ID);
     Assert.assertEquals(2, retrievedProperties.size());
 
     for (Map.Entry<String, String> entry : properties.entrySet()) {
       Assert.assertEquals(entry.getValue(), retrievedProperties.get(entry.getKey()));
     }
+
+    Map<String, Object> retrievedPropertyTypes = propertiesMap.get(RootServiceComponentConfigurationResourceProvider.CONFIGURATION_PROPERTY_TYPES_PROPERTY_ID);
+    Assert.assertEquals(2, retrievedPropertyTypes.size());
   }
 
   @Test
@@ -393,18 +405,9 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   }
 
   private void testUpdateResources(Authentication authentication, String opDirective) throws Exception {
-    Injector injector = createInjector();
-
-    ResourceProvider resourceProvider = injector.getInstance(RootServiceComponentConfigurationResourceProvider.class);
-
-    Predicate predicate = createPredicate(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1);
-
-    Set<Map<String, Object>> propertySets = new HashSet<>();
-
-    Map<String, String> properties1 = new HashMap<>();
-    properties1.put("property1a", "value1");
-    properties1.put("property2a", "value2");
-    propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties1));
+    properties.put(Configuration.AMBARI_DISPLAY_URL.getKey(), "value1");
+    properties.put(Configuration.BOOTSTRAP_MASTER_HOSTNAME.getKey(), "value2");
+    propertySets.add(toRequestProperties(CATEGORY_NAME_1, properties));
 
     Map<String, String> requestInfoProperties;
     if (opDirective == null) {
@@ -413,24 +416,20 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
       requestInfoProperties = Collections.singletonMap(RootServiceComponentConfigurationService.DIRECTIVE_OPERATION, opDirective);
     }
 
-    Request request = createMock(Request.class);
     expect(request.getProperties()).andReturn(propertySets).once();
     expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).once();
 
     Capture<Map<String, String>> capturedProperties1 = newCapture();
 
     if (opDirective == null) {
-      AmbariConfigurationDAO dao = injector.getInstance(AmbariConfigurationDAO.class);
       expect(dao.reconcileCategory(eq(CATEGORY_NAME_1), capture(capturedProperties1), eq(false)))
           .andReturn(true)
           .once();
 
-      AmbariEventPublisher publisher = injector.getInstance(AmbariEventPublisher.class);
       publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
       expectLastCall().times(1);
     }
 
-    RootServiceComponentConfigurationHandlerFactory factory = injector.getInstance(RootServiceComponentConfigurationHandlerFactory.class);
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), CATEGORY_NAME_1))
         .andReturn(new AmbariServerConfigurationHandler())
         .once();
@@ -458,10 +457,81 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     verifyAll();
 
     if (opDirective == null) {
-      validateCapturedProperties(properties1, capturedProperties1);
+      validateCapturedProperties(properties, capturedProperties1);
     } else {
       Assert.assertFalse(capturedProperties1.hasCaptured());
     }
+  }
+
+  @Test
+  public void shouldNotUpdatePasswordIfItHasNotBeenChanged() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    properties.put(AmbariLdapConfigurationKeys.BIND_PASSWORD.key(), "passwd");
+    propertySets.add(toRequestProperties(LDAP_CONFIG_CATEGORY, properties));
+    setupBasicExpectations(properties);
+    expect(configuration.isSecurityPasswordEncryptionEnabled()).andThrow(new AssertionFailedError()).anyTimes(); //this call should never have never been hit
+
+    replayAll();
+    resourceProvider.updateResources(request, predicate);
+    verifyAll();
+  }
+
+  @Test
+  public void shouldUpdatePasswordFileIfSecurityPasswordEncryptionIsDisabled() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    properties.put(AmbariLdapConfigurationKeys.BIND_PASSWORD.key(), "newPasswd");
+    propertySets.add(toRequestProperties(LDAP_CONFIG_CATEGORY, properties));
+    Map<String, String> expectedProperties = new HashMap<>();
+    expectedProperties.put(AmbariLdapConfigurationKeys.BIND_PASSWORD.key(), "currentPasswd");
+    setupBasicExpectations(expectedProperties);
+    expect(configuration.isSecurityPasswordEncryptionEnabled()).andReturn(false).once();
+    PowerMock.mockStatic(FileUtils.class);
+    FileUtils.writeStringToFile(new File("currentPasswd"), "newPasswd", Charset.defaultCharset());
+    PowerMock.expectLastCall().once();
+    PowerMock.replay(FileUtils.class);
+    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+    expectLastCall().once();
+
+    replayAll();
+    resourceProvider.updateResources(request, predicate);
+    verifyAll();
+  }
+
+  @Test
+  public void shouldUpdatePasswordInCredentialStoreIfSecurityPasswordEncryptionIsEnabled() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    properties.put(AmbariLdapConfigurationKeys.BIND_PASSWORD.key(), "newPasswd");
+    propertySets.add(toRequestProperties(LDAP_CONFIG_CATEGORY, properties));
+    Map<String, String> expectedProperties = new HashMap<>();
+    expectedProperties.put(AmbariLdapConfigurationKeys.BIND_PASSWORD.key(), "currentPasswd");
+    setupBasicExpectations(expectedProperties);
+    expect(configuration.isSecurityPasswordEncryptionEnabled()).andReturn(true).once();
+
+    File masterKeyLocation = createNiceMock(File.class);
+    File masterKeyStoreLocation = createNiceMock(File.class);
+    expect(configuration.getMasterKeyLocation()).andReturn(masterKeyLocation).once();
+    expect(configuration.isMasterKeyPersisted()).andReturn(false).once();
+    expect(configuration.getMasterKeyStoreLocation()).andReturn(masterKeyStoreLocation).once();
+    CredentialProvider credentialProvider = PowerMock.createMock(CredentialProvider.class);
+    PowerMock.expectNew(CredentialProvider.class, null, (String) null, masterKeyLocation, false, masterKeyStoreLocation).andReturn(credentialProvider);
+    credentialProvider.addAliasToCredentialStore("currentPasswd", "newPasswd");
+    PowerMock.expectLastCall().once();
+    PowerMock.replay(credentialProvider, CredentialProvider.class);
+
+    publisher.publish(anyObject(AmbariConfigurationChangedEvent.class));
+    expectLastCall().once();
+
+    replayAll();
+    resourceProvider.updateResources(request, predicate);
+    verifyAll();
+    PowerMock.verify(credentialProvider, CredentialProvider.class);
+  }
+
+  private void setupBasicExpectations(Map<String, String> expectedProperties) {
+    expect(request.getProperties()).andReturn(propertySets).once();
+    expect(request.getRequestInfoProperties()).andReturn(new HashMap<>());
+    expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), expectedProperties)).once();
+    expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY)).andReturn(new AmbariServerLDAPConfigurationHandler()).once();
   }
 
   private Predicate createPredicate(String serviceName, String componentName, String categoryName) {
@@ -521,6 +591,8 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Configuration.class).toInstance(createNiceMock(Configuration.class));
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(AmbariConfigurationDAO.class).toInstance(createMock(AmbariConfigurationDAO.class));
         bind(AmbariEventPublisher.class).toInstance(createMock(AmbariEventPublisher.class));

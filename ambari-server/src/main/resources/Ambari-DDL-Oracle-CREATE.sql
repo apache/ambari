@@ -365,16 +365,28 @@ CREATE TABLE adminprincipal (
 CREATE TABLE users (
   user_id NUMBER(10) NOT NULL,
   principal_id NUMBER(19) NOT NULL,
-  create_time TIMESTAMP NULL,
-  ldap_user NUMBER(10) DEFAULT 0,
   user_name VARCHAR2(255) NULL,
-  user_type VARCHAR(255) DEFAULT 'LOCAL',
-  user_password VARCHAR2(255) NULL,
   active INTEGER DEFAULT 1 NOT NULL,
+  consecutive_failures INTEGER DEFAULT 0 NOT NULL,
   active_widget_layouts VARCHAR2(1024) DEFAULT NULL,
+  display_name VARCHAR2(255) NOT NULL,
+  local_username VARCHAR2(255) NOT NULL,
+  create_time TIMESTAMP NULL,
+  version NUMBER(19) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
-  CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type));
+  CONSTRAINT UNQ_users_0 UNIQUE (user_name));
+
+CREATE TABLE user_authentication (
+  user_authentication_id NUMBER(10),
+  user_id NUMBER(10) NOT NULL,
+  authentication_type VARCHAR(50) NOT NULL,
+  authentication_key CLOB,
+  create_time TIMESTAMP NULL,
+  update_time TIMESTAMP NULL,
+  CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
+);
 
 CREATE TABLE groups (
   group_id NUMBER(10) NOT NULL,
@@ -865,6 +877,8 @@ CREATE TABLE topology_host_request (
   group_id NUMBER(19) NOT NULL,
   stage_id NUMBER(19) NOT NULL,
   host_name VARCHAR(255),
+  status VARCHAR2(255),
+  status_message VARCHAR2(1024),
   CONSTRAINT PK_topology_host_request PRIMARY KEY (id),
   CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id),
   CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id));
@@ -1016,18 +1030,34 @@ CREATE TABLE kerberos_principal (
 
 CREATE TABLE kerberos_keytab (
   keytab_path VARCHAR2(255) NOT NULL,
-  CONSTRAINT PK_krb_keytab_path_host_id PRIMARY KEY (keytab_path)
+  owner_name VARCHAR2(255),
+  owner_access VARCHAR2(255),
+  group_name VARCHAR2(255),
+  group_access VARCHAR2(255),
+  is_ambari_keytab NUMBER(1) DEFAULT 0 NOT NULL,
+  write_ambari_jaas NUMBER(1) DEFAULT 0 NOT NULL,
+  CONSTRAINT PK_kerberos_keytab PRIMARY KEY (keytab_path)
 );
 
-CREATE TABLE kerberos_principal_host (
-  principal_name VARCHAR2(255) NOT NULL,
+CREATE TABLE kerberos_keytab_principal (
+  kkp_id BIGINT NOT NULL DEFAULT 0,
   keytab_path VARCHAR2(255) NOT NULL,
-  is_distributed NUMBER(1) DEFAULT 0 NOT NULL,
-  host_id NUMBER(19) NOT NULL,
-  CONSTRAINT PK_kerberos_principal_host PRIMARY KEY (principal_name, keytab_path, host_id),
-  CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
-  CONSTRAINT FK_krb_pr_host_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path)
+  principal_name VARCHAR2(255) NOT NULL,
+  host_id NUMBER(19),
+  is_distributed NUMBER(1) NOT NULL DEFAULT 0,
+  CONSTRAINT PK_kkp PRIMARY KEY (kkp_id),
+  CONSTRAINT FK_kkp_keytab_path FOREIGN KEY (keytab_path) REFERENCES kerberos_keytab (keytab_path),
+  CONSTRAINT FK_kkp_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
+  CONSTRAINT FK_kkp_principal_name FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name),
+  CONSTRAINT UNI_kkp UNIQUE(keytab_path, principal_name, host_id)
+);
+
+CREATE TABLE kkp_mapping_service (
+  kkp_id BIGINT NOT NULL DEFAULT 0,
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_kkp_mapping_service PRIMARY KEY (kkp_id, service_name, component_name),
+  CONSTRAINT FK_kkp_service_principal FOREIGN KEY (kkp_id) REFERENCES kerberos_keytab_principal (kkp_id)
 );
 
 CREATE TABLE kerberos_descriptor
@@ -1158,6 +1188,7 @@ CREATE INDEX idx_alert_group_name on alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
 ---------inserting some data-----------
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('kkp_id_seq', 0);
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_setting_id_seq', 1);
@@ -1166,6 +1197,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_dep
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_group_dependency_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_authentication_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('member_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_id_seq', 0);
@@ -1256,8 +1288,14 @@ insert into adminprincipal (principal_id, principal_type_id)
   union all
   select 13, 8 from dual;
 
-insert into users(user_id, principal_id, user_name, user_password)
-select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
+-- Insert the default administrator user.
+insert into users(user_id, principal_id, user_name, display_name, local_username, create_timestamp)
+  SELECT 1, 1, 'admin', 'Administrator', 'admin', CURRENT_TIMESTAMP from dual;
+
+-- Insert the LOCAL authentication data for the default administrator user.
+-- The authentication_key value is the salted digest of the password: admin
+insert into user_authentication(user_authentication_id, user_id, authentication_type, authentication_key, create_time, update_time)
+  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP from dual;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   select 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 from dual

@@ -140,15 +140,6 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }
 
-  @Override
-  protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
-                                          KerberosOperationHandler operationHandler,
-                                          Map<String, String> kerberosConfiguration,
-                                          Map<String, Object> requestSharedDataContext)
-      throws AmbariException {
-    throw new UnsupportedOperationException();
-  }
-
   /**
    * Calls {@link KerberosHelper#getKerberosDescriptor(Cluster, boolean)}
    *

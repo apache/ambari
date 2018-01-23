@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnInit, ElementRef, ViewChild, HostListener} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
+import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuditLog} from '@app/classes/models/audit-log';
@@ -28,28 +29,48 @@ import {ServiceLog} from '@app/classes/models/service-log';
 import {Tab} from '@app/classes/models/tab';
 import {BarGraph} from '@app/classes/models/bar-graph';
 import {ActiveServiceLogEntry} from '@app/classes/active-service-log-entry';
-import {HistogramOptions} from '@app/classes/histogram-options';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {LogsType} from '@app/classes/string';
+import {FiltersPanelComponent} from "@app/components/filters-panel/filters-panel.component";
 
 @Component({
   selector: 'logs-container',
   templateUrl: './logs-container.component.html',
   styleUrls: ['./logs-container.component.less']
 })
-export class LogsContainerComponent {
+export class LogsContainerComponent implements OnInit {
 
   constructor(
-    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private appState: AppStateService,
-    private tabsStorage: TabsService, private logsContainer: LogsContainerService
+    private appState: AppStateService, private tabsStorage: TabsService, private logsContainer: LogsContainerService,
+    private serviceLogsHistogramStorage: ServiceLogsHistogramDataService,
+    private auditLogsGraphStorage: AuditLogsGraphDataService
   ) {
-    this.logsContainer.loadColumnsNames();
-    appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
-    serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
-      this.histogramData = this.logsContainer.getHistogramData(data);
-    });
-    appState.getParameter('isServiceLogContextView').subscribe((value: boolean) => this.isServiceLogContextView = value);
   }
+
+  ngOnInit() {
+    this.logsContainer.loadColumnsNames();
+    this.appState.getParameter('activeLogsType').subscribe((value: LogsType) => this.logsType = value);
+    this.serviceLogsHistogramStorage.getAll().subscribe((data: BarGraph[]): void => {
+      this.serviceLogsHistogramData = this.logsContainer.getGraphData(data, Object.keys(this.logsContainer.colors));
+    });
+    this.auditLogsGraphStorage.getAll().subscribe((data: BarGraph[]): void => {
+      this.auditLogsGraphData = this.logsContainer.getGraphData(data);
+    });
+    this.appState.getParameter('isServiceLogContextView').subscribe((value: boolean): void => {
+      this.isServiceLogContextView = value;
+    });
+  }
+
+  @ViewChild('container') containerRef: ElementRef;
+  @ViewChild('filtersPanel') filtersPanelRef: FiltersPanelComponent;
+
+  @HostListener("window:scroll", ['$event'])
+  onWindowScroll(): void {
+    this.setFixedPositionValue();
+  }
+
+  private isFilterPanelFixedPostioned: boolean = false;
 
   tabs: Observable<Tab[]> = this.tabsStorage.getAll();
 
@@ -63,11 +84,13 @@ export class LogsContainerComponent {
     return this.logsContainer.totalCount;
   }
 
-  histogramData: {[key: string]: number};
+  serviceLogsHistogramData: HomogeneousObject<HomogeneousObject<number>>;
 
-  readonly histogramOptions: HistogramOptions = {
-    keysWithColors: this.logsContainer.colors
-  };
+  auditLogsGraphData: HomogeneousObject<HomogeneousObject<number>>;
+
+  get serviceLogsHistogramColors(): HomogeneousObject<string> {
+    return this.logsContainer.colors;
+  }
 
   get autoRefreshRemainingSeconds(): number {
     return this.logsContainer.autoRefreshRemainingSeconds;
@@ -113,6 +136,28 @@ export class LogsContainerComponent {
 
   get serviceLogsColumns(): Observable<ListItem[]> {
     return this.logsContainer.serviceLogsColumns;
+  }
+
+  /**
+   * The goal is to set the fixed position of the filter panel when it is scrolled to the top. So that the panel
+   * can be always visible for the user.
+   */
+  private setFixedPositionValue(): void {
+    const el:Element = this.containerRef.nativeElement;
+    const top:number = el.getBoundingClientRect().top;
+    const valueBefore: boolean = this.isFilterPanelFixedPostioned;
+    if (valueBefore != (top <= 0)) {
+      const fpEl:Element = this.filtersPanelRef.containerEl;
+      this.isFilterPanelFixedPostioned = top <= 0;
+      const filtersPanelHeight: number = fpEl.getBoundingClientRect().height;
+      const containerPaddingTop: number = parseFloat(window.getComputedStyle(el).paddingTop);
+      const htmlEl:HTMLElement = this.containerRef.nativeElement;
+      if (this.isFilterPanelFixedPostioned) {
+        htmlEl.style.paddingTop = (containerPaddingTop + filtersPanelHeight) + 'px';
+      } else {
+        htmlEl.style.paddingTop = (containerPaddingTop - filtersPanelHeight) + 'px';
+      }
+    }
   }
 
   setCustomTimeRange(startTime: number, endTime: number): void {

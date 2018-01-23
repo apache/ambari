@@ -529,6 +529,20 @@ public class UpgradeContext {
   }
 
   /**
+   * Getting stackId from the set of versions. Is is possible until we upgrading components on the same stack.
+   *
+   * Note: Function should be modified for cross-stack upgrade.
+   *
+   * @param version {@link Set} of services repository versions
+   * @return
+   * {@link StackId} based on provided versions
+   */
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
+  public StackId getStackIdFromVersions(Map<String, RepositoryVersionEntity> version) {
+    return version.values().iterator().next().getStackId();
+  }
+
+  /**
    * Gets the upgrade pack for this upgrade.
    *
    * @return the upgrade pack

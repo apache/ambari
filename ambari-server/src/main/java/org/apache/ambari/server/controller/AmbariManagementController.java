@@ -130,15 +130,6 @@ public interface AmbariManagementController {
                       String versionTag, Map<String, Map<String, String>> propertiesAttributes, Long serviceId);
 
   /**
-   * Creates users.
-   *
-   * @param requests the request objects which define the user.
-   *
-   * @throws AmbariException when the user cannot be created.
-   */
-  void createUsers(Set<UserRequest> requests) throws AmbariException;
-
-  /**
    * Creates groups.
    *
    * @param requests the request objects which define the groups.
@@ -223,18 +214,6 @@ public interface AmbariManagementController {
       throws AmbariException;
 
   /**
-   * Gets the users identified by the given request objects.
-   *
-   * @param requests the request objects
-   *
-   * @return a set of user responses
-   *
-   * @throws AmbariException if the users could not be read
-   */
-  Set<UserResponse> getUsers(Set<UserRequest> requests)
-      throws AmbariException, AuthorizationException;
-
-  /**
    * Gets the user groups identified by the given request objects.
    *
    * @param requests the request objects
@@ -280,15 +259,6 @@ public interface AmbariManagementController {
       throws AmbariException, AuthorizationException;
 
   /**
-   * Updates the users specified.
-   *
-   * @param requests the users to modify
-   *
-   * @throws AmbariException if the resources cannot be updated
-   */
-  void updateUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException;
-
-  /**
    * Updates the groups specified.
    *
    * @param requests the groups to modify
@@ -329,15 +299,6 @@ public interface AmbariManagementController {
    */
   DeleteStatusMetaData deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
-
-  /**
-   * Deletes the users specified.
-   *
-   * @param requests the users to delete
-   *
-   * @throws AmbariException if the resources cannot be deleted
-   */
-  void deleteUsers(Set<UserRequest> requests) throws AmbariException;
 
   /**
    * Deletes the user groups specified.

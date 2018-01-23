@@ -157,6 +157,7 @@
           <name>HDFS_CLIENT</name>
           <displayName>HDFS Client</displayName>
           <category>CLIENT</category>
+          <componentType>HCFS_CLIENT</componentType>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <commandScript>

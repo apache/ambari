@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 
-import {Component, OnChanges, SimpleChanges, Input} from '@angular/core';
+import {Component, OnChanges, SimpleChanges, Input, ViewContainerRef} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/observable/from';
 import {FilterCondition, SearchBoxParameter, SearchBoxParameterTriggered} from '@app/classes/filtering';
 import {ListItem} from '@app/classes/list-item';
+import {HomogeneousObject} from '@app/classes/object';
 import {LogsType} from '@app/classes/string';
-import {CommonEntry} from '@app/classes/models/common-entry';
 import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
@@ -34,7 +34,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 })
 export class FiltersPanelComponent implements OnChanges {
 
-  constructor(private logsContainer: LogsContainerService) {
+  constructor(private logsContainer: LogsContainerService, public viewContainerRef: ViewContainerRef) {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -63,38 +63,26 @@ export class FiltersPanelComponent implements OnChanges {
 
   searchBoxItems: Observable<ListItem[]>;
 
-  get searchBoxItemsTranslated(): CommonEntry[] {
-    switch (this.logsType) {
-      case 'auditLogs':
-        return this.logsContainer.auditLogsColumnsTranslated;
-      case 'serviceLogs':
-        return this.logsContainer.serviceLogsColumnsTranslated;
-      default:
-        return [];
-    }
+  get containerEl(): Element {
+    return this.viewContainerRef.element.nativeElement;
   }
 
-  get filters(): {[key: string]: FilterCondition} {
+  get filters(): HomogeneousObject<FilterCondition> {
     return this.logsContainer.filters;
   }
 
   /**
    * Object with options for search box parameter values
-   * @returns {[key: string]: CommonEntry[]}
+   * @returns HomogeneousObject<ListItem[]>
    */
-  get options(): {[key: string]: CommonEntry[]} {
+  get options(): HomogeneousObject<ListItem[]> {
     return Object.keys(this.filters).filter((key: string): boolean => {
       const condition = this.filters[key];
       return Boolean(condition.fieldName && condition.options);
     }).reduce((currentValue, currentKey) => {
       const condition = this.filters[currentKey];
       return Object.assign(currentValue, {
-        [condition.fieldName]: condition.options.map((option: ListItem): CommonEntry => {
-          return {
-            name: option.value,
-            value: option.value
-          }
-        })
+        [condition.fieldName]: condition.options
       });
     }, {});
   }

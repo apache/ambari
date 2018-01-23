@@ -21,10 +21,11 @@ export LOGFEEDER_PATH=/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/t
 export LOGFEEDER_CONF_DIR=/root/config/logfeeder
 
 #Logfile e.g. /var/log/logfeeder.log
-export LOGFILE=/var/log/ambari-logsearch-logfeeder/logfeeder.out
+export LOG_PATH=/var/log/ambari-logsearch-logfeeder
+export LOG_FILE=logfeeder.out
 
 #pid file e.g. /var/run/logfeeder.pid
-export PID_FILE=/var/run/ambari-logsearch-logfeeder/logfeeder.pid
+export LOGFEEDER_PID_FILE=/var/run/ambari-logsearch-logfeeder/logfeeder.pid
 
 export JAVA_HOME=/usr/java/default
 

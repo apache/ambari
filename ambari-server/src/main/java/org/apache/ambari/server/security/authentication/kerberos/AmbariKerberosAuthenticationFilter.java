@@ -28,13 +28,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationEventHandler;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationException;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.PermissionHelper;
-import org.apache.ambari.server.utils.RequestUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -52,9 +49,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProcessingFilter implements AmbariAuthenticationFilter {
 
   /**
-   * Audit logger
+   * Ambari authentication event handler
    */
-  private final AuditLogger auditLogger;
+  private final AmbariAuthenticationEventHandler eventHandler;
 
   /**
    * A Boolean value indicating whether Kerberos authentication is enabled or not.
@@ -70,30 +67,37 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
    * @param authenticationManager the Spring authentication manager
    * @param entryPoint            the Spring entry point
    * @param configuration         the Ambari configuration data
-   * @param auditLogger           an audit logger
-   * @param permissionHelper      a permission helper to aid in audit logging
+   * @param eventHandler          the Ambari authentication event handler
    */
-  public AmbariKerberosAuthenticationFilter(AuthenticationManager authenticationManager, final AuthenticationEntryPoint entryPoint, Configuration configuration, final AuditLogger auditLogger, final PermissionHelper permissionHelper) {
+  public AmbariKerberosAuthenticationFilter(AuthenticationManager authenticationManager,
+                                            final AuthenticationEntryPoint entryPoint,
+                                            Configuration configuration,
+                                            final AmbariAuthenticationEventHandler eventHandler) {
     AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties = (configuration == null)
         ? null
         : configuration.getKerberosAuthenticationProperties();
 
     kerberosAuthenticationEnabled = (kerberosAuthenticationProperties != null) && kerberosAuthenticationProperties.isKerberosAuthenticationEnabled();
 
-    this.auditLogger = auditLogger;
+    if(eventHandler == null) {
+      throw new IllegalArgumentException("The AmbariAuthenticationEventHandler must not be null");
+    }
+
+    this.eventHandler = eventHandler;
 
     setAuthenticationManager(authenticationManager);
 
     setFailureHandler(new AuthenticationFailureHandler() {
       @Override
       public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
-        if (auditLogger.isEnabled()) {
-          AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-              .withRemoteIp(RequestUtils.getRemoteAddress(httpServletRequest))
-              .withTimestamp(System.currentTimeMillis())
-              .withReasonOfFailure(e.getLocalizedMessage())
-              .build();
-          auditLogger.log(loginFailedAuditEvent);
+        if (eventHandler != null) {
+          AmbariAuthenticationException cause;
+          if (e instanceof AmbariAuthenticationException) {
+            cause = (AmbariAuthenticationException) e;
+          } else {
+            cause = new AmbariAuthenticationException(null, e.getLocalizedMessage(), false, e);
+          }
+          eventHandler.onUnsuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, cause);
         }
 
         entryPoint.commence(httpServletRequest, httpServletResponse, e);
@@ -103,14 +107,8 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     setSuccessHandler(new AuthenticationSuccessHandler() {
       @Override
       public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
-        if (auditLogger.isEnabled()) {
-          AuditEvent loginSucceededAuditEvent = LoginAuditEvent.builder()
-              .withRemoteIp(RequestUtils.getRemoteAddress(httpServletRequest))
-              .withUserName(authentication.getName())
-              .withTimestamp(System.currentTimeMillis())
-              .withRoles(permissionHelper.getPermissionLabels(authentication))
-              .build();
-          auditLogger.log(loginSucceededAuditEvent);
+        if (eventHandler != null) {
+          eventHandler.onSuccessfulAuthentication(AmbariKerberosAuthenticationFilter.this, httpServletRequest, httpServletResponse, authentication);
         }
       }
     });
@@ -137,6 +135,12 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
     }
   }
 
+  @Override
+  public boolean shouldIncrementFailureCount() {
+    // Always return false since authentication happens remotely.
+    return false;
+  }
+
   /**
    * Performs the logic for this filter.
    * <p>
@@ -152,22 +156,10 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
    */
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-
-    if (shouldApply(httpServletRequest)) {
-      if (auditLogger.isEnabled() && (AuthorizationHelper.getAuthenticatedName() == null)) {
-        AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()
-            .withRemoteIp(RequestUtils.getRemoteAddress(httpServletRequest))
-            .withTimestamp(System.currentTimeMillis())
-            .withReasonOfFailure("Authentication required")
-            .withUserName(null)
-            .build();
-        auditLogger.log(loginFailedAuditEvent);
-      }
-
-      super.doFilter(servletRequest, servletResponse, filterChain);
-    } else {
-      filterChain.doFilter(servletRequest, servletResponse);
+    if (eventHandler != null) {
+      eventHandler.beforeAttemptAuthentication(AmbariKerberosAuthenticationFilter.this, servletRequest, servletResponse);
     }
+
+    super.doFilter(servletRequest, servletResponse, filterChain);
   }
 }

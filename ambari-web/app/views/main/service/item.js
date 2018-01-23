@@ -259,6 +259,10 @@ App.MainServiceItemView = Em.View.extend({
        });
       }
 
+      if (App.get('isKerberosEnabled')){
+        options.push(actionMap.REGENERATE_KEYTAB_FILE_OPERATIONS);
+      }
+
       allMasters.forEach(function(master) {
         var component = App.StackServiceComponent.find(master);
         var commands = component.get('customCommands');

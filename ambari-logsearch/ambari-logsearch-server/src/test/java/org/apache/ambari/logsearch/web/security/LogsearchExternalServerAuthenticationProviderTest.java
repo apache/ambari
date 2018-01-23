@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logsearch.web.security;
 
-import com.google.common.collect.Lists;
 import org.apache.ambari.logsearch.common.ExternalServerClient;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.junit.Before;

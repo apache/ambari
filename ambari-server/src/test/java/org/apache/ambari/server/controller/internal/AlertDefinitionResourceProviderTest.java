@@ -457,7 +457,7 @@ public class AlertDefinitionResourceProviderTest {
 
     // JMX
     requestProps.put("AlertDefinition/source/jmx/value",
-        source.getJmxInfo().getValue());
+        source.getJmxInfo().getValue().toString());
     requestProps.put("AlertDefinition/source/jmx/property_list",
         source.getJmxInfo().getPropertyList());
 
@@ -600,7 +600,7 @@ public class AlertDefinitionResourceProviderTest {
 
     // JMX
     requestProps.put("AlertDefinition/source/jmx/value",
-        source.getJmxInfo().getValue());
+        source.getJmxInfo().getValue().toString());
     requestProps.put("AlertDefinition/source/jmx/property_list",
         source.getJmxInfo().getPropertyList());
 

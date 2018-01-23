@@ -53,8 +53,6 @@ public class AbstractDRResourceProviderTest {
     AbstractResourceProvider provider =
         (AbstractResourceProvider) AbstractDRResourceProvider.getResourceProvider(
             Resource.Type.DRFeed,
-            propertyIds,
-            keyPropertyIds,
             ivoryService);
 
     Assert.assertTrue(provider instanceof FeedResourceProvider);

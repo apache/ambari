@@ -52,7 +52,30 @@
   padding: 30px;
 }
 
-#cluster-information .fa-cloud {
-  font-size: 150px;
-  color: #f0f0f0;
+#cluster-information .install-button {
+  height: 40px;
+}
+
+#cluster-information .install-button a {
+  height: 100%;
+  padding: 0;
+  width: 225px;
+  font-size: 16px;
+  line-height: 40px;
+}
+
+@keyframes INSTALL-BOX-ROTATE {
+  0% {transform: rotate(0deg)}
+  12.5% {transform: rotate(-30deg)}
+  37.5% {transform: rotate(30deg)}
+  62.5% {transform: rotate(-30deg)}
+  87.5% {transform: rotate(30deg)}
+  100% {transform: rotate(0deg)}
+}
+
+#cluster-information #install-box {
+  animation: INSTALL-BOX-ROTATE 2s;
+  width: 116px;
+  margin-bottom: 20px;
+  margin-top: 40px;
 }

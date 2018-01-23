@@ -17,15 +17,49 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_PERMISSION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_RESOURCE_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.ADMINPRIVILEGE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_DESIRED_STATE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_GROUP_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_MEMBER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_USER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_DISPLAY_STATUS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SECURITY_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_DESIRED_STATE_TABLE;
 import static org.easymock.EasyMock.anyLong;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_DISPLAY_STATUS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_STATUS_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.UNIQUE_USERS_0_INDEX;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_CONSECUTIVE_FAILURES_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_DISPLAY_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_LDAP_USER_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_LOCAL_USERNAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_NAME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_PASSWORD_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_USER_TYPE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_VERSION_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_CREATE_TIME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_PRIMARY_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_UPDATE_TIME_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_ID_COLUMN;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -38,15 +72,21 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Clob;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -54,12 +94,16 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -68,6 +112,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
@@ -76,7 +121,9 @@ import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import com.google.common.collect.ImmutableMap;
@@ -90,6 +137,8 @@ import com.google.inject.Provider;
 
 @RunWith(EasyMockRunner.class)
 public class UpgradeCatalog300Test {
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Mock(type = MockType.STRICT)
   private Provider<EntityManager> entityManagerProvider;
@@ -100,7 +149,7 @@ public class UpgradeCatalog300Test {
   @Mock(type = MockType.NICE)
   private EntityManager entityManager;
 
-  @Mock(type = MockType.NICE)
+  @Mock(type = MockType.DEFAULT)
   private DBAccessor dbAccessor;
 
   @Mock(type = MockType.NICE)
@@ -120,6 +169,9 @@ public class UpgradeCatalog300Test {
 
   @Mock(type = MockType.NICE)
   private Cluster cluster;
+
+  @Mock(type = MockType.NICE)
+  AmbariConfigurationDAO ambariConfigurationDao;
 
   @Before
   public void init() {
@@ -144,6 +196,8 @@ public class UpgradeCatalog300Test {
     Method setStatusOfStagesAndRequests = UpgradeCatalog300.class.getDeclaredMethod("setStatusOfStagesAndRequests");
     Method updateLogSearchConfigs = UpgradeCatalog300.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateKerberosConfigurations = UpgradeCatalog300.class.getDeclaredMethod("updateKerberosConfigurations");
+    Method upgradeLdapConfiguration = UpgradeCatalog300.class.getDeclaredMethod("upgradeLdapConfiguration");
+    Method createRoleAuthorizations = UpgradeCatalog300.class.getDeclaredMethod("createRoleAuthorizations");
 
     UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
         .addMockedMethod(showHcatDeletedUserMessage)
@@ -151,17 +205,30 @@ public class UpgradeCatalog300Test {
         .addMockedMethod(setStatusOfStagesAndRequests)
         .addMockedMethod(updateLogSearchConfigs)
         .addMockedMethod(updateKerberosConfigurations)
+        .addMockedMethod(upgradeLdapConfiguration)
+        .addMockedMethod(createRoleAuthorizations)
         .createMock();
 
 
     upgradeCatalog300.addNewConfigurationsFromXml();
+    expectLastCall().once();
+
     upgradeCatalog300.showHcatDeletedUserMessage();
+    expectLastCall().once();
+
+    upgradeCatalog300.createRoleAuthorizations();
+    expectLastCall().once();
+
     upgradeCatalog300.setStatusOfStagesAndRequests();
+    expectLastCall().once();
 
     upgradeCatalog300.updateLogSearchConfigs();
     expectLastCall().once();
 
     upgradeCatalog300.updateKerberosConfigurations();
+    expectLastCall().once();
+
+    upgradeCatalog300.upgradeLdapConfiguration();
     expectLastCall().once();
 
     replay(upgradeCatalog300);
@@ -173,19 +240,23 @@ public class UpgradeCatalog300Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-    Module module = new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
-      }
-    };
+    Module module = getTestGuiceModule();
 
+    // updateStageTable
+    Capture<DBAccessor.DBColumnInfo> updateStageTableCaptures = newCapture(CaptureType.ALL);
+    dbAccessor.addColumn(eq(STAGE_TABLE), capture(updateStageTableCaptures));
+    expectLastCall().once();
+    dbAccessor.addColumn(eq(STAGE_TABLE), capture(updateStageTableCaptures));
+    expectLastCall().once();
+    dbAccessor.addColumn(eq(REQUEST_TABLE), capture(updateStageTableCaptures));
+    expectLastCall().once();
+
+    // addOpsDisplayNameColumnToHostRoleCommand
     Capture<DBAccessor.DBColumnInfo> hrcOpsDisplayNameColumn = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
+    expectLastCall().once();
 
+    // removeSecurityState
     dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
     expectLastCall().once();
     dbAccessor.dropColumn(COMPONENT_STATE_TABLE, SECURITY_STATE_COLUMN);
@@ -193,20 +264,42 @@ public class UpgradeCatalog300Test {
     dbAccessor.dropColumn(SERVICE_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
     expectLastCall().once();
 
-    // Ambari configuration table addition...
+    // addAmbariConfigurationTable
     Capture<List<DBAccessor.DBColumnInfo>> ambariConfigurationTableColumns = newCapture();
-
     dbAccessor.createTable(eq(AMBARI_CONFIGURATION_TABLE), capture(ambariConfigurationTableColumns));
     expectLastCall().once();
     dbAccessor.addPKConstraint(AMBARI_CONFIGURATION_TABLE, "PK_ambari_configuration", AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN);
     expectLastCall().once();
-    // Ambari configuration table addition...
+
+    // upgradeUserTable - create user_authentication table
+    Capture<List<DBAccessor.DBColumnInfo>> createUserAuthenticationTableCaptures = newCapture(CaptureType.ALL);
+    Capture<List<DBAccessor.DBColumnInfo>> createMembersTableCaptures = newCapture(CaptureType.ALL);
+    Capture<List<DBAccessor.DBColumnInfo>> createAdminPrincipalTableCaptures = newCapture(CaptureType.ALL);
+    Capture<DBAccessor.DBColumnInfo> updateUserTableCaptures = newCapture(CaptureType.ALL);
+    Capture<DBAccessor.DBColumnInfo> alterUserTableCaptures = newCapture(CaptureType.ALL);
+
+    // Any return value will work here as long as a SQLException is not thrown.
+    expect(dbAccessor.getColumnType(USERS_TABLE, USERS_USER_TYPE_COLUMN)).andReturn(0).anyTimes();
+
+    prepareCreateUserAuthenticationTable(dbAccessor, createUserAuthenticationTableCaptures);
+    prepareUpdateGroupMembershipRecords(dbAccessor, createMembersTableCaptures);
+    prepareUpdateAdminPrivilegeRecords(dbAccessor, createAdminPrincipalTableCaptures);
+    prepareUpdateUsersTable(dbAccessor, updateUserTableCaptures, alterUserTableCaptures);
 
     replay(dbAccessor, configuration);
 
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog300 upgradeCatalog300 = injector.getInstance(UpgradeCatalog300.class);
     upgradeCatalog300.executeDDLUpdates();
+
+    // Validate updateStageTableCaptures
+    Assert.assertTrue(updateStageTableCaptures.hasCaptured());
+    validateColumns(updateStageTableCaptures.getValues(),
+        Arrays.asList(
+            new DBAccessor.DBColumnInfo(STAGE_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false),
+            new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false),
+            new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false))
+    );
 
     DBAccessor.DBColumnInfo capturedOpsDisplayNameColumn = hrcOpsDisplayNameColumn.getValue();
     Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedOpsDisplayNameColumn.getName());
@@ -215,6 +308,13 @@ public class UpgradeCatalog300Test {
 
     // Ambari configuration table addition...
     Assert.assertTrue(ambariConfigurationTableColumns.hasCaptured());
+    validateColumns(ambariConfigurationTableColumns.getValue(),
+        Arrays.asList(
+            new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, String.class, 100, null, false),
+            new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_NAME_COLUMN, String.class, 100, null, false),
+            new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN, String.class, 255, null, true))
+    );
+
     List<DBAccessor.DBColumnInfo> columns = ambariConfigurationTableColumns.getValue();
     Assert.assertEquals(3, columns.size());
 
@@ -242,8 +342,208 @@ public class UpgradeCatalog300Test {
     }
     // Ambari configuration table addition...
 
+    validateCreateUserAuthenticationTable(createUserAuthenticationTableCaptures);
+    validateUpdateGroupMembershipRecords(createMembersTableCaptures);
+    validateUpdateAdminPrivilegeRecords(createAdminPrincipalTableCaptures);
+    validateUpdateUsersTable(updateUserTableCaptures, alterUserTableCaptures);
+
     verify(dbAccessor);
   }
+
+  private Module getTestGuiceModule() {
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(osFamily);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(Configuration.class).toInstance(configuration);
+        binder.bind(AmbariConfigurationDAO.class).toInstance(ambariConfigurationDao);
+      }
+    };
+    return module;
+  }
+
+  private void prepareCreateUserAuthenticationTable(DBAccessor dbAccessor, Capture<List<DBAccessor.DBColumnInfo>> capturedData)
+      throws SQLException {
+
+    String temporaryTableName = USER_AUTHENTICATION_TABLE + "_tmp";
+
+    dbAccessor.dropTable(eq(temporaryTableName));
+    expectLastCall().times(2);
+    dbAccessor.createTable(eq(temporaryTableName), capture(capturedData));
+    expectLastCall().once();
+
+    expect(dbAccessor.executeUpdate(startsWith("insert into " + temporaryTableName))).andReturn(1).once();
+    expect(dbAccessor.executeUpdate(startsWith("update " + temporaryTableName))).andReturn(1).once();
+
+    dbAccessor.createTable(eq(USER_AUTHENTICATION_TABLE), capture(capturedData));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_PRIMARY_KEY, USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN);
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY, USER_AUTHENTICATION_USER_ID_COLUMN, USERS_TABLE, USERS_USER_ID_COLUMN, false);
+    expectLastCall().once();
+
+    expect(dbAccessor.executeUpdate(startsWith("insert into " + USER_AUTHENTICATION_TABLE))).andReturn(1).once();
+  }
+
+  private void validateCreateUserAuthenticationTable(Capture<List<DBAccessor.DBColumnInfo>> capturedData) {
+    Assert.assertTrue(capturedData.hasCaptured());
+    List<List<DBAccessor.DBColumnInfo>> capturedValues = capturedData.getValues();
+    Assert.assertEquals(2, capturedValues.size());
+    for (List<DBAccessor.DBColumnInfo> capturedValue : capturedValues) {
+      validateColumns(capturedValue,
+          Arrays.asList(
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN, Long.class, null, null, false),
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_USER_ID_COLUMN, Long.class, null, null, false),
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_TYPE_COLUMN, String.class, 50, null, false),
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_AUTHENTICATION_KEY_COLUMN, Clob.class, null, null, true),
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_CREATE_TIME_COLUMN, Timestamp.class, null, null, true),
+              new DBAccessor.DBColumnInfo(USER_AUTHENTICATION_UPDATE_TIME_COLUMN, Timestamp.class, null, null, true)
+          )
+      );
+    }
+  }
+
+  private void prepareUpdateGroupMembershipRecords(DBAccessor dbAccessor, Capture<List<DBAccessor.DBColumnInfo>> capturedData)
+      throws SQLException {
+    String temporaryTableName = MEMBERS_TABLE + "_tmp";
+
+    dbAccessor.dropTable(eq(temporaryTableName));
+    expectLastCall().times(2);
+    dbAccessor.createTable(eq(temporaryTableName), capture(capturedData));
+    expectLastCall().once();
+
+    expect(dbAccessor.executeUpdate(startsWith("insert into " + temporaryTableName))).andReturn(1).once();
+
+    dbAccessor.truncateTable(MEMBERS_TABLE);
+    expectLastCall().once();
+
+    expect(dbAccessor.executeUpdate(startsWith("insert into " + MEMBERS_TABLE))).andReturn(1).once();
+  }
+
+  private void validateUpdateGroupMembershipRecords(Capture<List<DBAccessor.DBColumnInfo>> capturedData) {
+    Assert.assertTrue(capturedData.hasCaptured());
+    List<List<DBAccessor.DBColumnInfo>> capturedValues = capturedData.getValues();
+    Assert.assertEquals(1, capturedValues.size());
+    for (List<DBAccessor.DBColumnInfo> capturedValue : capturedValues) {
+      validateColumns(capturedValue,
+          Arrays.asList(
+              new DBAccessor.DBColumnInfo(MEMBERS_MEMBER_ID_COLUMN, Long.class, null, null, false),
+              new DBAccessor.DBColumnInfo(MEMBERS_USER_ID_COLUMN, Long.class, null, null, false),
+              new DBAccessor.DBColumnInfo(MEMBERS_GROUP_ID_COLUMN, Long.class, null, null, false)
+          )
+      );
+    }
+  }
+
+  private void prepareUpdateAdminPrivilegeRecords(DBAccessor dbAccessor, Capture<List<DBAccessor.DBColumnInfo>> capturedData)
+      throws SQLException {
+    String temporaryTableName = ADMINPRIVILEGE_TABLE + "_tmp";
+
+    dbAccessor.dropTable(eq(temporaryTableName));
+    expectLastCall().times(2);
+    dbAccessor.createTable(eq(temporaryTableName), capture(capturedData));
+    expectLastCall().once();
+
+    expect(dbAccessor.executeUpdate(startsWith("insert into " + temporaryTableName))).andReturn(1).once();
+
+    dbAccessor.truncateTable(ADMINPRIVILEGE_TABLE);
+    expectLastCall().once();
+
+    expect(dbAccessor.executeUpdate(startsWith("insert into " + ADMINPRIVILEGE_TABLE))).andReturn(1).once();
+  }
+
+  private void validateUpdateAdminPrivilegeRecords(Capture<List<DBAccessor.DBColumnInfo>> capturedData) {
+    Assert.assertTrue(capturedData.hasCaptured());
+    List<List<DBAccessor.DBColumnInfo>> capturedValues = capturedData.getValues();
+    Assert.assertEquals(1, capturedValues.size());
+    for (List<DBAccessor.DBColumnInfo> capturedValue : capturedValues) {
+      validateColumns(capturedValue,
+          Arrays.asList(
+              new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_PRIVILEGE_ID_COLUMN, Long.class, null, null, false),
+              new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_PERMISSION_ID_COLUMN, Long.class, null, null, false),
+              new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_RESOURCE_ID_COLUMN, Long.class, null, null, false),
+              new DBAccessor.DBColumnInfo(ADMINPRIVILEGE_PRINCIPAL_ID_COLUMN, Long.class, null, null, false)
+          )
+      );
+    }
+  }
+
+  private void prepareUpdateUsersTable(DBAccessor dbAccessor, Capture<DBAccessor.DBColumnInfo> updateUserTableCaptures, Capture<DBAccessor.DBColumnInfo> alterUserTableCaptures)
+      throws SQLException {
+
+    expect(dbAccessor.executeUpdate(startsWith("delete from " + USERS_TABLE))).andReturn(1).once();
+
+    dbAccessor.dropUniqueConstraint(USERS_TABLE, UNIQUE_USERS_0_INDEX);
+    expectLastCall().once();
+    dbAccessor.dropColumn(USERS_TABLE, USERS_USER_TYPE_COLUMN);
+    expectLastCall().once();
+    dbAccessor.dropColumn(USERS_TABLE, USERS_LDAP_USER_COLUMN);
+    expectLastCall().once();
+    dbAccessor.dropColumn(USERS_TABLE, USERS_USER_PASSWORD_COLUMN);
+    expectLastCall().once();
+
+    dbAccessor.addColumn(eq(USERS_TABLE), capture(updateUserTableCaptures));
+    expectLastCall().atLeastOnce();
+
+    expect(dbAccessor.executeUpdate(startsWith("update " + USERS_TABLE))).andReturn(1).once();
+
+
+    dbAccessor.alterColumn(eq(USERS_TABLE), capture(alterUserTableCaptures));
+    expectLastCall().atLeastOnce();
+
+    dbAccessor.addUniqueConstraint(USERS_TABLE, UNIQUE_USERS_0_INDEX, USERS_USER_NAME_COLUMN);
+    expectLastCall().once();
+  }
+
+  private void validateUpdateUsersTable(Capture<DBAccessor.DBColumnInfo> updateUserTableCaptures, Capture<DBAccessor.DBColumnInfo> alterUserTableCaptures) {
+    Assert.assertTrue(updateUserTableCaptures.hasCaptured());
+    validateColumns(updateUserTableCaptures.getValues(),
+        Arrays.asList(
+            new DBAccessor.DBColumnInfo(USERS_CONSECUTIVE_FAILURES_COLUMN, Integer.class, null, 0, false),
+            new DBAccessor.DBColumnInfo(USERS_DISPLAY_NAME_COLUMN, String.class, 255, null, true),
+            new DBAccessor.DBColumnInfo(USERS_LOCAL_USERNAME_COLUMN, String.class, 255, null, true),
+            new DBAccessor.DBColumnInfo(USERS_VERSION_COLUMN, Long.class, null, 0, false)
+        )
+    );
+
+    Assert.assertTrue(alterUserTableCaptures.hasCaptured());
+    validateColumns(alterUserTableCaptures.getValues(),
+        Arrays.asList(
+            new DBAccessor.DBColumnInfo(USERS_DISPLAY_NAME_COLUMN, String.class, 255, null, false),
+            new DBAccessor.DBColumnInfo(USERS_LOCAL_USERNAME_COLUMN, String.class, 255, null, false)
+        )
+    );
+  }
+
+  private void validateColumns(List<DBAccessor.DBColumnInfo> capturedColumns, List<DBAccessor.DBColumnInfo> expectedColumns) {
+    Assert.assertEquals(expectedColumns.size(), capturedColumns.size());
+
+    // copy these so we can alter them...
+    expectedColumns = new ArrayList<>(expectedColumns);
+    capturedColumns = new ArrayList<>(capturedColumns);
+
+    Iterator<DBAccessor.DBColumnInfo> capturedColumnIterator = capturedColumns.iterator();
+    while (capturedColumnIterator.hasNext()) {
+      DBAccessor.DBColumnInfo capturedColumnInfo = capturedColumnIterator.next();
+
+      Iterator<DBAccessor.DBColumnInfo> expectedColumnIterator = expectedColumns.iterator();
+      while (expectedColumnIterator.hasNext()) {
+        DBAccessor.DBColumnInfo expectedColumnInfo = expectedColumnIterator.next();
+
+        if (expectedColumnInfo.equals(capturedColumnInfo)) {
+          expectedColumnIterator.remove();
+          capturedColumnIterator.remove();
+          break;
+        }
+      }
+    }
+
+    assertTrue("Not all captured columns were expected", capturedColumns.isEmpty());
+    assertTrue("Not all expected columns were captured", expectedColumns.isEmpty());
+  }
+
 
   @Test
   public void testLogSearchUpdateConfigs() throws Exception {
@@ -524,5 +824,41 @@ public class UpgradeCatalog300Test {
     Assert.assertEquals(2, propertiesWithGroup.size());
     Assert.assertEquals("ambari_managed_identities", propertiesWithGroup.get("group"));
     Assert.assertEquals("host1.example.com", propertiesWithGroup.get("kdc_host"));
+  }
+
+  @Test
+  public void shouldSaveLdapConfigurationIfPropertyIsSetInAmbariProperties() throws Exception {
+    final Module module = getTestGuiceModule();
+
+    expect(configuration.getProperty("ambari.ldap.isConfigured")).andReturn("true").anyTimes();
+
+    expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
+    replay(configuration, entityManager, ambariConfigurationDao);
+
+    final Injector injector = Guice.createInjector(module);
+    final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
+    upgradeCatalog300.upgradeLdapConfiguration();
+    verify(configuration, entityManager, ambariConfigurationDao);
+  }
+
+  @Test
+  public void shouldNotSaveLdapConfigurationIfPropertyIsNotSetInAmbariProperties() throws Exception {
+    final Module module = getTestGuiceModule();
+    expect(entityManager.find(anyObject(), anyObject())).andReturn(null).anyTimes();
+    final Map<String, String> properties = new HashMap<>();
+    properties.put(AmbariLdapConfigurationKeys.LDAP_ENABLED.key(), "true");
+    expect(ambariConfigurationDao.reconcileCategory(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), properties, false)).andReturn(true).once();
+    replay(configuration, entityManager, ambariConfigurationDao);
+
+    final Injector injector = Guice.createInjector(module);
+    final UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
+    upgradeCatalog300.upgradeLdapConfiguration();
+
+    expectedException.expect(AssertionError.class);
+    expectedException.expectMessage("Expectation failure on verify");
+    verify(configuration, entityManager, ambariConfigurationDao);
   }
 }

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-@import '../variables';
+@import '../mixins';
 
 :host {
   display: block;
@@ -27,9 +27,26 @@
   }
   .tabs-container {
     border-bottom: 1px solid @table-border-color;
+    .tabs-menu-container {
+      .flex-vertical-align;
+    }
   }
 
-  filters-panel {
-    margin-bottom: @block-margin-top;
+  .fixed-filterbar {
+    filters-panel {
+      background-color: fadeout(@filters-panel-background-color, 10%);
+      box-shadow: 0 2px 2px rgba(0,0,0,.1);
+      left: 0;
+      margin: 0;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1;
+    }
   }
+
+  .events-count {
+    margin-top: @block-margin-top;
+  }
+
 }

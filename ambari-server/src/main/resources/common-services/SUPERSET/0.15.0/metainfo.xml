@@ -29,7 +29,7 @@
           <displayName>Superset</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <commandScript>
             <script>scripts/superset.py</script>
             <scriptType>PYTHON</scriptType>

@@ -42,7 +42,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -164,8 +163,6 @@ public class StackDependencyResourceProviderTest {
   }
 
   private StackDependencyResourceProvider createProvider() {
-    return new StackDependencyResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.StackServiceComponentDependency),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.StackServiceComponentDependency));
+    return new StackDependencyResourceProvider();
   }
 }

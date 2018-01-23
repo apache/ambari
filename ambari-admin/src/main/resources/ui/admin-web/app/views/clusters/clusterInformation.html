@@ -20,17 +20,17 @@
   <div ng-show="cluster.Clusters.provisioning_state !== 'INSTALLED'">
     <div class="welcome-header">
       <h1>{{'main.title' | translate}}</h1>
-      <span>{{'main.noClusterDescription' | translate}}</span>
+      <span class="help-block">{{'main.noClusterDescription' | translate}}</span>
     </div>
     <div class="create-cluster-section">
       <h2>{{'main.createCluster.title' | translate}}</h2>
       <div>
-        <span>
+        <span class="help-block">
           {{'main.createCluster.description' | translate}}
         </span>
       </div>
-      <div><i class="fa fa-cloud" aria-hidden="true"></i></div>
-      <div>
+      <div><img id="install-box" src="/img/install-box.svg"></div>
+      <div class="install-button">
         <a href="{{fromSiteRoot('/#/installer/step0')}}" class="btn btn-primary">
           {{'main.createCluster.launchInstallWizard' | translate}}
         </a>

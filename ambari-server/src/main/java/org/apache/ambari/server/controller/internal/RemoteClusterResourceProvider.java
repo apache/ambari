@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller.internal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -52,6 +51,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 /**
@@ -78,23 +79,20 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
   /**
    * The key property ids for a Remote Cluster resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.RemoteCluster, CLUSTER_NAME_PROPERTY_ID);
-  }
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.RemoteCluster, CLUSTER_NAME_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a Remote Cluster resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
-  static {
-    propertyIds.add(CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(CLUSTER_ID_PROPERTY_ID);
-    propertyIds.add(CLUSTER_URL_PROPERTY_ID);
-    propertyIds.add(USERNAME_PROPERTY_ID);
-    propertyIds.add(PASSWORD_PROPERTY_ID);
-    propertyIds.add(SERVICES_PROPERTY_ID);
-  }
+  private static Set<String> propertyIds = Sets.newHashSet(
+      CLUSTER_NAME_PROPERTY_ID,
+      CLUSTER_ID_PROPERTY_ID,
+      CLUSTER_URL_PROPERTY_ID,
+      USERNAME_PROPERTY_ID,
+      PASSWORD_PROPERTY_ID,
+      SERVICES_PROPERTY_ID);
 
   @Inject
   private static RemoteAmbariClusterDAO remoteAmbariClusterDAO;
@@ -109,7 +107,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
    * Create a  new resource provider.
    */
   protected RemoteClusterResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+    super(Resource.Type.RemoteCluster, propertyIds, keyPropertyIds);
 
     EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS);
     setRequiredCreateAuthorizations(requiredAuthorizations);

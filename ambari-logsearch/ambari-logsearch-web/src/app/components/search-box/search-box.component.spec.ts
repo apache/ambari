@@ -48,4 +48,83 @@ describe('SearchBoxComponent', () => {
   it('should create component', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('#activeItemValueOptions()', () => {
+    const cases = [
+      {
+        itemsOptions: null,
+        activeItem: {
+          value: 'v0'
+        },
+        result: [],
+        title: 'no options available'
+      },
+      {
+        itemsOptions: {
+          v1: [
+            {
+              value: 'v2'
+            }
+          ]
+        },
+        activeItem: null,
+        result: [],
+        title: 'no active item'
+      },
+      {
+        itemsOptions: {},
+        activeItem: {
+          value: 'v3'
+        },
+        result: [],
+        title: 'empty itemsOptions object'
+      },
+      {
+        itemsOptions: {
+          v4: [
+            {
+              value: 'v5'
+            }
+          ]
+        },
+        activeItem: {
+          value: 'v6'
+        },
+        result: [],
+        title: 'no options available for active item'
+      },
+      {
+        itemsOptions: {
+          v7: [
+            {
+              value: 'v8'
+            },
+            {
+              value: 'v9'
+            }
+          ]
+        },
+        activeItem: {
+          value: 'v7'
+        },
+        result: [
+          {
+            value: 'v8'
+          },
+          {
+            value: 'v9'
+          }
+        ],
+        title: 'options are available for active item'
+      }
+    ];
+
+    cases.forEach(test => {
+      it(test.title, () => {
+        component.itemsOptions = test.itemsOptions;
+        component.activeItem = test.activeItem;
+        expect(component.activeItemValueOptions).toEqual(test.result);
+      });
+    });
+  });
 });

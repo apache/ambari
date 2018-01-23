@@ -29,11 +29,11 @@ First you need to start every required service (except logfeeder), go to `ambari
 docker-compose up -d zookeeper solr logsearch
 ```
 
-Secondly, if you are planning to run Log Feeder from an IDE, for running the LogFeeder main methoud, you will need to set the working directory to `ambari/ambari-logsearch/ambari-logsearch-logfeeder` and use `--monitor` as a command line argument.
+Secondly, if you are planning to run Log Feeder from an IDE, for running the LogFeeder main methoud, you will need to set the working directory to `ambari/ambari-logsearch/ambari-logsearch-logfeeder` or set `LOGFEEDER_RELATIVE_LOCATION` env variable.
 With Maven, you won't need these steps, just run this command from the ambari-logsearch-logfeeder folder:
 
 ```bash
-mvn clean package -DskipTests exec:java
+mvn clean package -DskipTests spring-boot:run
 ```
 
 # Input Configuration

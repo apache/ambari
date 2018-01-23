@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 
 import com.google.inject.Inject;
 
+
 @StaticallyInject
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String RESPONSE_KEY = "Versions";
@@ -98,7 +99,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   }
 
   StackVersionResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.StackVersion, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
 
@@ -197,7 +198,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 }

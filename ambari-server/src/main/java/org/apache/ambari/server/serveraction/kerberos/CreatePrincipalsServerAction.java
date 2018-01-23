@@ -28,12 +28,13 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.audit.event.kerberos.CreatePrincipalKerberosAuditEvent;
+import org.apache.ambari.server.orm.dao.KerberosKeytabPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
-import org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.serveraction.ActionLog;
+import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ import com.google.inject.Inject;
  * <p/>
  * This class mainly relies on the KerberosServerAction to iterate through metadata identifying
  * the Kerberos principals that need to be created. For each identity in the metadata, this implementation's
- * {@link KerberosServerAction#processIdentity(Map, String, KerberosOperationHandler, Map, Map)}
+ * {@link KerberosServerAction#processIdentity(ResolvedKerberosPrincipal, KerberosOperationHandler, Map, Map)}
  * is invoked attempting the creation of the relevant principal.
  */
 public class CreatePrincipalsServerAction extends KerberosServerAction {
@@ -58,16 +59,13 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
   private KerberosPrincipalDAO kerberosPrincipalDAO;
 
   /**
-   * KerberosPrincipalHostDAO used to get Kerberos principal details
-   */
-  @Inject
-  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
-
-  /**
    * SecurePasswordHelper used to generate secure passwords for newly created principals
    */
   @Inject
   private SecurePasswordHelper securePasswordHelper;
+
+  @Inject
+  private KerberosKeytabPrincipalDAO kerberosKeytabPrincipalDAO;
 
   /**
    * A set of visited principal names used to prevent unnecessary processing on already processed
@@ -106,8 +104,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * store the new key numbers in the shared principal-to-key_number map so that subsequent process
    * may use the data if necessary.
    *
-   * @param identityRecord           a Map containing the data for the current identity record
-   * @param evaluatedPrincipal       a String indicating the relevant principal
+   * @param resolvedPrincipal        a ResolvedKerberosPrincipal object to process
    * @param operationHandler         a KerberosOperationHandler used to perform Kerberos-related
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
@@ -118,7 +115,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * @throws AmbariException if an error occurs while processing the identity record
    */
   @Override
-  protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
+  protected CommandReport processIdentity(ResolvedKerberosPrincipal resolvedPrincipal,
                                           KerberosOperationHandler operationHandler,
                                           Map<String, String> kerberosConfiguration,
                                           Map<String, Object> requestSharedDataContext)
@@ -126,16 +123,16 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
     CommandReport commandReport = null;
 
     //  Only process this principal name if we haven't already processed it
-    if (!seenPrincipals.contains(evaluatedPrincipal)) {
-      seenPrincipals.add(evaluatedPrincipal);
+    // TODO optimize - split invalidation and principal creation to separate stages
+    if (!seenPrincipals.contains(resolvedPrincipal.getPrincipal())) {
+      seenPrincipals.add(resolvedPrincipal.getPrincipal());
 
       boolean processPrincipal;
 
-      // TODO add invalidate_principals option to make keytabs invalid all over the cluster.
-      KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+      KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(resolvedPrincipal.getPrincipal());
 
       boolean regenerateKeytabs = getOperationType(getCommandParameters()) == OperationType.RECREATE_ALL;
-      boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
+      boolean servicePrincipal = resolvedPrincipal.isService();
       if (regenerateKeytabs) {
         // force recreation of principal due to keytab regeneration
         // regenerate only service principals if request filtered by hosts
@@ -154,24 +151,24 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       if (processPrincipal) {
         Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
 
-        String password = principalPasswordMap.get(evaluatedPrincipal);
+        String password = principalPasswordMap.get(resolvedPrincipal.getPrincipal());
 
         if (password == null) {
-          CreatePrincipalResult result = createPrincipal(evaluatedPrincipal, servicePrincipal, kerberosConfiguration, operationHandler, regenerateKeytabs, actionLog);
+          CreatePrincipalResult result = createPrincipal(resolvedPrincipal.getPrincipal(), servicePrincipal, kerberosConfiguration, operationHandler, regenerateKeytabs, actionLog);
           if (result == null) {
             commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
           } else {
             Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
 
-            principalPasswordMap.put(evaluatedPrincipal, result.getPassword());
-            principalKeyNumberMap.put(evaluatedPrincipal, result.getKeyNumber());
+            principalPasswordMap.put(resolvedPrincipal.getPrincipal(), result.getPassword());
+            principalKeyNumberMap.put(resolvedPrincipal.getPrincipal(), result.getKeyNumber());
             // invalidate given principal for all keytabs to make them redistributed again
-            for (KerberosPrincipalHostEntity kphe: kerberosPrincipalHostDAO.findByPrincipal(evaluatedPrincipal)) {
-              kphe.setDistributed(false);
-              kerberosPrincipalHostDAO.merge(kphe);
+            for (KerberosKeytabPrincipalEntity kkpe: kerberosKeytabPrincipalDAO.findByPrincipal(resolvedPrincipal.getPrincipal())) {
+              kkpe.setDistributed(false);
+              kerberosKeytabPrincipalDAO.merge(kkpe);
             }
             // invalidate principal cache
-            KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+            KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(resolvedPrincipal.getPrincipal());
             try {
               new File(principalEntity.getCachedKeytabPath()).delete();
             } catch (Exception e) {

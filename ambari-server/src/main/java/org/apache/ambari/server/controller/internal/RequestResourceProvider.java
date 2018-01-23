@@ -24,7 +24,6 @@ import static org.apache.ambari.server.controller.internal.HostComponentResource
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,6 +74,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -134,16 +136,23 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String HOSTS_PREDICATE = "hosts_predicate";
   public static final String ACTION_ID = "action";
   public static final String INPUTS_ID = "parameters";
-  public static final String EXLUSIVE_ID = "exclusive";
+  public static final String EXCLUSIVE_ID = "exclusive";
   public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      REQUEST_ID_PROPERTY_ID}));
+  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(REQUEST_ID_PROPERTY_ID);
 
   private PredicateCompiler predicateCompiler = new PredicateCompiler();
 
+  /**
+   * The key property ids for a Request resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Request, REQUEST_ID_PROPERTY_ID)
+      .put(Resource.Type.Cluster, REQUEST_CLUSTER_NAME_PROPERTY_ID)
+      .build();
+
   static Set<String> PROPERTY_IDS = Sets.newHashSet(
+    REQUEST_ID_PROPERTY_ID,
     REQUEST_CLUSTER_NAME_PROPERTY_ID,
     REQUEST_CLUSTER_ID_PROPERTY_ID,
     REQUEST_STATUS_PROPERTY_ID,
@@ -177,14 +186,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds          the property ids
-   * @param keyPropertyIds       the key property ids
    * @param managementController the management controller
    */
-  RequestResourceProvider(Set<String> propertyIds,
-                          Map<Resource.Type, String> keyPropertyIds,
-                          AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  RequestResourceProvider(AmbariManagementController managementController) {
+    super(Resource.Type.Request, PROPERTY_IDS, keyPropertyIds, managementController);
   }
 
   // ----- ResourceProvider ------------------------------------------------
@@ -426,7 +431,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return PK_PROPERTY_IDS;
   }
 
 
@@ -484,8 +489,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     boolean exclusive = false;
-    if (requestInfoProperties.containsKey(EXLUSIVE_ID)) {
-      exclusive = Boolean.valueOf(requestInfoProperties.get(EXLUSIVE_ID).trim());
+    if (requestInfoProperties.containsKey(EXCLUSIVE_ID)) {
+      exclusive = Boolean.valueOf(requestInfoProperties.get(EXCLUSIVE_ID).trim());
     }
 
     return new ExecuteActionRequest(
@@ -771,7 +776,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, entity.getRequestId(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_CONTEXT_ID, entity.getRequestContext(), requestedPropertyIds);
+    String requestContext = entity.getRequestContext();
+    setResourceProperty(resource, REQUEST_CONTEXT_ID, requestContext, requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TYPE_ID, entity.getRequestType(), requestedPropertyIds);
 
     // Mask any sensitive data fields in the inputs data structure
@@ -822,15 +828,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     final CalculatedStatus status;
     LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
     if (summary.isEmpty() && null != logicalRequest) {
-      // In this case, it appears that there are no tasks but this is a logical
-      // topology request, so it's a matter of hosts simply not registering yet
-      // for tasks to be created ==> status = PENDING.
-      // For a new LogicalRequest there should be at least one HostRequest,
-      // while if they were removed already ==> status = COMPLETED.
-      if (logicalRequest.getHostRequests().isEmpty()) {
-        status = CalculatedStatus.COMPLETED;
-      } else {
-        status = CalculatedStatus.PENDING;
+      status = logicalRequest.calculateStatus();
+      if (status == CalculatedStatus.ABORTED) {
+        Optional<String> failureReason = logicalRequest.getFailureReason();
+        if (failureReason.isPresent()) {
+          requestContext += "\nFAILED: " + failureReason.get();
+          setResourceProperty(resource, REQUEST_CONTEXT_ID, requestContext, requestedPropertyIds);
+        }
       }
     } else {
       // there are either tasks or this is not a logical request, so do normal

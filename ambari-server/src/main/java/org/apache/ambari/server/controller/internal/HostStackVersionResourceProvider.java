@@ -166,7 +166,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
    */
   public HostStackVersionResourceProvider(
           AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Type.HostStackVersion, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

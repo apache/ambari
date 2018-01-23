@@ -532,7 +532,8 @@
             "oozie-server"
           ],
           "PATCH": [
-            "oozie-server"
+            "oozie-server",
+            "oozie-client"
           ],
           "STANDARD": [
             "oozie-client",
@@ -871,12 +872,6 @@
           "current_dir": "{0}/current/atlas-client/conf"
         }
       ],
-      "beacon": [
-        {
-          "conf_dir": "/etc/beacon/conf",
-          "current_dir": "{0}/current/beacon-client/conf"
-        }
-      ],
       "druid": [
         {
           "conf_dir": "/etc/druid/conf",
@@ -947,6 +942,12 @@
         {
           "conf_dir": "/etc/livy/conf",
           "current_dir": "{0}/current/livy-client/conf"
+        }
+      ],
+      "livy2": [
+        {
+          "conf_dir": "/etc/livy2/conf",
+          "current_dir": "{0}/current/livy2-client/conf"
         }
       ],
       "mahout": [
@@ -1071,9 +1072,6 @@
       "ATLAS": {
         "packages": ["atlas"]
       },
-      "BEACON": {
-        "packages": ["beacon"]
-      },
       "DRUID": {
         "packages": ["druid", "superset"]
       },
@@ -1126,7 +1124,7 @@
         "packages": ["spark", "livy"]
       },
       "SPARK2": {
-        "packages": ["spark2", "livy"]
+        "packages": ["spark2", "livy2"]
       },
       "SQOOP": {
         "packages": ["sqoop"]

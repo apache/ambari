@@ -18,13 +18,16 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
@@ -51,19 +54,24 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
   @Mock
   private ScheduledFuture<Boolean> futureMock;
 
+  @Mock
+  private Consumer<Throwable> onErrorMock;
+
   private AsyncCallableService<Boolean> asyncCallableService;
 
   @Test
   public void testCallableServiceShouldCancelTaskWhenTimeoutExceeded() throws Exception {
     // GIVEN
     long timeout = -1; // guaranteed timeout
-    expect(futureMock.get(timeout, TimeUnit.MILLISECONDS)).andThrow(new TimeoutException("Testing the timeout exceeded case"));
+    TimeoutException timeoutException = new TimeoutException("Testing the timeout exceeded case");
+    expect(futureMock.get(timeout, TimeUnit.MILLISECONDS)).andThrow(timeoutException);
     expect(futureMock.isDone()).andReturn(Boolean.FALSE);
     expect(futureMock.cancel(true)).andReturn(Boolean.TRUE);
     expect(executorServiceMock.submit(taskMock)).andReturn(futureMock);
+    onErrorMock.accept(timeoutException);
     replayAll();
 
-    asyncCallableService = new AsyncCallableService<>(taskMock, timeout, RETRY_DELAY, "test", executorServiceMock);
+    asyncCallableService = new AsyncCallableService<>(taskMock, timeout, RETRY_DELAY, "test", executorServiceMock, onErrorMock);
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
@@ -81,13 +89,16 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
       Thread.sleep(10000000);
       return false;
     };
+    onErrorMock.accept(anyObject(TimeoutException.class));
+    replayAll();
 
-    asyncCallableService = new AsyncCallableService<>(hangingTask, TIMEOUT, RETRY_DELAY,  "test");
+    asyncCallableService = new AsyncCallableService<>(hangingTask, TIMEOUT, RETRY_DELAY,  "test", onErrorMock);
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
 
     // THEN
+    verifyAll();
     Assert.assertNull("No result expected from hanging task", serviceResult);
   }
 
@@ -95,8 +106,10 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
   public void testCallableServiceShouldExitWhenTaskCompleted() throws Exception {
     // GIVEN
     expect(taskMock.call()).andReturn(Boolean.TRUE);
+    onErrorMock.accept(anyObject(TimeoutException.class));
+    expectLastCall().andThrow(new AssertionError("No error expected")).anyTimes();
     replayAll();
-    asyncCallableService = new AsyncCallableService<>(taskMock, TIMEOUT, RETRY_DELAY,  "test");
+    asyncCallableService = new AsyncCallableService<>(taskMock, TIMEOUT, RETRY_DELAY,  "test", onErrorMock);
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
@@ -110,8 +123,9 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
   public void testCallableServiceShouldRetryTaskExecutionTillTimeoutExceededWhenTaskThrowsException() throws Exception {
     // GIVEN
     expect(taskMock.call()).andThrow(new IllegalStateException("****************** TESTING ****************")).times(2, 3);
+    onErrorMock.accept(anyObject(IllegalStateException.class));
     replayAll();
-    asyncCallableService = new AsyncCallableService<>(taskMock, TIMEOUT, RETRY_DELAY,  "test");
+    asyncCallableService = new AsyncCallableService<>(taskMock, TIMEOUT, RETRY_DELAY,  "test", onErrorMock);
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
@@ -129,13 +143,16 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
     Callable<Boolean> throwingTask = () -> {
       throw new IllegalStateException("****************** TESTING ****************");
     };
+    onErrorMock.accept(anyObject(IllegalStateException.class));
+    replayAll();
 
-    asyncCallableService = new AsyncCallableService<>(throwingTask, TIMEOUT, RETRY_DELAY,  "test");
+    asyncCallableService = new AsyncCallableService<>(throwingTask, TIMEOUT, RETRY_DELAY,  "test", onErrorMock);
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
 
     // THEN
+    verifyAll();
     Assert.assertNull("No result expected from throwing task", serviceResult);
   }
 }

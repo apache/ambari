@@ -75,6 +75,22 @@ class TestKafkaBroker(RMFTestCase):
                                                owner = 'kafka')
 
 
+    def test_configure_sasl_ssl_kerberos(self):
+        self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kafka_broker.py",
+                           classname = "KafkaBroker",
+                           command = "configure",
+                           config_file="secure_kafka_sasl_ssl.json",
+                           stack_version = self.STACK_VERSION,
+                           target = RMFTestCase.TARGET_COMMON_SERVICES
+                           )
+
+        self.assertResourceCalledIgnoreEarlier('TemplateConfig', '/usr/hdp/current/kafka-broker/config/kafka_jaas.conf',
+                                               owner = 'kafka')
+
+        self.assertResourceCalledIgnoreEarlier('TemplateConfig', '/usr/hdp/current/kafka-broker/config/kafka_client_jaas.conf',
+                                               owner = 'kafka')
+
+
     def test_configure_plaintext(self):
         self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kafka_broker.py",
                            classname = "KafkaBroker",

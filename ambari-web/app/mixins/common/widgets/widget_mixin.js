@@ -695,6 +695,7 @@ App.WidgetMixin = Ember.Mixin.create({
 App.WidgetPreviewMixin = Ember.Mixin.create({
   beforeRender: Em.K,
   isLoaded: true,
+  isPreview: true,
   metrics: [],
   content: Em.Object.create({
     id: 1,

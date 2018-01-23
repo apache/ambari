@@ -82,6 +82,18 @@
                 <configuration>
                   <group>Development</group>
                   <name>${logsearch.portal.package.name}</name>
+                  <postinstallScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/portal/postinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </postinstallScriptlet>
+                  <postremoveScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/portal/postremove.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </postremoveScriptlet>
+                  <preinstallScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/portal/preinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </preinstallScriptlet>
                   <mappings>
                     <mapping>
                       <directory>${logsearch.portal.mapping.path}</directory>
@@ -89,34 +101,8 @@
                         <source>
                           <location>${logsearch.server.dir}/target/package</location>
                           <excludes>
-                            <exclude>classes/log4j.xml</exclude>
-                            <exclude>classes/logsearch.properties</exclude>
-                            <exclude>classes/user_pass.json</exclude>
-                            <exclude>classes/HadoopServiceConfig.json</exclude>
-                            <exclude>solr_configsets/**</exclude>
                             <exclude>libs/checkstyle*.jar</exclude>
                           </excludes>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>${logsearch.portal.conf.mapping.path}</directory>
-                      <sources>
-                        <source>
-                          <location>${logsearch.server.dir}/target/package/classes</location>
-                          <includes>
-                            <include>log4j.xml</include>
-                            <include>logsearch.properties</include>
-                            <include>user_pass.json</include>
-                          </includes>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>${logsearch.portal.conf.mapping.path}/solr_configsets</directory>
-                      <sources>
-                        <source>
-                          <location>${logsearch.server.dir}/target/package/solr_configsets</location>
                         </source>
                       </sources>
                     </mapping>
@@ -132,6 +118,18 @@
                 <configuration>
                   <group>Development</group>
                   <name>${logsearch.logfeeder.package.name}</name>
+                  <postinstallScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/logfeeder/postinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </postinstallScriptlet>
+                  <postremoveScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/logfeeder/postremove.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </postremoveScriptlet>
+                  <preinstallScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/logfeeder/preinstall.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </preinstallScriptlet>
                   <mappings>
                     <mapping>
                       <directory>${logsearch.logfeeder.mapping.path}</directory>
@@ -139,24 +137,8 @@
                         <source>
                           <location>${logsearch.logfeeder.dir}/target/package</location>
                           <excludes>
-                            <exclude>classes/log4j.xml</exclude>
-                            <exclude>classes/logfeeder.properties</exclude>
-                            <exclude>classes/grok-patterns</exclude>
                             <exclude>libs/checkstyle*.jar</exclude>
                           </excludes>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>${logsearch.logfeeder.conf.mapping.path}</directory>
-                      <sources>
-                        <source>
-                          <location>${logsearch.logfeeder.dir}/target/package/classes</location>
-                          <includes>
-                            <include>log4j.xml</include>
-                            <include>logfeeder.properties</include>
-                            <include>grok-patterns</include>
-                          </includes>
                         </source>
                       </sources>
                     </mapping>
@@ -197,7 +179,11 @@
                       <directory>${project.basedir}/src/main/package/deb</directory>
                       <excludes>
                         <exclude>portal/postinst</exclude>
+                        <exclude>portal/postrm</exclude>
+                        <exclude>portal/preinstall</exclude>
                         <exclude>logfeeder/postinst</exclude>
+                        <exclude>logfeeder/postrm</exclude>
+                        <exclude>logfeeder/preinstall</exclude>
                       </excludes>
                       <filtering>false</filtering>
                     </resource>
@@ -205,7 +191,11 @@
                       <directory>${project.basedir}/src/main/package/deb</directory>
                       <includes>
                         <include>portal/postinst</include>
+                        <include>portal/postrm</include>
+                        <include>portal/preinstall</include>
                         <include>logfeeder/postinst</include>
+                        <include>logfeeder/postrm</include>
+                        <include>logfeeder/preinstall</include>
                       </includes>
                       <filtering>true</filtering>
                     </resource>
@@ -242,33 +232,8 @@
                         <group>root</group>
                       </mapper>
                       <excludes>
-                        classes/log4j.xml,classes/logsearch.properties,classes/user_pass.json,classes/HadoopServiceConfig.json,solr_configsets/**,libs/checkstyle*.jar
+                        libs/checkstyle*.jar
                       </excludes>
-                    </data>
-                    <data>
-                      <src>${logsearch.server.dir}/target/package/classes</src>
-                      <type>directory</type>
-                      <mapper>
-                        <prefix>${logsearch.portal.conf.mapping.path}</prefix>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                        <filemode>644</filemode>
-                      </mapper>
-                      <includes>
-                        log4j.xml,logsearch.properties,user_pass.json
-                      </includes>
-                    </data>
-                    <data>
-                      <src>${logsearch.server.dir}/target/package/solr_configsets</src>
-                      <type>directory</type>
-                      <mapper>
-                        <prefix>${logsearch.portal.conf.mapping.path}/solr_configsets</prefix>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                      </mapper>
-                      <excludes>libs/checkstyle*.jar</excludes>
                     </data>
                   </dataSet>
                 </configuration>
@@ -297,22 +262,8 @@
                         <group>root</group>
                       </mapper>
                       <excludes>
-                        classes/log4j.xml,classes/logfeeder.properties,classes/grok-patterns,libs/checkstyle*.jar
+                        libs/checkstyle*.jar
                       </excludes>
-                    </data>
-                    <data>
-                      <src>${logsearch.logfeeder.dir}/target/package/classes</src>
-                      <type>directory</type>
-                      <mapper>
-                        <prefix>${logsearch.logfeeder.conf.mapping.path}</prefix>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                        <filemode>644</filemode>
-                      </mapper>
-                      <includes>
-                        log4j.xml,logfeeder.properties,grok-patterns
-                      </includes>
                     </data>
                   </dataSet>
                 </configuration>

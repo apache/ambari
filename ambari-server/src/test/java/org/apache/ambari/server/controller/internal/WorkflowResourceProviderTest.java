@@ -35,7 +35,6 @@ import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
@@ -58,7 +57,20 @@ public class WorkflowResourceProviderTest {
     expected.add(createWorkflowResponse("Cluster100", "workflow3"));
 
     Resource.Type type = Resource.Type.Workflow;
-    Set<String> propertyIds = PropertyHelper.getPropertyIds(type);
+    Set<String> propertyIds = new HashSet<>();
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_ID_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_NAME_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_USER_NAME_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_START_TIME_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_LAST_UPDATE_TIME_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_ELAPSED_TIME_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_INPUT_BYTES_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_OUTPUT_BYTES_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_NUM_JOBS_TOTAL_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_NUM_JOBS_COMPLETED_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_PARENT_ID_PROPERTY_ID);
+    propertyIds.add(WorkflowResourceProvider.WORKFLOW_CONTEXT_PROPERTY_ID);
 
     WorkflowFetcher workflowFetcher = createMock(WorkflowFetcher.class);
     expect(workflowFetcher.fetchWorkflows(propertyIds, "Cluster100", null))
@@ -67,8 +79,7 @@ public class WorkflowResourceProviderTest {
 
     Map<Resource.Type,String> keyPropertyIds = PropertyHelper
         .getKeyPropertyIds(type);
-    ResourceProvider provider = new WorkflowResourceProvider(propertyIds,
-        keyPropertyIds, workflowFetcher);
+    ResourceProvider provider = new WorkflowResourceProvider(workflowFetcher);
 
     Request request = PropertyHelper.getReadRequest(propertyIds);
     Predicate predicate = new PredicateBuilder()
@@ -100,11 +111,7 @@ public class WorkflowResourceProviderTest {
       NoSuchParentResourceException {
     Set<String> requestedIds = new HashSet<>();
     requestedIds.add(WorkflowResourceProvider.WORKFLOW_ID_PROPERTY_ID);
-
-    Map<Resource.Type,String> keyPropertyIds = PropertyHelper
-        .getKeyPropertyIds(Resource.Type.Workflow);
-    ResourceProvider provider = new TestWorkflowResourceProvider(requestedIds,
-        keyPropertyIds);
+    ResourceProvider provider = new TestWorkflowResourceProvider();
 
     Request request = PropertyHelper.getReadRequest(requestedIds);
     Predicate predicate = new PredicateBuilder()
@@ -131,9 +138,8 @@ public class WorkflowResourceProviderTest {
 
   private static class TestWorkflowResourceProvider extends
       WorkflowResourceProvider {
-    protected TestWorkflowResourceProvider(Set<String> propertyIds,
-        Map<Type,String> keyPropertyIds) {
-      super(propertyIds, keyPropertyIds, null);
+    protected TestWorkflowResourceProvider() {
+      super(null);
       this.workflowFetcher = new TestWorkflowFetcher();
     }
 

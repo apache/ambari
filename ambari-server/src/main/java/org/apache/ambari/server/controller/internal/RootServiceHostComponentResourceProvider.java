@@ -39,7 +39,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 public class RootServiceHostComponentResourceProvider extends ReadOnlyResourceProvider {
 
@@ -59,12 +60,29 @@ public class RootServiceHostComponentResourceProvider extends ReadOnlyResourcePr
   public static final String COMPONENT_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + COMPONENT_STATE;
   public static final String PROPERTIES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + PROPERTIES;
 
-  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(SERVICE_NAME_PROPERTY_ID, HOST_NAME_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID);
+  /**
+   * The key property ids for a RootServiceHostComponent resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Type.RootService, SERVICE_NAME_PROPERTY_ID)
+      .put(Type.Host, HOST_NAME_PROPERTY_ID)
+      .put(Type.RootServiceComponent, COMPONENT_NAME_PROPERTY_ID)
+      .put(Type.RootServiceHostComponent, COMPONENT_NAME_PROPERTY_ID)
+      .build();
 
-  public RootServiceHostComponentResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * The property ids for a RootServiceHostComponent resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      SERVICE_NAME_PROPERTY_ID,
+      HOST_NAME_PROPERTY_ID,
+      COMPONENT_NAME_PROPERTY_ID,
+      COMPONENT_VERSION_PROPERTY_ID,
+      COMPONENT_STATE_PROPERTY_ID,
+      PROPERTIES_PROPERTY_ID);
+
+  public RootServiceHostComponentResourceProvider(AmbariManagementController managementController) {
+    super(Type.RootServiceHostComponent, propertyIds, keyPropertyIds, managementController);
   }
 
   
@@ -118,7 +136,7 @@ public class RootServiceHostComponentResourceProvider extends ReadOnlyResourcePr
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return PK_PROPERTY_IDS;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   // Get the root service host components for the given set of requests

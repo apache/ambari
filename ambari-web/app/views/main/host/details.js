@@ -80,6 +80,10 @@ App.MainHostDetailsView = Em.View.extend({
         label: this.t('passiveState.turn' + onOff)
       });
     }
+    if (App.get('isKerberosEnabled')){
+      var actionMap = App.HostComponentActionMap.getMap(this);
+      result.push(actionMap.REGENERATE_KEYTAB_FILE_OPERATIONS);
+    }    
     if (App.isAuthorized("HOST.ADD_DELETE_HOSTS")) {
       result.push({
         action: 'deleteHost',

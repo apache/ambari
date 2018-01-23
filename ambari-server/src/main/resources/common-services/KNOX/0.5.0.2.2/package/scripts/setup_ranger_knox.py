@@ -108,12 +108,20 @@ def setup_ranger_knox(upgrade_type=None):
                         plugin_security_properties=params.config['configurations']['ranger-knox-security'], plugin_security_attributes=params.config['configuration_attributes']['ranger-knox-security'],
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-knox-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-knox-policymgr-ssl'],
                         component_list=['knox-server'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
-                        credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
+                        credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password,
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble)
-    if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_knox and params.has_namenode and params.security_enabled:
-      Logger.info("Stack supports core-site.xml creation for Ranger plugin, creating core-site.xml from namenode configuraitions")
-      setup_core_site_for_required_plugins(component_user=params.knox_user, component_group=params.knox_group,create_core_site_path = params.knox_conf_dir, config = params.config)
+    if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_knox and params.security_enabled:
+      if params.has_namenode:
+        Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is installed, creating create core-site.xml from namenode configurations")
+        setup_core_site_for_required_plugins(component_user = params.knox_user, component_group = params.knox_group,
+                                             create_core_site_path = params.knox_conf_dir, configurations = params.config['configurations']['core-site'],
+                                             configuration_attributes = params.config['configuration_attributes']['core-site'])
+      else:
+        Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is not installed, creating create core-site.xml from default configurations")
+        setup_core_site_for_required_plugins(component_user = params.knox_user, component_group = params.knox_group,
+                                             create_core_site_path = params.knox_conf_dir, configurations = { 'hadoop.security.authentication' : 'kerberos' if params.security_enabled else 'simple' },
+                                             configuration_attributes = {})
     else:
       Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
 
