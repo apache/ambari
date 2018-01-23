@@ -17,7 +17,9 @@
 
 <div class="modal-backdrop in"></div>
 <div class="modal in">
-  <div [ngClass]="{'modal-dialog': true, 'modal-sm': isSmallModal, 'modal-lg': isLargeModal}">
+  <div [ngClass]="{
+    'modal-dialog': true, 'modal-sm': isSmallModal, 'modal-lg': isLargeModal, 'modal-xl': isExtraLargeModal
+  }">
     <div class="modal-content">
       <div *ngIf="showHeader" class="modal-header">
         <button *ngIf="showCloseButton" type="button" class="close" data-dismiss="modal" (click)="onClose()">
