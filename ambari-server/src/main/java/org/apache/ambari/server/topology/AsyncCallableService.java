@@ -100,10 +100,10 @@ public class AsyncCallableService<T> implements Callable<T> {
           LOG.info(String.format("Task %s exception during execution", taskName), cause);
         }
         lastError = cause;
-        timeLeft = timeout - (System.currentTimeMillis() - startTime);
+        timeLeft = timeout - (System.currentTimeMillis() - startTime) - retryDelay;
       }
 
-      if (timeLeft < retryDelay) {
+      if (timeLeft <= 0) {
         attemptToCancel(future);
         LOG.warn("Task {} timeout exceeded, no more retries", taskName);
         onError.apply(lastError);
