@@ -153,14 +153,14 @@ public class ModuleFileUnmarshaller {
   static {
     try {
       // three classes define the top-level element "metainfo", so we need 3 contexts for them
-      JAXBContext ctx = JAXBContext.newInstance(StackMetainfoXml.class, RepositoryXml.class,
+      JAXBContext ctx = JAXBContext.newInstance(RepositoryXml.class,
           ConfigurationXml.class, UpgradePack.class, ConfigUpgradePack.class);
 
-      jaxbContexts.put(StackMetainfoXml.class, ctx);
       jaxbContexts.put(RepositoryXml.class, ctx);
       jaxbContexts.put(ConfigurationXml.class, ctx);
       jaxbContexts.put(UpgradePack.class, ctx);
       jaxbContexts.put(ConfigUpgradePack.class, ctx);
+      jaxbContexts.put(StackMetainfoXml.class, JAXBContext.newInstance(StackMetainfoXml.class));
       jaxbContexts.put(ServiceMetainfoXml.class, JAXBContext.newInstance(ServiceMetainfoXml.class));
       jaxbContexts.put(ExtensionMetainfoXml.class, JAXBContext.newInstance(ExtensionMetainfoXml.class));
     } catch (JAXBException e) {

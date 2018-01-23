@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -82,6 +83,7 @@ public class ConfigurationMergeCheckTest {
 
     expect(cluster.getDesiredConfigByType(CONFIG_TYPE)).andReturn(config).anyTimes();
 
+    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
     Mockito.when(m_repositoryVersion.getVersion()).thenReturn("1.1.0.0-1234");
     Mockito.when(m_repositoryVersion.getStackId()).thenReturn(new StackId("HDP", "1.1"));
 

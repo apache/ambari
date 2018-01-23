@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -53,21 +52,14 @@ public interface TopologyRequest {
    *
    * @return associated blueprint instance
    */
-  BlueprintV2 getBlueprint();
+  Blueprint getBlueprint();
 
   /**
    * Get the cluster scoped configuration for the request.
    *
    * @return cluster scoped configuration
    */
-  @Deprecated
   Configuration getConfiguration();
-
-  /**
-   * Returns services.
-   * @return
-   */
-  Collection<Service> getServiceConfigs();
 
   /**
    * Get host group info.

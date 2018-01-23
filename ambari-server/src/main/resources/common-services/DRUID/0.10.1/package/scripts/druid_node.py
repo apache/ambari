@@ -32,6 +32,7 @@ from druid import druid, get_daemon_cmd, getPid
 
 class DruidBase(Script):
   def __init__(self, nodeType=None):
+    Script.__init__(self)
     self.nodeType = nodeType
 
   def install(self, env):

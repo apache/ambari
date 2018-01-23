@@ -17,39 +17,23 @@ limitations under the License.
 {% endcomment %}
 -->
 
-#Compilation
-mvn clean compile package
+# Log Search Server
 
-#Deploy
-##Copy to remote
-copy target/logsearch-portal.tar.gz to host machine
-##Setup environment
+## Start locally from maven / IDE
+
+Other services (like zookeeper, solr, logfeeder) can be started with `docker-compose`
 ```bash
-mkdir /opt/logsearch
-cd /opt/logsearch
-tar xfz ~/logsearch-portal.tar.gz 
+cd ambari/ambari-logsearch/docker
+docker-compose up -d zookeeper solr logfeeder
 ```
-#Create Solr Collection
-*Edit for log retention days (default is 7 days)*
+
+Then you can start Log Search server from maven 
+
 ```bash
-vi solr_configsets/hadoop_logs/conf/solrconfig.xml
-```
-```
-    <processor class="solr.DefaultValueUpdateProcessorFactory">
-        <str name="fieldName">_ttl_</str>
-        <str name="value">+7DAYS</str>
-    </processor>
-```
-```bash
-./create_collections.sh $SOLR_HOME $NUM_SHARDS $NUM_OF_REPLICATIONS `pwd`/solr_configsets
-```
-```bash
-vi classes/logsearch.properties
-```
-```
-solr.zkhosts=$ZK1:2181,$ZK2:2181,$ZK3:2181/solr
-```
-*This script will stop logsearch if it is running and restart it*
-```bash
+cd ambari/ambari-logsearch/ambari-logsearch-server
 ./run.sh
+# or
+mvn clean spring-boot:run
 ```
+
+You can also start Log Search server from an IDE as well. One thing is important: the config set location that the server tries to upload to ZooKeeper. By default config sets are located at `${LOGSEARCH_SERVER_RELATIVE_LOCATION:}src/main/configsets` in `logsearch.properties`. Based or from where you run `LogSearch.java`, you need to set `LOGSEARCH_SERVER_RELATIVE_LOCATION` env variable properly. 

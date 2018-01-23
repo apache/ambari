@@ -23,10 +23,8 @@ import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ComponentV2;
-import org.apache.ambari.server.topology.HostGroupV2;
+import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostRequest;
-import org.apache.ambari.server.topology.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +49,10 @@ public class PersistHostResourcesTask extends TopologyHostTask  {
   public void runTask() {
     LOG.info("HostRequest: Executing RESOURCE_CREATION task for host: {}", hostRequest.getHostName());
 
-    HostGroupV2 group = hostRequest.getHostGroup();
-    Map<Service, Collection<ComponentV2>> serviceComponents = new HashMap<>();
-    for (Service service : group.getServices()) {
-      serviceComponents.put(service, new HashSet(group.getComponents(service)));
+    HostGroup group = hostRequest.getHostGroup();
+    Map<String, Collection<String>> serviceComponents = new HashMap<>();
+    for (String service : group.getServices()) {
+      serviceComponents.put(service, new HashSet<>(group.getComponents(service)));
     }
     clusterTopology.getAmbariContext().createAmbariHostResources(hostRequest.getClusterId(),
       hostRequest.getHostName(), serviceComponents);

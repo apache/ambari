@@ -16,7 +16,6 @@
 * limitations under the License.
 -->
 <ol class="breadcrumb">
-  <li> <link-to route="views.listViewUrls">{{'urls.viewUrls' | translate}}</link-to></li>
   <li class="active">{{'urls.edit' | translate}} {{url.url_name}}</li>
   <div class="pull-right top-margin-4">
     <button class="btn deleteuser-btn btn-danger" ng-click="deleteUrl()">{{'views.urlDelete' | translate}}</button>
@@ -27,9 +26,9 @@
 
 <form  class="form-horizontal create-user-form" role="form" novalidate name="url_form" autocomplete="off">
   <div class="form-group" ng-class="{'has-error' : url_form.url_name.$error.required  && url_form.submitted}">
-    <label for="urlname" class="col-sm-2 control-label">{{'urls.name' | translate}}</label>
+    <label for="urlname" class="col-sm-2 control-label">{{'common.name' | translate}}</label>
     <div class="col-sm-10">
-      <input disabled type="text" id="urlname" class="form-control urlname-input" name="url_name" placeholder="{{'urls.name' | translate}}" ng-model="url.url_name" required autocomplete="off">
+      <input disabled type="text" id="urlname" class="form-control urlname-input" name="url_name" placeholder="{{'common.name' | translate}}" ng-model="url.url_name" required autocomplete="off">
       <div class="alert alert-danger top-margin" ng-show="url_form.url_name.$error.required  && url_form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
     </div>
   </div>
@@ -70,7 +69,6 @@
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
       <button ng-disabled="stepTwoNotCompleted" class="btn btn-primary pull-right left-margin saveuser" ng-click="updateUrl()">{{'common.controls.save' | translate}}</button>
-      <link-to route="views.listViewUrls" class="btn btn-default pull-right cancel">{{'common.controls.cancel' | translate}}</link-to>
     </div>
   </div>
 

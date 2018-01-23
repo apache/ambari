@@ -45,7 +45,7 @@ public class ServiceServiceTest extends BaseServiceTest {
     Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "serviceName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //getServiceConfigs
+    //getServices
     service = new TestServiceService("clusterName", null);
     m = service.getClass().getMethod("getServices", String.class, HttpHeaders.class, UriInfo.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo()};
@@ -133,26 +133,26 @@ public class ServiceServiceTest extends BaseServiceTest {
     private String m_artifact_id;
 
     private TestServiceService(String clusterId, String serviceId) {
-      super(clusterId);
+      super(clusterId, serviceId);
       m_clusterId = clusterId;
       m_serviceId = serviceId;
     }
 
     private TestServiceService(String clusterId, String serviceId, String artifactId) {
-      super(clusterId);
+      super(clusterId, serviceId);
       m_clusterId = clusterId;
       m_serviceId = serviceId;
       m_artifact_id = artifactId;
     }
 
-    @Override
+
     ResourceInstance createServiceResource(String clusterName, String serviceName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
       return getTestResource();
     }
 
-    @Override
+
     ResourceInstance createArtifactResource(String clusterName, String serviceName, String artifactName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);

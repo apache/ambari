@@ -6,4 +6,5 @@ target
 node_modules/
 logs/
 node/
+*.pid
 

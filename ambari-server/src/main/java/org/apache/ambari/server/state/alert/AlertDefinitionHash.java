@@ -37,8 +37,8 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -375,8 +375,8 @@ public class AlertDefinitionHash {
       return affectedHosts;
     }
 
-    String ambariServiceName = Services.AMBARI.name();
-    String agentComponentName = Components.AMBARI_AGENT.name();
+    String ambariServiceName = RootService.AMBARI.name();
+    String agentComponentName = RootComponent.AMBARI_AGENT.name();
 
     // intercept host agent alerts; they affect all hosts
     if (ambariServiceName.equals(definitionServiceName)

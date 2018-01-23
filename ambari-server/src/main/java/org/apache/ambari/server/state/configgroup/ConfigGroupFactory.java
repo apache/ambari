@@ -33,7 +33,8 @@ public interface ConfigGroupFactory {
    * Creates and saves a new {@link ConfigGroup}.
    */
   ConfigGroup createNew(@Assisted("cluster") Cluster cluster,
-      @Assisted("serviceName") @Nullable String serviceName, @Assisted("name") String name,
+      @Assisted("serviceGroupId") @Nullable Long serviceGroupId,
+      @Assisted("serviceId") @Nullable Long serviceId, @Assisted("name") String name,
       @Assisted("tag") String tag, @Assisted("description") String description,
       @Assisted("configs") Map<String, Config> configs, @Assisted("hosts") Map<Long, Host> hosts);
 

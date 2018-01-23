@@ -30,6 +30,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -205,7 +206,7 @@ public class BlueprintFactory {
       allComponents.addAll(components);
     }
     // currently ambari server is no a recognized component
-    allComponents.add("AMBARI_SERVER");
+    allComponents.add(RootComponent.AMBARI_SERVER.name());
 
     return allComponents;
   }

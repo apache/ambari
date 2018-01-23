@@ -58,13 +58,15 @@ class TestSparkClient(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
         owner = 'spark',
@@ -108,13 +110,15 @@ class TestSparkClient(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         create_parents = True,
-        mode = 0775
+        mode = 0775,
+        cd_access = 'a',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
         owner = 'spark',

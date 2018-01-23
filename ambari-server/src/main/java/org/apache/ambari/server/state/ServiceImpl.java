@@ -21,8 +21,10 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -32,6 +34,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.ServiceKey;
+import org.apache.ambari.server.controller.ServiceDependencyResponse;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -49,6 +53,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.ServiceDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
@@ -74,10 +79,14 @@ public class ServiceImpl implements Service {
   private final Cluster cluster;
   private final ServiceGroup serviceGroup;
   private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
+  private List<ServiceKey> serviceDependencies = new ArrayList<>();
   private boolean isClientOnlyService;
   private boolean isCredentialStoreSupported;
   private boolean isCredentialStoreRequired;
   private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  private Clusters clusters;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -111,6 +120,7 @@ public class ServiceImpl implements Service {
 
   @AssistedInject
   ServiceImpl(@Assisted Cluster cluster, @Assisted ServiceGroup serviceGroup,
+              @Assisted List<ServiceKey> serviceDependencies,
               @Assisted("serviceName") String serviceName, @Assisted("serviceType") String serviceType,
               @Assisted RepositoryVersionEntity desiredRepositoryVersion,
               ClusterDAO clusterDAO, ServiceGroupDAO serviceGroupDAO,
@@ -129,11 +139,38 @@ public class ServiceImpl implements Service {
     this.serviceType = serviceType;
     this.ambariMetaInfo = ambariMetaInfo;
 
+
     ClusterServiceEntity serviceEntity = new ClusterServiceEntity();
     serviceEntity.setClusterId(cluster.getClusterId());
     serviceEntity.setServiceGroupId(serviceGroup.getServiceGroupId());
     serviceEntity.setServiceName(serviceName);
     serviceEntity.setServiceType(serviceType);
+
+    if (serviceDependencies != null) {
+      for (ServiceKey serviceKey : serviceDependencies) {
+
+        Cluster dependencyCluster = null;
+
+        for (Cluster cl : clusters.getClusters().values()) {
+          if (cl.getServicesById().containsKey(serviceKey.getServiceId())) {
+            dependencyCluster = cl;
+
+            break;
+          }
+        }
+
+
+        ClusterServiceEntity dependencyServiceEntity = clusterServiceDAO.findById(serviceKey.getClusterId(), serviceKey.getServiceGroupId(), serviceKey.getServiceId());
+        ServiceDependencyEntity serviceDependencyEntity = new ServiceDependencyEntity();
+        serviceDependencyEntity.setService(serviceEntity);
+        serviceDependencyEntity.setServiceDependency(dependencyServiceEntity);
+
+        clusterServiceDAO.createServiceDependency(serviceDependencyEntity);
+
+        serviceEntity.getServiceDependencies().add(serviceDependencyEntity);
+
+      }
+    }
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
     serviceDesiredStateEntity.setClusterId(cluster.getClusterId());
@@ -177,6 +214,7 @@ public class ServiceImpl implements Service {
     this.serviceName = serviceEntity.getServiceName();
     this.serviceType = serviceEntity.getServiceType();
     this.ambariMetaInfo = ambariMetaInfo;
+    this.serviceDependencies = getServiceDependencies(serviceEntity.getServiceDependencies());
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
@@ -207,6 +245,8 @@ public class ServiceImpl implements Service {
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
     displayName = sInfo.getDisplayName();
   }
+
+
 
 
   /***
@@ -274,6 +314,15 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  public List<ServiceKey> getServiceDependencies() {
+    return serviceDependencies;
+  }
+
+  public void setServiceDependencies(List<ServiceKey> serviceDependencies) {
+    this.serviceDependencies = serviceDependencies;
+  }
+
+  @Override
   public void addServiceComponent(ServiceComponent component) throws AmbariException {
     if (components.containsKey(component.getName())) {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
@@ -305,6 +354,60 @@ public class ServiceImpl implements Service {
     }
 
     return serviceComponent;
+  }
+
+  @Override
+  public Set<ServiceDependencyResponse> getServiceDependencyResponses() {
+    Set<ServiceDependencyResponse> responses = new HashSet<>();
+    if (getServiceDependencies() != null) {
+      for (ServiceKey sk : getServiceDependencies()) {
+        responses.add(new ServiceDependencyResponse(cluster.getClusterId(), cluster.getClusterName(),
+                 sk.getClusterId(), sk.getClusterName(), sk.getServiceGroupId(), sk.getServiceGroupName(),
+                 sk.getServiceId(), sk.getServiceName(), getServiceGroupId(), getServiceGroupName(),
+                 getServiceId(), getName(), sk.getDependencyId()));
+      }
+    }
+    return responses;
+  }
+
+  public List<ServiceKey> getServiceDependencies(List<ServiceDependencyEntity> serviceDependencyEntities) throws AmbariException {
+    List<ServiceKey> serviceDependenciesList = new ArrayList<>();
+
+    if (serviceDependencyEntities != null) {
+      for (ServiceDependencyEntity sde : serviceDependencyEntities) {
+        ServiceKey serviceKey = new ServiceKey();
+        ClusterServiceEntity dependencyService = sde.getServiceDependency();
+        String clusterName = "";
+        Long clusterId = null;
+        if (dependencyService.getClusterId() == cluster.getClusterId()) {
+          clusterName = cluster.getClusterName();
+          clusterId = cluster.getClusterId();
+        } else {
+          ClusterEntity clusterEntity = clusterDAO.findById(dependencyService.getClusterId());
+          if (clusterEntity != null) {
+            clusterName = clusterEntity.getClusterName();
+            clusterId = clusterEntity.getClusterId();
+          } else {
+            LOG.error("Unable to get cluster id for service " + dependencyService.getServiceName());
+          }
+        }
+
+
+        Cluster dependencyCluster = cluster;
+        ServiceGroup dependencyServiceGroup = dependencyCluster.getServiceGroup(dependencyService.getServiceGroupId());
+
+
+        serviceKey.setServiceGroupName(dependencyServiceGroup.getServiceGroupName());
+        serviceKey.setServiceGroupId(dependencyServiceGroup.getServiceGroupId());
+        serviceKey.setClusterName(clusterName);
+        serviceKey.setClusterId(clusterId);
+        serviceKey.setServiceName(dependencyService.getServiceName());
+        serviceKey.setServiceId(dependencyService.getServiceId());
+        serviceKey.setDependencyId(sde.getServiceDependencyId());
+        serviceDependenciesList.add(serviceKey);
+      }
+    }
+    return serviceDependenciesList;
   }
 
   @Override
@@ -425,6 +528,15 @@ public class ServiceImpl implements Service {
     return isCredentialStoreRequired;
   }
 
+  @Override
+  public String toString() {
+    return "ServiceImpl{" +
+        "serviceId=" + serviceId +
+        ", serviceName='" + serviceName + '\'' +
+        ", displayName='" + displayName + '\'' +
+        ", serviceType='" + serviceType + '\'' +
+        '}';
+  }
 
   /**
    * Get a true or false value specifying whether
@@ -468,6 +580,65 @@ public class ServiceImpl implements Service {
       LOG.warn("Setting a member on an entity object that may have been "
               + "previously deleted, serviceName = " + getName());
     }
+  }
+
+  @Override
+  public ClusterServiceEntity removeDependencyService(Long dependencyServiceId) {
+    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(), getServiceGroupId(), getServiceId());
+
+    ServiceDependencyEntity dependencyEntityToRemove = null;
+    if (currentServiceEntity.getServiceDependencies() != null) {
+      for (ServiceDependencyEntity sde : currentServiceEntity.getServiceDependencies()) {
+        if (sde.getServiceDependency().getServiceId() == dependencyServiceId) {
+          dependencyEntityToRemove = sde;
+          break;
+        }
+      }
+    }
+
+    currentServiceEntity.getServiceDependencies().remove(dependencyEntityToRemove);
+    ClusterServiceEntity updatedServiceEntity = removeServiceDependencyEntity(dependencyEntityToRemove, currentServiceEntity);
+    currentServiceEntity.getServiceDependencies().remove(dependencyEntityToRemove);
+
+    return updatedServiceEntity;
+  }
+
+  @Transactional
+  protected ClusterServiceEntity removeServiceDependencyEntity(ServiceDependencyEntity dependencyEntityToRemove,
+                                                               ClusterServiceEntity currentServiceEntity) {
+    clusterServiceDAO.removeServiceDependency(dependencyEntityToRemove);
+    ClusterServiceEntity updatedServiceEntity = clusterServiceDAO.merge(currentServiceEntity);
+    return updatedServiceEntity;
+  }
+
+  @Override
+  public ClusterServiceEntity addDependencyService(Long dependencyServiceId) throws AmbariException {
+    Service dependentService = null;
+    for (Cluster cl : clusters.getClusters().values()) {
+      if (cl.getServicesById().containsKey(dependencyServiceId)) {
+        dependentService = cl.getService(dependencyServiceId);
+        break;
+      }
+    }
+
+    ClusterServiceEntity currentServiceEntity = clusterServiceDAO.findById(getClusterId(), getServiceGroupId(), getServiceId());
+    ClusterServiceEntity dependentServiceEntity = clusterServiceDAO.findById(dependentService.getClusterId(),
+            dependentService.getServiceGroupId(), dependentService.getServiceId());
+
+    ServiceDependencyEntity newServiceDependency = new ServiceDependencyEntity();
+    newServiceDependency.setService(currentServiceEntity);
+    newServiceDependency.setServiceDependency(dependentServiceEntity);
+
+    return addServiceDependencyEntity(newServiceDependency, currentServiceEntity);
+  }
+
+  @Transactional
+  protected ClusterServiceEntity addServiceDependencyEntity(ServiceDependencyEntity newServiceDependency,
+                                                               ClusterServiceEntity currentServiceEntity) {
+    clusterServiceDAO.createServiceDependency(newServiceDependency);
+    currentServiceEntity.getServiceDependencies().add(newServiceDependency);
+    ClusterServiceEntity updatedServiceEntity = clusterServiceDAO.merge(currentServiceEntity);
+    return updatedServiceEntity;
   }
 
   @Override
@@ -521,6 +692,7 @@ public class ServiceImpl implements Service {
     serviceEntityPK.setServiceId(serviceId);
     serviceDesiredStateEntityPK.setServiceId(serviceId);
     clusterEntity.getClusterServiceEntities().add(serviceEntity);
+    serviceEntity.getServiceDesiredStateEntity().setServiceId(serviceId);
     clusterDAO.merge(clusterEntity);
     serviceGroupDAO.merge(serviceGroupEntity);
     clusterServiceDAO.merge(serviceEntity);
@@ -548,7 +720,7 @@ public class ServiceImpl implements Service {
   @Transactional
   void deleteAllServiceConfigs() throws AmbariException {
     long clusterId = getClusterId();
-    ServiceConfigEntity lastServiceConfigEntity = serviceConfigDAO.findMaxVersion(clusterId, getName());
+    ServiceConfigEntity lastServiceConfigEntity = serviceConfigDAO.findMaxVersion(clusterId, getServiceId());
     // de-select every configuration from the service
     if (lastServiceConfigEntity != null) {
       for (ClusterConfigEntity serviceConfigEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
@@ -562,7 +734,7 @@ public class ServiceImpl implements Service {
     LOG.info("Deleting all configuration associations for {} on cluster {}", getName(), cluster.getClusterName());
 
     List<ServiceConfigEntity> serviceConfigEntities =
-      serviceConfigDAO.findByService(cluster.getClusterId(), getName());
+      serviceConfigDAO.findByService(cluster.getClusterId(), getServiceId());
 
     for (ServiceConfigEntity serviceConfigEntity : serviceConfigEntities) {
       // Only delete the historical version information and not original
@@ -652,7 +824,7 @@ public class ServiceImpl implements Service {
     List<Component> result = new ArrayList<>();
     for (ServiceComponent component : getServiceComponents().values()) {
       for (ServiceComponentHost host : component.getServiceComponentHosts().values()) {
-        result.add(new Component(host.getHostName(), getName(), component.getName()));
+        result.add(new Component(host.getHostName(), getName(), component.getName(), host.getHost().getHostId()));
       }
     }
     return result;

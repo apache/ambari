@@ -351,7 +351,8 @@ public class HostConfigMappingDAO {
     hostConfigMappingEntity.setCreateTimestamp(hostConfigMapping.getCreateTimestamp());
     hostConfigMappingEntity.setHostId(hostEntity.getHostId());
     hostConfigMappingEntity.setSelected(hostConfigMapping.getSelected());
-    hostConfigMappingEntity.setServiceName(hostConfigMapping.getServiceName());
+    hostConfigMappingEntity.setServiceGroupId(hostConfigMapping.getServiceGroupId());
+    hostConfigMappingEntity.setServiceId(hostConfigMapping.getServiceId());
     hostConfigMappingEntity.setType(hostConfigMapping.getType());
     hostConfigMappingEntity.setUser(hostConfigMapping.getUser());
     hostConfigMappingEntity.setVersion(hostConfigMapping.getVersion());
@@ -362,11 +363,12 @@ public class HostConfigMappingDAO {
   public HostConfigMapping buildHostConfigMapping(
       HostConfigMappingEntity hostConfigMappingEntity) {
     HostConfigMapping hostConfigMapping = new HostConfigMappingImpl();
-    
+
     hostConfigMapping.setClusterId(hostConfigMappingEntity.getClusterId());
     hostConfigMapping.setCreateTimestamp(hostConfigMappingEntity.getCreateTimestamp());
     hostConfigMapping.setHostId(hostConfigMappingEntity.getHostId());
-    hostConfigMapping.setServiceName(hostConfigMappingEntity.getServiceName());
+    hostConfigMapping.setServiceGroupId(hostConfigMappingEntity.getServiceGroupId());
+    hostConfigMapping.setServiceId(hostConfigMappingEntity.getServiceId());
     hostConfigMapping.setType(hostConfigMappingEntity.getType());
     hostConfigMapping.setUser(hostConfigMappingEntity.getUser());
     hostConfigMapping.setSelected(hostConfigMappingEntity.isSelected());

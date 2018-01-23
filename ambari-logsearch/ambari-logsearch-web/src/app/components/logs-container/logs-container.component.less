@@ -21,9 +21,15 @@
 :host {
   display: block;
   overflow: hidden;
-  padding-top: @block-margin-top;
 
-  .auto-refresh-message {
+  .tabs-container, .auto-refresh-message {
     background-color: @filters-panel-background-color;
+  }
+  .tabs-container {
+    border-bottom: 1px solid @table-border-color;
+  }
+
+  filters-panel {
+    margin-bottom: @block-margin-top;
   }
 }

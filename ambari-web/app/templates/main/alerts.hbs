@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div id="alerts">
+<div id="alerts" class="container-wrap-table">
   <div class="row">
     <h2 class="table-title col-sm-1">{{t menu.item.alerts}}</h2>
     <div class="table-controls row col-sm-11 pull-right">
@@ -24,11 +24,17 @@
         {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
           {{view App.MainAlertDefinitionActionsView controllerBinding="App.router.mainAlertDefinitionActionsController"}}
         {{/isAuthorized}}
-        {{#if App.router.clusterController.isAlertsLoaded}}
-          {{view view.alertGroupFilterView}}
-        {{/if}}
+        <div class="VS-open-box pull-right">
+          <button class="btn btn-default">
+            <i class="icon-search"></i>
+          </button>
+          <div class="popup-arrow-up hide"></div>
+        </div>
       </div>
     </div>
+  </div>
+  <div class="row search-box-row hide">
+    {{view App.MainAlertDefinitionSearchBoxView}}
   </div>
   <table class="table advanced-header-table table-hover alerts-table" id="alert-definitions-table">
     <thead>
@@ -39,13 +45,6 @@
       {{view view.parentView.lastTriggeredSort class="last-triggred-sorting"}}
       {{view view.parentView.enabledSort class="enabled-sorting"}}
     {{/view}}
-    <tr class="filter-row">
-      <th class="first">{{view view.stateFilterView class="status-filter"}}</th>
-      <th>{{view view.nameFilterView class="name-filter"}}</th>
-      <th>{{view view.serviceFilterView class="service-filter"}}</th>
-      <th>{{view view.triggeredFilterView class="last-triggered-filter"}}</th>
-      <th>{{view view.enabledFilterView class="enabled-filter"}}</th>
-    </tr>
     </thead>
     <tbody>
     {{#if App.router.clusterController.isAlertsLoaded}}
@@ -56,7 +55,6 @@
               {{view App.AlertDefinitionSummary contentBinding="alertDefinition"}}
             </td>
             <td class="alert-name">
-              <span {{bindAttr title="alertDefinition.type"}} {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>
               <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
             </td>
             <td class="alert-service">{{alertDefinition.serviceDisplayName}}</td>

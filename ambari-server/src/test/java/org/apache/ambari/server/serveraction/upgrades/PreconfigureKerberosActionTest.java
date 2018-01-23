@@ -70,8 +70,11 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.KerberosKeytabEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -178,6 +181,12 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
     Capture<? extends Map<String, String>> captureCoreSiteProperties = newCapture();
 
     Injector injector = getInjector();
+
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    EntityManager entityManager = injector.getInstance(EntityManager.class);
+
+    expect(hostDAO.findByName(anyString())).andReturn(createNiceMock(HostEntity.class)).anyTimes();
+    expect(entityManager.find(eq(KerberosKeytabEntity.class), anyString())).andReturn(createNiceMock(KerberosKeytabEntity.class)).anyTimes();
 
     ExecutionCommand executionCommand = createMockExecutionCommand(getDefaultCommandParams());
 
@@ -522,7 +531,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
     configTypeService.put("gateway-site", "KNOX");
 
     for (Map.Entry<String, String> entry : configTypeService.entrySet()) {
-      expect(cluster.getServiceByConfigType(entry.getKey())).andReturn(entry.getValue()).anyTimes();
+      expect(cluster.getServiceByConfigType(entry.getKey())).andReturn(null).anyTimes();
     }
 
     for (Map.Entry<String, Config> entry : clusterConfigs.entrySet()) {
@@ -590,6 +599,7 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
         bind(Clusters.class).toInstance(createMock(Clusters.class));
         bind(StackAdvisorHelper.class).toInstance(createMock(StackAdvisorHelper.class));
         bind(ConfigHelper.class).toInstance(createMock(ConfigHelper.class));
+        bind(HostDAO.class).toInstance(createMock(HostDAO.class));
       }
     });
   }

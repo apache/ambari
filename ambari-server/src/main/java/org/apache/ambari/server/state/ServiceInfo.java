@@ -87,7 +87,7 @@ public class ServiceInfo implements Validable, Cloneable {
     JAVA
   }
   @XmlElement(name="service_advisor_type")
-  private ServiceAdvisorType serviceAdvisorType = null;
+  private ServiceAdvisorType serviceAdvisorType = ServiceAdvisorType.PYTHON;
 
   @XmlTransient
   private List<PropertyInfo> properties;
@@ -231,7 +231,7 @@ public class ServiceInfo implements Validable, Cloneable {
   @JsonIgnore
   @XmlElementWrapper(name="osSpecifics")
   @XmlElements(@XmlElement(name="osSpecific"))
-  private List<ServiceOsSpecific> serviceOsSpecifics;
+  private List<OsSpecific> serviceOsSpecifics;
 
   @JsonIgnore
   @XmlElement(name="configuration-dir")
@@ -267,7 +267,7 @@ public class ServiceInfo implements Validable, Cloneable {
    * Added at schema ver 2
    */
   @XmlTransient
-  private volatile Map<String, ServiceOsSpecific> serviceOsSpecificsMap;
+  private volatile Map<String, OsSpecific> serviceOsSpecificsMap;
 
   /**
    * This is used to add service check actions for services.
@@ -306,6 +306,12 @@ public class ServiceInfo implements Validable, Cloneable {
    */
   @XmlTransient
   private File checksFolder;
+
+  /**
+   * Stores the path to the server actions folder which contains server actions jars for the given service.
+   */
+  @XmlTransient
+  private File serverActionsFolder;
 
   public boolean isDeleted() {
     return isDeleted;
@@ -833,18 +839,26 @@ public class ServiceInfo implements Validable, Cloneable {
     this.checksFolder = checksFolder;
   }
 
+  public File getServerActionsFolder() {
+    return serverActionsFolder;
+  }
+
+  public void setServerActionsFolder(File serverActionsFolder) {
+    this.serverActionsFolder = serverActionsFolder;
+  }
+
   /**
    * Exposes (and initializes on first use) map of os-specific details.
    * @return  map of OS specific details keyed by family
    */
-  public Map<String, ServiceOsSpecific> getOsSpecifics() {
+  public Map<String, OsSpecific> getOsSpecifics() {
     if (serviceOsSpecificsMap == null) {
       synchronized (this) { // Double-checked locking pattern
         if (serviceOsSpecificsMap == null) {
-          Map<String, ServiceOsSpecific> tmpMap =
+          Map<String, OsSpecific> tmpMap =
             new TreeMap<>();
           if (serviceOsSpecifics != null) {
-            for (ServiceOsSpecific osSpecific : serviceOsSpecifics) {
+            for (OsSpecific osSpecific : serviceOsSpecifics) {
               tmpMap.put(osSpecific.getOsFamily(), osSpecific);
             }
           }
@@ -855,7 +869,7 @@ public class ServiceInfo implements Validable, Cloneable {
     return serviceOsSpecificsMap;
   }
 
-  public void setOsSpecifics(Map<String, ServiceOsSpecific> serviceOsSpecificsMap) {
+  public void setOsSpecifics(Map<String, OsSpecific> serviceOsSpecificsMap) {
     this.serviceOsSpecificsMap = serviceOsSpecificsMap;
   }
 

@@ -40,7 +40,7 @@ public class RootServiceServiceTest extends BaseServiceTest {
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<>();
     
-    //getServiceConfigs
+    //getServices
     RootServiceService service = new TestRootServiceService(null, null, null);
     Method m = service.getClass().getMethod("getRootServices", String.class, HttpHeaders.class, UriInfo.class);
     Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo()};

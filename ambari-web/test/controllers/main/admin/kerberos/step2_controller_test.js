@@ -451,7 +451,7 @@ describe('App.KerberosWizardStep2Controller', function() {
     });
 
     it("ipa type configs", function() {
-      var configs = [{name: 'group'}];
+      var configs = [{name: 'ipa_user_group'}];
       controller.setConfigVisibility('ipa', configs, Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'));
       expect(configs[0].isVisible).to.be.true;
     });

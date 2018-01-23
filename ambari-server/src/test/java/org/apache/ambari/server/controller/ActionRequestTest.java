@@ -26,11 +26,12 @@ public class ActionRequestTest {
   @Test
   public void testBasicGetAndSet() {
     ActionRequest adr1 =
-        new ActionRequest("a1", "SYSTEM", "fileName", "HDFS", "DATANODE", "Desc1", "Any", "100");
+        new ActionRequest("a1", "SYSTEM", "fileName", "core","HDFS", "DATANODE", "Desc1", "Any", "100");
 
     Assert.assertEquals("a1", adr1.getActionName());
     Assert.assertEquals("SYSTEM", adr1.getActionType());
     Assert.assertEquals("fileName", adr1.getInputs());
+    Assert.assertEquals("core", adr1.getTargetServiceGroup());
     Assert.assertEquals("HDFS", adr1.getTargetService());
     Assert.assertEquals("DATANODE", adr1.getTargetComponent());
     Assert.assertEquals("Desc1", adr1.getDescription());

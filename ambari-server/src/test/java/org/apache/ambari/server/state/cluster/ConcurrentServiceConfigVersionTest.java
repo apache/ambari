@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.cluster;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.api.services.ServiceGroupKey;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -44,6 +47,8 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
+import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.easymock.EasyMock;
@@ -77,6 +82,9 @@ public class ConcurrentServiceConfigVersionTest {
   private ServiceFactory serviceFactory;
 
   @Inject
+  private ServiceGroupFactory serviceGroupFactory;
+
+  @Inject
   private ServiceComponentFactory serviceComponentFactory;
 
   @Inject
@@ -94,6 +102,7 @@ public class ConcurrentServiceConfigVersionTest {
    * The cluster.
    */
   private Cluster cluster;
+  private ServiceGroup serviceGroup;
 
   private RepositoryVersionEntity repositoryVersion;
 
@@ -109,10 +118,11 @@ public class ConcurrentServiceConfigVersionTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     helper.createStack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    serviceGroup = serviceGroupFactory.createNew(cluster, "test_service_group", new HashSet<ServiceGroupKey>());
 
     String hostName = "c6401.ambari.apache.org";
     clusters.addHost(hostName);
@@ -141,7 +151,7 @@ public class ConcurrentServiceConfigVersionTest {
   @Test
   public void testConcurrentServiceConfigVersions() throws Exception {
     long nextVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        cluster.getClusterId(), "HDFS");
+        cluster.getClusterId(), 1L);
 
     Assert.assertEquals(nextVersion, 1);
 
@@ -159,7 +169,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     long maxVersion = NUMBER_OF_THREADS * NUMBER_OF_SERVICE_CONFIG_VERSIONS;
     nextVersion = serviceConfigDAO.findNextServiceConfigVersion(
-        cluster.getClusterId(), "HDFS");
+        cluster.getClusterId(), 1L);
 
     Assert.assertEquals(maxVersion + 1, nextVersion);
   }
@@ -180,7 +190,7 @@ public class ConcurrentServiceConfigVersionTest {
       try {
         for (int i = 0; i < NUMBER_OF_SERVICE_CONFIG_VERSIONS; i++) {
           ServiceConfigVersionResponse response = cluster.createServiceConfigVersion(
-              "HDFS", null, getName() + "-serviceConfig" + i, null);
+              1L, null, getName() + "-serviceConfig" + i, null);
 
           Thread.sleep(100);
         }
@@ -219,7 +229,7 @@ public class ConcurrentServiceConfigVersionTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceGroup, new ArrayList<ServiceKey>(), serviceName, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 

@@ -46,11 +46,13 @@ def archive_directory_dereference(archive, directory):
     try_sleep = 1,
   )
 
-def untar_archive(archive, directory):
+def untar_archive(archive, directory, silent=True):
   """
   :param directory:   can be a symlink and is followed
   """
-  Execute(('tar','-xvf',archive,'-C',directory+"/"),
+  options = "-xf" if silent else "-xvf"
+
+  Execute(('tar',options,archive,'-C',directory+"/"),
     sudo = True,
     tries = 3,
     try_sleep = 1,

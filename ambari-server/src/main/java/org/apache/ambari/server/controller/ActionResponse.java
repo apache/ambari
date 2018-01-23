@@ -28,6 +28,7 @@ public class ActionResponse {
   private String actionName;
   private String actionType;
   private String inputs;
+  private String targetServiceGroup;
   private String targetService;
   private String targetComponent;
   private String description;
@@ -35,11 +36,12 @@ public class ActionResponse {
   private String defaultTimeout;
 
   public ActionResponse(String actionName, String actionType, String inputs,
-      String targetService, String targetComponent, String description, String targetType,
+      String targetServiceGroup, String targetService, String targetComponent, String description, String targetType,
       String defaultTimeout) {
     setActionName(actionName);
     setActionType(actionType);
     setInputs(inputs);
+    setTargetServiceGroup(targetServiceGroup);
     setTargetService(targetService);
     setTargetComponent(targetComponent);
     setDescription(description);
@@ -81,6 +83,15 @@ public class ActionResponse {
 
   public void setTargetService(String targetService) {
     this.targetService = targetService;
+  }
+
+  @ApiModelProperty(name = ActionRequest.TARGET_SERVICE_GROUP)
+  public String getTargetServiceGroup() {
+    return targetServiceGroup;
+  }
+
+  public void setTargetServiceGroup(String targetServiceGroup) {
+    this.targetServiceGroup = targetServiceGroup;
   }
 
   @ApiModelProperty(name = ActionRequest.TARGET_COMPONENT)

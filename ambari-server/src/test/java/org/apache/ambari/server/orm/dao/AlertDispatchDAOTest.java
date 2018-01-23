@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -82,6 +83,7 @@ public class AlertDispatchDAOTest {
 
   private Clusters m_clusters;
   private Cluster m_cluster;
+  private ServiceGroup serviceGroup;
   private Injector m_injector;
   private AlertDispatchDAO m_dao;
   private AlertDefinitionDAO m_definitionDao;
@@ -93,9 +95,6 @@ public class AlertDispatchDAOTest {
   private ServiceComponentHostFactory m_schFactory;
   private AlertDaoHelper m_alertHelper;
 
-  /**
-   *
-   */
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -118,12 +117,10 @@ public class AlertDispatchDAOTest {
     EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
 
     m_cluster = m_clusters.getClusterById(m_helper.createCluster());
+    serviceGroup = m_cluster.addServiceGroup("CORE");
     m_helper.initializeClusterWithStack(m_cluster);
   }
 
-  /**
-   * @throws Exception
-   */
   @After
   public void teardown() throws Exception {
     m_injector.getInstance(UnitOfWork.class).end();
@@ -146,9 +143,6 @@ public class AlertDispatchDAOTest {
     }
   }
 
-  /**
-   *
-   */
   @Test
   public void testFindTargets() throws Exception {
     initTestData();
@@ -172,9 +166,6 @@ public class AlertDispatchDAOTest {
     assertEquals(target, actual);
   }
 
-  /**
-   *
-   */
   @Test
   public void testCreateAndFindAllGlobalTargets() throws Exception {
     List<AlertTargetEntity> targets = m_dao.findAllGlobalTargets();
@@ -193,9 +184,6 @@ public class AlertDispatchDAOTest {
     assertTrue( target.isGlobal() );
   }
 
-  /**
-   *
-   */
   @Test
   public void testFindGroups() throws Exception {
     initTestData();
@@ -236,9 +224,6 @@ public class AlertDispatchDAOTest {
     assertTrue(hdfsGroup.isDefault());
   }
 
-  /**
-   *
-   */
   @Test
   public void testCreateUpdateRemoveGroup() throws Exception {
     // create group
@@ -290,9 +275,6 @@ public class AlertDispatchDAOTest {
     assertEquals(1, m_dao.findAllTargets().size());
   }
 
-  /**
-   *
-   */
   @Test
   public void testCreateAndRemoveTarget() throws Exception {
     // create target
@@ -330,9 +312,6 @@ public class AlertDispatchDAOTest {
 
   }
 
-  /**
-   *
-   */
   @Test
   public void testGlobalTargetAssociations() throws Exception {
     AlertGroupEntity group = m_helper.createAlertGroup(
@@ -386,9 +365,6 @@ public class AlertDispatchDAOTest {
     assertTrue(groupTarget2.isGlobal());
   }
 
-  /**
-  *
-  */
   @Test
   public void testDeleteTargetWithNotices() throws Exception {
     AlertTargetEntity target = m_helper.createAlertTarget();
@@ -424,9 +400,6 @@ public class AlertDispatchDAOTest {
     assertNull(notice);
   }
 
-  /**
-   *
-   */
   @Test
   public void testDeleteAssociatedTarget() throws Exception {
     AlertTargetEntity target = m_helper.createAlertTarget();
@@ -455,8 +428,6 @@ public class AlertDispatchDAOTest {
 
   /**
    * Tests finding groups by a definition ID that they are associatd with.
-   *
-   * @throws Exception
    */
   @Test
   public void testFindGroupsByDefinition() throws Exception {
@@ -488,8 +459,6 @@ public class AlertDispatchDAOTest {
    * Tests finding groups by a definition ID that they are associatd with in
    * order to get any targets associated with that group. This exercises the
    * bi-directional
-   *
-   * @throws Exception
    */
   @Test
   public void testFindTargetsViaGroupsByDefinition() throws Exception {
@@ -522,9 +491,6 @@ public class AlertDispatchDAOTest {
         group.getAlertTargets().iterator().next().getTargetId());
   }
 
-  /**
-   * @throws Exception
-   */
   @Test
   public void testFindNoticeByUuid() throws Exception {
     List<AlertDefinitionEntity> definitions = createDefinitions();
@@ -558,45 +524,35 @@ public class AlertDispatchDAOTest {
   /**
    * Tests that the Ambari {@link Predicate} can be converted and submitted to
    * JPA correctly to return a restricted result set.
-   *
-   * @throws Exception
    */
   @Test
   public void testAlertNoticePredicate() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
+    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     m_alertHelper.populateData(m_cluster);
 
-    Predicate clusterPredicate = null;
-    Predicate hdfsPredicate = null;
-    Predicate yarnPredicate = null;
-    Predicate adminPredicate = null;
-    Predicate adminOrOperatorPredicate = null;
-    Predicate pendingPredicate = null;
-    Predicate noticeIdPredicate = null;
-
-    clusterPredicate = new PredicateBuilder().property(
+    Predicate clusterPredicate = new PredicateBuilder().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_CLUSTER_NAME).equals("c1").toPredicate();
 
-    hdfsPredicate = new PredicateBuilder().property(
+    Predicate hdfsPredicate = new PredicateBuilder().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_SERVICE_NAME).equals("HDFS").toPredicate();
 
-    yarnPredicate = new PredicateBuilder().property(
+    Predicate yarnPredicate = new PredicateBuilder().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_SERVICE_NAME).equals("YARN").toPredicate();
 
-    adminPredicate = new PredicateBuilder().property(
+    Predicate adminPredicate = new PredicateBuilder().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_NAME).equals(
         "Administrators").toPredicate();
 
-    adminOrOperatorPredicate = new PredicateBuilder().property(
+    Predicate adminOrOperatorPredicate = new PredicateBuilder().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_NAME).equals(
         "Administrators").or().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_NAME).equals(
         "Operators").toPredicate();
 
-    pendingPredicate = new PredicateBuilder().property(
+    Predicate pendingPredicate = new PredicateBuilder().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_STATE).equals(
         NotificationState.PENDING.name()).toPredicate();
 
@@ -626,7 +582,7 @@ public class AlertDispatchDAOTest {
     notices = m_dao.findAllNotices(request);
     assertEquals(1, notices.size());
 
-    noticeIdPredicate = new PredicateBuilder().property(
+    Predicate noticeIdPredicate = new PredicateBuilder().property(
         AlertNoticeResourceProvider.ALERT_NOTICE_ID).equals(
         notices.get(0).getNotificationId()).toPredicate();
 
@@ -637,14 +593,12 @@ public class AlertDispatchDAOTest {
 
   /**
    * Tests that JPA does the pagination work for us.
-   *
-   * @throws Exception
    */
   @Test
   public void testAlertNoticePagination() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
+    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     m_alertHelper.populateData(m_cluster);
 
@@ -679,14 +633,12 @@ public class AlertDispatchDAOTest {
 
   /**
    * Tests that JPA does the sorting work for us.
-   *
-   * @throws Exception
    */
   @Test
   public void testAlertNoticeSorting() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
+    m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     m_alertHelper.populateData(m_cluster);
 
@@ -750,8 +702,7 @@ public class AlertDispatchDAOTest {
   @Test
   public void testDefaultGroupAutomaticCreation() throws Exception {
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    //m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     AlertGroupEntity hdfsGroup = m_dao.findDefaultServiceGroup(
             m_cluster.getClusterId(), "HDFS");
@@ -788,8 +739,7 @@ public class AlertDispatchDAOTest {
   public void testDefaultGroupInvalidServiceNoCreation() throws Exception {
     initTestData();
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
-    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
-    //m_helper.installYarnService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory, m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     assertEquals(3, m_dao.findAllGroups().size());
 
@@ -813,9 +763,6 @@ public class AlertDispatchDAOTest {
     }
   }
 
-  /**
-   * @return
-   */
   private List<AlertDefinitionEntity> createDefinitions() throws Exception {
     // add a host to the cluster
     m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
@@ -823,7 +770,7 @@ public class AlertDispatchDAOTest {
     // install YARN (which doesn't have any alerts defined in the test JSON)
     // so that the definitions get created correctly
     m_helper.installYarnService(m_cluster, m_serviceFactory,
-        m_componentFactory, m_schFactory, HOSTNAME);
+        m_componentFactory, m_schFactory, HOSTNAME, serviceGroup);
 
     List<AlertDefinitionEntity> alertDefinitionEntities = new ArrayList<>();
 
@@ -845,10 +792,6 @@ public class AlertDispatchDAOTest {
     return alertDefinitionEntities;
   }
 
-  /**
-   * @return
-   * @throws Exception
-   */
   private Set<AlertTargetEntity> createTargets(int numberOfTargets) throws Exception {
     Set<AlertTargetEntity> targets = new HashSet<>();
     for (int i = 0; i < numberOfTargets; i++) {
@@ -904,8 +847,6 @@ public class AlertDispatchDAOTest {
 
   /**
    * Tests that updating JPA associations concurrently doesn't lead to Concu
-   *
-   * @throws Exception
    */
   @Test
   public void testConcurrentGroupModification() throws Exception {

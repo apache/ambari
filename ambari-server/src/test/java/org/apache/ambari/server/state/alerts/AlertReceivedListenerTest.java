@@ -30,8 +30,8 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
@@ -335,8 +335,8 @@ public class AlertReceivedListenerTest {
   @Test
   public void testAgentAlertFromInvalidHost() {
     String definitionName = ALERT_DEFINITION + "1";
-    String serviceName = Services.AMBARI.name();
-    String componentName = Components.AMBARI_AGENT.name();
+    String serviceName = RootService.AMBARI.name();
+    String componentName = RootComponent.AMBARI_AGENT.name();
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);
@@ -374,8 +374,8 @@ public class AlertReceivedListenerTest {
   @Test
   public void testAmbariServerValidAlerts() {
     String definitionName = ALERT_DEFINITION + "1";
-    String serviceName = Services.AMBARI.name();
-    String componentName = Components.AMBARI_SERVER.name();
+    String serviceName = RootService.AMBARI.name();
+    String componentName = RootComponent.AMBARI_SERVER.name();
 
     Alert alert = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);
@@ -415,8 +415,8 @@ public class AlertReceivedListenerTest {
   @Test
   public void testMissingClusterAndInvalidHost() {
     String definitionName = ALERT_DEFINITION + "1";
-    String serviceName = Services.AMBARI.name();
-    String componentName = Components.AMBARI_AGENT.name();
+    String serviceName = RootService.AMBARI.name();
+    String componentName = RootComponent.AMBARI_AGENT.name();
 
     Alert alert1 = new Alert(definitionName, null, serviceName, componentName, HOST1,
         AlertState.OK);

@@ -1217,7 +1217,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     }
   },
 
-  nextButtonDisabled: Em.computed.or('App.router.btnClickInProgress', 'submitDisabled', 'validationInProgress'),
+  nextButtonDisabled: Em.computed.or('App.router.btnClickInProgress', 'submitDisabled', 'validationInProgress', '!isLoaded'),
 
   /**
    * Submit button click handler

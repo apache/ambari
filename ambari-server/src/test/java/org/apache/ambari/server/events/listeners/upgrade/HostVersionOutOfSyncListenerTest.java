@@ -53,6 +53,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
@@ -150,7 +151,8 @@ public class HostVersionOutOfSyncListenerTest {
     Map<String, List<Integer>> zkTopology = new HashMap<>();
     List<Integer> zkServerHosts = Arrays.asList(0, 1, 2);
     zkTopology.put("ZOOKEEPER_SERVER", new ArrayList<>(zkServerHosts));
-    addService(c1, hostList, zkTopology, "ZOOKEEPER", repositoryVersionEntity);
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    addService(c1, serviceGroup, hostList, zkTopology, "ZOOKEEPER", repositoryVersionEntity);
 
     // install new version
     helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
@@ -232,7 +234,8 @@ public class HostVersionOutOfSyncListenerTest {
     hdfsTopology.put("SECONDARY_NAMENODE", Collections.singletonList(1));
     List<Integer> datanodeHosts = Arrays.asList(0, 1);
     hdfsTopology.put("DATANODE", new ArrayList<>(datanodeHosts));
-    addService(c1, hostList, hdfsTopology, "HDFS", repositoryVersion);
+    ServiceGroup serviceGroup = c1.getServiceGroup("CORE");
+    addService(c1, serviceGroup, hostList, hdfsTopology, "HDFS", repositoryVersion);
 
     // Check result
     Set<String> changedHosts = new HashSet<>();
@@ -281,7 +284,8 @@ public class HostVersionOutOfSyncListenerTest {
     hdfsTopology.put("GANGLIA_SERVER", Collections.singletonList(0));
     List<Integer> monitorHosts = Arrays.asList(0, 1);
     hdfsTopology.put("GANGLIA_MONITOR", new ArrayList<>(monitorHosts));
-    addService(c1, hostList, hdfsTopology, "GANGLIA", repositoryVersion);
+    ServiceGroup serviceGroup = c1.getServiceGroup("CORE");
+    addService(c1, serviceGroup, hostList, hdfsTopology, "GANGLIA", repositoryVersion);
 
     // Check result
     Set<String> changedHosts = new HashSet<>();
@@ -473,13 +477,14 @@ public class HostVersionOutOfSyncListenerTest {
         .put("NAMENODE", Lists.newArrayList(0))
         .put("DATANODE", Lists.newArrayList(1))
         .build();
-    addService(c1, allHosts, topology, "HDFS", repo);
+    ServiceGroup serviceGroup = c1.addServiceGroup("CORE");
+    addService(c1, serviceGroup, allHosts, topology, "HDFS", repo);
 
     topology = new ImmutableMap.Builder<String, List<Integer>>()
         .put("GANGLIA_SERVER", Lists.newArrayList(0))
         .put("GANGLIA_MONITOR", Lists.newArrayList(2))
         .build();
-    addService(c1, allHosts, topology, "GANGLIA", repo);
+    addService(c1, serviceGroup, allHosts, topology, "GANGLIA", repo);
 
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
     assertEquals(3, hostVersions.size());
@@ -514,8 +519,8 @@ public class HostVersionOutOfSyncListenerTest {
 
         ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
             c1.getClusterId(), clusterStackId.getStackName(), clusterStackId.getStackVersion(),
-            "HDFS", "DATANODE", sch.getHostName(), false);
 
+            "HDFS", "", "", "DATANODE", sch.getHostName(), false, null);
         m_eventPublisher.publish(event);
       }
     }
@@ -544,11 +549,11 @@ public class HostVersionOutOfSyncListenerTest {
     host1.setHostAttributes(hostAttributes);
   }
 
-  private void addService(Cluster cl, List<String> hostList, Map<String, List<Integer>> topology,
+  private void addService(Cluster cl, ServiceGroup serviceGroup, List<String> hostList, Map<String, List<Integer>> topology,
       String serviceName, RepositoryVersionEntity repositoryVersionEntity) throws AmbariException {
     StackId stackIdObj = new StackId(stackId);
     cl.setDesiredStackVersion(stackIdObj);
-    cl.addService(serviceName, repositoryVersionEntity);
+    cl.addService(serviceGroup, serviceName, serviceName, repositoryVersionEntity);
 
     for (Map.Entry<String, List<Integer>> component : topology.entrySet()) {
 
@@ -564,7 +569,7 @@ public class HostVersionOutOfSyncListenerTest {
       }
 
       ServiceInstalledEvent event = new ServiceInstalledEvent(cl.getClusterId(),
-          stackIdObj.getStackName(), stackIdObj.getStackVersion(), serviceName);
+          stackIdObj.getStackName(), stackIdObj.getStackVersion(), serviceName, "", "");
       m_eventPublisher.publish(event);
     }
   }
@@ -585,7 +590,7 @@ public class HostVersionOutOfSyncListenerTest {
           .getServiceComponent(componentName), hostName));
       ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(cl.getClusterId(),
           stackIdObj.getStackName(), stackIdObj.getStackVersion(),
-          serviceName, componentName, hostName, false /* recovery not enabled */);
+          serviceName, "", "",componentName, hostName, false /* recovery not enabled */);
       m_eventPublisher.publish(event);
     }
   }

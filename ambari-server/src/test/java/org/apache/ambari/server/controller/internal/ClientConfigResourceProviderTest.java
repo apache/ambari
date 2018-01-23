@@ -65,13 +65,14 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UserGroupInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.utils.StageUtils;
@@ -179,6 +180,7 @@ public class ClientConfigResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     CommandScriptDefinition commandScriptDefinition = createNiceMock(CommandScriptDefinition.class);
     Config clusterConfig = createNiceMock(Config.class);
@@ -187,7 +189,7 @@ public class ClientConfigResourceProviderTest {
     Service service = createNiceMock(Service.class);
     ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
     ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
-    ServiceOsSpecific serviceOsSpecific = createNiceMock(ServiceOsSpecific.class);
+    OsSpecific osSpecific = createNiceMock(OsSpecific.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     Configuration configuration = PowerMock.createStrictMockAndExpectNew(Configuration.class);
     Map<String, String> configMap = createNiceMock(Map.class);
@@ -218,7 +220,7 @@ public class ClientConfigResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    String clusterName = "C1";
+    String clusterName = "c1";
     String serviceName = "PIG";
     String componentName = "PIG";
     String displayName = "Pig Client";
@@ -245,10 +247,10 @@ public class ClientConfigResourceProviderTest {
     serviceComponentMap.put(componentName,serviceComponent);
     HashMap<String, ServiceComponentHost> serviceComponentHosts = new HashMap<>();
     serviceComponentHosts.put(componentName, serviceComponentHost);
-    HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
-    serviceOsSpecificHashMap.put("key",serviceOsSpecific);
+    HashMap<String, OsSpecific> serviceOsSpecificHashMap = new HashMap<>();
+    serviceOsSpecificHashMap.put("key", osSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
         componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
         null);
 
@@ -278,6 +280,7 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
+    expect(configuration.getGplLicenseAccepted()).andReturn(Configuration.GPL_LICENSE_ACCEPTED.getDefaultValue());
     expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
     Map<String,String> props = new HashMap<>();
@@ -322,14 +325,14 @@ public class ClientConfigResourceProviderTest {
     expect(clusters.getHost(hostName)).andReturn(host);
 
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
     expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
-    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
-    expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
+    expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(
@@ -401,7 +404,7 @@ public class ClientConfigResourceProviderTest {
 
     // replay
     replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo, commandScriptDefinition,
-            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
+            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, stackInfo, configHelper,
             runtime, process, configMap);
     PowerMock.replayAll();
 
@@ -411,7 +414,7 @@ public class ClientConfigResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo,commandScriptDefinition,
-            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
+            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, stackInfo, configHelper,
             runtime, process);
     PowerMock.verifyAll();
   }
@@ -427,6 +430,7 @@ public class ClientConfigResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     CommandScriptDefinition commandScriptDefinition = createNiceMock(CommandScriptDefinition.class);
     Config clusterConfig = createNiceMock(Config.class);
@@ -435,7 +439,7 @@ public class ClientConfigResourceProviderTest {
     Service service = createNiceMock(Service.class);
     ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
     ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
-    ServiceOsSpecific serviceOsSpecific = createNiceMock(ServiceOsSpecific.class);
+    OsSpecific osSpecific = createNiceMock(OsSpecific.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     Configuration configuration = PowerMock.createStrictMockAndExpectNew(Configuration.class);
     Map<String, String> configMap = createNiceMock(Map.class);
@@ -474,7 +478,7 @@ public class ClientConfigResourceProviderTest {
       and().property(ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID).equals("PIG").
       toPredicate();
 
-    String clusterName = "C1";
+    String clusterName = "c1";
     String serviceName = "PIG";
     String componentName = "PIG";
     String displayName = "Pig Client";
@@ -502,10 +506,10 @@ public class ClientConfigResourceProviderTest {
     serviceComponentMap.put(componentName,serviceComponent);
     HashMap<String, ServiceComponentHost> serviceComponentHosts = new HashMap<>();
     serviceComponentHosts.put(componentName, serviceComponentHost);
-    HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
-    serviceOsSpecificHashMap.put("key",serviceOsSpecific);
+    HashMap<String, OsSpecific> serviceOsSpecificHashMap = new HashMap<>();
+    serviceOsSpecificHashMap.put("key", osSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(1L, clusterName, 1L, "CORE", 1L, serviceName, serviceName, 1L,
         componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
         null);
 
@@ -535,6 +539,7 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
+    expect(configuration.getGplLicenseAccepted()).andReturn(Configuration.GPL_LICENSE_ACCEPTED.getDefaultValue());
     expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
 
@@ -580,14 +585,15 @@ public class ClientConfigResourceProviderTest {
     expect(clusters.getHost(hostName)).andReturn(host);
 
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceType()).andReturn(serviceName).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
     expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
-    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
+    expect(stackInfo.getOsSpecifics()).andReturn(new HashMap<>()).anyTimes();
     Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
@@ -616,7 +622,7 @@ public class ClientConfigResourceProviderTest {
 
     // replay
     replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo, commandScriptDefinition,
-            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
+            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, stackInfo, configHelper,
             runtime, process, configMap);
     PowerMock.replayAll();
 
@@ -625,7 +631,7 @@ public class ClientConfigResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo,commandScriptDefinition,
-            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
+            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, stackInfo, configHelper,
             runtime, process);
     PowerMock.verifyAll();
   }

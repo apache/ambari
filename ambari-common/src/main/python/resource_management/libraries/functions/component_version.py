@@ -20,7 +20,7 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 
-def get_component_repository_version(service_name = None, component_name = None):
+def get_component_repository_version(service_name = None, component_name = None, default_value = None):
   """
   Gets the version associated with the specified component from the structure in the command.
   Every command should contain a mapping of service/component to the desired repository it's set
@@ -28,22 +28,23 @@ def get_component_repository_version(service_name = None, component_name = None)
 
   :service_name: the name of the service
   :component_name: the name of the component
+  :default_value: the value to return if either the service or the component are not found
   """
   config = Script.get_config()
 
   versions = _get_component_repositories(config)
   if versions is None:
-    return None
+    return default_value
 
   if service_name is None:
     service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
 
   if service_name is None or service_name not in versions:
-    return None
+    return default_value
 
   component_versions = versions[service_name]
   if len(component_versions) == 0:
-    return None
+    return default_value
 
   if component_name is None:
     component_name = config["role"] if config is not None and "role" in config else None

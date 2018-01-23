@@ -45,6 +45,10 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
+import org.apache.ambari.server.controller.internal.RootServiceComponentConfigurationResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.DateUtils;
@@ -71,10 +75,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
    */
   private Class<T> type;
 
-  protected static Logger LOG = LoggerFactory.getLogger(StackAdvisorCommand.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StackAdvisorCommand.class);
 
   private static final String GET_HOSTS_INFO_URI = "/api/v1/hosts"
       + "?fields=Hosts/*&Hosts/host_name.in(%s)";
+
   private static final String GET_SERVICES_INFO_URI = "/api/v1/stacks/%s/versions/%s/"
       + "?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version"
       + ",services/StackServices/service_name,services/StackServices/service_version"
@@ -84,6 +89,14 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       + ",services/configurations/dependencies/StackConfigurationDependency/dependency_name"
       + ",services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type"
       + "&services/StackServices/service_name.in(%s)";
+
+  private static final String GET_AMBARI_LDAP_CONFIG_URI = String.format("/api/v1/services/%s/components/%s/configurations?%s=%s&fields=%s",
+      RootService.AMBARI.name(),
+      RootComponent.AMBARI_SERVER.name(),
+      RootServiceComponentConfigurationResourceProvider.CONFIGURATION_CATEGORY_PROPERTY_ID,
+      AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(),
+      RootServiceComponentConfigurationResourceProvider.CONFIGURATION_PROPERTIES_PROPERTY_ID);
+
   private static final String SERVICES_PROPERTY = "services";
   private static final String SERVICES_COMPONENTS_PROPERTY = "components";
   private static final String CONFIG_GROUPS_PROPERTY = "config-groups";
@@ -94,6 +107,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
   private static final String USER_CONTEXT_PROPERTY = "user-context";
+  private static final String GPL_LICENSE_ACCEPTED = "gpl-license-accepted";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
 
   private File recommendationsDir;
@@ -160,6 +174,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       populateConfigurations(root, request);
       populateConfigGroups(root, request);
       populateAmbariServerInfo(root);
+      populateLdapConfiguration(root);
       data.servicesJSON = mapper.writeValueAsString(root);
     } catch (Exception e) {
       // should not happen
@@ -169,6 +184,56 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
 
     return data;
+  }
+
+  /**
+   * Retrieves the LDAP configuration if exists and adds it to services.json
+   *
+   * @param root The JSON document that will become service.json when passed to the stack advisor engine
+   * @throws StackAdvisorException
+   * @throws IOException
+   */
+   void populateLdapConfiguration(ObjectNode root) throws StackAdvisorException, IOException {
+    Response response = handleRequest(null, null, new LocalUriInfo(GET_AMBARI_LDAP_CONFIG_URI), Request.Type.GET,
+        createConfigResource());
+
+    if (response.getStatus() != Status.OK.getStatusCode()) {
+      String message = String.format(
+          "Error occurred during retrieving ldap configuration, status=%s, response=%s",
+          response.getStatus(), (String) response.getEntity());
+      LOG.warn(message);
+      throw new StackAdvisorException(message);
+    }
+
+    String ldapConfigJSON = (String) response.getEntity();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("LDAP configuration: {}", ldapConfigJSON);
+    }
+
+    JsonNode ldapConfigRoot = mapper.readTree(ldapConfigJSON);
+    ArrayNode ldapConfigs = ((ArrayNode) ldapConfigRoot.get("items"));
+    int numConfigs = ldapConfigs.size();
+
+    if (numConfigs == 1) {
+      JsonNode ldapConfigItem = ldapConfigs.get(0);
+      if (ldapConfigItem == null) {
+        throw new StackAdvisorException("Unexpected JSON document encountered: missing data");
+      }
+
+      JsonNode ldapConfiguration = ldapConfigItem.get("Configuration");
+      if (ldapConfiguration == null) {
+        throw new StackAdvisorException("Unexpected JSON document encountered: missing the Configuration object");
+      }
+
+      JsonNode ldapConfigurationProperties = ldapConfiguration.get("properties");
+      if (ldapConfigurationProperties == null) {
+        throw new StackAdvisorException("Unexpected JSON document encountered: missing the Configuration/properties object");
+      }
+
+      root.put(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), ldapConfigurationProperties);
+    } else if (numConfigs > 1) {
+      throw new StackAdvisorException(String.format("Multiple (%s) LDAP configs are found in the DB.", numConfigs));
+    }
   }
 
   protected void populateAmbariServerInfo(ObjectNode root) throws StackAdvisorException {
@@ -205,6 +270,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     JsonNode userContext = mapper.valueToTree(request.getUserContext());
     root.put(USER_CONTEXT_PROPERTY, userContext);
+    root.put(GPL_LICENSE_ACCEPTED, request.getGplLicenseAccepted());
   }
 
   private void populateConfigGroups(ObjectNode root,
@@ -436,6 +502,15 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     Map<Resource.Type, String> mapIds = new HashMap<>();
     return createResource(Resource.Type.Host, mapIds);
   }
+
+  private ResourceInstance createConfigResource() {
+    Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.RootService, RootService.AMBARI.name());
+    mapIds.put(Resource.Type.RootServiceComponent, RootComponent.AMBARI_SERVER.name());
+
+    return createResource(Resource.Type.RootServiceComponentConfiguration, mapIds);
+  }
+
 
   private ResourceInstance createStackVersionResource(String stackName, String stackVersion) {
     Map<Resource.Type, String> mapIds = new HashMap<>();

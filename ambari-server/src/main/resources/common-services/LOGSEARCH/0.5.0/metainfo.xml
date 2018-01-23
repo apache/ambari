@@ -66,12 +66,13 @@
           <configuration-dependencies>
             <config-type>infra-solr-env</config-type>
             <config-type>logsearch-properties</config-type>
+            <config-type>logsearch-common-properties</config-type>
             <config-type>logsearch-env</config-type>
             <config-type>logsearch-common-env</config-type>
             <config-type>logsearch-log4j</config-type>
             <config-type>logsearch-admin-json</config-type>
-            <config-type>logsearch-service_logs-solrconfig.xml</config-type>
-            <config-type>logsearch-audit_logs-solrconfig.xml</config-type>
+            <config-type>logsearch-service_logs-solrconfig</config-type>
+            <config-type>logsearch-audit_logs-solrconfig</config-type>
           </configuration-dependencies>
         </component>
 
@@ -97,6 +98,7 @@
             <config-type>infra-solr-env</config-type>
             <config-type>logsearch-common-env</config-type>
             <config-type>logfeeder-properties</config-type>
+            <config-type>logsearch-common-properties</config-type>
             <config-type>logfeeder-env</config-type>
             <config-type>logfeeder-grok</config-type>
             <config-type>logfeeder-log4j</config-type>

@@ -1,8 +1,8 @@
 {
   "name": "hive",
   "dependencies": {
-    "jquery": "1.11.3",
-    "ember": "1.10.0",
+    "jquery": "2.x",
+    "ember": "1.11.4",
     "ember-data": "1.0.0-beta.16.1",
     "ember-resolver": "~0.1.12",
     "loader.js": "stefanpenner/loader.js#3.2.0",

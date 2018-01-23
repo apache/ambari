@@ -152,10 +152,18 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
     switch (type.getInternalType()) {
       case Cluster:
         return new ClusterResourceProvider(managementController);
+      case RootClusterSetting:
+        return new RootClusterSettingsResourceProvider(managementController);
+      case ClusterSetting:
+        return resourceProviderFactory.getClusterSettingResourceProvider(managementController);
       case Service:
         return resourceProviderFactory.getServiceResourceProvider(managementController);
+      case ServiceDependency:
+        return resourceProviderFactory.getServiceDependencyResourceProvider(managementController);
       case ServiceGroup:
         return resourceProviderFactory.getServiceGroupResourceProvider(managementController);
+      case ServiceGroupDependency:
+        return resourceProviderFactory.getServiceGroupDependencyResourceProvider(managementController);
       case Component:
         return resourceProviderFactory.getComponentResourceProvider(managementController);
       case Host:
@@ -196,8 +204,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RegistryMpackVersionResourceProvider(managementController);
       case Mpack:
         return new MpackResourceProvider(managementController);
-      case RootClusterSetting:
-        return new RootClusterSettingsResourceProvider(managementController);
       case StackVersion:
         return new StackVersionResourceProvider(managementController);
       case ClusterStackVersion:
@@ -210,6 +216,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new StackServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackConfiguration:
         return new StackConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootStackSetting:
+        return new RootStackSettingsResourceProvider(managementController);
       case StackConfigurationDependency:
         return new StackConfigurationDependencyResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackLevelConfiguration:
@@ -224,6 +232,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new RootServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
       case RootServiceComponent:
         return new RootServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootServiceComponentConfiguration:
+        return resourceProviderFactory.getRootServiceHostComponentConfigurationResourceProvider();
       case RootServiceHostComponent:
         return new RootServiceHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case ConfigGroup:
@@ -233,7 +243,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case HostComponentProcess:
         return new HostComponentProcessResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Blueprint:
-        return new BlueprintV2ResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new BlueprintResourceProvider(propertyIds, keyPropertyIds, managementController);
       case KerberosDescriptor:
         return resourceProviderFactory.getKerberosDescriptorResourceProvider(managementController, propertyIds, keyPropertyIds);
       case Recommendation:

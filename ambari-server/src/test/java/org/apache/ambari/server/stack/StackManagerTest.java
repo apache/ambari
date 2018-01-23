@@ -55,9 +55,9 @@ import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.MetricDefinition;
@@ -258,16 +258,28 @@ public class StackManagerTest {
     assertEquals("CLIENT", client.getCategory());
     assertEquals("configuration", pigService.getConfigDir());
     assertEquals("2.0", pigService.getSchemaVersion());
-    Map<String, ServiceOsSpecific> osInfoMap = pigService.getOsSpecifics();
-    assertEquals(1, osInfoMap.size());
-    ServiceOsSpecific osSpecific = osInfoMap.get("centos6");
+
+    Map<String, OsSpecific> osInfoMapService = pigService.getOsSpecifics();
+    assertEquals(1, osInfoMapService.size());
+    OsSpecific osSpecific = osInfoMapService.get("centos6");
     assertNotNull(osSpecific);
     assertEquals("centos6", osSpecific.getOsFamily());
     assertNull(osSpecific.getRepo());
-    List<ServiceOsSpecific.Package> packages = osSpecific.getPackages();
+    List<OsSpecific.Package> packages = osSpecific.getPackages();
     assertEquals(1, packages.size());
-    ServiceOsSpecific.Package pkg = packages.get(0);
+    OsSpecific.Package pkg = packages.get(0);
     assertEquals("pig", pkg.getName());
+
+    Map<String, OsSpecific> osInfoMapStack = stack.getOsSpecifics();
+    assertEquals(1, osInfoMapStack.size());
+    osSpecific = osInfoMapStack.get("suse11");
+    assertNotNull(osSpecific);
+    assertEquals("suse11", osSpecific.getOsFamily());
+    assertNull(osSpecific.getRepo());
+    packages = osSpecific.getPackages();
+    assertEquals(1, packages.size());
+    pkg = packages.get(0);
+    assertEquals("stack_pig", pkg.getName());
 
     assertNull(pigService.getParent());
   }
@@ -382,7 +394,6 @@ public class StackManagerTest {
     assertEquals(baseSqoopService.getMetrics(), sqoopService.getMetrics());
     assertNull(baseSqoopService.getMetricsFile());
     assertNull(sqoopService.getMetricsFile());
-    assertEquals(baseSqoopService.getOsSpecifics(), sqoopService.getOsSpecifics());
     assertEquals(baseSqoopService.getRequiredServices(), sqoopService.getRequiredServices());
     assertEquals(baseSqoopService.getSchemaVersion(), sqoopService.getSchemaVersion());
 
@@ -423,7 +434,7 @@ public class StackManagerTest {
     assertNotNull(baseStormService.getMetricsFile());
     assertNotNull(stormService.getMetricsFile());
     assertFalse(baseStormService.getMetricsFile().equals(stormService.getMetricsFile()));
-    assertEquals(baseStormService.getOsSpecifics(), stormService.getOsSpecifics());
+    assertEquals(baseStack.getOsSpecifics(), stack.getOsSpecifics());
     assertEquals(baseStormService.getRequiredServices(), stormService.getRequiredServices());
     assertEquals(baseStormService.getSchemaVersion(), stormService.getSchemaVersion());
   }
@@ -461,7 +472,6 @@ public class StackManagerTest {
     assertEquals(baseSqoopService.getMetrics(), service.getMetrics());
     assertNull(baseSqoopService.getMetricsFile());
     assertNull(service.getMetricsFile());
-    assertEquals(baseSqoopService.getOsSpecifics(), service.getOsSpecifics());
     assertEquals(baseSqoopService.getRequiredServices(), service.getRequiredServices());
     assertEquals(baseSqoopService.getSchemaVersion(), service.getSchemaVersion());
   }

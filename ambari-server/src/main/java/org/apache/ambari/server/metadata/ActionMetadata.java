@@ -94,12 +94,12 @@ public class ActionMetadata {
     }
   }
 
-  public String getClient(String serviceName) {
-    return serviceClients.get(serviceName.toLowerCase());
+  public String getClient(String serviceType) {
+    return serviceClients.get(serviceType.toLowerCase());
   }
 
-  public String getServiceCheckAction(String serviceName) {
-    return serviceCheckActions.get(serviceName.toLowerCase());
+  public String getServiceCheckAction(String serviceType) {
+    return serviceCheckActions.get(serviceType.toLowerCase());
   }
 
   /**

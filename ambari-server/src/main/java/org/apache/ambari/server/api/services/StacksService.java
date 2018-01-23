@@ -46,6 +46,7 @@ import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.controller.ThemeResponse;
+import org.apache.ambari.server.controller.internal.RootClusterSettingsResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.http.HttpStatus;
 
@@ -1050,6 +1051,94 @@ public class StacksService extends BaseService {
     return createResource(Resource.Type.Stack,
         Collections.singletonMap(Resource.Type.Stack, stackName));
 
+  }
+
+  /**
+   * Handles: GET /stack_settings
+   * Get all stack-settings for a given stack.
+   *
+   * @param headers http headers
+   * @param ui      uri info
+   * @return        stack settings collection resource representation
+   */
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/settings")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get all stack-settings for a given stack",
+          nickname = "StacksService#getClusterSettings",
+          notes = "Returns all stack-settings for a given stack.",
+          response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class,
+          responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = "Filter returned attributes",
+                  defaultValue = "StackSettingsInfo/property_name,",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_SORT, value = "Sort stack settings (asc | desc)",
+                  defaultValue = "StackSettingsInfo/property_name.asc,",
+                  dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+          @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
+  public Response getStackSettings(String body,
+                                     @Context HttpHeaders headers,
+                                     @Context UriInfo ui,
+                                     @ApiParam @PathParam("stackName") String stackName,
+                                     @ApiParam @PathParam("stackVersion") String stackVersion) {
+    return handleRequest(headers, body, ui, Request.Type.GET, createStackSettingsResource(stackName, stackVersion, null));
+  }
+
+  /**
+   * Handles GET /stack_settings/{settingName}
+   * Get specific read-only default stack setting.
+   *
+   * @param headers http headers
+   * @param ui      uri info
+   * @return stack settings collection resource representation
+   */
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/settings/{settingName}")
+  @Produces("text/plain")
+  @ApiOperation(value = "Returns information about specific read only 'stack setting'",
+          response = ReadOnlyConfigurationResponse.ReadOnlyConfigurationResponseSwagger.class)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING,
+                  paramType = PARAM_TYPE_QUERY, defaultValue = RootClusterSettingsResourceProvider.ALL_PROPERTIES),
+  })
+  @ApiResponses({
+          @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+          @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+          @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+          @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+          @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response getStackSetting(String body,
+                                    @Context HttpHeaders headers,
+                                    @Context UriInfo ui,
+                                    @ApiParam @PathParam("stackName") String stackName,
+                                    @ApiParam @PathParam("stackVersion") String stackVersion,
+                                    @PathParam("settingName") String settingName) {
+    return handleRequest(headers, body, ui, Request.Type.GET, createStackSettingsResource(stackName, stackVersion, settingName));
+  }
+
+  /**
+   * Create a 'stack setting' resource instance.
+   *
+   * @return 'stack setting' resource instance
+   */
+  ResourceInstance createStackSettingsResource(String stackName,
+                                                 String stackVersion, String settingName) {
+    Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.Stack, stackName);
+    mapIds.put(Resource.Type.StackVersion, stackVersion);
+    mapIds.put(Resource.Type.RootStackSetting, settingName);
+
+    return createResource(Resource.Type.RootStackSetting, mapIds);
   }
 }
 

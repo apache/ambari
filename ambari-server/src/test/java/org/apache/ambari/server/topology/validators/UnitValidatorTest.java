@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.StackLevelConfigurationResponse;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.ValueAttributesInfo;
@@ -98,7 +98,7 @@ public class UnitValidatorTest extends EasyMockSupport {
   private void stackUnitIs(String name, String unit) {
     ValueAttributesInfo propertyValueAttributes = new ValueAttributesInfo();
     propertyValueAttributes.setUnit(unit);
-    stackConfigWithMetadata.put(name, new Stack.ConfigProperty(new StackConfigurationResponse(
+    stackConfigWithMetadata.put(name, new Stack.ConfigProperty(new StackLevelConfigurationResponse(
       name,
       "any",
       "any",

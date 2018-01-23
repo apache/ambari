@@ -56,7 +56,9 @@ public class InputFile extends AbstractInputFile {
 
   private File[] getActualFiles(String searchPath) {
     File searchFile = new File(searchPath);
-    if (searchFile.isFile()) {
+    if (!searchFile.getParentFile().exists()) {
+      return new File[0];
+    } else if (searchFile.isFile()) {
       return new File[]{searchFile};
     } else {
       FileFilter fileFilter = new WildcardFileFilter(searchFile.getName());

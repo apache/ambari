@@ -40,6 +40,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           clusterController.loadAmbariProperties().complete(function () {
             App.router.get('mainViewsController').loadAmbariViews();
             clusterController.loadClusterName(false).done(function () {
+              $('#main').removeClass('install-wizard-content');
               if (App.get('testMode')) {
                 router.get('mainController').initialize();
               } else {
@@ -224,7 +225,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       connectOutlets: function (router, context) {
         App.loadTimer.start('Hosts Page');
         router.get('mainController').connectOutlet('mainHost');
-        router.get('mainHostController').connectOutlet('mainHostComboSearchBox');
       }
     }),
 

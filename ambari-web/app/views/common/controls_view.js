@@ -543,8 +543,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
         if ((App.get('isHadoopWindowsStack') && this.get('inMSSQLWithIA')) || this.get('serviceConfig.name') === 'DB_FLAVOR') {
           this.onOptionsChange();
         }
-        this.handleDBConnectionProperty();
       }
+      this.handleDBConnectionProperty();
     }
   },
 
@@ -748,6 +748,11 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       // check for all db types when installing Ranger - not only for existing ones
       checkDatabase = true;
     }
+    // Hive specific
+    if (this.get('serviceConfig.serviceName') === 'HIVE') {
+      // check for all db types when installing Hive - not only for existing ones
+      checkDatabase = true;
+    }
     if (propertyAppendTo1) {
       propertyAppendTo1.set('additionalView', null);
     }
@@ -757,7 +762,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     var shouldAdditionalViewsBeSet = currentDB && checkDatabase && handledProperties.contains(this.get('serviceConfig.name')),
       driver = this.getDefaultPropertyValue('sql_jar_connector') ? this.getDefaultPropertyValue('sql_jar_connector').split("/").pop() : 'driver.jar',
       dbType = this.getDefaultPropertyValue('db_type'),
-      additionalView1 = shouldAdditionalViewsBeSet ? App.CheckDBConnectionView.extend({databaseName: dbType}) : null,
+      additionalView1 = shouldAdditionalViewsBeSet && !this.get('isNewDb') ? App.CheckDBConnectionView.extend({databaseName: dbType}) : null,
       additionalView2 = shouldAdditionalViewsBeSet ? Ember.View.extend({
         template: Ember.Handlebars.compile('<div class="alert alert-warning">{{{view.message}}}</div>'),
         message: function() {

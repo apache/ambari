@@ -2521,7 +2521,9 @@ class TestHDP206StackAdvisor(TestCase):
                   'hadoop.proxyuser.hdfs-user.hosts': '*',
                   'hadoop.proxyuser.hdfs-user.groups': '*',
                   'hadoop.proxyuser.yarn-user.hosts': 'host1,host2',
-                  'hadoop.proxyuser.yarn-user.groups': '*'}
+                  'hadoop.proxyuser.yarn-user.groups': '*',
+                  'io.compression.codec.lzo.class': 'com.hadoop.compression.lzo.LzoCodec',
+                  'io.compression.codecs': 'AnotherCodec, com.hadoop.compression.lzo.LzoCodec'}
     services = {
       'services':  [
         { 'StackServices': {'service_name': 'HDFS'}},
@@ -2537,7 +2539,8 @@ class TestHDP206StackAdvisor(TestCase):
         }
       ],
       'ambari-server-properties': {'ambari-server.user': 'ambari-user'},
-      'configurations': configurations
+      'configurations': configurations,
+      "gpl-license-accepted": True
     }
     hosts = {
       'items' : [
@@ -2551,7 +2554,28 @@ class TestHDP206StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(res, res_expected)
 
-    # 2) fail: test filter function: two RESOURCE_MANAGERs, hadoop.proxyuser.yarn-user.hosts is expected to be set
+    # 2) fail: gpl is not allowed
+    services["gpl-license-accepted"] = False
+    res_expected = [{'config-type': 'core-site',
+                     'message': 'Your Ambari Server has not been configured to download LZO and install it. '
+                                'LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. '
+                                'Please refer to the documentation to configure Ambari before proceeding.',
+                     'type': 'configuration',
+                     'config-name': 'io.compression.codecs',
+                     'level': 'NOT_APPLICABLE'},
+                    {'config-type': 'core-site',
+                     'message': 'Your Ambari Server has not been configured to download LZO and install it. '
+                                'LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. '
+                                'Please refer to the documentation to configure Ambari before proceeding.',
+                     'type': 'configuration',
+                     'config-name': 'io.compression.codec.lzo.class',
+                     'level': 'NOT_APPLICABLE'}]
+
+    res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, hosts)
+    self.assertEquals(res, res_expected)
+    services["gpl-license-accepted"] = True
+
+    # 3) fail: test filter function: two RESOURCE_MANAGERs, hadoop.proxyuser.yarn-user.hosts is expected to be set
     del properties['hadoop.proxyuser.yarn-user.hosts']
     res_expected = [{'config-name': 'hadoop.proxyuser.yarn-user.hosts',
                      'config-type': 'core-site',
@@ -2561,13 +2585,13 @@ class TestHDP206StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(res, res_expected)
 
-    # 3) ok: test filter function: only one RESOURCE_MANAGER
+    # 4) ok: test filter function: only one RESOURCE_MANAGER
     services['services'][1]['components'][0]['StackServiceComponents']['hostnames'] = ["host1"]
     res_expected = []
     res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(res, res_expected)
 
-    # 4) fail: some proxyusers are empty or absent:
+    # 5) fail: some proxyusers are empty or absent:
     del properties['hadoop.proxyuser.ambari-user.hosts']
     properties['hadoop.proxyuser.hdfs-user.groups'] = ''
     res_expected = [{'config-name': 'hadoop.proxyuser.hdfs-user.groups',
@@ -2626,6 +2650,31 @@ class TestHDP206StackAdvisor(TestCase):
     }
     res = self.stackAdvisor.getHadoopProxyUsers(services, hosts, configurations)
     self.assertEquals(res, res_expected)
+
+  # def test_validateHDFSConfigurationsCoreSite(self):
+  #
+  #   configurations = {}
+  #   services = {"gpl-license-accepted": True, "services": [{"StackServices": {"service_name": "HDFS"}}], 'ambari-server-properties': {'ambari-server.user': 'ambari-user'}}
+  #
+  #   # 1) ok: gpl is allowed
+  #   properties = {'io.compression.codec.lzo.class': 'com.hadoop.compression.lzo.LzoCodec'}
+  #   res_expected = []
+  #
+  #   res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, '')
+  #   self.assertEquals(res, res_expected)
+  #
+  #   # 2) fail: gpl is not allowed
+  #   services["gpl-license-accepted"] = False
+  #   res_expected = [{'config-type': 'core-site',
+  #                    'message': 'Your Ambari Server has not been configured to download LZO and install it. '
+  #                               'LZO is GPL software and requires you to accept a license prior to use. '
+  #                               'Please refer to this documentation to configure Ambari before proceeding.',
+  #                    'type': 'configuration',
+  #                    'config-name': 'io.compression.codec.lzo.class',
+  #                    'level': 'ERROR'}]
+  #
+  #   res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, {}, configurations, services, '')
+  #   self.assertEquals(res, res_expected)
 
   def test_validateOneDataDirPerPartition(self):
     recommendedDefaults = {

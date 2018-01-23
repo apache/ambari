@@ -55,6 +55,8 @@ public class ServiceCheckValidityCheckTest {
   private static final String CLUSTER_NAME = "cluster1";
   private static final long CLUSTER_ID = 1L;
   private static final String SERVICE_NAME = "HDFS";
+  private static final long SERVICE_ID = 2L;
+  private static final long SERVICE_GROUP_ID = 3L;
   private static final long CONFIG_CREATE_TIMESTAMP = 1461518722202L;
   private static final long SERVICE_CHECK_START_TIME = CONFIG_CREATE_TIMESTAMP - 2000L;
   private static final String SERVICE_COMPONENT_NAME = "service component";
@@ -132,13 +134,14 @@ public class ServiceCheckValidityCheckTest {
     when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
 
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setServiceId(SERVICE_ID);
+    serviceConfigEntity.setServiceGroupId(SERVICE_GROUP_ID);
     serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
 
     LastServiceCheckDTO lastServiceCheckDTO1 = new LastServiceCheckDTO(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK.name(), SERVICE_CHECK_START_TIME);
     LastServiceCheckDTO lastServiceCheckDTO2 = new LastServiceCheckDTO(Role.HDFS_SERVICE_CHECK.name(), SERVICE_CHECK_START_TIME);
 
-    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_ID))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
@@ -159,12 +162,13 @@ public class ServiceCheckValidityCheckTest {
     when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
 
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setServiceId(SERVICE_ID);
+    serviceConfigEntity.setServiceGroupId(SERVICE_GROUP_ID);
     serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
 
     LastServiceCheckDTO lastServiceCheckDTO = new LastServiceCheckDTO(Role.HDFS_SERVICE_CHECK.name(), SERVICE_CHECK_START_TIME);
 
-    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_ID))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(singletonList(lastServiceCheckDTO));
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
@@ -182,10 +186,11 @@ public class ServiceCheckValidityCheckTest {
     when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
 
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setServiceId(SERVICE_ID);
+    serviceConfigEntity.setServiceGroupId(SERVICE_GROUP_ID);
     serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
 
-    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_ID))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(Collections.<LastServiceCheckDTO>emptyList());
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
@@ -202,13 +207,14 @@ public class ServiceCheckValidityCheckTest {
     when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
 
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setServiceId(SERVICE_ID);
+    serviceConfigEntity.setServiceGroupId(SERVICE_GROUP_ID);
     serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
 
     LastServiceCheckDTO lastServiceCheckDTO1 = new LastServiceCheckDTO(Role.HDFS_SERVICE_CHECK.name(), SERVICE_CHECK_START_TIME);
     LastServiceCheckDTO lastServiceCheckDTO2 = new LastServiceCheckDTO(Role.HDFS_SERVICE_CHECK.name(), CONFIG_CREATE_TIMESTAMP - 1L);
 
-    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_ID))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
@@ -235,7 +241,8 @@ public class ServiceCheckValidityCheckTest {
     when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
 
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setServiceId(SERVICE_ID);
+    serviceConfigEntity.setServiceGroupId(SERVICE_GROUP_ID);
     serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
 
     String hdfsRole = Role.HDFS_SERVICE_CHECK.name();
@@ -244,7 +251,7 @@ public class ServiceCheckValidityCheckTest {
     LastServiceCheckDTO lastServiceCheckDTO1 = new LastServiceCheckDTO(hdfsRole, SERVICE_CHECK_START_TIME);
     LastServiceCheckDTO lastServiceCheckDTO2 = new LastServiceCheckDTO(hdfs2Role, CONFIG_CREATE_TIMESTAMP - 1L);
 
-    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_ID))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.getLatestServiceChecksByRole(any(Long.class))).thenReturn(asList(lastServiceCheckDTO1, lastServiceCheckDTO2));
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);

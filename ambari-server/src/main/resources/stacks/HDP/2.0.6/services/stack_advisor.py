@@ -351,6 +351,40 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
 
+  def getLZOSupportValidationItems(self, properties, services):
+    '''
+    Checks GPL license is accepted when GPL software is used.
+    :param properties: dict of properties' name and value pairs
+    :param services: list of services
+    :return: NOT_APPLICABLE messages in case GPL license is not accepted
+    '''
+    services_list = self.get_services_list(services)
+
+    validations = []
+    if "HDFS" in services_list:
+      lzo_allowed = services["gpl-license-accepted"]
+
+      self.validatePropertyToLZOCodec("io.compression.codecs", properties, lzo_allowed, validations)
+      self.validatePropertyToLZOCodec("io.compression.codec.lzo.class", properties, lzo_allowed, validations)
+    return validations
+
+  def validatePropertyToLZOCodec(self, property_name, properties, lzo_allowed, validations):
+    '''
+    Checks specified property contains LZO codec class and requires GPL license acceptance.
+    :param property_name: property name
+    :param properties: dict of properties' name and value pairs
+    :param lzo_allowed: is gpl license accepted
+    :param validations: list with validation failures
+    '''
+    lzo_codec_class = "com.hadoop.compression.lzo.LzoCodec"
+    if property_name in properties:
+      property_value = properties.get(property_name)
+      if not lzo_allowed and lzo_codec_class in property_value:
+        validations.append({"config-name": property_name, "item": self.getNotApplicableItem(
+          "Your Ambari Server has not been configured to download LZO and install it. "
+          "LZO is GPL software and requires you to explicitly enable Ambari to install and download LZO. "
+          "Please refer to the documentation to configure Ambari before proceeding.")})
+
   def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):
     # recommendations for HBase env config
 
@@ -726,6 +760,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     validationItems = []
     validationItems.extend(self.getHadoopProxyUsersValidationItems(properties, services, hosts, configurations))
     validationItems.extend(self.getAmbariProxyUsersForHDFSValidationItems(properties, services))
+    validationItems.extend(self.getLZOSupportValidationItems(properties, services))
     return self.toConfigurationValidationProblems(validationItems, "core-site")
 
   def validatorOneDataDirPerPartition(self, properties, propertyName, services, hosts, clusterEnv):

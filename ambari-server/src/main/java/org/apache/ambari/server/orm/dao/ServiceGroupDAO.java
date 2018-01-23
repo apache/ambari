@@ -25,6 +25,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ServiceGroupDependencyEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.ServiceGroupEntityPK;
 
@@ -35,6 +36,7 @@ import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ServiceGroupDAO {
+  public static final String SERVICE_GROUP_BY_CLUSTER_ID_AND_SERVICE_GROUP_NAME = "serviceGroupByClusterIdAndServiceGroupName";
   @Inject
   Provider<EntityManager> entityManagerProvider;
   @Inject
@@ -60,6 +62,37 @@ public class ServiceGroupDAO {
   }
 
   @RequiresSession
+  public ServiceGroupEntity find(Long clusterId, String serviceGroupName) {
+    TypedQuery<ServiceGroupEntity> query = entityManagerProvider.get()
+      .createNamedQuery(SERVICE_GROUP_BY_CLUSTER_ID_AND_SERVICE_GROUP_NAME, ServiceGroupEntity.class);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceGroupName", serviceGroupName);
+
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  @RequiresSession
+  public ServiceGroupDependencyEntity findDependencyByClustersAndServiceGroupsIds(Long serviceGroupClusterId, Long serviceGroupId,
+                                                               Long dependentServiceGroupClusterId, Long dependenctServiceGroupId) {
+    TypedQuery<ServiceGroupDependencyEntity> query = entityManagerProvider.get()
+            .createNamedQuery("serviceGroupDependencyByServiceGroupsAndClustersIds", ServiceGroupDependencyEntity.class);
+    query.setParameter("serviceGroupClusterId", serviceGroupClusterId);
+    query.setParameter("serviceGroupId", serviceGroupId);
+    query.setParameter("dependentServiceGroupClusterId", dependentServiceGroupClusterId);
+    query.setParameter("dependentServiceGroupId", dependenctServiceGroupId);
+
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  @RequiresSession
   public List<ServiceGroupEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), ServiceGroupEntity.class);
   }
@@ -75,13 +108,28 @@ public class ServiceGroupDAO {
   }
 
   @Transactional
+  public void createServiceGroupDependency(ServiceGroupDependencyEntity serviceGroupDependencyEntity) {
+    entityManagerProvider.get().persist(serviceGroupDependencyEntity);
+  }
+
+  @Transactional
   public ServiceGroupEntity merge(ServiceGroupEntity clusterServiceGroupEntity) {
     return entityManagerProvider.get().merge(clusterServiceGroupEntity);
   }
 
   @Transactional
+  public ServiceGroupDependencyEntity mergeServiceGroupDependency(ServiceGroupDependencyEntity serviceGroupDependencyEntity) {
+    return entityManagerProvider.get().merge(serviceGroupDependencyEntity);
+  }
+
+  @Transactional
   public void remove(ServiceGroupEntity clusterServiceGroupEntity) {
     entityManagerProvider.get().remove(merge(clusterServiceGroupEntity));
+  }
+
+  @Transactional
+  public void removeServiceGroupDependency(ServiceGroupDependencyEntity serviceGroupDependencyEntity) {
+    entityManagerProvider.get().remove(mergeServiceGroupDependency(serviceGroupDependencyEntity));
   }
 
   @Transactional

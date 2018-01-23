@@ -6,7 +6,7 @@
         {
           "name": "superset",
           "principal": {
-            "value": "${superset-env/superset_user}@${realm}",
+            "value": "${superset-env/superset_user}${principal_suffix}@${realm}",
             "type": "user",
             "configuration": "superset/KERBEROS_PRINCIPAL",
             "local_username": "${superset-env/superset_user}"
@@ -31,13 +31,7 @@
       ],
       "components": [
         {
-          "name": "SUPERSET",
-          "identities": [
-            {
-              "name": "superset_superset_superset",
-              "reference": "/superset"
-            }
-          ]
+          "name": "SUPERSET"
         }
       ],
       "configurations": [

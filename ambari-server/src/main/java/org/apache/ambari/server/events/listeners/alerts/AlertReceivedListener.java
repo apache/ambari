@@ -26,8 +26,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.RootComponent;
+import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -434,9 +434,9 @@ public class AlertReceivedListener {
     String hostName = alert.getHostName();
 
     // AMBARI/AMBARI_SERVER is always a valid service/component combination
-    String ambariServiceName = Services.AMBARI.name();
-    String ambariServerComponentName = Components.AMBARI_SERVER.name();
-    String ambariAgentComponentName = Components.AMBARI_AGENT.name();
+    String ambariServiceName = RootService.AMBARI.name();
+    String ambariServerComponentName = RootComponent.AMBARI_SERVER.name();
+    String ambariAgentComponentName = RootComponent.AMBARI_AGENT.name();
     if (ambariServiceName.equals(serviceName) && ambariServerComponentName.equals(componentName)) {
       return true;
     }

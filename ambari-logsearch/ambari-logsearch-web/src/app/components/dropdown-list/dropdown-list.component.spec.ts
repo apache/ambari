@@ -17,6 +17,7 @@
  */
 
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {FormsModule} from '@angular/forms';
 import {StoreModule} from '@ngrx/store';
 import {TranslationModules} from '@app/test-config.spec';
 import {HostsService, hosts} from '@app/services/storage/hosts.service';
@@ -30,11 +31,12 @@ import {AppStateService, appState} from '@app/services/storage/app-state.service
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {FilteringService} from '@app/services/filtering.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
+import {AuthService} from '@app/services/auth.service';
 
 import {DropdownListComponent} from './dropdown-list.component';
 
@@ -66,8 +68,10 @@ describe('DropdownListComponent', () => {
           appState,
           clusters,
           components,
-          serviceLogsTruncated
-        })
+          serviceLogsTruncated,
+          tabs
+        }),
+        FormsModule
       ],
       providers: [
         ComponentGeneratorService,
@@ -76,7 +80,6 @@ describe('DropdownListComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
-        FilteringService,
         ComponentActionsService,
         HostsService,
         AuditLogsService,
@@ -88,7 +91,9 @@ describe('DropdownListComponent', () => {
         AppStateService,
         ClustersService,
         ComponentsService,
-        ServiceLogsTruncatedService
+        ServiceLogsTruncatedService,
+        TabsService,
+        AuthService
       ]
     })
     .compileComponents();

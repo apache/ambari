@@ -29,7 +29,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.After;
@@ -66,13 +65,13 @@ public class RootServiceResponseFactoryTest {
     // Request a null service name
     RootServiceRequest request = new RootServiceRequest(null);
     Set<RootServiceResponse> rootServices = responseFactory.getRootServices(request);
-    assertEquals(RootServiceResponseFactory.Services.values().length,
+    assertEquals(RootService.values().length,
         rootServices.size());
 
     // null request
     request = null;
     rootServices = responseFactory.getRootServices(request);
-    assertEquals(RootServiceResponseFactory.Services.values().length,
+    assertEquals(RootService.values().length,
         rootServices.size());
 
     // Request nonexistent service
@@ -85,12 +84,12 @@ public class RootServiceResponseFactoryTest {
 
     // Request existent service
     request = new RootServiceRequest(
-        RootServiceResponseFactory.Services.AMBARI.name());
+        RootService.AMBARI.name());
 
     rootServices = responseFactory.getRootServices(request);
     assertEquals(1, rootServices.size());
     assertTrue(rootServices.contains(new RootServiceResponse(
-        RootServiceResponseFactory.Services.AMBARI.name())));
+        RootService.AMBARI.name())));
   }
 
   @Test
@@ -106,7 +105,7 @@ public class RootServiceResponseFactoryTest {
       assertTrue(e instanceof ObjectNotFoundException);
     }
 
-    RootServiceResponseFactory.Components ambariServerComponent = RootServiceResponseFactory.Components.AMBARI_SERVER;
+    RootComponent ambariServerComponent = RootComponent.AMBARI_SERVER;
 
     // Request null service name, not-null component name
     request = new RootServiceComponentRequest(null, ambariServerComponent.name());
@@ -118,18 +117,18 @@ public class RootServiceResponseFactoryTest {
     }
 
     // Request existent service name, null component name
-    String serviceName = RootServiceResponseFactory.Services.AMBARI.name();
+    String serviceName = RootService.AMBARI.name();
     request = new RootServiceComponentRequest(serviceName, null);
 
     rootServiceComponents = responseFactory.getRootServiceComponents(request);
     assertEquals(
-        RootServiceResponseFactory.Services.AMBARI.getComponents().length,
+        RootService.AMBARI.getComponents().length,
         rootServiceComponents.size());
 
     String ambariVersion = ambariMetaInfo.getServerVersion();
 
-    for (int i = 0; i < RootServiceResponseFactory.Services.AMBARI.getComponents().length; i++) {
-      Components component = RootServiceResponseFactory.Services.AMBARI.getComponents()[i];
+    for (int i = 0; i < RootService.AMBARI.getComponents().length; i++) {
+      RootComponent component = RootService.AMBARI.getComponents()[i];
 
       if (component.name().equals(ambariServerComponent.name())) {
         for (RootServiceComponentResponse response : rootServiceComponents) {
@@ -148,14 +147,14 @@ public class RootServiceResponseFactoryTest {
 
     // Request existent service name, existent component name
     request = new RootServiceComponentRequest(
-        RootServiceResponseFactory.Services.AMBARI.name(),
-        RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name());
+        RootService.AMBARI.name(),
+        RootService.AMBARI.getComponents()[0].name());
 
     rootServiceComponents = responseFactory.getRootServiceComponents(request);
     assertEquals(1, rootServiceComponents.size());
     for (RootServiceComponentResponse response : rootServiceComponents) {
       if (response.getComponentName().equals(
-          RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name())) {
+          RootService.AMBARI.getComponents()[0].name())) {
         assertEquals(ambariVersion, response.getComponentVersion());
         assertEquals(2, response.getProperties().size());
         assertTrue(response.getProperties().containsKey("jdk_location"));
@@ -166,7 +165,7 @@ public class RootServiceResponseFactoryTest {
     // Request existent service name, and component, not belongs to requested
     // service
     request = new RootServiceComponentRequest(
-        RootServiceResponseFactory.Services.AMBARI.name(), "XXX");
+        RootService.AMBARI.name(), "XXX");
     
     try {
       rootServiceComponents = responseFactory.getRootServiceComponents(request);

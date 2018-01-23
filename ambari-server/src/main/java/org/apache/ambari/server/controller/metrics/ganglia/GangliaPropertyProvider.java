@@ -77,7 +77,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
     GANGLIA_CLUSTER_NAME_MAP.put("SUPERVISOR",         Collections.singletonList("HDPSupervisor"));
   }
 
-  protected final static Logger LOG =
+  private static final Logger LOG =
       LoggerFactory.getLogger(GangliaPropertyProvider.class);
 
   // ----- Constructors ------------------------------------------------------

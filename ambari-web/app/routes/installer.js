@@ -35,8 +35,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           // check server/web client versions match
           App.router.get('installerController').checkServerClientVersion().done(function () {
 
-            var name = 'Cluster Install Wizard';
-            $('title').text('Ambari - ' + name);
+            $('title').text(Em.I18n.t('app.name.subtitle').format(Em.I18n.t('app.name.subtitle.installer')));
             $('#main').addClass('install-wizard-content');
 
             App.router.get('mainViewsController').loadAmbariViews();

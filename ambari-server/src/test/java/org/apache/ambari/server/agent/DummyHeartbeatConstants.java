@@ -40,6 +40,7 @@ public interface DummyHeartbeatConstants {
 
   String HDFS = "HDFS";
   String HBASE = "HBASE";
+  String CORE_SERVICE_GROUP = "core";
 
   String DATANODE = Role.DATANODE.name();
   String NAMENODE = Role.NAMENODE.name();

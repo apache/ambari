@@ -51,11 +51,13 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterSettingFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -64,8 +66,8 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceGroupFactory;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
@@ -125,7 +127,7 @@ public interface AmbariManagementController {
    * @return config created
    */
   Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
-                      String versionTag, Map<String, Map<String, String>> propertiesAttributes);
+                      String versionTag, Map<String, Map<String, String>> propertiesAttributes, Long serviceId);
 
   /**
    * Creates users.
@@ -394,18 +396,18 @@ public interface AmbariManagementController {
   void createExtensionLink(ExtensionLinkRequest request) throws AmbariException;
 
   /**
-   * Update a link between an extension and a stack
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
    * @throws AmbariException if we fail to link the extension to the stack
    */
   void updateExtensionLink(ExtensionLinkRequest request) throws AmbariException;
 
   /**
-   * Update a link between an extension and a stack
+   * Update a link - switch the link's extension version while keeping the same stack version and extension name
    *
    * @throws AmbariException if we fail to link the extension to the stack
    */
-  void updateExtensionLink(ExtensionLinkEntity linkEntity) throws AmbariException;
+  void updateExtensionLink(ExtensionLinkEntity oldLinkEntity, ExtensionLinkRequest newLinkRequest) throws AmbariException;
 
   /**
    * Delete a link between an extension and a stack
@@ -580,6 +582,13 @@ public interface AmbariManagementController {
    * @return the service factory
    */
   ServiceGroupFactory getServiceGroupFactory();
+
+  /**
+   * Get the 'cluster setting' factory for this management controller.
+   *
+   * @return the 'cluster setting'
+   */
+  ClusterSettingFactory getClusterSettingFactory();
 
   /**
    * Get the service component factory for this management controller.
@@ -846,6 +855,14 @@ public interface AmbariManagementController {
   Set<ReadOnlyConfigurationResponse> getStackLevelConfigurations(Set<StackLevelConfigurationRequest> requests) throws AmbariException;
 
   /**
+   * Get initial settings for a given stack (!not a service).
+   * @param requests
+   * @return
+   * @throws AmbariException
+   */
+  Set<ReadOnlyConfigurationResponse> getReadOnlyStackSettings(Set<StackConfigurationRequest> requests) throws AmbariException;
+
+  /**
    * Get initial settings for a cluster (!not a service).
    * @param requests
    * @return
@@ -854,13 +871,14 @@ public interface AmbariManagementController {
   Set<ReadOnlyConfigurationResponse> getResourceLevelClusterSettings(Set<RootClusterSettingRequest> requests) throws AmbariException;
 
   /**
+   * @param stackInfo stack info for a given service stack
    * @param serviceInfo service info for a given service
    * @param hostParams parameter map. May be changed during method execution
    * @param osFamily os family for host
-   * @return a full list of package dependencies for a service that should be
+   * @return a full list of package dependencies for a stack service that should be
    * installed on a host
    */
-  List<ServiceOsSpecific.Package> getPackagesForServiceHost(ServiceInfo serviceInfo,
+  List<OsSpecific.Package> getPackagesForStackServiceHost(StackInfo stackInfo, ServiceInfo serviceInfo,
                                                             Map<String, String> hostParams, String osFamily);
 
   /**
@@ -1000,5 +1018,18 @@ public interface AmbariManagementController {
    */
   void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException;
 
+  /**
+   * Creates serviceconfigversions and corresponding new configurations if it is an initial request
+   * OR
+   * Rollbacks to an existing serviceconfigversion if request specifies.
+   * @param requests
+   *
+   * @return
+   *
+   * @throws AmbariException
+   *
+   * @throws AuthorizationException
+   */
+  Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException;
 }
 

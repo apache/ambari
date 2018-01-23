@@ -175,9 +175,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosLDAPContainerException("principalContainerDn is not a valid LDAP name", e);
     }
 
-    setAdministratorCredential(administratorCredential);
-    setDefaultRealm(realm);
-    setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
+    super.open(administratorCredential, realm, kerberosConfiguration);
 
     this.ldapContext = createLdapContext();
     this.searchControls = createSearchControls();
@@ -215,11 +213,12 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * The implementation is specific to a particular type of KDC.
    *
    * @param principal a String containing the principal to test
+   * @param service   a boolean value indicating whether the principal is for a service or not
    * @return true if the principal exists; false otherwise
    * @throws KerberosOperationException
    */
   @Override
-  public boolean principalExists(String principal) throws KerberosOperationException {
+  public boolean principalExists(String principal, boolean service) throws KerberosOperationException {
     if (!isOpen()) {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
@@ -260,7 +259,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if (password == null) {
       throw new KerberosOperationException("principal password is null");
     }
-    if (principalExists(principal)) {
+    if (principalExists(principal, service)) {
       throw new KerberosPrincipalAlreadyExistsException(principal);
     }
 
@@ -347,12 +346,13 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
+   * @param service   a boolean value indicating whether the principal is for a service or not
    * @return an Integer declaring the new key number
    * @throws KerberosPrincipalDoesNotExistException if the principal does not exist
    * @throws KerberosOperationException
    */
   @Override
-  public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
+  public Integer setPrincipalPassword(String principal, String password, boolean service) throws KerberosOperationException {
     if (!isOpen()) {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
@@ -362,7 +362,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if (password == null) {
       throw new KerberosOperationException("principal password is null");
     }
-    if(!principalExists(principal)) {
+    if (!principalExists(principal, service)) {
       throw new KerberosPrincipalDoesNotExistException(principal);
     }
 
@@ -396,11 +396,12 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * The implementation is specific to a particular type of KDC.
    *
    * @param principal a String containing the principal to remove
+   * @param service   a boolean value indicating whether the principal is for a service or not
    * @return true if the principal was successfully removed; otherwise false
    * @throws KerberosOperationException
    */
   @Override
-  public boolean removePrincipal(String principal) throws KerberosOperationException {
+  public boolean removePrincipal(String principal, boolean service) throws KerberosOperationException {
     if (!isOpen()) {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
@@ -469,10 +470,9 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       String message = String.format("Failed to communicate with the Active Directory at %s: %s", ldapUrl, e.getMessage());
       LOG.warn(message, e);
 
-      if(rootCause instanceof SSLHandshakeException) {
+      if (rootCause instanceof SSLHandshakeException) {
         throw new KerberosKDCSSLConnectionException(message, e);
-      }
-      else {
+      } else {
         throw new KerberosKDCConnectionException(message, e);
       }
     } catch (AuthenticationException e) {

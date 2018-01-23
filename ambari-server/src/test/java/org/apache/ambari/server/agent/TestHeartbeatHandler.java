@@ -91,6 +91,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -864,7 +865,7 @@ public class TestHeartbeatHandler {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
         DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-          DummyCluster, "HDFS", false, false);
+          DummyCluster, "core", "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, "clusterHostInfo", clusters);
@@ -1339,6 +1340,9 @@ public class TestHeartbeatHandler {
     componentMap.put("NAMENODE", nnComponent);
 
     expect(service.getServiceComponents()).andReturn(componentMap);
+    expect(service.getServiceId()).andReturn(1L).atLeastOnce();
+    expect(service.getServiceType()).andReturn("HDFS").atLeastOnce();
+    expect(service.getDesiredStackId()).andReturn(dummyStackId).atLeastOnce();
 
     replay(service, nnComponent);
 
@@ -1549,7 +1553,7 @@ public class TestHeartbeatHandler {
     kerberosIdentityDataFileWriter.writeRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
         "dn/_HOST@_REALM", "service",
         "/etc/security/keytabs/dn.service.keytab",
-        "hdfs", "r", "hadoop", "", "false", "false");
+        "hdfs", "r", "hadoop", "", "false");
 
     kerberosIdentityDataFileWriter.close();
 
@@ -1575,7 +1579,8 @@ public class TestHeartbeatHandler {
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
-    return cluster.addService(serviceName, repositoryVersion);
+    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    return cluster.addService(serviceGroup, serviceName, serviceName, repositoryVersion);
   }
 
 }

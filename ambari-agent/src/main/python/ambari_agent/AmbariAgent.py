@@ -49,9 +49,6 @@ def main():
 
   mergedArgs = [PYTHON, AGENT_SCRIPT] + args
 
-  # Become a parent for all subprocesses
-  os.setpgrp()
-
   try:
     while status == AGENT_AUTO_RESTART_EXIT_CODE:
       mainProcess = subprocess.Popen(mergedArgs)

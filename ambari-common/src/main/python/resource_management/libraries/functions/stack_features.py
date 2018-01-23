@@ -24,6 +24,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions import stack_settings
 
 # executionCommand for STOP
 _ROLE_COMMAND_STOP = 'STOP'
@@ -49,14 +50,20 @@ def check_stack_feature(stack_feature, stack_version):
     Logger.warning("Cannot find the stack name in the command. Stack features cannot be loaded")
     return False
 
-  stack_features_config = default("/configurations/cluster-env/stack_features", None)
+  stack_features_setting = stack_settings.get_stack_setting_value(stack_settings.STACK_FEATURES_SETTING)
+  # TODO : Removed the below if of reading from cluster_env, once we have removed stack_features from there
+  # and have started using /stackSettings as source of truth.
+  if stack_features_setting is None:
+    Logger.info("Couldn't retrieve 'stack_features' from /stackSettings. Retrieving from cluster_env now.")
+    stack_features_setting = default("/configurations/cluster-env/"+stack_settings.STACK_FEATURES_SETTING, None)
+
 
   if not stack_version:
     Logger.debug("Cannot determine if feature %s is supported since did not provide a stack version." % stack_feature)
     return False
 
-  if stack_features_config:
-    data = json.loads(stack_features_config)
+  if stack_features_setting:
+    data = json.loads(stack_features_setting)
 
     if stack_name not in data:
       Logger.warning("Cannot find stack features for the stack named {0}".format(stack_name))
@@ -64,7 +71,7 @@ def check_stack_feature(stack_feature, stack_version):
 
     data = data[stack_name]
 
-    for feature in data["stack_features"]:
+    for feature in data[stack_settings.STACK_FEATURES_SETTING]:
       if feature["name"] == stack_feature:
         if "min_version" in feature:
           min_version = feature["min_version"]

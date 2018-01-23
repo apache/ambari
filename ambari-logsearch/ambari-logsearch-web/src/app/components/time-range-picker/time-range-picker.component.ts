@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, Input, forwardRef} from '@angular/core';
+import {Component, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Moment} from 'moment';
-import {FilteringService} from '@app/services/filtering.service';
+import {Moment} from 'moment-timezone';
+import {LogsContainerService} from '@app/services/logs-container.service';
+import {ListItem} from '@app/classes/list-item';
+import {TimeUnitListItem} from '@app/classes/filtering';
 
 @Component({
   selector: 'time-range-picker',
@@ -33,19 +35,10 @@ import {FilteringService} from '@app/services/filtering.service';
     }
   ]
 })
-export class TimeRangePickerComponent implements OnInit, ControlValueAccessor {
+export class TimeRangePickerComponent implements ControlValueAccessor {
 
-  constructor(private filtering: FilteringService) {
+  constructor(private logsContainer: LogsContainerService) {
   }
-
-  ngOnInit() {
-    this.selectedLabel = this.defaultLabel;
-  }
-
-  @Input()
-  defaultLabel?: string;
-
-  selectedLabel: string;
 
   startTime: Moment;
 
@@ -53,19 +46,23 @@ export class TimeRangePickerComponent implements OnInit, ControlValueAccessor {
 
   private onChange: (fn: any) => void;
 
-  get quickRanges(): any[][] {
-    return this.filtering.filters.timeRange.options;
+  get quickRanges(): (ListItem | TimeUnitListItem[])[] {
+    return this.logsContainer.filters.timeRange.options;
   }
 
-  private timeRange?: any;
+  private timeRange?: TimeUnitListItem;
 
-  get value(): any {
+  get selection(): TimeUnitListItem {
     return this.timeRange;
   }
 
-  set value(newValue: any) {
+  set selection(newValue: TimeUnitListItem) {
     this.timeRange = newValue;
-    this.onChange(newValue);
+    if (this.onChange) {
+      this.onChange(newValue);
+    }
+    this.setEndTime(this.logsContainer.getEndTimeMoment(newValue));
+    this.setStartTime(this.logsContainer.getStartTimeMoment(newValue, this.endTime));
   }
 
   setStartTime(timeObject: Moment): void {
@@ -76,28 +73,30 @@ export class TimeRangePickerComponent implements OnInit, ControlValueAccessor {
     this.endTime = timeObject;
   }
 
-  setTimeRange(value: any, label: string) {
-    this.value = value;
-    this.selectedLabel = label;
+  setTimeRange(value: any, label: string): void {
+    this.selection = {label, value};
   }
 
-  setCustomTimeRange() {
-    this.value = {
-      type: 'CUSTOM',
-      start: this.startTime,
-      end: this.endTime
+  setCustomTimeRange(): void {
+    this.selection = {
+      label: 'filter.timeRange.custom',
+      value: {
+        type: 'CUSTOM',
+        start: this.startTime,
+        end: this.endTime
+      }
     };
-    this.selectedLabel = 'filter.timeRange.custom';
   }
 
-  writeValue() {
+  writeValue(selection: TimeUnitListItem): void {
+    this.selection = selection;
   }
 
   registerOnChange(callback: any): void {
     this.onChange = callback;
   }
 
-  registerOnTouched() {
+  registerOnTouched(): void {
   }
 
 }

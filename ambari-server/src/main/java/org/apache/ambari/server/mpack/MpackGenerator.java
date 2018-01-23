@@ -56,7 +56,6 @@ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
-import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.theme.Theme;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -187,23 +186,6 @@ public class MpackGenerator {
       currentStackVersion = currentStackInfo.getParentStackVersion();
     }
 
-    // Export stack metainfo.xml
-    String parentStackVersion = srcStackInfo.getParentStackVersion();
-    StackMetainfoXml stackMetainfoXml = new StackMetainfoXml();
-    stackMetainfoXml.setMinJdk(srcStackInfo.getMinJdk());
-    stackMetainfoXml.setMaxJdk(srcStackInfo.getMaxJdk());
-    StackMetainfoXml.Version ver = new StackMetainfoXml.Version();
-    ver.setActive(srcStackInfo.isActive());
-    stackMetainfoXml.setVersion(ver);
-    ctx = JAXBContext.newInstance(StackMetainfoXml.class);
-    marshaller = ctx.createMarshaller();
-    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-    FileOutputStream stackMetainfoFileStream = new FileOutputStream(
-      mpackRootDir.getAbsolutePath() + File.separator + "metainfo.xml");
-    marshaller.marshal(stackMetainfoXml, stackMetainfoFileStream);
-    stackMetainfoFileStream.flush();
-    stackMetainfoFileStream.close();
-
     // Export stack advisors
     File stackAdvisorsDir = new File(mpackRootDir.getAbsolutePath() + File.separator + "stack-advisor");
     if(!stackAdvisorsDir.exists()) {
@@ -266,6 +248,8 @@ public class MpackGenerator {
     mpack.setDescription(dstStackName + " Ambari Management Pack");
     Map<String, String> prereqs = new HashMap<>();
     prereqs.put("min-ambari-version", "3.0.0.0");
+    prereqs.put("min-jdk", srcStackInfo.getMinJdk());
+    prereqs.put("max-jdk", srcStackInfo.getMaxJdk());
     mpack.setPrerequisites(prereqs);
     List<Packlet> packlets = new ArrayList<>();
     mpack.setPacklets(packlets);

@@ -33,6 +33,7 @@ public class ActionDefinition {
   private ActionType actionType;
   private String inputs;
   private String targetService;
+  private String targetServiceGroup;
   private String targetComponent;
   private String description;
   private TargetHostType targetType;
@@ -45,6 +46,7 @@ public class ActionDefinition {
    * @param actionName      The name of the action
    * @param actionType      The type fo the action
    * @param inputs          Expected input of the action
+   * @param targetServiceGroup Target service group type (e.g. HDFS)
    * @param targetService   Target service type (e.g. HDFS)
    * @param targetComponent Target component type (e.g. DATANODE)
    * @param description     Short description of the action
@@ -53,11 +55,12 @@ public class ActionDefinition {
    * @param permissions     A set of permissions to use when verifiying authorization to execute this action
    */
   public ActionDefinition(String actionName, ActionType actionType, String inputs,
-                          String targetService, String targetComponent, String description,
+                          String targetServiceGroup, String targetService, String targetComponent, String description,
                           TargetHostType targetType, Short defaultTimeout, Set<RoleAuthorization> permissions) {
     setActionName(actionName);
     setActionType(actionType);
     setInputs(inputs);
+    setTargetServiceGroup(targetServiceGroup);
     setTargetService(targetService);
     setTargetComponent(targetComponent);
     setDescription(description);
@@ -96,6 +99,14 @@ public class ActionDefinition {
 
   public void setTargetService(String targetService) {
     this.targetService = targetService;
+  }
+
+  public String getTargetServiceGroup() {
+    return targetServiceGroup;
+  }
+
+  public void setTargetServiceGroup(String targetServiceGroup) {
+    this.targetServiceGroup = targetServiceGroup;
   }
 
   public String getTargetComponent() {
@@ -140,7 +151,7 @@ public class ActionDefinition {
 
   public ActionResponse convertToResponse() {
     return new ActionResponse(getActionName(), getActionType().name(), getInputs(),
-        getTargetService(), getTargetComponent(), getDescription(), getTargetType().name(),
+        getTargetServiceGroup(), getTargetService(), getTargetComponent(), getDescription(), getTargetType().name(),
         getDefaultTimeout().toString());
   }
 }

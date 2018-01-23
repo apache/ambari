@@ -340,7 +340,7 @@ class TestServiceCheck(RMFTestCase):
     # LLAP call
     self.assertResourceCalled('Execute',
       "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10500/;transportMode=binary' --hiveconf \"hiveLlapServiceCheck=\" -f /usr/hdp/current/hive-server2-hive2/scripts/llap/sql/serviceCheckScript.sql -e '' 2>&1| awk '{print}'|grep -i -e 'Invalid status\|Invalid URL\|command not found\|Connection refused'",
-      path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin', '/bin:/usr/hdp/2.3.0.0-1234/hadoop/bin:/usr/hdp/2.3.0.0-1234/hive2/bin'],
+      path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin', '/bin:/usr/hdp/2.3.0.0-1234/hadoop/bin:/usr/hdp/current/hive-server2-hive2/bin'],
       tries = 1,
       stderr = -1,
       wait_for_finish = True,

@@ -18,7 +18,7 @@
 
 <div class="row">
   <div class="summary-width col-md-12" id="dashboard-widgets-container">
-    <ul class="nav nav-tabs background-text tabs-left">
+    <ul class="nav nav-tabs background-text">
       {{#each category in view.categories}}
         {{#view view.NavItemView itemBinding="category.name" }}
           <a href="#" {{action "goToDashboardView" category.url}} >{{category.label}}</a>

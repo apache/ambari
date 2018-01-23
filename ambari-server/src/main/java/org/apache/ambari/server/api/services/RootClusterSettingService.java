@@ -46,7 +46,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 /**
- * Service responsible for services resource requests.
+ * Service responsible for 'root cluster settings' resource requests.
  */
 @Path("/cluster_settings/")
 @Api(value = "ClusterSettings", description = "Endpoint for fetching read only 'cluster settings'")
