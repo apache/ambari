@@ -2825,12 +2825,13 @@ a.abort-icon:hover {
     font-style: normal;
   }
 }
+
 .display-flex {
-  display: flex;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flex;
-  display: -o-flex;
+  display: flex !important;
+  display: -webkit-flex !important;
+  display: -moz-flex !important;
+  display: -ms-flex !important;
+  display: -o-flex !important;
   &.direction-row {
     flex-direction: row;
   }
@@ -2843,7 +2844,12 @@ a.abort-icon:hover {
   &.justify-center {
     justify-content: center;
   }
+  
+  .flex-fill {
+    flex: auto;
+  }
 }
+
 
 .no-data {
   position: absolute;
