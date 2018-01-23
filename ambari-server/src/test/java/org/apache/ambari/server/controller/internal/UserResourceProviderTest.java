@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.security.authorization.Users;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
@@ -70,9 +69,6 @@ import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.registry.RegistryFactory;
-import org.apache.ambari.server.registry.RegistryManager;
-import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -89,10 +85,14 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.registry.RegistryFactory;
+import org.apache.ambari.server.registry.RegistryManager;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
+import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -435,6 +435,8 @@ public class UserResourceProviderTest extends EasyMockSupport {
         bind(UserAuthenticationDAO.class).toInstance(createMock(UserAuthenticationDAO.class));
         bind(GroupDAO.class).toInstance(createMock(GroupDAO.class));
         bind(MemberDAO.class).toInstance(createMock(MemberDAO.class));
+        bind(PrincipalDAO.class).toInstance(createMock(PrincipalDAO.class));
+        bind(PrincipalDAO.class).toInstance(createMock(PrincipalDAO.class));
         bind(PrincipalDAO.class).toInstance(createMock(PrincipalDAO.class));
         bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
         bind(PrivilegeDAO.class).toInstance(createMock(PrivilegeDAO.class));

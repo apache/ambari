@@ -228,10 +228,10 @@ public class HostVersionOutOfSyncListener {
     for (HostComponentDesiredStateEntity hostComponent : hostComponents) {
       // Skip lookup if stack does not contain the component
       if (!ami.get().isValidServiceComponent(stackId.getStackName(),
-          stackId.getStackVersion(), hostComponent.getServiceName(), hostComponent.getComponentName())) {
+          stackId.getStackVersion(), serviceName, hostComponent.getComponentName())) {
         LOG.debug("Component not found is host stack, stack={}, version={}, service={}, component={}",
             stackId.getStackName(), stackId.getStackVersion(),
-            hostComponent.getServiceName(), hostComponent.getComponentName());
+                serviceName, hostComponent.getComponentName());
         continue;
       }
       ComponentInfo ci = ami.get().getComponent(stackId.getStackName(), stackId.getStackVersion(),
@@ -280,9 +280,9 @@ public class HostVersionOutOfSyncListener {
 
             // Skip lookup if stack does not contain the component
             if (!ami.get().isValidServiceComponent(repositoryVersion.getStackName(),
-                repositoryVersion.getStackVersion(), serviceName, componentName)) {
+                repositoryVersion.getStackVersion(), event.getServiceName(), componentName)) {
               LOG.debug("Component not found is host stack, stack={}, version={}, service={}, component={}",
-                  repositoryVersion.getStackName(), repositoryVersion.getStackVersion(), serviceName, componentName);
+                  repositoryVersion.getStackName(), repositoryVersion.getStackVersion(), event.getServiceName(), componentName);
               continue;
             }
             ComponentInfo component = ami.get().getComponent(repositoryVersion.getStackName(),

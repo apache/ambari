@@ -36,7 +36,6 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_DISPLAY
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SECURITY_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_DESIRED_STATE_TABLE;
-import static org.easymock.EasyMock.anyLong;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_DISPLAY_STATUS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_STATUS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_TABLE;
@@ -60,6 +59,7 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICA
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USER_AUTHENTICATION_USER_ID_COLUMN;
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
