@@ -58,10 +58,8 @@
                     <td class="col-sm-3">{{repo.repoId}}</td>
                     <td class="download-status col-sm-3">
                       {{#if repo.inProgress}}
-                        <div class="progress-wrapper">
-                          <div class="progress">
-                            <div class="active progress-bar-striped progress-bar"}}></div>
-                          </div>
+                        <div class="progress">
+                          <div class="active progress-bar-striped progress-bar"}}></div>
                         </div>
                       {{else}}
                         {{#if repo.succeeded}}

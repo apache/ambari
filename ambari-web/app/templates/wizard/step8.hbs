@@ -17,16 +17,16 @@
 }}
 <div id="deploy-review" class="wizard-content col-md-9">
   <h4 class="step-header">{{t installer.step8.header}}</h4>
-  <p class="step-description">
-    {{t installer.step8.body}}
-    {{#if controller.isManualKerberos}}
-      <br/><br/>
-      {{t installer.step8.kerberors.warning}}
-    {{/if}}
-  </p>
 
   <div class="panel panel-default">
     <div class="panel-body">
+      <p class="step-description">
+        {{t installer.step8.body}}
+        {{#if controller.isManualKerberos}}
+          <br/><br/>
+          {{t installer.step8.kerberors.warning}}
+        {{/if}}
+      </p>
       <div id="step8-content" class="well pre-scrollable" {{QAAttr "review-content"}}>
         <div id="step8-info">
           {{#each item in controller.clusterInfo}}
