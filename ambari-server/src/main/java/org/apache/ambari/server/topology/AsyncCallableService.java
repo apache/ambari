@@ -81,8 +81,8 @@ public class AsyncCallableService<T> implements Callable<T> {
     Future<T> future = executorService.submit(task);
     LOG.info("Task {} execution started at {}", taskName, startTime);
 
+    Throwable lastError = null;
     while (true) {
-      Throwable lastError;
       try {
         LOG.debug("Task {} waiting for result at most {} ms", taskName, timeLeft);
         T taskResult = future.get(timeLeft, TimeUnit.MILLISECONDS);
@@ -90,7 +90,9 @@ public class AsyncCallableService<T> implements Callable<T> {
         return taskResult;
       } catch (TimeoutException e) {
         LOG.debug("Task {} timeout", taskName);
-        lastError = e;
+        if (lastError == null) {
+          lastError = e;
+        }
         timeLeft = 0;
       } catch (ExecutionException e) {
         Throwable cause = Throwables.getRootCause(e);
@@ -124,6 +126,12 @@ public class AsyncCallableService<T> implements Callable<T> {
 
   public static class RetryTaskSilently extends RuntimeException {
     // marker, throw if the task needs to be retried
+    public RetryTaskSilently() {
+      super();
+    }
+    public RetryTaskSilently(String message) {
+      super(message);
+    }
   }
 
 }
