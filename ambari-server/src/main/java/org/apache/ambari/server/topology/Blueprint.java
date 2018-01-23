@@ -197,4 +197,14 @@ public interface Blueprint {
 
   List<RepositorySetting> getRepositorySettings();
 
+  /**
+   * @return a boolean indicating if all mpack referenced by the blueprints are resolved (installed on the system)
+   */
+  boolean isAllMpacksResolved();
+
+  /**
+   * @return a collection of the names unresolved mpacks in {name}-{version} format.
+   */
+  Collection<String> getUnresolvedMpackNames();
+
 }

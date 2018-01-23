@@ -36,6 +36,7 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Joiner;
 import com.google.inject.Inject;
 
 /**
@@ -63,34 +64,40 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   @Override
   public void validateTopology() throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
-    Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
-    Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
+    if (blueprint.isAllMpacksResolved()) {
+      Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
+      Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
-    for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
-      if (!missingGroupDependencies.isEmpty()) {
-        missingDependencies.put(group.getName(), missingGroupDependencies);
-      }
-    }
-
-    Collection<String> cardinalityFailures = new HashSet<>();
-    Collection<String> services = blueprint.getServices();
-
-    for (String service : services) {
-      for (String component : stack.getComponents(service)) {
-        Cardinality cardinality = stack.getCardinality(component);
-        AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
-        if (cardinality.isAll()) {
-          cardinalityFailures.addAll(verifyComponentInAllHostGroups(new Component(component), autoDeploy));
-        } else {
-          cardinalityFailures.addAll(verifyComponentCardinalityCount(
-            new Component(component), cardinality, autoDeploy));
+      for (HostGroup group : hostGroups) {
+        Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
+        if (!missingGroupDependencies.isEmpty()) {
+          missingDependencies.put(group.getName(), missingGroupDependencies);
         }
       }
-    }
 
-    if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
-      generateInvalidTopologyException(missingDependencies, cardinalityFailures);
+      Collection<String> cardinalityFailures = new HashSet<>();
+      Collection<String> services = blueprint.getServices();
+
+      for (String service : services) {
+        for (String component : stack.getComponents(service)) {
+          Cardinality cardinality = stack.getCardinality(component);
+          AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
+          if (cardinality.isAll()) {
+            cardinalityFailures.addAll(verifyComponentInAllHostGroups(new Component(component), autoDeploy));
+          } else {
+            cardinalityFailures.addAll(verifyComponentCardinalityCount(
+              new Component(component), cardinality, autoDeploy));
+          }
+        }
+      }
+
+      if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
+        generateInvalidTopologyException(missingDependencies, cardinalityFailures);
+      }
+    }
+    else {
+      LOGGER.warn("The following macks are not resolved: [{}] Skipping topology validation.",
+        Joiner.on(", ").join(blueprint.getUnresolvedMpackNames()));
     }
   }
 
@@ -178,26 +185,32 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
               }
           }
 
-        if (component.equals("HIVE_METASTORE")) {
-          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
-          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
-            && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
+        if (blueprint.isAllMpacksResolved()) {
+          if (component.equals("HIVE_METASTORE")) {
+            Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
+            if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
+              && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
+              && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+              && stack.getName().equalsIgnoreCase("HDP")) {
+              throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
+                "and repo version 2.3.2+!");
+            }
+          }
+
+          if (component.equals("OOZIE_SERVER")) {
+            Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
+            if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
+              && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
+              && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+              && stack.getName().equalsIgnoreCase("HDP")) {
+              throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
+                "and repo version 2.3.2+!");
+            }
           }
         }
-
-        if (component.equals("OOZIE_SERVER")) {
-          Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
-          if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
-            && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
-          }
+        else {
+          LOGGER.warn("The following macks are not resolved: [{}] Skipping validation of HIVE_METASTORE and OOZIE_SERVER properties.",
+            Joiner.on(", ").join(blueprint.getUnresolvedMpackNames()));
         }
       }
     }

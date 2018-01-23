@@ -21,11 +21,15 @@ package org.apache.ambari.server.topology;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.orm.entities.BlueprintMpackConfigEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;
+import org.apache.ambari.server.orm.entities.BlueprintServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.BlueprintServiceEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 
 public class MpackInstance implements Configurable {
   @JsonProperty("name")
@@ -68,6 +72,11 @@ public class MpackInstance implements Configurable {
   }
 
   @JsonIgnore
+  public String getMpackNameAndVersion() {
+    return mpackName + "-" + mpackVersion;
+  }
+
+  @JsonIgnore
   public Stack getStack() {
     return stack;
   }
@@ -106,5 +115,46 @@ public class MpackInstance implements Configurable {
 
   public void setUrl(String url) {
     this.url = url;
+  }
+
+  public BlueprintMpackReferenceEntity toEntity() {
+    BlueprintMpackReferenceEntity mpackEntity = new BlueprintMpackReferenceEntity();
+    mpackEntity.setMpackUri(url);
+    mpackEntity.setMpackName(mpackName);
+    mpackEntity.setMpackVersion(mpackVersion);
+    Collection<BlueprintMpackConfigEntity> mpackConfigEntities =
+      BlueprintImpl.toConfigEntities(configuration, () -> new BlueprintMpackConfigEntity());
+    mpackConfigEntities.forEach( configEntity -> configEntity.setMpackReference(mpackEntity) );
+    mpackEntity.setConfigurations(mpackConfigEntities);
+
+    getServiceInstances().forEach(serviceInstance -> {
+      BlueprintServiceEntity serviceEntity = new BlueprintServiceEntity();
+      serviceEntity.setName(serviceInstance.getName());
+      serviceEntity.setType(serviceInstance.getType());
+      Collection<BlueprintServiceConfigEntity> serviceConfigEntities =
+        BlueprintImpl.toConfigEntities(serviceInstance.getConfiguration(), () -> new BlueprintServiceConfigEntity());
+      serviceConfigEntities.forEach( configEntity -> configEntity.setService(serviceEntity) );
+      serviceEntity.setConfigurations(serviceConfigEntities);
+      mpackEntity.getServiceInstances().add(serviceEntity);
+      serviceEntity.setMpackReference(mpackEntity);
+    });
+    return mpackEntity;
+  }
+
+  public static MpackInstance fromEntity(BlueprintMpackReferenceEntity entity) {
+    MpackInstance mpack = new MpackInstance();
+    mpack.setUrl(entity.getMpackUri());
+    mpack.setMpackName(entity.getMpackName());
+    mpack.setMpackVersion(entity.getMpackVersion());
+    mpack.setConfiguration(BlueprintImpl.fromConfigEntities(entity.getConfigurations()));
+    for (BlueprintServiceEntity serviceEntity: entity.getServiceInstances()) {
+      ServiceInstance serviceInstance = new ServiceInstance();
+      serviceInstance.setName(serviceEntity.getName());
+      serviceInstance.setType(serviceEntity.getType());
+      serviceInstance.setMpackInstance(mpack);
+      serviceInstance.setConfiguration(BlueprintImpl.fromConfigEntities(serviceEntity.getConfigurations()));
+      mpack.getServiceInstances().add(serviceInstance);
+    }
+    return mpack;
   }
 }

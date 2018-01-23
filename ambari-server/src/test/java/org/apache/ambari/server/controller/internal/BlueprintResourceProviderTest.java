@@ -113,7 +113,7 @@ public class BlueprintResourceProviderTest {
 
   @BeforeClass
   public static void initClass() {
-    BlueprintResourceProvider.init(blueprintFactory, dao, securityFactory, gson, metaInfo);
+    BlueprintResourceProvider.init(blueprintFactory, dao, securityFactory, metaInfo);
 
     StackEntity stackEntity = new StackEntity();
     stackEntity.setStackName("test-stack-name");

@@ -921,8 +921,7 @@ public class AmbariServer {
     StackDefinedPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
     BlueprintResourceProvider.init(injector.getInstance(BlueprintFactory.class),
-        injector.getInstance(BlueprintDAO.class), injector.getInstance(SecurityConfigurationFactory.class),
-        injector.getInstance(Gson.class), ambariMetaInfo);
+        injector.getInstance(BlueprintDAO.class), injector.getInstance(SecurityConfigurationFactory.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(TopologyManager.class),
         injector.getInstance(TopologyRequestFactoryImpl.class), injector.getInstance(SecurityConfigurationFactory

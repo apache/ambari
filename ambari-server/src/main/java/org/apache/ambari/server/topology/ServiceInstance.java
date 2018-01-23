@@ -19,11 +19,12 @@
 package org.apache.ambari.server.topology;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class ServiceInstance implements Configurable {
   private String name;
   private String type;
-  private Configuration configuration;
+  private Configuration configuration = new Configuration();
   private MpackInstance mpackInstance;
 
   public ServiceInstance() { }

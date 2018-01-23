@@ -39,6 +39,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -49,6 +51,8 @@ import com.google.inject.Inject;
  * Create a Blueprint instance.
  */
 public class BlueprintFactory {
+
+  private static final Logger LOG = LoggerFactory.getLogger(BlueprintFactory.class);
 
   // Blueprints
   protected static final String BLUEPRINT_NAME_PROPERTY_ID =
@@ -76,6 +80,8 @@ public class BlueprintFactory {
   protected static final String SETTINGS_PROPERTY_ID = "settings";
 
   protected static final String MPACK_INSTANCES_PROPERTY = "mpack_instances";
+  protected static final String MPACK_INSTANCE_PROPERTY = "mpack_instance";
+  protected static final String SERVICE_INSTANCE_PROPERTY = "service_instance";
 
   private static BlueprintDAO blueprintDAO;
   private ConfigurationFactory configFactory = new ConfigurationFactory();
@@ -143,7 +149,7 @@ public class BlueprintFactory {
         String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY));
           Collection<MpackInstance> mpacks = mapper.readValue(mpackInstancesJson, new TypeReference<Collection<MpackInstance>>(){});
           for (MpackInstance mpack: mpacks) {
-            resolveStack(mpack);
+            tryResolveStack(mpack);
           }
           return mpacks;
       }
@@ -156,9 +162,15 @@ public class BlueprintFactory {
     }
   }
 
-  protected void resolveStack(MpackInstance mpack) throws NoSuchStackException {
-    Stack stack = loadStack(mpack.getMpackName(), mpack.getMpackVersion());
-    mpack.setStack(stack);
+  protected void tryResolveStack(MpackInstance mpack) {
+    try {
+      Stack stack = loadStack(mpack.getMpackName(), mpack.getMpackVersion());
+      mpack.setStack(stack);
+    }
+    catch (NoSuchStackException ex) {
+      // This case can be normal if a blueprint had been sent in before the referenced mpack was installed
+      LOG.warn("Cannot resolve stack for mpack {}-{}. Is mpack installed?", mpack.getMpackName(), mpack.getMpackVersion());
+    }
   }
 
   protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {
@@ -234,13 +246,12 @@ public class BlueprintFactory {
             groupName + "' is not valid for the specified stack");
       }
 
-      String componentProvisionAction = componentProperties.get(COMPONENT_PROVISION_ACTION_PROPERTY_ID);
-      if (componentProvisionAction != null) {
-        //TODO, might want to add some validation here, to only accept value enum types, rwn
-        components.add(new Component(componentName, ProvisionAction.valueOf(componentProvisionAction)));
-      } else {
-        components.add(new Component(componentName));
-      }
+      String mpackInstance = componentProperties.get(MPACK_INSTANCE_PROPERTY);
+      String serviceInstance = componentProperties.get(SERVICE_INSTANCE_PROPERTY);
+      //TODO, might want to add some validation here, to only accept value enum types, rwn
+      ProvisionAction provisionAction = componentProperties.containsKey(COMPONENT_PROVISION_ACTION_PROPERTY_ID) ?
+        ProvisionAction.valueOf(componentProperties.get(COMPONENT_PROVISION_ACTION_PROPERTY_ID)) : null;
+      components.add(new Component(componentName, mpackInstance, serviceInstance, provisionAction));
     }
 
     return components;
@@ -271,7 +282,7 @@ public class BlueprintFactory {
    */
   @Inject
   public static void init(BlueprintDAO dao) {
-    blueprintDAO   = dao;
+    blueprintDAO = dao;
   }
 
   /**

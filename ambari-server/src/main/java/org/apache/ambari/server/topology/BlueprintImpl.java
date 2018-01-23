@@ -26,10 +26,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -37,9 +40,7 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.orm.entities.BlueprintMpackConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;
-import org.apache.ambari.server.orm.entities.BlueprintServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintServiceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
@@ -69,6 +70,7 @@ public class BlueprintImpl implements Blueprint {
   private SecurityConfiguration security;
   private Setting setting;
   private List<RepositorySetting> repoSettings = new ArrayList<>();
+  private boolean allMpacksResolved = false;
 
   public BlueprintImpl(BlueprintEntity entity) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
@@ -389,29 +391,9 @@ public class BlueprintImpl implements Blueprint {
 
   private void createMpackInstanceEntities(BlueprintEntity entity) {
     mpacks.forEach(mpack -> {
-      BlueprintMpackReferenceEntity mpackEntity = new BlueprintMpackReferenceEntity();
+      BlueprintMpackReferenceEntity mpackEntity = mpack.toEntity();
       mpackEntity.setBlueprint(entity);
-      mpackEntity.setMpackUri(mpack.getUrl());
-      mpackEntity.setMpackName(mpack.getMpackName());
-      mpackEntity.setMpackVersion(mpack.getMpackVersion());
-      Collection<BlueprintMpackConfigEntity> mpackConfigEntities = toConfigEntities(mpack.getConfiguration(), () -> new BlueprintMpackConfigEntity());
-      mpackConfigEntities.forEach( configEntity -> configEntity.setMpackReference(mpackEntity) );
-      mpackEntity.setConfigurations(mpackConfigEntities);
-
-      mpack.getServiceInstances().forEach(serviceInstance -> {
-        BlueprintServiceEntity serviceEntity = new BlueprintServiceEntity();
-        serviceEntity.setName(serviceInstance.getName());
-        serviceEntity.setType(serviceInstance.getType());
-        Collection<BlueprintServiceConfigEntity> serviceConfigEntities =
-          toConfigEntities(serviceInstance.getConfiguration(), () -> new BlueprintServiceConfigEntity());
-        serviceConfigEntities.forEach( configEntity -> configEntity.setService(serviceEntity) );
-        serviceEntity.setConfigurations(serviceConfigEntities);
-        mpackEntity.getServiceInstances().add(serviceEntity);
-        serviceEntity.setMpackReference(mpackEntity);
-      });
-
       entity.getMpackReferences().add(mpackEntity);
-      mpackEntity.setBlueprint(entity);
     });
   }
 
@@ -602,7 +584,16 @@ public class BlueprintImpl implements Blueprint {
       componentEntity.setHostGroupEntity(group);
       componentEntity.setHostGroupName(group.getName());
       componentEntity.setServiceName(component.getServiceInstance());
-      componentEntity.setMpackName(component.getMpackInstance());
+      if (null != component.getMpackInstance()) {
+        Preconditions.checkArgument(component.getMpackInstance().contains("-"),
+          "Invalid mpack instance specified for component %s: %s. Must be in {name}-{version} format.",
+          component.getName(),
+          component.getMpackInstance());
+        Iterator<String> mpackNameAndVersion =
+          Splitter.on('-').split(component.getMpackInstance()).iterator();
+        componentEntity.setMpackName(mpackNameAndVersion.next());
+        componentEntity.setMpackVersion(mpackNameAndVersion.next());
+      }
 
       // add provision action (if specified) to entity type
       // otherwise, just leave this column null (provision_action)
@@ -617,11 +608,11 @@ public class BlueprintImpl implements Blueprint {
   /**
    * Converts a {@link Configuration} class to a collection of configuration entities
    * @param configuration the configuration to be converted
-   * @param entityCreator creates the apropriate config entity instance
+   * @param entityCreator creates the appropriate config entity instance
    * @param <E> the config entity's type
    * @return a collection of configuration entities
    */
-  private <E extends BlueprintConfiguration> Collection<E> toConfigEntities(Configuration configuration, Supplier<E> entityCreator) {
+  static <E extends BlueprintConfiguration> Collection<E> toConfigEntities(Configuration configuration, Supplier<E> entityCreator) {
     Gson jsonSerializer = new Gson();
     Map<String, E> configEntityMap = new HashMap<>();
     for (Map.Entry<String, Map<String, String>> propEntry : configuration.getProperties().entrySet()) {
@@ -649,6 +640,29 @@ public class BlueprintImpl implements Blueprint {
     return configEntityMap.values();
   }
 
+  /**
+   * Converts a collection of configuration entities into a {@link Configuration}
+   * @param configEntities the persisted configuration as entitiy collection
+   * @return the configuration
+   */
+  static Configuration fromConfigEntities(Collection<? extends BlueprintConfiguration> configEntities) {
+    Gson jsonSerializer = new Gson();
+    Configuration configuration = new Configuration();
+
+    for (BlueprintConfiguration configEntity: configEntities) {
+      String type = configEntity.getType();
+      Map<String, String> configData = jsonSerializer.fromJson(configEntity.getConfigData(), Map.class);
+      Map<String, Map<String, String>> configAttributes = jsonSerializer.fromJson(configEntity.getConfigAttributes(), Map.class);
+      if (null != configData) {
+        configuration.getProperties().put(type, configData);
+      }
+      if (null != configAttributes) {
+        configuration.getAttributes().put(type, configAttributes);
+      }
+    }
+
+    return configuration;
+  }
 
   /**
    * Populate setting for serialization to DB.
@@ -716,6 +730,21 @@ public class BlueprintImpl implements Blueprint {
 
   public List<RepositorySetting> getRepositorySettings(){
     return repoSettings;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isAllMpacksResolved() {
+    return !mpacks.stream().filter(mpack -> mpack.getStack() == null).findAny().isPresent();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Collection<String> getUnresolvedMpackNames() {
+    return mpacks.stream().filter(mpack -> mpack.getStack() == null).map(MpackInstance::getMpackNameAndVersion).collect(toList());
   }
 
 }
