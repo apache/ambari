@@ -16,12 +16,17 @@
  * limitations under the License.
  */
 
-import {LogLevel} from '@app/classes/string';
+import {HomogeneousObject} from '@app/classes/object';
 
-export type HomogeneousObject<T> = {[key: string]: T};
+export type LevelOverridesConfig = HomogeneousObject<{
+  defaults: boolean;
+  overrides: boolean;
+}>
 
-export interface LogLevelObject {
-  name: LogLevel;
+export type LogIndexFilterComponentConfig = LevelOverridesConfig & {
+  name: string;
   label: string;
-  color: string;
+  hosts: string[];
+  expiryTime: string | null;
+  hasOverrides?: boolean;
 }
