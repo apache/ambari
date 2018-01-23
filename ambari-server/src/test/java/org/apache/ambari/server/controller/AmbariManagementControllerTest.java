@@ -4658,13 +4658,6 @@ public class AmbariManagementControllerTest {
     assertEquals("", response.getRequestContext());
   }
 
-
-  private void createUser(String userName) throws Exception {
-    UserRequest request = new UserRequest(userName);
-    request.setPassword("password");
-    controller.createUsers(new HashSet<>(Collections.singleton(request)));
-  }
-
   @SuppressWarnings("serial")
   @Test
   public void testAddServiceCheckActionWithJavaHomeValue() throws Exception {
@@ -4735,74 +4728,6 @@ public class AmbariManagementControllerTest {
         new String(commandEntity.getCommand())), ExecutionCommand.class);
 
     assertTrue(executionCommand.getHostLevelParams().containsValue("redhat6_java_home_path"));
-  }
-
-  @Test
-  public void testCreateAndGetUsers() throws Exception {
-    createUser("user1");
-
-    Set<UserResponse> r =
-        controller.getUsers(Collections.singleton(new UserRequest("user1")));
-
-    Assert.assertEquals(1, r.size());
-    UserResponse resp = r.iterator().next();
-    Assert.assertEquals("user1", resp.getUsername());
-  }
-
-  @Test
-  public void testGetUsers() throws Exception {
-    String user1 = getUniqueName();
-    String user2 = getUniqueName();
-    String user3 = getUniqueName();
-    List<String> users = Arrays.asList(user1, user2, user3);
-
-    for (String user : users) {
-      createUser(user);
-    }
-
-    UserRequest request = new UserRequest(null);
-
-    Set<UserResponse> responses = controller.getUsers(Collections.singleton(request));
-
-    // other tests are making user requests, so let's make sure we have the 3 just made
-    List<String> contained = new ArrayList<>();
-    for (UserResponse ur : responses) {
-      if (users.contains(ur.getUsername())) {
-        contained.add(ur.getUsername());
-      }
-    }
-
-    Assert.assertEquals(3, contained.size());
-  }
-
-  @SuppressWarnings("serial")
-  @Test
-  public void testUpdateUsers() throws Exception {
-    String user1 = getUniqueName();
-    createUser(user1);
-
-    UserRequest request = new UserRequest(user1);
-
-    controller.updateUsers(Collections.singleton(request));
-  }
-
-  @SuppressWarnings("serial")
-  @Ignore
-  @Test
-  public void testDeleteUsers() throws Exception {
-    String user1 = getUniqueName();
-    createUser(user1);
-
-    UserRequest request = new UserRequest(user1);
-    controller.updateUsers(Collections.singleton(request));
-
-    request = new UserRequest(user1);
-    controller.deleteUsers(Collections.singleton(request));
-
-    Set<UserResponse> responses = controller.getUsers(
-        Collections.singleton(new UserRequest(null)));
-
-    Assert.assertEquals(0, responses.size());
   }
 
   @Test
