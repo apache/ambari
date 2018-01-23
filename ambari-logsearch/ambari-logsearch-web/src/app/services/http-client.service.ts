@@ -24,6 +24,7 @@ import {
 } from '@angular/http';
 import {HomogeneousObject} from '@app/classes/object';
 import {AuditLogsListQueryParams} from '@app/classes/queries/audit-logs-query-params';
+import {AuditLogsGraphQueryParams} from '@app/classes/queries/audit-logs-graph-query-params';
 import {AuditLogsTopResourcesQueryParams} from '@app/classes/queries/audit-logs-top-resources-query-params';
 import {ServiceLogsQueryParams} from '@app/classes/queries/service-logs-query-params';
 import {ServiceLogsHistogramQueryParams} from '@app/classes/queries/service-logs-histogram-query-params';
@@ -46,6 +47,10 @@ export class HttpClientService extends Http {
     auditLogs: {
       url: 'audit/logs',
       params: opts => new AuditLogsListQueryParams(opts)
+    },
+    auditLogsGraph: {
+      url: 'audit/logs/bargraph',
+      params: opts => new AuditLogsGraphQueryParams(opts)
     },
     auditLogsFields: {
       url: 'audit/logs/schema/fields'

@@ -272,6 +272,7 @@
 
   <xs:complexType name="abstract-task-type" abstract="true">
     <xs:sequence>
+      <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1"/>
       <xs:element name="scope" minOccurs="0" type="scope-type" />
       <xs:element name="summary" minOccurs="0" />
     </xs:sequence>

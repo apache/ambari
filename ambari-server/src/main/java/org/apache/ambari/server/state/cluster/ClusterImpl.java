@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import static java.util.stream.Collectors.toList;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,13 +31,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
@@ -1135,7 +1137,7 @@ public class ClusterImpl implements Cluster {
     return clusterDAO.getLatestConfigurationsWithTypes(clusterId, getDesiredStackVersion(), types)
       .stream()
       .map(clusterConfigEntity -> configFactory.createExisting(this, clusterConfigEntity))
-      .collect(Collectors.toList());
+      .collect(toList());
   }
 
   @Override
@@ -1581,37 +1583,35 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public String getServiceForConfigTypes(Collection<String> configTypes) {
-    //debug
-    LOG.info("Looking for service for config types {}", configTypes);
-    String serviceName = null;
-    for (String configType : configTypes) {
-      for (Entry<String, String> entry : serviceConfigTypes.entries()) {
-        if (StringUtils.equals(entry.getValue(), configType)) {
-          if (serviceName != null) {
-            if (entry.getKey()!=null && !StringUtils.equals(serviceName, entry.getKey())) {
-              throw new IllegalArgumentException(String.format("Config type %s belongs to %s service, " +
-                "but also qualified for %s", configType, serviceName, entry.getKey()));
-            }
-          } else {
-            serviceName = entry.getKey();
-          }
-        }
-      }
+    List<String> serviceNames = configTypes.stream()
+      .map(this::getServiceByConfigType)
+      .filter(Objects::nonNull)
+      .collect(toList());
+    boolean allTheSame = new HashSet<>(serviceNames).size() <= 1;
+    if (!allTheSame) {
+      throw new IllegalArgumentException(String.format(
+        "Config types: %s should belong to a single installed service. But they belong to: %s", configTypes, serviceNames));
     }
-    LOG.info("Service {} returning", serviceName);
-    return serviceName;
+    return serviceNames.isEmpty() ? null : serviceNames.get(0);
+  }
+
+  public List<String> serviceNameByConfigType(String configType) {
+    return serviceConfigTypes.entries().stream()
+      .filter(entry -> StringUtils.equals(entry.getValue(), configType))
+      .map(entry -> entry.getKey())
+      .collect(toList());
   }
 
   @Override
   public String getServiceByConfigType(String configType) {
-    for (Entry<String, String> entry : serviceConfigTypes.entries()) {
-      String serviceName = entry.getKey();
-      String type = entry.getValue();
-      if (StringUtils.equals(type, configType)) {
-        return serviceName;
-      }
-    }
-    return null;
+    return serviceNameByConfigType(configType).stream()
+      .filter(this::isServiceInstalled)
+      .findFirst()
+      .orElse(null);
+  }
+
+  private boolean isServiceInstalled(String serviceName) {
+    return services.get(serviceName) != null;
   }
 
   @Override
@@ -1894,28 +1894,7 @@ public class ClusterImpl implements Cluster {
 
   @Transactional
   ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
-
-    String serviceName = null;
-    for (Config config : configs) {
-      for (Entry<String, String> entry : serviceConfigTypes.entries()) {
-        if (StringUtils.equals(entry.getValue(), config.getType())) {
-          if (serviceName == null) {
-            serviceName = entry.getKey();
-            break;
-          } else if (!serviceName.equals(entry.getKey())) {
-            String error = String.format("Updating configs for multiple services by a " +
-                "single API request isn't supported. Conflicting services %s and %s for %s",
-                                         serviceName, entry.getKey(), config.getType());
-            IllegalArgumentException exception = new IllegalArgumentException(error);
-            LOG.error(error + ", config version not created for {}", serviceName);
-            throw exception;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-
+    String serviceName = getServiceForConfigTypes(configs.stream().map(Config::getType).collect(toList()));
     // update the selected flag for every config type
     ClusterEntity clusterEntity = getClusterEntity();
     Collection<ClusterConfigEntity> clusterConfigs = clusterEntity.getClusterConfigEntities();

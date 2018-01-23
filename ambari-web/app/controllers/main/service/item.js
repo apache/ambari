@@ -780,6 +780,31 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.error'), error);
   },
 
+  regenerateKeytabFileOperations: function () {
+    var self = this;
+    var serviceName = this.content.get('serviceName');
+    var clusterName = App.get('clusterName');
+    return App.showConfirmationPopup(function() {
+      return App.ajax.send({
+        name: "admin.kerberos_security.regenerate_keytabs.service",
+        sender: self,
+        data: {
+          clusterName: clusterName,
+          serviceName: serviceName
+        },
+        success: 'regenerateKeytabFileOperationsRequestSuccess',
+        error: 'regenerateKeytabFileOperationsRequestError'
+      });
+    }, Em.I18n.t('question.sure.regenerateKeytab.service').format(serviceName));
+  },
+
+  regenerateKeytabFileOperationsRequestSuccess: function(){
+    App.router.get('backgroundOperationsController').showPopup();
+  },
+
+  regenerateKeytabFileOperationsRequestError: function () {
+    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('alerts.notifications.regenerateKeytab.service.error').format(this.content.get('serviceName')));
+  },
   /**
    * On click callback for <code>run compaction</code> button
    * @param event

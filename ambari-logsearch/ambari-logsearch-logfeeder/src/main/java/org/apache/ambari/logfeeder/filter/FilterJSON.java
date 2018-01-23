@@ -18,18 +18,24 @@
  */
 package org.apache.ambari.logfeeder.filter;
 
-import java.util.Map;
-
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.common.LogFeederException;
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.plugin.filter.Filter;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class FilterJSON extends Filter {
-  
+import java.util.Map;
+
+public class FilterJSON extends Filter<LogFeederProps> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(FilterJSON.class);
+
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) throws LogFeederException {
+  public void apply(String inputStr, InputMarker inputMarker) throws Exception {
     Map<String, Object> jsonMap = null;
     try {
       jsonMap = LogFeederUtil.toJSONObject(inputStr);
@@ -50,4 +56,10 @@ public class FilterJSON extends Filter {
     }
     super.apply(jsonMap, inputMarker);
   }
+
+  @Override
+  public String getShortDescription() {
+    return "filter:filter=json,input=" + getInput().getShortDescription();
+  }
+
 }

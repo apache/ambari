@@ -36,6 +36,7 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
+    <hadoop.version>3.0.0</hadoop.version>
   </properties>
 
   <modules>

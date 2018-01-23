@@ -50,8 +50,6 @@ def init_kerberos_properties_list(properties, options):
                                  REGEX_ANYTHING, False, "HTTP/_HOST"),
         KerberosPropertyTemplate(properties, options.kerberos_spnego_keytab_file, "authentication.kerberos.spnego.keytab.file", "SPNEGO keytab file {0}: ",
                                  REGEX_ANYTHING, False, "/etc/security/keytabs/spnego.service.keytab"),
-        KerberosPropertyTemplate(properties, options.kerberos_user_types, "authentication.kerberos.user.types", "User type search order [LDAP|LOCAL|JTW] {0}: ",
-                                 REGEX_ANYTHING, False, "LDAP"),
         KerberosPropertyTemplate(properties, options.kerberos_auth_to_local_rules, "authentication.kerberos.auth_to_local.rules", "Auth-to-local rules {0}: ",
                                  REGEX_ANYTHING, False, "DEFAULT")
     ]

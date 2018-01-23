@@ -25,7 +25,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-infra-assembly</artifactId>
-  <name>Ambari Infra Solr Assembly</name>
+  <name>Ambari Infra Assembly</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -41,7 +41,7 @@
     <infra-manager.package.name>ambari-infra-manager</infra-manager.package.name>
     <infra-manager.dir>${project.basedir}/../ambari-infra-manager</infra-manager.dir>
     <infra-manager.mapping.path>${mapping.base.path}/${infra-manager.package.name}</infra-manager.mapping.path>
-    <infra-manager.conf.mapping.path>/etc/${infra-manager.package.name}/conf</infra-manager.conf.mapping.path>
+    <infra-manager.conf.mapping.path>${infra-manager.mapping.path}/conf</infra-manager.conf.mapping.path>
   </properties>
 
   <profiles>
@@ -142,30 +142,16 @@
                     <scriptFile>${project.basedir}/src/main/package/rpm/manager/postinstall.sh</scriptFile>
                     <fileEncoding>utf-8</fileEncoding>
                   </postinstallScriptlet>
+                  <postremoveScriptlet>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/manager/postremove.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </postremoveScriptlet>
                   <mappings>
                     <mapping>
                       <directory>${infra-manager.mapping.path}</directory>
                       <sources>
                         <source>
                           <location>${infra-manager.dir}/target/package</location>
-                          <excludes>
-                            <exclude>log4j.xml</exclude>
-                            <exclude>infra-manager.properties</exclude>
-                            <exclude>infra-manager-env.sh</exclude>
-                          </excludes>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>${infra-manager.conf.mapping.path}</directory>
-                      <sources>
-                        <source>
-                          <location>${infra-manager.dir}/target/package</location>
-                          <includes>
-                            <include>log4j.xml</include>
-                            <include>infra-manager.properties</include>
-                            <include>infra-manager-env.sh</include>
-                          </includes>
                         </source>
                       </sources>
                     </mapping>
@@ -354,23 +340,6 @@
                         <group>root</group>
                         <prefix>${infra-manager.mapping.path}</prefix>
                       </mapper>
-                      <excludes>
-                        log4j.xml,infra-manager.properties,infra-manager-env.sh
-                      </excludes>
-                    </data>
-                    <data>
-                      <src>${infra-manager.dir}/target/package</src>
-                      <type>directory</type>
-                      <mapper>
-                        <prefix>${infra-manager.conf.mapping.path}</prefix>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                        <filemode>644</filemode>
-                      </mapper>
-                      <includes>
-                        log4j.xml,infra-manager.properties,infra-manager-env.sh
-                      </includes>
                     </data>
                   </dataSet>
                 </configuration>

@@ -128,28 +128,44 @@ export const mockData = {
               {
                 dataCount: [
                   {
-                    name: 'n0',
-                    value: 1
+                    name: currentTime.toISOString(),
+                    value: '75'
                   },
                   {
-                    name: 'n1',
-                    value: 2
+                    name: currentTime.clone().subtract(20, 'm').toISOString(),
+                    value: '100'
+                  },
+                  {
+                    name: currentTime.clone().subtract(40, 'm').toISOString(),
+                    value: '75'
+                  },
+                  {
+                    name: currentTime.clone().subtract(1, 'h').toISOString(),
+                    value: '50'
                   }
                 ],
-                name: 'graph0'
+                name: 'AMBARI'
               },
               {
                 dataCount: [
                   {
-                    name: 'n2',
-                    value: 10
+                    name: currentTime.toISOString(),
+                    value: '150'
                   },
                   {
-                    name: 'n3',
-                    value: 20
+                    name: currentTime.clone().subtract(20, 'm').toISOString(),
+                    value: '50'
+                  },
+                  {
+                    name: currentTime.clone().subtract(40, 'm').toISOString(),
+                    value: '75'
+                  },
+                  {
+                    name: currentTime.clone().subtract(1, 'h').toISOString(),
+                    value: '100'
                   }
                 ],
-                name: 'graph1'
+                name: 'HDFS'
               }
             ]
           },

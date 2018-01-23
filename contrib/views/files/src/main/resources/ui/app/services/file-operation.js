@@ -72,7 +72,7 @@ export default Ember.Service.extend(FileOperationMixin, {
     };
     var adapter = this.get('store').adapterFor('file');
     return new Ember.RSVP.Promise((resolve, reject) => {
-      adapter.ajax(opsUrl, "DELETE", {data: data}).then(
+      adapter.ajax(opsUrl, "POST", {data: data}).then(
         (response) => {
           return resolve(response);
         }, (rejectResponse) => {

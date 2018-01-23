@@ -32,7 +32,7 @@ describe('App.WizardStep4Controller', function () {
   beforeEach(function() {
     controller = App.WizardStep4Controller.create();
     services.forEach(function(serviceName) {
-      controller.pushObject(Ember.Object.create({
+      controller.pushObject(App.StackService.createRecord({
         'serviceName':serviceName, 'isSelected': true, 'isHiddenOnSelectServicePage': false, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
       }));
     });
@@ -43,7 +43,7 @@ describe('App.WizardStep4Controller', function () {
     modelSetup.setupStackServiceComponent();
     if (selectedServiceNames.contains('GLUSTERFS')) allServices.push('GLUSTERFS');
     allServices = allServices.map(function(serviceName) {
-      return [Ember.Object.create({
+      return [App.StackService.createRecord({
         'serviceName': serviceName,
         'isSelected': false,
         'canBeSelected': true,
@@ -51,7 +51,7 @@ describe('App.WizardStep4Controller', function () {
         isPrimaryDFS: serviceName === 'HDFS',
         isDFS: ['HDFS','GLUSTERFS'].contains(serviceName),
         isMonitoringService: ['GANGLIA'].contains(serviceName),
-        requiredServices: App.StackService.find(serviceName).get('requiredServices'),
+        requiredServices: App.StackService.find(serviceName).get('requiredServices') || [],
         displayNameOnSelectServicePage: App.format.role(serviceName, true),
         coSelectedServices: function() {
           return App.StackService.coSelected[this.get('serviceName')] || [];
@@ -78,18 +78,41 @@ describe('App.WizardStep4Controller', function () {
   });
 
   describe('#isAllChecked', function () {
-    it('should return true if all services are selected', function () {
+    it('should return true if all non DFS services are selected', function () {
       controller.setEach('isInstalled', false);
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', true);
+      controller.findProperty('serviceName', 'YARN').set('isSelected', true);
+      controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
       expect(controller.get('isAllChecked')).to.equal(true);
     });
 
     it('should return false if at least one service is not selected', function () {
-      controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
+      controller.findProperty('serviceName', 'YARN').set('isSelected', false);
       expect(controller.get('isAllChecked')).to.equal(false);
     });
   });
 
+  describe('#fileSystems', function () {
+    beforeEach(function () {
+      controller.clear();
+      controller.set('content', generateSelectedServicesContent(['HDFS', 'GLUSTERFS', 'YARN']));
+    });
+
+    it('returns only DFS services', function () {
+      expect(controller.get('fileSystems')).to.have.length(2);
+      expect(controller.get('fileSystems').mapProperty('serviceName')).to.contain('GLUSTERFS');
+      expect(controller.get('fileSystems').mapProperty('serviceName')).to.contain('HDFS');
+    });
+
+    it('allows selecting only one DFS at a time', function () {
+      var fileSystems = controller.get('fileSystems');
+      fileSystems[0].set('isSelected', true);
+      expect(fileSystems[0].get('isSelected')).to.equal(true);
+      expect(fileSystems[1].get('isSelected')).to.equal(false);
+      fileSystems[1].set('isSelected', true);
+      expect(fileSystems[0].get('isSelected')).to.equal(false);
+      expect(fileSystems[1].get('isSelected')).to.equal(true);
+    });
+  });
   describe('#multipleDFSs()', function () {
     it('should return true if HDFS is selected and GLUSTERFS is selected', function () {
       controller.set('content', generateSelectedServicesContent(['HDFS', 'GLUSTERFS']));
@@ -167,7 +190,7 @@ describe('App.WizardStep4Controller', function () {
         beforeEach(function () {
           controller.clear();
           Object.keys(testCase.condition).forEach(function (id) {
-            controller.pushObject(Ember.Object.create({
+            controller.pushObject(App.StackService.createRecord({
               serviceName: id,
               isSelected: testCase.condition[id],
               canBeSelected: true,
@@ -1006,7 +1029,7 @@ describe('App.WizardStep4Controller', function () {
     });
 
     it('serviceValidation should not be called when service not selected', function() {
-      controller.pushObject(Em.Object.create({
+      controller.pushObject(App.StackService.createRecord({
         serviceName: 'S1',
         isSelected: false
       }));
@@ -1016,7 +1039,7 @@ describe('App.WizardStep4Controller', function () {
 
     it('serviceValidation should not be called when dependent service does not exist', function() {
       controller.pushObjects([
-        Em.Object.create({
+        App.StackService.createRecord({
           serviceName: 'S1',
           isSelected: true
         })
@@ -1027,7 +1050,7 @@ describe('App.WizardStep4Controller', function () {
 
     it('serviceValidation should not be called when dependent service is selected', function() {
       controller.pushObjects([
-        Em.Object.create({
+        App.StackService.createRecord({
           serviceName: 'S1',
           isSelected: true
         }),
@@ -1042,7 +1065,7 @@ describe('App.WizardStep4Controller', function () {
 
     it('serviceValidation should be called when dependent service is not selected', function() {
       controller.pushObjects([
-        Em.Object.create({
+        App.StackService.createRecord({
           serviceName: 'S1',
           isSelected: true
         }),

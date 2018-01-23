@@ -64,7 +64,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     expect(userEntity.getActive()).andReturn(true);
     expect(users.getUserPrivileges(userEntity)).andReturn(Collections.singletonList(privilegeEntity));
 
-    expect(userDAO.findLdapUserByName(username)).andReturn(userEntity);
+    expect(userDAO.findUserByName(username)).andReturn(userEntity);
     replayAll();
 
     populator.getGrantedAuthorities(userData, username);
@@ -90,7 +90,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
     expect(userEntity.getActive()).andReturn(true);
     expect(users.getUserPrivileges(userEntity)).andReturn(Collections.singletonList(privilegeEntity));
 
-    expect(userDAO.findLdapUserByName(ambariUserName)).andReturn(userEntity); // user should be looked up by user name instead of login alias
+    expect(userDAO.findUserByName(ambariUserName)).andReturn(userEntity); // user should be looked up by user name instead of login alias
 
     replayAll();
 

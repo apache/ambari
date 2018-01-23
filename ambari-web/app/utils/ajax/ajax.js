@@ -1911,6 +1911,36 @@ var urls = {
     }
   },
 
+  'admin.kerberos_security.regenerate_keytabs.service' : {
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_components={serviceName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Clusters" : {
+            "security_type" : "KERBEROS"
+          }
+        })
+      }
+    }
+  },
+
+  'admin.kerberos_security.regenerate_keytabs.host' : {
+    'real': '/clusters/{clusterName}?regenerate_keytabs=all&regenerate_hosts={hostName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Clusters" : {
+            "security_type" : "KERBEROS"
+          }
+        })
+      }
+    }
+  },
+
   'wizard.step1.post_version_definition_file.xml': {
     'real': '/version_definitions?dry_run=true',
     'mock': '',

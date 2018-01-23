@@ -51,7 +51,9 @@ public class InputAdapter implements JsonDeserializer<InputDescriptorImpl> {
         return (InputDescriptorImpl)context.deserialize(json, InputFileDescriptorImpl.class);
       case "s3_file":
         return (InputDescriptorImpl)context.deserialize(json, InputS3FileDescriptorImpl.class);
-      default:
+      case "custom":
+        return (InputDescriptorImpl)context.deserialize(json, InputCustomDescriptorImpl.class);
+        default:
         throw new IllegalArgumentException("Unknown input type: " + json.getAsJsonObject().get("source").getAsString());
     }
   }

@@ -4663,10 +4663,10 @@ public class AmbariManagementControllerTest {
     assertEquals("", response.getRequestContext());
   }
 
+
   private void createUser(String userName) throws Exception {
     UserRequest request = new UserRequest(userName);
     request.setPassword("password");
-
     controller.createUsers(new HashSet<>(Collections.singleton(request)));
   }
 

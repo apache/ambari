@@ -79,6 +79,10 @@
           "https_default_port": "8090",
           "regex": "\\w*:(\\d+)",
           "site": "mapred-site"
+        },
+        "host":{
+          "http_property": "fs.defaultFS",
+          "site": "core-site"
         }
       }
     ]

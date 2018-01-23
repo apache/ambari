@@ -21,6 +21,7 @@ import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 
 import com.google.inject.AbstractModule;
 
@@ -35,7 +36,7 @@ public class AuthorizationTestModule extends AbstractModule {
     properties.setProperty(Configuration.OS_VERSION.getKey(),"centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
     //make ambari detect active configuration
-    properties.setProperty(Configuration.LDAP_GROUP_BASE.getKey(), "ou=groups,dc=ambari,dc=apache,dc=org");
+    properties.setProperty(AmbariLdapConfigurationKeys.GROUP_BASE.key(), "ou=groups,dc=ambari,dc=apache,dc=org");
 
     try {
       install(new ControllerModule(properties));

@@ -20,6 +20,8 @@ package org.apache.ambari.logfeeder.metrics;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+
+import org.apache.ambari.logfeeder.plugin.common.MetricData;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;

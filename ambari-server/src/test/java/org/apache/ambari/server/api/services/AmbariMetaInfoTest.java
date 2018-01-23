@@ -1791,6 +1791,59 @@ public class AmbariMetaInfoTest {
     assertFalse(entity.getEnabled());
   }
 
+  /**
+   * Test scenario when service were removed and not mapped alerts need to be disabled
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertDefinitionMergingRemoveScenario() throws Exception {
+    final String repoVersion = "2.0.6-1234";
+    final String stackVersion = "2.0.6";
+
+    Injector injector = Guice.createInjector(Modules.override(
+      new InMemoryDefaultTestModule()).with(new MockModule()));
+
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(EntityManager.class);
+
+    OrmTestHelper ormHelper = injector.getInstance(OrmTestHelper.class);
+    long clusterId = ormHelper.createCluster("cluster" + System.currentTimeMillis());
+
+    Class<?> c = metaInfo.getClass().getSuperclass();
+
+    Field f = c.getDeclaredField("alertDefinitionDao");
+    f.setAccessible(true);
+    f.set(metaInfo, injector.getInstance(AlertDefinitionDAO.class));
+
+    f = c.getDeclaredField("ambariServiceAlertDefinitions");
+    f.setAccessible(true);
+    f.set(metaInfo, injector.getInstance(AmbariServiceAlertDefinitions.class));
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getClusterById(clusterId);
+    cluster.setDesiredStackVersion(
+      new StackId(STACK_NAME_HDP, stackVersion));
+
+    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
+      cluster.getCurrentStackVersion(), repoVersion);
+
+    cluster.addService("HDFS", repositoryVersion);
+
+    metaInfo.reconcileAlertDefinitions(clusters, false);
+
+    AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
+    List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
+    assertEquals(13, definitions.size());
+
+    cluster.deleteService("HDFS");
+    metaInfo.reconcileAlertDefinitions(clusters, false);
+    List<AlertDefinitionEntity> updatedDefinitions = dao.findAll(clusterId);
+    assertEquals(7, updatedDefinitions.size());
+  }
+
   @Test
   public void testKerberosDescriptor() throws Exception {
     ServiceInfo service;

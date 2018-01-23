@@ -16,9 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.ambari.logfeeder.input;
 
+import com.google.common.io.Files;
+import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
+import org.apache.ambari.logfeeder.common.ConfigHandler;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.nio.charset.Charset;
@@ -27,20 +36,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.logfeeder.common.ConfigHandler;
-import org.apache.ambari.logfeeder.conf.LogFeederProps;
-import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
-import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
-
-import com.google.common.io.Files;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 public class InputConfigUploader extends Thread {
-
   protected static final Logger LOG = LoggerFactory.getLogger(InputConfigUploader.class);
 
   private static final long SLEEP_BETWEEN_CHECK = 2000;
@@ -73,7 +69,7 @@ public class InputConfigUploader extends Thread {
     this.start();
     config.monitorInputConfigChanges(configHandler, logLevelFilterHandler, logFeederProps.getClusterName());
   }
-  
+
   @Override
   public void run() {
     while (true) {
@@ -98,7 +94,7 @@ public class InputConfigUploader extends Thread {
       } else {
         LOG.warn("Cannot find input config files in config dir ({})", logFeederProps.getConfDir());
       }
-      
+
       try {
         Thread.sleep(SLEEP_BETWEEN_CHECK);
       } catch (InterruptedException e) {

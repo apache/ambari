@@ -18,6 +18,15 @@
 
 
 
+/**
+ * When this css rule is loaded by the browser, all html elements (including their children)
+ * that are tagged with the ngCloak directive are hidden. When AngularJS encounters this directive
+ * during the compilation of the template it deletes the ngCloak element attribute, making the compiled element visible.
+ */
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  display: none !important;
+}
+
 /*
   ------ START editable-list DIRECTIVE SECTION ------ -
 */

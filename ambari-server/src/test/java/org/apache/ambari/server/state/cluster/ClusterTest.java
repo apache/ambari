@@ -1203,6 +1203,7 @@ public class ClusterTest {
   @Test
   public void testServiceConfigVersions() throws Exception {
     createDefaultCluster();
+    c1.addService("HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
@@ -1261,6 +1262,7 @@ public class ClusterTest {
   @Test
   public void testSingleServiceVersionForMultipleConfigs() throws Exception {
     createDefaultCluster();
+    c1.addService("HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<>());
@@ -1383,6 +1385,7 @@ public class ClusterTest {
   public void testAllServiceConfigVersionsWithConfigGroups() throws Exception {
     // Given
     createDefaultCluster();
+    c1.addService("HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
         ImmutableMap.of("p1", "v1"), ImmutableMap.of());
@@ -1442,6 +1445,7 @@ public class ClusterTest {
   public void testAllServiceConfigVersionsWithDeletedConfigGroups() throws Exception {
     // Given
     createDefaultCluster();
+    c1.addService("HDFS", helper.getOrCreateRepositoryVersion(new StackId("HDP", "0.1"), "0.1"));
 
     Config hdfsSiteConfigV1 = configFactory.createNew(c1, "hdfs-site", "version1",
         ImmutableMap.of("p1", "v1"), ImmutableMap.of());
