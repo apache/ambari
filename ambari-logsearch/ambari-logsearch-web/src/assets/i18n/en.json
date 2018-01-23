@@ -4,11 +4,13 @@
   "common.auditLogs": "Audit Logs",
   "common.summary": "Summary",
   "common.logs": "Logs",
+  "common.settings": "Settings",
 
   "modal.submit": "OK",
   "modal.cancel": "Cancel",
   "modal.apply": "Apply",
   "modal.close": "Close",
+  "modal.save": "Save",
 
   "authorization.logout": "Logout",
   "authorization.name": "Username",
@@ -20,6 +22,7 @@
   "topMenu.redo": "Redo",
   "topMenu.refresh": "Refresh",
   "topMenu.history": "History",
+  "topMenu.filter": "Filter",
 
   "filter.all": "All",
 
@@ -178,5 +181,14 @@
   "histogram.gap.day": "day",
   "histogram.gap.days": "days",
   "histogram.gap.week": "week",
-  "histogram.gap.weeks": "weeks"
+  "histogram.gap.weeks": "weeks",
+
+  "logIndexFilter.title": "Log Index Filter",
+  "logIndexFilter.caption": "For each cluster, choose the components, hosts and log levels that will be indexed in the log feeder",
+  "logIndexFilter.select": "Select",
+  "logIndexFilter.selectCluster": "Select Cluster",
+  "logIndexFilter.override": "Override Hosts",
+  "logIndexFilter.addHosts": "Add Hosts",
+  "logIndexFilter.hostname": "Hostname",
+  "logIndexFilter.expiryDate": "Expiry Date"
 }
