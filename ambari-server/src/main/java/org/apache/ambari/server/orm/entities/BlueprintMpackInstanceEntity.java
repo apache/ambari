@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.entities;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,15 +35,18 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 /**
- * Entity referencing a management pack from the blueprint. The reference contains the name and
+ * Entity to encapsulate a blueprint's use of an mpack. It contains the mpack name, version, url
+ *
+ *
+ * referencing a management pack from the blueprint. The reference contains the name and
  * the version of the mpack, but no direct database reference to the mpack entity as a blueprint
  * can be saved without the referenced mpack being present.
  */
 @Entity
-@Table(name = "blueprint_mpack_reference")
-@TableGenerator(name = "blueprint_mpack_reference_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name",
-  valueColumnName = "sequence_value", pkColumnValue = "blueprint_mpack_ref_id_seq", initialValue = 1)
-public class BlueprintMpackReferenceEntity {
+@Table(name = "blueprint_mpack_instance")
+@TableGenerator(name = "blueprint_mpack_instance_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name",
+  valueColumnName = "sequence_value", pkColumnValue = "blueprint_mpack_instance_id_seq", initialValue = 1)
+public class BlueprintMpackInstanceEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "blueprint_mpack_reference_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
@@ -63,6 +67,9 @@ public class BlueprintMpackReferenceEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackReference")
   private Collection<BlueprintMpackConfigEntity> configurations = new ArrayList<>();
 
+  @ManyToOne
+  @JoinColumn(name = "mpack_id", referencedColumnName = "id", nullable = true)
+  private MpackEntity mpackEntity;
 
   @ManyToOne
   @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
@@ -164,5 +171,20 @@ public class BlueprintMpackReferenceEntity {
    */
   public void setConfigurations(Collection<BlueprintMpackConfigEntity> configurations) {
     this.configurations = configurations;
+  }
+
+  /**
+   * @return the management pack entity associated with this blueprint. Can be {@null}
+   */
+  @Nullable
+  public MpackEntity getMpackEntity() {
+    return mpackEntity;
+  }
+
+  /**
+   * @param mpackEntity the management pack entity to be associated with this blueprint.
+   */
+  public void setMpackEntity(MpackEntity mpackEntity) {
+    this.mpackEntity = mpackEntity;
   }
 }

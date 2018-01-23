@@ -47,7 +47,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -365,7 +365,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
 
         // TODO: use multiple mpacks
-        BlueprintMpackReferenceEntity mpack =
+        BlueprintMpackInstanceEntity mpack =
           ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackReferences().iterator().next();
         StackInfo metaInfoStack;
 

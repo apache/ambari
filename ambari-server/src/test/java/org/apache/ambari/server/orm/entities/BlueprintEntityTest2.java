@@ -84,7 +84,7 @@ public class BlueprintEntityTest2 {
   private void verifyBlueprint(BlueprintEntity blueprintEntity) {
     assertEquals(1, blueprintEntity.getMpackReferences().size());
 
-    BlueprintMpackReferenceEntity mpackReferenceEntity =
+    BlueprintMpackInstanceEntity mpackReferenceEntity =
       blueprintEntity.getMpackReferences().iterator().next();
     assertEquals("HDPCORE", mpackReferenceEntity.getMpackName());
     assertEquals(1, mpackReferenceEntity.getConfigurations().size());
@@ -124,7 +124,7 @@ public class BlueprintEntityTest2 {
     blueprintEntity.setBlueprintName(BLUEPRINT_NAME);
     blueprintEntity.setSecurityType(SecurityType.NONE);
 
-    BlueprintMpackReferenceEntity mpackReferenceEntity = new BlueprintMpackReferenceEntity();
+    BlueprintMpackInstanceEntity mpackReferenceEntity = new BlueprintMpackInstanceEntity();
     mpackReferenceEntity.setBlueprint(blueprintEntity);
     mpackReferenceEntity.setMpackName("HDPCORE");
     mpackReferenceEntity.setMpackVersion("3.0.0.0");

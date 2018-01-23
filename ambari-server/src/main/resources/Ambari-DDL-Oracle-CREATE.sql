@@ -586,14 +586,16 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR2(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
 
-CREATE TABLE blueprint_mpack_reference(
+CREATE TABLE blueprint_mpack_instance(
   id NUMBER(19) NOT NULL,
   blueprint_name VARCHAR2(255) NOT NULL,
   mpack_name VARCHAR2(255) NOT NULL,
   mpack_version VARCHAR2(255) NOT NULL,
   mpack_uri VARCHAR2(255) NOT NULL,
-  CONSTRAINT PK_blueprint_mpack_ref PRIMARY KEY (id),
-  CONSTRAINT FK_mpr_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
+  mpack_id NUMBER(19),
+  CONSTRAINT PK_blueprint_mpack_inst PRIMARY KEY (id),
+  CONSTRAINT FK_mpi_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name),
+  CONSTRAINT FK_mpi_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks(id));
 
 CREATE TABLE blueprint_service (
   id NUMBER(19) NOT NULL,
@@ -1236,7 +1238,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_clus
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_version_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentdesiredstate_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_service_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_mpack_ref_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_mpack_instance_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostgroup_component_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariSchemaVersion}');

@@ -57,7 +57,7 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
 
   @ManyToOne
   @JoinColumn(name = "mpack_ref_id", referencedColumnName = "id", nullable = false)
-  private BlueprintMpackReferenceEntity mpackReference;
+  private BlueprintMpackInstanceEntity mpackReference;
 
   /**
    * @return the id of the mpack referency entity this configuration belongs to
@@ -136,14 +136,14 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   /**
    * @return the mpack referency entity this configuration belongs to
    */
-  public BlueprintMpackReferenceEntity getMpackReference() {
+  public BlueprintMpackInstanceEntity getMpackReference() {
     return mpackReference;
   }
 
   /**
    * @param mpackReference the mpack referency entity this configuration belongs to
    */
-  public void setMpackReference(BlueprintMpackReferenceEntity mpackReference) {
+  public void setMpackReference(BlueprintMpackInstanceEntity mpackReference) {
     this.mpackReference = mpackReference;
   }
 }

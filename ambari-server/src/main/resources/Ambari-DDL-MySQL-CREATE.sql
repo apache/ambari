@@ -606,14 +606,17 @@ CREATE TABLE blueprint (
   security_descriptor_reference VARCHAR(255),
   CONSTRAINT PK_blueprint PRIMARY KEY (blueprint_name));
 
-CREATE TABLE blueprint_mpack_reference(
+CREATE TABLE blueprint_mpack_instance(
   id BIGINT NOT NULL,
   blueprint_name VARCHAR(255) NOT NULL,
   mpack_name VARCHAR(255) NOT NULL,
   mpack_version VARCHAR(255) NOT NULL,
   mpack_uri VARCHAR(255) NOT NULL,
-  CONSTRAINT PK_blueprint_mpack_ref PRIMARY KEY (id),
-  CONSTRAINT FK_mpr_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name));
+  mpack_id BIGINT,
+  CONSTRAINT PK_blueprint_mpack_inst PRIMARY KEY (id),
+  CONSTRAINT FK_mpi_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name),
+  CONSTRAINT FK_mpi_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks(id));
+
 
 CREATE TABLE blueprint_service (
   id BIGINT NOT NULL,
@@ -1258,7 +1261,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('servicecomponent_version_id_seq', 0),
   ('hostcomponentdesiredstate_id_seq', 0),
   ('blueprint_service_id_seq', 0),
-  ('blueprint_mpack_ref_id_seq', 0),
+  ('blueprint_mpack_instance_id_seq', 0),
   ('hostgroup_component_id_seq', 0);
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name) VALUES

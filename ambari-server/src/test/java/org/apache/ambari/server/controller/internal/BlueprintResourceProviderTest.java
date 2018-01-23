@@ -65,7 +65,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -825,7 +825,7 @@ public class BlueprintResourceProviderTest {
     String stackName = (String) properties.get(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID);
     String stackVersion = (String) properties.get(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID);
 
-    BlueprintMpackReferenceEntity mpackEntity = new BlueprintMpackReferenceEntity();
+    BlueprintMpackInstanceEntity mpackEntity = new BlueprintMpackInstanceEntity();
     mpackEntity.setMpackName(stackName);
     mpackEntity.setMpackVersion(stackVersion);
     mpackEntity.setBlueprint(entity);
@@ -1043,7 +1043,7 @@ public class BlueprintResourceProviderTest {
     expect(info.getConfigPropertiesTypes("type3")).andReturn(pwdProperties).anyTimes();
     expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
 
-    BlueprintMpackReferenceEntity mpackReference = createMock(BlueprintMpackReferenceEntity.class);
+    BlueprintMpackInstanceEntity mpackReference = createMock(BlueprintMpackInstanceEntity.class);
     expect(mpackReference.getMpackName()).andReturn("test-stack-name").anyTimes();
     expect(mpackReference.getMpackVersion()).andReturn("test-stack-version").anyTimes();
     expect(entity.getMpackReferences()).andReturn(Collections.singleton(mpackReference)).anyTimes();
