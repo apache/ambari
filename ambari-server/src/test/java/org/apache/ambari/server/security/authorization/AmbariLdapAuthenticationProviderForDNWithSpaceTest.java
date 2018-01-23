@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
@@ -30,7 +31,9 @@ import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
 import org.apache.directory.server.core.annotations.ApplyLdifFiles;
@@ -108,9 +111,25 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
   }
 
   @Test
-  public void testAuthenticate() throws Exception {
-    assertNull("User alread exists in DB", userDAO.findLdapUserByName("the allowedUser"));
-    users.createUser("the allowedUser", "password", UserType.LDAP, true, false);
+  public void testAuthenticateMatchingDN() throws Exception {
+    testAuthenticate("uid=the allowedUser,ou=the people,dc=ambari,dc=the apache,dc=org");
+  }
+
+  @Test
+  public void testAuthenticateNullDN() throws Exception {
+    testAuthenticate(null);
+  }
+
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
+  public void testAuthenticateNonMatchingDN() throws Exception {
+    testAuthenticate("This is not a matching DN");
+  }
+
+  private void testAuthenticate(String dn) throws AmbariException {
+    assertNull("User already exists in DB", userDAO.findUserByName("the allowedUser"));
+    UserEntity userEntity = users.createUser("the allowedUser", null, null);
+    users.addLdapAuthentication(userEntity, dn);
+
     Authentication authentication = new UsernamePasswordAuthenticationToken("the allowedUser", "password");
     Authentication result = authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());

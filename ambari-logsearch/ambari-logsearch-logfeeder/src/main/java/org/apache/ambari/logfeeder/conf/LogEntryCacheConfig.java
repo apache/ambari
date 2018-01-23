@@ -64,7 +64,7 @@ public class LogEntryCacheConfig {
     sources = {LogFeederConstants.LOGFEEDER_PROPERTIES_FILE}
   )
   @Value("${" + LogFeederConstants.CACHE_LAST_DEDUP_ENABLED_PROPERTY + ":" + LogFeederConstants.DEFAULT_CACHE_LAST_DEDUP_ENABLED + "}")
-  private Boolean cacheLastDedupEnabled;
+  private boolean cacheLastDedupEnabled;
 
   @LogSearchPropertyDescription(
     name = LogFeederConstants.CACHE_DEDUP_INTERVAL_PROPERTY,
@@ -101,7 +101,7 @@ public class LogEntryCacheConfig {
   }
 
   public boolean isCacheLastDedupEnabled() {
-    return cacheLastDedupEnabled;
+    return this.cacheLastDedupEnabled;
   }
 
   public void setCacheLastDedupEnabled(boolean cacheLastDedupEnabled) {

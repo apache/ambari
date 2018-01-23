@@ -152,7 +152,9 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case Task:
         return new TaskResourceProvider(managementController);
       case User:
-        return new UserResourceProvider(managementController);
+        return resourceProviderFactory.getUserResourceProvider(managementController);
+      case UserAuthenticationSource:
+        return resourceProviderFactory.getUserAuthenticationSourceResourceProvider();
       case Group:
         return new GroupResourceProvider(managementController);
       case Member:

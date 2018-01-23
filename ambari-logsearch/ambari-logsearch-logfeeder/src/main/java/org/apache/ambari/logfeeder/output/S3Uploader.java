@@ -22,7 +22,6 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.google.common.annotations.VisibleForTesting;
-
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.util.CompressionUtil;
 import org.apache.ambari.logfeeder.util.S3Util;

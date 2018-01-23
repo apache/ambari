@@ -19,14 +19,16 @@
 package org.apache.ambari.logfeeder.conf;
 
 import com.google.common.collect.Maps;
-import org.apache.ambari.logfeeder.common.ConfigHandler;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
-import org.apache.ambari.logfeeder.input.InputManager;
+import org.apache.ambari.logfeeder.input.InputManagerImpl;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
+import org.apache.ambari.logfeeder.common.ConfigHandler;
 import org.apache.ambari.logfeeder.metrics.MetricsManager;
 import org.apache.ambari.logfeeder.metrics.StatsLogger;
-import org.apache.ambari.logfeeder.output.OutputManager;
+import org.apache.ambari.logfeeder.output.OutputManagerImpl;
+import org.apache.ambari.logfeeder.plugin.manager.InputManager;
+import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigFactory;
 import org.apache.ambari.logsearch.config.api.LogSearchConfigLogFeeder;
 import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigLogFeederZK;
@@ -95,13 +97,14 @@ public class ApplicationConfig {
     return new StatsLogger();
   }
 
+
   @Bean
   public InputManager inputManager() {
-    return new InputManager();
+    return new InputManagerImpl();
   }
 
   @Bean
   public OutputManager outputManager() {
-    return new OutputManager();
+    return new OutputManagerImpl();
   }
 }

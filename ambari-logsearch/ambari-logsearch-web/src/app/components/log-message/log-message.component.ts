@@ -51,6 +51,12 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
   listenChangesOn: any;
 
   /**
+   * This will be shown as log message in the component
+   */
+  @Input()
+  message: string;
+
+  /**
    * This is a private flag to check if it should display the caret or not, it depends on the size of the size of
    * the content container element. Handled by the @checkAddCaret method
    * @type {boolean}
@@ -58,11 +64,20 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
   private addCaret: boolean = false;
 
   /**
+   * This is a regexp tester to check if the log message is multiline text or single line. Doing by checking the new
+   * line characters.
+   * @type {RegExp}
+   */
+  private readonly multiLineTestRegexp = /\r?\n|\r/;
+
+  /**
    * This is a primary check if the message content does contain new line (/n) characters. If so than we display the
    * caret to give a possibility to the user to see the message as it is (pre-wrapped).
    * @type {boolean}
    */
-  private isMultiLineMessage: boolean = false;
+  private get isMultiLineMessage(): boolean {
+    return this.multiLineTestRegexp.test(this.message);
+  }
 
   constructor(private cdRef:ChangeDetectorRef) {}
 
@@ -82,9 +97,6 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    * The goal is to perform a initial caret display check when the component has been initialized.
    */
   ngAfterViewInit(): void {
-    let text = this.content.nativeElement.textContent;
-    let newLinePos = text.indexOf('\n');
-    this.isMultiLineMessage = ((text.length - 1) > newLinePos) && (newLinePos > 0);
     this.checkAddCaret();
   }
 
@@ -95,7 +107,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    */
   @HostListener('window:resize', ['$event'])
   onWindowResize = (): void => {
-    this.isMultiLineMessage || this.checkAddCaret();
+    this.checkAddCaret();
   };
 
   /**
@@ -104,7 +116,7 @@ export class LogMessageComponent implements AfterViewInit, OnChanges {
    */
   checkAddCaret = (): void =>  {
     let el = this.content.nativeElement;
-    this.addCaret = this.isMultiLineMessage || (el.scrollHeight > el.clientHeight);
+    this.addCaret = this.isMultiLineMessage || (el.scrollHeight > el.clientHeight) || (el.scrollWidth > el.clientWidth);
     this.cdRef.detectChanges();
   };
 

@@ -1,6 +1,6 @@
 package org.apache.ambari.infra.job;
 
-import org.apache.ambari.infra.job.archive.DocumentExportProperties;
+import org.apache.ambari.infra.job.archive.DocumentArchivingProperties;
 import org.apache.ambari.infra.job.archive.SolrProperties;
 import org.junit.Test;
 
@@ -28,26 +28,26 @@ import static org.junit.Assert.assertThat;
 public class JobPropertiesTest {
   @Test
   public void testDeepCopy() throws Exception {
-    DocumentExportProperties documentExportProperties = new DocumentExportProperties();
-    documentExportProperties.setLocalDestinationDirectory("/tmp");
-    documentExportProperties.setFileNameSuffixColumn(".json");
-    documentExportProperties.setReadBlockSize(10);
-    documentExportProperties.setWriteBlockSize(20);
+    DocumentArchivingProperties documentArchivingProperties = new DocumentArchivingProperties();
+    documentArchivingProperties.setLocalDestinationDirectory("/tmp");
+    documentArchivingProperties.setFileNameSuffixColumn(".json");
+    documentArchivingProperties.setReadBlockSize(10);
+    documentArchivingProperties.setWriteBlockSize(20);
     SolrProperties solr = new SolrProperties();
     solr.setZooKeeperConnectionString("localhost:2181");
     solr.setFilterQueryText("id:1167");
     solr.setQueryText("name:'Joe'");
     solr.setCollection("Users");
     solr.setSortColumn(new String[] {"name"});
-    documentExportProperties.setSolr(solr);
+    documentArchivingProperties.setSolr(solr);
 
-    DocumentExportProperties parsed = documentExportProperties.deepCopy();
+    DocumentArchivingProperties parsed = documentArchivingProperties.deepCopy();
 
-    assertThat(parsed.getLocalDestinationDirectory(), is(documentExportProperties.getLocalDestinationDirectory()));
-    assertThat(parsed.getFileNameSuffixColumn(), is(documentExportProperties.getFileNameSuffixColumn()));
-    assertThat(parsed.getReadBlockSize(), is(documentExportProperties.getReadBlockSize()));
-    assertThat(parsed.getWriteBlockSize(), is(documentExportProperties.getWriteBlockSize()));
-    assertThat(parsed.getSolr().getZooKeeperConnectionString(), is(documentExportProperties.getSolr().getZooKeeperConnectionString()));
+    assertThat(parsed.getLocalDestinationDirectory(), is(documentArchivingProperties.getLocalDestinationDirectory()));
+    assertThat(parsed.getFileNameSuffixColumn(), is(documentArchivingProperties.getFileNameSuffixColumn()));
+    assertThat(parsed.getReadBlockSize(), is(documentArchivingProperties.getReadBlockSize()));
+    assertThat(parsed.getWriteBlockSize(), is(documentArchivingProperties.getWriteBlockSize()));
+    assertThat(parsed.getSolr().getZooKeeperConnectionString(), is(documentArchivingProperties.getSolr().getZooKeeperConnectionString()));
     assertThat(parsed.getSolr().getQueryText(), is(solr.getQueryText()));
     assertThat(parsed.getSolr().getFilterQueryText(), is(solr.getFilterQueryText()));
     assertThat(parsed.getSolr().getCollection(), is(solr.getCollection()));

@@ -18,15 +18,18 @@
  */
 package org.apache.ambari.logfeeder.output;
 
-import java.io.File;
-
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.output.Output;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.log4j.Logger;
+
+import java.io.File;
 
 /**
  * Output that just ignore the logs
  */
-public class OutputDevNull extends Output {
+public class OutputDevNull extends Output<LogFeederProps, InputMarker> {
 
   private static final Logger LOG = Logger.getLogger(OutputDevNull.class);
 
@@ -36,7 +39,44 @@ public class OutputDevNull extends Output {
   }
 
   @Override
+  public Long getPendingCount() {
+    return 0L;
+  }
+
+  @Override
+  public String getWriteBytesMetricName() {
+    return "write:devnull";
+  }
+
+  @Override
+  public String getOutputType() {
+    return "devnull";
+  }
+
+  @Override
+  public void outputConfigChanged(OutputProperties outputProperties) {
+  }
+
+  @Override
+  public void close() {
+  }
+
+  @Override
   public void copyFile(File inputFile, InputMarker inputMarker) {
     throw new UnsupportedOperationException("copyFile method is not yet supported for output=dev_null");
+  }
+
+  @Override
+  public void init(LogFeederProps LogFeederProps) throws Exception {
+  }
+
+  @Override
+  public String getShortDescription() {
+    return "write:devnull";
+  }
+
+  @Override
+  public String getStatMetricName() {
+    return "write:devnull";
   }
 }

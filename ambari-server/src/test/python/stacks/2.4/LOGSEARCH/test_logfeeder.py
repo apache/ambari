@@ -127,6 +127,6 @@ class TestLogFeeder(RMFTestCase):
                        )
 
     self.configureResourcesCalled()
-    self.assertResourceCalled('Execute', ('/usr/lib/ambari-logsearch-logfeeder/bin/logfeeder.sh start',),
+    self.assertResourceCalled('Execute', ('/usr/lib/ambari-logsearch-logfeeder/bin/logfeeder.sh', "start"),
                               sudo=True
                               )
