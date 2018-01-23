@@ -246,6 +246,8 @@ public class AmbariContextTest {
     expect(blueprint.getServices()).andReturn(blueprintServices).anyTimes();
     expect(blueprint.getComponents("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();
     expect(blueprint.getComponents("service2")).andReturn(Collections.singleton("s2Component1")).anyTimes();
+    expect(blueprint.getStackIdsForService("service1")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
+    expect(blueprint.getStackIdsForService("service2")).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
     expect(blueprint.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
 

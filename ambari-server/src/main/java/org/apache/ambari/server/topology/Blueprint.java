@@ -159,20 +159,6 @@ public interface Blueprint {
   SecurityConfiguration getSecurity();
 
   /**
-   * Validate the blueprint topology.
-   *
-   * @throws InvalidTopologyException if the topology is invalid
-   */
-  void validateTopology() throws InvalidTopologyException;
-
-  /**
-   * Validate that the blueprint contains all of the required properties.
-   *
-   * @throws InvalidTopologyException if the blueprint doesn't contain all required properties
-   */
-  void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException;
-
-  /**
    * A config type is valid if there are services related to except cluster-env and global.
    */
   boolean isValidConfigType(String configType);

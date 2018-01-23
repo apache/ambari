@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -55,6 +57,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.BlueprintValidator;
 import org.apache.ambari.server.topology.GPLLicenseNotAcceptedException;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
@@ -66,8 +69,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
+import com.google.inject.assistedinject.Assisted;
 
 
 /**
@@ -76,21 +81,19 @@ import com.google.gson.Gson;
 public class BlueprintResourceProvider extends AbstractControllerResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(BlueprintResourceProvider.class);
+  public static final String NAME = "blueprint";
 
   // ----- Property ID constants ---------------------------------------------
 
-  // Blueprints
-  public static final String BLUEPRINT_NAME_PROPERTY_ID =
-      PropertyHelper.getPropertyId("Blueprints", "blueprint_name");
-  public static final String STACK_NAME_PROPERTY_ID =
-      PropertyHelper.getPropertyId("Blueprints", "stack_name");
-  public static final String STACK_VERSION_PROPERTY_ID =
-      PropertyHelper.getPropertyId("Blueprints", "stack_version");
-
-  public static final String BLUEPRINT_SECURITY_PROPERTY_ID =
-    PropertyHelper.getPropertyId("Blueprints", "security");
-
+  public static final String RESPONSE_KEY = "Blueprints";
   public static final String BLUEPRINTS_PROPERTY_ID = "Blueprints";
+
+
+  // Blueprints
+  public static final String BLUEPRINT_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "blueprint_name";
+  public static final String STACK_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_name";
+  public static final String STACK_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "stack_version";
+  public static final String BLUEPRINT_SECURITY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "security";
 
   // Host Groups
   public static final String HOST_GROUP_PROPERTY_ID = "host_groups";
@@ -108,8 +111,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   // Setting
   public static final String SETTING_PROPERTY_ID = "settings";
 
+  public static final String VALIDATE_TOPOLOGY_PROPERTY_ID = "validate_topology";
   public static final String PROPERTIES_PROPERTY_ID = "properties";
   public static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
+
   public static final String SCHEMA_IS_NOT_SUPPORTED_MESSAGE =
     "Configuration format provided in Blueprint is not supported";
   public static final String REQUEST_BODY_EMPTY_ERROR_MESSAGE =
@@ -124,21 +129,24 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   /**
    * The key property ids for a Blueprint resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
-      .put(Resource.Type.Blueprint, BLUEPRINT_NAME_PROPERTY_ID)
-      .build();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = ImmutableMap.of(Resource.Type.Blueprint, BLUEPRINT_NAME_PROPERTY_ID);
+  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.copyOf(KEY_PROPERTY_IDS.values());
 
   /**
    * The property ids for a Blueprint resource.
    */
-  private static Set<String> propertyIds = Sets.newHashSet(
-      BLUEPRINT_NAME_PROPERTY_ID,
-      STACK_NAME_PROPERTY_ID,
-      STACK_VERSION_PROPERTY_ID,
-      BLUEPRINT_SECURITY_PROPERTY_ID,
-      HOST_GROUP_PROPERTY_ID,
-      CONFIGURATION_PROPERTY_ID,
-      SETTING_PROPERTY_ID);
+  private static final Set<String> PROPERTY_IDS = ImmutableSet.of(
+    BLUEPRINT_NAME_PROPERTY_ID,
+    STACK_NAME_PROPERTY_ID,
+    STACK_VERSION_PROPERTY_ID,
+    BLUEPRINT_SECURITY_PROPERTY_ID,
+    HOST_GROUP_PROPERTY_ID,
+    HOST_GROUP_PROPERTY_ID + PropertyHelper.EXTERNAL_PATH_SEP + COMPONENT_PROPERTY_ID,
+    HOST_GROUP_PROPERTY_ID + PropertyHelper.EXTERNAL_PATH_SEP + HOST_GROUP_CARDINALITY_PROPERTY_ID,
+    CONFIGURATION_PROPERTY_ID,
+    VALIDATE_TOPOLOGY_PROPERTY_ID,
+    SETTING_PROPERTY_ID
+  );
 
   /**
    * Used to create Blueprint instances
@@ -160,6 +168,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    */
   private static Gson jsonSerializer;
 
+  private BlueprintValidator validator;
+
   // ----- Constructors ----------------------------------------------------
 
   /**
@@ -167,8 +177,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    *
    * @param controller      management controller
    */
-  BlueprintResourceProvider(AmbariManagementController controller) {
-    super(Resource.Type.Blueprint, propertyIds, keyPropertyIds, controller);
+  @Inject
+  BlueprintResourceProvider(BlueprintValidator validator,
+                            @Assisted AmbariManagementController controller) {
+    super(Resource.Type.Blueprint, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    this.validator = validator;
   }
 
   /**
@@ -191,7 +204,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<>(keyPropertyIds.values());
+    return PK_PROPERTY_IDS;
   }
 
   @Override
@@ -530,15 +543,15 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
         }
 
         try {
-          blueprint.validateRequiredProperties();
+          validator.validateRequiredProperties(blueprint);
         } catch (InvalidTopologyException | GPLLicenseNotAcceptedException e) {
           throw new IllegalArgumentException("Blueprint configuration validation failed: " + e.getMessage(), e);
         }
 
-        String validateTopology =  requestInfoProps.get("validate_topology");
+        String validateTopology =  requestInfoProps.get(VALIDATE_TOPOLOGY_PROPERTY_ID);
         if (validateTopology == null || ! validateTopology.equalsIgnoreCase("false")) {
           try {
-            blueprint.validateTopology();
+            validator.validateTopology(blueprint);
           } catch (InvalidTopologyException e) {
             throw new IllegalArgumentException(e.getMessage());
           }

@@ -55,7 +55,6 @@ public class BlueprintImpl implements Blueprint {
 
   private final Set<StackId> stackIds;
   private Configuration configuration;
-  private BlueprintValidator validator;
   private SecurityConfiguration security;
   private Setting setting;
   private List<RepositorySetting> repoSettings;
@@ -74,7 +73,6 @@ public class BlueprintImpl implements Blueprint {
     processConfiguration(entity.getConfigurations());
     parseBlueprintHostGroups(entity);
     configuration.setParentConfiguration(stack.getConfiguration(getServices()));
-    validator = new BlueprintValidatorImpl(this);
     processSetting(entity.getSettings());
     processRepoSettings();
   }
@@ -95,7 +93,6 @@ public class BlueprintImpl implements Blueprint {
     if (configuration.getParentConfiguration() == null) {
       configuration.setParentConfiguration(stack.getConfiguration(getServices()));
     }
-    validator = new BlueprintValidatorImpl(this);
     this.setting = setting;
   }
 
@@ -314,11 +311,6 @@ public class BlueprintImpl implements Blueprint {
     return resultGroups;
   }
 
-  @Override
-  public void validateTopology() throws InvalidTopologyException {
-    validator.validateTopology();
-  }
-
   public BlueprintEntity toEntity() {
 
     BlueprintEntity entity = new BlueprintEntity();
@@ -337,17 +329,6 @@ public class BlueprintImpl implements Blueprint {
     createBlueprintSettingEntities(entity);
 
     return entity;
-  }
-
-  /**
-   * Validate blueprint configuration.
-   *
-   * @throws InvalidTopologyException if the blueprint configuration is invalid
-   * @throws GPLLicenseNotAcceptedException ambari was configured to use gpl software, but gpl license is not accepted
-   */
-  @Override
-  public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
-    validator.validateRequiredProperties();
   }
 
   private Map<String, HostGroup> parseBlueprintHostGroups(BlueprintEntity entity) {

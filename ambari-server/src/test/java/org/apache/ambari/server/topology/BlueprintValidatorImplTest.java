@@ -144,8 +144,8 @@ public class BlueprintValidatorImplTest {
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
 
     replay(blueprint, stack, group1, group2, dependency1);
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
+    BlueprintValidator validator = new BlueprintValidatorImpl(null);
+    validator.validateTopology(blueprint);
   }
 
   @Test(expected = InvalidTopologyException.class)
@@ -160,8 +160,8 @@ public class BlueprintValidatorImplTest {
     expect(blueprint.getHostGroupsForComponent("component2")).andReturn(Arrays.asList(group1, group2)).anyTimes();
 
     replay(blueprint, stack, group1, group2, dependency1);
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
+    BlueprintValidator validator = new BlueprintValidatorImpl(null);
+    validator.validateTopology(blueprint);
   }
 
   @Test
@@ -178,8 +178,8 @@ public class BlueprintValidatorImplTest {
     expect(group1.addComponent("component1")).andReturn(true).once();
 
     replay(blueprint, stack, group1, group2, dependency1);
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
+    BlueprintValidator validator = new BlueprintValidatorImpl(null);
+    validator.validateTopology(blueprint);
 
     verify(group1);
   }
@@ -216,64 +216,10 @@ public class BlueprintValidatorImplTest {
 
     replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
 
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
+    BlueprintValidator validator = new BlueprintValidatorImpl(null);
+    validator.validateTopology(blueprint);
 
     verify(group1);
-  }
-
-  @Test(expected=InvalidTopologyException.class)
-  public void testValidateRequiredProperties_SqlaInHiveStackHdp22() throws Exception {
-    Map<String, String> hiveEnvConfig = new HashMap<>();
-    hiveEnvConfig.put("hive_database","Existing SQL Anywhere Database");
-    configProperties.put("hive-env", hiveEnvConfig);
-
-    group1Components.add("HIVE_METASTORE");
-
-    services.addAll(Arrays.asList("HIVE"));
-
-    org.apache.ambari.server.configuration.Configuration serverConfig =
-        BlueprintImplTest.setupConfigurationWithGPLLicense(true);
-
-    Configuration config = new Configuration(new HashMap<>(), new HashMap<>());
-    expect(group1.getConfiguration()).andReturn(config).anyTimes();
-
-    expect(stack.getComponents("HIVE")).andReturn(Collections.singleton("HIVE_METASTORE")).anyTimes();
-    expect(stack.getVersion()).andReturn("2.2").once();
-    expect(stack.getName()).andReturn("HDP").once();
-
-    expect(blueprint.getHostGroupsForComponent("HIVE_METASTORE")).andReturn(Collections.singleton(group1)).anyTimes();
-
-    replay(blueprint, stack, group1, group2, dependency1, serverConfig);
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateRequiredProperties();
-  }
-
-  @Test(expected=InvalidTopologyException.class)
-  public void testValidateRequiredProperties_SqlaInOozieStackHdp22() throws Exception {
-    Map<String, String> hiveEnvConfig = new HashMap<>();
-    hiveEnvConfig.put("oozie_database","Existing SQL Anywhere Database");
-    configProperties.put("oozie-env", hiveEnvConfig);
-
-    group1Components.add("OOZIE_SERVER");
-
-    services.addAll(Arrays.asList("OOZIE"));
-
-    org.apache.ambari.server.configuration.Configuration serverConfig =
-        BlueprintImplTest.setupConfigurationWithGPLLicense(true);
-
-    Configuration config = new Configuration(new HashMap<>(), new HashMap<>());
-    expect(group1.getConfiguration()).andReturn(config).anyTimes();
-
-    expect(stack.getComponents("OOZIE")).andReturn(Collections.singleton("OOZIE_SERVER")).anyTimes();
-    expect(stack.getVersion()).andReturn("2.2").once();
-    expect(stack.getName()).andReturn("HDP").once();
-
-    expect(blueprint.getHostGroupsForComponent("OOZIE_SERVER")).andReturn(Collections.singleton(group1)).anyTimes();
-
-    replay(blueprint, stack, group1, group2, dependency1, serverConfig);
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateRequiredProperties();
   }
 
   @Test
@@ -315,8 +261,8 @@ public class BlueprintValidatorImplTest {
     replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
 
     // WHEN
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
+    BlueprintValidator validator = new BlueprintValidatorImpl(null);
+    validator.validateTopology(blueprint);
 
     // THEN
     verify(group1);
@@ -358,8 +304,8 @@ public class BlueprintValidatorImplTest {
     replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
 
     // WHEN
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
+    BlueprintValidator validator = new BlueprintValidatorImpl(null);
+    validator.validateTopology(blueprint);
 
     // THEN
     verify(group1);
@@ -420,8 +366,8 @@ public class BlueprintValidatorImplTest {
     replay(blueprint, stack, group1, group2, dependency1, dependency2, dependencyComponentInfo,dependencyConditionInfo1,dependencyConditionInfo2);
 
     // WHEN
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
+    BlueprintValidator validator = new BlueprintValidatorImpl(null);
+    validator.validateTopology(blueprint);
 
     // THEN
     verify(group1);

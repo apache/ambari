@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
@@ -40,33 +40,30 @@ import com.google.inject.Inject;
 /**
  * Default blueprint validator.
  */
-@StaticallyInject
 public class BlueprintValidatorImpl implements BlueprintValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BlueprintValidatorImpl.class);
-  private final Blueprint blueprint;
-  private final StackInfo stack;
 
   public static final String LZO_CODEC_CLASS_PROPERTY_NAME = "io.compression.codec.lzo.class";
   public static final String CODEC_CLASSES_PROPERTY_NAME = "io.compression.codecs";
   public static final String LZO_CODEC_CLASS = "com.hadoop.compression.lzo.LzoCodec";
 
-  @Inject
-  private static org.apache.ambari.server.configuration.Configuration configuration;
+  private final Configuration configuration;
 
-  public BlueprintValidatorImpl(Blueprint blueprint) {
-    this.blueprint = blueprint;
-    this.stack = blueprint.getStack();
+  @Inject
+  public BlueprintValidatorImpl(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   @Override
-  public void validateTopology() throws InvalidTopologyException {
+  public void validateTopology(Blueprint blueprint) throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
+    StackInfo stack = blueprint.getStack();
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
     Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
     for (HostGroup group : hostGroups) {
-      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
+      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(blueprint, stack, group);
       if (!missingGroupDependencies.isEmpty()) {
         missingDependencies.put(group.getName(), missingGroupDependencies);
       }
@@ -80,10 +77,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         Cardinality cardinality = stack.getCardinality(component);
         AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
         if (cardinality.isAll()) {
-          cardinalityFailures.addAll(verifyComponentInAllHostGroups(component, autoDeploy));
+          cardinalityFailures.addAll(verifyComponentInAllHostGroups(blueprint, component, autoDeploy));
         } else {
           cardinalityFailures.addAll(verifyComponentCardinalityCount(
-            component, cardinality, autoDeploy));
+            blueprint, stack, component, cardinality, autoDeploy));
         }
       }
     }
@@ -94,7 +91,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   }
 
   @Override
-  public void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException {
+  public void validateRequiredProperties(Blueprint blueprint) throws InvalidTopologyException, GPLLicenseNotAcceptedException {
 
     // we don't want to include default stack properties so we can't just use hostGroup full properties
     Map<String, Map<String, String>> clusterConfigurations = blueprint.getConfiguration().getProperties();
@@ -184,13 +181,14 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * Verify that a component is included in all host groups.
    * For components that are auto-install enabled, will add component to topology if needed.
    *
+   *
+   * @param blueprint
    * @param component   component to validate
    * @param autoDeploy  auto-deploy information for component
    *
    * @return collection of missing component information
    */
-  private Collection<String> verifyComponentInAllHostGroups(String component, AutoDeployInfo autoDeploy) {
-
+  private Collection<String> verifyComponentInAllHostGroups(Blueprint blueprint, String component, AutoDeployInfo autoDeploy) {
     Collection<String> cardinalityFailures = new HashSet<>();
     int actualCount = blueprint.getHostGroupsForComponent(component).size();
     Map<String, HostGroup> hostGroups = blueprint.getHostGroups();
@@ -206,7 +204,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     return cardinalityFailures;
   }
 
-  private Map<String, Collection<DependencyInfo>> validateHostGroup(HostGroup group) {
+  private Map<String, Collection<DependencyInfo>> validateHostGroup(Blueprint blueprint, StackInfo stack, HostGroup group) {
     LOGGER.info("Validating hostgroup: {}", group.getName());
     Map<String, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
 
@@ -251,7 +249,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         }
         if (dependencyScope.equals("cluster")) {
           Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
-              componentName, new Cardinality("1+"), autoDeployInfo);
+            blueprint, stack, componentName, new Cardinality("1+"), autoDeployInfo);
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
@@ -278,15 +276,15 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * Verify that a component meets cardinality requirements.  For components that are
    * auto-install enabled, will add component to topology if needed.
    *
+   *
+   * @param stack
    * @param component    component to validate
    * @param cardinality  required cardinality
    * @param autoDeploy   auto-deploy information for component
    *
    * @return collection of missing component information
    */
-  public Collection<String> verifyComponentCardinalityCount(String component,
-                                                            Cardinality cardinality,
-                                                            AutoDeployInfo autoDeploy) {
+  private Collection<String> verifyComponentCardinalityCount(Blueprint blueprint, StackInfo stack, String component, Cardinality cardinality, AutoDeployInfo autoDeploy) {
 
     Map<String, Map<String, String>> configProperties = blueprint.getConfiguration().getProperties();
     Collection<String> cardinalityFailures = new HashSet<>();
