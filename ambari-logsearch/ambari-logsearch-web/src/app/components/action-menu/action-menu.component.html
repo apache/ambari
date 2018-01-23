@@ -18,3 +18,12 @@
              [iconClass]="item.iconClass" [labelClass]="item.labelClass" [subItems]="item.subItems"
              [hideCaret]="item.hideCaret" [badge]="item.badge" [isRightAlign]="item.isRightAlign">
 </menu-button>
+<modal *ngIf="isLogIndexFilterDisplayed" (submit)="saveLogIndexFilter()" (cancel)="closeLogIndexFilter()"
+       (close)="closeLogIndexFilter()" [isExtraLargeModal]="true" title="{{'logIndexFilter.title' | translate}}"
+       submitButtonLabel="{{'modal.save' | translate}}">
+  <ng-template>
+    <form [formGroup]="settingsForm">
+      <log-index-filter formControlName="logIndexFilter"></log-index-filter>
+    </form>
+  </ng-template>
+</modal>

@@ -38,6 +38,7 @@ import {HttpClientService} from '@app/services/http-client.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
@@ -95,6 +96,7 @@ import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip
 import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
 import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
 import {ContextMenuComponent} from '@app/components/context-menu/context-menu.component';
+import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-index-filter.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -158,6 +160,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     GraphLegendItemComponent,
     TimeLineGraphComponent,
     ContextMenuComponent,
+    LogIndexFilterComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -185,6 +188,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     UtilsService,
     LogsContainerService,
     ComponentGeneratorService,
+    UserSettingsService,
     AppSettingsService,
     AppStateService,
     AuditLogsService,

@@ -17,7 +17,9 @@
  */
 
 import {Component} from '@angular/core';
+import {FormGroup} from '@angular/forms';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 
 @Component({
   selector: 'action-menu',
@@ -26,7 +28,7 @@ import {LogsContainerService} from '@app/services/logs-container.service';
 })
 export class ActionMenuComponent {
 
-  constructor(private logsContainer: LogsContainerService) {
+  constructor(private logsContainer: LogsContainerService, private settings: UserSettingsService) {
   }
 
   undo() {
@@ -36,6 +38,19 @@ export class ActionMenuComponent {
   }
 
   openHistory() {
+  }
+
+  openLogIndexFilter = (): void => {
+    this.isLogIndexFilterDisplayed = true;
+  };
+
+  closeLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = false;
+  }
+
+  saveLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = false;
+    this.settings.saveIndexFilterConfig();
   }
 
   refresh = (): void => {
@@ -109,10 +124,19 @@ export class ActionMenuComponent {
       ]
     },
     {
+      iconClass: 'fa fa-filter',
+      label: 'topMenu.filter',
+      onClick: this.openLogIndexFilter
+    },
+    {
       iconClass: 'fa fa-refresh',
       label: 'topMenu.refresh',
       onClick: this.refresh
     }
   ];
+
+  isLogIndexFilterDisplayed: boolean = false;
+
+  settingsForm: FormGroup = this.settings.settingsFormGroup;
 
 }

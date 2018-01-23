@@ -16,21 +16,24 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import * as $ from 'jquery';
 import '@vendor/js/WorldMapGenerator.min';
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 
 @Component({
   selector: 'timezone-picker',
   templateUrl: './timezone-picker.component.html',
   styleUrls: ['./timezone-picker.component.less']
 })
-export class TimeZonePickerComponent {
+export class TimeZonePickerComponent implements OnInit {
 
-  constructor(private appSettings: AppSettingsService, private actions: ComponentActionsService) {
-    appSettings.getParameter('timeZone').subscribe(value => this.timeZone = value);
+  constructor(private settingsStorage: AppSettingsService, private settingsService: UserSettingsService) {
+  }
+
+  ngOnInit() {
+    this.settingsStorage.getParameter('timeZone').subscribe((value: string) => this.timeZone = value);
   }
 
   readonly mapElementId = 'timezone-map';
@@ -70,7 +73,7 @@ export class TimeZonePickerComponent {
 
   setTimeZone(): void {
     const timeZone = this.timeZoneSelect.val();
-    this.actions.setTimeZone(timeZone);
+    this.settingsService.setTimeZone(timeZone);
     this.setTimeZonePickerDisplay(false);
   }
 

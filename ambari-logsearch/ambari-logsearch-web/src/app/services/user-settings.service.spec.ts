@@ -16,16 +16,18 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment-timezone';
-import {HomogeneousObject} from '@app/classes/object';
-import {Filter} from '@app/classes/models/filter';
+import {TestBed, inject} from '@angular/core/testing';
 
-export interface AppSettings {
-  timeZone: string;
-  logIndexFilters: HomogeneousObject<HomogeneousObject<Filter>>;
-}
+import {UserSettingsService} from './user-settings.service';
 
-export const defaultSettings: AppSettings = {
-  timeZone: moment.tz.guess(),
-  logIndexFilters: {}
-};
+describe('UserSettingsService', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [UserSettingsService]
+    });
+  });
+
+  it('should be created', inject([UserSettingsService], (service: UserSettingsService) => {
+    expect(service).toBeTruthy();
+  }));
+});

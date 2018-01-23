@@ -16,16 +16,28 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment-timezone';
-import {HomogeneousObject} from '@app/classes/object';
-import {Filter} from '@app/classes/models/filter';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-export interface AppSettings {
-  timeZone: string;
-  logIndexFilters: HomogeneousObject<HomogeneousObject<Filter>>;
-}
+import {LogIndexFilterComponent} from './log-index-filter.component';
 
-export const defaultSettings: AppSettings = {
-  timeZone: moment.tz.guess(),
-  logIndexFilters: {}
-};
+describe('LogIndexFilterComponent', () => {
+  let component: LogIndexFilterComponent;
+  let fixture: ComponentFixture<LogIndexFilterComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [LogIndexFilterComponent]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(LogIndexFilterComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+});

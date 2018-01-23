@@ -31,7 +31,7 @@ import {AuditLogField} from '@app/classes/models/audit-log-field';
 import {ServiceLogField} from '@app/classes/models/service-log-field';
 import {Tab} from '@app/classes/models/tab';
 
-export const storeActions = {
+const storeActions = {
   'ARRAY.ADD': 'ADD',
   'ARRAY.ADD.START': 'ADD_TO_START',
   'ARRAY.DELETE.PRIMITIVE': 'DELETE_PRIMITIVE',
@@ -144,9 +144,9 @@ export class ObjectModelService extends ModelService {
   }
 
   setParameter(key: string, value: any): void {
-    let payload = {};
-    payload[key] = value;
-    this.setParameters(payload);
+    this.setParameters({
+      [key]: value
+    });
   }
 
   setParameters(params: any): void {

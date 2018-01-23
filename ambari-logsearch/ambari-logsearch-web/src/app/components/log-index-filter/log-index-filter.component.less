@@ -16,16 +16,14 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment-timezone';
-import {HomogeneousObject} from '@app/classes/object';
-import {Filter} from '@app/classes/models/filter';
+@import '../mixins';
 
-export interface AppSettings {
-  timeZone: string;
-  logIndexFilters: HomogeneousObject<HomogeneousObject<Filter>>;
+table {
+  display: block;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  .overrides-toggle {
+    .clickable-item;
+  }
 }
-
-export const defaultSettings: AppSettings = {
-  timeZone: moment.tz.guess(),
-  logIndexFilters: {}
-};
