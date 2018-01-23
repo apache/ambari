@@ -64,6 +64,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 /**
@@ -107,8 +108,9 @@ public class ClusterConfigurationRequestTest {
   @Mock(type = MockType.NICE)
   private ConfigHelper configHelper;
 
-  private final String STACK_NAME = "testStack";
-  private final String STACK_VERSION = "1";
+  private static final String STACK_NAME = "testStack";
+  private static final String STACK_VERSION = "1";
+  private static final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
   private final Map<String, Map<String, String>> stackProperties = new HashMap<>();
   private final Map<String, String> defaultClusterEnvProperties = new HashMap<>();
 
@@ -235,7 +237,7 @@ public class ClusterConfigurationRequestTest {
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackId()).andReturn(new StackId(STACK_NAME, STACK_VERSION)).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getServiceForConfigType("testConfigType")).andReturn("KERBEROS").anyTimes();
@@ -279,7 +281,7 @@ public class ClusterConfigurationRequestTest {
       .emptyList()).anyTimes();
 
     expect(configHelper.getDefaultStackProperties(
-        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+        EasyMock.eq(STACK_ID))).andReturn(stackProperties).anyTimes();
 
     if (kerberosConfig == null) {
       kerberosConfig = new HashMap<>();
@@ -328,7 +330,7 @@ public class ClusterConfigurationRequestTest {
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackId()).andReturn(new StackId(STACK_NAME, STACK_VERSION)).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
     expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")).anyTimes();
@@ -365,7 +367,7 @@ public class ClusterConfigurationRequestTest {
       .emptyList()).anyTimes();
 
     expect(configHelper.getDefaultStackProperties(
-        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+        EasyMock.eq(STACK_ID))).andReturn(stackProperties).anyTimes();
 
     PowerMock.replay(stack, blueprint, topology, controller, clusters, ambariContext,
         AmbariContext.class, configHelper);
@@ -406,7 +408,7 @@ public class ClusterConfigurationRequestTest {
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
 
     expect(configHelper.getDefaultStackProperties(
-        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+        EasyMock.eq(STACK_ID))).andReturn(stackProperties).anyTimes();
 
     EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
     // WHEN
@@ -454,7 +456,7 @@ public class ClusterConfigurationRequestTest {
     expect(ambariContext.getConfigHelper()).andReturn(configHelper).anyTimes();
 
     expect(configHelper.getDefaultStackProperties(
-        EasyMock.eq(new StackId(STACK_NAME, STACK_VERSION)))).andReturn(stackProperties).anyTimes();
+        EasyMock.eq(STACK_ID))).andReturn(stackProperties).anyTimes();
 
     EasyMock.replay(stack, blueprint, topology, ambariContext, configHelper);
 

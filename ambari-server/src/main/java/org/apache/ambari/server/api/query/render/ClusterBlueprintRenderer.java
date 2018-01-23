@@ -69,6 +69,8 @@ import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Iterables;
+
 /**
  * Renderer which renders a cluster resource as a blueprint.
  */
@@ -196,9 +198,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    StackId stackId = topology.getBlueprint().getStackId();
-    blueprintResource.setProperty("Blueprints/stack_name", stackId.getStackName());
-    blueprintResource.setProperty("Blueprints/stack_version", stackId.getStackVersion());
+    Set<StackId> stackIds = topology.getBlueprint().getStackIds();
+    if (stackIds.size() == 1) {
+      StackId stackId = Iterables.getOnlyElement(stackIds);
+      blueprintResource.setProperty("Blueprints/stack_name", stackId.getStackName());
+      blueprintResource.setProperty("Blueprints/stack_version", stackId.getStackVersion());
+    }
 
     if (topology.isClusterKerberosEnabled()) {
       Map<String, Object> securityConfigMap = new LinkedHashMap<>();

@@ -234,7 +234,7 @@ public class AmbariContext {
       }
     }
 
-    StackId stackId = topology.getBlueprint().getStackId();
+    StackId stackId = Iterables.getFirst(topology.getBlueprint().getStackIds(), null);
     createAmbariClusterResource(clusterName, stackId, securityType);
     createAmbariServiceAndComponentResources(topology, clusterName, repoVersionByStack);
   }
@@ -362,7 +362,7 @@ public class AmbariContext {
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
-      StackId stackId = topology.getBlueprint().getStackIdForService(service);
+      StackId stackId = Iterables.getOnlyElement(topology.getBlueprint().getStackIdsForService(service)); // FIXME temporarily assume each service is defined in only one mpack
       Long repositoryVersionId = repoVersionByStack.get(stackId);
       serviceRequests.add(new ServiceRequest(clusterName, DEFAULT_SERVICE_GROUP_NAME, service, service,
         repositoryVersionId, null, credentialStoreEnabled, stackId

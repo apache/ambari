@@ -41,15 +41,15 @@ public interface Blueprint {
 
   /**
    * Get the hot groups contained in the blueprint.
+   *
    * @return map of host group name to host group
    */
   Map<String, HostGroup> getHostGroups();
 
   /**
-   * Get a hostgroup specified by name.
+   * Get a host group specified by name.
    *
    * @param name  name of the host group to get
-   *
    * @return the host group with the given name or null
    */
   HostGroup getHostGroup(String name);
@@ -116,14 +116,26 @@ public interface Blueprint {
 
   /**
    * Get the stack associated with the blueprint.
+   * For mpack-based installation this is a composite stack
+   * that provides a single unified view of all underlying mpacks,
+   * but does not have any identifier.
    *
    * @return associated stack
    */
   StackInfo getStack();
-  StackId getStackId();
+
+  /**
+   * @return the set of stack (mpack) IDs associated with the blueprint
+   */
   Set<StackId> getStackIds();
-  StackId getStackIdForService(String service);
-  Collection<StackId> getStackIdsForService(String service); // will be used for validation
+
+  /**
+   * Look up the stacks that define <code>service</code>.
+   * To be used only after checking that services map to
+   * @param service the name of the service as defined in the stack (mpack), eg. ZOOKEEPER
+   * @return the ID of the stack that defines the given service
+   */
+  Set<StackId> getStackIdsForService(String service);
 
   /**
    * Get the host groups which contain components for the specified service.
@@ -161,10 +173,7 @@ public interface Blueprint {
   void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException;
 
   /**
-   *
    * A config type is valid if there are services related to except cluster-env and global.
-   * @param configType
-   * @return
    */
   boolean isValidConfigType(String configType);
 

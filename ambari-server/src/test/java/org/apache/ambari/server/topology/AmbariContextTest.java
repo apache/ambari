@@ -242,7 +242,6 @@ public class AmbariContextTest {
 
     expect(blueprint.getName()).andReturn(BP_NAME).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackId()).andReturn(STACK_ID).anyTimes();
     expect(blueprint.getStackIds()).andReturn(Collections.singleton(STACK_ID)).anyTimes();
     expect(blueprint.getServices()).andReturn(blueprintServices).anyTimes();
     expect(blueprint.getComponents("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();

@@ -31,9 +31,7 @@ import org.apache.ambari.server.controller.internal.StackInfo;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.SecretReference;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +46,6 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(BlueprintValidatorImpl.class);
   private final Blueprint blueprint;
   private final StackInfo stack;
-  private final StackId stackId;
 
   public static final String LZO_CODEC_CLASS_PROPERTY_NAME = "io.compression.codec.lzo.class";
   public static final String CODEC_CLASSES_PROPERTY_NAME = "io.compression.codecs";
@@ -60,7 +57,6 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   public BlueprintValidatorImpl(Blueprint blueprint) {
     this.blueprint = blueprint;
     this.stack = blueprint.getStack();
-    this.stackId = blueprint.getStackId();
   }
 
   @Override
@@ -156,50 +152,28 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           }
         }
         if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
-            Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
-            if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
-              ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<>(blueprint.getHostGroupsForComponent(component));
-              Set<String> givenHostGroups = new HashSet<>();
-              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
-              givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
-              if(givenHostGroups.size() != hostGroupsForComponent.size()) {
-                 throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-              }
-              if(HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()){
-                for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
-                   Iterator<String> itr = givenHostGroups.iterator();
-                   while(itr.hasNext()){
-                      if(itr.next().contains(hostGroupForComponent.getName())){
-                         itr.remove();
-                      }
-                   }
+          Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
+          if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
+            ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<>(blueprint.getHostGroupsForComponent(component));
+            Set<String> givenHostGroups = new HashSet<>();
+            givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_active"));
+            givenHostGroups.add(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby"));
+            if(givenHostGroups.size() != hostGroupsForComponent.size()) {
+               throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
+            }
+            if(HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches()){
+              for (HostGroup hostGroupForComponent : hostGroupsForComponent) {
+                 Iterator<String> itr = givenHostGroups.iterator();
+                 while(itr.hasNext()){
+                    if(itr.next().contains(hostGroupForComponent.getName())){
+                       itr.remove();
+                    }
                  }
-                 if(!givenHostGroups.isEmpty()){
-                    throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
-                 }
-                }
               }
-          }
-
-        if (component.equals("HIVE_METASTORE")) {
-          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
-          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
-            && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stackId.getStackVersion(), "2.3.0.0") < 0
-            && stackId.getStackName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
-          }
-        }
-
-        if (component.equals("OOZIE_SERVER")) {
-          Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
-          if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
-            && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stackId.getStackVersion(), "2.3.0.0") < 0
-            && stackId.getStackName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
+              if(!givenHostGroups.isEmpty()){
+                throw new IllegalArgumentException("NAMENODE HA host groups mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected Host groups are :" + hostGroupsForComponent);
+              }
+            }
           }
         }
       }

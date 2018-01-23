@@ -103,29 +103,12 @@ public class BlueprintImpl implements Blueprint {
     return name;
   }
 
-  public StackId getStackId() {
-    return Iterables.getFirst(stackIds, new StackId());
-  }
-
-  public String getStackName() {
-    return getStackId().getStackName();
-  }
-
-  public String getStackVersion() {
-    return getStackId().getStackVersion();
-  }
-
   public Set<StackId> getStackIds() {
     return stackIds;
   }
 
   @Override
-  public StackId getStackIdForService(String service) {
-    return Iterables.getOnlyElement(stack.getStacksForService(service));
-  }
-
-  @Override
-  public Collection<StackId> getStackIdsForService(String service) {
+  public Set<StackId> getStackIdsForService(String service) {
     return stack.getStacksForService(service);
   }
 
@@ -614,8 +597,7 @@ public class BlueprintImpl implements Blueprint {
 
   /**
    * Parse stack repo info stored in the blueprint_settings table
-   * @return set of repositories
-   * */
+   */
   private void processRepoSettings(){
     repoSettings = new ArrayList<>();
     if (setting != null){

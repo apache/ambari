@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -2971,37 +2972,41 @@ public class BlueprintConfigurationProcessor {
    * @param configTypesUpdated
    *          the list of configuration types updated (cluster-env will be added
    *          to this).
-   * @throws ConfigurationTopologyException
    */
   private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
       throws ConfigurationTopologyException {
     ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
-    StackId stackId = clusterTopology.getBlueprint().getStackId();
 
-    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
+    Set<String> properties = ImmutableSet.of(
+      ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY
+    );
 
     try {
-      Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
-      if (defaultStackProperties.containsKey(CLUSTER_ENV_CONFIG_TYPE_NAME)) {
-        Map<String, String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
+      for (StackId stackId : clusterTopology.getBlueprint().getStackIds()) {
+        Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
+        if (defaultStackProperties.containsKey(CLUSTER_ENV_CONFIG_TYPE_NAME)) {
+          Map<String, String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
 
-        for (String property : properties) {
-          if (clusterEnvDefaultProperties.containsKey(property)) {
-            configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
-              clusterEnvDefaultProperties.get(property)
-            );
+          for (String property : properties) {
+            if (clusterEnvDefaultProperties.containsKey(property)) {
+              configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
+                clusterEnvDefaultProperties.get(property)
+              );
 
-            // make sure to include the configuration type as being updated
-            configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+              // make sure to include the configuration type as being updated
+              configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+            }
           }
+
+          break;
         }
       }
-    } catch( AmbariException ambariException ){
-      throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features",
-          ambariException);
+    } catch (AmbariException e) {
+      throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features", e);
     }
   }
 

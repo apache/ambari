@@ -47,6 +47,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * BlueprintValidatorImpl unit tests.
  */
@@ -99,7 +101,7 @@ public class BlueprintValidatorImplTest {
     autoDeploy.setEnabled(true);
     autoDeploy.setCoLocate("service1/component2");
 
-    expect(blueprint.getStackId()).andReturn(new StackId("HDP", "2.2")).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(new StackId("HDP", "2.2"))).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getServices()).andReturn(services).anyTimes();

@@ -80,6 +80,8 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableSet;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
 public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
@@ -256,7 +258,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(blueprint.getStackId()).andReturn(STACK_ID).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.isValidConfigType(anyString())).andReturn(true).anyTimes();
     expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
     // don't expect toEntity()
