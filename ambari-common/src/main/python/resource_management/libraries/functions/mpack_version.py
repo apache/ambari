@@ -18,7 +18,14 @@
 
 import re
 
-
+"""
+ This class should be used to compare mpack and stack versions.
+ Base method which should be used is parse/parse_stack_version, depends
+ on which versions you want to compare. This method will validate and parse
+ version which you will pass as parameter, and return object of current class with
+ parsed version. Same thing you should do with another version, with which you are
+ planning to compare previous one. After that, use "==", ">", "<" to get final result.
+"""
 class MpackVersion(object):
   __module_version_pattern = "(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<maint>[0-9]+)(-h(?P<hotfix>[0-9]+))*-b(?P<build>[0-9]+)"
   __module_legacy_stack_version_pattern = "(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<maint>[0-9]+).(?P<hotfix>[0-9]+)(-(?P<build>[0-9]+))"

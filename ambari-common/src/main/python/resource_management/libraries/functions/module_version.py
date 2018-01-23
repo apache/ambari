@@ -18,7 +18,13 @@
 
 import re
 
-
+"""
+ This class should be used to compare module(service) versions.
+ Base method which should be used is parse(..), This method will validate and parse
+ version which you will pass as parameter, and return object of current class with
+ parsed version. Same thing you should do with another version, with which you are
+ planning to compare previous one. After that, use "==", "<", ">" to get final result.
+"""
 class ModuleVersion(object):
   __module_version_pattern = "(?P<aMajor>[0-9]+).(?P<aMinor>[0-9]+).(?P<iMinor>[0-9]+).(?P<iMaint>[0-9]+)(-h(?P<hotfix>[0-9]+))*-b(?P<build>[0-9]+)"
   __module_version_regex = re.compile(__module_version_pattern)
