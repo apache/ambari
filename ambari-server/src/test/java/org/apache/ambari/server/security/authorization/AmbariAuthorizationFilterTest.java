@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -60,6 +61,11 @@ import com.google.inject.Injector;
 import junit.framework.Assert;
 
 public class AmbariAuthorizationFilterTest {
+  @Before
+  public void setUp() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @After
   public void clearAuthentication() {
     SecurityContextHolder.getContext().setAuthentication(null);
