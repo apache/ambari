@@ -2869,7 +2869,7 @@ class TestAmbariServer(TestCase):
     args = MagicMock()
     args.java_home = "somewhere"
     args.silent = False
-    args.os_type = None
+    args.os_family = None
 
     p, jdk1_url, res_location, pem_side_effect1 = _init_test_jdk_mocks()
 
@@ -2984,10 +2984,10 @@ class TestAmbariServer(TestCase):
     download_and_install_jdk(args)
     self.assertTrue(update_properties_mock.call_count == 1)
 
-    # Test case: Update JAVA_HOME using --os-type option
+    # Test case: Update JAVA_HOME using --os-family option
     update_properties_mock.reset_mock()
     args.java_home = "somewhere"
-    args.os_type= "suse11"
+    args.os_family= "suse11"
     validate_jdk_mock.return_value = True
     path_existsMock.reset_mock()
     path_existsMock.side_effect = pem_side_effect1
@@ -2996,9 +2996,9 @@ class TestAmbariServer(TestCase):
     download_and_install_jdk(args)
     self.assertTrue(update_properties_mock.call_count == 1)
 
-    # Test case: When --os_type option is provided but JDK is not set for server
+    # Test case: When --os_family option is provided but JDK is not set for server
     args.java_home = "somewhere"
-    args.os_type = "ubuntu"
+    args.os_family = "ubuntu"
     get_ambari_properties_mock.return_value = p
     p.removeProp("java.home")
     try:
@@ -3036,7 +3036,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(update_properties_mock.called)
 
     # Test case: Setup ambari-server first time, Custom JDK selected, JDK not exists
-    args.os_type = None
+    args.os_family = None
     update_properties_mock.reset_mock()
     validate_jdk_mock.return_value = False
     path_existsMock.reset_mock()
@@ -3720,19 +3720,19 @@ class TestAmbariServer(TestCase):
     args = MagicMock()
     args.ambari_repo = "http://repourl"
 
-    # When os_type is not None
+    # When os_family is not None
     raw_input_method.return_value = "redhat-ppc7"
     res = update_ambari_repo(args)
     self.assertTrue(1, get_validated_string_input_method.call_count)
     self.assertTrue(1, update_properties_mock.call_count)
 
-    # When Os_type is None
+    # When Os_family is None
     raw_input_method.return_value = ""
     try:
       res = update_ambari_repo(args)
       self.fail("Should throw an exception")
     except FatalException as fe:
-      self.assertTrue("OS type cannot be empty" in fe.reason)
+      self.assertTrue("OS family cannot be empty" in fe.reason)
     pass
 
 
@@ -3915,9 +3915,9 @@ class TestAmbariServer(TestCase):
     except FatalException as fe:
       self.assertTrue("Ambari repo URL format is invalid" in fe.reason)
 
-    # Option --os-type is used but -j option not provided
+    # Option --os-family is used but -j option not provided
     args = reset_mocks()
-    args.os_type = "ubuntu"
+    args.os_family = "ubuntu"
     args.java_home = None
     try:
       result = setup(args)

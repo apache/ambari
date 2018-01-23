@@ -371,7 +371,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         osFamily = clusters.getHost(hostName).getOsFamily();
 
         TreeMap<String, String> hostLevelParams = new TreeMap<>();
-        hostLevelParams.put(JAVA_HOME, configs.getJavaHomeForOs(clusters.getHost(hostName).getOsType()));
+        hostLevelParams.put(JAVA_HOME, configs.getJavaHomeForOs(osFamily));
         StageUtils.useStackJdkIfExists(hostLevelParams, configs);
         hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
         hostLevelParams.put(STACK_NAME, stackId.getStackName());
