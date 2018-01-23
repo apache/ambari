@@ -216,7 +216,7 @@ class WebHDFSUtil:
     for k,v in request_args.iteritems():
       url = format("{url}&{k}={v}")
     
-    cmd = ["curl", "-sS","-L", "-w", "%{http_code}", "-X", method]
+    cmd = ["curl", "--noproxy", "*", "-sS","-L", "-w", "%{http_code}", "-X", method]
 
     # When operation is "OPEN" the target is actually the DFS file to download and the file_to_put is actually the target see _download_file
     if operation == "OPEN":
