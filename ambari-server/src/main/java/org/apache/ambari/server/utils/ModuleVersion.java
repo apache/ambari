@@ -23,14 +23,25 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 
+/**
+ * This class should be used to compare module(service) versions.
+ * Base method which should be used is parse(..), This method will validate and parse
+ * version which you will pass as parameter, and return object of current class with
+ * parsed version. Same thing you should do with another version, with which you are
+ * planning to compare previous one. After that, use method compare to get final result.
+ */
+
 public class ModuleVersion implements Comparable<ModuleVersion> {
 
+  // RE for different version formats like N.N.N.N-bN, N.N.N-hN-bN
   private static final String VERSION_WITH_HOTFIX_AND_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
   private static final String VERSION_WITH_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
 
+  // Patterns for previous RE
   private static final Pattern PATTERN_WITH_HOTFIX = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
   private static final Pattern PATTERN_WITHOUT_HOTFIX = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
 
+  // Parts of version
   private int apacheMajor;
   private int apacheMinor;
   private int internalMinor;
@@ -48,6 +59,13 @@ public class ModuleVersion implements Comparable<ModuleVersion> {
     this.build = build;
   }
 
+  /**
+   * Method which will parse module version
+   * which user passed as parameter. Also
+   * in this method version will be validated.
+   * @param moduleVersion string
+   * @return MpackVersion instance which contains parsed version
+   * */
   public static ModuleVersion parse(String moduleVersion) {
     Matcher versionMatcher = validateModuleVersion(moduleVersion);
     ModuleVersion result = null;
@@ -67,7 +85,14 @@ public class ModuleVersion implements Comparable<ModuleVersion> {
     return result;
   }
 
-
+  /**
+   * Method validate module version not to be
+   * empty or null. Also check if passed version
+   * has valid format.
+   * @param version string
+   * @return Matcher for passed version
+   * @throws IllegalArgumentException() if version empty/null/not valid
+   */
   private static Matcher validateModuleVersion(String version) {
     if (StringUtils.isEmpty(version)) {
       throw new IllegalArgumentException("Module version can't be empty or null");

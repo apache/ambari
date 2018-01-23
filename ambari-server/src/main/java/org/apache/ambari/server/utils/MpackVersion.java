@@ -23,16 +23,28 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 
+/**
+ * This class should be used to compare mpack and stack versions.
+ * Base method which should be used is parse/parseStackVersion, depends
+ * on which versions you want to compare. This method will validate and parse
+ * version which you will pass as parameter, and return object of current class with
+ * parsed version. Same thing you should do with another version, with which you are
+ * planning to compare previous one. After that, use method compare to get final result.
+ */
+
 public class MpackVersion implements Comparable<MpackVersion> {
 
+  // RE for different version formats like N.N.N-hN-bN, N.N.N-bN, N.N.N.N-N
   private final static String VERSION_WITH_HOTFIX_AND_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+)-h([0-9]+)-b([0-9]+)";
   private final static String VERSION_WITH_BUILD_PATTERN = "^([0-9]+).([0-9]+).([0-9]+)-b([0-9]+)";
   private final static String LEGACY_STACK_VERSION_PATTERN = "^([0-9]+).([0-9]+).([0-9]+).([0-9]+)-([0-9]+)";
 
+  // Patterns for previous RE
   private final static Pattern PATTERN_WITH_HOTFIX = Pattern.compile(VERSION_WITH_HOTFIX_AND_BUILD_PATTERN);
   private final static Pattern PATTERN_LEGACY_STACK_VERSION = Pattern.compile(LEGACY_STACK_VERSION_PATTERN);
   private final static Pattern PATTERN_WITHOUT_HOTFIX = Pattern.compile(VERSION_WITH_BUILD_PATTERN);
 
+  // Parts of version
   private int major;
   private int minor;
   private int maint;
@@ -48,6 +60,13 @@ public class MpackVersion implements Comparable<MpackVersion> {
     this.build = build;
   }
 
+  /**
+   * Method which will parse mpack version
+   * which user passed as parameter. Also
+   * in this method version will be validated.
+   * @param mpackVersion string
+   * @return MpackVersion instance which contains parsed version
+   * */
   public static MpackVersion parse(String mpackVersion) {
     Matcher versionMatcher = validateMpackVersion(mpackVersion);
     MpackVersion result = null;
@@ -65,6 +84,13 @@ public class MpackVersion implements Comparable<MpackVersion> {
     return result;
   }
 
+  /**
+   * Method which will parse stack version
+   * which user passed as parameter. Also
+   * in this method version will be validated.
+   * @param stackVersion string
+   * @return MpackVersion instance which contains parsed version
+   * */
   public static MpackVersion parseStackVersion(String stackVersion) {
     Matcher versionMatcher = validateStackVersion(stackVersion);
     MpackVersion result = new MpackVersion(Integer.parseInt(versionMatcher.group(1)), Integer.parseInt(versionMatcher.group(2)),
@@ -73,6 +99,14 @@ public class MpackVersion implements Comparable<MpackVersion> {
     return result;
   }
 
+  /**
+   * Method validate stack version not to be
+   * empty or null. Also check if passed version
+   * has valid format.
+   * @param version string
+   * @return Matcher for passed version
+   * @throws IllegalArgumentException() if version empty/null/not valid
+   */
   private static Matcher validateStackVersion(String version) {
     if (StringUtils.isEmpty(version)) {
       throw new IllegalArgumentException("Stack version can't be empty or null");
@@ -91,6 +125,14 @@ public class MpackVersion implements Comparable<MpackVersion> {
     return versionMatcher;
   }
 
+  /**
+   * Method validate mpack version not to be
+   * empty or null. Also check if passed version
+   * has valid format.
+   * @param version string
+   * @return Matcher for passed version
+   * @throws IllegalArgumentException() if version empty/null/not valid
+   */
   private static Matcher validateMpackVersion(String version) {
     if (StringUtils.isEmpty(version)) {
       throw new IllegalArgumentException("Mpack version can't be empty or null");
