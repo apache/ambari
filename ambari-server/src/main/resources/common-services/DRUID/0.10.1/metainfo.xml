@@ -201,7 +201,10 @@
         <timeout>300</timeout>
       </commandScript>
       <requiredServices>
-        <service>ZOOKEEPER</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
       <configuration-dependencies>
         <config-type>druid-common</config-type>

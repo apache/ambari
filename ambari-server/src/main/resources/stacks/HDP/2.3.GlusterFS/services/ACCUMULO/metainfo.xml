@@ -41,7 +41,10 @@
       </osSpecifics>
 
       <requiredServices>
-        <service>ZOOKEEPER</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
     </service>

@@ -158,7 +158,10 @@
       </components>
 
       <requiredServices>
-        <service>HDFS</service>
+        <service>
+          <name>HDFS</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <osSpecifics>

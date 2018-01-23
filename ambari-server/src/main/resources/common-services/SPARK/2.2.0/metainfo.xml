@@ -235,9 +235,18 @@
       </commandScript>
 
       <requiredServices>
-        <service>HDFS</service>
-        <service>YARN</service>
-        <service>HIVE</service>
+        <service>
+          <name>HDFS</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>YARN</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>HIVE</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <!-- TODO, change these to "spark" and "livy" after RPM switches the name. -->

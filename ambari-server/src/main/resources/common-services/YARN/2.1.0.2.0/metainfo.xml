@@ -163,9 +163,18 @@
       </commandScript>
       
       <requiredServices>
-        <service>HDFS</service>
-        <service>MAPREDUCE2</service>
-        <service>ZOOKEEPER</service>
+        <service>
+          <name>HDFS</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>MAPREDUCE2</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>
@@ -287,7 +296,10 @@
       </commandScript>
       
       <requiredServices>
-        <service>YARN</service>
+        <service>
+          <name>YARN</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
       <configuration-dir>configuration-mapred</configuration-dir>

@@ -26,9 +26,15 @@
       <version>0.98.0.2.1</version>
       
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>GLUSTERFS</service>
-      </requiredServices>      
+        <service>
+          <name>ZOOKEEPER</name>
+          <scope>INSTALL</scope>
+        </service>
+        <service>
+          <name>GLUSTERFS</name>
+          <scope>INSTALL</scope>
+        </service>
+      </requiredServices>
     </service>
   </services>
 </metainfo>

@@ -167,7 +167,10 @@
       </quickLinksConfigurations>
 
       <requiredServices>
-        <service>YARN</service>
+        <service>
+          <name>YARN</name>
+          <scope>INSTALL</scope>
+        </service>
       </requiredServices>
 
        <themes>
