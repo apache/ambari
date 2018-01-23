@@ -39,7 +39,6 @@ import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {AuthService} from '@app/services/auth.service';
 import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 
@@ -90,7 +89,6 @@ describe('ContextMenuComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
-        ComponentActionsService,
         HostsService,
         AuditLogsService,
         ServiceLogsService,

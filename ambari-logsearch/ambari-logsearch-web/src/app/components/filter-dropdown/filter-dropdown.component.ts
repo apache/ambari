@@ -35,10 +35,6 @@ import {ListItem} from '@app/classes/list-item';
 })
 export class FilterDropdownComponent extends DropdownButtonComponent implements ControlValueAccessor {
 
-  constructor(protected utils: UtilsService) {
-    super(utils);
-  }
-
   private onChange: (fn: any) => void;
 
   get selection(): ListItem[] {

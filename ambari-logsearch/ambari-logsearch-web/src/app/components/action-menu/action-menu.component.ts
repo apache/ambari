@@ -1,4 +1,4 @@
-/**
+  /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,7 @@
  */
 
 import {Component} from '@angular/core';
+import {LogsContainerService} from '@app/services/logs-container.service';
 
 @Component({
   selector: 'action-menu',
@@ -25,12 +26,28 @@ import {Component} from '@angular/core';
 })
 export class ActionMenuComponent {
 
-  //TODO implement loading of real data into subItems
+  constructor(private logsContainer: LogsContainerService) {
+  }
+
+  undo() {
+  }
+
+  redo() {
+  }
+
+  openHistory() {
+  }
+
+  refresh = (): void => {
+    this.logsContainer.loadLogs();
+  };
+
+  //TODO implement history items
   readonly items = [
     {
       iconClass: 'fa fa-arrow-left',
       label: 'topMenu.undo',
-      action: 'undo',
+      onClick: this.undo,
       subItems: [
         {
           label: 'Apply \'Last week\' filter'
@@ -49,7 +66,7 @@ export class ActionMenuComponent {
     {
       iconClass: 'fa fa-arrow-right',
       label: 'topMenu.redo',
-      action: 'redo',
+      onClick: this.redo,
       subItems: [
         {
           label: 'Apply \'Warnings\' filter'
@@ -63,14 +80,9 @@ export class ActionMenuComponent {
       ]
     },
     {
-      iconClass: 'fa fa-refresh',
-      label: 'topMenu.refresh',
-      action: 'refresh'
-    },
-    {
       iconClass: 'fa fa-history',
       label: 'topMenu.history',
-      action: 'openHistory',
+      onClick: this.openHistory,
       isRightAlign: true,
       subItems: [
         {
@@ -95,6 +107,11 @@ export class ActionMenuComponent {
           label: 'Apply \'Errors\' filter'
         }
       ]
+    },
+    {
+      iconClass: 'fa fa-refresh',
+      label: 'topMenu.refresh',
+      onClick: this.refresh
     }
   ];
 

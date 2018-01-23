@@ -35,7 +35,6 @@ import {ServiceInjector} from '@app/classes/service-injector';
 
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
@@ -183,7 +182,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
   ],
   providers: [
     HttpClientService,
-    ComponentActionsService,
     UtilsService,
     LogsContainerService,
     ComponentGeneratorService,

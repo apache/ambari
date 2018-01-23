@@ -19,7 +19,6 @@
 import {Component, AfterViewInit, Input, Output, EventEmitter, ViewChildren, ViewContainerRef, QueryList} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
   selector: 'ul[data-component="dropdown-list"]',
@@ -28,7 +27,7 @@ import {ComponentActionsService} from '@app/services/component-actions.service';
 })
 export class DropdownListComponent implements AfterViewInit {
 
-  constructor(private componentGenerator: ComponentGeneratorService, private actions: ComponentActionsService) {
+  constructor(private componentGenerator: ComponentGeneratorService) {
   }
 
   ngAfterViewInit() {
@@ -62,8 +61,8 @@ export class DropdownListComponent implements AfterViewInit {
   containers: QueryList<ViewContainerRef>;
 
   changeSelectedItem(options: ListItem): void {
-    if (options.action) {
-      this.actions[options.action](...this.actionArguments);
+    if (options.onSelect) {
+      options.onSelect(...this.actionArguments);
     }
     this.selectedItemChange.emit(options);
   }

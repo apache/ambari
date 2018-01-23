@@ -14,7 +14,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<menu-button *ngFor="let item of items" label="{{item.label | translate}}" [action]="item.action"
+<menu-button *ngFor="let item of items" label="{{item.label | translate}}" (buttonClick)="item.onClick()"
              [iconClass]="item.iconClass" [labelClass]="item.labelClass" [subItems]="item.subItems"
              [hideCaret]="item.hideCaret" [badge]="item.badge" [isRightAlign]="item.isRightAlign">
 </menu-button>
