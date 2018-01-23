@@ -214,6 +214,8 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
         entity.setDistributed(true);
         entity.putServiceMapping(serviceName, componentName);
         kerberosKeytabPrincipalDAO.merge(entity);
+        kke.addKerberosKeytabPrincipal(entity);
+        kerberosKeytabDAO.merge(kke);
       }
 
       if (actionLog != null) {

@@ -26,6 +26,7 @@
     "@ngx-translate/core": "^6.0.1",
     "@ngx-translate/http-loader": "^0.0.3",
     "angular-moment-timezone": "^0.2.1",
+    "angular-pipes": "^6.5.3",
     "angular2-moment": "^1.4.0",
     "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",

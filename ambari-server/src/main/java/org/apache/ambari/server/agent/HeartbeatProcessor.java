@@ -19,7 +19,6 @@ package org.apache.ambari.server.agent;
 
 
 import static org.apache.ambari.server.controller.KerberosHelperImpl.CHECK_KEYTABS;
-import static org.apache.ambari.server.controller.KerberosHelperImpl.REMOVE_KEYTAB;
 import static org.apache.ambari.server.controller.KerberosHelperImpl.SET_KEYTAB;
 
 import java.util.ArrayList;
@@ -429,7 +428,7 @@ public class HeartbeatProcessor extends AbstractService{
 
         String customCommand = report.getCustomCommand();
 
-        if (SET_KEYTAB.equalsIgnoreCase(customCommand) || REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
+        if (SET_KEYTAB.equalsIgnoreCase(customCommand)) {
           WriteKeytabsStructuredOut writeKeytabsStructuredOut;
           try {
             writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
@@ -439,7 +438,6 @@ public class HeartbeatProcessor extends AbstractService{
           }
 
           if (writeKeytabsStructuredOut != null) {
-            // TODO rework this. Make sure that keytab check and write commands returns principal list for each keytab
             if (SET_KEYTAB.equalsIgnoreCase(customCommand)) {
               Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
               if (keytabs != null) {
@@ -452,19 +450,15 @@ public class HeartbeatProcessor extends AbstractService{
                   }
                 }
               }
-            } else if (REMOVE_KEYTAB.equalsIgnoreCase(customCommand)) {
-              // TODO check if additional processing of removed records(besides existent in DestroyPrincipalsServerAction)
-              // TODO is required
             }
           }
         } else if (CHECK_KEYTABS.equalsIgnoreCase(customCommand)) {
           ListKeytabsStructuredOut structuredOut = gson.fromJson(report.getStructuredOut(), ListKeytabsStructuredOut.class);
           for (MissingKeytab each : structuredOut.missingKeytabs) {
             LOG.info("Missing principal: {} for keytab: {} on host: {}", each.principal, each.keytabFilePath, hostname);
-            for (KerberosKeytabPrincipalEntity kkpe: kerberosKeytabPrincipalDAO.findByHostAndKeytab(host.getHostId(), each.keytabFilePath)) {
-              kkpe.setDistributed(false);
-              kerberosKeytabPrincipalDAO.merge(kkpe);
-            }
+            KerberosKeytabPrincipalEntity kkpe = kerberosKeytabPrincipalDAO.findByHostKeytabAndPrincipal(host.getHostId(), each.keytabFilePath, each.principal);
+            kkpe.setDistributed(false);
+            kerberosKeytabPrincipalDAO.merge(kkpe);
           }
         }
       }

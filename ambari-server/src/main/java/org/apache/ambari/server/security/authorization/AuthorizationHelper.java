@@ -125,7 +125,7 @@ public class AuthorizationHelper {
    * @return true if authorized; otherwise false
    * @see #isAuthorized(Authentication, ResourceType, Long, Set)
    */
-  public static boolean isAuthorized(ResourceType resourceType, Long resourceId, 
+  public static boolean isAuthorized(ResourceType resourceType, Long resourceId,
                                      RoleAuthorization requiredAuthorization) {
     return isAuthorized(getAuthentication(), resourceType, resourceId, EnumSet.of(requiredAuthorization));
   }
@@ -141,7 +141,7 @@ public class AuthorizationHelper {
    * @return true if authorized; otherwise false
    * @see #isAuthorized(Authentication, ResourceType, Long, Set)
    */
-  public static boolean isAuthorized(ResourceType resourceType, Long resourceId, 
+  public static boolean isAuthorized(ResourceType resourceType, Long resourceId,
                                      Set<RoleAuthorization> requiredAuthorizations) {
     return isAuthorized(getAuthentication(), resourceType, resourceId, requiredAuthorizations);
   }

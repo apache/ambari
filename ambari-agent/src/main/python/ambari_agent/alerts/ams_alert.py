@@ -22,7 +22,6 @@ import httplib
 import imp
 import time
 import urllib
-from alerts.base_alert import BaseAlert
 from alerts.metric_alert import MetricAlert
 import ambari_simplejson as json
 import logging
@@ -30,6 +29,7 @@ import re
 import uuid
 
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from ambari_commons import inet_utils
 
 logger = logging.getLogger()
 
@@ -68,7 +68,7 @@ class AmsAlert(MetricAlert):
       logger.debug("[Alert][{0}] Calculated metric URI to be {1} (ssl={2})".format(
         self.get_name(), alert_uri.uri, str(alert_uri.is_ssl_enabled)))
 
-    host = BaseAlert.get_host_from_url(alert_uri.uri)
+    host = inet_utils.get_host_from_url(alert_uri.uri)
     if host is None:
       host = self.host_name
 

@@ -33,7 +33,8 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.LdapUsernameCollisionHandlingBehavior;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
@@ -72,7 +73,7 @@ public class AmbariLdapDataPopulator {
   /**
    * Ambari configuration.
    */
-  private Configuration configuration;
+  private AmbariLdapConfiguration configuration;
 
   /**
    * Highlevel facade for management of users and groups.
@@ -107,7 +108,7 @@ public class AmbariLdapDataPopulator {
    * @param users         utility that provides access to Users
    */
   @Inject
-  public AmbariLdapDataPopulator(Configuration configuration, Users users) {
+  public AmbariLdapDataPopulator(AmbariLdapConfiguration configuration, Users users) {
     this.configuration = configuration;
     this.users = users;
     this.ldapServerProperties = configuration.getLdapServerProperties();
@@ -119,7 +120,7 @@ public class AmbariLdapDataPopulator {
    * @return true if enabled
    */
   public boolean isLdapEnabled() {
-    if (!configuration.isLdapConfigured()) {
+    if (!configuration.ldapEnabled()) {
       return false;
     }
     try {
@@ -187,13 +188,14 @@ public class AmbariLdapDataPopulator {
     final Map<String, User> internalUsersMap = getInternalUsers();
 
     for (LdapGroupDto groupDto : externalLdapGroupInfo) {
-      String groupName = groupDto.getGroupName();
-      addLdapGroup(batchInfo, internalGroupsMap, groupName);
+      addLdapGroup(batchInfo, internalGroupsMap, groupDto);
       refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, false);
     }
     for (Entry<String, Group> internalGroup : internalGroupsMap.entrySet()) {
       if (internalGroup.getValue().isLdapGroup()) {
-        batchInfo.getGroupsToBeRemoved().add(internalGroup.getValue().getGroupName());
+        LdapGroupDto groupDto = new LdapGroupDto();
+        groupDto.setGroupName(internalGroup.getValue().getGroupName());
+        batchInfo.getGroupsToBeRemoved().add(groupDto);
       }
     }
 
@@ -215,22 +217,25 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
-            batchInfo.getUsersSkipped().add(userName);
+            batchInfo.getUsersSkipped().add(userDto);
           } else {
-            batchInfo.getUsersToBecomeLdap().add(userName);
+            batchInfo.getUsersToBecomeLdap().add(userDto);
             LOG.trace("Convert user '{}' to LDAP user.", userName);
           }
         }
         internalUsersMap.remove(userName);
       } else {
-        batchInfo.getUsersToBeCreated().add(userName);
+        batchInfo.getUsersToBeCreated().add(userDto);
       }
     }
     for (Entry<String, User> internalUser : internalUsersMap.entrySet()) {
       if (internalUser.getValue().isLdapUser()) {
-        batchInfo.getUsersToBeRemoved().add(internalUser.getValue().getUserName());
+        LdapUserDto userDto = new LdapUserDto();
+        userDto.setUserName(internalUser.getValue().getUserName());
+        userDto.setDn(null);  // Setting to null since we do not know what the DN for this user was.
+        batchInfo.getUsersToBeRemoved().add(userDto);
       }
     }
 
@@ -259,8 +264,7 @@ public class AmbariLdapDataPopulator {
     final Map<String, User> internalUsersMap = getInternalUsers();
 
     for (LdapGroupDto groupDto : specifiedGroups) {
-      String groupName = groupDto.getGroupName();
-      addLdapGroup(batchInfo, internalGroupsMap, groupName);
+      addLdapGroup(batchInfo, internalGroupsMap, groupDto);
       refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, true);
     }
 
@@ -292,16 +296,16 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
-            batchInfo.getUsersSkipped().add(userName);
+            batchInfo.getUsersSkipped().add(userDto);
           } else {
-            batchInfo.getUsersToBecomeLdap().add(userName);
+            batchInfo.getUsersToBecomeLdap().add(userDto);
           }
         }
         internalUsersMap.remove(userName);
       } else {
-        batchInfo.getUsersToBeCreated().add(userName);
+        batchInfo.getUsersToBeCreated().add(userDto);
       }
     }
 
@@ -324,7 +328,9 @@ public class AmbariLdapDataPopulator {
       if (group.isLdapGroup()) {
         Set<LdapGroupDto> groupDtos = getLdapGroups(group.getGroupName());
         if (groupDtos.isEmpty()) {
-          batchInfo.getGroupsToBeRemoved().add(group.getGroupName());
+          LdapGroupDto groupDto = new LdapGroupDto();
+          groupDto.setGroupName(group.getGroupName());
+          batchInfo.getGroupsToBeRemoved().add(groupDto);
         } else {
           LdapGroupDto groupDto = groupDtos.iterator().next();
           refreshGroupMembers(batchInfo, groupDto, internalUsersMap, internalGroupsMap, null, true);
@@ -348,7 +354,10 @@ public class AmbariLdapDataPopulator {
       if (user.isLdapUser()) {
         Set<LdapUserDto> userDtos = getLdapUsers(user.getUserName());
         if (userDtos.isEmpty()) {
-          batchInfo.getUsersToBeRemoved().add(user.getUserName());
+          LdapUserDto userDto = new LdapUserDto();
+          userDto.setUserName(user.getUserName());
+          userDto.setDn(null);  // Setting to null since we do not know what the DN for this user was.
+          batchInfo.getUsersToBeRemoved().add(userDto);
         }
       }
     }
@@ -369,7 +378,7 @@ public class AmbariLdapDataPopulator {
   protected void refreshGroupMembers(LdapBatchDto batchInfo, LdapGroupDto group, Map<String, User> internalUsers,
                                      Map<String, Group> internalGroupsMap, Set<String> groupMemberAttributes, boolean recursive)
       throws AmbariException {
-    Set<String> externalMembers = new HashSet<>();
+    Set<LdapUserDto> externalMembers = new HashSet<>();
 
     if (groupMemberAttributes == null) {
       groupMemberAttributes = new HashSet<>();
@@ -378,7 +387,7 @@ public class AmbariLdapDataPopulator {
     for (String memberAttributeValue : group.getMemberAttributes()) {
       LdapUserDto groupMember = getLdapUserByMemberAttr(memberAttributeValue);
       if (groupMember != null) {
-        externalMembers.add(groupMember.getUserName());
+        externalMembers.add(groupMember);
       } else {
         // if we haven't already processed this group
         if (recursive && !groupMemberAttributes.contains(memberAttributeValue)) {
@@ -386,7 +395,7 @@ public class AmbariLdapDataPopulator {
           LdapGroupDto subGroup = getLdapGroupByMemberAttr(memberAttributeValue);
           if (subGroup != null) {
             groupMemberAttributes.add(memberAttributeValue);
-            addLdapGroup(batchInfo, internalGroupsMap, subGroup.getGroupName());
+            addLdapGroup(batchInfo, internalGroupsMap, subGroup);
             refreshGroupMembers(batchInfo, subGroup, internalUsers, internalGroupsMap, groupMemberAttributes, true);
           }
         }
@@ -394,33 +403,34 @@ public class AmbariLdapDataPopulator {
     }
     String groupName = group.getGroupName();
     final Map<String, User> internalMembers = getInternalMembers(groupName);
-    for (String externalMember : externalMembers) {
-      if (internalUsers.containsKey(externalMember)) {
-        final User user = internalUsers.get(externalMember);
+    for (LdapUserDto externalMember : externalMembers) {
+      String userName = externalMember.getUserName();
+      if (internalUsers.containsKey(userName)) {
+        final User user = internalUsers.get(userName);
         if (user == null) {
           // user is fresh and is already added to batch info
-          if (!internalMembers.containsKey(externalMember)) {
-            batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember));
+          if (!internalMembers.containsKey(userName)) {
+            batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember.getUserName()));
           }
           continue;
         }
         if (!user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
             // existing user can not be converted to ldap user, so skip it
-            LOG.info("User '{}' skipped because it is local user", externalMember);
+            LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(externalMember);
             continue; // and remove from group
           } else {
             batchInfo.getUsersToBecomeLdap().add(externalMember);
           }
         }
-        if (!internalMembers.containsKey(externalMember)) {
-          batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember));
+        if (!internalMembers.containsKey(userName)) {
+          batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember.getUserName()));
         }
-        internalMembers.remove(externalMember);
+        internalMembers.remove(userName);
       } else {
         batchInfo.getUsersToBeCreated().add(externalMember);
-        batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember));
+        batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember.getUserName()));
       }
     }
     for (Entry<String, User> userToBeUnsynced : internalMembers.entrySet()) {
@@ -570,18 +580,19 @@ public class AmbariLdapDataPopulator {
 
   // Utility methods
 
-  protected void addLdapGroup(LdapBatchDto batchInfo, Map<String, Group> internalGroupsMap, String groupName) {
+  protected void addLdapGroup(LdapBatchDto batchInfo, Map<String, Group> internalGroupsMap, LdapGroupDto groupDto) {
+    String groupName = groupDto.getGroupName();
     if (internalGroupsMap.containsKey(groupName)) {
       final Group group = internalGroupsMap.get(groupName);
       if (!group.isLdapGroup()) {
-        batchInfo.getGroupsToBecomeLdap().add(groupName);
+        batchInfo.getGroupsToBecomeLdap().add(groupDto);
         LOG.trace("Convert group '{}' to LDAP group.", groupName);
       }
       internalGroupsMap.remove(groupName);
-      batchInfo.getGroupsProcessedInternal().add(groupName);
+      batchInfo.getGroupsProcessedInternal().add(groupDto);
     } else {
-      if (!batchInfo.getGroupsProcessedInternal().contains(groupName)) {
-        batchInfo.getGroupsToBeCreated().add(groupName);
+      if (!batchInfo.getGroupsProcessedInternal().contains(groupDto)) {
+        batchInfo.getGroupsToBeCreated().add(groupDto);
       }
     }
   }
@@ -671,7 +682,7 @@ public class AmbariLdapDataPopulator {
         }
       }
     } while (configuration.getLdapServerProperties().isPaginationEnabled()
-        && processor.getCookie().getCookie() != null);
+        && (processor.getCookie() != null) && (processor.getCookie().getCookie() != null));
     return users;
   }
 

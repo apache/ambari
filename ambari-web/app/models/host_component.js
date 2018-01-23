@@ -311,6 +311,12 @@ App.HostComponentActionMap = {
         cssClass: 'glyphicon glyphicon-refresh',
         disabled: false
       },
+      REGENERATE_KEYTAB_FILE_OPERATIONS: {
+        action: 'regenerateKeytabFileOperations',
+        label: Em.I18n.t('admin.kerberos.button.regenerateKeytabs'),
+        cssClass: 'glyphicon glyphicon-repeat',
+        isHidden: !App.get('isKerberosEnabled')
+      },
       REFRESHQUEUES: {
         action: 'refreshYarnQueues',
         customCommand: 'REFRESHQUEUES',

@@ -18,7 +18,7 @@
  */
 package org.apache.ambari.infra.job;
 
-import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.batch.core.JobParameters;
 
 import java.io.IOException;

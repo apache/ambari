@@ -1181,13 +1181,15 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   getClientsMap: function (flag) {
-    var clientNames = App.StackServiceComponent.find().filterProperty('isClient').mapProperty('componentName'),
+    var clients = App.StackServiceComponent.find().filterProperty('isClient'),
       clientsMap = {},
       dependedComponents = flag ? App.StackServiceComponent.find().filterProperty(flag) : App.StackServiceComponent.find();
-    clientNames.forEach(function (clientName) {
+    clients.forEach(function (client) {
+      var clientName = client.get('componentName');
       clientsMap[clientName] = Em.A([]);
       dependedComponents.forEach(function (component) {
-        if (component.get('dependencies').mapProperty('componentName').contains(clientName)) clientsMap[clientName].push(component.get('componentName'));
+        if (component.dependsOn(client))
+          clientsMap[clientName].push(component.get('componentName'));
       });
       if (!clientsMap[clientName].length) delete clientsMap[clientName];
     });

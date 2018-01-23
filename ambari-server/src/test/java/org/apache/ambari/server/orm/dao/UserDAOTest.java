@@ -25,9 +25,6 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-import java.util.Arrays;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -35,7 +32,6 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.UserName;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -52,7 +48,7 @@ public class UserDAOTest {
   private static String SERVICEOP_USER_NAME = "serviceopuser";
   private UserDAO userDAO;
 
-  public void init(UserEntity... usersInDB) {
+  public void init(UserEntity userInDB) {
     final EntityManager entityManager = createStrictMock(EntityManager.class);
     final DaoUtils daoUtils = createNiceMock(DaoUtils.class);
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
@@ -68,55 +64,24 @@ public class UserDAOTest {
     userDAO = mockInjector.getInstance(UserDAO.class);
 
     TypedQuery<UserEntity> userQuery = createNiceMock(TypedQuery.class);
-    expect(userQuery.getResultList()).andReturn(Arrays.asList(usersInDB));
+    expect(userQuery.getSingleResult()).andReturn(userInDB);
     expect(entityManager.createNamedQuery(anyString(), anyObject(Class.class))).andReturn(userQuery);
     replay(entityManager, daoUtils, dbAccessor, userQuery);
   }
 
   @Test
-  public void testFindSingleUserByName_NoUsers() {
-    init();
-    assertNull(userDAO.findSingleUserByName(SERVICEOP_USER_NAME));
+  public void testUserByName() {
+    init(user());
+    assertEquals(SERVICEOP_USER_NAME, userDAO.findUserByName(SERVICEOP_USER_NAME).getUserName());
   }
 
-  @Test
-  public void testFindSingleUserByName_SingleUser() {
-    init(user(UserType.PAM));
-    assertEquals(UserType.PAM, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
+  private static final UserEntity user() {
+    return user(SERVICEOP_USER_NAME);
   }
 
-  @Test
-  public void testFindSingleUserByName_LocalIsFirstPrecedence() {
-    init(user(UserType.LOCAL),
-        user(UserType.LDAP),
-        user(UserType.JWT),
-        user(UserType.PAM));
-    assertEquals(UserType.LOCAL, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
-  }
-
-  @Test
-  public void testFindSingleUserByName_LdapIsSecondPrecedence() {
-    init(user(UserType.LDAP),
-        user(UserType.JWT),
-        user(UserType.PAM));
-    assertEquals(UserType.LDAP, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
-  }
-
-  @Test
-  public void testFindSingleUserByName_JwtIsThirdPrecedence() {
-    init(user(UserType.JWT),
-        user(UserType.PAM));
-    assertEquals(UserType.JWT, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
-  }
-
-  private static final UserEntity user(UserType type) {
-    return user(SERVICEOP_USER_NAME, type);
-  }
-
-  private static final UserEntity user(String name, UserType type) {
+  private static final UserEntity user(String name) {
     UserEntity userEntity = new UserEntity();
-    userEntity.setUserName(UserName.fromString(name));
-    userEntity.setUserType(type);
+    userEntity.setUserName(UserName.fromString(name).toString());
     return userEntity;
   }
 

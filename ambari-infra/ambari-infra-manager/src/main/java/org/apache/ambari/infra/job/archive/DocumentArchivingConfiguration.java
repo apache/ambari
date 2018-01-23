@@ -18,8 +18,10 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.conf.InfraManagerDataConfig;
 import org.apache.ambari.infra.job.JobPropertyMap;
 import org.apache.ambari.infra.job.ObjectSource;
+import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -37,14 +39,16 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.File;
-import java.nio.file.Paths;
+
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Configuration
 public class DocumentArchivingConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(DocumentArchivingConfiguration.class);
+  private static final DocumentWiper NOT_DELETE = (firstDocument, lastDocument) -> { };
 
   @Inject
-  private DocumentExportPropertyMap propertyMap;
+  private DocumentArchivingPropertyMap propertyMap;
 
   @Inject
   private StepBuilderFactory steps;
@@ -62,9 +66,12 @@ public class DocumentArchivingConfiguration {
 
   @PostConstruct
   public void createJobs() {
-    propertyMap.getSolrDataExport().values().forEach(DocumentExportProperties::validate);
+    if (propertyMap == null || propertyMap.getSolrDataArchiving() == null)
+      return;
 
-    propertyMap.getSolrDataExport().keySet().forEach(jobName -> {
+    propertyMap.getSolrDataArchiving().values().forEach(DocumentArchivingProperties::validate);
+
+    propertyMap.getSolrDataArchiving().keySet().forEach(jobName -> {
       LOG.info("Registering data archiving job {}", jobName);
       Job job = logExportJob(jobName, exportStep);
       jobRegistryBeanPostProcessor.postProcessAfterInitialization(job, jobName);
@@ -87,34 +94,61 @@ public class DocumentArchivingConfiguration {
   @StepScope
   public DocumentExporter documentExporter(DocumentItemReader documentItemReader,
                                            @Value("#{stepExecution.jobExecution.id}") String jobId,
-                                           @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties,
-                                           SolrDAO solrDAO) {
-    File path = Paths.get(
-            properties.getDestinationDirectoryPath(),
-            // TODO: jobId should remain the same after continuing job
-            String.format("%s_%s", properties.getSolr().getCollection(), jobId)).toFile(); // TODO: add end date
-    LOG.info("Destination directory path={}", path);
-    if (!path.exists()) {
-      if (!path.mkdirs()) {
-        LOG.warn("Unable to create directory {}", path);
-      }
+                                           @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties,
+                                           InfraManagerDataConfig infraManagerDataConfig,
+                                           @Value("#{jobParameters[end]}") String intervalEnd,
+                                           DocumentWiper documentWiper) {
+
+    File baseDir = new File(infraManagerDataConfig.getDataFolder(), "exporting");
+    CompositeFileAction fileAction = new CompositeFileAction(new TarGzCompressor());
+    switch (properties.getDestination()) {
+      case S3:
+        fileAction.add(new S3Uploader(properties.s3Properties().orElseThrow(() -> new IllegalStateException("S3 properties are not provided!"))));
+        break;
+      case HDFS:
+        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+        conf.set("fs.defaultFS", properties.getHdfsEndpoint());
+        fileAction.add(new HdfsUploader(conf, new Path(properties.getHdfsDestinationDirectory())));
+        break;
+      case LOCAL:
+        baseDir = new File(properties.getLocalDestinationDirectory());
+        break;
     }
 
-    CompositeFileAction fileAction = new CompositeFileAction(new TarGzCompressor());
-    properties.s3Properties().ifPresent(s3Properties -> fileAction.add(new S3Uploader(s3Properties)));
     FileNameSuffixFormatter fileNameSuffixFormatter = FileNameSuffixFormatter.from(properties);
-    LocalItemWriterListener itemWriterListener = new LocalItemWriterListener(fileAction, solrDAO);
+    LocalItemWriterListener itemWriterListener = new LocalItemWriterListener(fileAction, documentWiper);
+    File destinationDirectory = new File(
+            baseDir,
+            String.format("%s_%s_%s",
+                    properties.getSolr().getCollection(),
+                    jobId,
+                    isBlank(intervalEnd) ? "" : fileNameSuffixFormatter.format(intervalEnd)));
+    LOG.info("Destination directory path={}", destinationDirectory);
+    if (!destinationDirectory.exists()) {
+      if (!destinationDirectory.mkdirs()) {
+        LOG.warn("Unable to create directory {}", destinationDirectory);
+      }
+    }
 
     return new DocumentExporter(
             documentItemReader,
             firstDocument -> new LocalDocumentItemWriter(
-                    outFile(properties.getSolr().getCollection(), path, fileNameSuffixFormatter.format(firstDocument)), itemWriterListener),
+                    outFile(properties.getSolr().getCollection(), destinationDirectory, fileNameSuffixFormatter.format(firstDocument)), itemWriterListener),
             properties.getWriteBlockSize());
   }
 
   @Bean
   @StepScope
-  public SolrDAO solrDAO(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties) {
+  public DocumentWiper documentWiper(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties,
+                                     SolrDAO solrDAO) {
+    if (isBlank(properties.getSolr().getDeleteQueryText()))
+      return NOT_DELETE;
+    return solrDAO;
+  }
+
+  @Bean
+  @StepScope
+  public SolrDAO solrDAO(@Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties) {
     return new SolrDAO(properties.getSolr());
   }
 
@@ -127,7 +161,7 @@ public class DocumentArchivingConfiguration {
   @Bean
   @StepScope
   public DocumentItemReader reader(ObjectSource<Document> documentSource,
-                                   @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentExportProperties properties) {
+                                   @Value("#{stepExecution.jobExecution.executionContext.get('jobProperties')}") DocumentArchivingProperties properties) {
     return new DocumentItemReader(documentSource, properties.getReadBlockSize());
   }
 

@@ -3566,30 +3566,43 @@ describe('App.MainHostDetailsController', function () {
 
     it("no dependencies", function () {
       var opt = {scope: '*'};
-      this.mock.returns(Em.Object.create({
-        dependencies: []
+      this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
+          'dependencies': []
       }));
       expect(controller.checkComponentDependencies('C1', opt)).to.be.empty;
     });
     it("dependecies already installed", function () {
       var opt = {scope: '*', installedComponents: ['C2']};
-      this.mock.returns(Em.Object.create({
+      this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
         dependencies: [{componentName: 'C2'}]
       }));
+      this.mock.withArgs('C2').returns(App.StackServiceComponent.createRecord({ componentName: 'C2' }));
       expect(controller.checkComponentDependencies('C1', opt)).to.be.empty;
     });
     it("dependecies should be added", function () {
       var opt = {scope: '*', installedComponents: ['C2']};
-      this.mock.returns(Em.Object.create({
+      this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
         dependencies: [{componentName: 'C3'}]
       }));
+      this.mock.withArgs('C2').returns(App.StackServiceComponent.createRecord({ componentName: 'C2' }));
+      this.mock.withArgs('C3').returns(App.StackServiceComponent.createRecord({ componentName: 'C3' }));
       expect(controller.checkComponentDependencies('C1', opt)).to.eql(['C3']);
+    });
+    it("dependecies already installed by component type", function () {
+      var opt = {scope: '*', installedComponents: ['C3']};
+      this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
+        dependencies: [{componentName: 'C2'}]
+      }));
+      this.mock.withArgs('C2').returns(App.StackServiceComponent.createRecord({ componentName: 'C2', componentType: 'HCFS_CLIENT' }));
+      this.mock.withArgs('C3').returns(App.StackServiceComponent.createRecord({ componentName: 'C3', componentType: 'HCFS_CLIENT' }));
+      expect(controller.checkComponentDependencies('C1', opt)).to.be.empty;
     });
     it("scope is host", function () {
       var opt = {scope: 'host', hostName: 'host1'};
-      this.mock.returns(Em.Object.create({
+      this.mock.withArgs('C1').returns(App.StackServiceComponent.createRecord({
         dependencies: [{componentName: 'C3', scope: 'host'}]
       }));
+      this.mock.withArgs('C3').returns(App.StackServiceComponent.createRecord({ componentName: 'C3' }));
       expect(controller.checkComponentDependencies('C1', opt)).to.eql(['C3']);
     });
   });

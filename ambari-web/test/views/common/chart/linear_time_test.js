@@ -25,6 +25,11 @@ describe('App.ChartLinearTimeView', function () {
 
   beforeEach(function() {
     chartLinearTimeView = App.ChartLinearTimeView.create();
+    sinon.stub(App.ajax, 'abortRequests', Em.K);
+  });
+
+  afterEach(function () {
+    App.ajax.abortRequests.restore();
   });
 
   describe("#isRequestRunning", function () {
@@ -397,14 +402,9 @@ describe('App.ChartLinearTimeView', function () {
       describe(item.title, function () {
 
         beforeEach(function () {
-          sinon.stub(App.ajax, 'abortRequests', Em.K);
           view.set('inWidget', item.inWidget);
           view.set('parentView.isClusterMetricsWidget', item.isClusterMetricsWidget);
           view.propertyDidChange('parentView.currentTimeRangeIndex');
-        });
-
-        afterEach(function () {
-          App.ajax.abortRequests.restore();
         });
 
         it('parentView.isLoaded', function () {

@@ -19,6 +19,7 @@
 package org.apache.ambari.logfeeder.conf;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logfeeder.plugin.common.LogFeederProperties;
 import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +37,7 @@ import java.util.Properties;
 import java.util.stream.Stream;
 
 @Configuration
-public class LogFeederProps {
+public class LogFeederProps implements LogFeederProperties {
 
   @Inject
   private Environment env;
