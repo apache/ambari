@@ -134,13 +134,13 @@ public class HostStackVersionResourceProviderTest {
     repositoryVersionDAOMock = createNiceMock(RepositoryVersionDAO.class);
     hostVersionDAOMock = createNiceMock(HostVersionDAO.class);
     configHelper = createNiceMock(ConfigHelper.class);
+    clusters = createNiceMock(Clusters.class);
     // Initialize injector
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
     injector = Guice.createInjector(Modules.override(module).with(new MockModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     managementController = createMock(AmbariManagementController.class);
-    clusters = createNiceMock(Clusters.class);
     cluster = createNiceMock(Cluster.class);
     response = createNiceMock(RequestStatusResponse.class);
     resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
@@ -236,7 +236,7 @@ public class HostStackVersionResourceProviderTest {
         eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
-    expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
+    expect(clusters.getHost(anyObject(String.class))).andReturn(host1).anyTimes();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
@@ -330,7 +330,7 @@ public class HostStackVersionResourceProviderTest {
       eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
-    expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
+    expect(clusters.getHost(anyObject(String.class))).andReturn(host1).anyTimes();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
@@ -426,7 +426,7 @@ public class HostStackVersionResourceProviderTest {
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
-    expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
+    expect(clusters.getHost(anyObject(String.class))).andReturn(host1).anyTimes();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(new HashMap<>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
@@ -491,6 +491,7 @@ public class HostStackVersionResourceProviderTest {
       bind(RepositoryVersionDAO.class).toInstance(repositoryVersionDAOMock);
       bind(HostVersionDAO.class).toInstance(hostVersionDAOMock);
       bind(ConfigHelper.class).toInstance(configHelper);
+      bind(Clusters.class).toInstance(clusters);
     }
   }
 }

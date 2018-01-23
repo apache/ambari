@@ -2824,6 +2824,39 @@ public class Configuration {
   }
 
   /**
+   * Get the property value for the given key. If the value is not
+   * found then reload the properties and get the property value
+   * for the given key.
+   *
+   * @return the property value
+   */
+  public String getPropertyForced(String key) {
+    String returnValue = properties.getProperty(key);
+    if (returnValue == null) {
+      Properties properties = readConfigFile();
+      returnValue = properties.getProperty(key);
+      if (returnValue != null) {
+        this.properties = properties;
+      }
+    }
+    return returnValue;
+  }
+
+  /**
+   * Get the Java Home property value for the given os_type. If the value is not
+   * found then get the default Java Home property value
+   * @param os_type OS type of the host
+   * @return the Java Home path value for given OS type
+   */
+  public String getJavaHomeForOs(String os_type) {
+    String returnValue = getPropertyForced(JAVA_HOME.getKey() + "." + os_type);
+    if (returnValue == null) {
+      returnValue = getJavaHome();
+    }
+    return returnValue;
+  }
+
+  /**
    * Gets a copy of all of the configuration properties that back this
    * {@link Configuration} instance.
    *

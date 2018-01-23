@@ -24,6 +24,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
@@ -370,6 +371,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         osFamily = clusters.getHost(hostName).getOsFamily();
 
         TreeMap<String, String> hostLevelParams = new TreeMap<>();
+        hostLevelParams.put(JAVA_HOME, configs.getJavaHomeForOs(clusters.getHost(hostName).getOsType()));
         StageUtils.useStackJdkIfExists(hostLevelParams, configs);
         hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
         hostLevelParams.put(STACK_NAME, stackId.getStackName());

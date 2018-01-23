@@ -27,6 +27,7 @@ import subprocess
 import getpass
 import logging
 
+from urlparse import urlparse
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
 from ambari_commons.inet_utils import force_download_file, download_progress
@@ -42,7 +43,7 @@ from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
   VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY, JDK_DOWNLOAD_SUPPORTED_PROPERTY, JCE_DOWNLOAD_SUPPORTED_PROPERTY, SETUP_DONE_PROPERTIES, \
-  STACK_JAVA_HOME_PROPERTY, STACK_JDK_NAME_PROPERTY, STACK_JCE_NAME_PROPERTY, STACK_JAVA_VERSION, GPL_LICENSE_ACCEPTED_PROPERTY
+  STACK_JAVA_HOME_PROPERTY, STACK_JDK_NAME_PROPERTY, STACK_JCE_NAME_PROPERTY, STACK_JAVA_VERSION, GPL_LICENSE_ACCEPTED_PROPERTY, AMBARI_REPO
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
@@ -416,7 +417,16 @@ class JDKSetup(object):
     jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
                     "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
 
+    server_os_type = OS_TYPE + OS_VERSION
     if args.java_home:
+      if args.os_type and server_os_type != args.os_type:
+        #Do not set Java home for OS type unless default java.home is set
+        if not properties.get_property(JAVA_HOME_PROPERTY):
+          err = "JDK is not set for Ambari Server. Use ambari-server setup without --os-type option"
+          raise FatalException(1, err)
+        properties.process_pair(JAVA_HOME_PROPERTY + '.' + args.os_type, args.java_home)
+        return
+
       #java_home was specified among the command-line arguments. Use it as custom JDK location.
       if not validate_jdk(args.java_home):
         err = "Path to java home " + args.java_home + " or java binary file does not exists"
@@ -427,6 +437,7 @@ class JDKSetup(object):
       IS_CUSTOM_JDK = True
 
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
+      properties.process_pair(JAVA_HOME_PROPERTY + '.' + server_os_type, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
 
@@ -493,6 +504,7 @@ class JDKSetup(object):
       print "Validating JDK on Ambari Server...done."
 
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
+      properties.process_pair(JAVA_HOME_PROPERTY + '.' + server_os_type, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
 
@@ -1135,6 +1147,17 @@ def check_setup_already_done():
 
   return not bool(get_missing_properties(properties, property_set=SETUP_DONE_PROPERTIES))
 
+def update_ambari_repo(options):
+  choice_prompt = "Enter OS type for which the Ambari repo URL is to be changed(eg: redhat7, redhat-ppc7, suse11, ubuntu12): "
+  os_type = get_validated_string_input(choice_prompt, None, None, None, False)
+  if os_type is None:
+    err = 'OS type cannot be empty'
+    raise FatalException(1, err)
+
+  properties = get_ambari_properties()
+  properties.process_pair(AMBARI_REPO + '.' + os_type, options.ambari_repo)
+  update_properties(properties)
+
 #
 # Setup the Ambari Server.
 #
@@ -1175,12 +1198,24 @@ def setup(options):
   if _check_jdbc_options(options):
     proceedJDBCProperties(options)
 
+  if options.os_type and not options.java_home:
+    err = "Error: Specified os_type should be used with option --java-home or -j"
+    raise FatalException(1, err)
+
   print 'Checking JDK...'
   try:
     download_and_install_jdk(options)
   except FatalException as e:
     err = 'Downloading or installing JDK failed: {0}. Exiting.'.format(e)
     raise FatalException(e.code, err)
+
+  if options.ambari_repo:
+    parse_result = urlparse(options.ambari_repo)
+    if not (parse_result.scheme and parse_result.netloc):
+      err = 'Ambari repo URL format is invalid'
+      raise FatalException(1, err)
+    print 'Updating Ambari repo URL..'
+    update_ambari_repo(options)
 
   print 'Checking GPL software agreement...'
   write_gpl_license_accepted(default_prompt_value=options.accept_gpl)

@@ -298,6 +298,36 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testGetPropertyForced() throws Exception {
+    final Properties ambariProperties = new Properties();
+    ambariProperties.setProperty("name", "value");
+    final Configuration conf = new Configuration();
+
+    mockStatic(Configuration.class);
+    Method[] methods = MemberMatcher.methods(Configuration.class, "readConfigFile");
+    PowerMock.expectPrivate(Configuration.class, methods[0]).andReturn(ambariProperties);
+    replayAll();
+
+    String returnValue = conf.getPropertyForced("name");
+    verifyAll();
+    Assert.assertEquals("value", returnValue);
+
+    Properties configProps = conf.getProperties();
+    Assert.assertEquals("value", configProps.getProperty("name"));
+  }
+
+  @Test
+  public void testGetJavaHomeForOs() throws Exception {
+    final Configuration conf = new Configuration();
+    conf.setProperty("java.home", "default_value");
+    conf.setProperty("java.home.redhat-ppc7", "ppc_value");
+    Assert.assertEquals("ppc_value", conf.getJavaHomeForOs("redhat-ppc7"));
+    Assert.assertEquals("default_value", conf.getJavaHomeForOs("redhat7"));
+    Assert.assertEquals("default_value", conf.getJavaHomeForOs(""));
+    Assert.assertEquals("default_value", conf.getJavaHomeForOs(null));
+  }
+
+  @Test
   public void testGetAmbariBlacklistFile() {
     Properties ambariProperties = new Properties();
     Configuration conf = new Configuration(ambariProperties);

@@ -270,7 +270,7 @@ class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")
   def test_os_type_check(self, mock_linux_distribution):
 
-    # 1 - server and agent os compatible
+    # 1 - should run successfully for agent os
     mock_linux_distribution.return_value = ('aaa', '11', 'bb')
     base_args = ["os_check_type.py", "aaa11"]
     sys.argv = list(base_args)
@@ -281,19 +281,16 @@ class TestOSCheck(TestCase):
       # exit_code=0
       self.assertEquals("0", str(e))
 
-    # 2 - server and agent os is not compatible
+    # 2 - get_os_type for agent os
     mock_linux_distribution.return_value = ('ddd', '33', 'bb')
     base_args = ["os_check_type.py", "zzz_x77"]
     sys.argv = list(base_args)
 
     try:
-      os_check_type.main()
-      self.fail("Must fail because os's not compatible.")
+      agent_os_type = os_check_type.get_os_type()
+      self.assertEqual("ddd33", agent_os_type)
     except Exception as e:
-      self.assertEquals(
-        "Local OS is not compatible with cluster primary OS family. Please perform manual bootstrap on this host.",
-        str(e))
-      pass
+      self.assertEquals("0", str(e))
 
   @patch.object(OSCheck, "get_os_family")
   def is_ubuntu_family(self, get_os_family_mock):

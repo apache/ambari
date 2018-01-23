@@ -264,7 +264,8 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn(stackRoot);
-    expect(configuration.getJavaHome()).andReturn("dummy_java_home");
+    expect(host.getOsType()).andReturn("redhat7");
+    expect(configuration.getJavaHomeForOs("redhat7")).andReturn("dummy_java_home");
     expect(configuration.getJDKName()).andReturn(null);
     expect(configuration.getJCEName()).andReturn(null);
     expect(configuration.getJavaVersion()).andReturn(8);
@@ -314,7 +315,7 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
     expect(clusterConfig.getType()).andReturn("hive-site").anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
-    expect(clusters.getHost(hostName)).andReturn(host);
+    expect(clusters.getHost(hostName)).andReturn(host).anyTimes();
 
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
@@ -520,7 +521,8 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn("/var/lib/ambari-server/src/main/resources");
-    expect(configuration.getJavaHome()).andReturn("dummy_java_home");
+    expect(host.getOsType()).andReturn("redhat7");
+    expect(configuration.getJavaHomeForOs("redhat7")).andReturn("dummy_java_home");
     expect(configuration.getJDKName()).andReturn(null);
     expect(configuration.getJCEName()).andReturn(null);
     expect(configuration.getJavaVersion()).andReturn(8);
@@ -571,7 +573,7 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
     expect(clusterConfig.getType()).andReturn("hive-site").anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
-    expect(clusters.getHost(hostName)).andReturn(host);
+    expect(clusters.getHost(hostName)).andReturn(host).anyTimes();
 
     expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
     expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();

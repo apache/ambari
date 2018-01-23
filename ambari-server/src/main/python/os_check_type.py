@@ -23,22 +23,13 @@ from ambari_commons import OSCheck
 
 def main(argv=None):
   # Same logic that was in "os_type_check.sh"
-  if len(sys.argv) != 2:
-    print "Usage: <cluster_os>"
-    raise Exception("Error in number of arguments. Usage: <cluster_os>")
-    pass
 
-  cluster_os = sys.argv[1]
-  current_os = OSCheck.get_os_family() + OSCheck.get_os_major_version()
+  current_os = get_os_type()
+  #log the current os type value to be used during bootstrap
+  print current_os
 
-  # If agent/server have the same {"family","main_version"} - then ok.
-  print "Cluster primary/cluster OS family is %s and local/current OS family is %s" % (
-    cluster_os, current_os)
-  if current_os == cluster_os:
-    sys.exit(0)
-  else:
-    raise Exception("Local OS is not compatible with cluster primary OS family. Please perform manual bootstrap on this host.")
-
+def get_os_type():
+  return OSCheck.get_os_family() + OSCheck.get_os_major_version()
 
 if __name__ == "__main__":
   main()

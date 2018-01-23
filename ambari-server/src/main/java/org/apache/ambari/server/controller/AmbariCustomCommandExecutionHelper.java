@@ -29,6 +29,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
@@ -437,6 +438,10 @@ public class AmbariCustomCommandExecutionHelper {
       String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
       hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
+      // set java home for each host depending on os type; if not found default will be used
+      String javaHomeValue = configs.getJavaHomeForOs(host.getOsType());
+      hostLevelParams.put(JAVA_HOME, javaHomeValue);
+
       execCmd.setHostLevelParams(hostLevelParams);
 
       Map<String, String> commandParams = new TreeMap<>();
@@ -743,6 +748,16 @@ public class AmbariCustomCommandExecutionHelper {
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostname,
         smokeTestRole).getExecutionCommand();
+
+    // set java home for each host depending on os type; if not found default will be used
+    String javaHomeValue = configs.getJavaHomeForOs(clusters.getHost(hostname).getOsType());
+    if (execCmd.getHostLevelParams() == null) {
+      Map<String,String> hostLevelParams = new TreeMap<>();
+      hostLevelParams.put(JAVA_HOME, javaHomeValue);
+      execCmd.setHostLevelParams(hostLevelParams);
+    } else {
+      execCmd.getHostLevelParams().put(JAVA_HOME, javaHomeValue);
+    }
 
     // if the command should fetch brand new configuration tags before
     // execution, then we don't need to fetch them now
