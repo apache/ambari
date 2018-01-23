@@ -124,8 +124,9 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
     });
   }
 
-  writeValue(filters: HomogeneousObject<HomogeneousObject<Filter>>): void {
-    this.configs = this.settingsService.parseLogIndexFilterObjects(filters);
+  writeValue(filters: HomogeneousObject<LogIndexFilterComponentConfig[]>): void {
+    this.configs = filters;
+    this.updateValue();
   }
 
   registerOnChange(callback: any): void {

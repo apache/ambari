@@ -75,7 +75,9 @@ export class UserSettingsService {
       const savedConfig = savedValue[clusterName],
         newConfig = this.getLogIndexFilterObject(newValue[clusterName]);
       if (!this.utils.isEqual(savedConfig, newConfig)) {
-        this.httpClient.put('logIndexFilters', newConfig, null, {
+        this.httpClient.put('logIndexFilters', {
+          filter: newConfig
+        }, null, {
           clusterName
         });
       }
