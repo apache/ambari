@@ -16,39 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logsearch.model.metadata;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
 
-import java.util.Map;
+@ApiModel
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class FieldMetadata extends Metadata implements Filterable, Visible {
+  private final boolean filterable;
+  private final boolean visible;
 
-public interface InputDescriptor {
-  String getType();
+  public FieldMetadata(String name, String label, Boolean filterable, Boolean visible) {
+    super(name, label);
+    this.visible = visible;
+    this.filterable = filterable;
+  }
 
-  String getRowtype();
+  @Override
+  public Boolean isFilterable() {
+    return this.filterable;
+  }
 
-  String getPath();
-
-  Map<String, String> getAddFields();
-
-  String getSource();
-
-  Boolean isTail();
-
-  Boolean isGenEventMd5();
-
-  Boolean isUseEventMd5AsId();
-
-  Boolean isCacheEnabled();
-
-  String getCacheKeyField();
-
-  Boolean getCacheLastDedupEnabled();
-
-  Integer getCacheSize();
-
-  Long getCacheDedupInterval();
-
-  Boolean isEnabled();
-
-  String getGroup();
+  @Override
+  public boolean isVisible() {
+    return this.visible;
+  }
 }

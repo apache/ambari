@@ -16,39 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logsearch.model.metadata;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+import io.swagger.annotations.ApiModel;
 
+import java.util.List;
 import java.util.Map;
 
-public interface InputDescriptor {
-  String getType();
+@ApiModel
+public class AuditFieldMetadataResponse {
 
-  String getRowtype();
+  private final List<FieldMetadata> defaults;
 
-  String getPath();
+  private final Map<String, List<FieldMetadata>> overrides;
 
-  Map<String, String> getAddFields();
+  public AuditFieldMetadataResponse(List<FieldMetadata> defaults, Map<String, List<FieldMetadata>> overrides) {
+    this.defaults = defaults;
+    this.overrides = overrides;
+  }
 
-  String getSource();
+  public List<FieldMetadata> getDefaults() {
+    return defaults;
+  }
 
-  Boolean isTail();
-
-  Boolean isGenEventMd5();
-
-  Boolean isUseEventMd5AsId();
-
-  Boolean isCacheEnabled();
-
-  String getCacheKeyField();
-
-  Boolean getCacheLastDedupEnabled();
-
-  Integer getCacheSize();
-
-  Long getCacheDedupInterval();
-
-  Boolean isEnabled();
-
-  String getGroup();
+  public Map<String, List<FieldMetadata>> getOverrides() {
+    return overrides;
+  }
 }

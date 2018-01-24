@@ -16,39 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logsearch.model.metadata;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
-
-import java.util.Map;
-
-public interface InputDescriptor {
-  String getType();
-
-  String getRowtype();
-
-  String getPath();
-
-  Map<String, String> getAddFields();
-
-  String getSource();
-
-  Boolean isTail();
-
-  Boolean isGenEventMd5();
-
-  Boolean isUseEventMd5AsId();
-
-  Boolean isCacheEnabled();
-
-  String getCacheKeyField();
-
-  Boolean getCacheLastDedupEnabled();
-
-  Integer getCacheSize();
-
-  Long getCacheDedupInterval();
-
-  Boolean isEnabled();
+public interface Groupable {
 
   String getGroup();
+
 }

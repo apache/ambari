@@ -16,39 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logsearch.model.metadata;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
 
+import java.util.List;
 import java.util.Map;
 
-public interface InputDescriptor {
-  String getType();
+@ApiModel
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ServiceComponentMetadataWrapper {
+  private final Map<String, String> groups;
+  private final List<ComponentMetadata> metadata;
 
-  String getRowtype();
+  public ServiceComponentMetadataWrapper(List<ComponentMetadata> metadata, Map<String, String> groups) {
+    this.groups = groups;
+    this.metadata = metadata;
+  }
 
-  String getPath();
+  public Map<String, String> getGroups() {
+    return groups;
+  }
 
-  Map<String, String> getAddFields();
-
-  String getSource();
-
-  Boolean isTail();
-
-  Boolean isGenEventMd5();
-
-  Boolean isUseEventMd5AsId();
-
-  Boolean isCacheEnabled();
-
-  String getCacheKeyField();
-
-  Boolean getCacheLastDedupEnabled();
-
-  Integer getCacheSize();
-
-  Long getCacheDedupInterval();
-
-  Boolean isEnabled();
-
-  String getGroup();
+  public List<ComponentMetadata> getMetadata() {
+    return metadata;
+  }
 }
