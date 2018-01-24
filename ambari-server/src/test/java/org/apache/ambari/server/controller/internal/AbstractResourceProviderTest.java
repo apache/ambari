@@ -22,7 +22,6 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.replay;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +57,9 @@ import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Resource provider tests.
@@ -728,26 +730,6 @@ public class AbstractResourceProviderTest {
 
   private static Resource.Type testResourceType = new Resource.Type("testResource");
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      "ClusterName",
-      "ResourceName"}));
-
-  private static Set<String> propertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      "ClusterName",
-      "ResourceName",
-      "SomeProperty",
-      "SomeOtherProperty"}));
-
-  private static Map<Resource.Type, String> keyPropertyIds =
-    new HashMap<>();
-
-  static {
-    keyPropertyIds.put(Resource.Type.Cluster, "ClusterName");
-    keyPropertyIds.put(testResourceType, "ResourceName" );
-  }
-
   private static Set<Resource> allResources = new HashSet<>();
 
   static {
@@ -782,6 +764,21 @@ public class AbstractResourceProviderTest {
 
   public static class TestResourceProvider extends AbstractResourceProvider {
 
+    private static final Set<String> pkPropertyIds = ImmutableSet.of(
+      "ClusterName",
+      "ResourceName");
+
+    private static final Set<String> propertyIds = ImmutableSet.of(
+      "ClusterName",
+      "ResourceName",
+      "SomeProperty",
+      "SomeOtherProperty");
+
+    private static final Map<Resource.Type, String> keyPropertyIds = ImmutableMap.of(
+      Resource.Type.Cluster, "ClusterName",
+      testResourceType, "ResourceName"
+    );
+
     protected TestResourceProvider() {
       super(propertyIds, keyPropertyIds);
     }
@@ -789,7 +786,6 @@ public class AbstractResourceProviderTest {
     @Override
     protected Set<String> getPKPropertyIds() {
       return pkPropertyIds;
-
     }
 
     @Override

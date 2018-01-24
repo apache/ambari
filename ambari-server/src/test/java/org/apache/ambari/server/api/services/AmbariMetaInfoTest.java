@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AutoDeployInfo;
@@ -1835,7 +1836,8 @@ public class AmbariMetaInfoTest {
     RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
       cluster.getCurrentStackVersion(), repoVersion);
 
-    cluster.addService("HDFS", repositoryVersion);
+    ServiceGroup sg = cluster.addServiceGroup("core");
+    cluster.addService(sg, "HDFS", "HDFS", repositoryVersion);
 
     metaInfo.reconcileAlertDefinitions(clusters, false);
 
@@ -2114,6 +2116,12 @@ public class AmbariMetaInfoTest {
       f = c.getDeclaredField("mpackManagerFactory");
       f.setAccessible(true);
       f.set(this, mpackManagerFactory);
+
+      // RootLevelSettingsManagerFactory
+      RootLevelSettingsManagerFactory rootLevelSettingsManagerFactory = injector.getInstance(RootLevelSettingsManagerFactory.class);
+      f = c.getDeclaredField("rootLevelSettingsManagerFactory");
+      f.setAccessible(true);
+      f.set(this, rootLevelSettingsManagerFactory);
 
       //AlertDefinitionDAO
       alertDefinitionDAO = createNiceMock(AlertDefinitionDAO.class);

@@ -602,7 +602,7 @@ public class AmbariCustomCommandExecutionHelperTest {
           }
         }, false);
 
-    actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER",
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("CORE", "YARN", "RESOURCEMANAGER",
         Collections.singletonList("c1-c6401")));
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);

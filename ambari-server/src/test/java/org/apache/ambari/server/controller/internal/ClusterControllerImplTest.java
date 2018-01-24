@@ -1159,10 +1159,6 @@ public class ClusterControllerImplTest {
 
 
   private static class TestStackVersionResourceProvider extends TestResourceProvider {
-    private TestStackVersionResourceProvider() {
-      super(StackVersionResourceProvider.propertyIds, StackVersionResourceProvider.keyPropertyIds);
-    }
-
     @Override
     public Set<Resource> getResources(Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
