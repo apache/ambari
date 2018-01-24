@@ -53,7 +53,6 @@ export interface AppStore {
   graphs: Graph[];
   hosts: NodeItem[];
   userConfigs: UserConfig[];
-  filters: Filter[];
   clusters: string[];
   components: NodeItem[];
   serviceLogsFields: ServiceLogField[];

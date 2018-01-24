@@ -50,7 +50,6 @@ import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-tr
 import {GraphsService} from '@app/services/storage/graphs.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 import {UserConfigsService} from '@app/services/storage/user-configs.service';
-import {FiltersService} from '@app/services/storage/filters.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
@@ -199,7 +198,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     GraphsService,
     HostsService,
     UserConfigsService,
-    FiltersService,
     ClustersService,
     ComponentsService,
     ServiceLogsFieldsService,
