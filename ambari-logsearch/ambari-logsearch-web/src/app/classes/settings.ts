@@ -26,7 +26,7 @@ export type LevelOverridesConfig = HomogeneousObject<{
 export type LogIndexFilterComponentConfig = LevelOverridesConfig & {
   name: string;
   label: string;
-  hosts: string[];
+  hosts: string;
   expiryTime: string | null;
   hasOverrides?: boolean;
 }

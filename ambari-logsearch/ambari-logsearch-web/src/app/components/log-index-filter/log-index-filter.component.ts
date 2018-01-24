@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, forwardRef} from '@angular/core';
+import {Component, OnInit, Output, EventEmitter, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
@@ -25,7 +25,6 @@ import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject, LogLevelObject} from '@app/classes/object';
 import {LogIndexFilterComponentConfig} from '@app/classes/settings';
 import {LogLevel} from '@app/classes/string';
-import {Filter} from '@app/classes/models/filter';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
@@ -53,12 +52,12 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
   }
 
   ngOnInit() {
+    this.changeIsSubmitDisabled.emit(true);
     this.clusters.subscribe((clusters: string[]) => this.settingsService.loadIndexFilterConfig(clusters));
-    this.settingsStorage.getParameter('logIndexFilters').subscribe((filters: HomogeneousObject<HomogeneousObject<Filter>>): void => {
-      this.configs = this.settingsService.parseLogIndexFilterObjects(filters);
-      this.updateValue();
-    });
   }
+
+  @Output()
+  changeIsSubmitDisabled: EventEmitter<boolean> =  new EventEmitter();
 
   private onChange: (fn: any) => void;
 
@@ -82,22 +81,25 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
     return this.configs[this.activeClusterName];
   }
 
-  processAllLevelsForComponent(componentName: string, isChecked: boolean): void {
-    const componentConfig = this.getComponentConfigs(componentName);
-    this.levelNames.forEach((levelName: LogLevel) => componentConfig[levelName].defaults = isChecked);
+  processAllLevelsForComponent(componentName: string, isChecked: boolean, isOverride: boolean = false): void {
+    const componentConfig = this.getComponentConfigs(componentName),
+      key = isOverride ? 'overrides' : 'defaults';
+    this.levelNames.forEach((levelName: LogLevel) => componentConfig[levelName][key] = isChecked);
     this.updateValue();
   }
 
   processAllComponentsForLevel(levelName: LogLevel, isChecked: boolean): void {
     this.activeClusterConfigs.forEach((component: LogIndexFilterComponentConfig): void => {
       component[levelName].defaults = isChecked;
+      component[levelName].overrides = isChecked;
     });
     this.updateValue();
   }
 
-  isAllLevelsCheckedForComponent(componentName: string): boolean {
-    const componentConfig = this.getComponentConfigs(componentName);
-    return this.levelNames.every((levelName: LogLevel): boolean => componentConfig[levelName].defaults);
+  isAllLevelsCheckedForComponent(componentName: string, isOverride: boolean = false): boolean {
+    const componentConfig = this.getComponentConfigs(componentName),
+      key = isOverride ? 'overrides' : 'defaults';
+    return this.levelNames.every((levelName: LogLevel): boolean => componentConfig[levelName][key]);
   }
 
   isAllComponentsCheckedForLevel(levelName: LogLevel): boolean {
@@ -108,6 +110,7 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
 
   setActiveCluster(clusterName: string): void {
     this.activeClusterName = clusterName;
+    this.changeIsSubmitDisabled.emit(false);
   }
 
   getCheckBoxId(componentName: string, levelName: string, isOverride: boolean = false): string {

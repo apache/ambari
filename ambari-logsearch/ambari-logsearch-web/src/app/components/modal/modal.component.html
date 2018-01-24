@@ -35,6 +35,7 @@
         <button *ngIf="showCancelButton" class="btn {{cancelButtonClassName}}"
                 (click)="onCancel()">{{cancelButtonLabel | translate}}</button>
         <button *ngIf="showSubmitButton" class="btn {{submitButtonClassName}}"
+                [attr.disabled]="isSubmitDisabled ? 'disabled' : null"
                 (click)="onSubmit()">{{submitButtonLabel | translate}}</button>
       </div>
     </div>

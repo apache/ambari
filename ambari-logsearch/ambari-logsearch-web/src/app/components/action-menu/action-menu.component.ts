@@ -139,4 +139,10 @@ export class ActionMenuComponent {
 
   settingsForm: FormGroup = this.settings.settingsFormGroup;
 
+  isModalSubmitDisabled: boolean = true;
+
+  setModalSubmitDisabled(isDisabled: boolean): void {
+    this.isModalSubmitDisabled = isDisabled;
+  }
+
 }

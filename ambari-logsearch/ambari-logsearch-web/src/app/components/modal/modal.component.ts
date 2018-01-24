@@ -85,6 +85,9 @@ export class ModalComponent implements OnInit, AfterViewInit {
   @Input()
   isExtraLargeModal: boolean = false;
 
+  @Input()
+  isSubmitDisabled: boolean = false;
+
   @ContentChild(TemplateRef)
   bodyTemplate;
 

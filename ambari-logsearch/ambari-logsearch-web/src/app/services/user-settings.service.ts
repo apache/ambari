@@ -33,6 +33,10 @@ export class UserSettingsService {
 
   constructor(private logsContainer: LogsContainerService, private httpClient: HttpClientService,
               private utils: UtilsService, private settingsStorage: AppSettingsService) {
+    settingsStorage.getParameter('logIndexFilters').subscribe((filters: HomogeneousObject<HomogeneousObject<Filter>>): void => {
+      const configs = this.parseLogIndexFilterObjects(filters);
+      this.settingsFormGroup.controls.logIndexFilter.setValue(configs);
+    });
   }
 
   settingsFormGroup: FormGroup = new FormGroup({
@@ -71,9 +75,13 @@ export class UserSettingsService {
     const savedValue = this.currentValues.logIndexFilter,
       newValue = this.settingsFormGroup.controls.logIndexFilter.value,
       clusters = Object.keys(newValue);
+    let storedValue = {};
     clusters.forEach((clusterName: string): void => {
       const savedConfig = savedValue[clusterName],
         newConfig = this.getLogIndexFilterObject(newValue[clusterName]);
+      Object.assign(storedValue, {
+        [clusterName]: newConfig
+      });
       if (!this.utils.isEqual(savedConfig, newConfig)) {
         this.httpClient.put('logIndexFilters', {
           filter: newConfig
@@ -82,6 +90,7 @@ export class UserSettingsService {
         });
       }
     });
+    this.settingsStorage.setParameter('logIndexFilters', storedValue);
   }
 
   /**
@@ -113,7 +122,7 @@ export class UserSettingsService {
             name: componentName,
             label: componentConfigs.label,
             hasOverrides: false,
-            hosts: componentConfigs.hosts.slice(),
+            hosts: componentConfigs.hosts.join(),
             expiryTime: componentConfigs.expiryTime
           }, levelProperties);
         });
@@ -133,11 +142,12 @@ export class UserSettingsService {
     return configs.reduce((
       currentObject: HomogeneousObject<Filter>, componentConfig: LogIndexFilterComponentConfig
     ): HomogeneousObject<Filter> => {
+      const hosts = componentConfig.hosts;
       return Object.assign({}, currentObject, {
         [componentConfig.name]: {
           defaultLevels: levelNames.filter((levelName: LogLevel): boolean => componentConfig[levelName].defaults),
           expiryTime: componentConfig.expiryTime,
-          hosts: componentConfig.hosts,
+          hosts: hosts ? hosts.split(',') : [],
           label: componentConfig.label,
           overrideLevels: levelNames.filter((levelName: LogLevel): boolean => componentConfig[levelName].overrides)
         }

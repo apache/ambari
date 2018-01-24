@@ -24,7 +24,8 @@
     <tr>
       <th class="col-md-2">{{'filter.components' | translate}}</th>
       <th *ngFor="let column of columns" class="col-md-1">
-        <input type="checkbox" attr.id="{{column.name}}" [attr.checked]="isAllComponentsCheckedForLevel(column.name)"
+        <input type="checkbox" attr.id="{{column.name}}"
+               [attr.checked]="isAllComponentsCheckedForLevel(column.name) ? 'checked' : null"
                (change)="processAllComponentsForLevel(column.name, $event.target.checked)">
         <label attr.for="{{column.name}}">
           <graph-legend-item label="{{column.label | translate}}" color="{{column.color}}"></graph-legend-item>
@@ -38,7 +39,7 @@
       <tr>
         <td>
           <input type="checkbox" attr.id="{{component.name}}"
-                 [attr.checked]="isAllLevelsCheckedForComponent(component.name)"
+                 [attr.checked]="isAllLevelsCheckedForComponent(component.name) ? 'checked' : null"
                  (change)="processAllLevelsForComponent(component.name, $event.target.checked)">
           <label attr.for="{{component.name}}">{{component.label}}</label>
         </td>
@@ -51,9 +52,11 @@
           <span class="overrides-toggle">{{'logIndexFilter.addHosts' | translate}}</span>
         </td>
       </tr>
-      <tr *ngIf="!component.hasOverrides">
+      <tr> <!--overrides row -->
         <td>
-          <input type="checkbox" attr.id="{{component.name}}_overrides" (change)="updateValue()">
+          <input type="checkbox" attr.id="{{component.name}}_overrides"
+                 [attr.checked]="isAllLevelsCheckedForComponent(component.name, true) ? 'checked' : null"
+                 (change)="processAllLevelsForComponent(component.name, $event.target.checked, true)">
           <label attr.for="{{component.name}}_overrides">&nbsp;</label>
         </td>
         <td *ngFor="let levelName of levelNames">
