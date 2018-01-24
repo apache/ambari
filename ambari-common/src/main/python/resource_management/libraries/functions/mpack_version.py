@@ -27,10 +27,10 @@ import re
  planning to compare previous one. After that, use "==", ">", "<" to get final result.
 """
 class MpackVersion(object):
-  __module_version_pattern = "(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<maint>[0-9]+)(-h(?P<hotfix>[0-9]+))*-b(?P<build>[0-9]+)"
-  __module_legacy_stack_version_pattern = "(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<maint>[0-9]+).(?P<hotfix>[0-9]+)(-(?P<build>[0-9]+))"
-  __module_version_regex = re.compile(__module_version_pattern)
-  __module_legacy_stack_version_regex = re.compile(__module_legacy_stack_version_pattern)
+  __mpack_version_pattern = "(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<maint>[0-9]+)(-h(?P<hotfix>[0-9]+))*-b(?P<build>[0-9]+)"
+  __mpack_legacy_stack_version_pattern = "(?P<major>[0-9]+).(?P<minor>[0-9]+).(?P<maint>[0-9]+).(?P<hotfix>[0-9]+)(-(?P<build>[0-9]+))"
+  __mpack_version_regex = re.compile(__mpack_version_pattern)
+  __mpack_legacy_stack_version_regex = re.compile(__mpack_legacy_stack_version_pattern)
 
   def __init__(self, major, minor, maint, hotfix, build):
     """
@@ -141,10 +141,10 @@ class MpackVersion(object):
     if not version:
       raise ValueError("Module version can't be empty or null")
 
-    matcher = cls.__module_version_regex.match(version)
+    matcher = cls.__mpack_version_regex.match(version)
 
     if not matcher:
-      matcher = cls.__module_legacy_stack_version_regex.match(version)
+      matcher = cls.__mpack_legacy_stack_version_regex.match(version)
       if not matcher:
         raise ValueError("{0} is not a valid {1}".format(version, cls.__name__))
     else:
@@ -176,7 +176,7 @@ class MpackVersion(object):
     if not version:
       raise ValueError("Module version can't be empty or null")
 
-    matcher = cls.__module_version_regex.match(version)
+    matcher = cls.__mpack_version_regex.match(version)
 
     if not matcher:
       raise ValueError("{0} is not a valid {1}".format(version, cls.__name__))
