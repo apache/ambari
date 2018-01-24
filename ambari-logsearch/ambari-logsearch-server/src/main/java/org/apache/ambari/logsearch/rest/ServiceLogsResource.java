@@ -36,6 +36,8 @@ import io.swagger.annotations.ApiOperation;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.StatusMessage;
+import org.apache.ambari.logsearch.model.metadata.FieldMetadata;
+import org.apache.ambari.logsearch.model.metadata.ServiceComponentMetadataWrapper;
 import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
@@ -97,8 +99,8 @@ public class ServiceLogsResource {
   @Path("/components")
   @Produces({"application/json"})
   @ApiOperation(GET_COMPONENTS_OD)
-  public GroupListResponse getComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
-    return serviceLogsManager.getComponents(clusters);
+  public ServiceComponentMetadataWrapper getComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+    return serviceLogsManager.getComponentMetadata(clusters);
   }
 
   @GET
@@ -172,11 +174,12 @@ public class ServiceLogsResource {
   public NodeListResponse getComponentListWithLevelCounts(@BeanParam ServiceLogComponentLevelRequest request) {
     return serviceLogsManager.getComponentListWithLevelCounts(request);
   }
+
   @GET
   @Path("/schema/fields")
   @Produces({"application/json"})
   @ApiOperation(GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD)
-  public String getServiceLogsSchemaFieldsName() {
+  public List<FieldMetadata> getServiceLogsSchemaFieldsName() {
     return serviceLogsManager.getServiceLogsSchemaFieldsName();
   }
 
@@ -194,14 +197,6 @@ public class ServiceLogsResource {
   @ApiOperation(GET_AFTER_BEFORE_LOGS_OD)
   public ServiceLogResponse getAfterBeforeLogs(@BeanParam ServiceLogTruncatedRequest request) {
     return serviceLogsManager.getAfterBeforeLogs(request);
-  }
-
-  @GET
-  @Path("/serviceconfig")
-  @Produces({"application/json"})
-  @ApiOperation(GET_HADOOP_SERVICE_CONFIG_JSON_OD)
-  public String getHadoopServiceConfigJSON() {
-    return serviceLogsManager.getHadoopServiceConfigJSON();
   }
 
   @GET

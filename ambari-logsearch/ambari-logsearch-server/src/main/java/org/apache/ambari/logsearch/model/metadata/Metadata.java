@@ -16,39 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logsearch.model.metadata;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+public class Metadata implements Labelable {
 
-import java.util.Map;
+  private final String name;
+  private final String label;
 
-public interface InputDescriptor {
-  String getType();
+  Metadata(String name, String label) {
+    this.name = name;
+    this.label = label;
+  }
 
-  String getRowtype();
+  @Override
+  public String getName() {
+    return name;
+  }
 
-  String getPath();
-
-  Map<String, String> getAddFields();
-
-  String getSource();
-
-  Boolean isTail();
-
-  Boolean isGenEventMd5();
-
-  Boolean isUseEventMd5AsId();
-
-  Boolean isCacheEnabled();
-
-  String getCacheKeyField();
-
-  Boolean getCacheLastDedupEnabled();
-
-  Integer getCacheSize();
-
-  Long getCacheDedupInterval();
-
-  Boolean isEnabled();
-
-  String getGroup();
+  @Override
+  public String getLabel() {
+    return label;
+  }
 }

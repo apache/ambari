@@ -16,39 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logsearch.model.metadata;
 
-package org.apache.ambari.logsearch.config.api.model.inputconfig;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
 
-import java.util.Map;
+@ApiModel
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ComponentMetadata extends Metadata implements Groupable {
+  private final String group;
 
-public interface InputDescriptor {
-  String getType();
+  public ComponentMetadata(String name, String label, String group) {
+    super(name, label);
+    this.group = group;
+  }
 
-  String getRowtype();
-
-  String getPath();
-
-  Map<String, String> getAddFields();
-
-  String getSource();
-
-  Boolean isTail();
-
-  Boolean isGenEventMd5();
-
-  Boolean isUseEventMd5AsId();
-
-  Boolean isCacheEnabled();
-
-  String getCacheKeyField();
-
-  Boolean getCacheLastDedupEnabled();
-
-  Integer getCacheSize();
-
-  Long getCacheDedupInterval();
-
-  Boolean isEnabled();
-
-  String getGroup();
+  @Override
+  public String getGroup() {
+    return group;
+  }
 }

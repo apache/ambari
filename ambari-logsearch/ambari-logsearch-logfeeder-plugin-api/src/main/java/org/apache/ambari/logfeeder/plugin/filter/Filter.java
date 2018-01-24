@@ -162,7 +162,7 @@ public abstract class Filter<PROP_TYPE extends LogFeederProperties> extends Conf
 
   @Override
   public boolean isEnabled() {
-    return filterDescriptor.isEnabled();
+    return filterDescriptor.isEnabled() != null ? filterDescriptor.isEnabled() : true;
   }
 
   @Override
