@@ -124,6 +124,7 @@ public class BlueprintValidatorImplTest {
     dependenciesConditionInfos1.add(dependencyConditionInfo2);
 
     expect(blueprint.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(blueprint.isAllMpacksResolved()).andReturn(true);
   }
 
   @After

@@ -19,7 +19,6 @@
 package org.apache.ambari.server.topology;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class ServiceInstance implements Configurable {
   private String name;

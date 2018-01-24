@@ -5,7 +5,7 @@
         "properties" : {
           "dataDir" : "/zookeeper1"
         },
-        "attributes": {
+        "properties_attributes": {
           "final": {
             "someProp": "someValue"
           }

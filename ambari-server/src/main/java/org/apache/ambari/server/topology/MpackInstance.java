@@ -21,7 +21,6 @@ package org.apache.ambari.server.topology;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintMpackConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;

@@ -19,6 +19,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
@@ -28,8 +29,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -160,7 +164,9 @@ public class HostGroupImpl implements HostGroup {
   }
 
   /**
-   * Adds a component to the host group. The component is successfully added if it can be resolved without ambiguity
+   * Adds a component to the host group. The component is successfully added if it is not a duplicate or ambiguous (as of
+   * Ambari 3.1 multiple components of the same type can exist in a hostgroup. However, they have to come from different
+   * management packs or belong to different service instances)
    * @param component the component to add
    * @return a boolean to indicate if addition was successful
    */
@@ -188,6 +194,11 @@ public class HostGroupImpl implements HostGroup {
     if (ambigous) {
       return false;
     }
+    addComponent(component, getStackForComponent(component));
+    return true;
+  }
+
+  private Optional<Stack> getStackForComponent(Component component) {
     // Look for the stack of this component
     if (component.getMpackInstance() == null) {
       // Component does not declare its stack. Let's find it.
@@ -196,35 +207,39 @@ public class HostGroupImpl implements HostGroup {
       switch (candidateStacks.size()) {
         case 0:
           // no stack (no service) for this component
-          LOG.info("No service found for component: {}", component);
-          return false;
+          LOG.warn("No stack/service found for component: {}", component);
+          return Optional.empty();
         case 1:
-          addComponent(component, candidateStacks.iterator().next());
-          break;
+          return Optional.of(candidateStacks.iterator().next());
         default:
-          LOG.info("Ambiguous stack resolution for component: {}", component);
-          return false;
+          LOG.warn("Ambiguous stack resolution for component: {}, stacks: {}", component, candidateStacks);
+          return Optional.empty();
       }
     }
     else {
+      // TODO: refine this logic
       Stack stack = stackMap.get(component.getMpackInstance());
-      addComponent(component, stack);
+      if (null == stack) {
+        LOG.warn("Component declared an invalid stack: {}", component);
+      }
+      return Optional.ofNullable(stack);
     }
-    return true;
   }
 
-  private void addComponent(Component component, Stack stack) {
-    String serviceName = stack.getServiceForComponent(component.getName());
-    if (!componentsForService.containsKey(serviceName)) {
-      componentsForService.put(serviceName, Sets.newHashSet(component));
-    }
-    else {
-      componentsForService.get(serviceName).add(component);
+  private void addComponent(Component component, Optional<Stack> stack) {
+    if (stack.isPresent()) {
+      String serviceName = stack.get().getServiceForComponent(component.getName());
+      if (!componentsForService.containsKey(serviceName)) {
+        componentsForService.put(serviceName, Sets.newHashSet(component));
+      }
+      else {
+        componentsForService.get(serviceName).add(component);
+      }
+      if (stack.get().isMasterComponent(component.getName())) {
+        containsMasterComponent = true;
+      }
     }
     components.add(component);
-    if (stack.isMasterComponent(component.getName())) {
-      containsMasterComponent = true;
-    }
   }
 
   /**

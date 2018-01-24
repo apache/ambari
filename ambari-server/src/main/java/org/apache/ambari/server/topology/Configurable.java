@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
-import static org.apache.ambari.server.topology.BlueprintFactory.PROPERTIES_PROPERTY_ID;
 import static org.apache.ambari.server.topology.BlueprintFactory.PROPERTIES_ATTRIBUTES_PROPERTY_ID;
+import static org.apache.ambari.server.topology.BlueprintFactory.PROPERTIES_PROPERTY_ID;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +31,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+
+
 
 public interface Configurable {
 

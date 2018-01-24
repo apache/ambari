@@ -31,6 +31,7 @@ import com.google.common.io.Resources;
 
 public class ConfigurableTest {
   public static final String JSON_LOCATION = "blueprint3.0/configurable.json";
+  public static final String JSON_LOCATION2 = "blueprint3.0/configurable2.json";
 
   private TestConfigurable configurable;
   private ObjectMapper mapper;
@@ -60,6 +61,22 @@ public class ConfigurableTest {
     assertEquals(configurable.getConfiguration().getProperties(), restored.getConfiguration().getProperties());
     assertEquals(configurable.getConfiguration().getAttributes(), restored.getConfiguration().getAttributes());
   }
+
+  @Test
+  public void testParseConfigurableFromResoueceManager() throws Exception{
+    mapper = new ObjectMapper();
+    URL url = Resources.getResource(JSON_LOCATION2);
+    configurable = new ObjectMapper().readValue(url, TestConfigurable.class);
+
+    assertEquals(ImmutableMap.of("zoo.cfg", ImmutableMap.of("dataDir", "/zookeeper1")),
+      configurable.getConfiguration().getProperties());
+    assertEquals(
+      ImmutableMap.of("zoo.cfg",
+        ImmutableMap.of("final",
+          ImmutableMap.of("someProp", "someValue"))),
+      configurable.getConfiguration().getAttributes());
+  }
+
 
 }
 
