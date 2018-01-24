@@ -15,7 +15,9 @@
 # limitations under the License
 
 LOGFEEDER_SCRIPT_LINK_NAME="/usr/bin/logfeeder"
-LOGFEEDER_CONF_DIR_LINK="/etc/ambari-logsearch-logfeeder/conf"
+LOGFEEDER_ETC_FOLDER="/etc/ambari-logsearch-logfeeder"
+LOGFEEDER_CONF_DIR_LINK="$LOGFEEDER_ETC_FOLDER/conf"
 
 rm -f $LOGFEEDER_SCRIPT_LINK_NAME
 rm -f $LOGFEEDER_CONF_DIR_LINK
+rm -f $LOGFEEDER_ETC_FOLDER

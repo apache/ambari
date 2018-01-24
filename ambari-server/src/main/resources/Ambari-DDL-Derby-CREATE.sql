@@ -265,16 +265,27 @@ CREATE TABLE adminprincipal (
 CREATE TABLE users (
   user_id INTEGER,
   principal_id BIGINT NOT NULL,
-  ldap_user INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL,
-  user_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
-  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
+  consecutive_failures INTEGER NOT NULL DEFAULT 0,
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
+  display_name VARCHAR(255) NOT NULL,
+  local_username VARCHAR(255) NOT NULL,
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  version BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
-  CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type));
+  CONSTRAINT UNQ_users_0 UNIQUE (user_name));
+
+CREATE TABLE user_authentication (
+  user_authentication_id INTEGER,
+  user_id INTEGER NOT NULL,
+  authentication_type VARCHAR(50) NOT NULL,
+  authentication_key CLOB,
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id));
 
 CREATE TABLE groups (
   group_id INTEGER,
@@ -763,6 +774,8 @@ CREATE TABLE topology_host_request (
   group_id BIGINT NOT NULL,
   stage_id BIGINT NOT NULL,
   host_name VARCHAR(255),
+  status VARCHAR(255),
+  status_message VARCHAR(1024),
   CONSTRAINT PK_topology_host_request PRIMARY KEY (id),
   CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id),
   CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id));
@@ -1082,6 +1095,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   UNION ALL
   SELECT 'user_id_seq', 2 FROM SYSIBM.SYSDUMMY1
   UNION ALL
+  SELECT 'user_authentication_id_seq', 2 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
   SELECT 'group_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 'member_id_seq', 1 FROM SYSIBM.SYSDUMMY1
@@ -1217,8 +1232,14 @@ INSERT INTO adminprincipal (principal_id, principal_type_id)
   UNION ALL
   SELECT 13, 8 FROM SYSIBM.SYSDUMMY1;
 
-INSERT INTO Users (user_id, principal_id, user_name, user_password)
-  SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' FROM SYSIBM.SYSDUMMY1;
+-- Insert the default administrator user.
+insert into users(user_id, principal_id, user_name, display_name, local_username, create_time)
+  SELECT 1, 1, 'admin', 'Administrator', 'admin', CURRENT_TIMESTAMP FROM SYSIBM.SYSDUMMY1;
+
+-- Insert the LOCAL authentication data for the default administrator user.
+-- The authentication_key value is the salted digest of the password: admin
+insert into user_authentication(user_authentication_id, user_id, authentication_type, authentication_key, create_time, update_time)
+  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP FROM SYSIBM.SYSDUMMY1;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 FROM SYSIBM.SYSDUMMY1

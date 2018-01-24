@@ -265,16 +265,28 @@ CREATE TABLE adminprincipal (
 CREATE TABLE users (
   user_id NUMBER(10) NOT NULL,
   principal_id NUMBER(19) NOT NULL,
-  create_time TIMESTAMP NULL,
-  ldap_user NUMBER(10) DEFAULT 0,
   user_name VARCHAR2(255) NULL,
-  user_type VARCHAR(255) DEFAULT 'LOCAL',
-  user_password VARCHAR2(255) NULL,
   active INTEGER DEFAULT 1 NOT NULL,
+  consecutive_failures INTEGER DEFAULT 0 NOT NULL,
   active_widget_layouts VARCHAR2(1024) DEFAULT NULL,
+  display_name VARCHAR2(255) NOT NULL,
+  local_username VARCHAR2(255) NOT NULL,
+  create_time TIMESTAMP NULL,
+  version NUMBER(19) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_users PRIMARY KEY (user_id),
   CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
-  CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type));
+  CONSTRAINT UNQ_users_0 UNIQUE (user_name));
+
+CREATE TABLE user_authentication (
+  user_authentication_id NUMBER(10),
+  user_id NUMBER(10) NOT NULL,
+  authentication_type VARCHAR(50) NOT NULL,
+  authentication_key CLOB,
+  create_time TIMESTAMP NULL,
+  update_time TIMESTAMP NULL,
+  CONSTRAINT PK_user_authentication PRIMARY KEY (user_authentication_id),
+  CONSTRAINT FK_user_authentication_users FOREIGN KEY (user_id) REFERENCES users (user_id)
+);
 
 CREATE TABLE groups (
   group_id NUMBER(10) NOT NULL,
@@ -759,6 +771,8 @@ CREATE TABLE topology_host_request (
   group_id NUMBER(19) NOT NULL,
   stage_id NUMBER(19) NOT NULL,
   host_name VARCHAR(255),
+  status VARCHAR2(255),
+  status_message VARCHAR2(1024),
   CONSTRAINT PK_topology_host_request PRIMARY KEY (id),
   CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id),
   CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id));
@@ -1072,6 +1086,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('kkp_id_seq'
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_authentication_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('member_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_id_seq', 0);
@@ -1160,8 +1175,14 @@ insert into adminprincipal (principal_id, principal_type_id)
   union all
   select 13, 8 from dual;
 
-insert into users(user_id, principal_id, user_name, user_password)
-select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
+-- Insert the default administrator user.
+insert into users(user_id, principal_id, user_name, display_name, local_username, create_timestamp)
+  SELECT 1, 1, 'admin', 'Administrator', 'admin', CURRENT_TIMESTAMP from dual;
+
+-- Insert the LOCAL authentication data for the default administrator user.
+-- The authentication_key value is the salted digest of the password: admin
+insert into user_authentication(user_authentication_id, user_id, authentication_type, authentication_key, create_time, update_time)
+  SELECT 1, 1, 'LOCAL', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP from dual;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   select 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 from dual

@@ -17,6 +17,7 @@
 
 import {Component, Input} from '@angular/core';
 import {FormGroup} from '@angular/forms';
+import {GraphEmittedEvent} from '@app/classes/graph';
 import {ListItem} from '@app/classes/list-item';
 import {HomogeneousObject} from '@app/classes/object';
 import {AuditLog} from '@app/classes/models/audit-log';
@@ -63,6 +64,18 @@ export class AuditLogsEntriesComponent {
    */
   activeTab: string = 'summary';
 
+  /**
+   * 'left' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuLeft: number = 0;
+
+  /**
+   * 'top' CSS property value for context menu dropdown
+   * @type {number}
+   */
+  contextMenuTop: number = 0;
+
   readonly usersGraphTitleParams = {
     number: this.logsContainer.topUsersCount
   };
@@ -70,6 +83,14 @@ export class AuditLogsEntriesComponent {
   readonly resourcesGraphTitleParams = {
     number: this.logsContainer.topResourcesCount
   };
+
+  private readonly resourceFilterParameterName: string = 'resource';
+
+  /**
+   * Text for filtering be resource type (set from Y axis tick of Resources chart)
+   * @type {string}
+   */
+  private selectedResource: string = '';
 
   get topResourcesGraphData(): HomogeneousObject<HomogeneousObject<number>> {
     return this.logsContainer.topResourcesGraphData;
@@ -79,8 +100,34 @@ export class AuditLogsEntriesComponent {
     return this.logsContainer.topUsersGraphData;
   }
 
+  get isContextMenuDisplayed(): boolean {
+    return Boolean(this.selectedResource);
+  }
+
+  get contextMenuItems(): ListItem[] {
+    return this.logsContainer.queryContextMenuItems;
+  }
+
   setActiveTab(tab: Tab): void {
     this.activeTab = tab.id;
+  }
+
+  showContextMenu(event: GraphEmittedEvent<MouseEvent>): void {
+    this.contextMenuLeft = event.nativeEvent.clientX;
+    this.contextMenuTop = event.nativeEvent.clientY;
+    this.selectedResource = event.tick;
+  }
+
+  updateQuery(event: ListItem): void {
+    this.logsContainer.queryParameterAdd.next({
+      name: this.resourceFilterParameterName,
+      value: this.selectedResource,
+      isExclude: event.value
+    });
+  }
+
+  onContextMenuDismiss(): void {
+    this.selectedResource = '';
   }
 
 }

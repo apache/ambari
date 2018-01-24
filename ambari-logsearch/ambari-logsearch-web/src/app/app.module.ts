@@ -21,12 +21,13 @@ import {NgModule, CUSTOM_ELEMENTS_SCHEMA, Injector} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HttpModule, Http, XHRBackend, BrowserXhr, ResponseOptions, XSRFStrategy} from '@angular/http';
 import {InMemoryBackendService} from 'angular-in-memory-web-api';
-import {TypeaheadModule} from 'ngx-bootstrap';
+import {TypeaheadModule, TooltipModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {MomentModule} from 'angular2-moment';
 import {MomentTimezoneModule} from 'angular-moment-timezone';
+import {NgStringPipesModule} from 'angular-pipes';
 
 import {environment} from '@envs/environment';
 
@@ -42,6 +43,7 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {AppStateService} from '@app/services/storage/app-state.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
+import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService} from '@app/services/storage/service-logs-truncated.service';
@@ -92,6 +94,8 @@ import {GraphLegendComponent} from '@app/components/graph-legend/graph-legend.co
 import {HorizontalHistogramComponent} from '@app/components/horizontal-histogram/horizontal-histogram.component';
 import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip.component';
 import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
+import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
+import {ContextMenuComponent} from '@app/components/context-menu/context-menu.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -153,6 +157,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     HorizontalHistogramComponent,
     GraphTooltipComponent,
     GraphLegendItemComponent,
+    TimeLineGraphComponent,
+    ContextMenuComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -162,6 +168,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     ReactiveFormsModule,
     HttpModule,
     TypeaheadModule.forRoot(),
+    TooltipModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -171,7 +178,8 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     }),
     StoreModule.provideStore(reducer),
     MomentModule,
-    MomentTimezoneModule
+    MomentTimezoneModule,
+    NgStringPipesModule
   ],
   providers: [
     HttpClientService,
@@ -182,6 +190,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     AppSettingsService,
     AppStateService,
     AuditLogsService,
+    AuditLogsGraphDataService,
     ServiceLogsService,
     ServiceLogsHistogramDataService,
     ServiceLogsTruncatedService,

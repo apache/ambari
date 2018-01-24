@@ -307,7 +307,7 @@ public class AmbariManagementControllerTest {
 
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
 
-    configuration.setProperty("java.home.redhat-ppc7", "ppc_java_home_path");
+    configuration.setProperty("java.home.redhat6", "redhat6_java_home_path");
   }
 
   @After
@@ -1260,19 +1260,15 @@ public class AmbariManagementControllerTest {
       String serviceName = "HDFS";
       createServiceComponentHostSimple(cluster1, host1, host2);
       clusters.getHost(host1).setState(HostState.HEALTHY);
-      clusters.getHost(host1).setOsType("redhat-ppc7");
 
       Cluster cluster = clusters.getCluster(cluster1);
       Service s1 = cluster.getService(serviceName);
 
-      ServiceComponentHost scHost=s1.getServiceComponent("DATANODE").getServiceComponentHost(host1);
-
+      ServiceComponentHost scHost = s1.getServiceComponent("DATANODE").getServiceComponentHost(host1);
       installService(cluster1, serviceName, false, false);
-
       ExecutionCommand ec = controller.getExecutionCommand(cluster, scHost, RoleCommand.START);
 
-      assertTrue(ec.getHostLevelParams().containsValue("ppc_java_home_path"));
-
+      assertTrue(ec.getHostLevelParams().containsValue("redhat6_java_home_path"));
     }
 
 
@@ -4097,7 +4093,6 @@ public class AmbariManagementControllerTest {
         "centos6");
 
     clusters.getHost(host1).setState(HostState.HEALTHY);
-    clusters.getHost(host1).setOsType("redhat-ppc7");
 
     Cluster cluster = clusters.getCluster(cluster1);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
@@ -4176,7 +4171,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(host1, task.getHostName());
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
 
-    assertTrue(cmd.getHostLevelParams().containsValue("ppc_java_home_path"));
+    assertTrue(cmd.getHostLevelParams().containsValue("redhat6_java_home_path"));
   }
 
   @Test
@@ -4663,13 +4658,6 @@ public class AmbariManagementControllerTest {
     assertEquals("", response.getRequestContext());
   }
 
-  private void createUser(String userName) throws Exception {
-    UserRequest request = new UserRequest(userName);
-    request.setPassword("password");
-
-    controller.createUsers(new HashSet<>(Collections.singleton(request)));
-  }
-
   @SuppressWarnings("serial")
   @Test
   public void testAddServiceCheckActionWithJavaHomeValue() throws Exception {
@@ -4689,7 +4677,6 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
 
     clusters.getHost(host1).setState(HostState.HEALTHY);
-    clusters.getHost(host1).setOsType("redhat-ppc7");
 
     RepositoryVersionEntity repositoryVersion = repositoryVersion01;
 
@@ -4740,75 +4727,7 @@ public class AmbariManagementControllerTest {
     ExecutionCommand executionCommand = gson.fromJson(new StringReader(
         new String(commandEntity.getCommand())), ExecutionCommand.class);
 
-    assertTrue(executionCommand.getHostLevelParams().containsValue("ppc_java_home_path"));
-  }
-
-  @Test
-  public void testCreateAndGetUsers() throws Exception {
-    createUser("user1");
-
-    Set<UserResponse> r =
-        controller.getUsers(Collections.singleton(new UserRequest("user1")));
-
-    Assert.assertEquals(1, r.size());
-    UserResponse resp = r.iterator().next();
-    Assert.assertEquals("user1", resp.getUsername());
-  }
-
-  @Test
-  public void testGetUsers() throws Exception {
-    String user1 = getUniqueName();
-    String user2 = getUniqueName();
-    String user3 = getUniqueName();
-    List<String> users = Arrays.asList(user1, user2, user3);
-
-    for (String user : users) {
-      createUser(user);
-    }
-
-    UserRequest request = new UserRequest(null);
-
-    Set<UserResponse> responses = controller.getUsers(Collections.singleton(request));
-
-    // other tests are making user requests, so let's make sure we have the 3 just made
-    List<String> contained = new ArrayList<>();
-    for (UserResponse ur : responses) {
-      if (users.contains(ur.getUsername())) {
-        contained.add(ur.getUsername());
-      }
-    }
-
-    Assert.assertEquals(3, contained.size());
-  }
-
-  @SuppressWarnings("serial")
-  @Test
-  public void testUpdateUsers() throws Exception {
-    String user1 = getUniqueName();
-    createUser(user1);
-
-    UserRequest request = new UserRequest(user1);
-
-    controller.updateUsers(Collections.singleton(request));
-  }
-
-  @SuppressWarnings("serial")
-  @Ignore
-  @Test
-  public void testDeleteUsers() throws Exception {
-    String user1 = getUniqueName();
-    createUser(user1);
-
-    UserRequest request = new UserRequest(user1);
-    controller.updateUsers(Collections.singleton(request));
-
-    request = new UserRequest(user1);
-    controller.deleteUsers(Collections.singleton(request));
-
-    Set<UserResponse> responses = controller.getUsers(
-        Collections.singleton(new UserRequest(null)));
-
-    Assert.assertEquals(0, responses.size());
+    assertTrue(executionCommand.getHostLevelParams().containsValue("redhat6_java_home_path"));
   }
 
   @Test

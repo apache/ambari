@@ -15,13 +15,13 @@
   limitations under the License.
 -->
 <div [ngClass]="{'panel': true, 'panel-default': true, 'panel-collapsible': true, 'panel-collapsed': isCollapsed}">
-    <div [ngClass]="{'panel-heading': true}" (click)="handleCollapseBtnClick($event)">
+    <div class="panel-heading" (click)="handleCollapseBtnClick($event)">
       <a [attr.aria-collapsed]="isCollapsed">
         <i [ngClass]="{'fa': true, 'fa-caret-down': !isCollapsed, 'fa-caret-right': isCollapsed}"></i>
-        {{((isCollapsed ? collapsedTitle : openTitle) || title) | translate}}
+        {{((isCollapsed ? collapsedTitle : openTitle) || commonTitle) | translate}}
       </a>
     </div>
-    <div [ngClass]="{'panel-body': true}" [attr.aria-collapsed]="isCollapsed">
+    <div class="panel-body" [attr.aria-collapsed]="isCollapsed">
       <ng-content></ng-content>
     </div>
 </div>

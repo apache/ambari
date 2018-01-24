@@ -438,8 +438,8 @@ public class AmbariCustomCommandExecutionHelper {
       String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
       hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
-      // set java home for each host depending on os type; if not found default will be used
-      String javaHomeValue = configs.getJavaHomeForOs(host.getOsType());
+      // set java home for each host depending on os family; if not found default will be used
+      String javaHomeValue = configs.getJavaHomeForOs(host.getOsFamily());
       hostLevelParams.put(JAVA_HOME, javaHomeValue);
 
       execCmd.setHostLevelParams(hostLevelParams);
@@ -749,8 +749,8 @@ public class AmbariCustomCommandExecutionHelper {
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostname,
         smokeTestRole).getExecutionCommand();
 
-    // set java home for each host depending on os type; if not found default will be used
-    String javaHomeValue = configs.getJavaHomeForOs(clusters.getHost(hostname).getOsType());
+    // set java home for each host depending on os family; if not found default will be used
+    String javaHomeValue = configs.getJavaHomeForOs(clusters.getHost(hostname).getOsFamily());
     if (execCmd.getHostLevelParams() == null) {
       Map<String,String> hostLevelParams = new TreeMap<>();
       hostLevelParams.put(JAVA_HOME, javaHomeValue);

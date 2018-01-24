@@ -25,8 +25,7 @@
       <div #additionalComponent></div>
     </label>
   </label>
-  <span class="list-item-label label-container" *ngIf="!isMultipleChoice"
-        (click)="changeSelectedItem(item)">
+  <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item)">
     <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
     {{item.label | translate}}
     <div #additionalComponent></div>

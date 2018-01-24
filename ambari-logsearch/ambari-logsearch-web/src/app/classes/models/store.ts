@@ -46,6 +46,7 @@ export interface AppStore {
   appSettings: AppSettings;
   appState: AppState;
   auditLogs: AuditLog[];
+  auditLogsGraphData: BarGraph[];
   serviceLogs: ServiceLog[];
   serviceLogsHistogramData: BarGraph[];
   serviceLogsTruncated: ServiceLog[];

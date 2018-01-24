@@ -18,12 +18,22 @@
  */
 package org.apache.ambari.infra.model;
 
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+
 public class JobExecutionRestartRequest {
 
+  @PathParam("jobName")
+  @NotNull
   private String jobName;
 
+  @PathParam("jobInstanceId")
+  @NotNull
   private Long jobInstanceId;
 
+  @QueryParam("operation")
+  @NotNull
   private JobOperationParams.JobRestartOperationParam operation;
 
   public String getJobName() {

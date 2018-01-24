@@ -198,14 +198,15 @@ describe('App.ServiceConfigRadioButtons', function () {
       ];
     var rangerVersion = '';
 
-    before(function () {
-      sinon.stub(Em.run, 'next', function (arg) {
-        arg();
-      });
-    });
-
     beforeEach(function () {
       sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
+      sinon.stub(Em.run, 'next', function (arg1, arg2) {
+        if (typeof arg1 === 'function') {
+          arg1();
+        } else if (typeof arg1 === 'object' && typeof arg2 === 'function') {
+          arg2();
+        }
+      });
       this.stub = sinon.stub(App, 'get');
       this.stub.withArgs('currentStackName').returns('HDP');
       sinon.stub(App.StackService, 'find', function() {
@@ -217,13 +218,10 @@ describe('App.ServiceConfigRadioButtons', function () {
     });
 
     afterEach(function () {
+      Em.run.next.restore();
       App.get.restore();
       App.StackService.find.restore();
       view.sendRequestRorDependentConfigs.restore();
-    });
-
-    after(function () {
-      Em.run.next.restore();
     });
 
     cases.forEach(function (item) {

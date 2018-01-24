@@ -31,6 +31,7 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.security.authorization.UserIdAuthentication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -40,7 +41,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createAdministrator(String name) {
-    return new TestAuthorization(name, Collections.singleton(createAdministratorGrantedAuthority()));
+    return new TestAuthorization(1, name, Collections.singleton(createAdministratorGrantedAuthority()));
   }
 
   public static Authentication createClusterAdministrator() {
@@ -52,11 +53,11 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createClusterAdministrator(String name, Long clusterResourceId) {
-    return new TestAuthorization(name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
+    return new TestAuthorization(1, name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createClusterOperator(String name, Long clusterResourceId) {
-    return new TestAuthorization(name, Collections.singleton(createClusterOperatorGrantedAuthority(clusterResourceId)));
+    return new TestAuthorization(1, name, Collections.singleton(createClusterOperatorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createServiceAdministrator() {
@@ -64,7 +65,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createServiceAdministrator(String name, Long clusterResourceId) {
-    return new TestAuthorization(name, Collections.singleton(createServiceAdministratorGrantedAuthority(clusterResourceId)));
+    return new TestAuthorization(1, name, Collections.singleton(createServiceAdministratorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createServiceOperator() {
@@ -72,7 +73,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createServiceOperator(String name, Long clusterResourceId) {
-    return new TestAuthorization(name, Collections.singleton(createServiceOperatorGrantedAuthority(clusterResourceId)));
+    return new TestAuthorization(1, name, Collections.singleton(createServiceOperatorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createClusterUser() {
@@ -80,7 +81,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createClusterUser(String name, Long clusterResourceId) {
-    return new TestAuthorization(name, Collections.singleton(createClusterUserGrantedAuthority(clusterResourceId)));
+    return new TestAuthorization(1, name, Collections.singleton(createClusterUserGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createViewUser(Long viewResourceId) {
@@ -88,7 +89,7 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createViewUser(String name, Long viewResourceId) {
-    return new TestAuthorization(name, Collections.singleton(createViewUserGrantedAuthority(viewResourceId)));
+    return new TestAuthorization(1, name, Collections.singleton(createViewUserGrantedAuthority(viewResourceId)));
   }
 
   private static GrantedAuthority createAdministratorGrantedAuthority() {
@@ -402,11 +403,13 @@ public class TestAuthenticationFactory {
   }
 
 
-  private static class TestAuthorization implements Authentication {
+  private static class TestAuthorization implements Authentication, UserIdAuthentication {
+    private final Integer userId;
     private final String name;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    private TestAuthorization(String name, Collection<? extends GrantedAuthority> authorities) {
+    private TestAuthorization(Integer userId, String name, Collection<? extends GrantedAuthority> authorities) {
+      this.userId = userId;
       this.name = name;
       this.authorities = authorities;
     }
@@ -444,6 +447,11 @@ public class TestAuthenticationFactory {
     @Override
     public String getName() {
       return name;
+    }
+
+    @Override
+    public Integer getUserId() {
+      return userId;
     }
   }
 }

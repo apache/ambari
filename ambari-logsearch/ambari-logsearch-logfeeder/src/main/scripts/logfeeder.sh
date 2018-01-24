@@ -14,12 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JVM="java"
-
-if [ -x $JAVA_HOME/bin/java ]; then
-  JVM=$JAVA_HOME/bin/java
-fi
-
 if [ "$LOGFEEDER_JAVA_MEM" = "" ]; then
   LOGFEEDER_JAVA_MEM="-Xmx512m"
 fi
@@ -49,6 +43,12 @@ fi
 
 if [ -f "$LOGFEEDER_CONF_DIR/logfeeder-env.sh" ]; then
   source $LOGFEEDER_CONF_DIR/logfeeder-env.sh
+fi
+
+JVM="java"
+
+if [ -x $JAVA_HOME/bin/java ]; then
+  JVM=$JAVA_HOME/bin/java
 fi
 
 if [ ! -z "$LOGSEARCH_SOLR_CLIENT_SSL_INCLUDE" ]; then

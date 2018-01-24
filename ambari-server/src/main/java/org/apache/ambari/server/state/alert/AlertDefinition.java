@@ -18,7 +18,10 @@
 package org.apache.ambari.server.state.alert;
 
 import java.util.HashSet;
+import java.util.List;
 
+import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.annotations.SerializedName;
@@ -351,6 +354,16 @@ public class AlertDefinition {
     }
 
     return true;
+  }
+
+  /**
+   * Map the incoming value to {@link AlertState} and generate an alert with that state.
+   */
+  public Alert buildAlert(double value, List<Object> args) {
+    Reporting reporting = source.getReporting();
+    Alert alert = new Alert(name, null, serviceName, componentName, null, reporting.state(value));
+    alert.setText(reporting.formatMessage(value, args));
+    return alert;
   }
 
   /**

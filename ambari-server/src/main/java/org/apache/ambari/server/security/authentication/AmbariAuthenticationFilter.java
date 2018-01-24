@@ -46,4 +46,14 @@ public interface AmbariAuthenticationFilter extends Filter {
    * @return true if this AmbariAuthenticationFilter should be applied to the filter chain; otherwise false.
    */
   boolean shouldApply(HttpServletRequest httpServletRequest);
+
+  /**
+   * Tests this AmbariAuthenticationFilter to see if authentication failures should count towards
+   * the consecutive authentication failure count.
+   * <p>
+   * This should typically be false for remote authentication sources such as LDAP or JWT.
+   *
+   * @return true if authentication failure should be counted; false, otherwise
+   */
+  boolean shouldIncrementFailureCount();
 }

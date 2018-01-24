@@ -17,23 +17,32 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authentication.AccountDisabledException;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationProvider;
+import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
+import org.apache.ambari.server.security.authentication.InvalidUsernamePasswordCombinationException;
+import org.apache.ambari.server.security.authentication.TooManyLoginFailuresException;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
 
 import com.google.inject.Inject;
 
@@ -41,36 +50,68 @@ import com.google.inject.Inject;
 /**
  * Provides LDAP user authorization logic for Ambari Server
  */
-public class AmbariLdapAuthenticationProvider implements AuthenticationProvider {
+public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvider {
   static Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class); // exposed and mutable for "test"
 
-  Configuration configuration;
+  final AmbariLdapConfiguration ldapConfiguration;
 
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
-  private UserDAO userDAO;
 
   private ThreadLocal<LdapServerProperties> ldapServerProperties = new ThreadLocal<>();
   private ThreadLocal<LdapAuthenticationProvider> providerThreadLocal = new ThreadLocal<>();
   private ThreadLocal<String> ldapUserSearchFilterThreadLocal = new ThreadLocal<>();
 
   @Inject
-  public AmbariLdapAuthenticationProvider(Configuration configuration,
-                                          AmbariLdapAuthoritiesPopulator authoritiesPopulator, UserDAO userDAO) {
-    this.configuration = configuration;
+  public AmbariLdapAuthenticationProvider(Users users, Configuration configuration, AmbariLdapConfiguration ldapConfiguration,
+                                          AmbariLdapAuthoritiesPopulator authoritiesPopulator) {
+    super(users, configuration);
+    this.ldapConfiguration = ldapConfiguration;
     this.authoritiesPopulator = authoritiesPopulator;
-    this.userDAO = userDAO;
   }
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     if (isLdapEnabled()) {
-      String username = getUserName(authentication);
+      if (authentication.getName() == null) {
+        LOG.info("Authentication failed: no username provided");
+        throw new InvalidUsernamePasswordCombinationException("");
+      }
+
+      String username = authentication.getName().trim();
+
+      if (authentication.getCredentials() == null) {
+        LOG.info("Authentication failed: no credentials provided: {}", username);
+        throw new InvalidUsernamePasswordCombinationException(username);
+      }
 
       try {
         Authentication auth = loadLdapAuthenticationProvider(username).authenticate(authentication);
-        Integer userId = getUserId(auth);
+        UserEntity userEntity = getUserEntity(auth);
 
-        return new AmbariAuthentication(auth, userId);
+        if (userEntity == null) {
+          // TODO: If we were automatically importing accounts from the LDAP server, we should
+          // TODO: probably do it here.
+          LOG.debug("user not found ('{}')", username);
+          throw new InvalidUsernamePasswordCombinationException(username);
+        } else {
+          Users users = getUsers();
+
+          // Ensure the user is allowed to login....
+          try {
+            users.validateLogin(userEntity, username);
+          } catch (AccountDisabledException | TooManyLoginFailuresException e) {
+            if (getConfiguration().showLockedOutUserMessage()) {
+              throw e;
+            } else {
+              // Do not give away information about the existence or status of a user
+              throw new InvalidUsernamePasswordCombinationException(username, false, e);
+            }
+          }
+
+          Authentication authToken = new AmbariUserAuthentication(null, users.getUser(userEntity), users.getUserAuthorities(userEntity));
+          authToken.setAuthenticated(true);
+          return authToken;
+        }
       } catch (AuthenticationException e) {
         LOG.debug("Got exception during LDAP authentication attempt", e);
         // Try to help in troubleshooting
@@ -89,18 +130,17 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
                 "connecting to LDAP server) are invalid.", e);
           }
         }
-        throw new InvalidUsernamePasswordCombinationException(e);
+        throw new InvalidUsernamePasswordCombinationException(username, e);
       } catch (IncorrectResultSizeDataAccessException multipleUsersFound) {
-        String message = configuration.isLdapAlternateUserSearchEnabled() ?
-          String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username) :
-          "Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration";
+        String message = ldapConfiguration.isLdapAlternateUserSearchEnabled()
+            ? String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username)
+            : "Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration";
 
         throw new DuplicateLdapUserFoundAuthenticationException(message);
       }
     } else {
       return null;
     }
-
   }
 
   @Override
@@ -110,6 +150,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
   /**
    * Reloads LDAP Context Source and depending objects if properties were changed
+   *
    * @return corresponding LDAP authentication provider
    */
   LdapAuthenticationProvider loadLdapAuthenticationProvider(String userName) {
@@ -117,7 +158,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
     String ldapUserSearchFilter = getLdapUserSearchFilter(userName);
 
-    if (ldapConfigPropertiesChanged|| !ldapUserSearchFilter.equals(ldapUserSearchFilterThreadLocal.get())) {
+    if (ldapConfigPropertiesChanged || !ldapUserSearchFilter.equals(ldapUserSearchFilterThreadLocal.get())) {
 
       LOG.info("Either LDAP Properties or user search filter changed - rebuilding Context");
       LdapContextSource springSecurityContextSource = new LdapContextSource();
@@ -141,7 +182,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
       String userSearchBase = ldapServerProperties.get().getUserSearchBase();
       FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(userSearchBase, ldapUserSearchFilter, springSecurityContextSource);
 
-      AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(springSecurityContextSource, configuration);
+      AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(springSecurityContextSource, ldapConfiguration);
       bindAuthenticator.setUserSearch(userSearch);
 
       LdapAuthenticationProvider authenticationProvider = new LdapAuthenticationProvider(bindAuthenticator, authoritiesPopulator);
@@ -156,20 +197,11 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
   /**
    * Check if LDAP authentication is enabled in server properties
+   *
    * @return true if enabled
    */
   boolean isLdapEnabled() {
-    return configuration.getClientSecurityType() == ClientSecurityType.LDAP;
-  }
-
-  /**
-   * Extracts the user name from the passed authentication object.
-   * @param authentication
-   * @return
-   */
-  protected String getUserName(Authentication authentication) {
-    UsernamePasswordAuthenticationToken userToken = (UsernamePasswordAuthenticationToken)authentication;
-    return userToken.getName();
+    return getConfiguration().getClientSecurityType() == ClientSecurityType.LDAP;
   }
 
   /**
@@ -178,7 +210,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
    * @return true if properties were reloaded
    */
   private boolean reloadLdapServerProperties() {
-    LdapServerProperties properties = configuration.getLdapServerProperties();
+    LdapServerProperties properties = ldapConfiguration.getLdapServerProperties();
     if (!properties.equals(ldapServerProperties.get())) {
       LOG.info("Reloading properties");
       ldapServerProperties.set(properties);
@@ -190,27 +222,92 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
   private String getLdapUserSearchFilter(String userName) {
     return ldapServerProperties.get()
-      .getUserSearchFilter(configuration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
+        .getUserSearchFilter(ldapConfiguration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
   }
 
-  private Integer getUserId(Authentication authentication) {
-    String userName = AuthorizationHelper.resolveLoginAliasToUserName(authentication.getName());
+  /**
+   * Gets the {@link UserEntity} related to the authentication information
+   * <p>
+   * First the DN is retrieved from the user authentication information and a {@link UserAuthenticationEntity}
+   * is queried for where the type value is LDAP and key value case-insensitively matches the DN.
+   * If a record is found, the related {@link UserEntity} is returned.
+   * <p>
+   * Else, a {@link UserEntity} with the user name is queried. If one is found and it has a
+   * {@link UserAuthenticationEntity} where the type value is LDAP and key is empty, the related
+   * {@link UserEntity} is returned
+   * <p>
+   * Else, <code>null</code> is returned.
+   *
+   * @param authentication the user's authentication data
+   * @return a {@link UserEntity}
+   */
+  private UserEntity getUserEntity(Authentication authentication) {
+    UserEntity userEntity = null;
 
-    UserEntity userEntity = userDAO.findLdapUserByName(userName);
+    // Find user with the matching DN
+    String dn = getUserDN(authentication);
+    if (!StringUtils.isEmpty(dn)) {
+      userEntity = getUserEntityForDN(dn);
+    }
 
-    // lookup is case insensitive, so no need for string comparison
+    // If a user was not found with the exact authentication properties (LDAP/dn), look up the user
+    // using the configured LDAP username attribute and ensure that user has an empty-keyed LDAP
+    // authentication entity record.
     if (userEntity == null) {
-      LOG.info("user not found ('{}')", userName);
-      throw new InvalidUsernamePasswordCombinationException();
+      String userName = AuthorizationHelper.resolveLoginAliasToUserName(authentication.getName());
+      userEntity = getUsers().getUserEntity(userName);
+
+      if (userEntity != null) {
+        Collection<UserAuthenticationEntity> authenticationEntities = getAuthenticationEntities(userEntity, UserAuthenticationType.LDAP);
+        UserEntity _userEntity = userEntity; // Hold on to the user entity value for now.
+        userEntity = null;  // Guilty until proven innocent
+
+        if (!CollectionUtils.isEmpty(authenticationEntities)) {
+          for (UserAuthenticationEntity entity : authenticationEntities) {
+            if (StringUtils.isEmpty(entity.getAuthenticationKey())) {
+              // Proven innocent!
+              userEntity = _userEntity;
+              break;
+            }
+          }
+        }
+      }
     }
 
-    if (!userEntity.getActive()) {
-      LOG.debug("User account is disabled ('{}')", userName);
-
-      throw new InvalidUsernamePasswordCombinationException();
-    }
-
-    return userEntity.getUserId();
+    return userEntity;
   }
 
+  /**
+   * Given a DN from the LDAP server, find the owning UserEntity.
+   * <p>
+   * DNs are case sensitive. Internally they are execpted to be stored as the bytes of the lowercase
+   * string.
+   * <p>
+   * DN's are expected to be unique across all {@link UserAuthenticationEntity} records for type
+   * UserAuthenticationType.LDAP.
+   *
+   * @param dn the DN to search for
+   * @return a {@link UserEntity}, if found
+   */
+  private UserEntity getUserEntityForDN(String dn) {
+    Collection<UserAuthenticationEntity> authenticationEntities = getAuthenticationEntities(UserAuthenticationType.LDAP, StringUtils.lowerCase(dn));
+    return ((authenticationEntities == null) || (authenticationEntities.size() != 1))
+        ? null
+        : authenticationEntities.iterator().next().getUser();
+  }
+
+  /**
+   * Given the authentication object, attempt to retrieve the user's DN value from it.
+   *
+   * @param authentication the authentication data
+   * @return the relative DN; else <code>null</code> if not available
+   */
+  private String getUserDN(Authentication authentication) {
+    Object objectPrincipal = (authentication == null) ? null : authentication.getPrincipal();
+    if (objectPrincipal instanceof LdapUserDetails) {
+      return ((LdapUserDetails) objectPrincipal).getDn();
+    }
+
+    return null;
+  }
 }

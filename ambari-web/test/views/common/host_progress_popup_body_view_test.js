@@ -19,34 +19,34 @@
 var App = require('app');
 
 require("utils/host_progress_popup");
-require("views/common/modal_popup")
+require("views/common/modal_popup");
 
 describe('App.HostProgressPopupBodyView', function () {
-  var controller;
+  var view;
 
   beforeEach(function () {
-    controller = Em.Object.create({
-      setSelectCount: Em.K,
-      dataSourceController: Em.Object.create({
-        levelInfo: {},
-        requestMostRecent: Em.K
+    view = App.HostProgressPopupBodyView.create({
+      updateSelectView: sinon.spy(),
+      controller: Em.Object.create({
+        setSelectCount: Em.K,
+        dataSourceController: Em.Object.create({
+          levelInfo: {},
+          requestMostRecent: Em.K
+        }),
+        refreshRequestScheduleInfo: Em.K,
+        setBackgroundOperationHeader: Em.K,
+        onHostUpdate: Em.K,
+        hosts: [],
+        breadcrumbs: null,
+        rootBreadcrumb: { label: "rootBreadcrumb" },
+        serviceName: "serviceName",
+        currentHostName: "currentHostName"
       }),
-      refreshRequestScheduleInfo: Em.K,
-      setBackgroundOperationHeader: Em.K,
-      onHostUpdate: Em.K,
-      hosts: []
+      parentView: App.HostPopup.initPopup("serviceName", controller, false, 1)
     });
   });
 
   describe('when not isBackgroundOperations', function() {
-    var view;
-
-    beforeEach(function () {
-      view = App.HostProgressPopupBodyView.create({
-        controller: controller,
-        parentView: App.HostPopup.initPopup("serviceName", controller, false, 1)
-      });
-    });
 
     describe('#switchLevel when isBackgroundOperations is false', function () {
       var map = App.HostProgressPopupBodyView.create().get('customControllersSwitchLevelMap');
@@ -274,22 +274,41 @@ describe('App.HostProgressPopupBodyView', function () {
         sinon.stub(view.get('controller'), 'setBackgroundOperationHeader');
         sinon.stub(view, 'setOnStart');
         sinon.stub(view, 'rerender');
-        sinon.stub(view, 'updateSelectView');
       });
 
       afterEach(function() {
         view.get('controller').setBackgroundOperationHeader.restore();
         view.setOnStart.restore();
         view.rerender.restore();
-        view.updateSelectView.restore();
       });
 
-      it("should set properties of parentView", function() {
+      it("parentView.isOpen should be true", function() {
         view.set('parentView.isOpen', true);
+        view.resetState();
         expect(view.get('parentView.isOpen')).to.be.true;
+      });
+
+      it("parentView.isLogWrapHidden should be true", function() {
+        view.set('parentView.isOpen', true);
+        view.resetState();
         expect(view.get('parentView.isLogWrapHidden')).to.be.true;
+      });
+
+      it("parentView.isTaskListHidden should be true", function() {
+        view.set('parentView.isOpen', true);
+        view.resetState();
         expect(view.get('parentView.isTaskListHidden')).to.be.true;
+      });
+
+      it("parentView.isHostListHidden should be true", function() {
+        view.set('parentView.isOpen', true);
+        view.resetState();
         expect(view.get('parentView.isHostListHidden')).to.be.true;
+      });
+
+      it("parentView.isServiceListHidden should be false", function() {
+        view.set('parentView.isOpen', true);
+        view.resetState();
         expect(view.get('parentView.isServiceListHidden')).to.be.false;
       });
 
@@ -353,11 +372,9 @@ describe('App.HostProgressPopupBodyView', function () {
   });
 
   describe('when isBackgroundOperations', function() {
-    var view;
 
     beforeEach(function () {
-      view = App.HostProgressPopupBodyView.create({
-        controller: controller,
+      view.reopen({
         parentView: App.HostPopup.initPopup("", controller, true)
       });
 
@@ -412,29 +429,10 @@ describe('App.HostProgressPopupBodyView', function () {
   });
 
   describe("#changeLevel", function() {
-    var view;
-    var controller;
 
     beforeEach(function () {
-      controller = Em.Object.create({
-        setSelectCount: Em.K,
-        dataSourceController: Em.Object.create({
-          levelInfo: {},
-          requestMostRecent: Em.K
-        }),
-        refreshRequestScheduleInfo: Em.K,
-        setBackgroundOperationHeader: Em.K,
-        onHostUpdate: Em.K,
-        hosts: [],
-        breadcrumbs: null,
-        rootBreadcrumb: { label: "rootBreadcrumb" },
-        serviceName: "serviceName",
-        currentHostName: "currentHostName"
-      });
-
-      view = App.HostProgressPopupBodyView.create({
-        controller: controller,
-        parentView: Em.Object.create({ isOpen: true })
+      view.reopen({
+        parentView: Em.Object.create({isOpen: true})
       });
     });
 

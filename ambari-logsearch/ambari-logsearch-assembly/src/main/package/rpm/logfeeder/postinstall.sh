@@ -17,8 +17,11 @@
 LOGFEEDER_SCRIPT_LINK_NAME="/usr/bin/logfeeder"
 LOGFEEDER_SCRIPT_SOURCE="/usr/lib/ambari-logsearch-logfeeder/bin/logfeeder.sh"
 
-LOGFEEDER_CONF_LINK="/etc/ambari-logsearch-logfeeder/conf"
+LOGFEEDER_ETC_FOLDER="/etc/ambari-logsearch-logfeeder"
+LOGFEEDER_CONF_LINK="$LOGFEEDER_ETC_FOLDER/conf"
 LOGFEEDER_CONF_SOURCE="/usr/lib/ambari-logsearch-logfeeder/conf"
+
+mkdir -p $LOGFEEDER_ETC_FOLDER
 
 ln -s $LOGFEEDER_SCRIPT_SOURCE $LOGFEEDER_SCRIPT_LINK_NAME
 ln -s $LOGFEEDER_CONF_SOURCE $LOGFEEDER_CONF_LINK

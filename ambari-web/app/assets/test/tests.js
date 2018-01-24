@@ -373,6 +373,7 @@ var files = [
   'test/views/main/admin/highAvailability/progress_view_test',
   'test/views/common/host_progress_popup_body_view_test',
   'test/views/common/configs/config_versions_control_view_test',
+  'test/views/common/configs/config_versions_dropdown_view_test',
   'test/views/common/configs/overriddenProperty_view_test',
   'test/views/common/configs/service_config_view_test',
   'test/views/common/configs/service_config_container_view_test',

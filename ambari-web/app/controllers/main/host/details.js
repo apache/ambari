@@ -2305,6 +2305,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       case "checkHost":
         this.runHostCheckConfirmation();
         break;
+      case "regenerateKeytabFileOperations":
+        this.regenerateKeytabFileOperations();
+        break;
     }
   },
 
@@ -3002,9 +3005,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     opt = opt || {};
     opt.scope = opt.scope || '*';
     var installedComponents;
-    var dependencies = App.StackServiceComponent.find(componentName).get('dependencies');
-    dependencies = opt.scope === '*' ? dependencies : dependencies.filterProperty('scope', opt.scope);
-    if (dependencies.length == 0) return [];
     switch (opt.scope) {
       case 'host':
         Em.assert("You should pass at least `hostName` or `installedComponents` to options.", opt.hostName || opt.installedComponents);
@@ -3015,9 +3015,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         installedComponents = opt.installedComponents || App.HostComponent.find().mapProperty('componentName').uniq();
         break;
     }
-    return dependencies.filter(function (dependency) {
-      return !installedComponents.contains(dependency.componentName);
-    }).mapProperty('componentName');
+    var component = App.StackServiceComponent.find(componentName);
+    return component.missingDependencies(installedComponents, opt);
   },
 
   /**
@@ -3241,6 +3240,33 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       });
     }
-  }
+  },
+
+
+  regenerateKeytabFileOperations: function () {
+    var self = this;
+    var hostName = this.content.get('hostName');
+    var clusterName = App.get('clusterName');
+    return App.showConfirmationPopup(function() {
+      return App.ajax.send({
+        name: "admin.kerberos_security.regenerate_keytabs.host",
+        sender: self,
+        data: {
+          clusterName: clusterName,
+          hostName: hostName
+        },
+        success: 'regenerateKeytabFileOperationsRequestSuccess',
+        error: 'regenerateKeytabFileOperationsRequestError'
+      });
+    }, Em.I18n.t('question.sure.regenerateKeytab.host').format(hostName));
+  },
+
+  regenerateKeytabFileOperationsRequestSuccess: function(){
+    App.router.get('backgroundOperationsController').showPopup();
+  },
+
+  regenerateKeytabFileOperationsRequestError: function () {
+    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('alerts.notifications.regenerateKeytab.host.error').format(this.content.get('hostName')));
+  },
 
 });

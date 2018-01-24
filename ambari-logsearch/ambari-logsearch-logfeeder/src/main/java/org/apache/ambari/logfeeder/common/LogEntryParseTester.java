@@ -26,10 +26,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.input.InputFileMarker;
+import org.apache.ambari.logfeeder.plugin.input.Input;
+import org.apache.ambari.logfeeder.plugin.input.InputMarker;
+import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
+import org.apache.ambari.logsearch.config.api.model.outputconfig.OutputProperties;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
 import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
 
@@ -78,21 +80,54 @@ public class LogEntryParseTester {
     Input input = configHandler.getTestInput(inputConfig, logId);
     final Map<String, Object> result = new HashMap<>();
     input.getFirstFilter().init(new LogFeederProps());
-    input.addOutput(new Output() {
+    input.addOutput(new Output<LogFeederProps, InputFileMarker>() {
       @Override
-      public void write(String block, InputMarker inputMarker) throws Exception {
+      public void init(LogFeederProps logFeederProperties) throws Exception {
       }
-      
+
+      @Override
+      public String getShortDescription() {
+        return null;
+      }
+
+      @Override
+      public String getStatMetricName() {
+        return null;
+      }
+
+      @Override
+      public void write(String block, InputFileMarker inputMarker) throws Exception {
+      }
+
+      @Override
+      public Long getPendingCount() {
+        return null;
+      }
+
+      @Override
+      public String getWriteBytesMetricName() {
+        return null;
+      }
+
+      @Override
+      public String getOutputType() {
+        return null;
+      }
+
+      @Override
+      public void outputConfigChanged(OutputProperties outputProperties) {
+      }
+
       @Override
       public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
       }
       
       @Override
-      public void write(Map<String, Object> jsonObj, InputMarker inputMarker) {
+      public void write(Map<String, Object> jsonObj, InputFileMarker inputMarker) {
         result.putAll(jsonObj);
       }
     });
-    input.outputLine(logEntry, new InputMarker(input, null, 0));
+    input.outputLine(logEntry, new InputFileMarker(input, null, 0));
     
     return result.isEmpty() ?
         ImmutableMap.of("errorMessage", (Object)"Could not parse test log entry") :

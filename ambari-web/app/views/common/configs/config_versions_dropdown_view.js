@@ -57,7 +57,7 @@ App.ConfigVersionsDropdownView = Em.View.extend({
     return this.get('serviceVersions').filter((serviceVersion) => {
       if (!this.get('filterValue').trim()) return true;
       const searchString = Em.I18n.t('common.version') + ' ' + serviceVersion.get('version') + ' ' + serviceVersion.get('notes');
-      return searchString.indexOf(this.get('filterValue').trim()) !== -1;
+      return searchString.toLowerCase().indexOf(this.get('filterValue').trim().toLowerCase()) !== -1;
     });
   }.property('serviceVersions.length', 'filterValue')
 });

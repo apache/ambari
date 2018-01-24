@@ -47,6 +47,9 @@ public class Link{
   @JsonProperty("port")
   private Port port;
 
+  @JsonProperty("host")
+  private Host host;
+
   @JsonProperty("protocol")
   private Protocol protocol;
 
@@ -98,6 +101,10 @@ public class Link{
 
   public Port getPort() {
     return port;
+  }
+
+  public Host getHost() {
+    return host;
   }
 
   public void setPort(Port port) {
@@ -157,6 +164,12 @@ public class Link{
         port = parentLink.getPort();
     } else {
       port.mergetWithParent(parentLink.getPort());
+    }
+
+    if(null == host){
+      host = parentLink.getHost();
+    } else {
+      host.mergeWithParent(parentLink.getHost());
     }
 
     if (null == attributes && null != parentLink.attributes) {

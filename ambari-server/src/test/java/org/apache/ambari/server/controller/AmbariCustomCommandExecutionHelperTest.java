@@ -140,7 +140,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     Configuration configuration = injector.getInstance(Configuration.class);
-    configuration.setProperty("java.home.redhat-ppc7", "ppc_java_home_path");
+    configuration.setProperty("java.home.redhat6", "redhat6_java_home_path");
     StageUtils.setConfiguration(configuration);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
@@ -539,7 +539,6 @@ public class AmbariCustomCommandExecutionHelperTest {
   public void testAddExecutionCommandsToStageWithJavaHomeValue() throws Exception {
 
     clusters.getHost("c1-c6401").setState(HostState.HEALTHY);
-    clusters.getHost("c1-c6401").setOsType("redhat-ppc7");
 
     Map<String, String> requestProperties = new HashMap<String, String>() {
       {
@@ -563,7 +562,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c1-c6401");
     ExecutionCommand command = commands.get(0).getExecutionCommand();
 
-    Assert.assertTrue(command.getHostLevelParams().containsValue("ppc_java_home_path"));
+    Assert.assertTrue(command.getHostLevelParams().containsValue("redhat6_java_home_path"));
 
     // ZK is the only service that is versionable
     Assert.assertFalse(MapUtils.isEmpty(command.getComponentVersionMap()));

@@ -45,19 +45,39 @@ services:
       - ${ZOOKEEPER_CONNECTION_STRING}
     volumes:
       - $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/src/main/configsets:/opt/solr/configsets
-  localstack-s3:
+  fakes3:
     image: localstack/localstack
+    hostname: fakes3
     ports:
       - "4569:4569"
     environment:
       - SERVICES=s3:4569
-    hostname: fakes3
     networks:
       infra-network:
         aliases:
           - testbucket.fakes3
     env_file:
       - Profile
+  namenode:
+    image: flokkr/hadoop-hdfs-namenode:${HADOOP_VERSION:-3.0.0}
+    hostname: namenode
+    ports:
+      - 9870:9870
+      - 9000:9000
+    env_file:
+      - Profile
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-hdfs/dfs/name"
+    networks:
+      - infra-network
+  datanode:
+    image: flokkr/hadoop-hdfs-datanode:${HADOOP_VERSION:-3.0.0}
+    links:
+      - namenode
+    env_file:
+      - Profile
+    networks:
+      - infra-network
   inframanager:
     image: ambari-infra-manager:v1.0
     restart: always
@@ -76,6 +96,7 @@ services:
       DISPLAY: $DOCKERIP:0
     volumes:
       - $AMBARI_LOCATION/ambari-infra/ambari-infra-manager/target/package:/root/ambari-infra-manager
+      - $AMBARI_LOCATION/ambari-infra/ambari-infra-manager/docker/test-out:/root/archive
 networks:
   infra-network:
     driver: bridge

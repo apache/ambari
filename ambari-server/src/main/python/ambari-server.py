@@ -383,10 +383,10 @@ def init_action_parser(action, parser):
                     help="File with database cleanup script")
   parser.add_option('-j', '--java-home', dest="java_home", default=None,
                     help="Use specified java_home.  Must be valid on all hosts")
-  parser.add_option('--os-type', dest="os_type", default=None,
-                    help="Use os_type for a specified java_home")
+  parser.add_option('--os-family', dest="os_family", default=None,
+                    help="Use os_family for a specified java_home (eg: redhat7, redhat-ppc7, suse11, ubuntu12)")
   parser.add_option('--ambari-repo', dest="ambari_repo", default=None,
-                    help="Use specified Ambari repo URL.  Must be valid on all hosts for selected os type")
+                    help="Use specified Ambari repo URL.  Must be valid on all hosts for selected os family")
   parser.add_option("-v", "--verbose",
                     action="store_true", dest="verbose", default=False,
                     help="Print verbose status messages")
@@ -487,10 +487,10 @@ def init_setup_parser_options(parser):
 
   other_group.add_option('-j', '--java-home', default=None,
                          help="Use specified java_home.  Must be valid on all hosts")
-  other_group.add_option('--os-type', default=None,
-                         help="Use os_type for a specified java_home")
+  other_group.add_option('--os-family', default=None,
+                         help="Use os_family for a specified java_home (eg: redhat7, redhat-ppc7, suse11, ubuntu12)")
   other_group.add_option('--ambari-repo', default=None,
-                    help="Use specified Ambari repo URL.  Must be valid on all hosts for selected os type")
+                    help="Use specified Ambari repo URL.  Must be valid on all hosts for selected os family")
   other_group.add_option('--stack-java-home', dest="stack_java_home", default=None,
                     help="Use specified java_home for stack services.  Must be valid on all hosts")
   other_group.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
@@ -633,7 +633,6 @@ def init_kerberos_setup_parser_options(parser):
   parser.add_option('--kerberos-enabled', default=False, help="Kerberos enabled", dest="kerberos_enabled")
   parser.add_option('--kerberos-spnego-principal', default="HTTP/_HOST", help="Kerberos SPNEGO principal", dest="kerberos_spnego_principal")
   parser.add_option('--kerberos-spnego-keytab-file', default="/etc/security/keytabs/spnego.service.keytab", help="Kerberos SPNEGO keytab file", dest="kerberos_spnego_keytab_file")
-  parser.add_option('--kerberos-spnego-user-types', default="LDAP", help="User type search order (comma-delimited)", dest="kerberos_user_types")
   parser.add_option('--kerberos-auth-to-local-rules', default="DEFAULT", help="Auth-to-local rules", dest="kerberos_auth_to_local_rules")
 
 
@@ -972,6 +971,11 @@ def main(options, args, parser):
 def mainBody():
   parser = optparse.OptionParser(usage="usage: %prog action [options]",)
   action = sys.argv[1]
+
+  if action == "setup-ldap":
+    print "setup-ldap action is deprecated. Please configure LDAP integration from the Ambari UI"
+    sys.exit(0)
+
   init_action_parser(action, parser)
   (options, args) = parser.parse_args()
 

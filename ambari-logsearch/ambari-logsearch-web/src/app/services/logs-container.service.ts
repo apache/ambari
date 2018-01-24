@@ -30,6 +30,7 @@ import * as moment from 'moment-timezone';
 import {HttpClientService} from '@app/services/http-client.service';
 import {AuditLogsService} from '@app/services/storage/audit-logs.service';
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsService} from '@app/services/storage/service-logs.service';
 import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-fields.service';
 import {ServiceLogsHistogramDataService} from '@app/services/storage/service-logs-histogram-data.service';
@@ -61,13 +62,13 @@ import {CommonEntry} from '@app/classes/models/common-entry';
 export class LogsContainerService {
 
   constructor(
-    private httpClient: HttpClientService, private appState: AppStateService,
-    private appSettings: AppSettingsService, private auditLogsStorage: AuditLogsService,
-    private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService,
-    private serviceLogsFieldsStorage: ServiceLogsFieldsService, private tabsStorage: TabsService,
+    private httpClient: HttpClientService, private tabsStorage: TabsService, private componentsStorage: ComponentsService,
+    private hostsStorage: HostsService, private appState: AppStateService, private auditLogsStorage: AuditLogsService,
+    private auditLogsGraphStorage: AuditLogsGraphDataService, private auditLogsFieldsStorage: AuditLogsFieldsService,
+    private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService,
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private clustersStorage: ClustersService,
-    private componentsStorage: ComponentsService, private hostsStorage: HostsService,
-    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService
+    private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService
+
   ) {
     const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
       let formControl = new FormControl(),
@@ -498,7 +499,7 @@ export class LogsContainerService {
     query: ['includeQuery', 'excludeQuery']
   };
 
-  private readonly histogramFilters = {
+  private readonly graphFilters = {
     clusters: ['clusters'],
     timeRange: ['to', 'from'],
     components: ['mustBe'],
@@ -518,7 +519,9 @@ export class LogsContainerService {
       // TODO add all the required fields
       listFilters: ['clusters', 'timeRange', 'auditLogsSorting', 'pageSize', 'page', 'query'],
       topResourcesFilters: ['clusters', 'timeRange', 'query'],
-      histogramFilters: ['clusters', 'timeRange', 'query']
+      graphFilters: ['clusters', 'timeRange', 'query'],
+      graphRequestName: 'auditLogsGraph',
+      graphModel: this.auditLogsGraphStorage
     },
     serviceLogs: {
       logsModel: this.serviceLogsStorage,
@@ -526,11 +529,26 @@ export class LogsContainerService {
       listFilters: [
         'clusters', 'timeRange', 'components', 'levels', 'hosts', 'serviceLogsSorting', 'pageSize', 'page', 'query'
       ],
-      histogramFilters: ['clusters', 'timeRange', 'components', 'levels', 'hosts', 'query']
+      graphFilters: ['clusters', 'timeRange', 'components', 'levels', 'hosts', 'query'],
+      graphRequestName: 'serviceLogsHistogram',
+      graphModel: this.serviceLogsHistogramStorage
     }
   };
 
   private readonly defaultTimeZone = moment.tz.guess();
+
+  readonly queryContextMenuItems: ListItem[] = [
+    {
+      label: 'logs.addToQuery',
+      iconClass: 'fa fa-search-plus',
+      value: false // 'isExclude' is false
+    },
+    {
+      label: 'logs.excludeFromQuery',
+      iconClass: 'fa fa-search-minus',
+      value: true // 'isExclude' is true
+    }
+  ];
 
   timeZone: string = this.defaultTimeZone;
 
@@ -645,19 +663,17 @@ export class LogsContainerService {
         this.totalCount = count;
       }
     });
-    if (logsType === 'serviceLogs') {
-      // TODO rewrite to implement conditional data loading for service logs histogram or audit logs graph
-      this.httpClient.get('serviceLogsHistogram', this.getParams('histogramFilters')).subscribe((response: Response): void => {
-        const jsonResponse = response.json();
-        this.serviceLogsHistogramStorage.clear();
-        if (jsonResponse) {
-          const histogramData = jsonResponse.graphData;
-          if (histogramData) {
-            this.serviceLogsHistogramStorage.addInstances(histogramData);
-          }
+    this.httpClient.get(this.logsTypeMap[logsType].graphRequestName, this.getParams('graphFilters')).subscribe((response: Response): void => {
+      const jsonResponse = response.json(),
+        model = this.logsTypeMap[logsType].graphModel;
+      model.clear();
+      if (jsonResponse) {
+        const graphData = jsonResponse.graphData;
+        if (graphData) {
+          model.addInstances(graphData);
         }
-      });
-    }
+      }
+    });
     if (logsType === 'auditLogs') {
       this.httpClient.get('topAuditLogsResources', this.getParams('topResourcesFilters', {
         field: 'resource'
@@ -752,21 +768,23 @@ export class LogsContainerService {
     return Object.assign({}, params, additionalParams);
   }
 
-  getHistogramData(data: BarGraph[]): HomogeneousObject<HomogeneousObject<number>> {
-    let histogramData = {};
+  getGraphData(data: BarGraph[], keys?: string[]): HomogeneousObject<HomogeneousObject<number>> {
+    let graphData = {};
     data.forEach(type => {
       const name = type.name;
       type.dataCount.forEach(entry => {
         const timeStamp = new Date(entry.name).valueOf();
-        if (!histogramData[timeStamp]) {
+        if (!graphData[timeStamp]) {
           let initialValue = {};
-          Object.keys(this.colors).forEach(key => initialValue[key] = 0);
-          histogramData[timeStamp] = initialValue;
+          if (keys) {
+            keys.forEach((key: string) => initialValue[key] = 0);
+          }
+          graphData[timeStamp] = initialValue;
         }
-        histogramData[timeStamp][name] = Number(entry.value);
+        graphData[timeStamp][name] = Number(entry.value);
       });
     });
-    return histogramData;
+    return graphData;
   }
 
   loadColumnsNames(): void {

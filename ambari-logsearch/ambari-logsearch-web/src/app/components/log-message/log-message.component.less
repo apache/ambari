@@ -26,8 +26,10 @@
       transition: transform 250ms;
       transform: rotate(-90deg);
     }
-    &.log-message-container-open .caret {
-      transform: rotate(0deg);
+    &.log-message-container-open {
+      .caret {
+        transform: rotate(0deg);
+      }
     }
 
     .log-message-content {
@@ -35,24 +37,19 @@
       overflow: hidden;
       padding-left: 1em;
       position: relative;
+      word-wrap: break-word;
+    }
+    &.log-message-container-collapsible {
+      .log-message-content {
+        overflow: hidden;
+        padding-left: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
     &.log-message-container-open .log-message-content {
       max-height: none;
       white-space: pre-wrap;
-      &:before {
-        display: none;
-      }
-    }
-    &.log-message-container-collapsible {
-      .log-message-content {
-        padding-left: 0;
-        &:before {
-          content: "...";
-          float: right;
-          margin-left: 1em;
-        }
-      }
-
     }
 
     button, button:active {

@@ -408,7 +408,7 @@ class BootstrapDefault(Bootstrap):
   TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
   OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
   PASSWORD_FILENAME = "host_pass"
-  agent_os_type = ""
+  agent_os_family = ""
 
   def getRemoteName(self, filename):
     full_name = os.path.join(self.TEMP_FOLDER, filename)
@@ -653,7 +653,7 @@ class BootstrapDefault(Bootstrap):
               params.bootdir, self.host_log)
     retcode = ssh.run()
     # log contains agent os_type followed by Connection closed message
-    self.agent_os_type = retcode["log"].split()[0]
+    self.agent_os_family = retcode["log"].split()[0]
     self.host_log.write("\n")
     return retcode
 
@@ -745,22 +745,22 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("Running setup agent script...")
 
     retcode = None
-    if params.cluster_os_type == self.agent_os_type:
+    if params.cluster_os_type == self.agent_os_family:
       command = self.getRunSetupCommand(self.host)
       ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
                 params.bootdir, self.host_log)
       retcode = ssh.run()
     else:
       properties = get_ambari_properties()
-      ambariRepoUrl = properties[AMBARI_REPO + '.' + self.agent_os_type]
+      ambariRepoUrl = properties[AMBARI_REPO + '.' + self.agent_os_family]
       if ambariRepoUrl:
         command = self.getRunSetupCommand(self.host, ambariRepoUrl)
         ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
                   params.bootdir, self.host_log)
         retcode = ssh.run()
       else:
-        retcode = {"exitstatus": 1, "log": "Ambari repo not found for os_type '{0}'. Please set ambari repo baseurl using command: ambari-server setup --ambari-repo <ambari repo baseurl>.".format(self.agent_os_type),
-                   "errormsg": "Ambari repo not found for os_type '{0}'".format(self.agent_os_type)}
+        retcode = {"exitstatus": 1, "log": "Ambari repo not found for os_family '{0}'. Please set ambari repo baseurl using command: ambari-server setup --ambari-repo <ambari repo baseurl>.".format(self.agent_os_family),
+                   "errormsg": "Ambari repo not found for os_family '{0}'".format(self.agent_os_family)}
 
     self.host_log.write("\n")
     return retcode

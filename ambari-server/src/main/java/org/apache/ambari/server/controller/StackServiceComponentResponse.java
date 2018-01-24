@@ -118,6 +118,11 @@ public class StackServiceComponentResponse {
   private String reassignAllowed;
 
   /**
+   * @see ComponentInfo#componentType
+   */
+  private String componentType;
+
+  /**
    * Constructor.
    *
    * @param component
@@ -139,6 +144,7 @@ public class StackServiceComponentResponse {
     bulkCommandMasterComponentName = getBulkCommandsMasterComponentName(component);
     reassignAllowed = component.getReassignAllowed();
     rollingRestartSupported = component.getRollingRestartSupported();
+    componentType = component.getComponentType();
 
     // the custom command names defined for this component
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
@@ -509,6 +515,10 @@ public class StackServiceComponentResponse {
   @ApiModelProperty(name = "bulk_commands_master_component_namen")
   public String getBulkCommandsMasterComponentName(){
     return bulkCommandMasterComponentName == null ? "":bulkCommandMasterComponentName;
+  }
+
+  public String getComponentType() {
+    return componentType;
   }
 
   /**

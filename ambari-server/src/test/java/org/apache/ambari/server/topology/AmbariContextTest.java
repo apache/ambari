@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.Collections.singletonList;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -215,7 +216,7 @@ public class AmbariContextTest {
     expect(repositoryVersion.getType()).andReturn(RepositoryType.STANDARD).atLeastOnce();
 
     expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
-        Collections.singletonList(repositoryVersion)).atLeastOnce();
+        singletonList(repositoryVersion)).atLeastOnce();
     replay(repositoryVersionDAO, repositoryVersion);
 
     context.configFactory = configFactory;
@@ -240,7 +241,7 @@ public class AmbariContextTest {
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
 
     for (Map.Entry<String, String> entry : configTypeServiceMapping.entrySet()) {
-      expect(stack.getServiceForConfigType(entry.getKey())).andReturn(entry.getValue()).anyTimes();
+      expect(stack.getServicesForConfigType(entry.getKey())).andReturn(singletonList(entry.getValue())).anyTimes();
     }
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
