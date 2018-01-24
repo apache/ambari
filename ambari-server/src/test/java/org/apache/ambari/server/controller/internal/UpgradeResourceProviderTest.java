@@ -1177,9 +1177,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     AbstractControllerResourceProvider.init(factory);
 
     Resource.Type type = Type.Upgrade;
-    return (UpgradeResourceProvider) AbstractControllerResourceProvider.getResourceProvider(type,
-        PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
-        amc);
+    return (UpgradeResourceProvider) AbstractControllerResourceProvider.getResourceProvider(type, amc);
   }
 
   private RequestStatus testCreateResources() throws Exception {

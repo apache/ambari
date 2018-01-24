@@ -60,7 +60,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
@@ -152,8 +151,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -189,8 +186,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       Resource.Type.Blueprint,
-      PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-      PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
       managementController);
 
     try {
@@ -232,8 +227,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -274,8 +267,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         createMock(AmbariManagementController.class));
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -321,8 +312,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -400,8 +389,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       Resource.Type.Blueprint,
-      PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-      PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
       managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -528,8 +515,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -577,8 +562,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -813,9 +796,7 @@ public class BlueprintResourceProviderTest {
   }
 
   private static BlueprintResourceProvider createProvider() {
-    return new BlueprintResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint), null);
+    return new BlueprintResourceProvider(null);
   }
 
   private BlueprintEntity createEntity(Map<String, Object> properties) {

@@ -64,11 +64,9 @@ RUN chmod -R 777 /root/test-config
 RUN chmod +x /root/start.sh
 
 ENV SOLR_CONFIG_LOCATION /root/config/solr
-ENV LOGSEARCH_CONFIG_LOCATION /root/config/logsearch
-ENV LOGFEEDER_CONFIG_LOCATION /root/config/logfeeder
+ENV LOGSEARCH_CONF_DIR /root/config/logsearch
+ENV LOGFEEDER_CONF_DIR /root/config/logfeeder
 ENV SOLR_INCLUDE /root/config/solr/solr-env.sh
-ENV LOGSEARCH_INCLUDE /root/config/logsearch/logsearch-env.sh
-ENV LOGFEEDER_INCLUDE /root/config/logfeeder/logfeeder-env.sh
 
 RUN mkdir -p /var/run/ambari-logsearch-solr /var/log/ambari-logsearch-solr /var/run/ambari-infra-solr-client \
   /var/log/ambari-infra-solr-client /root/logsearch_solr_index/data \

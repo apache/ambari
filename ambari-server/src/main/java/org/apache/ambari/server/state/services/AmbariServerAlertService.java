@@ -45,6 +45,7 @@ import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.name.Named;
 
 /**
  * The {@link AmbariServerAlertService} is used to manage the dynamically loaded
@@ -87,7 +88,7 @@ public class AmbariServerAlertService extends AbstractScheduledService {
   /**
    * The executor to use to run all {@link Runnable} alert classes.
    */
-  private final ScheduledExecutorService m_scheduledExecutorService = Executors.newScheduledThreadPool(3);
+  private ScheduledExecutorService m_scheduledExecutorService;
 
   /**
    * A map of all of the definition names to {@link ScheduledFuture}s.
@@ -101,6 +102,10 @@ public class AmbariServerAlertService extends AbstractScheduledService {
   public AmbariServerAlertService() {
   }
 
+  @Inject
+  public void initExecutor(@Named("alertServiceCorePoolSize") int alertServiceCorePoolSize) {
+    this.m_scheduledExecutorService = Executors.newScheduledThreadPool(alertServiceCorePoolSize);
+  }
   /**
    * {@inheritDoc}
    */

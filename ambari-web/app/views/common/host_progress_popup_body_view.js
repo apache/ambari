@@ -290,6 +290,18 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     this.unsubscribeResize();
   },
 
+  selectServiceCategory: function (e) {
+    this.set('serviceCategory', e.context);
+  },
+
+  selectHostCategory: function (e) {
+    this.set('hostCategory', e.context);
+  },
+
+  selectTaskCategory: function (e) {
+    this.set('taskCategory', e.context);
+  },
+
   /**
    * Subscribe for window <code>resize</code> event.
    *

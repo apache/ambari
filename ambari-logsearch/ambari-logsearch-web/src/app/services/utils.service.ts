@@ -18,6 +18,7 @@
 
 import {Injectable} from '@angular/core';
 import * as moment from 'moment-timezone';
+import {HomogeneousObject} from '@app/classes/object';
 
 @Injectable()
 export class UtilsService {
@@ -91,6 +92,17 @@ export class UtilsService {
     return numberToFormat.toLocaleString(undefined, {
       minimumIntegerDigits: minLength
     });
+  }
+
+  isEmptyObject(obj: any): boolean {
+    return this.isEqual(obj, {});
+  }
+
+  getMaxNumberInObject(obj: HomogeneousObject<number>): number {
+    const keys = Object.keys(obj);
+    return keys.reduce((currentMax: number, currentKey: string): number => {
+      return isNaN(obj[currentKey]) ? currentMax : Math.max(currentMax, obj[currentKey]);
+    }, 0);
   }
 
 }

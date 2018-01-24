@@ -299,6 +299,11 @@ public class ConfigHelper {
     return properties;
   }
 
+  public Map<String, Map<String, String>> getEffectiveConfigProperties(String clusterName, String hostName) throws AmbariException {
+    Cluster cluster = clusters.getCluster(clusterName);
+    return getEffectiveConfigProperties(cluster, getEffectiveDesiredTags(cluster, hostName));
+  }
+
   /**
    * Get all config attributes for a cluster given a set of configType to
    * versionTags map. This helper method merges all the override tags with a

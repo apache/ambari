@@ -74,7 +74,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
   };
 
   protected OperatingSystemResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.OperatingSystem, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

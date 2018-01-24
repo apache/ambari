@@ -82,16 +82,6 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
   private Set<RoleAuthorization> requiredDeleteAuthorizations = Collections.emptySet();
 
   /**
-   * Constructor
-   *
-   * @param propertyIds    the property ids
-   * @param keyPropertyIds the key property ids
-   */
-  protected AbstractAuthorizedResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds) {
-    super(propertyIds, keyPropertyIds);
-  }
-
-  /**
    * Create a new resource provider. This constructor will initialize the
    * specified {@link Resource.Type} with the provided keys. It should be used
    * in cases where the provider declares its own keys instead of reading them
@@ -106,7 +96,7 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    */
   AbstractAuthorizedResourceProvider(Resource.Type type, Set<String> propertyIds,
       Map<Resource.Type, String> keyPropertyIds) {
-    this(propertyIds, keyPropertyIds);
+    super(propertyIds, keyPropertyIds);
     PropertyHelper.setPropertyIds(type, propertyIds);
     PropertyHelper.setKeyPropertyIds(type, keyPropertyIds);
   }

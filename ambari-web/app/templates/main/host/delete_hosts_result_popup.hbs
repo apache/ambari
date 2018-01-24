@@ -17,14 +17,14 @@
 }}
 {{#if view.deletedHosts}}
   {{#if view.deleteComponents}}
-    <p>{{t hosts.bulkOperation.delete.component.result.body}}</p>
+    <p>{{{view.componentName}}}{{t hosts.bulkOperation.delete.component.result.body}}</p>
   {{else}}
     <p>{{t hosts.bulkOperation.deleteHosts.result.body}}</p>
   {{/if}}
 {{/if}}
 
 {{#each deletedHost in view.deletedHosts}}
-  <div><i>{{{deletedHost.deleted.key}}}</i></div>
+  <div><i>{{{deletedHost}}}</i></div>
 {{/each}}
 <br />
 {{#if view.undeletableHosts}}

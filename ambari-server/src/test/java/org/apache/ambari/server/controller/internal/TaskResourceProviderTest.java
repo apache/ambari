@@ -74,8 +74,6 @@ public class TaskResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
@@ -112,7 +110,7 @@ public class TaskResourceProviderTest {
 
     Injector m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     TaskResourceProvider provider = (TaskResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-        type, PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), amc);
+        type, amc);
 
     m_injector.injectMembers(provider);
     TaskResourceProvider.s_dao = hostRoleCommandDAO;
@@ -176,7 +174,7 @@ public class TaskResourceProviderTest {
 
     Injector m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     TaskResourceProvider provider = (TaskResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-      type, PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), amc);
+      type, amc);
 
     m_injector.injectMembers(provider);
     TaskResourceProvider.s_dao = hostRoleCommandDAO;
@@ -245,8 +243,6 @@ public class TaskResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     // add the property map to a set for the request.
@@ -280,8 +276,6 @@ public class TaskResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("Task100").toPredicate();
@@ -296,9 +290,7 @@ public class TaskResourceProviderTest {
     // Test general case
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(
-            PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type), managementController);
+    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(managementController);
 
     replay(managementController);
 
@@ -332,9 +324,7 @@ public class TaskResourceProviderTest {
     // Test general case
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(
-            PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type), managementController);
+    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(managementController);
 
     replay(managementController);
 
@@ -356,9 +346,7 @@ public class TaskResourceProviderTest {
     // Test general case
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type), managementController);
+    TaskResourceProvider taskResourceProvider = new TaskResourceProvider(managementController);
 
     replay(managementController);
 

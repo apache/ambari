@@ -16,24 +16,25 @@
 * limitations under the License.
 }}
 
-<div class="host-component-popup-wrap col-sm-12">
+<div class="host-component-popup-wrap">
 
 {{#if view.parentView.isLoaded}}
 {{!-- OPERATIONS --}}
 
   <div {{bindAttr class="view.parentView.isServiceListHidden:hidden :task-list-main-wrap :table-body-wrap"}}>
-    <div class="row top-wrap">
-      <h2 class="table-title col-sm-6">{{view view.parentView.titleClass}}</h2>
-      <div class="table-controls row col-sm-6 pull-right">
-        <div class="col-sm-12">
-          <div class="btn-group pull-right">
-            {{view Ember.Select
-              contentBinding="view.categories"
-              optionValuePath="content.value"
-              optionLabelPath="content.label"
-              selectionBinding="view.serviceCategory"
-              classNames="form-control"
-            }}
+    <div class="top-wrap">
+      <div class="row">
+        <h2 class="table-title col-sm-6">{{view view.parentView.titleClass}}</h2>
+        <div class="table-controls col-sm-6">
+          <div class="btn-group pull-right status-dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{view.serviceCategory.label}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              {{#each category in view.categories}}
+                <li><a href="#" {{action selectServiceCategory category target="view"}}>{{category.label}}</a></li>
+              {{/each}}
+            </ul>
           </div>
         </div>
       </div>
@@ -104,18 +105,19 @@
   {{!-- HOSTS ---}}
 
   <div {{bindAttr class="view.parentView.isHostListHidden:hidden :task-list-main-wrap :table-body-wrap"}}>
-    <div class="row top-wrap">
-      <h2 class="table-title col-sm-2">{{t common.hosts}}</h2>
-      <div class="table-controls row col-sm-10 pull-right">
-        <div class="col-sm-12">
-          <div class="btn-group pull-right">
-            {{view Ember.Select
-              contentBinding="view.categories"
-              optionValuePath="content.value"
-              optionLabelPath="content.label"
-              selectionBinding="view.hostCategory"
-              classNames="form-control"
-            }}
+    <div class="top-wrap">
+      <div class="row">
+        <h2 class="table-title col-sm-2">{{t common.hosts}}</h2>
+        <div class="table-controls col-sm-10">
+          <div class="btn-group pull-right status-dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{view.hostCategory.label}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              {{#each category in view.categories}}
+                <li><a href="#" {{action selectHostCategory category target="view"}}>{{category.label}}</a></li>
+              {{/each}}
+            </ul>
           </div>
         </div>
       </div>
@@ -188,19 +190,19 @@
   {{!-- TASKS ---}}
 
   <div {{bindAttr class="view.parentView.isTaskListHidden:hidden :task-list-main-wrap :table-body-wrap"}}>
-    <div class="row top-wrap">
-      <h2 class="table-title col-sm-2">{{t common.tasks}}</h2>
-      <div class="table-controls row col-sm-10 pull-right">
-        <div class="col-sm-12">
-          <div class="btn-group pull-right">
-            {{view Ember.Select
-              class="form-control"
-              contentBinding="view.categories"
-              optionValuePath="content.value"
-              optionLabelPath="content.label"
-              selectionBinding="view.taskCategory"
-              classNames="form-control"
-            }}
+    <div class="top-wrap">
+      <div class="row">
+        <h2 class="table-title col-sm-2">{{t common.tasks}}</h2>
+        <div class="table-controls col-sm-10">
+          <div class="btn-group pull-right status-dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{view.taskCategory.label}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              {{#each category in view.categories}}
+                <li><a href="#" {{action selectTaskCategory category target="view"}}>{{category.label}}</a></li>
+              {{/each}}
+            </ul>
           </div>
         </div>
       </div>
@@ -252,24 +254,27 @@
     <div class="task-top-wrap top-wrap">
       <div {{bindAttr class="view.hostComponentLogsExists:task-detail-log-nav-actions :row"}}>
         <h2 class="table-title col-sm-5">{{t common.taskLog}}</h2>
-        <div class="table-controls row col-sm-7 pull-right">
-          <div class="col-sm-12">
-            {{#if App.supports.logSearch}}
-              {{#if view.isLogSearchInstalled}}
-                {{#havePermissions "SERVICE.VIEW_OPERATIONAL_LOGS"}}
-                  <button type="button" class="btn btn-link pull-right" {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden" disabled="App.router.wizardWatcherController.isNonWizardUser"}}>
-                    <i class="glyphicon glyphicon-file"></i>&nbsp;{{t common.host}} {{t common.logs}}
-                  </button>
-                {{/havePermissions}}
-              {{/if}}
+        <div class="table-controls col-sm-7 pull-right">
+          {{#if App.supports.logSearch}}
+            {{#if view.isLogSearchInstalled}}
+              {{#havePermissions "SERVICE.VIEW_OPERATIONAL_LOGS"}}
+                <button type="button" class="btn btn-link pull-right" {{action navigateToHostLogs target="view"}}
+                  {{bindAttr class="view.isLogsLinkVisible::hidden" disabled="App.router.wizardWatcherController.isNonWizardUser"}}>
+                  <i class="glyphicon glyphicon-file"></i>&nbsp;{{t common.host}} {{t common.logs}}
+                </button>
+              {{/havePermissions}}
             {{/if}}
-            <button type="button" class="btn btn-link pull-right" {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}}>
-              <i class="icon icon-external-link"></i>&nbsp;{{t common.open}}
-            </button>
-            <button type="button" class="btn btn-link pull-right copy-clipboard" {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}}>
-              <i class="glyphicon glyphicon-copy"></i>&nbsp;{{t common.copy}}
-            </button>
-          </div>
+          {{/if}}
+          <button type="button" class="btn btn-link pull-right"
+            {{translateAttr title="common.openNewWindow"}}
+            {{action openTaskLogInDialog}}>
+            <i class="icon icon-external-link"></i>&nbsp;{{t common.open}}
+          </button>
+          <button type="button" class="btn btn-link pull-right copy-clipboard"
+            {{translateAttr title="common.fullLogPopup.clickToCopy"}}
+            {{action "textTrigger" taskInfo target="view"}}>
+            <i class="glyphicon glyphicon-copy"></i>&nbsp;{{t common.copy}}
+          </button>
         </div>
       </div>
       <ul {{bindAttr class="view.hostComponentLogsExists::hide :nav :nav-tabs :task-detail-nav"}}>

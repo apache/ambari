@@ -28,8 +28,11 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
 import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
-import {ServiceLogsHistogramDataService, serviceLogsHistogramData} from '@app/services/storage/service-logs-histogram-data.service';
+import {
+  ServiceLogsHistogramDataService, serviceLogsHistogramData
+} from '@app/services/storage/service-logs-histogram-data.service';
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
@@ -67,6 +70,7 @@ describe('FiltersPanelComponent', () => {
           auditLogs,
           serviceLogs,
           auditLogsFields,
+          auditLogsGraphData,
           serviceLogsFields,
           serviceLogsHistogramData,
           appState,
@@ -83,6 +87,7 @@ describe('FiltersPanelComponent', () => {
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
+        AuditLogsGraphDataService,
         ServiceLogsFieldsService,
         ServiceLogsHistogramDataService,
         AppStateService,

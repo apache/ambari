@@ -86,7 +86,7 @@ public class RegistryMpackResourceProvider extends AbstractControllerResourcePro
    * @param managementController the management controller
    */
   protected RegistryMpackResourceProvider(final AmbariManagementController managementController) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+    super(Resource.Type.RegistryMpack, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   /**

@@ -17,7 +17,6 @@
 
 import {Component, forwardRef} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {DropdownButtonComponent} from '@app/components/dropdown-button/dropdown-button.component';
 import {ListItem} from '@app/classes/list-item';
@@ -36,8 +35,8 @@ import {ListItem} from '@app/classes/list-item';
 })
 export class FilterDropdownComponent extends DropdownButtonComponent implements ControlValueAccessor {
 
-  constructor(protected actions: ComponentActionsService, protected utils: UtilsService) {
-    super(actions, utils);
+  constructor(protected utils: UtilsService) {
+    super(utils);
   }
 
   private onChange: (fn: any) => void;

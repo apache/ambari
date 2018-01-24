@@ -18,12 +18,12 @@
  */
 package org.apache.ambari.logfeeder.input.reader;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
-
-import org.apache.log4j.Logger;
 
 public enum LogsearchReaderFactory {
   INSTANCE;

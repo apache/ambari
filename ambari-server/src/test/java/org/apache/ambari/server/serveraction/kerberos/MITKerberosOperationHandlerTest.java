@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.newCapture;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,21 +46,19 @@ import junit.framework.Assert;
 
 public class MITKerberosOperationHandlerTest extends KDCKerberosOperationHandlerTest {
 
-  private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
-    {
-      put(MITKerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, null);
-      put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_HOSTS, "localhost");
-      put(MITKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
-      put(MITKerberosOperationHandler.KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE, "AD Create Template");
-      put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_CREATE_ATTRIBUTES, "-attr1 -attr2 foo=345");
-    }
-  };
-
   private static Method methodIsOpen;
 
   private static Method methodPrincipalExists;
 
   private static Method methodInvokeKAdmin;
+
+  private static final Map<String, String> KERBEROS_ENV_MAP;
+
+  static {
+    Map<String, String> map = new HashMap<>(DEFAULT_KERBEROS_ENV_MAP);
+    map.put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_CREATE_ATTRIBUTES, "-attr1 -attr2 foo=345");
+    KERBEROS_ENV_MAP = Collections.unmodifiableMap(map);
+  }
 
   private Injector injector;
 

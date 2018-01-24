@@ -229,9 +229,6 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
   }
 
-
-
-
   @Test
   public void testGetResourcesAsAdministrator() throws Exception {
     testGetResources(TestAuthenticationFactory.createAdministrator());
@@ -357,7 +354,7 @@ public class RepositoryVersionResourceProviderTest {
     RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity3);
 
   }
-
+  
   @Test
   public void testDeleteResourcesAsAdministrator() throws Exception {
     testDeleteResources(TestAuthenticationFactory.createAdministrator());

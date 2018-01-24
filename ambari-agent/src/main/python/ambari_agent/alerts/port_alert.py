@@ -24,7 +24,7 @@ import time
 from alerts.base_alert import BaseAlert
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from ambari_commons import OSCheck
-from ambari_commons.inet_utils import resolve_address
+from ambari_commons.inet_utils import resolve_address, get_host_from_url
 logger = logging.getLogger()
 
 # default timeouts
@@ -111,7 +111,7 @@ class PortAlert(BaseAlert):
           break
 
 
-    host = BaseAlert.get_host_from_url(uri_value)
+    host = get_host_from_url(uri_value)
     if host is None or host == "localhost" or host == "0.0.0.0":
       host = self.host_name
       host_not_specified = True

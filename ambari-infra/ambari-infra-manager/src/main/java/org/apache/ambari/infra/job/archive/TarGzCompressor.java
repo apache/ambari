@@ -25,9 +25,9 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 
-public class TarGzCompressor implements FileAction {
+public class TarGzCompressor extends AbstractFileAction {
   @Override
-  public File perform(File inputFile) {
+  public File onPerform(File inputFile) {
     File tarGzFile = new File(inputFile.getParent(), inputFile.getName() + ".tar.gz");
     try (TarArchiveOutputStream tarArchiveOutputStream = new TarArchiveOutputStream(
             new GzipCompressorOutputStream(new FileOutputStream(tarGzFile)))) {

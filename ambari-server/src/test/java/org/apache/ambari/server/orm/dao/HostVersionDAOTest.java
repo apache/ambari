@@ -247,6 +247,18 @@ public class HostVersionDAOTest {
   }
 
   /**
+   * Test the {@link HostVersionDAO#findByCluster(String)} method.
+   */
+  @Test
+  public void testFindByCluster() {
+    Assert.assertEquals(3, hostVersionDAO.findByCluster("test_cluster1").size());
+
+    addMoreVersions();
+
+    Assert.assertEquals(9, hostVersionDAO.findByCluster("test_cluster1").size());
+  }
+
+  /**
    * Test the {@link HostVersionDAO#findByClusterHostAndState(String, String, org.apache.ambari.server.state.RepositoryVersionState)} method.
    */
   @Test

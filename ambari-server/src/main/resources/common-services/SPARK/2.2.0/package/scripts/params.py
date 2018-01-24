@@ -21,6 +21,7 @@ limitations under the License.
 import socket
 
 import status_params
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions import conf_select, stack_select
@@ -45,6 +46,7 @@ SERVER_ROLE_DIRECTORY_MAP = {
 
 }
 
+sudo = AMBARI_SUDO_BINARY
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "SPARK_CLIENT")
 
 config = Script.get_config()

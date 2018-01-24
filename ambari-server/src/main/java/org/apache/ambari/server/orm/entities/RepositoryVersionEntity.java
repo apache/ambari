@@ -237,6 +237,11 @@ public class RepositoryVersionEntity {
    */
   public void setVersion(String version) {
     this.version = version;
+
+    // need to be called to avoid work with wrong value until entity would be persisted
+    if (null != version && null != stack && null != stack.getStackName()){
+      removePrefixFromVersion();
+    }
   }
 
   public String getDisplayName() {

@@ -46,15 +46,33 @@
         <task xsi:type="manual">
           <message>Foo</message>
         </task>
-      </execute-stage>
+      </execute-stage>      
      </group>
+     
+    <group xsi:type="cluster" name="TASK_SECURITY_CONDITION_TEST" title="Task Security Condition Test">
+      <!-- no condition -->      
+      <execute-stage title="Confirm 1">
+        <task xsi:type="manual">
+          <message>Foo</message>
+        </task>
+      </execute-stage>
+
+      <!-- condition -->
+      <execute-stage title="Confirm 2">
+        <task xsi:type="manual">
+          <condition xsi:type="security" type="kerberos"/>
+          <message>Task based on security condition</message>
+        </task>
+      </execute-stage>      
+     </group>     
+          
   </order>
 
   <processing>
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" />          
         </upgrade>
       </component>
     </service>

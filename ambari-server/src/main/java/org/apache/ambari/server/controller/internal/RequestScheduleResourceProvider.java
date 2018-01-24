@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +51,9 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 public class RequestScheduleResourceProvider extends AbstractControllerResourceProvider {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -115,27 +117,60 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   protected static final String SCHEDULE_END_TIME_PROPERTY_ID =
     PropertyHelper.getPropertyId(REQUEST_SCHEDULE_SCHEDULE_PROPERTY_ID, "endTime");
 
-  private static Set<String> pkPropertyIds = new HashSet<>(Arrays
-    .asList(new String[]{REQUEST_SCHEDULE_ID_PROPERTY_ID}));
+  /**
+   * The key property ids for a RequestSchedule resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Cluster, REQUEST_SCHEDULE_CLUSTER_NAME_PROPERTY_ID)
+      .put(Resource.Type.RequestSchedule, REQUEST_SCHEDULE_ID_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a RequestSchedule resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      REQUEST_SCHEDULE_ID_PROPERTY_ID,
+      REQUEST_SCHEDULE_CLUSTER_NAME_PROPERTY_ID,
+      REQUEST_SCHEDULE_DESC_PROPERTY_ID,
+      REQUEST_SCHEDULE_STATUS_PROPERTY_ID,
+      REQUEST_SCHEDULE_LAST_STATUS_PROPERTY_ID,
+      REQUEST_SCHEDULE_BATCH_PROPERTY_ID,
+      REQUEST_SCHEDULE_SCHEDULE_PROPERTY_ID,
+      REQUEST_SCHEDULE_CREATE_USER_PROPERTY_ID,
+      REQUEST_SCHEDULE_AUTHENTICATED_USER_PROPERTY_ID,
+      REQUEST_SCHEDULE_UPDATE_USER_PROPERTY_ID,
+      REQUEST_SCHEDULE_CREATE_TIME_PROPERTY_ID,
+      REQUEST_SCHEDULE_UPDATE_TIME_PROPERTY_ID,
+      REQUEST_SCHEDULE_BATCH_SEPARATION_PROPERTY_ID,
+      REQUEST_SCHEDULE_BATCH_TOLERATION_PROPERTY_ID,
+      REQUEST_SCHEDULE_BATCH_REQUESTS_PROPERTY_ID,
+      BATCH_REQUEST_TYPE_PROPERTY_ID,
+      BATCH_REQUEST_URI_PROPERTY_ID,
+      BATCH_REQUEST_ORDER_ID_PROPERTY_ID,
+      BATCH_REQUEST_BODY_PROPERTY_ID,
+      SCHEDULE_DAYS_OF_MONTH_PROPERTY_ID,
+      SCHEDULE_MINUTES_PROPERTY_ID,
+      SCHEDULE_HOURS_PROPERTY_ID,
+      SCHEDULE_YEAR_PROPERTY_ID,
+      SCHEDULE_DAY_OF_WEEK_PROPERTY_ID,
+      SCHEDULE_MONTH_PROPERTY_ID,
+      SCHEDULE_START_TIME_PROPERTY_ID,
+      SCHEDULE_END_TIME_PROPERTY_ID);
 
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds          the property ids
-   * @param keyPropertyIds       the key property ids
    * @param managementController the management controller
    */
 
-  protected RequestScheduleResourceProvider(Set<String> propertyIds,
-      Map<Resource.Type, String> keyPropertyIds,
-        AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  protected RequestScheduleResourceProvider(AmbariManagementController managementController) {
+    super(Resource.Type.RequestSchedule, propertyIds, keyPropertyIds, managementController);
   }
 
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   @Override

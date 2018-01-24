@@ -42,7 +42,9 @@ public class AMSComponentPropertyProvider extends AMSPropertyProvider {
 
   @Override
   protected String getHostName(Resource resource) {
-    return null;
+      return hostProvider
+        .getExternalHostName((String) resource.getPropertyValue(clusterNamePropertyId), (String) resource.getPropertyValue(componentNamePropertyId))
+        .orElse(null);
   }
 
   @Override

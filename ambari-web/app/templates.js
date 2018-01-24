@@ -28,3 +28,5 @@ require("templates/main/service/widgets/create/step2_template");
 require("templates/main/service/widgets/create/step2_graph");
 require('templates/common/configs/widgets/controls');
 require('templates/common/configs/widgets/config_label');
+require('templates/common/configs/configs_comparison_row');
+require('templates/common/configs/configs_comparison_cell');

@@ -119,7 +119,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
    * @param controller  the controller
    */
   UpgradeItemResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.UpgradeItem, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

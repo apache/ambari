@@ -18,6 +18,7 @@
 
 import {Component, Input} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
+import {ServiceInjector} from '@app/classes/service-injector';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 
@@ -28,7 +29,8 @@ import {UtilsService} from '@app/services/utils.service';
 })
 export class DropdownButtonComponent {
 
-  constructor(protected actions: ComponentActionsService, protected utils: UtilsService) {
+  constructor(protected utils: UtilsService) {
+    this.actions = ServiceInjector.injector.get(ComponentActionsService);
   }
   
   @Input()
@@ -63,6 +65,8 @@ export class DropdownButtonComponent {
 
   @Input()
   isDropup: boolean = false;
+
+  private actions: ComponentActionsService;
 
   protected selectedItems?: ListItem[] = [];
 

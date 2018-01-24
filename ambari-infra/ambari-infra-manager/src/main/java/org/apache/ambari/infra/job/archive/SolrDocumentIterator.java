@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.infra.job.archive;
 
+import org.apache.ambari.infra.job.CloseableIterator;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -31,9 +32,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TimeZone;
 
-public class SolrDocumentIterator implements DocumentIterator {
+public class SolrDocumentIterator implements CloseableIterator<Document> {
 
-  private static final DateFormat SOLR_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+  public static final String SOLR_DATE_FORMAT_TEXT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
+  private static final DateFormat SOLR_DATE_FORMAT = new SimpleDateFormat(SOLR_DATE_FORMAT_TEXT);
 
   static {
     SOLR_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));

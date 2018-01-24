@@ -44,7 +44,6 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <build>
-        <finalName>LogSearch</finalName>
         <resources>
           <resource>
             <directory>src/main/resources</directory>
@@ -77,16 +76,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
             <version>${spring-boot.version}</version>
-            <configuration>
-              <classifier>exec</classifier>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>repackage</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>

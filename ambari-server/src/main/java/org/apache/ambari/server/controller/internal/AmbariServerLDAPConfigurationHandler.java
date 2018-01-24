@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.api.services.RootServiceComponentConfiguration;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
@@ -44,7 +45,7 @@ class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHand
 
   @Inject
   private static LdapFacade ldapFacade;
-
+  
   @Override
   public OperationResult performOperation(String categoryName, Map<String, String> properties,
                                           boolean mergeExistingProperties, String operation, Map<String, Object> operationParameters) throws SystemException {
@@ -64,12 +65,12 @@ class AmbariServerLDAPConfigurationHandler extends AmbariServerConfigurationHand
     // to retrieve if. If one does not exist, that is ok.
     if (mergeExistingProperties) {
       try {
-        Map<String, Map<String, String>> _configurations = getConfigurations(categoryName);
+        Map<String, RootServiceComponentConfiguration> _configurations = getConfigurations(categoryName);
         if (_configurations != null) {
-          Map<String, String> _ldapProperties = _configurations.get(categoryName);
+          RootServiceComponentConfiguration _ldapProperties = _configurations.get(categoryName);
 
           if (_ldapProperties != null) {
-            ldapConfigurationProperties.putAll(_ldapProperties);
+            ldapConfigurationProperties.putAll(_ldapProperties.getProperties());
           }
         }
       } catch (NoSuchResourceException e) {

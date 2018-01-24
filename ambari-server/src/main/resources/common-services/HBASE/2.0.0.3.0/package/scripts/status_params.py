@@ -48,7 +48,7 @@ else:
 
   hbase_master_pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
   regionserver_pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
-  phoenix_pid_file = format("{pid_dir}/phoenix-{hbase_user}-server.pid")
+  phoenix_pid_file = format("{pid_dir}/phoenix-{hbase_user}-queryserver.pid")
 
   # Security related/required params
   hostname = config['hostname']

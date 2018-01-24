@@ -58,7 +58,7 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-show="cluster">
       <div class="form-group col-sm-6"
            ng-class="{ 'has-error': form.groupCreateForm.role.$error.required && form.groupCreateForm.submitted }">
         <label for="role" class="nowrap roles-label">

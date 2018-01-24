@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
@@ -41,6 +40,9 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
 /**
  * Resource provider for group resources.
  */
@@ -55,21 +57,29 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   public static final String GROUP_LDAP_GROUP_PROPERTY_ID = PropertyHelper.getPropertyId("Groups", "ldap_group");
   public static final String GROUP_GROUPTYPE_PROPERTY_ID  = PropertyHelper.getPropertyId("Groups", "group_type");
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      GROUP_GROUPNAME_PROPERTY_ID}));
+
+  /**
+   * The key property ids for a Group resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Group, GROUP_GROUPNAME_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a Group resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      GROUP_GROUPNAME_PROPERTY_ID,
+      GROUP_LDAP_GROUP_PROPERTY_ID,
+      GROUP_GROUPTYPE_PROPERTY_ID);
 
   /**
    * Create a new resource provider for the given management controller.
    *
-   * @param propertyIds           the property ids
-   * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  GroupResourceProvider(Set<String> propertyIds,
-                       Map<Resource.Type, String> keyPropertyIds,
-                       AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  GroupResourceProvider(AmbariManagementController managementController) {
+    super(Resource.Type.Group, propertyIds, keyPropertyIds, managementController);
 
     EnumSet<RoleAuthorization> manageUserAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS);
     setRequiredCreateAuthorizations(manageUserAuthorizations);
@@ -188,7 +198,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   private GroupRequest getRequest(Map<String, Object> properties) {

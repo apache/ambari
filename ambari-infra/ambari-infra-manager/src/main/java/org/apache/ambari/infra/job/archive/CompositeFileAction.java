@@ -19,6 +19,7 @@
 package org.apache.ambari.infra.job.archive;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -28,7 +29,7 @@ public class CompositeFileAction implements FileAction {
   private final List<FileAction> actions;
 
   public CompositeFileAction(FileAction... actions) {
-    this.actions = asList(actions);
+    this.actions = new ArrayList<>(asList(actions));
   }
 
   public void add(FileAction action) {

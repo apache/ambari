@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import static java.util.stream.Collectors.toList;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1561,7 +1563,7 @@ public class ClusterImpl implements Cluster {
     return clusterDAO.getLatestConfigurationsWithTypes(clusterId, getDesiredStackVersion(), types)
       .stream()
       .map(clusterConfigEntity -> configFactory.createExisting(this, clusterConfigEntity))
-      .collect(Collectors.toList());
+      .collect(toList());
   }
 
   @Override
@@ -1886,6 +1888,7 @@ public class ClusterImpl implements Cluster {
       refresh();
       deleteAllServices();
       deleteAllServiceGroups();
+      resetHostVersions();
 
       refresh(); // update one-to-many clusterServiceEntities
       removeEntities();
@@ -1906,6 +1909,15 @@ public class ClusterImpl implements Cluster {
   }
 
   //TODO this needs to be reworked to support multiple instance of same service
+  private void resetHostVersions() {
+    for (HostVersionEntity hostVersionEntity : hostVersionDAO.findByCluster(getClusterName())) {
+      if (!hostVersionEntity.getState().equals(RepositoryVersionState.NOT_REQUIRED)) {
+        hostVersionEntity.setState(RepositoryVersionState.NOT_REQUIRED);
+        hostVersionDAO.merge(hostVersionEntity);
+      }
+    }
+  }
+
   @Override
   public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) throws AmbariException {
     return addDesiredConfig(user, configs, null);
@@ -2164,6 +2176,10 @@ public class ClusterImpl implements Cluster {
     }
     //TODO this needs to be reworked to support multiple instance of same service
     return getServiceOrNull(resultingServiceIds.get(0));
+  }
+
+  private boolean isServiceInstalled(String serviceName) {
+    return services.get(serviceName) != null;
   }
 
   @Override
@@ -2457,7 +2473,6 @@ public class ClusterImpl implements Cluster {
         }
       }
     }
-
     // update the selected flag for every config type
     ClusterEntity clusterEntity = getClusterEntity();
     Collection<ClusterConfigEntity> clusterConfigs = clusterEntity.getClusterConfigEntities();
@@ -3289,5 +3304,36 @@ public class ClusterImpl implements Cluster {
 
     // suspended goes in role params
     roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, Map<String, String>> getComponentVersionMap() {
+    Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
+
+    for (Service service : getServices().values()) {
+      Map<String, String> componentMap = new HashMap<>();
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        // skip components which don't advertise a version
+        if (!component.isVersionAdvertised()) {
+          continue;
+        }
+
+        // if the repo isn't resolved, then we can't trust the version
+        if (!component.getDesiredRepositoryVersion().isResolved()) {
+          continue;
+        }
+
+        componentMap.put(component.getName(), component.getDesiredVersion());
+      }
+
+      if (!componentMap.isEmpty()) {
+        componentVersionMap.put(service.getName(), componentMap);
+      }
+    }
+
+    return componentVersionMap;
   }
 }
