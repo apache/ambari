@@ -69,7 +69,6 @@ import com.google.inject.Injector;
 public class HeartbeatMonitor implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(HeartbeatMonitor.class);
   private Clusters clusters;
-  private ActionQueue actionQueue;
   private ActionManager actionManager;
   private final int threadWakeupInterval; //1 minute
   private volatile boolean shouldRun = true;
@@ -80,10 +79,9 @@ public class HeartbeatMonitor implements Runnable {
   private final Configuration configuration;
   private final AgentRequests agentRequests;
 
-  public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
+  public HeartbeatMonitor(Clusters clusters, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
     this.clusters = clusters;
-    actionQueue = aq;
     actionManager = am;
     this.threadWakeupInterval = threadWakeupInterval;
     configHelper = injector.getInstance(ConfigHelper.class);
@@ -179,7 +177,6 @@ public class HeartbeatMonitor implements Runnable {
         }
 
         //Purge action queue
-        actionQueue.dequeueAll(host);
         //notify action manager
         actionManager.handleLostHost(host);
       }

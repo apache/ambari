@@ -24,9 +24,11 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,15 +47,27 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.agent.ComponentRecoveryReport;
+import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.RecoveryReport;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.TopologyHolder;
+import org.apache.ambari.server.agent.stomp.dto.HostRepositories;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
+import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -61,11 +75,19 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -76,7 +98,13 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -86,11 +114,15 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.persist.UnitOfWork;
 
 /**
  * HostResourceProvider tests.
@@ -137,6 +169,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(cluster.getResourceId()).andReturn(4L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<>()).anyTimes();
 
@@ -147,11 +180,15 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
 
     expect(host.getRackInfo()).andReturn("/default-rack").anyTimes();
+    expect(host.getHostId()).andReturn(1L).anyTimes();
+    expect(host.getHostName()).andReturn("Host100").anyTimes();
+    expect(host.getIPv4()).andReturn("0.0.0.0").anyTimes();
     Capture<String> newRack = EasyMock.newCapture();
     host.setRackInfo(capture(newRack));
     EasyMock.expectLastCall().once();
 
     expect(managementController.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(managementController.retrieveHostRepositories(anyObject(), anyObject())).andReturn(createMock(HostRepositories.class));
 
     expect(resourceProviderFactory.getHostResourceProvider(
         eq(managementController))).andReturn(hostResourceProvider).anyTimes();
@@ -1073,11 +1110,31 @@ public class HostResourceProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  public static HostResourceProvider getHostProvider(AmbariManagementController managementController) {
+  public static HostResourceProvider getHostProvider(AmbariManagementController managementController)
+      throws NoSuchFieldException, IllegalAccessException {
     Resource.Type type = Resource.Type.Host;
+    TopologyHolder topologyHolder = EasyMock.createNiceMock(TopologyHolder.class);
+    RecoveryConfigHelper recoveryConfigHelper = EasyMock.createNiceMock(RecoveryConfigHelper.class);
+    HostLevelParamsHolder hostLevelParamsHolder = EasyMock.createNiceMock(HostLevelParamsHolder.class);
 
-    return new HostResourceProvider(
+    HostResourceProvider hostResourceProvider = new HostResourceProvider(
         managementController);
+
+    replay(topologyHolder, recoveryConfigHelper, hostLevelParamsHolder);
+
+    Field topologyHolderField = HostResourceProvider.class.getDeclaredField("topologyHolder");
+    topologyHolderField.setAccessible(true);
+    topologyHolderField.set(hostResourceProvider, topologyHolder);
+
+    Field recoveryConfigHelperField = HostResourceProvider.class.getDeclaredField("recoveryConfigHelper");
+    recoveryConfigHelperField.setAccessible(true);
+    recoveryConfigHelperField.set(hostResourceProvider, recoveryConfigHelper);
+
+    Field hostLevelParamsHolderField = HostResourceProvider.class.getDeclaredField("hostLevelParamsHolder");
+    hostLevelParamsHolderField.setAccessible(true);
+    hostLevelParamsHolderField.set(hostResourceProvider, hostLevelParamsHolder);
+
+    return hostResourceProvider;
   }
 
   @Test
@@ -1283,7 +1340,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  public static void createHosts(AmbariManagementController controller, Set<HostRequest> requests) throws AmbariException, AuthorizationException {
+  public static void createHosts(AmbariManagementController controller, Set<HostRequest> requests)
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     HostResourceProvider provider = getHostProvider(controller);
     Set<Map<String, Object>> properties = new HashSet<>();
 
@@ -1301,13 +1359,14 @@ public class HostResourceProviderTest extends EasyMockSupport {
   }
 
   public static Set<HostResponse> getHosts(AmbariManagementController controller,
-                                           Set<HostRequest> requests) throws AmbariException {
+                                           Set<HostRequest> requests)
+      throws AmbariException, NoSuchFieldException, IllegalAccessException {
     HostResourceProvider provider = getHostProvider(controller);
     return provider.getHosts(requests);
   }
 
   public static void deleteHosts(AmbariManagementController controller, Set<HostRequest> requests)
-      throws AmbariException {
+      throws AmbariException, NoSuchFieldException, IllegalAccessException {
     TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
     expect(topologyManager.getRequests(Collections.emptyList())).andReturn(Collections.emptyList()).anyTimes();
 
@@ -1320,7 +1379,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
   public static DeleteStatusMetaData deleteHosts(AmbariManagementController controller,
                                                  Set<HostRequest> requests, boolean dryRun)
-      throws AmbariException {
+      throws AmbariException, NoSuchFieldException, IllegalAccessException {
     TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
     expect(topologyManager.getRequests(Collections.emptyList())).andReturn(Collections.emptyList()).anyTimes();
 
@@ -1332,46 +1391,57 @@ public class HostResourceProviderTest extends EasyMockSupport {
   }
 
   public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)
-      throws AmbariException, AuthorizationException {
+      throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     HostResourceProvider provider = getHostProvider(controller);
     provider.updateHosts(requests);
   }
 
   private Injector createInjector() throws Exception {
-    return Guice.createInjector(new AbstractModule() {
+    Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessor.class));
+        bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
         bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-//        bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
-//        bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
-//        bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
-//        bind(RequestExecutionFactory.class).toInstance(createNiceMock(RequestExecutionFactory.class));
-//        bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
-//        bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
         bind(Clusters.class).toInstance(createMock(Clusters.class));
-//        bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
-//        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-//        bind(ConfigFactory.class).toInstance(createNiceMock(ConfigFactory.class));
-//        bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
-//        bind(ServiceFactory.class).toInstance(createNiceMock(ServiceFactory.class));
-//        bind(ServiceComponentFactory.class).toInstance(createNiceMock(ServiceComponentFactory.class));
-//        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
-//        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
-//        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
-//        bind(Users.class).toInstance(createMock(Users.class));
         bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
+        bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
         bind(Gson.class).toInstance(new Gson());
         bind(MaintenanceStateHelper.class).toInstance(createNiceMock(MaintenanceStateHelper.class));
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+        bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
+        bind(PersistedState.class).to(PersistedStateImpl.class);
+        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+        bind(HookService.class).to(UserHookService.class);
+        bind(StageFactory.class).to(StageFactoryImpl.class);
+        bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
+        bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
+        bind(AuditLogger.class).toInstance(createMock(AuditLogger.class));
+        bind(StageDAO.class).toInstance(createNiceMock(StageDAO.class));
+        bind(HostLevelParamsHolder.class).toInstance(createNiceMock(HostLevelParamsHolder.class));
+        bind(TopologyHolder.class).toInstance(createNiceMock(TopologyHolder.class));
+        bind(RecoveryConfigHelper.class).toInstance(createNiceMock(RecoveryConfigHelper.class));
+
+        install(new FactoryModuleBuilder().build(StackManagerFactory.class));
+        install(new FactoryModuleBuilder().implement(
+            ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
+            ServiceComponentHostFactory.class));
       }
     });
+
+    StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    reset(stageDAO, ambariMetaInfo);
+    return injector;
   }
 
-  private HostResourceProvider getHostProvider(Injector injector) {
+  private HostResourceProvider getHostProvider(Injector injector) throws NoSuchFieldException, IllegalAccessException {
     HostResourceProvider provider = getHostProvider(injector.getInstance(AmbariManagementController.class));
     injector.injectMembers(provider);
     return provider;
@@ -1396,6 +1466,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
       Assert.fail(e.getMessage());
     }
     expect(host.getHostName()).andReturn(hostName).anyTimes();
+    expect(host.getHostId()).andReturn(1L).anyTimes();
     expect(host.getRackInfo()).andReturn("rackInfo").anyTimes();
     host.setRackInfo(EasyMock.anyObject());
     expectLastCall().anyTimes();

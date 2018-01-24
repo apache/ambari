@@ -79,6 +79,7 @@ import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -179,6 +180,10 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
             EasyMock.anyString())).andReturn(
       new HashMap<>()).anyTimes();
 
+    expect(
+        configHelper.getChangedConfigTypes(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(ServiceConfigEntity.class),
+            EasyMock.anyLong(), EasyMock.anyLong(), EasyMock.anyString())).andReturn(
+        Collections.emptyMap()).anyTimes();
     replay(configHelper);
 
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();

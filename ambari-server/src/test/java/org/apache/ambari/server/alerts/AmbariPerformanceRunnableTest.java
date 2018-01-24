@@ -25,19 +25,14 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.alerts.AmbariPerformanceRunnable.PerformanceArea;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
@@ -45,7 +40,6 @@ import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.MockEventListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -59,7 +53,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.ServerSource;
-import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -278,19 +272,14 @@ public class AmbariPerformanceRunnableTest {
      */
     @Override
     public void configure(Binder binder) {
-      Cluster cluster = EasyMock.createNiceMock(Cluster.class);
 
-      binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-      binder.bind(Cluster.class).toInstance(cluster);
-      binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));
+
+      PartialNiceMockBinder.newBuilder().addConfigsBindings()
+          .addAlertDefinitionBinding().build().configure(binder);
+
       binder.bind(AlertsDAO.class).toInstance(createNiceMock(AlertsDAO.class));
-      binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
       binder.bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
-      binder.bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactory.class));
       binder.bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
-      binder.bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
       binder.bind(AlertDefinitionFactory.class).toInstance(createNiceMock(AlertDefinitionFactory.class));
       binder.bind(ClusterResourceProvider.class).toInstance(createNiceMock(ClusterResourceProvider.class));
       binder.bind(ClusterController.class).toInstance(createNiceMock(ClusterController.class));

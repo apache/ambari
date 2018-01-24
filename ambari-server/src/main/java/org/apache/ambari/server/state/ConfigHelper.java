@@ -1496,6 +1496,10 @@ public class ConfigHelper {
     if (MapUtils.isEmpty(changedConfigs)) {
       return;
     }
+
+    if (!clusters.getCluster(clusterId).getServices().keySet().contains(serviceName)) {
+      return;
+    }
     Service service = clusters.getCluster(clusterId).getService(serviceName);
     for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
       String serviceComponentHostName = serviceComponent.getName();

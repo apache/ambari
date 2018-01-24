@@ -109,10 +109,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject
   protected Configuration configuration;
   @Inject
-  protected Provider<AgentConfigsHolder> m_agentConfigsHolder;
-  @Inject
-  protected Provider<MetadataHolder> m_metadataHolder;
-  @Inject
   protected AmbariManagementControllerImpl ambariManagementController;
 
   protected Injector injector;
@@ -620,8 +616,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                 + "tag='" + baseConfig.getTag() + "'"
                 + oldConfigString);
             }
-            m_metadataHolder.get().updateData(ambariManagementController.getClusterMetadataOnConfigsUpdate(cluster));
-            m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+            MetadataHolder metadataHolder = injector.getInstance(MetadataHolder.class);
+            AgentConfigsHolder agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
+            metadataHolder.updateData(controller.getClusterMetadataOnConfigsUpdate(cluster));
+            agentConfigsHolder.updateData(cluster.getClusterId(), null);
           }
         } else {
           LOG.info("No changes detected to config " + configType + ". Skipping configuration properties update");

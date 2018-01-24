@@ -176,10 +176,12 @@ public class BackgroundCustomCommandExecutionTest {
     }
   }
 
-  private void createClusterFixture() throws AmbariException, AuthorizationException {
+  private void createClusterFixture() throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     createCluster("c1");
     addHost("c6401","c1");
     addHost("c6402","c1");
+    clusters.updateHostMappings(clusters.getHost("c6401"));
+    clusters.updateHostMappings(clusters.getHost("c6402"));
 
     clusters.getCluster("c1");
     createService("c1", "HDFS", null);
@@ -212,7 +214,7 @@ public class BackgroundCustomCommandExecutionTest {
   }
 
   private void createService(String clusterName,
-      String serviceName, State desiredState) throws AmbariException, AuthorizationException {
+      String serviceName, State desiredState) throws AmbariException, AuthorizationException, NoSuchFieldException, IllegalAccessException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();

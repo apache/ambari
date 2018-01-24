@@ -34,6 +34,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -52,19 +53,58 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.cluster.ClusterFactory;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.host.HostFactory;
+import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
@@ -76,15 +116,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-import com.google.inject.Binder;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.persist.UnitOfWork;
 
 @RunWith(EasyMockRunner.class)
 public class UpgradeCatalog300Test {
@@ -103,9 +147,6 @@ public class UpgradeCatalog300Test {
 
   @Mock(type = MockType.NICE)
   private OsFamily osFamily;
-
-  @Mock(type = MockType.NICE)
-  private Configuration configuration;
 
   @Mock(type = MockType.NICE)
   private Config config;
@@ -174,13 +215,41 @@ public class UpgradeCatalog300Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-    Module module = new Module() {
+    Module module = new AbstractModule() {
       @Override
-      public void configure(Binder binder) {
-        binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(osFamily);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(Configuration.class).toInstance(configuration);
+      public void configure() {
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+
+        bind(DBAccessor.class).toInstance(dbAccessor);
+        bind(OsFamily.class).toInstance(osFamily);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(PersistedState.class).toInstance(mock(PersistedStateImpl.class));
+        bind(Clusters.class).toInstance(mock(ClustersImpl.class));
+        bind(SecurityHelper.class).toInstance(mock(SecurityHelper.class));
+        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessorImpl.class));
+        bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
+        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+        bind(StageFactory.class).to(StageFactoryImpl.class);
+        bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
+        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+        bind(HookService.class).to(UserHookService.class);
+        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
+        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
+        bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementControllerImpl.class));
+        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
+        bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
+        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+
+        install(new FactoryModuleBuilder().implement(
+            Host.class, HostImpl.class).build(HostFactory.class));
+        install(new FactoryModuleBuilder().implement(
+            Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
+        install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+        install(new FactoryModuleBuilder().implement(
+            Service.class, ServiceImpl.class).build(ServiceFactory.class));
       }
     };
 
@@ -188,7 +257,7 @@ public class UpgradeCatalog300Test {
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
 
     Capture<DBAccessor.DBColumnInfo> lastValidColumn = newCapture();
-    dbAccessor.addColumn(eq(UpgradeCatalog300.COMPONENT_LAST_STATE_COLUMN), capture(lastValidColumn));
+    dbAccessor.addColumn(eq(UpgradeCatalog300.COMPONENT_STATE_TABLE), capture(lastValidColumn));
 
     dbAccessor.dropColumn(COMPONENT_DESIRED_STATE_TABLE, SECURITY_STATE_COLUMN);
     expectLastCall().once();
@@ -206,7 +275,7 @@ public class UpgradeCatalog300Test {
     expectLastCall().once();
     // Ambari configuration table addition...
 
-    replay(dbAccessor, configuration);
+    replay(dbAccessor);
 
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog300 upgradeCatalog300 = injector.getInstance(UpgradeCatalog300.class);
@@ -247,8 +316,8 @@ public class UpgradeCatalog300Test {
     // Ambari configuration table addition...
 
     DBAccessor.DBColumnInfo capturedLastValidColumn = lastValidColumn.getValue();
-    Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedLastValidColumn.getName());
-    Assert.assertEquals(null, capturedLastValidColumn.getDefaultValue());
+    Assert.assertEquals(UpgradeCatalog300.COMPONENT_LAST_STATE_COLUMN, capturedLastValidColumn.getName());
+    Assert.assertEquals(State.UNKNOWN, capturedLastValidColumn.getDefaultValue());
     Assert.assertEquals(String.class, capturedLastValidColumn.getType());
 
     verify(dbAccessor);
@@ -459,6 +528,7 @@ public class UpgradeCatalog300Test {
     expect(cluster1.getConfigsByType("kerberos-env")).andReturn(Collections.singletonMap("v1", configWithGroup)).atLeastOnce();
     expect(cluster1.getServiceByConfigType("kerberos-env")).andReturn("KERBEROS").atLeastOnce();
     expect(cluster1.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster1.getClusterId()).andReturn(1L).atLeastOnce();
     expect(cluster1.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster1.getConfig(eq("kerberos-env"), anyString())).andReturn(newConfig).atLeastOnce();
     expect(cluster1.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated kerberos-env during Ambari Upgrade from 2.6.0 to 3.0.0.")).andReturn(response).once();
@@ -488,20 +558,24 @@ public class UpgradeCatalog300Test {
         .addMockedMethod("createConfiguration")
         .addMockedMethod("getClusters", new Class[]{})
         .addMockedMethod("createConfig")
+        .addMockedMethod("getClusterMetadataOnConfigsUpdate", Cluster.class)
         .createMock();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class))).andReturn(newConfig).once();
+    expect(controller.getClusterMetadataOnConfigsUpdate(eq(cluster1))).andReturn(createNiceMock(MetadataUpdateEvent.class)).once();
 
 
     Injector injector = createNiceMock(Injector.class);
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(injector.getInstance(MetadataHolder.class)).andReturn(createNiceMock(MetadataHolder.class)).anyTimes();
+    expect(injector.getInstance(AgentConfigsHolder.class)).andReturn(createNiceMock(AgentConfigsHolder.class)).anyTimes();
 
     replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector);
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("configuration");
 
     UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
-    field.set(upgradeCatalog300, configuration);
+    field.set(upgradeCatalog300, createNiceMock(Configuration.class));
     upgradeCatalog300.updateKerberosConfigurations();
 
     verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector);

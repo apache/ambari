@@ -73,6 +73,7 @@ import com.google.inject.persist.UnitOfWork;
 public class AlertReceivedListenerTest {
 
   private static final String ALERT_DEFINITION = "alert_definition_";
+  private static final String AMBARI_ALERT_DEFINITION = "ambari_server_alert";
   private static final String HOST1 = "h1";
   private static final String ALERT_LABEL = "My Label";
   private Injector m_injector;
@@ -131,6 +132,18 @@ public class AlertReceivedListenerTest {
       definition.setSourceType(SourceType.SCRIPT);
       m_definitionDao.create(definition);
     }
+
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName(AMBARI_ALERT_DEFINITION);
+    definition.setServiceName(RootService.AMBARI.name());
+    definition.setComponentName(RootComponent.AMBARI_SERVER.name());
+    definition.setClusterId(m_cluster.getClusterId());
+    definition.setHash(UUID.randomUUID().toString());
+    definition.setScheduleInterval(Integer.valueOf(60));
+    definition.setScope(Scope.SERVICE);
+    definition.setSource("{\"type\" : \"SCRIPT\"}");
+    definition.setSourceType(SourceType.SCRIPT);
+    m_definitionDao.create(definition);
   }
 
   @After
@@ -270,7 +283,7 @@ public class AlertReceivedListenerTest {
     assertEquals(1, allCurrent.size());
 
     // invalid host
-    alert.setComponent("INVALID");
+    alert.setHostName("invalid_host_name");
 
     // remove all
     m_dao.removeCurrentByHost(HOST1);
@@ -373,7 +386,7 @@ public class AlertReceivedListenerTest {
    */
   @Test
   public void testAmbariServerValidAlerts() {
-    String definitionName = ALERT_DEFINITION + "1";
+    String definitionName = AMBARI_ALERT_DEFINITION;
     String serviceName = RootService.AMBARI.name();
     String componentName = RootComponent.AMBARI_SERVER.name();
 

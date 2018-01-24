@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -90,10 +92,12 @@ public class RestMetricsPropertyProviderTest {
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String DEFAULT_STORM_UI_PORT = "8745";
   public static final int NUMBER_OF_RESOURCES = 400;
+  private static final int METRICS_SERVICE_TIMEOUT = 10;
   private static Injector injector;
   private static Clusters clusters;
   private static Cluster c1;
   private static AmbariManagementController amc;
+  private static MetricsRetrievalService metricsRetrievalService;
 
   {
     metricsProperties.put("default_port", DEFAULT_STORM_UI_PORT);
@@ -139,10 +143,11 @@ public class RestMetricsPropertyProviderTest {
 
     JMXPropertyProvider.init(configuration);
 
-    MetricsRetrievalService metricsRetrievalService = injector.getInstance(
+    metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);
 
-    metricsRetrievalService.start();
+    metricsRetrievalService.startAsync();
+    metricsRetrievalService.awaitRunning(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
     metricsRetrievalService.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
 
     // Setting up Mocks for Controller, Clusters etc, queried as part of user's Role context
@@ -165,7 +170,11 @@ public class RestMetricsPropertyProviderTest {
   }
 
   @AfterClass
-  public static void after() throws AmbariException, SQLException {
+  public static void after() throws AmbariException, SQLException, TimeoutException {
+    if (metricsRetrievalService != null && metricsRetrievalService.isRunning()) {
+      metricsRetrievalService.stopAsync();
+      metricsRetrievalService.awaitTerminated(METRICS_SERVICE_TIMEOUT, TimeUnit.SECONDS);
+    }
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 

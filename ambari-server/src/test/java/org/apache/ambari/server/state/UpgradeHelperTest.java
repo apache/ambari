@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -51,6 +54,7 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -143,6 +147,10 @@ public class UpgradeHelperTest extends EasyMockSupport {
         EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn("placeholder-rendered-properly").anyTimes();
     expect(m_configHelper.getEffectiveDesiredTags(
         EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<>()).anyTimes();
+    expect(m_configHelper.getHostActualConfigs(
+        EasyMock.anyLong())).andReturn(new AgentConfigsUpdateEvent(Collections.emptySortedMap())).anyTimes();
+    expect(m_configHelper.getChangedConfigTypes(anyObject(Cluster.class), anyObject(ServiceConfigEntity.class),
+        anyLong(), anyLong(), anyString())).andReturn(Collections.emptyMap()).anyTimes();
   }
 
   @Before

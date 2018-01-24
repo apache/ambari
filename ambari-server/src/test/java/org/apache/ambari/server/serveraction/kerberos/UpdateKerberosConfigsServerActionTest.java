@@ -29,14 +29,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -61,11 +67,9 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
   @Before
   public void setup() throws Exception {
-    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
     final Clusters clusters = createNiceMock(Clusters.class);
     final Cluster cluster = createNiceMock(Cluster.class);
 
-    expect(controller.getClusters()).andReturn(clusters).once();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).once();
 
@@ -73,12 +77,20 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
       @Override
       protected void configure() {
-        bind(AmbariManagementController.class).toInstance(controller);
+        PartialNiceMockBinder.newBuilder(UpdateKerberosConfigsServerActionTest.this)
+            .addClustersBinding().build().configure(binder());
+
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
-        bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Clusters.class).to(ClustersImpl.class);
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(StackManagerFactory.class).toInstance(EasyMock.createNiceMock(StackManagerFactory.class));
+        bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
       }
     });
+
+    final AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    expect(controller.getClusters()).andReturn(clusters).once();
 
     dataDir = testFolder.getRoot().getAbsolutePath();
 

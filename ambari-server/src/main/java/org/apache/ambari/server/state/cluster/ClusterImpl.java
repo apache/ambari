@@ -2262,7 +2262,7 @@ public class ClusterImpl implements Cluster {
     //TODO to version in sch
     List<Long> hostIds = hosts.stream().map(Host::getHostId).collect(Collectors.toList());
     List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities =
-        hostIds.isEmpty() ? Collections.EMPTY_LIST : hostComponentDesiredStateDAO.findByHosts(hostIds);
+        hostIds.isEmpty() ? Collections.EMPTY_LIST : hostComponentDesiredStateDAO.findByHostsAndCluster(hostIds, clusterId);
     Map<Long, Map<String, HostComponentDesiredStateEntity>> mappedHostIds = hostComponentDesiredStateEntities.stream().collect(
         Collectors.groupingBy(HostComponentDesiredStateEntity::getHostId,
             Collectors.toMap(HostComponentDesiredStateEntity::getComponentName, Function.identity())

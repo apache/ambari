@@ -37,8 +37,6 @@ import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.agent.ActionQueue;
-import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
@@ -96,13 +94,6 @@ public class AlertDefinitionHash {
    */
   @Inject
   private Provider<Clusters> m_clusters;
-
-  /**
-   * Used to enqueue {@link AlertDefinitionCommand} on the heartbeat response
-   * queue.
-   */
-  @Inject
-  private ActionQueue m_actionQueue;
 
   /**
    * Used to add configurations to the {@link AlertDefinitionCommand} instances
@@ -547,16 +538,6 @@ public class AlertDefinitionHash {
           LOG.warn("Unable to add configurations to alert definition command",
               ae);
         }
-
-        // unlike other commands, the alert definitions commands are really
-        // designed to be 1:1 per change; if multiple invalidations happened
-        // before the next heartbeat, there would be several commands that would
-        // force the agents to reschedule their alerts more than once
-        m_actionQueue.dequeue(hostName,
-            AgentCommandType.ALERT_DEFINITION_COMMAND);
-
-        m_actionQueue.dequeue(hostName,
-            AgentCommandType.ALERT_EXECUTION_COMMAND);
 
         // TODO implement alert execution commands logic
         //m_actionQueue.enqueue(hostName, command);

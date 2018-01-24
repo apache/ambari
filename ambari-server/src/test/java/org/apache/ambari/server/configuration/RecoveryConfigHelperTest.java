@@ -82,6 +82,8 @@ public class RecoveryConfigHelperTest {
   private final String STACK_VERSION = "0.1";
   private final String REPO_VERSION = "0.1-1234";
   private final StackId stackId = new StackId("HDP", STACK_VERSION);
+  private final String dummyClusterName = "cluster1";
+  private final Long dummyClusterId = 1L;
 
   @Before
   public void setup() throws Exception {
@@ -340,7 +342,7 @@ public class RecoveryConfigHelperTest {
       put(RecoveryConfigHelper.RECOVERY_RETRY_GAP_KEY, "2");
     }};
 
-    Cluster cluster = heartbeatTestHelper.getDummyCluster("cluster1", stackId, REPO_VERSION,
+    Cluster cluster = heartbeatTestHelper.getDummyCluster(dummyClusterName, dummyClusterId, stackId, REPO_VERSION,
         configProperties, hostNames);
 
     return cluster;

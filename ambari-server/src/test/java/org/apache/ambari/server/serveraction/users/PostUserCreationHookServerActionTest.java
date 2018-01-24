@@ -163,6 +163,7 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
   }
 
   private void mockExecutionCommand(int callCnt) {
+    EasyMock.expect(executionCommand.getClusterId()).andReturn("1").anyTimes();
     EasyMock.expect(executionCommand.getRoleCommand()).andReturn(RoleCommand.EXECUTE).times(callCnt);
     EasyMock.expect(executionCommand.getClusterName()).andReturn("unit-test-cluster").times(callCnt);
     EasyMock.expect(executionCommand.getConfigurationTags()).andReturn(Collections.emptyMap()).times(callCnt);
