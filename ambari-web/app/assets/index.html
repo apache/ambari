@@ -33,15 +33,6 @@
         // make favicon work in firefox
         $('link[type*=icon]').detach().appendTo('head');
         $('#loading').remove();
-
-        //enable initial tooltips
-        $('[data-toggle="tooltip"]').tooltip();
-        //enables tooltips added later
-        const body = document.getElementsByTagName('body')[0];
-        const observer = new MutationObserver(() => {
-          $('[data-toggle="tooltip"]').tooltip();
-        });
-        observer.observe(body, { childList: true, subtree: true });
       });
   </script>
   <title>Ambari</title>
