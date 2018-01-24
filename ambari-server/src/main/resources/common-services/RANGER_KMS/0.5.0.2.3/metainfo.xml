@@ -78,11 +78,11 @@
       <requiredServices>
         <service>
           <name>RANGER</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
         <service>
           <name>HDFS</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
       

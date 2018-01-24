@@ -28,11 +28,11 @@
       <requiredServices>
         <service>
           <name>ZOOKEEPER</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
         <service>
           <name>GLUSTERFS</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
     </service>

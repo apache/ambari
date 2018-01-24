@@ -203,7 +203,7 @@
       <requiredServices>
         <service>
           <name>ZOOKEEPER</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
       <configuration-dependencies>

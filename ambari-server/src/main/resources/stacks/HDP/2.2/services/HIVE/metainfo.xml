@@ -141,7 +141,7 @@
       <requiredServices>
         <service>
           <name>PIG</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

@@ -37,9 +37,9 @@ public class RequiredService {
     this.name = name;
   }
 
-  public RequiredService(String name, Scope scope) {
+  public RequiredService(String name, ServiceDependencyType dependencyType) {
     this.name = name;
-    this.scope = scope;
+    this.dependencyType = dependencyType;
   }
 
   /**
@@ -47,34 +47,17 @@ public class RequiredService {
    */
   private String name;
   /**
-   * Required service scope
+   * Required service dependency type
    * By default is set to INSTALL
    */
-  private Scope scope = Scope.INSTALL;
+  private ServiceDependencyType dependencyType = ServiceDependencyType.INSTALL;
 
   public String getName() {
     return name;
   }
 
-  public Scope getScope() {
-    return scope;
-  }
-
-  /**
-   * Scope of the required service
-   * We could have an INSTALL time dependency (i.e. we should also install the dependent service)
-   * or a RUNTIME dependency (i.e. there should be a running instance of the service in the cluster)
-   */
-  public enum Scope {
-    /**
-     * We should also install the dependent service. Is used as a default scope
-     */
-    INSTALL,
-
-    /**
-     * There should be a running instance of the service in the cluster
-     */
-    RUNTIME
+  public ServiceDependencyType getDependencyType() {
+    return dependencyType;
   }
 }
 

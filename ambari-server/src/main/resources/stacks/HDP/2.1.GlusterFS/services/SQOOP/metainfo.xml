@@ -27,7 +27,7 @@
       <requiredServices>
         <service>
           <name>GLUSTERFS</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>      
     </service>

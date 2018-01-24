@@ -91,7 +91,7 @@
       <requiredServices>
         <service>
           <name>OOZIE</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

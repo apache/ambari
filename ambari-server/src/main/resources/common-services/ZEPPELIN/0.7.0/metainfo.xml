@@ -83,7 +83,7 @@ limitations under the License.
       <requiredServices>
         <service>
           <name>HDFS</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

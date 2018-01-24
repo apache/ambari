@@ -221,11 +221,11 @@
       <requiredServices>
         <service>
           <name>FAKEHDFS</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
         <service>
           <name>FAKEMAPREDUCE2</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 
@@ -331,7 +331,7 @@
       <requiredServices>
         <service>
           <name>FAKEYARN</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

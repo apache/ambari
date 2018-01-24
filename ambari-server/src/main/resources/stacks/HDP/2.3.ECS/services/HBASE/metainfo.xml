@@ -51,11 +51,11 @@
       <requiredServices>
         <service>
           <name>ZOOKEEPER</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
         <service>
           <name>ECS</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
     </service>

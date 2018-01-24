@@ -121,7 +121,7 @@
       <requiredServices>
         <service>
           <name>KAFKA</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

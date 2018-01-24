@@ -45,7 +45,7 @@
       <requiredServices>
         <service>
           <name>HAWQ</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

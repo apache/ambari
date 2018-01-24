@@ -332,15 +332,15 @@
       <requiredServices>
         <service>
           <name>ZOOKEEPER</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
         <service>
           <name>YARN</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
         <service>
           <name>TEZ</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

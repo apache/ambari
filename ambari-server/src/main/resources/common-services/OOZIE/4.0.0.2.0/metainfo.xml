@@ -156,7 +156,7 @@
       <requiredServices>
         <service>
           <name>YARN</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 

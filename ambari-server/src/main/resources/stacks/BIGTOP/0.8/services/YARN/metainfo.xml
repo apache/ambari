@@ -170,7 +170,7 @@
       <requiredServices>
         <service>
           <name>HDFS</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 
@@ -269,7 +269,7 @@
       <requiredServices>
         <service>
           <name>YARN</name>
-          <scope>INSTALL</scope>
+          <dependencyType>INSTALL</dependencyType>
         </service>
       </requiredServices>
 
