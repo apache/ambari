@@ -32,7 +32,7 @@
 
         <div>
           <div class="col-sm-3 cluster-name-input">
-            {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="form-control" data-qa="cluster-name-input"}}
+            {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="CLUSTER NAME" target="controller" classNames="form-control" data-qa="cluster-name-input"}}
           </div>
           {{#if clusterNameError}}
             <p class="help-block validation-block col-sm-9"  {{QAAttr "cluster-name-validation"}}>{{clusterNameError}}</p>
