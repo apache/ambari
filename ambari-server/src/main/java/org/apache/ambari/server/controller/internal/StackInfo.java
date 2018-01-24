@@ -3,6 +3,7 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -55,6 +56,7 @@ public interface StackInfo {
   Collection<String> getServicesForComponents(Collection<String> components);
 
   String getServiceForConfigType(String config);
+  Stream<String> getServicesForConfigType(String config);
 
   Collection<DependencyInfo> getDependenciesForComponent(String component);
 

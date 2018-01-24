@@ -773,11 +773,12 @@ public class AmbariContext {
     // iterate over topo host group configs which were defined in
     for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {
       String type = entry.getKey();
-      List<String> services = stack.getServicesForConfigType(type);
-      String service = services.stream()
+      String service = stack.getServicesForConfigType(type)
         .filter(each -> topology.getBlueprint().getServices().contains(each))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Specified configuration type is not associated with any service: " + type));
+        // TODO check if this is required at all (might be handled by the "orphan" removal)
+        // TODO move this validation earlier
+        .orElseThrow(() -> new IllegalArgumentException("Specified configuration type is not associated with any service in the blueprint: " + type));
 
       Config config = configFactory.createReadOnly(type, groupName, entry.getValue(), null);
       //todo: attributes

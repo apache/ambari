@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -255,7 +256,7 @@ public class AmbariContextTest {
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
 
     for (Map.Entry<String, String> entry : configTypeServiceMapping.entrySet()) {
-      expect(stack.getServicesForConfigType(entry.getKey())).andReturn(singletonList(entry.getValue())).anyTimes();
+      expect(stack.getServicesForConfigType(entry.getKey())).andReturn(Stream.of(entry.getValue())).anyTimes();
     }
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();

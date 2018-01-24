@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -201,6 +202,16 @@ public class CompositeStack implements StackInfo {
     if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
       return null;
     }
+    return getServicesForConfigType(config)
+      .findAny()
+      .orElseThrow(() -> new IllegalArgumentException(Stack.formatMissingServiceForConfigType(config, "ANY")));
+  }
+
+  @Override
+  public Stream<String> getServicesForConfigType(String config) {
+    if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
+      return Stream.empty();
+    }
     return mpacks.stream()
       .map(m -> {
         try {
@@ -209,9 +220,7 @@ public class CompositeStack implements StackInfo {
           return null;
         }
       })
-      .filter(Objects::nonNull)
-      .findAny()
-      .orElseThrow(() -> new IllegalArgumentException(Stack.formatMissingServiceForConfigType(config, "ANY")));
+      .filter(Objects::nonNull);
   }
 
   @Override
