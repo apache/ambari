@@ -60,6 +60,7 @@ App.WizardStep2View = Em.View.extend({
     //todo: move them to conroller
     this.set('controller.hostsError', null);
     this.set('controller.sshKeyError', null);
+    this.set('controller.filterText', null);
     this.get('controller').loadStep();
   },
 
@@ -87,11 +88,6 @@ App.WizardStep2View = Em.View.extend({
   providingSSHKeyRadioButton: App.RadioButtonView.extend({
     classNames: ['radio'],
     checked: Em.computed.alias('controller.content.installOptions.useSsh'),
-
-    click: function () {
-      this.set('controller.content.installOptions.useSsh', true);
-      this.set('controller.content.installOptions.manualInstall', false);
-    }
   }),
 
   /**
@@ -101,11 +97,6 @@ App.WizardStep2View = Em.View.extend({
   manualRegistrationRadioButton: App.RadioButtonView.extend({
     classNames: ['radio'],
     checked: Em.computed.alias('controller.content.installOptions.manualInstall'),
-
-    click: function () {
-      this.set('controller.content.installOptions.manualInstall', true);
-      this.set('controller.content.installOptions.useSsh', false);
-    }
   }),
 
   /**
@@ -140,6 +131,32 @@ App.WizardStep2View = Em.View.extend({
      * @type {bool}
      */
     disabled: Em.computed.not('isEnabled')
-  })
+  }),
+
+  /**
+   * Filter for pre-registered hosts. Currently this is a text filter.
+   *
+   * Need to change it to column filter at some point
+   */
+  filterHostsTable: function () {
+    var self = this;
+
+    var filter = this.get('controller.filterText');
+    if (filter) {
+      filter = filter.toUpperCase();
+    }
+    this.get('controller.manuallyInstalledHosts').forEach(function (host) {
+      var element = self.$('tr[id="' + host.hostName + '"]')
+      if (element) {
+        element = element[0];
+        if (element.innerText.toUpperCase().indexOf(filter) > -1 ){
+          element.style.display = "";
+        } else {
+          element.style.display = "none";
+        }
+      }
+    });
+
+  }.observes('controller.filterText')
 
 });

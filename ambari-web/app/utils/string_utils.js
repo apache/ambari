@@ -255,5 +255,17 @@ module.exports = {
     return string.split('_').map(function(word) {
       return word.toLowerCase().capitalize();
     }).join(' ');
+  },
+
+  arrayToMultiLineText: function (arr) {
+    if(arr.length <= 1) {
+      return arr.toString();
+    }
+    var formattedText = "";
+    for(var i=0; i<arr.length-1; i++) {
+      formattedText += arr[i].toString() + '\n';
+    }
+    return formattedText + arr[arr.length-1].toString();
   }
+
 };

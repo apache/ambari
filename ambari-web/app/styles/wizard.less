@@ -64,20 +64,108 @@
   }
 
   #installOptions {
-    #targetHosts {
-      .step-title {
-        margin-bottom: 10px;
-      }
-    }
     .radio-button-options {
-      margin-top: 10px;
-      margin-bottom: 10px;
+      padding-bottom: 10px;
+      color: #666;
+      .radio.big-radio {
+        height: 100px;
+        background-color: #dddddd;
+        width: 115px;
+        margin: 15px;
+        padding-left: 0;
+        padding-right: 0;
+        border-radius: 4px;
+        input[type="radio"] + label, p, .repo-group, {
+          cursor: default;
+        }
+        input[type="radio"] + label:before {
+          border-color: #999;
+          background-color: #fff;
+        }
+        input[type="radio"]:checked + label:before {
+          background: #fff;
+          border-color: #3FAE2A;
+        }
+        input[type="radio"]:checked + label:after {
+          background-color: #3FAE2A;
+        }
+        .repo-checkbox {
+          padding: 0 5px;
+          margin-top: 5px;
+        }
+        .icon {
+          font-size: 37px;
+          text-align: center;
+          position: absolute;
+          top: 15px;
+          padding: 0 20px;
+          width: 100%;
+          color: #fff;
+        }
+        .repo-group {
+          bottom: 0px;
+          position: absolute;
+          background-color: #3FAE2A;
+          color: white;
+          width: 100%;
+          font-size: 12px;
+          text-align: center;
+          border-radius: 2px;
+        }
+      }
     }
     .wizard-plain-text {
       color: #666;
     }
     .ssh-user, .ssh-port {
       padding-top: 8px;
+    }
+
+    #host-names, #parsed-host-names {
+      font-size: 12px;
+    }
+
+    #parsed-host-names {
+      background-color: #eee;
+    }
+
+    .hosts-filter-box {
+      padding-right: 5px;
+      .form-control:after {
+        content: '\f080';
+      }
+    }
+
+    .hosts-table-options {
+      overflow: auto;
+      margin-bottom: 20px;
+      .icon-undo {
+        color: #666;
+      }
+      .host-count {
+        color: #666;
+        font-size: 12px;
+        padding-top: 10px;
+      }
+    }
+
+    .no-pre-registered{
+      color: #999;
+      font-size: 10px;
+      p {
+        margin-left: 30px;
+      }
+      .no-host-header {
+        font-size: 30px;
+        margin: 20px 0px 0px 30px;
+      }
+    }
+
+    .pre-registered{
+      a {
+        color: #666;
+        text-decoration: none;
+      }
     }
 
     #sshKey {
@@ -103,6 +191,12 @@
         padding: 5px 20px;
         color: #666;
       }
+    }
+    .icon-ellipsis-vertical {
+      margin-top: auto;
+      margin-bottom: auto;
+      color: #999;
+      font-size: 18px;
     }
 
   }

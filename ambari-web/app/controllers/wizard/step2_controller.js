@@ -19,11 +19,20 @@
 var App = require('app');
 var validator = require('utils/validator');
 var lazyloading = require('utils/lazy_loading');
+var stringUtils = require('utils/string_utils')
 require('./wizardStep_controller');
 
 App.WizardStep2Controller = App.WizardStepController.extend({
 
   name: 'wizardStep2Controller',
+
+  parsedHostsText: Em.I18n.t('installer.step2.parsedHostsPlaceholder').format(0),
+
+  preRegisteredHostFound: Em.I18n.t('installer.step2.preRegistered.hostCount').format(0),
+
+  manuallyInstalledHosts: [],
+
+  noPreRegisteredHosts: true,
 
   stepName: 'step2',
 
@@ -54,6 +63,8 @@ App.WizardStep2Controller = App.WizardStepController.extend({
    * @type {string[]}
    */
   inputtedAgainHostNames: [],
+
+  filterText: null,
 
   /**
    * Is Installer Controller used
@@ -130,12 +141,21 @@ App.WizardStep2Controller = App.WizardStepController.extend({
     return !App.get('isHadoopWindowsStack');
   }.property('App.isHadoopWindowsStack'),
 
+  useSshRegistration: function () {
+    this.set('content.installOptions.manualInstall', false);
+    this.set('content.installOptions.useSsh', true);
+  },
+
+  useManualInstall: function () {
+    this.set('content.installOptions.manualInstall', true);
+    this.set('content.installOptions.useSsh', false);
+  },
   /**
    * Error-message if <code>sshKey</code> is empty, null otherwise
    * @type {string|null}
    */
   sshKeyError: function () {
-    if (this.get('hasSubmitted') && this.get('manualInstall') === false && this.get('useSSH') && Em.isBlank(this.get('sshKey'))) {
+    if (this.get('hasSubmitted') && this.get('manualInstall') === false && !this.get('manualInstall') && Em.isBlank(this.get('sshKey'))) {
       return Em.I18n.t('installer.step2.sshKey.error.required');
     }
     return null;
@@ -174,11 +194,13 @@ App.WizardStep2Controller = App.WizardStepController.extend({
     return null;
   }.property('agentUser', 'hasSubmitted', 'manualInstall'),
 
+  preRegisteredHostsError: Em.computed.and('manualInstall' ,'noPreRegisteredHosts'),
+
   /**
    * is Submit button disabled
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError', 'App.router.btnClickInProgress'),
+  isSubmitDisabled: Em.computed.or('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError', 'App.router.btnClickInProgress', 'preRegisteredHostsError'),
 
   loadStep: function () {
     //save initial hostNames value to check later if changes were made
@@ -198,21 +220,77 @@ App.WizardStep2Controller = App.WizardStepController.extend({
   }.property('content.hosts'),
 
   /**
+  * get hosts that are installed manually
+  return
+  */
+  getManuallyInstalledHosts: function () {
+    App.ajax.send({
+      name: 'hosts.confirmed.install',
+      sender: this,
+      success: 'getManuallyInstalledHostsSuccessCallback'
+    });
+  }.observes('manualInstall'),
+
+  getManuallyInstalledHostsSuccessCallback(response) {
+    var installedHosts = [];
+    if (response.items.length > 0) {
+      response.items.forEach(function (item, indx) {
+        installedHosts.push({
+          'hostName': item.Hosts.host_name,
+          'cpuCount': item.Hosts.cpu_count,
+          'memory': (parseFloat(item.Hosts.total_mem) * 0.000001).toFixed(2) + " GB",
+          'freeSpace': (parseFloat(item.Hosts.disk_info[0].available) *  0.000001).toFixed(2) + " GB"
+        });
+      });
+      this.set('preRegisteredHostFound', Em.I18n.t('installer.step2.preRegistered.hostCount').format(installedHosts.length));
+      this.set('manuallyInstalledHosts', installedHosts);
+      this.set('noPreRegisteredHosts', false);
+    } else {
+      this.set('preRegisteredHostFound', Em.I18n.t('installer.step2.preRegistered.hostCount').format(0));
+      this.set('noPreRegisteredHosts', true);
+      this.set('manuallyInstalledHosts', []);
+    }
+  },
+
+  deleteRegisteredHost: function (event) {
+    var hostName = event.context;
+    App.ajax.send({
+      name: 'common.delete.registered.host',
+      sender: this,
+      data: {
+        hostName: event.context
+      },
+      success: 'deleteRegisteredHostSuccessCallback'
+    });
+  },
+
+  deleteRegisteredHostSuccessCallback: function (response) {
+    this.getManuallyInstalledHosts();
+  },
+
+  /**
    * Set not installed hosts to the hostNameArr
    * @method updateHostNameArr
    */
   updateHostNameArr: function () {
-    this.set('hostNameArr', this.get('hostNames').trim().split(new RegExp("\\s+", "g")));
-    this.parseHostNamesAsPatternExpression();
-    this.get('inputtedAgainHostNames').clear();
-    var tempArr = [],
-        hostNameArr = this.get('hostNameArr');
-    for (var i = 0; i < hostNameArr.length; i++) {
-      if (!this.get('installedHostNames').contains(hostNameArr[i])) {
-        tempArr.push(hostNameArr[i]);
-      }
-      else {
-        this.get('inputtedAgainHostNames').push(hostNameArr[i]);
+    var tempArr = [];
+    if (this.get('manualInstall')) {
+      this.get('manuallyInstalledHosts').forEach ( function (host) {
+        tempArr.push(host.hostName);
+      });
+    } else {
+      this.set('hostNameArr', this.get('hostNames').trim().split(new RegExp("\\s+", "g")));
+      this.parseHostNamesAsPatternExpression();
+      this.get('inputtedAgainHostNames').clear();
+
+      var hostNameArr = this.get('hostNameArr');
+      for (var i = 0; i < hostNameArr.length; i++) {
+        if (!this.get('installedHostNames').contains(hostNameArr[i])) {
+          tempArr.push(hostNameArr[i]);
+        }
+        else {
+          this.get('inputtedAgainHostNames').push(hostNameArr[i]);
+        }
       }
     }
     this.set('hostNameArr', tempArr);
@@ -237,12 +315,22 @@ App.WizardStep2Controller = App.WizardStepController.extend({
     return result;
   },
 
+  parseHosts: function () {
+    var hostNames = this.get('hostNames').trim().split(new RegExp("\\s+", "g"));
+    if (hostNames[0] == "") {
+      this.set('parsedHostsText', Em.I18n.t('installer.step2.parsedHostsPlaceholder').format(0));
+    } else {
+      var parsedHostNames = this.parseHostNamesAsPatternExpression(hostNames);
+      this.set('parsedHostsText', (Em.I18n.t('installer.step2.parsedHostsPlaceholder').format(parsedHostNames.length) + '\n' + stringUtils.arrayToMultiLineText(parsedHostNames)));
+    }
+  }.observes('hostNames'),
+
   /**
    * Set hostsError if host names don't pass validation
    * @method checkHostError
    */
   checkHostError: function () {
-    if (Em.isEmpty(this.get('hostNames').trim())) {
+    if (!this.get('manualInstall') && Em.isEmpty(this.get('hostNames').trim())) {
       this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.required'));
     }
     else {
@@ -314,10 +402,6 @@ App.WizardStep2Controller = App.WizardStepController.extend({
       return false;
     }
 
-    if (this.get('isPattern')) {
-      this.hostNamePatternPopup(this.get('hostNameArr'));
-      return false;
-    }
     if (this.get('inputtedAgainHostNames.length')) {
       this.installedHostsPopup();
     }
@@ -332,11 +416,13 @@ App.WizardStep2Controller = App.WizardStepController.extend({
    * push hosts that match pattern in hostNameArr
    * @method parseHostNamesAsPatternExpression
    */
-  parseHostNamesAsPatternExpression: function () {
+  parseHostNamesAsPatternExpression: function (hostNamesToBeParsed) {
     this.set('isPattern', false);
     var hostNames = [];
 
-    this.get('hostNameArr').forEach(function (a) {
+    var hostNameArr = hostNamesToBeParsed || this.get('hostNameArr');
+
+    hostNameArr.forEach(function (a) {
       var hn,
           allPatterns = a.match(/\[\d*\-\d*\]/g),
           patternsNumber = allPatterns ? allPatterns.length : 0;
@@ -352,7 +438,11 @@ App.WizardStep2Controller = App.WizardStepController.extend({
       }
     }, this);
 
-    this.set('hostNameArr', hostNames.uniq());
+    if(hostNamesToBeParsed) {
+      return hostNames;
+    } else {
+      this.set('hostNameArr', hostNames.uniq());
+    }
   },
 
   /**
@@ -406,12 +496,6 @@ App.WizardStep2Controller = App.WizardStepController.extend({
       this.warningPopup();
       return false;
     }
-
-    if (this.get('manualInstall') === true) {
-      this.manualInstallPopup();
-      return false;
-    }
-
     this.saveHosts();
     App.router.send('next');
     return true;
@@ -489,43 +573,6 @@ App.WizardStep2Controller = App.WizardStepController.extend({
       })
     });
   },
-
-  /**
-   * Show notify that installation is manual
-   * save hosts
-   * @return {App.ModalPopup}
-   * @method manualInstallPopup
-   */
-  manualInstallPopup: function () {
-    var self = this;
-    return App.ModalPopup.show({
-      header: Em.I18n.t('installer.step2.manualInstall.popup.header'),
-      onPrimary: function () {
-        this.hide();
-        self.saveHosts();
-        App.router.send('next');
-      },
-      bodyClass: Em.View.extend({
-        templateName: require('templates/wizard/step2ManualInstallPopup')
-      })
-    });
-  },
-
-  /**
-   * Warn to manually install ambari-agent on each host
-   * @method manualInstallWarningPopup
-   */
-  manualInstallWarningPopup: function () {
-    if (!this.get('content.installOptions.useSsh')) {
-      App.ModalPopup.show({
-        header: Em.I18n.t('common.warning'),
-        body: Em.I18n.t('installer.step2.manualInstall.info'),
-        encodeBody: false,
-        secondary: null
-      });
-    }
-    this.set('content.installOptions.manualInstall', !this.get('content.installOptions.useSsh'));
-  }.observes('content.installOptions.useSsh'),
 
   /**
    * Load java.home value frin server

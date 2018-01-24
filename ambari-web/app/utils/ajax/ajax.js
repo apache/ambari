@@ -378,6 +378,10 @@ var urls = {
     }
   },
 
+  'common.delete.registered.host': {
+    'real': '/hosts/{hostName}',
+    'type': 'DELETE'
+  },
   'common.delete.host': {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'type': 'DELETE'

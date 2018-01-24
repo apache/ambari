@@ -16,9 +16,8 @@
 * limitations under the License.
 }}
 
-<div id="installOptions" class="wizard-content col-md-9">
+<div id="installOptions" class="wizard-content col-md-9" xmlns="http://www.w3.org/1999/html">
   <h4 class="step-header">{{t installer.step2.header}}</h4>
-  <p class="step-description">{{t installer.step2.body}}</p>
   {{#if isSaved}}
   <div class="alert alert-warning" role="alert"><strong>{{t installer.warning.changes.header}}</strong> {{t installer.warning.changes}}</div>
   {{/if}}
@@ -26,10 +25,35 @@
   <div class="panel panel-default">
     <div class="panel-body">
 
-      <div id="targetHosts" {{QAAttr "target-hosts"}}>
-        <div class="step-title" {{QAAttr "target-hosts-title"}}>{{t installer.step2.targetHosts}}</div>
+      <div class="step-description">
+        <div>{{t installer.step2.registration.body1}}</div>
+        {{t installer.step2.registration.body2}}
+      </div>
+      <div class="row radio-button-options">
+        <div {{bindAttr class=":col-sm-4 :radio :big-radio :manual-radio :public-radio :wizard-plain-text controller.content.installOptions.manualInstall:repo-selected:repo-not-selected"}} {{action useManualInstall target="controller"}}>
+          {{#view view.manualRegistrationRadioButton classNames="repo-checkbox" labelIdentifier="manual-registration-radio-button"}}{{/view}}
+          <i class="icon icon-edit"></i>
+          <div class="repo-group">
+            {{t installer.step2.manualInstall}}
+          </div>
+        </div>
+        <div {{bindAttr class=":col-sm-4 :radio :big-radio :ssh-radio :public-radio :wizard-plain-text controller.content.installOptions.useSsh:repo-selected:repo-not-selected"}} {{action useSshRegistration target="controller"}}>
+          {{#view view.providingSSHKeyRadioButton classNames="repo-checkbox" labelIdentifier="ssh-key-radio-button"}}{{/view}}
+          <i class="icon icon-lock"></i>
+          <div class="repo-group">
+            {{#if useSSH}}
+              {{t installer.step2.useSsh}}
+            {{else}}
+              {{t installer.step2.automaticInstall}}
+            {{/if}}
+          </div>
+        </div>
+      </div>
+
+      <div id="targetHosts" {{QAAttr "target-hosts"}} {{bindAttr class="controller.content.installOptions.useSsh:display:noDisplay"}}>
+        <div class="step-title" {{QAAttr "target-hosts-title"}}>{{t installer.step2.enterHosts}}</div>
         <div {{bindAttr class="hostsError:has-error :form-group :target-hosts-input"}}>
-          <p class="wizard-plain-text" {{QAAttr "target-hosts-description"}}>{{t installer.step2.targetHosts.info}}. {{t installer.step2.orUse}}
+          <p class="step-description" {{QAAttr "target-hosts-description"}}>{{t installer.step2.enterHosts.info}}. {{t installer.step2.orUse}}
             <a href="javascript:void(null)"
                rel="popover"
               {{translateAttr title="installer.step2.hostPattern.tooltip.title" data-content="installer.step2.hostPattern.tooltip.content"}}
@@ -38,10 +62,14 @@
             </a>
           </p>
 
-          <div class="row">
-            <div class="col-md-8">
+          <div class="row display-flex">
+            <div class="col-md-7">
               {{view Ember.TextArea id="host-names" class="form-control" valueBinding="content.installOptions.hostNames"
-              rows="5" placeholder="host names" data-qa="target-hosts-textarea"}}
+              rows="5" placeholder="Type or paste hosts here..." data-qa="target-hosts-textarea"}}
+            </div>
+            <i class="icon-ellipsis-vertical"></i>
+            <div class="col-md-7">
+              {{view Ember.TextArea id="parsed-host-names" disabled=true class="form-control" valueBinding="parsedHostsText" rows="5"}}
             </div>
             {{#if hostsError}}
               <div class="col-md-4">
@@ -52,59 +80,7 @@
         </div>
       </div>
 
-      <div {{QAAttr "host-registration-info"}}>
-        <div class="step-title" {{QAAttr "host-registration-info-title"}}>{{t installer.step2.sshKey}}</div>
-        <div class="row radio-button-options">
-          <div class="col-sm-5 row">
-            <div class="col-sm-1">
-              {{#view view.providingSSHKeyRadioButton labelIdentifier="ssh-key-radio-button"}}{{/view}}
-            </div>
-            <div class="col-sm-10 wizard-plain-text">
-              {{#if useSSH}}
-                {{t installer.step2.useSsh.provide}}
-                <a href="javascript:void(null)"
-                   rel="popover"
-                  {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}
-                  {{QAAttr "ssh-tooltip-link"}}>
-                  {{t installer.step2.useSsh.tooltip.title}}</a>
-                {{t installer.step2.useSsh.provide_id_rsa}}
-              {{else}}
-                {{t installer.step2.install.perform}}
-                <a href="javascript:void(null)"
-                   rel="popover"
-                  {{translateAttr title="installer.step2.automaticInstall.tooltip.title" data-content="installer.step2.automaticInstall.tooltip.content"}}
-                  {{QAAttr "ssh-tooltip-link"}}>
-                  {{t installer.step2.automaticInstall.tooltip.title}}</a>
-                {{t installer.step2.install.perform_on_hosts}}
-              {{/if}}
-            </div>
-          </div>
-          <div class="col-sm-5 row">
-            <div class="col-sm-1">
-              {{#view view.manualRegistrationRadioButton labelIdentifier="manual-registration-radio-button"}}{{/view}}
-            </div>
-            <div class="col-sm-10 wizard-plain-text">
-              {{t installer.step2.install.perform}}
-              {{#if useSSH}}
-                <a href="javascript:void(null)"
-                   rel="popover"
-                  {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}
-                  {{QAAttr "ssh-tooltip-link"}}>
-                  {{t installer.step2.manualInstall.tooltip.title}}</a>
-              {{else}}
-                <a href="javascript:void(null)"
-                   rel="popover"
-                  {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content_no_ssh"}}
-                  {{QAAttr "ssh-tooltip-link"}}>
-                  {{t installer.step2.manualInstall.tooltip.title}}</a>
-              {{/if}}
-              {{t installer.step2.install.perform_on_hosts}}
-              {{#if useSSH}}
-                {{t installer.step2.install.without_ssh}}
-              {{/if}}
-            </div>
-          </div>
-        </div>
+      <div {{QAAttr "host-registration-info"}} {{bindAttr class="controller.content.installOptions.useSsh:display:noDisplay"}}>
 
         {{#if useSSH}}
           <div class="ssh-key-input">
@@ -186,6 +162,51 @@
             {{! ambari agent user end }}
           </div>
         {{/if}}
+      </div>
+      <div {{bindAttr class="controller.content.installOptions.manualInstall:display:noDisplay"}}>
+        <div class="hosts-table-options">
+          <div {{bindAttr class=":left :host-count controller.noPreRegisteredHosts:noDisplay:display"}}>{{{controller.preRegisteredHostFound}}}</div>
+          <button {{action getManuallyInstalledHosts target="controller"}} class="btn btn-default pull-right"><i class="icon-undo"></i> {{t installer.step2.refresh.table}}</button>
+          <div {{bindAttr class=":hosts-filter-box :pull-right controller.noPreRegisteredHosts:noDisplay:display"}}>
+            {{view Em.TextField valueBinding="controller.filterText" class="form-control" placeholder="Filter"}}
+          </div>
+        </div>
+        <table class="table table-hover">
+          <thead>
+          <tr>
+            <th class="col-md-6">{{t common.host}}</th>
+            <th class="col-md-2">{{t common.cores}}</th>
+            <th class="col-md-2">{{t common.freeStorage}}</th>
+            <th class="col-md-2">{{t common.memory}}</th>
+            <th class="col-md-2">{{t common.actions}}</th>
+          </tr>
+          </thead>
+          <tbody>
+          {{#if noPreRegisteredHosts}}
+            <tr class="no-pre-registered">
+              <td colspan="5">
+                <p class="no-host-header">{{t common.noHostsFound}}</p>
+                <p style="font-size: 12px;">{{t installer.step2.noHostsFound.header}}</p>
+                <p>{{t installer.step2.noHostsFound.step1}}</p>
+                <p>{{t installer.step2.noHostsFound.step2}}</p>
+                <p>{{t installer.step2.noHostsFound.step3}}</p>
+                <p>{{t installer.step2.noHostsFound.step4}}</p>
+                <p>{{{t installer.step2.noHostsFound.learn}}}</p>
+              </td>
+            </tr>
+          {{else}}
+            {{#each host in manuallyInstalledHosts}}
+              <tr class="pre-registered" {{bindAttr id="host.hostName"}}>
+                <td>{{host.hostName}}</td>
+                <td>{{host.cpuCount}}</td>
+                <td>{{host.freeSpace}}</td>
+                <td>{{host.memory}}</td>
+                <td><a><i class="icon-remove-sign" {{action deleteRegisteredHost host.hostName target="controller"}}></i></a></td>
+              </tr>
+            {{/each}}
+          {{/if}}
+          </tbody>
+        </table>
       </div>
       {{#if isAddHostWizard}}
         <br>

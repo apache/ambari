@@ -42,6 +42,7 @@ describe('App.WizardStep2View', function () {
       sinon.stub(App, 'tooltip', Em.K);
       view.set('controller.hostsError', 'some text');
       view.set('controller.sshKeyError', 'some text');
+      view.set('controller.manuallyInstalledHosts', [])
     });
     afterEach(function () {
       App.popover.restore();
@@ -90,19 +91,6 @@ describe('App.WizardStep2View', function () {
       });
     });
 
-    describe('#click', function() {
-      it('should update controller.content.installOptions.useSsh', function () {
-        v.set('controller.content.installOptions.useSsh', false);
-        v.click();
-        expect(v.get('controller.content.installOptions.useSsh')).to.equal(true);
-      });
-      it('should update controller.content.installOptions.manualInstall', function () {
-        v.set('controller.content.installOptions.manualInstall', true);
-        v.click();
-        expect(v.get('controller.content.installOptions.manualInstall')).to.equal(false);
-      });
-    });
-
   });
 
   describe('#manualRegistrationRadioButton', function() {
@@ -127,19 +115,6 @@ describe('App.WizardStep2View', function () {
         expect(v.get('checked')).to.equal(false);
         v.set('controller.content.installOptions.manualInstall', true);
         expect(v.get('checked')).to.equal(true);
-      });
-    });
-
-    describe('#click', function() {
-      it('should update controller.content.installOptions.useSsh', function () {
-        v.set('controller.content.installOptions.useSsh', true);
-        v.click();
-        expect(v.get('controller.content.installOptions.useSsh')).to.equal(false);
-      });
-      it('should update controller.content.installOptions.manualInstall', function () {
-        v.set('controller.content.installOptions.manualInstall', false);
-        v.click();
-        expect(v.get('controller.content.installOptions.manualInstall')).to.equal(true);
       });
     });
 
