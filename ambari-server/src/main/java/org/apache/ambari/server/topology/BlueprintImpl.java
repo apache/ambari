@@ -66,8 +66,6 @@ public class BlueprintImpl implements Blueprint {
         null);
     }
 
-    parseStack(entity.getStack());
-
     // create config first because it is set as a parent on all host-group configs
     processConfiguration(entity.getConfigurations());
     parseBlueprintHostGroups(entity);
@@ -332,13 +330,6 @@ public class BlueprintImpl implements Blueprint {
         entity.setSecurityDescriptorReference(security.getDescriptorReference());
       }
     }
-
-    //todo: not using stackDAO so stackEntity.id is not set
-    //todo: this is now being set in BlueprintDAO
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName(stack.getName());
-    stackEntity.setStackVersion(stack.getVersion());
-    entity.setStack(stackEntity);
 
     createHostGroupEntities(entity);
     createBlueprintConfigEntities(entity);
