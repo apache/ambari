@@ -26,6 +26,15 @@ App.WizardDownloadMpacksView = Em.View.extend({
     var controller = this.get('controller');
     controller.addMpacks();
     controller.registerMpacks();
+
+    //enable initial tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    //enables tooltips added later
+    const target = document.querySelector('#downloadMpacks');
+    const observer = new MutationObserver(() => {
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+    observer.observe(target, { childList: true, subtree: true });
   },
 
   willDestroyElement: function () {
