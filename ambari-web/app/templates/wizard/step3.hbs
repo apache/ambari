@@ -59,18 +59,18 @@
         </div>
         <div class="panel-body">
           <div class="pre-scrollable col-sm-12" style="max-height: 440px;">
-            <table id="confirm-hosts-table" class="table table-hover" {{QAAttr "confirm-hosts-table"}}>
+            <table style="table-layout: fixed" id="confirm-hosts-table" class="table table-hover" {{QAAttr "confirm-hosts-table"}}>
               <thead>
               <tr>
                 <th {{QAAttr "confirm-hosts-table-heading-cell"}}>
                   {{view App.CheckboxView checkedBinding="view.pageChecked"}}
                 </th>
-                <th class="col-md-5" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.host}}</th>
+                <th {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.host}}</th>
                 <!-- retrieved from local storage initially -->
-                <th class="col-md-2" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.progress}}</th>
-                <th class="col-md-2" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.status}}</th>
+                <th {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.progress}}</th>
+                <th {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.status}}</th>
                 <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
-                <th class="col-md-2" {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.action}}</th>
+                <th {{QAAttr "confirm-hosts-table-heading-cell"}}>{{t common.action}}</th>
                 <!-- trash icon -->
                 <!-- retry icon -->
               </tr>
