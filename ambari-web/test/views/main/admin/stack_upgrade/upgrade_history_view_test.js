@@ -205,7 +205,7 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
         services: [],
         directionLabel: Em.I18n.t('common.upgrade'),
         upgradeTypeLabel: Em.I18n.t('common.rolling'),
-        duration: '1.00 hours'
+        duration: '1h'
       }),
       Em.Object.create({
         idHref: '#2',
@@ -215,7 +215,7 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
         services: [],
         directionLabel: Em.I18n.t('common.downgrade'),
         upgradeTypeLabel: Em.I18n.t('common.hostOrdered'),
-        duration: '2.00 hours'
+        duration: '2h'
       })
     ];
 
