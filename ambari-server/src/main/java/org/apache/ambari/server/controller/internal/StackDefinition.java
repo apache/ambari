@@ -13,6 +13,8 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 
+import com.google.common.collect.Iterables;
+
 /**
  * Encapsulates stack information.
  */
@@ -206,4 +208,11 @@ public interface StackDefinition {
   Configuration getConfiguration(Collection<String> services);
 
   Configuration getConfiguration();
+
+  static StackDefinition of(Set<Stack> stacks) {
+    return stacks.size() > 1
+      ? new CompositeStack(stacks)
+      : Iterables.getFirst(stacks, null);
+  }
+
 }

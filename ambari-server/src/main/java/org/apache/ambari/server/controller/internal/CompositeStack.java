@@ -37,30 +37,21 @@ import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /** Combines multiple mpacks into a single stack. */
 public class CompositeStack implements StackDefinition {
 
-  private final Set<Stack> mpacks;
-  private final Collection<String> services;
-  private final Map<String, Collection<String>> components;
+  private final Set<Stack> stacks;
 
-  public CompositeStack(Set<Stack> mpacks) {
-    this.mpacks = mpacks;
-
-    services = mpacks.stream()
-      .flatMap(s -> s.getServices().stream())
-      .collect(toSet());
-
-    components = mpacks.stream()
-      .flatMap(m -> m.getComponents().entrySet().stream())
-      .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+  CompositeStack(Set<Stack> stacks) {
+    this.stacks = stacks;
   }
 
   @Override
   public Set<StackId> getStacksForService(String serviceName) {
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> Pair.of(m.getStackId(), m.getServices()))
       .filter(p -> p.getRight().contains(serviceName))
       .map(Pair::getLeft)
@@ -69,7 +60,7 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public Set<String> getServices(StackId stackId) {
-    return mpacks.stream()
+    return stacks.stream()
       .filter(m -> stackId.equals(m.getStackId()))
       .findAny()
       .flatMap(m -> Optional.of(ImmutableSet.copyOf(m.getServices())))
@@ -78,29 +69,38 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public Set<StackId> getStackIds() {
-    return mpacks.stream()
+    return stacks.stream()
       .map(Stack::getStackId)
       .collect(toSet());
   }
 
   @Override
   public Collection<String> getServices() {
-    return services;
+    return stacks.stream()
+      .flatMap(s -> s.getServices().stream())
+      .collect(toSet());
   }
 
   @Override
   public Collection<String> getComponents(String service) {
-    return components.get(service);
+    return stacks.stream()
+      .map(Stack::getComponents)
+      .map(m -> m.get(service))
+      .filter(Objects::nonNull)
+      .flatMap(Collection::stream)
+      .collect(toSet());
   }
 
   @Override
   public Map<String, Collection<String>> getComponents() {
-    return components;
+    return stacks.stream()
+      .map(Stack::getComponents)
+      .reduce(ImmutableMap.of(), (m1, m2) -> ImmutableMap.<String, Collection<String>>builder().putAll(m1).putAll(m2).build());
   }
 
   @Override
   public ComponentInfo getComponentInfo(String component) {
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> m.getComponentInfo(component))
       .filter(Objects::nonNull)
       .findAny()
@@ -109,89 +109,89 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public Collection<String> getAllConfigurationTypes(String service) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getAllConfigurationTypes(service).stream())
       .collect(toSet());
   }
 
   @Override
   public Collection<String> getConfigurationTypes(String service) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getConfigurationTypes(service).stream())
       .collect(toSet());
   }
 
   @Override
   public Set<String> getExcludedConfigurationTypes(String service) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getExcludedConfigurationTypes(service).stream())
       .collect(toSet());
   }
 
   @Override
   public Map<String, String> getConfigurationProperties(String service, String type) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getConfigurationProperties(service, type).entrySet().stream())
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override
   public Map<String, Stack.ConfigProperty> getConfigurationPropertiesWithMetadata(String service, String type) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getConfigurationPropertiesWithMetadata(service, type).entrySet().stream())
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override
   public Collection<Stack.ConfigProperty> getRequiredConfigurationProperties(String service) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getRequiredConfigurationProperties(service).stream())
       .collect(toSet());
   }
 
   @Override
   public Collection<Stack.ConfigProperty> getRequiredConfigurationProperties(String service, PropertyInfo.PropertyType propertyType) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getRequiredConfigurationProperties(service, propertyType).stream())
       .collect(toSet());
   }
 
   @Override
   public boolean isPasswordProperty(String service, String type, String propertyName) {
-    return mpacks.stream()
+    return stacks.stream()
       .anyMatch(s -> s.isPasswordProperty(service, type, propertyName));
   }
 
   @Override
   public Map<String, String> getStackConfigurationProperties(String type) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getStackConfigurationProperties(type).entrySet().stream())
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override
   public boolean isKerberosPrincipalNameProperty(String service, String type, String propertyName) {
-    return mpacks.stream()
+    return stacks.stream()
       .anyMatch(s -> s.isKerberosPrincipalNameProperty(service, type, propertyName));
   }
 
   @Override
   public Map<String, Map<String, String>> getConfigurationAttributes(String service, String type) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getConfigurationAttributes(service, type).entrySet().stream())
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override
   public Map<String, Map<String, String>> getStackConfigurationAttributes(String type) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getStackConfigurationAttributes(type).entrySet().stream())
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override
   public String getServiceForComponent(String component) {
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> m.getServiceForComponent(component))
       .filter(Objects::nonNull)
       .findAny()
@@ -200,7 +200,7 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public Collection<String> getServicesForComponents(Collection<String> components) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getServicesForComponents(components).stream())
       .collect(toSet());
   }
@@ -220,7 +220,7 @@ public class CompositeStack implements StackDefinition {
     if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
       return Stream.empty();
     }
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> {
         try {
           return m.getServiceForConfigType(config);
@@ -233,14 +233,14 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public Collection<DependencyInfo> getDependenciesForComponent(String component) {
-    return mpacks.stream()
+    return stacks.stream()
       .flatMap(m -> m.getDependenciesForComponent(component).stream())
       .collect(toSet());
   }
 
   @Override
   public String getConditionalServiceForDependency(DependencyInfo dependency) {
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> m.getConditionalServiceForDependency(dependency))
       .filter(Objects::nonNull)
       .findAny()
@@ -249,7 +249,7 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public String getExternalComponentConfig(String component) {
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> m.getExternalComponentConfig(component))
       .filter(Objects::nonNull)
       .findAny()
@@ -258,7 +258,7 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public Cardinality getCardinality(String component) {
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> m.getCardinality(component))
       .filter(Objects::nonNull)
       .findAny()
@@ -267,7 +267,7 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public AutoDeployInfo getAutoDeployInfo(String component) {
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> m.getAutoDeployInfo(component))
       .filter(Objects::nonNull)
       .findAny()
@@ -276,14 +276,14 @@ public class CompositeStack implements StackDefinition {
 
   @Override
   public boolean isMasterComponent(String component) {
-    return mpacks.stream()
+    return stacks.stream()
       .anyMatch(s -> s.isMasterComponent(component));
   }
 
   @Override
   public Configuration getConfiguration(Collection<String> services) {
     // FIXME probably too costly
-    return mpacks.stream()
+    return stacks.stream()
       .map(m -> m.getConfiguration(services))
       .reduce(Configuration.createEmpty(), Configuration::combine);
   }
@@ -291,7 +291,7 @@ public class CompositeStack implements StackDefinition {
   @Override
   public Configuration getConfiguration() {
     // FIXME probably too costly
-    return mpacks.stream()
+    return stacks.stream()
       .map(StackDefinition::getConfiguration)
       .reduce(Configuration.createEmpty(), Configuration::combine);
   }

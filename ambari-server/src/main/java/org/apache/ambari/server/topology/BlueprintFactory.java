@@ -33,7 +33,6 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RootComponent;
-import org.apache.ambari.server.controller.internal.CompositeStack;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.internal.StackDefinition;
@@ -45,7 +44,6 @@ import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 /**
@@ -138,9 +136,7 @@ public class BlueprintFactory {
     Set<Stack> stacks = stackIds.stream()
       .map(this::createStack)
       .collect(toSet());
-    return stacks.size() > 1
-      ? new CompositeStack(stacks)
-      : Iterables.getFirst(stacks, null);
+    return StackDefinition.of(stacks);
   }
 
   private static Set<StackId> fakeStackIds() {
