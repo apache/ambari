@@ -49,7 +49,7 @@
       border-left: none;
       border-right: none;
     }
-    padding: 25px;
+    padding: 30px;
     background-color: #fff;
   }
 
@@ -566,62 +566,94 @@
   max-height: 440px;
 }
 
-#download-step-content {
-  .panel-body .version-contents-body {
-    padding: 10px 0px 20px 0;
-    tbody > tr {
-      height:40px;
-      td {
-        vertical-align: middle;
-        padding: 6px;
-        button {
-          padding: 2px 8px;
-          font-size: 12px;
-          line-height: 1.5;
-          height: 25px;
-        }
-      }
-      .download-status {
-        font-size: 11px;
-        .progress-wrapper {
-          padding:0px;
-          .progress {
-            height:8px;
-            margin:5px 5px 5px 0;
-            .progress-bar {
-              width:100%;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 #select-mpacks {
   .selected-list {
-    background-color: #f5f5f5;
-    .panel-heading {
-      background-color: #f5f5f5;
-    }
-    .capsule {
-      background-color: #ddd;
-    }
-    .empty-selection {
-      padding: 40px;
-      font-size: 11px;
-      font-style: italic;
-      color: #999;
+    background-color: #fafafa;  
+  }
+
+  .capsule {
+    background-color: #ddd;
+    margin-bottom: 5px;
+    outline: none;
+    &:hover {
+      background-color: #ccc;
     }
   }
-  .options-list, .selected-list {
-    margin-bottom: 20px;
-    .mpack-body {
-      padding: 15px 0px;
-      border-bottom: 1px solid;
-      border-color: #f0f0f0;
-      .mpack-title {
-        font-size: 12px;
+
+  #registry {
+    .option {
+      padding-right: 60px;
+    }
+  }
+
+  .option {
+
+    .option-title {
+      margin-right: 15px;
+
+      select {
+        outline: none;
+        border: none;
+        background-color: inherit;
+        color: #1491c1;
+        margin-left: -8px;
+        cursor: pointer;
+      }
+    }
+
+    .option-description {
+      color: #666;
+    }
+
+    position: relative;
+    padding: 15px;
+    border-bottom: 1px solid;
+    border-color: #ddd;
+    &:hover {
+      background-color: #eee;
+    }
+    .option-add-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 20px;
+      height: 30px;
+      width: 30px;
+      padding: 0;
+      border-style: solid;
+      border-radius: 50%;
+      outline: none;
+      &.checked:after {
+        content: '\f00c';
+      }
+      &:after {
+        position: absolute;
+        top: calc(~"50% + 1px");
+        transform: translateY(-50%);
+        left: -1px;
+        right: 0;
+        content: '\f067';
+        font-family: 'FontAwesome';
+      }
+    }
+    .option-remove-button {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      outline: none;
+      border: none;
+      padding: 0;
+      background-color: inherit;
+      &:hover {
+        &:after {
+          color: #666;
+        }
+      }
+      &:after {
+        font-family: 'FontAwesome';
+        content: '\f00d';
+        color: #999;
+        
       }
     }
   }
@@ -663,7 +695,7 @@
   }
 }
 
-#select-stack {
+#configure-download {
   .stacks-options {
     margin-bottom: 30px;
   }
@@ -684,111 +716,140 @@
       }
     }
   }
-  .repos-panel {
-    .version-contents-body {
-      padding: 0px 10px;
-      .radio-group {
-        padding-bottom: 10px;
-        color: #666;
-        .local-radio {
-          cursor: not-allowed
-        }
-        .radio.big-radio {
-          height: 100px;
-          background-color: #dddddd;
-          width: 120px;
-          margin: 15px;
-          padding-left: 0;
-          padding-right: 0;
-          border-radius: 2px;
-          p {
-            display: none;
-            font-size: 11px;
-            text-align: center;
-            padding: 0 5px 10px 5px;
-            line-height: 1.2em;
-          }
-          input[type="radio"] + label, p, .repo-group, {
-            cursor: default;
-          }
-          input[type="radio"] + label:before {
-            border-color: #999;
-            background-color: #fff;
-          }
-          input[type="radio"]:checked + label:before {
-            background: #fff;
-            border-color: #3FAE2A;
-          }
-          input[type="radio"]:checked + label:after {
-            background-color: #3FAE2A;
-          }
-          .repo-checkbox {
-            padding: 0 10px;
-          }
-          .icon {
-            font-size: 36px;
-            text-align: center;
-            position: absolute;
-            top: 20px;
-            padding: 0 20px;
-            width: 100%;
-            color: #fff;
-          }
-          .repo-group {
-            bottom: 0px;
-            position: absolute;
-            background-color: #3FAE2A;
-            color: white;
-            padding: 5px 10px;
-            width: 100%;
-            font-size: 12px;
-            text-align: center;
-            border-radius: 2px;
-          }
-        }
-        //for now only allow the public repo to show info on hover
-        //.radio:hover {
-        .public-radio:hover {
-          border: 2px solid #32BEBC;
-          p {
-            display:block;
-          }
-          .icon, .repo-group {
-            opacity: 0.1;
-          }
-        }
-      }
-    }
-    table > tbody > tr > td {
-        vertical-align: middle;
-    }
-    .remove-icon {
-      color: red;
-      margin: 30px 0;
-      text-align: center;
+    
+  .radio-group {
+    padding-bottom: 10px;
+    color: #666;
+    .big-radio {
       display: inline-block;
-      &.disabled {
-        color: grey;
-      }
-    }
-    .repo-url input {
-      width: 90%;
-    }
-    #skip-validation, #use-redhat {
-      label {
-        color: #666;
-        font-weight: normal;
-        margin-top: -2px;
-        &.disabled {
-          opacity: 0.7;
+      height: 134px;
+      background-color: #ddd;
+      margin: 15px;
+      padding-left: 0;
+      padding-right: 0;
+      border-radius: 4px;
+      position: relative;
+      cursor: default;
+      .description {
+        visibility: hidden;
+        z-index: 999;
+        //border: 2px solid #1491c1;
+        border-radius: 4px;
+        background-color: #dddd;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        position: absolute;
+        text-align: center;
+        span {
+          display: block;
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          padding: 0 15px;
+          font-size: 14px;
         }
       }
+      input[type="radio"] + label {
+        position: absolute;
+        z-index: 1000;
+        cursor: default;
+      }
+      input[type="radio"] + label:before {
+        border-width: 0;
+        background-color: #fff;
+        top: 10px;
+        left: 10px;
+        height: 12px;
+        width: 12px;
+      }
+      input[type="radio"]:checked + label:before {
+        background: #fff;
+        border-width: 4px;
+        border-color: #1491c1;
+      }
+      input[type="radio"]:checked + label:after {
+        display: none;
+      }
+      .icon {
+        font-size: 48px;
+        text-align: center;
+        position: absolute;
+        top: 26px;
+        color: #fff;
+        width: 100%;
+      }
+      .big-radio-label {
+        top: 96px;
+        position: relative;
+        background-color: #3FAE2A;
+        color: #fff;
+        padding: 10px 20px; //same as button padding
+        text-align: center;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+        white-space: nowrap;
+      }
+    }
+
+    .big-radio:hover {
+      input[type="radio"]:not(:checked) + label:before {
+        background-color: #1491c1;
+      }
+      .description  {
+        visibility: visible;
+      }
+    }
+  }
+
+  table > tbody > tr > td {
+      vertical-align: middle;
+  }
+  .remove-icon {
+    color: red;
+    margin: 30px 0;
+    text-align: center;
+    display: inline-block;
+    &.disabled {
+      color: grey;
+    }
+  }
+  .repo-url input {
+    width: 90%;
+  }
+  #skip-validation, #use-redhat {
+    label {
+      color: #666;
+      font-weight: normal;
+      margin-top: -2px;
+      &.disabled {
+        opacity: 0.7;
+      }
+    }
+  }
+  
+}
+
+#customMpackRepos,
+#downloadMpacks {
+  .table.table-hover > tbody {
+    > tr > td {
+      vertical-align: middle;
     }
   }
 }
 
-#customProductRepos, #verifyProductRepos {
+#customProductRepos, 
+#verifyProductRepos {
   .table.table-hover > tbody {
+    > tr > td {
+      border-width: 0;
+    }
     > tr, > tr:hover > td {
       border-width: 0;
     }
@@ -797,6 +858,22 @@
     }
     > tr:last-of-type {
       border-bottom-width: 1px;
+    }
+  }
+}
+
+#downloadMpacks,
+#verifyProductRepos {
+  .download-status {
+    .progress-wrapper {
+      padding:0px;
+      .progress {
+        height:8px;
+        margin:5px 5px 5px 0;
+        .progress-bar {
+          width:100%;
+        }
+      }
     }
   }
 }
@@ -839,4 +916,10 @@
       }
     }
   }
+}
+
+#useCaseHeader {
+  flex: auto;
+  margin-right: 10px;
+  text-align: left;
 }

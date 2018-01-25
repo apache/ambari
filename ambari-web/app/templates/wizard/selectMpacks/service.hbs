@@ -15,20 +15,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="mpack-body">
-  <div class="mpack-title" role="tab" id="headingOne">
-    {{service.displayName}} 
-    <select {{action changeVersion on="change" target="view"}}>
-      {{#each ver in service.versions}}
-      <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
-      {{/each}}
-    </select>
+<div class="option">
+  <div class="option-title">
+    <p>
+      {{service.displayName}} 
+      <select {{action changeVersion on="change" target="view"}}>
+        {{#each ver in service.versions}}
+        <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
+        {{/each}}
+      </select>
+    </p>
+    <p>{{service.displayedVersion.mpackVersion.mpack.displayName}}&nbsp;{{service.displayedVersion.mpackVersion.version}}</p>
   </div>
-  <div>{{service.displayedVersion.mpackVersion.mpack.displayName}}&nbsp;{{service.displayedVersion.mpackVersion.version}}</div>
-  <div>{{service.description}}</div>
+  <div class="option-description">{{service.description}}</div>
   {{#if service.displayedVersion.selected}}
-  <button class="mpack-add-button checked"><span class="glyphicon glyphicon-ok"></span></button>
+  <button class="btn btn-default option-add-button checked"></button>
   {{else}}
-  <button class="mpack-add-button" {{action add target="view"}}><span class="glyphicon glyphicon-plus"></span></button>
+  <button class="btn btn-default option-add-button" {{action add target="view"}}></button>
   {{/if}}
 </div>

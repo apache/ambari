@@ -15,19 +15,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="mpack-body">
-  <div class="mpack-title" role="tab" id="headingOne">
+<div class="option">
+  <div class="option-title">
     <p>{{mpackVersion.mpack.displayName}} {{mpackVersion.version}}</p>
-     {{#if controller.content.advancedMode}}
-     <button class="mpack-remove-button" {{action removeMpack mpackVersion.id target="view"}}><span class="glyphicon glyphicon-remove"></span></button>
-     {{/if}}
   </div>
-  <div>
+  {{#if controller.content.advancedMode}}
+  <button class="option-remove-button" {{action removeMpack mpackVersion.id target="view" }}></button>
+  {{/if}}
+  <div class="option-body">
   {{#each service in mpackVersion.services}}
     {{#if service.selected}}
       {{#if controller.content.advancedMode}}
       <button class="capsule capsule-selected" {{action removeService service.id target="view"}}>
-        {{service.name}}&nbsp;{{service.version}}&nbsp;<span class="glyphicon glyphicon-remove"></span>
+        {{service.name}}&nbsp;{{service.version}}&nbsp;<i class="icon icon-remove"></i>
       </button>
       {{else}}
       <button class="capsule capsule-selected">

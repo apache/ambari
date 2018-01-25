@@ -16,94 +16,97 @@
 * limitations under the License.
 }}
 <div id="select-mpacks" class="wizard-content col-md-9">
-  <h4 class="step-header">{{t installer.selectMpacks.body.header}}</h4>
+  <h4 class="step-title">{{t installer.selectMpacks.body.header}}</h4>
   {{#if isSaved}}
   <div class="alert alert-warning" role="alert"><strong>{{t installer.warning.changes.header}}</strong> {{t installer.warning.changes}}</div>
   {{/if}}
   <div class="display-flex">
-  <!-- Registry -->
-  <div class="panel panel-default col-md-8">
-    <div class="panel-heading">
-      {{#if controller.content.advancedMode}}
-      <ul class="nav nav-tabs" role="tablist">
-        <li role="presentation" class="active">
-          <a href="#mpacks" aria-controls="profile" role="tab" data-toggle="tab">{{t installer.selectMpacks.body.header.mpacks}}</a>
-        </li>
-        <li role="presentation">
-          <a href="#services" aria-controls="messages" role="tab" data-toggle="tab">{{t installer.selectMpacks.body.header.services}}</a>
-        </li>
-      </ul>
-      {{else}}
-      <ul class="nav nav-tabs" role="tablist">
-        <li role="presentation" class="active">
-          <a href="#usecases" aria-controls="home" role="tab" data-toggle="tab">{{t installer.selectMpacks.body.header.useCases}}</a>
-        </li>
-      </ul>
-      {{/if}}
-      <button class="btn btn-default pull-right" {{action toggleMode target="view"}}>
+    <!-- Registry -->
+    <div id="registry" class="panel panel-default col-md-8">
+      <div class="panel-heading display-flex align-center">
+        <div id="useCaseHeader">
         {{#if controller.content.advancedMode}}
-        {{t installer.selectMpacks.basicMode}}
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active">
+            <a href="#mpacks" aria-controls="mpacks" role="tab" data-toggle="tab">{{t installer.selectMpacks.body.header.mpacks}}</a>
+          </li>
+          <li role="presentation">
+            <a href="#services" aria-controls="services" role="tab" data-toggle="tab">{{t installer.selectMpacks.body.header.services}}</a>
+          </li>
+        </ul>
         {{else}}
-        {{t installer.selectMpacks.advancedMode}}
+        <span class="step-description">{{t installer.selectMpacks.body.header.useCases}}</span>
         {{/if}}
-      </button>
-    </div>
-    <div class="panel-body tab-content">
-      {{#if controller.content.advancedMode}}
-      <div role="tabpanel" class="tab-pane active" id="mpacks">
-        <div class="options-list">
-          {{#if controller.content.mpacks}}
+        </div>
+        <button id="modeButton" class="btn btn-secondary pull-right" {{action toggleMode target="view"}}>
+          {{#if controller.content.advancedMode}}
+          {{t installer.selectMpacks.basicMode}}
+          {{else}}
+          {{t installer.selectMpacks.advancedMode}}
+          {{/if}}
+        </button>
+        {{#if controller.content.advancedMode}}
+        <span class="more-info" data-toggle="tooltip" data-placement="bottom" {{translateAttr title="installer.selectMpacks.advancedModeHelp" }}></span>        
+        {{else}}
+        <span class="more-info" data-toggle="tooltip" data-placement="bottom" {{translateAttr title="installer.selectMpacks.basicModeHelp"}}></span>
+        {{/if}}
+      </div>
+      <div class="panel-body tab-content">
+        {{#if controller.content.advancedMode}}
+        <div role="tabpanel" class="tab-pane active" id="mpacks">
+          <div class="options-list">
+            {{#if controller.content.mpacks}}
             {{#each mpack in controller.content.mpacks}}
-              {{view App.WizardMpackView mpackBinding="mpack"}}
+            {{view App.WizardMpackView mpackBinding="mpack"}}
             {{/each}}
-          {{else}}
-            {{t installer.selectMpacks.noMpacksAvailable}}
-          {{/if}}
+            {{else}}
+            <div class="no-data">{{t installer.selectMpacks.noMpacksAvailable}}</div>
+            {{/if}}
+          </div>
         </div>
-      </div>
-      <div role="tabpanel" class="tab-pane" id="services">
-        <div class="options-list">
-          {{#if controller.content.mpackServices}} 
+        <div role="tabpanel" class="tab-pane" id="services">
+          <div class="options-list">
+            {{#if controller.content.mpackServices}} 
             {{#each service in controller.content.mpackServices}}
-              {{view App.WizardServiceView serviceBinding="service"}}
+            {{view App.WizardServiceView serviceBinding="service"}}
             {{/each}}
-          {{else}}
-            {{t installer.selectMpacks.noServicesAvailable}}
-          {{/if}}
+            {{else}}
+            <div class="no-data">{{t installer.selectMpacks.noServicesAvailable}}</div>
+            {{/if}}
+          </div>
         </div>
-      </div>
-      {{else}}
-      <div role="tabpanel" class="tab-pane active" id="usecases">
-        <div class="options-list">
-          {{#if controller.content.mpackUsecases}} 
+        {{else}}
+        <div role="tabpanel" class="tab-pane active" id="usecases">
+          <div class="options-list">
+            {{#if controller.content.mpackUsecases}} 
             {{#each usecase in controller.content.mpackUsecases}}
-              {{view App.WizardUsecaseView usecaseBinding="usecase"}}
+            {{view App.WizardUsecaseView usecaseBinding="usecase"}}
             {{/each}}
-          {{else}}
-            {{t installer.selectMpacks.noUsecasesAvailable}}
-          {{/if}}
+            {{else}}
+            <div class="no-data">{{t installer.selectMpacks.noUsecasesAvailable}}</div>
+            {{/if}}
+          </div>
         </div>
+        {{/if}}
       </div>
-      {{/if}}
     </div>
-  </div>
-  <!-- Selection -->
-  <div class="panel panel-default col-md-4 selected-list">
-    <div class="panel-heading">
-      <p>{{t installer.selectMpacks.body.selected.header}}&nbsp;({{controller.selectedMpackVersions.length}})</p>
+    <!-- Selection -->
+    <div class="panel panel-default col-md-4 selected-list">
+      <div class="panel-heading">{{t installer.selectMpacks.body.selected.header}}&nbsp;({{controller.selectedMpackVersions.length}})</div>
+      <div class="panel-body">
+        {{#if controller.hasSelectedMpackVersions}}
+        {{#each mpackVersion in controller.selectedMpackVersions}}
+          {{view App.WizardSelectedMpackVersionView mpackVersionBinding="mpackVersion"}}
+        {{/each}}
+        {{else}}
+        {{#if controller.noRecommendationAvailable}}
+        <div class="no-data">{{t installer.selectMpacks.noRecommendationAvailable}}</div>
+        {{else}}
+        <div class="no-data">{{t installer.selectMpacks.noMpacksSelected}}</div>
+        {{/if}}
+        {{/if}}
+      </div>
     </div>
-    {{#if controller.hasSelectedMpackVersions}}
-      {{#each mpackVersion in controller.selectedMpackVersions}}
-        {{view App.WizardSelectedMpackVersionView mpackVersionBinding="mpackVersion"}}
-      {{/each}}
-    {{else}}
-      {{#if controller.noRecommendationAvailable}}
-      <div class="empty-selection">{{t installer.selectMpacks.noRecommendationAvailable}}</div>
-      {{else}}
-      <div class="empty-selection">{{t installer.selectMpacks.noMpacksSelected}}</div>
-      {{/if}}
-    {{/if}}
-  </div>
   </div>
 </div>
 

@@ -62,6 +62,11 @@ App.WizardConfigureDownloadController = App.WizardStepController.extend({
     this.set('content.downloadConfig.proxyTestPassed', true);
   },
 
+  isSubmitDisabled: function () {
+    return App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0);
+  }.property('router.btnClickInProgress', 'wizardController.errors'),
+
   /**
    * Onclick handler for <code>Next</code> button.
    * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')

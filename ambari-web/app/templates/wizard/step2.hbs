@@ -17,15 +17,13 @@
 }}
 
 <div id="installOptions" class="wizard-content col-md-9">
-  <h4 class="step-header">{{t installer.step2.header}}</h4>
-  <p class="step-description">{{t installer.step2.body}}</p>
+  <h4 class="step-title">{{t installer.step2.header}}</h4>
   {{#if isSaved}}
   <div class="alert alert-warning" role="alert"><strong>{{t installer.warning.changes.header}}</strong> {{t installer.warning.changes}}</div>
   {{/if}}
 
   <div class="panel panel-default">
     <div class="panel-body">
-
       <div id="targetHosts" {{QAAttr "target-hosts"}}>
         <div class="step-title" {{QAAttr "target-hosts-title"}}>{{t installer.step2.targetHosts}}</div>
         <div {{bindAttr class="hostsError:has-error :form-group :target-hosts-input"}}>
@@ -199,7 +197,7 @@
 <div class="wizard-footer col-md-12">
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
-      <button class="btn btn-default pull-left installer-back-btn" {{action back}} {{bindAttr disabled="App.router.btnClickInProgress"}} {{QAAttr "wizard-back"}}>
+      <button class="btn btn-default pull-left installer-back-btn" {{action backTransition}} {{bindAttr disabled="App.router.btnClickInProgress"}} {{QAAttr "wizard-back"}}>
         &larr; {{t common.back}}
         {{#if App.router.backBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

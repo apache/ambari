@@ -114,10 +114,12 @@ App.WizardStep9Controller = App.WizardStepController.extend(App.ReloadPopupMixin
     if (controllerName == 'addHostController' || controllerName == 'addServiceController') {
       validStates.push('INSTALL FAILED');
     }
-    return !validStates.contains(this.get('content.cluster.status')) || App.get('router.btnClickInProgress');
+    return App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+      || !validStates.contains(this.get('content.cluster.status'));
   }.property('content.cluster.status'),
 
-  isNextButtonDisabled: Em.computed.or('App.router.nextBtnClickInProgress', 'isSubmitDisabled'),
+  isNextButtonDisabled: Em.computed.or('App.router.nextBtnClickInProgress', 'isSubmitDisabled', 'wizardController.errors'),
 
   /**
    * Observer function: Enables previous steps link if install task failed in installer wizard.

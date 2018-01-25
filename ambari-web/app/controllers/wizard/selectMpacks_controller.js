@@ -246,8 +246,10 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
 
   isSubmitDisabled: function () {
     const mpackServiceVersions = this.get('content.mpackServiceVersions');
-    return mpackServiceVersions.filterProperty('selected', true).length === 0 || App.get('router.btnClickInProgress');
-  }.property('content.mpackServiceVersions.@each.selected', 'App.router.btnClickInProgress'),
+    return App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+      || mpackServiceVersions.filterProperty('selected', true).length === 0;
+  }.property('content.mpackServiceVersions.@each.selected', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   getMpackVersionById: function (versionId) {
     const mpackVersions = this.get('content.mpackVersions');
@@ -344,7 +346,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
       const selected = usecase.get('selected');
       usecase.set('selected', !selected);
       
-      const usecasesSelected = this.get('content.mpackUsecases').filterProperty('selected');
+      const usecasesSelected = this.get('selectedUseCases');
       if (usecasesSelected.length > 0) {
         this.getUsecaseRecommendation()
           .done(this.getUsecaseRecommendationSucceeded.bind(this))
@@ -451,6 +453,10 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
 
     return false;
   },
+
+  selectedUseCases: function () {
+    return this.get('content.mpackUsecases').filterProperty('selected');
+  }.property('content.mpackUsecases.@each.selected'),
 
   selectedServices: function () {
     const mpackServiceVersions = this.get('content.mpackServiceVersions');

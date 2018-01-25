@@ -140,8 +140,10 @@ App.WizardVerifyProductsController = App.WizardStepController.extend({
 
   isSubmitDisabled: function () {
     const repos = this.get('repos');
-    return repos.filterProperty('succeeded', false).length > 0 || App.get('router.btnClickInProgress');
-  }.property('repos.@each.succeeded', 'App.router.btnClickInProgress'),
+    return App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+      || repos.filterProperty('succeeded', false).length > 0;
+  }.property('repos.@each.succeeded', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   submit: function () {
     if (App.get('router.nextBtnClickInProgress')) {

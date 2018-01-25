@@ -146,11 +146,13 @@ App.WizardStep7Controller = App.WizardStepController.extend(App.ServerValidatorM
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    if (!this.get('stepConfigs.length')) return true;
-    if (this.get('submitButtonClicked')) return true;
-    if (App.get('router.btnClickInProgress')) return true;
+    if (!this.get('stepConfigs.length')
+      || this.get('submitButtonClicked')
+      || App.get('router.btnClickInProgress')
+      || (this.get('wizardController.errors') && this.get('wizardController.errors').length > 0)
+    ) return true;
     return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible");
-  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'App.router.btnClickInProgress'),
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'App.router.btnClickInProgress', 'wizardController.errors'),
 
   /**
    * List of selected to install service names

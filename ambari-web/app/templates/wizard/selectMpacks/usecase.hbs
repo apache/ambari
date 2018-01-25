@@ -15,14 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="mpack-body">
-  <div class="mpack-title" role="tab" id="headingOne">
+<div class="option">
+  <div class="option-title">
     {{usecase.displayName}}&nbsp;<span class="glyphicon glyphicon-question-sign"></span>
   </div>
-  <div>{{usecase.description}}</div>
+  <div class="option-description">{{usecase.description}}</div>
   {{#if usecase.selected}}
-  <button class="mpack-add-button checked" {{action toggle target="view"}}><span class="glyphicon glyphicon-ok"></span></button>
+  <button class="btn btn-default option-add-button checked" {{action toggle target="view"}}></button>
   {{else}}
-  <button class="mpack-add-button" {{action toggle target="view"}}><span class="glyphicon glyphicon-plus"></span></button>
+  <button class="btn btn-default option-add-button" {{action toggle target="view"}}></button>
   {{/if}}
 </div>

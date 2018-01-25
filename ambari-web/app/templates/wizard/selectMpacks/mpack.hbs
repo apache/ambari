@@ -15,28 +15,32 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="mpack-body">
-  <div class="mpack-title" role="tab" id="headingOne">
-    {{mpack.displayName}} 
-    <select {{action changeVersion on="change" target="view"}}>
-      {{#each ver in mpack.versions}}
-      <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
-      {{/each}}
-    </select>
+<div class="option">
+  <div class="option-title">
+    <p>
+      {{mpack.displayName}} 
+      <select {{action changeVersion on="change" target="view"}}>
+        {{#each ver in mpack.versions}}
+        <option {{bindAttr value="ver.id" selected="ver.displayed"}}>{{ver.version}}</option>
+        {{/each}}
+      </select>
+    </p>
   </div>
-  <div>{{mpack.description}}</div>
+  <div class="option-description">
+    <p>{{mpack.description}}</p>
+  </div>
   <div>
   {{#each service in view.services}}
     {{#if service.selected}}
     <button class="capsule capsule-selected">
-      {{service.name}}&nbsp;{{service.version}}&nbsp;<span class="glyphicon glyphicon-ok"></span>
+      {{service.name}}&nbsp;{{service.version}}&nbsp;<i class="icon icon-ok"></i>
     </button>
     {{else}}
     <button class="capsule" {{action addService service.id target="view"}}>
-      {{service.name}}&nbsp;{{service.version}}&nbsp;<span class="glyphicon glyphicon-plus"></span>
+      {{service.name}}&nbsp;{{service.version}}&nbsp;<i class="icon icon-plus"></i>
     </button>
     {{/if}}
   {{/each}}
   </div>
-  <button class="mpack-add-button" {{action addMpack target="view"}}><span class="glyphicon glyphicon-plus"></span></button>
+  <button class="btn btn-default option-add-button" {{action addMpack target="view"}}></button>
 </div>
