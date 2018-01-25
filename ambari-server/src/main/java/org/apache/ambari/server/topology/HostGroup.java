@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 
 /**
  * Host Group representation.
@@ -137,7 +137,7 @@ public interface HostGroup {
    *
    * @return associated stack
    */
-  StackInfo getStack();
+  StackDefinition getStack();
 
   /**
    * Get the cardinality value that was specified for the host group.

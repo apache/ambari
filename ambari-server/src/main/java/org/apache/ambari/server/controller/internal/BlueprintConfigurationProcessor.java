@@ -438,7 +438,7 @@ public class BlueprintConfigurationProcessor {
 
   private void trimProperties(Configuration clusterConfig, ClusterTopology clusterTopology) {
     Blueprint blueprint = clusterTopology.getBlueprint();
-    StackInfo stack = blueprint.getStack();
+    StackDefinition stack = blueprint.getStack();
 
     Map<String, Map<String, String>> configTypes = clusterConfig.getFullProperties();
     for (String configType : configTypes.keySet()) {
@@ -449,7 +449,7 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
-  private void trimPropertyValue(Configuration clusterConfig, StackInfo stack, String configType, Map<String, String> properties, String propertyName) {
+  private void trimPropertyValue(Configuration clusterConfig, StackDefinition stack, String configType, Map<String, String> properties, String propertyName) {
     if (propertyName != null && properties.get(propertyName) != null) {
 
       TrimmingStrategy trimmingStrategy =
@@ -2881,7 +2881,7 @@ public class BlueprintConfigurationProcessor {
    * @param configTypesUpdated
    * @param stack
    */
-  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, StackInfo stack) {
+  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, StackDefinition stack) {
     Collection<String> blueprintServices = clusterTopology.getBlueprint().getServices();
 
     LOG.debug("Handling excluded properties for blueprint services: {}", blueprintServices);
@@ -3105,7 +3105,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-        StackInfo stack = topology.getBlueprint().getStack();
+        StackDefinition stack = topology.getBlueprint().getStack();
         final String serviceName = stack.getServiceForConfigType(configType);
         return !(stack.isPasswordProperty(serviceName, configType, propertyName) ||
                 stack.isKerberosPrincipalNameProperty(serviceName, configType, propertyName));
@@ -3202,7 +3202,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-      StackInfo stack = topology.getBlueprint().getStack();
+      StackDefinition stack = topology.getBlueprint().getStack();
       Configuration configuration = topology.getConfiguration();
 
       final String serviceName = stack.getServiceForConfigType(configType);

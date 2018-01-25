@@ -51,7 +51,7 @@ import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -277,7 +277,7 @@ public class TopologyManager {
 
     final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
-    final StackInfo stack = topology.getBlueprint().getStack();
+    final StackDefinition stack = topology.getBlueprint().getStack();
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
 

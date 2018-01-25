@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -35,13 +35,11 @@ import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 
 /**
@@ -51,7 +49,7 @@ public class BlueprintImpl implements Blueprint {
 
   private String name;
   private Map<String, HostGroup> hostGroups = new HashMap<>();
-  private StackInfo stack;
+  private StackDefinition stack;
 
   private final Set<StackId> stackIds;
   private Configuration configuration;
@@ -59,7 +57,7 @@ public class BlueprintImpl implements Blueprint {
   private Setting setting;
   private List<RepositorySetting> repoSettings;
 
-  public BlueprintImpl(BlueprintEntity entity, StackInfo stack, Set<StackId> stackIds) throws NoSuchStackException {
+  public BlueprintImpl(BlueprintEntity entity, StackDefinition stack, Set<StackId> stackIds) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
     if (entity.getSecurityType() != null) {
       this.security = new SecurityConfiguration(entity.getSecurityType(), entity.getSecurityDescriptorReference(),
@@ -77,7 +75,7 @@ public class BlueprintImpl implements Blueprint {
     processRepoSettings();
   }
 
-  public BlueprintImpl(String name, Collection<HostGroup> groups, StackInfo stack, Set<StackId> stackIds, Configuration configuration,
+  public BlueprintImpl(String name, Collection<HostGroup> groups, StackDefinition stack, Set<StackId> stackIds, Configuration configuration,
                        SecurityConfiguration security, Setting setting) {
     this.name = name;
     this.stack = stack;
@@ -271,7 +269,7 @@ public class BlueprintImpl implements Blueprint {
   }
 
   @Override
-  public StackInfo getStack() {
+  public StackDefinition getStack() {
     return stack;
   }
 

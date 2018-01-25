@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
@@ -58,7 +58,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   @Override
   public void validateTopology(Blueprint blueprint) throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
-    StackInfo stack = blueprint.getStack();
+    StackDefinition stack = blueprint.getStack();
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
     Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
@@ -204,7 +204,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     return cardinalityFailures;
   }
 
-  private Map<String, Collection<DependencyInfo>> validateHostGroup(Blueprint blueprint, StackInfo stack, HostGroup group) {
+  private Map<String, Collection<DependencyInfo>> validateHostGroup(Blueprint blueprint, StackDefinition stack, HostGroup group) {
     LOGGER.info("Validating hostgroup: {}", group.getName());
     Map<String, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
 
@@ -284,7 +284,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    *
    * @return collection of missing component information
    */
-  private Collection<String> verifyComponentCardinalityCount(Blueprint blueprint, StackInfo stack, String component, Cardinality cardinality, AutoDeployInfo autoDeploy) {
+  private Collection<String> verifyComponentCardinalityCount(Blueprint blueprint, StackDefinition stack, String component, Cardinality cardinality, AutoDeployInfo autoDeploy) {
 
     Map<String, Map<String, String>> configProperties = blueprint.getConfiguration().getProperties();
     Collection<String> cardinalityFailures = new HashSet<>();
@@ -329,7 +329,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    *
    * @return true if the specified component managed by the cluster; false otherwise
    */
-  protected boolean isDependencyManaged(StackInfo stack, String component, Map<String, Map<String, String>> clusterConfig) {
+  protected boolean isDependencyManaged(StackDefinition stack, String component, Map<String, Map<String, String>> clusterConfig) {
     boolean isManaged = true;
     String externalComponentConfig = stack.getExternalComponentConfig(component);
     if (externalComponentConfig != null) {

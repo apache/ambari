@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -83,7 +83,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
 
       Collection<String> processedServices = new HashSet<>();
       Blueprint blueprint = topology.getBlueprint();
-      StackInfo stack = blueprint.getStack();
+      StackDefinition stack = blueprint.getStack();
 
       HostGroup hostGroup = blueprint.getHostGroup(hostGroupName);
       for (String component : hostGroup.getComponentNames()) {

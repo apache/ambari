@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.StackId;
 
@@ -122,7 +122,7 @@ public interface Blueprint {
    *
    * @return associated stack
    */
-  StackInfo getStack();
+  StackDefinition getStack();
 
   /**
    * @return the set of stack (mpack) IDs associated with the blueprint

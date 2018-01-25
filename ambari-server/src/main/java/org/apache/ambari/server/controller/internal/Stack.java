@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
@@ -50,12 +51,12 @@ import com.google.common.collect.ImmutableSet;
  * Encapsulates a single, identifiable stack definition.
  */
 // TODO move to topology package
-public class Stack implements StackInfo {
+public class Stack implements StackDefinition {
 
   /**
    * Stack info
    */
-  private final org.apache.ambari.server.state.StackInfo stackInfo;
+  private final StackInfo stackInfo;
 
   /**
    * Map of service name to components
@@ -144,7 +145,7 @@ public class Stack implements StackInfo {
     this(ctrl.getAmbariMetaInfo().getStack(name, version));
   }
 
-  public Stack(org.apache.ambari.server.state.StackInfo stackInfo) {
+  public Stack(StackInfo stackInfo) {
     Preconditions.checkNotNull(stackInfo);
     this.stackInfo = stackInfo;
 

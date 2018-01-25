@@ -69,18 +69,18 @@ public class UnitUpdater implements BlueprintConfigurationProcessor.PropertyUpda
     private static final String DEFAULT_UNIT = "m";
     private final String unit;
 
-    public static PropertyUnit of(StackInfo stack, UnitValidatedProperty property) {
+    public static PropertyUnit of(StackDefinition stack, UnitValidatedProperty property) {
       return PropertyUnit.of(stack, property.getServiceName(), property.getConfigType(), property.getPropertyName());
     }
 
-    public static PropertyUnit of(StackInfo stack, String serviceName, String configType, String propertyName) {
+    public static PropertyUnit of(StackDefinition stack, String serviceName, String configType, String propertyName) {
       return new PropertyUnit(
         stackUnit(stack, serviceName, configType, propertyName)
           .map(PropertyUnit::toJvmUnit)
           .orElse(DEFAULT_UNIT));
     }
 
-    private static Optional<String> stackUnit(StackInfo stack, String serviceName, String configType, String propertyName) {
+    private static Optional<String> stackUnit(StackDefinition stack, String serviceName, String configType, String propertyName) {
       try {
         return Optional.ofNullable(
           stack.getConfigurationPropertiesWithMetadata(serviceName, configType)

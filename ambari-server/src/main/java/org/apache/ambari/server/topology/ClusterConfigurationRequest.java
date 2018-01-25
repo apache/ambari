@@ -36,7 +36,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
@@ -63,7 +63,7 @@ public class ClusterConfigurationRequest {
   private ClusterTopology clusterTopology;
   private BlueprintConfigurationProcessor configurationProcessor;
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
-  private StackInfo stack;
+  private StackDefinition stack;
   private boolean configureSecurity = false;
 
   public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial, StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {

@@ -40,7 +40,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.collect.ImmutableSet;
 
 /** Combines multiple mpacks into a single stack. */
-public class CompositeStack implements StackInfo {
+public class CompositeStack implements StackDefinition {
 
   private final Set<Stack> mpacks;
   private final Collection<String> services;
@@ -283,7 +283,7 @@ public class CompositeStack implements StackInfo {
   public Configuration getConfiguration() {
     // FIXME probably too costly
     return mpacks.stream()
-      .map(StackInfo::getConfiguration)
+      .map(StackDefinition::getConfiguration)
       .reduce(Configuration.createEmpty(), Configuration::combine);
   }
 }

@@ -68,7 +68,7 @@ import org.apache.ambari.server.controller.internal.ServiceDependencyResourcePro
 import org.apache.ambari.server.controller.internal.ServiceGroupDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -760,7 +760,7 @@ public class AmbariContext {
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
     Map<String, Map<String, Config>> groupConfigs = new HashMap<>();
-    StackInfo stack = topology.getBlueprint().getStack();
+    StackDefinition stack = topology.getBlueprint().getStack();
 
     // get the host-group config with cluster creation template overrides
     Configuration topologyHostGroupConfig = topology.

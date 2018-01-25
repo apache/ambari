@@ -16,7 +16,7 @@ import org.apache.ambari.server.topology.Configuration;
 /**
  * Encapsulates stack information.
  */
-public interface StackInfo {
+public interface StackDefinition {
 
   Set<StackId> getStacksForService(String serviceName);
   Set<String> getServices(StackId stackId);

@@ -36,7 +36,7 @@ import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.CompositeStack;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.internal.StackInfo;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -93,7 +93,7 @@ public class BlueprintFactory {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
     if (entity != null) {
       Set<StackId> stackIds = fakeStackIds();
-      StackInfo stack = composeStacks(stackIds);
+      StackDefinition stack = composeStacks(stackIds);
       return new BlueprintImpl(entity, stack, stackIds);
     }
     return null;
@@ -116,7 +116,7 @@ public class BlueprintFactory {
     }
 
     Set<StackId> stackIds = fakeStackIds();
-    StackInfo stack = composeStacks(stackIds);
+    StackDefinition stack = composeStacks(stackIds);
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
             properties.get(CONFIGURATION_PROPERTY_ID));
@@ -125,7 +125,7 @@ public class BlueprintFactory {
     return new BlueprintImpl(name, hostGroups, stack, stackIds, configuration, securityConfiguration, setting);
   }
 
-  public StackInfo composeStacks(Set<StackId> stackIds) {
+  public StackDefinition composeStacks(Set<StackId> stackIds) {
     if (stackIds.size() == 1) {
       return createStack(stackIds.iterator().next());
     }
@@ -154,7 +154,7 @@ public class BlueprintFactory {
 
   //todo: Move logic to HostGroupImpl
   @SuppressWarnings("unchecked")
-  private Collection<HostGroup> processHostGroups(String bpName, StackInfo stack, Map<String, Object> properties) {
+  private Collection<HostGroup> processHostGroups(String bpName, StackDefinition stack, Map<String, Object> properties) {
     Set<HashMap<String, Object>> hostGroupProps = (HashSet<HashMap<String, Object>>)
         properties.get(HOST_GROUP_PROPERTY_ID);
 
@@ -186,7 +186,7 @@ public class BlueprintFactory {
     return hostGroups;
   }
 
-  private Collection<Component> processHostGroupComponents(StackInfo stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
+  private Collection<Component> processHostGroupComponents(StackDefinition stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
     if (componentProps == null || componentProps.isEmpty()) {
       throw new IllegalArgumentException("Host group '" + groupName + "' must contain at least one component");
     }
@@ -224,7 +224,7 @@ public class BlueprintFactory {
    * @return collection of component names for the specified stack
    * @throws IllegalArgumentException if the specified stack doesn't exist
    */
-  private Collection<String> getAllStackComponents(StackInfo stack) {
+  private Collection<String> getAllStackComponents(StackDefinition stack) {
     Collection<String> allComponents = new HashSet<>();
     for (Collection<String> components: stack.getComponents().values()) {
       allComponents.addAll(components);
