@@ -530,7 +530,7 @@ public class RootServiceComponentConfigurationResourceProviderTest extends EasyM
   private void setupBasicExpectations(Map<String, String> expectedProperties) {
     expect(request.getProperties()).andReturn(propertySets).once();
     expect(request.getRequestInfoProperties()).andReturn(new HashMap<>());
-    expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), expectedProperties)).once();
+    expect(dao.findByCategory(LDAP_CONFIG_CATEGORY)).andReturn(createEntities(AmbariServerConfigurationCategory.LDAP_CONFIGURATION.getCategoryName(), expectedProperties)).times(2);
     expect(factory.getInstance(RootService.AMBARI.name(), RootComponent.AMBARI_SERVER.name(), LDAP_CONFIG_CATEGORY)).andReturn(new AmbariServerLDAPConfigurationHandler()).once();
   }
 
