@@ -58,6 +58,7 @@ public class CompositeStack implements StackDefinition {
       .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
+  @Override
   public Set<StackId> getStacksForService(String serviceName) {
     return mpacks.stream()
       .map(m -> Pair.of(m.getStackId(), m.getServices()))
@@ -66,12 +67,20 @@ public class CompositeStack implements StackDefinition {
       .collect(toSet());
   }
 
+  @Override
   public Set<String> getServices(StackId stackId) {
     return mpacks.stream()
       .filter(m -> stackId.equals(m.getStackId()))
       .findAny()
       .flatMap(m -> Optional.of(ImmutableSet.copyOf(m.getServices())))
       .orElse(ImmutableSet.of());
+  }
+
+  @Override
+  public Set<StackId> getStackIds() {
+    return mpacks.stream()
+      .map(Stack::getStackId)
+      .collect(toSet());
   }
 
   @Override

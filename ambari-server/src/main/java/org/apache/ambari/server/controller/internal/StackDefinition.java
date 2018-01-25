@@ -18,7 +18,19 @@ import org.apache.ambari.server.topology.Configuration;
  */
 public interface StackDefinition {
 
+  /**
+   * @return the IDs for the set of stacks that this stacks is (possibly) composed of.
+   */
+  Set<StackId> getStackIds();
+
+  /**
+   * @return the IDs of the set of stacks that the given service is defined in
+   */
   Set<StackId> getStacksForService(String serviceName);
+
+  /**
+   * @return the names of services defined the given stack
+   */
   Set<String> getServices(StackId stackId);
 
   /**

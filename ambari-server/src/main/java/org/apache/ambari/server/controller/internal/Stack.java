@@ -29,7 +29,6 @@ import java.util.stream.Stream;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ReadOnlyConfigurationResponse;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -128,19 +127,6 @@ public class Stack implements StackDefinition {
   private Map<String, Set<String>> excludedConfigurationTypes =
     new HashMap<>();
 
-  /**
-   * Constructor.
-   *
-   * @param stack
-   *          the stack (not {@code null}).
-   *
-   * @throws AmbariException an exception occurred getting stack information
-   *                         for the specified name and version
-   */
-  public Stack(StackEntity stack, AmbariManagementController ctrl) throws AmbariException { // FIXME seems to be unused
-    this(stack.getStackName(), stack.getStackVersion(), ctrl);
-  }
-
   public Stack(String name, String version, AmbariManagementController ctrl) throws AmbariException { // FIXME remove or at least change to use metainfo directly
     this(ctrl.getAmbariMetaInfo().getStack(name, version));
   }
@@ -186,6 +172,11 @@ public class Stack implements StackDefinition {
 
   Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
     return dependencyConditionalServiceMap;
+  }
+
+  @Override
+  public Set<StackId> getStackIds() {
+    return ImmutableSet.of(getStackId());
   }
 
   @Override
