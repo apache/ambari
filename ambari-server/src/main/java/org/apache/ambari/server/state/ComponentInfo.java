@@ -38,7 +38,11 @@ public class ComponentInfo {
   private String category;
   private boolean deleted;
   private String cardinality;
-  
+
+  //Should inherit the service version if component version is not defined
+  //Doesn't inherit version from parent component
+  private String version;
+
   @XmlElement(name="versionAdvertised")
   private Boolean versionAdvertisedField;
   
@@ -162,6 +166,8 @@ public class ComponentInfo {
   public ComponentInfo(ComponentInfo prototype) {
     name = prototype.name;
     category = prototype.category;
+    version = prototype.version;
+    displayName = prototype.displayName;
     deleted = prototype.deleted;
     cardinality = prototype.cardinality;
     versionAdvertisedField = prototype.versionAdvertisedField;
@@ -198,6 +204,14 @@ public class ComponentInfo {
 
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
+  }
+
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
   }
 
   public String getCategory() {
@@ -460,6 +474,7 @@ public class ComponentInfo {
     ComponentInfo that = (ComponentInfo) o;
 
     if (deleted != that.deleted) return false;
+    if (version != that.version) return false;
     if (autoDeploy != null ? !autoDeploy.equals(that.autoDeploy) : that.autoDeploy != null) return false;
     if (cardinality != null ? !cardinality.equals(that.cardinality) : that.cardinality != null) return false;
     if (versionAdvertisedField != null ? !versionAdvertisedField.equals(that.versionAdvertisedField) : that.versionAdvertisedField != null) return false;
@@ -492,6 +507,7 @@ public class ComponentInfo {
   public int hashCode() {
     int result = name != null ? name.hashCode() : 0;
     result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
+    result = 31 * result + (version != null ? version.hashCode() : 0);
     result = 31 * result + (category != null ? category.hashCode() : 0);
     result = 31 * result + (deleted ? 1 : 0);
     result = 31 * result + (cardinality != null ? cardinality.hashCode() : 0);

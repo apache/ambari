@@ -62,6 +62,9 @@ public class StackServiceComponentResourceProvider extends
   private static final String COMPONENT_CATEGORY_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "component_category");
 
+  private static final String COMPONENT_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "component_version");
+
   private static final String IS_CLIENT_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "is_client");
 
@@ -194,6 +197,9 @@ public class StackServiceComponentResourceProvider extends
 
       setResourceProperty(resource, COMPONENT_CATEGORY_PROPERTY_ID,
           response.getComponentCategory(), requestedIds);
+
+      setResourceProperty(resource, COMPONENT_VERSION_PROPERTY_ID,
+          response.getComponentVersion(), requestedIds);
 
       setResourceProperty(resource, IS_CLIENT_PROPERTY_ID,
           response.isClient(), requestedIds);

@@ -159,6 +159,66 @@ public class ServiceInfoTest {
   }
 
   @Test
+  public void testServiceCategory() throws Exception {
+
+    String serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>CLIENT_SERVICE_NAME</name>\n" +
+        "      <category>CLIENT</category>\n" +
+        "    </service>\n" +
+        "    <service>\n" +
+        "      <name>SERVER_SERVICE_NAME</name>\n" +
+        "      <category>SERVER</category>\n" +
+        "    </service>\n" +
+        "    <service>\n" +
+        "      <name>DEFAULT</name>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+
+
+    assertEquals(ServiceCategory.CLIENT, serviceInfoMap.get("CLIENT_SERVICE_NAME").getCategory());
+    assertEquals(ServiceCategory.SERVER, serviceInfoMap.get("SERVER_SERVICE_NAME").getCategory());
+    //the default LEGACY value is set in stack manager, not the service info, this is needed for inheritance
+    assertNull(serviceInfoMap.get("DEFAULT").getCategory());
+  }
+
+  @Test
+  public void testComponentVersion() throws Exception {
+
+    String serviceInfoXml = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>service_name</name>\n" +
+        "      <version>service-version</version>" +
+        "      <components>\n" +
+        "        <component>\n" +
+        "          <name>HBASE_MASTER</name>\n" +
+        "          <version>component-version</version>\n" +
+        "        </component>\n" +
+        "        <component>\n" +
+        "          <name>HBASE_MASTER_2</name>\n" +
+        "        </component>\n" +
+      "        </components>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+
+
+    assertEquals("service-version", serviceInfoMap.get("service_name").getVersion());
+    assertEquals("component-version", serviceInfoMap.get("service_name").getComponentByName("HBASE_MASTER").getVersion());
+    //the component version is set to service version in stack module, not the service module
+    assertNull(serviceInfoMap.get("service_name").getComponentByName("HBASE_MASTER_2").getVersion());
+  }
+
+  @Test
   public void testSelectionField() throws Exception {
     String serviceInfoXmlDeprecated = "<metainfo>\n" +
         "  <schemaVersion>2.0</schemaVersion>\n" +

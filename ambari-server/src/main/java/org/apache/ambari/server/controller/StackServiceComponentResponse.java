@@ -59,6 +59,11 @@ public class StackServiceComponentResponse {
   private String componentDisplayName;
 
   /**
+   * component version
+   */
+  private String componentVersion;
+
+  /**
    * component category
    */
   private String componentCategory;
@@ -132,6 +137,7 @@ public class StackServiceComponentResponse {
     componentName = component.getName();
     componentDisplayName = component.getDisplayName();
     componentCategory = component.getCategory();
+    componentVersion = component.getVersion();
     isClient = component.isClient();
     isMaster = component.isMaster();
     cardinality = component.getCardinality();
@@ -319,6 +325,25 @@ public class StackServiceComponentResponse {
    */
   public void setComponentCategory(String componentCategory) {
     this.componentCategory = componentCategory;
+  }
+
+  /**
+   * Get component version.
+   *
+   * @return component version
+   */
+  @ApiModelProperty(name = "component_version")
+  public String getComponentVersion() {
+    return componentVersion;
+  }
+
+  /**
+   * Set the component version.
+   *
+   * @param componentVersion  component version
+   */
+  public void setComponentVersion(String componentVersion) {
+    this.componentVersion = componentVersion;
   }
 
   /**

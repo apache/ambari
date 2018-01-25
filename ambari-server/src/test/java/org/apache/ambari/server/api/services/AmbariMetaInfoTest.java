@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceCategory;
 import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -1543,6 +1544,30 @@ public class AmbariMetaInfoTest {
     assertEquals("ZOOKEEPER_SERVER", dependency.getComponentName());
     assertEquals("ZOOKEEPER", dependency.getServiceName());
     assertEquals("cluster", dependency.getScope());
+  }
+
+  @Test
+  public void testResolveComponentVersion() throws AmbariException {
+    ServiceInfo parentServiceInfo = metaInfo.getService("HDP", "2.0.6", "HBASE");
+    assertEquals("0.95.2.2.0.6.0", parentServiceInfo.getVersion());
+
+    ComponentInfo parentComponentInfo = metaInfo.getComponent("HDP", "2.0.6", "HBASE", "HBASE_MASTER");
+    assertEquals("0.95.2.2.0.6.0-hbase-master", parentComponentInfo.getVersion());
+
+    ComponentInfo childComponentInfo = metaInfo.getComponent("HDP", "2.0.6.1", "HBASE", "HBASE_MASTER");
+    assertEquals("0.95.2.2.0.6.1", childComponentInfo.getVersion());
+  }
+
+  @Test
+  public void testResolveServiceCategory() throws AmbariException {
+    ServiceInfo defaultServiceInfo = metaInfo.getService("HDP", "2.0.5", "HBASE");
+    assertEquals(ServiceCategory.LEGACY, defaultServiceInfo.getCategory());
+
+    ServiceInfo parentServiceInfo = metaInfo.getService("HDP", "2.0.6", "HBASE");
+    assertEquals(ServiceCategory.SERVER, parentServiceInfo.getCategory());
+
+    ServiceInfo childServiceInfo = metaInfo.getService("HDP", "2.0.6.1", "HBASE");
+    assertEquals(ServiceCategory.CLIENT, childServiceInfo.getCategory());;
   }
 
   @Test

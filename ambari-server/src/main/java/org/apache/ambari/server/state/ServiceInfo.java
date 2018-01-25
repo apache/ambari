@@ -69,6 +69,7 @@ public class ServiceInfo implements Validable, Cloneable {
   private String schemaVersion;
 
   private String name;
+  private ServiceCategory category;
   private String displayName;
   private String version;
   private String comment;
@@ -350,6 +351,14 @@ public class ServiceInfo implements Validable, Cloneable {
     this.name = name;
   }
 
+  public ServiceCategory getCategory() {
+    return category;
+  }
+
+  public void setCategory(ServiceCategory category) {
+    this.category = category;
+  }
+
   public String getParent() {
     return parent;
   }
@@ -489,6 +498,11 @@ public class ServiceInfo implements Validable, Cloneable {
     return components;
   }
 
+  //Used only for testing purposes
+  public void setComponents(List<ComponentInfo> components) {
+    this.components = components;
+  }
+
   /**
    * Finds ComponentInfo by component name
    * @param componentName  name of the component
@@ -503,6 +517,9 @@ public class ServiceInfo implements Validable, Cloneable {
     return null;
   }
   public boolean isClientOnlyService() {
+    if (category.equals(ServiceCategory.CLIENT)) {
+      return true;
+    }
     if (components == null || components.isEmpty()) {
       return false;
     }
