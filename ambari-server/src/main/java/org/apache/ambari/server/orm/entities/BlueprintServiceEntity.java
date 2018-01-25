@@ -47,8 +47,8 @@ public class BlueprintServiceEntity {
   private Long id;
 
   @ManyToOne()
-  @JoinColumn(name = "mpack_ref_id", referencedColumnName = "id", nullable = false)
-  private BlueprintMpackInstanceEntity mpackReference;
+  @JoinColumn(name = "mpack_instance_id", referencedColumnName = "id", nullable = false)
+  private BlueprintMpackInstanceEntity mpackInstance;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "service")
   private Collection<BlueprintServiceConfigEntity> configurations = new ArrayList<>();
@@ -72,17 +72,17 @@ public class BlueprintServiceEntity {
   }
 
   /**
-   * @return the mpack reference to the mpack associated with this service
+   * @return the mpack instance to the mpack associated with this service
    */
-  public BlueprintMpackInstanceEntity getMpackReference() {
-    return mpackReference;
+  public BlueprintMpackInstanceEntity getMpackInstance() {
+    return mpackInstance;
   }
 
   /**
-   * @param mpackReference the mpack reference to the mpack associated with this service
+   * @param mpackInstance the mpack instance to the mpack associated with this service
    */
-  public void setMpackReference(BlueprintMpackInstanceEntity mpackReference) {
-    this.mpackReference = mpackReference;
+  public void setMpackInstance(BlueprintMpackInstanceEntity mpackInstance) {
+    this.mpackInstance = mpackInstance;
   }
 
   /**

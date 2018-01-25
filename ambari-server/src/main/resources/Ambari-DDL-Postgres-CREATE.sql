@@ -136,8 +136,8 @@ CREATE TABLE servicegroupdependencies (
   dependent_service_group_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicegroupdependencies PRIMARY KEY (id),
   CONSTRAINT UQ_servicegroupdependencies UNIQUE (service_group_id, service_group_cluster_id, dependent_service_group_id, dependent_service_group_cluster_id),
-  CONSTRAINT FK_servicegroupdependencies_service_group_cluster_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
-  CONSTRAINT FK_servicegroupdependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
+  CONSTRAINT FK_svcgrpdep_svcgrp_cl_id FOREIGN KEY (service_group_id, service_group_cluster_id) REFERENCES servicegroups (id, cluster_id),
+  CONSTRAINT FK_svcgrpdep_dep_svcgrp_cl_id FOREIGN KEY (dependent_service_group_id, dependent_service_group_cluster_id) REFERENCES servicegroups (id, cluster_id));
 
 CREATE TABLE clusterservices (
   id BIGINT NOT NULL,
@@ -181,8 +181,8 @@ CREATE TABLE servicedependencies (
   dependent_service_cluster_id BIGINT NOT NULL,
   CONSTRAINT PK_servicedependencies PRIMARY KEY (id),
   CONSTRAINT UQ_servicedependencies UNIQUE (service_id, service_group_id, service_cluster_id, dependent_service_id, dependent_service_group_id, dependent_service_cluster_id),
-  CONSTRAINT FK_servicedependencies_service_group_cluster_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
-  CONSTRAINT FK_servicedependencies_dependent_service_group_cluster_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
+  CONSTRAINT FK_svcdep_svc_grp_clstr_id FOREIGN KEY (service_id, service_group_id, service_cluster_id) REFERENCES clusterservices  (id, service_group_id, cluster_id),
+  CONSTRAINT FK_svcdep_dep_scv_grp_clstr_id FOREIGN KEY (dependent_service_id, dependent_service_group_id, dependent_service_cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id));
 
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE serviceconfig (
   note TEXT,
   CONSTRAINT PK_serviceconfig PRIMARY KEY (service_config_id),
   CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
-  CONSTRAINT FK_serviceconfig_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT FK_serviceconfig_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_id, version ));
 
 CREATE TABLE serviceconfighosts (
@@ -524,8 +524,8 @@ CREATE TABLE hostconfigmapping (
   selected INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
   CONSTRAINT PK_hostconfigmapping PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp),
-  CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_hostconfmapping_cluster_service FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
+  CONSTRAINT FK_hostconfmapping_clstr_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
+  CONSTRAINT FK_hostconfmapping_clstr_svc FOREIGN KEY (service_id, service_group_id, cluster_id) REFERENCES clusterservices (id, service_group_id, cluster_id),
   CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
 CREATE TABLE metainfo (
@@ -601,11 +601,11 @@ CREATE TABLE blueprint_mpack_instance(
 
 CREATE TABLE blueprint_service (
   id BIGINT NOT NULL,
-  mpack_ref_id BIGINT NOT NULL,
+  mpack_instance_id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL,
   type VARCHAR(255) NOT NULL,
   CONSTRAINT PK_blueprint_service PRIMARY KEY (id),
-  CONSTRAINT FK_blueprint_service_mpack_ref FOREIGN KEY (mpack_ref_id) REFERENCES blueprint_mpack_reference(id));
+  CONSTRAINT FK_blueprint_svc_mpack_inst FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
 
 CREATE TABLE blueprint_service_config (
   service_id BIGINT NOT NULL,
@@ -616,12 +616,12 @@ CREATE TABLE blueprint_service_config (
   CONSTRAINT FK_bp_svc_config_to_service FOREIGN KEY (service_id) REFERENCES blueprint_service (id));
 
 CREATE TABLE blueprint_mpack_configuration (
-  mpack_ref_id BIGINT NOT NULL,
+  mpack_instance_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data TEXT NOT NULL,
   config_attributes TEXT,
-  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_ref_id, type_name),
-  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_ref_id) REFERENCES blueprint_mpack_reference (id));
+  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_instance_id, type_name),
+  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,

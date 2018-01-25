@@ -68,7 +68,7 @@ public class BlueprintEntity {
   private Collection<BlueprintSettingEntity> settings = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
-  private Collection<BlueprintMpackInstanceEntity> mpackReferences = new ArrayList<>();
+  private Collection<BlueprintMpackInstanceEntity> mpackInstances = new ArrayList<>();
 
 
   /**
@@ -159,11 +159,11 @@ public class BlueprintEntity {
     this.securityDescriptorReference = securityDescriptorReference;
   }
 
-  public Collection<BlueprintMpackInstanceEntity> getMpackReferences() {
-    return mpackReferences;
+  public Collection<BlueprintMpackInstanceEntity> getMpackInstances() {
+    return mpackInstances;
   }
 
-  public void setMpackReferences(Collection<BlueprintMpackInstanceEntity> mpackReferences) {
-    this.mpackReferences = mpackReferences;
+  public void setMpackInstances(Collection<BlueprintMpackInstanceEntity> mpackInstances) {
+    this.mpackInstances = mpackInstances;
   }
 }

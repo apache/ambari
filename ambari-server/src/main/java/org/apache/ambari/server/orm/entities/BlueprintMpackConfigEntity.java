@@ -38,8 +38,8 @@ import javax.persistence.Table;
 public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
 
   @Id
-  @Column(name = "mpack_ref_id", nullable = false, insertable = false, updatable = false)
-  private Long mpackRefId;
+  @Column(name = "mpack_instance_id", nullable = false, insertable = false, updatable = false)
+  private Long mpackInstanceId;
 
   @Id
   @Column(name = "type_name", nullable = false, insertable = true, updatable = false, length = 100)
@@ -56,21 +56,21 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   private String configAttributes;
 
   @ManyToOne
-  @JoinColumn(name = "mpack_ref_id", referencedColumnName = "id", nullable = false)
-  private BlueprintMpackInstanceEntity mpackReference;
+  @JoinColumn(name = "mpack_instance_id", referencedColumnName = "id", nullable = false)
+  private BlueprintMpackInstanceEntity mpackInstance;
 
   /**
-   * @return the id of the mpack referency entity this configuration belongs to
+   * @return the id of the mpack instance entity this configuration belongs to
    */
-  public Long getMpackRefId() {
-    return mpackRefId;
+  public Long getMpackInstanceId() {
+    return mpackInstanceId;
   }
 
   /**
-   * @param mpackRefId the id of the mpack referency entity this configuration belongs to
+   * @param mpackInstanceId the id of the instance referency entity this configuration belongs to
    */
-  public void setMpackRefId(Long mpackRefId) {
-    this.mpackRefId = mpackRefId;
+  public void setMpackInstanceId(Long mpackInstanceId) {
+    this.mpackInstanceId = mpackInstanceId;
   }
 
   /**
@@ -109,7 +109,7 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
    */
   @Override
   public String getBlueprintName() {
-    return getMpackReference().getBlueprint().getBlueprintName();
+    return getMpackInstance().getBlueprint().getBlueprintName();
   }
 
   /**
@@ -134,16 +134,16 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   }
 
   /**
-   * @return the mpack referency entity this configuration belongs to
+   * @return the mpack instance entity this configuration belongs to
    */
-  public BlueprintMpackInstanceEntity getMpackReference() {
-    return mpackReference;
+  public BlueprintMpackInstanceEntity getMpackInstance() {
+    return mpackInstance;
   }
 
   /**
-   * @param mpackReference the mpack referency entity this configuration belongs to
+   * @param mpackInstance the mpack instance entity this configuration belongs to
    */
-  public void setMpackReference(BlueprintMpackInstanceEntity mpackReference) {
-    this.mpackReference = mpackReference;
+  public void setMpackInstance(BlueprintMpackInstanceEntity mpackInstance) {
+    this.mpackInstance = mpackInstance;
   }
 }

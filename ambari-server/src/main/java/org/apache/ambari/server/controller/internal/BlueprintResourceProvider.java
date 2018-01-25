@@ -377,7 +377,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
         // TODO: use multiple mpacks
         BlueprintMpackInstanceEntity mpack =
-          ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackReferences().iterator().next();
+          ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackInstances().iterator().next();
         StackInfo metaInfoStack;
 
         try {
