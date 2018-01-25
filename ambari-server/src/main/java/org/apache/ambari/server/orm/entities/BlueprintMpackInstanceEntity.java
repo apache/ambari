@@ -48,7 +48,7 @@ import javax.persistence.TableGenerator;
   valueColumnName = "sequence_value", pkColumnValue = "blueprint_mpack_instance_id_seq", initialValue = 1)
 public class BlueprintMpackInstanceEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE, generator = "blueprint_mpack_reference_id_generator")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "blueprint_mpack_instance_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
   private Long id;
 
@@ -61,10 +61,10 @@ public class BlueprintMpackInstanceEntity {
   @Column(name = "mpack_uri")
   private String mpackUri;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackReference")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackInstance")
   private Collection<BlueprintServiceEntity> serviceInstances = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackReference")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "mpackInstance")
   private Collection<BlueprintMpackConfigEntity> configurations = new ArrayList<>();
 
   @ManyToOne

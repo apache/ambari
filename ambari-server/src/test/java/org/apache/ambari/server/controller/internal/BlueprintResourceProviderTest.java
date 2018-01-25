@@ -811,7 +811,7 @@ public class BlueprintResourceProviderTest {
     mpackEntity.setMpackVersion(stackVersion);
     mpackEntity.setBlueprint(entity);
 
-    entity.getMpackReferences().add(mpackEntity);
+    entity.getMpackInstances().add(mpackEntity);
 
     Set<Map<String, Object>> hostGroupProperties = (Set<Map<String, Object>>) properties.get(
         BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
@@ -1024,12 +1024,12 @@ public class BlueprintResourceProviderTest {
     expect(info.getConfigPropertiesTypes("type3")).andReturn(pwdProperties).anyTimes();
     expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
 
-    BlueprintMpackInstanceEntity mpackReference = createMock(BlueprintMpackInstanceEntity.class);
-    expect(mpackReference.getMpackName()).andReturn("test-stack-name").anyTimes();
-    expect(mpackReference.getMpackVersion()).andReturn("test-stack-version").anyTimes();
-    expect(entity.getMpackReferences()).andReturn(Collections.singleton(mpackReference)).anyTimes();
+    BlueprintMpackInstanceEntity mpackInstance = createMock(BlueprintMpackInstanceEntity.class);
+    expect(mpackInstance.getMpackName()).andReturn("test-stack-name").anyTimes();
+    expect(mpackInstance.getMpackVersion()).andReturn("test-stack-version").anyTimes();
+    expect(entity.getMpackInstances()).andReturn(Collections.singleton(mpackInstance)).anyTimes();
 
-    replay(info, metaInfo, entity, mpackReference);
+    replay(info, metaInfo, entity, mpackInstance);
 
 
     // attributes is null

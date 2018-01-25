@@ -93,7 +93,7 @@ public class BlueprintServiceConfigEntity implements BlueprintConfiguration {
    */
   @Override
   public String getBlueprintName() {
-    return getService().getMpackReference().getBlueprint().getBlueprintName();
+    return getService().getMpackInstance().getBlueprint().getBlueprintName();
   }
 
   /**

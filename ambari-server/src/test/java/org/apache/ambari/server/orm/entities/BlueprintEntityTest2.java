@@ -82,15 +82,15 @@ public class BlueprintEntityTest2 {
   }
 
   private void verifyBlueprint(BlueprintEntity blueprintEntity) {
-    assertEquals(1, blueprintEntity.getMpackReferences().size());
+    assertEquals(1, blueprintEntity.getMpackInstances().size());
 
-    BlueprintMpackInstanceEntity mpackReferenceEntity =
-      blueprintEntity.getMpackReferences().iterator().next();
-    assertEquals("HDPCORE", mpackReferenceEntity.getMpackName());
-    assertEquals(1, mpackReferenceEntity.getConfigurations().size());
+    BlueprintMpackInstanceEntity mpackInstanceEntity =
+      blueprintEntity.getMpackInstances().iterator().next();
+    assertEquals("HDPCORE", mpackInstanceEntity.getMpackName());
+    assertEquals(1, mpackInstanceEntity.getConfigurations().size());
 
     BlueprintMpackConfigEntity mpackConfigEntity =
-      mpackReferenceEntity.getConfigurations().iterator().next();
+      mpackInstanceEntity.getConfigurations().iterator().next();
     assertEquals("configdata", mpackConfigEntity.getConfigData());
     assertEquals("zk-env.sh", mpackConfigEntity.getType());
 
@@ -109,11 +109,11 @@ public class BlueprintEntityTest2 {
     HostGroupConfigEntity hostGroupConfig = hostGroup.getConfigurations().iterator().next();
     assertEquals("hdfs-site", hostGroupConfig.getType());
 
-    assertEquals(1, mpackReferenceEntity.getServiceInstances().size());
-    BlueprintServiceEntity service = mpackReferenceEntity.getServiceInstances().iterator().next();
+    assertEquals(1, mpackInstanceEntity.getServiceInstances().size());
+    BlueprintServiceEntity service = mpackInstanceEntity.getServiceInstances().iterator().next();
     assertEquals("ZK1", service.getName());
     assertEquals("ZOOKEEPER", service.getType());
-    assertSame(mpackReferenceEntity, service.getMpackReference());
+    assertSame(mpackInstanceEntity, service.getMpackInstance());
 
     assertEquals(1, service.getConfigurations().size());
     assertEquals("hadoop-env", service.getConfigurations().iterator().next().getType());
@@ -131,7 +131,7 @@ public class BlueprintEntityTest2 {
     mpackInstanceEntity.setMpackUri("http://hdpcore.org/3.0.0.0");
 
     BlueprintMpackConfigEntity mpackConfigEntity = new BlueprintMpackConfigEntity();
-    mpackConfigEntity.setMpackReference(mpackInstanceEntity);
+    mpackConfigEntity.setMpackInstance(mpackInstanceEntity);
     mpackConfigEntity.setConfigAttributes("attributes");
     mpackConfigEntity.setConfigData("configdata");
     mpackConfigEntity.setType("zk-env.sh");
@@ -163,7 +163,7 @@ public class BlueprintEntityTest2 {
     hostGroupEntity.addComponent(hgComponentEntity2);
 
     BlueprintServiceEntity blueprintService = new BlueprintServiceEntity();
-    blueprintService.setMpackReference(mpackInstanceEntity);
+    blueprintService.setMpackInstance(mpackInstanceEntity);
     blueprintService.setName("ZK1");
     blueprintService.setType("ZOOKEEPER");
     mpackInstanceEntity.getServiceInstances().add(blueprintService);
@@ -175,7 +175,7 @@ public class BlueprintEntityTest2 {
     blueprintServiceConfigEntity.setConfigData("data");
     blueprintService.getConfigurations().add(blueprintServiceConfigEntity);
 
-    blueprintEntity.getMpackReferences().add(mpackInstanceEntity);
+    blueprintEntity.getMpackInstances().add(mpackInstanceEntity);
     blueprintEntity.getHostGroups().add(hostGroupEntity);
 
     return blueprintEntity;
