@@ -16,8 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from unittest import TestCase
 import os
+from unittest import TestCase
+from resource_management.libraries.functions.mpack_version import MpackVersion
+from resource_management.libraries.functions.module_version import ModuleVersion
 
 
 class TestVersion(TestCase):
@@ -81,3 +83,97 @@ class TestVersion(TestCase):
       pass
     else:
       self.fail("Did not raise exception")
+
+
+  def test_mpack_version(self):
+    try:
+      MpackVersion.parse("")
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+    try:
+      MpackVersion.parse(None)
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+    try:
+      MpackVersion.parse_stack_version("")
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+    try:
+      MpackVersion.parse_stack_version(None)
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+    try:
+      ModuleVersion.parse("")
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+    try:
+      ModuleVersion.parse(None)
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+
+    try:
+      MpackVersion.parse("1.2.3.4-h1-b1")
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+    try:
+      MpackVersion.parse_stack_version("1.1.1.1.1-1")
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+
+    try:
+      ModuleVersion.parse("1.1.1.1-h1")
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")
+
+    m1 = MpackVersion.parse("1.2.3-h1-b2")
+    m2 = MpackVersion.parse("1.2.3-b2")
+    self.assertTrue(m1 > m2)
+
+    m1 = MpackVersion.parse("1.2.3-h1-b2")
+    m2 = MpackVersion.parse_stack_version("1.2.3.4-33")
+    self.assertTrue(m1 < m2)
+
+    m1 = MpackVersion.parse("1.2.3-h0-b10")
+    m2 = MpackVersion.parse("1.2.3-b10")
+    self.assertTrue(m1 == m2)
+
+    m1 = ModuleVersion.parse("1.2.3.4-h10-b10")
+    m2 = ModuleVersion.parse("1.2.3.4-b888")
+    self.assertTrue(m1 > m2)
+
+    m1 = ModuleVersion.parse("1.2.3.5-h10-b10")
+    m2 = ModuleVersion.parse("1.2.3.4-b888")
+    self.assertTrue(m1 > m2)
+
+    m1 = ModuleVersion.parse("1.2.3.4-h0-b10")
+    m2 = ModuleVersion.parse("1.2.3.4-b10")
+    self.assertTrue(m1 == m2)
+
+
+
