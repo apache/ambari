@@ -124,18 +124,18 @@ public class BlueprintEntityTest2 {
     blueprintEntity.setBlueprintName(BLUEPRINT_NAME);
     blueprintEntity.setSecurityType(SecurityType.NONE);
 
-    BlueprintMpackInstanceEntity mpackReferenceEntity = new BlueprintMpackInstanceEntity();
-    mpackReferenceEntity.setBlueprint(blueprintEntity);
-    mpackReferenceEntity.setMpackName("HDPCORE");
-    mpackReferenceEntity.setMpackVersion("3.0.0.0");
-    mpackReferenceEntity.setMpackUri("http://hdpcore.org/3.0.0.0");
+    BlueprintMpackInstanceEntity mpackInstanceEntity = new BlueprintMpackInstanceEntity();
+    mpackInstanceEntity.setBlueprint(blueprintEntity);
+    mpackInstanceEntity.setMpackName("HDPCORE");
+    mpackInstanceEntity.setMpackVersion("3.0.0.0");
+    mpackInstanceEntity.setMpackUri("http://hdpcore.org/3.0.0.0");
 
     BlueprintMpackConfigEntity mpackConfigEntity = new BlueprintMpackConfigEntity();
-    mpackConfigEntity.setMpackReference(mpackReferenceEntity);
+    mpackConfigEntity.setMpackReference(mpackInstanceEntity);
     mpackConfigEntity.setConfigAttributes("attributes");
     mpackConfigEntity.setConfigData("configdata");
     mpackConfigEntity.setType("zk-env.sh");
-    mpackReferenceEntity.getConfigurations().add(mpackConfigEntity);
+    mpackInstanceEntity.getConfigurations().add(mpackConfigEntity);
 
     HostGroupEntity hostGroupEntity = new HostGroupEntity();
     hostGroupEntity.setBlueprintEntity(blueprintEntity);
@@ -163,10 +163,10 @@ public class BlueprintEntityTest2 {
     hostGroupEntity.addComponent(hgComponentEntity2);
 
     BlueprintServiceEntity blueprintService = new BlueprintServiceEntity();
-    blueprintService.setMpackReference(mpackReferenceEntity);
+    blueprintService.setMpackReference(mpackInstanceEntity);
     blueprintService.setName("ZK1");
     blueprintService.setType("ZOOKEEPER");
-    mpackReferenceEntity.getServiceInstances().add(blueprintService);
+    mpackInstanceEntity.getServiceInstances().add(blueprintService);
 
     BlueprintServiceConfigEntity blueprintServiceConfigEntity = new BlueprintServiceConfigEntity();
     blueprintServiceConfigEntity.setService(blueprintService);
@@ -175,7 +175,7 @@ public class BlueprintEntityTest2 {
     blueprintServiceConfigEntity.setConfigData("data");
     blueprintService.getConfigurations().add(blueprintServiceConfigEntity);
 
-    blueprintEntity.getMpackReferences().add(mpackReferenceEntity);
+    blueprintEntity.getMpackReferences().add(mpackInstanceEntity);
     blueprintEntity.getHostGroups().add(hostGroupEntity);
 
     return blueprintEntity;

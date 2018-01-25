@@ -611,11 +611,11 @@ CREATE TABLE blueprint_mpack_instance(
 
 CREATE TABLE blueprint_service (
   id NUMBER(19) NOT NULL,
-  mpack_ref_id NUMBER(19) NOT NULL,
+  mpack_instance_id NUMBER(19) NOT NULL,
   name VARCHAR2(255) NOT NULL,
   type VARCHAR2(255) NOT NULL,
   CONSTRAINT PK_blueprint_service PRIMARY KEY (id),
-  CONSTRAINT FK_blueprint_service_mpack_ref FOREIGN KEY (mpack_ref_id) REFERENCES blueprint_mpack_reference(id));
+  CONSTRAINT FK_blueprint_svc_mpack_inst FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
 
 CREATE TABLE blueprint_service_config (
   service_id NUMBER(19) NOT NULL,
@@ -626,12 +626,12 @@ CREATE TABLE blueprint_service_config (
   CONSTRAINT FK_bp_svc_config_to_service FOREIGN KEY (service_id) REFERENCES blueprint_service (id));
 
 CREATE TABLE blueprint_mpack_configuration (
-  mpack_ref_id NUMBER(19) NOT NULL,
+  mpack_instance_id NUMBER(19) NOT NULL,
   type_name VARCHAR2(255) NOT NULL,
   config_data CLOB NOT NULL,
   config_attributes CLOB,
-  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_ref_id, type_name),
-  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_ref_id) REFERENCES blueprint_mpack_reference (id));
+  CONSTRAINT PK_bp_mpack_conf PRIMARY KEY (mpack_instance_id, type_name),
+  CONSTRAINT FK_bp_mpack_config_to_mpack FOREIGN KEY (mpack_instance_id) REFERENCES blueprint_mpack_instance(id));
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR2(255) NOT NULL,
