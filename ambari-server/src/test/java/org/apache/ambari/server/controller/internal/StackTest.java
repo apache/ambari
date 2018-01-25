@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Configuration;
@@ -51,6 +52,7 @@ import com.google.common.collect.ImmutableSet;
  */
 public class StackTest {
 
+  private static final StackId STACK_ID = new StackId("stack name", "1.0");
   private static final String STACK_CONFIG_TYPE = "cluster-env";
   private static final String STACK_CONFIG_FILE = STACK_CONFIG_TYPE + ".xml";
   private static final String SERVICE_CONFIG_TYPE = "test-site";
@@ -67,8 +69,8 @@ public class StackTest {
   @Before
   public void setUp() {
     stackInfo = new StackInfo();
-    stackInfo.setName("stack name");
-    stackInfo.setVersion("1.0");
+    stackInfo.setName(STACK_ID.getStackName());
+    stackInfo.setVersion(STACK_ID.getStackVersion());
 
     serviceInfo = new ServiceInfo();
     serviceInfo.setName("some service");
@@ -131,6 +133,55 @@ public class StackTest {
 
     // THEN
     assertEquals(ImmutableSet.of(serviceInfo.getName()), ImmutableSet.copyOf(services));
+  }
+
+  @Test
+  public void getServicesForOwnStackId() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Collection<String> services = stack.getServices(stack.getStackId());
+
+    // THEN
+    assertEquals(ImmutableSet.of(serviceInfo.getName()), ImmutableSet.copyOf(services));
+  }
+
+  @Test
+  public void getServicesForOtherStackId() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Collection<String> services = stack.getServices(new StackId("other stack", "1.0"));
+
+    // THEN
+    assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(services));
+  }
+
+  @Test
+  public void getStacksForServicesInStack() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    for (String service : stack.getServices()) {
+      // WHEN
+      Set<StackId> stacksForService = stack.getStacksForService(service);
+      // THEN
+      assertEquals("Stack for service " + service, ImmutableSet.of(STACK_ID), stacksForService);
+    }
+  }
+
+  @Test
+  public void getStacksForUnknownService() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Set<StackId> stacksForService = stack.getStacksForService("unknown service");
+
+    // THEN
+    assertEquals(ImmutableSet.of(), stacksForService);
   }
 
   @Test

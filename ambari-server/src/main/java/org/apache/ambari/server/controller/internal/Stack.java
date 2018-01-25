@@ -190,12 +190,16 @@ public class Stack implements StackDefinition {
 
   @Override
   public Set<StackId> getStacksForService(String serviceName) {
-    return Collections.singleton(getStackId());
+    return serviceComponents.keySet().contains(serviceName)
+      ? ImmutableSet.of(getStackId())
+      : ImmutableSet.of();
   }
 
   @Override
   public Set<String> getServices(StackId stackId) {
-    return stackId.equals(getStackId()) ? ImmutableSet.copyOf(getServices()) : ImmutableSet.of();
+    return stackId.equals(getStackId())
+      ? ImmutableSet.copyOf(getServices())
+      : ImmutableSet.of();
   }
 
   @Override
