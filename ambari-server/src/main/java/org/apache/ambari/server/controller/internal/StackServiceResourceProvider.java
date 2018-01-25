@@ -120,6 +120,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static Set<String> propertyIds = Sets.newHashSet(
       SERVICE_NAME_PROPERTY_ID,
       SERVICE_TYPE_PROPERTY_ID,
+      SERVICE_CATEGORY_PROPERTY_ID,
       STACK_NAME_PROPERTY_ID,
       STACK_VERSION_PROPERTY_ID,
       SERVICE_DISPLAY_NAME_PROPERTY_ID,

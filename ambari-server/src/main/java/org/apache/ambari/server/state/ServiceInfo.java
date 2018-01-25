@@ -517,7 +517,7 @@ public class ServiceInfo implements Validable, Cloneable {
     return null;
   }
   public boolean isClientOnlyService() {
-    if (category.equals(ServiceCategory.CLIENT)) {
+    if (ServiceCategory.CLIENT.equals(category)) {
       return true;
     }
     if (components == null || components.isEmpty()) {
