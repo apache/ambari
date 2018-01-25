@@ -1334,4 +1334,23 @@ describe('App.InstallerController', function () {
       expect(installerController.getStepSavedState('step0')).to.be.false;
     });
   });
+
+  describe('#hasErrors', function () {
+    before(function () {
+      installerController.addError("There is an error.");
+    });
+
+    it('Should return true if there are errors.', function () {
+      var hasErrors = installerController.get('hasErrors');
+
+      expect(hasErrors).to.be.true;
+    });
+
+    it('Should return false if there are no errors.', function () {
+      installerController.clearErrors();
+      var hasErrors = installerController.get('hasErrors');
+
+      expect(hasErrors).to.be.false;
+    });
+  })
 });
