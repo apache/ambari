@@ -39,8 +39,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableSet;
 
-// FIXME temporary
-/** Combine multiple mpacks into a single stack. */
+/** Combines multiple mpacks into a single stack. */
 public class CompositeStack implements StackInfo {
 
   private final Set<Stack> mpacks;

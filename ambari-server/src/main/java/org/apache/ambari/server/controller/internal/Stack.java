@@ -47,7 +47,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * Encapsulates stack information.
+ * Encapsulates a single, identifiable stack definition.
  */
 // TODO move to topology package
 public class Stack implements StackInfo {
@@ -197,33 +197,16 @@ public class Stack implements StackInfo {
     return stackId.equals(getStackId()) ? ImmutableSet.copyOf(getServices()) : ImmutableSet.of();
   }
 
-  /**
-   * Get services contained in the stack.
-   *
-   * @return collection of all services for the stack
-   */
   @Override
   public Collection<String> getServices() {
     return serviceComponents.keySet();
   }
 
-  /**
-   * Get components contained in the stack for the specified service.
-   *
-   * @param service  service name
-   *
-   * @return collection of component names for the specified service
-   */
   @Override
   public Collection<String> getComponents(String service) {
     return serviceComponents.get(service);
   }
 
-  /**
-   * Get all service components
-   *
-   * @return map of service to associated components
-   */
   @Override
   public Map<String, Collection<String>> getComponents() {
     Map<String, Collection<String>> serviceComponents = new HashMap<>();
@@ -235,14 +218,6 @@ public class Stack implements StackInfo {
     return serviceComponents;
   }
 
-  /**
-   * Get info for the specified component.
-   *
-   * @param component  component name
-   *
-   * @return component information for the requested component
-   *         or null if the component doesn't exist in the stack
-   */
   @Override
   public ComponentInfo getComponentInfo(String component) {
     String service = getServiceForComponent(component);
@@ -255,27 +230,12 @@ public class Stack implements StackInfo {
     return null;
   }
 
-  /**
-   * Get all configuration types, including excluded types for the specified service.
-   *
-   * @param service  service name
-   *
-   * @return collection of all configuration types for the specified service
-   */
   @Override
   public Collection<String> getAllConfigurationTypes(String service) {
     Map<String, Map<String, ConfigProperty>> serviceConfigs = getServiceConfigurations(service);
     return serviceConfigs != null ? serviceConfigs.keySet() : ImmutableSet.of();
   }
 
-  /**
-   * Get configuration types for the specified service.
-   * This doesn't include any service excluded types.
-   *
-   * @param service  service name
-   *
-   * @return collection of all configuration types for the specified service
-   */
   @Override
   public Collection<String> getConfigurationTypes(String service) {
     Set<String> serviceTypes = new HashSet<>(getAllConfigurationTypes(service));
@@ -283,13 +243,6 @@ public class Stack implements StackInfo {
     return serviceTypes;
   }
 
-  /**
-   * Get the set of excluded configuration types for this service.
-   *
-   * @param service service name
-   *
-   * @return Set of names of excluded config types. Will not return null.
-   */
   @Override
   public Set<String> getExcludedConfigurationTypes(String service) {
     return excludedConfigurationTypes.containsKey(service) ?
@@ -297,14 +250,6 @@ public class Stack implements StackInfo {
         Collections.emptySet();
   }
 
-  /**
-   * Get config properties for the specified service and configuration type.
-   *
-   * @param service  service name
-   * @param type     configuration type
-   *
-   * @return map of property names to values for the specified service and configuration type
-   */
   @Override
   public Map<String, String> getConfigurationProperties(String service, String type) {
     Map<String, String> configMap = new HashMap<>();
@@ -321,13 +266,6 @@ public class Stack implements StackInfo {
     return map != null ? ImmutableMap.copyOf(map) : ImmutableMap.of();
   }
 
-  /**
-   * Get all required config properties for the specified service.
-   *
-   * @param service  service name
-   *
-   * @return collection of all required properties for the given service
-   */
   @Override
   public Collection<ConfigProperty> getRequiredConfigurationProperties(String service) {
     Collection<ConfigProperty> requiredConfigProperties = new HashSet<>();
@@ -340,14 +278,6 @@ public class Stack implements StackInfo {
     return requiredConfigProperties;
   }
 
-  /**
-   * Get required config properties for the specified service which belong to the specified property type.
-   *
-   * @param service       service name
-   * @param propertyType  property type
-   *
-   * @return collection of required properties for the given service and property type
-   */
   @Override
   public Collection<ConfigProperty> getRequiredConfigurationProperties(String service, PropertyInfo.PropertyType propertyType) {
     Collection<ConfigProperty> matchingProperties = new HashSet<>();
@@ -395,15 +325,7 @@ public class Stack implements StackInfo {
             serviceConfigurations.get(type).get(propertyName).getPropertyTypes().
                 contains(PropertyInfo.PropertyType.KERBEROS_PRINCIPAL));
   }
-  /**
-   * Get config attributes for the specified service and configuration type.
-   *
-   * @param service  service name
-   * @param type     configuration type
-   *
-   * @return  map of attribute names to map of property names to attribute values
-   *          for the specified service and configuration type
-   */
+
   @Override
   public Map<String, Map<String, String>> getConfigurationAttributes(String service, String type) {
     Map<String, Map<String, String>> attributesMap = new HashMap<>();
@@ -455,25 +377,11 @@ public class Stack implements StackInfo {
     return attributesMap;
   }
 
-  /**
-   * Get the service for the specified component.
-   *
-   * @param component  component name
-   *
-   * @return service name that contains tha specified component
-   */
   @Override
   public String getServiceForComponent(String component) {
     return componentService.get(component);
   }
 
-  /**
-   * Get the names of the services which contains the specified components.
-   *
-   * @param components collection of components
-   *
-   * @return collection of services which contain the specified components
-   */
   @Override
   public Collection<String> getServicesForComponents(Collection<String> components) {
     Set<String> services = new HashSet<>();
@@ -484,13 +392,6 @@ public class Stack implements StackInfo {
     return services;
   }
 
-  /**
-   * Obtain the service name which corresponds to the specified configuration.
-   *
-   * @param config  configuration type
-   *
-   * @return name of service which corresponds to the specified configuration type
-   */
   @Override
   public String getServiceForConfigType(String config) {
     if (ConfigHelper.CLUSTER_ENV.equals(config)) { // for backwards compatibility
@@ -518,28 +419,12 @@ public class Stack implements StackInfo {
       .map(Map.Entry::getKey);
   }
 
-  /**
-   * Return the dependencies specified for the given component.
-   *
-   * @param component  component to get dependency information for
-   *
-   * @return collection of dependency information for the specified component
-   */
-  //todo: full dependency graph
   @Override
   public Collection<DependencyInfo> getDependenciesForComponent(String component) {
     return dependencies.containsKey(component) ? dependencies.get(component) :
         Collections.emptySet();
   }
 
-  /**
-   * Get the service, if any, that a component dependency is conditional on.
-   *
-   * @param dependency  dependency to get conditional service for
-   *
-   * @return conditional service for provided component or null if dependency
-   *         is not conditional on a service
-   */
   @Override
   public String getConditionalServiceForDependency(DependencyInfo dependency) {
     return dependencyConditionalServiceMap.get(dependency);
@@ -550,17 +435,11 @@ public class Stack implements StackInfo {
     return dbDependencyInfo.get(component);
   }
 
-  /**
-   * Obtain the required cardinality for the specified component.
-   */
   @Override
   public Cardinality getCardinality(String component) {
     return new Cardinality(cardinalityRequirements.get(component));
   }
 
-  /**
-   * Obtain auto-deploy information for the specified component.
-   */
   @Override
   public AutoDeployInfo getAutoDeployInfo(String component) {
     return componentAutoDeployInfo.get(component);
