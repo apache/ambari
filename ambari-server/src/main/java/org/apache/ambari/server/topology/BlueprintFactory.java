@@ -40,10 +40,12 @@ import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 /**
@@ -92,7 +94,14 @@ public class BlueprintFactory {
   public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
     if (entity != null) {
-      Set<StackId> stackIds = fakeStackIds();
+      Set<StackId> stackIds = entity.getMpackInstances().stream()
+        .map(BlueprintMpackInstanceEntity::getMpackEntity)
+        .map(m -> new StackId(m.getMpackName(), m.getMpackVersion()))
+        .collect(toSet());
+      if (stackIds.isEmpty()) {
+        stackIds = fakeStackIds();
+      }
+
       StackDefinition stack = composeStacks(stackIds);
       return new BlueprintImpl(entity, stack, stackIds);
     }
@@ -126,14 +135,15 @@ public class BlueprintFactory {
   }
 
   public StackDefinition composeStacks(Set<StackId> stackIds) {
-    if (stackIds.size() == 1) {
-      return createStack(stackIds.iterator().next());
-    }
-    Set<Stack> stacks = stackIds.stream().map(this::createStack).collect(toSet());
-    return new CompositeStack(stacks);
+    Set<Stack> stacks = stackIds.stream()
+      .map(this::createStack)
+      .collect(toSet());
+    return stacks.size() > 1
+      ? new CompositeStack(stacks)
+      : Iterables.getFirst(stacks, null);
   }
 
-  static Set<StackId> fakeStackIds() {
+  private static Set<StackId> fakeStackIds() {
     return ImmutableSet.of(
       new StackId("AmbariInfra", "3.0.0"),
       new StackId("HDP", "3.0.0")

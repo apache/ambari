@@ -49,8 +49,7 @@ public class BlueprintImpl implements Blueprint {
 
   private String name;
   private Map<String, HostGroup> hostGroups = new HashMap<>();
-  private StackDefinition stack;
-
+  private final StackDefinition stack;
   private final Set<StackId> stackIds;
   private Configuration configuration;
   private SecurityConfiguration security;
