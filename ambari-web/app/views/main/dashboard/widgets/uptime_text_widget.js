@@ -38,7 +38,7 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
 
   data: null,
 
-  content: null,
+  content: Em.computed.alias('data'),
 
   isGreen: function () {
     return !Em.isNone(this.get('data'));
@@ -64,65 +64,27 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
    */
   didInsertElement: function () {
     this._super();
-    this.addObserver('model.' + this.get('modelField'), this, this.calc);
+    this.calculate();
+    this.addObserver('model.' + this.get('modelField'), this, this.calculate);
   },
 
-  calc: function () {
-    // don't do this.setProperties!
-    this.set('data', this.calcData());
-    this.set('content', this.calcContent());
-  },
+  calculate: function () {
+    const uptime = this.get('model').get(this.get('modelField'));
+    if (uptime) {
+      let diff = App.dateTimeWithTimeZone() - App.dateTimeWithTimeZone(uptime);
+      diff = diff < 0 ? 0 : diff;
+      const formatted = date.timingFormat(diff);
+      const uptimeString = this.timeConverter(uptime);
 
-  uptimeProcessing: function (uptime) {
-    var uptimeString = this.timeConverter(uptime);
-    var diff = App.dateTimeWithTimeZone() - uptime;
-    if (diff < 0) {
-      diff = 0;
-    }
-    var formatted = date.timingFormat(diff); //17.67 days
-    var timeUnit = null;
-    if (formatted) {
-      switch (formatted.split(" ")[1]) {
-        case 'secs':
-          timeUnit = 's';
-          break;
-        case 'hours':
-          timeUnit = 'hr';
-          break;
-        case 'days':
-          timeUnit = 'd';
-          break;
-        case 'mins':
-          timeUnit = 'min';
-          break;
-        default:
-          timeUnit = formatted.split(" ")[1];
-      }
       this.setProperties({
-        timeUnit: timeUnit,
+        data: formatted,
         hiddenInfo: [formatted, uptimeString[0], uptimeString[1]]
       });
+    } else {
+      this.setProperties({
+        data: null,
+        hiddenInfo: [this.get('component'), Em.I18n.t('services.service.summary.notRunning')]
+      });
     }
-    return formatted;
-  },
-
-  calcData: function () {
-    var field = this.get('modelField');
-    var uptime = this.get('model').get(field);
-    if (uptime) {
-      var formatted = this.uptimeProcessing(App.dateTimeWithTimeZone(uptime));
-      if (!Em.isNone(formatted)) {
-        return parseFloat(formatted.split(" ")[0]);
-      }
-    }
-    this.set('hiddenInfo', [this.get('component'), 'Not Running']);
-    return null;
-  },
-
-  calcContent: function () {
-    var data = this.get('data');
-    return data ?
-      data.toFixed(1) + ' ' + this.get('timeUnit') :
-      Em.I18n.t('services.service.summary.notAvailable');
   }
 });
