@@ -70,7 +70,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 
@@ -151,24 +150,30 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   /**
    * Used to create Blueprint instances
    */
-  private static BlueprintFactory blueprintFactory;
+  private final BlueprintFactory blueprintFactory;
 
   /**
    * Used to create SecurityConfiguration instances
    */
-  private static SecurityConfigurationFactory securityConfigurationFactory;
+  private final SecurityConfigurationFactory securityConfigurationFactory;
 
   /**
    * Blueprint Data Access Object
    */
-  private static BlueprintDAO blueprintDAO;
+  private final BlueprintDAO blueprintDAO;
 
   /**
    * Used to serialize to/from json.
    */
-  private static Gson jsonSerializer;
+  private final Gson jsonSerializer;
 
-  private BlueprintValidator validator;
+  private final BlueprintValidator validator;
+
+  /**
+   * Used to get stack metainfo.
+   */
+  private final AmbariMetaInfo ambariMetaInfo;
+
 
   // ----- Constructors ----------------------------------------------------
 
@@ -178,21 +183,17 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @param controller      management controller
    */
   @Inject
-  BlueprintResourceProvider(BlueprintValidator validator,
-                            @Assisted AmbariManagementController controller) {
+  BlueprintResourceProvider(
+    BlueprintValidator validator,
+    BlueprintFactory factory,
+    BlueprintDAO dao,
+    SecurityConfigurationFactory securityFactory,
+    Gson gson,
+    AmbariMetaInfo metaInfo,
+    @Assisted AmbariManagementController controller
+  ) {
     super(Resource.Type.Blueprint, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
     this.validator = validator;
-  }
-
-  /**
-   * Static initialization.
-   *
-   * @param factory   blueprint factory
-   * @param dao       blueprint data access object
-   * @param gson      json serializer
-   */
-  public static void init(BlueprintFactory factory, BlueprintDAO dao, SecurityConfigurationFactory
-    securityFactory, Gson gson, AmbariMetaInfo metaInfo) {
     blueprintFactory = factory;
     blueprintDAO = dao;
     securityConfigurationFactory = securityFactory;
@@ -305,11 +306,6 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     notifyDelete(Resource.Type.Blueprint, predicate);
     return getRequestStatus(null);
   }
-
-  /**
-   * Used to get stack metainfo.
-   */
-  private static AmbariMetaInfo ambariMetaInfo;
 
   // ----- Instance Methods ------------------------------------------------
 
@@ -430,7 +426,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    *
    * @return list of setting property maps
    */
-  public static List<Map<String, Object>> populateSettingList(
+  public List<Map<String, Object>> populateSettingList(
           Collection<? extends BlueprintSettingEntity> settings) throws NoSuchResourceException {
     List<Map<String, Object>> listSettings = new ArrayList<>();
 
@@ -488,15 +484,15 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       int levels = keyNameTokens.length;
       String propertiesType = keyNameTokens[1];
       if (levels == 2) {
-        return new BlueprintConfigPopulationStrategyV1();
+        return new BlueprintConfigPopulationStrategyV1(jsonSerializer);
       } else if ((levels == 3 && PROPERTIES_PROPERTY_ID.equals(propertiesType))
           || (levels == 4 && PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType))) {
-        return new BlueprintConfigPopulationStrategyV2();
+        return new BlueprintConfigPopulationStrategyV2(jsonSerializer);
       } else {
         throw new IllegalArgumentException(SCHEMA_IS_NOT_SUPPORTED_MESSAGE);
       }
     } else {
-      return new BlueprintConfigPopulationStrategyV2();
+      return new BlueprintConfigPopulationStrategyV2(jsonSerializer);
     }
   }
 
@@ -583,6 +579,12 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    */
   protected static abstract class BlueprintConfigPopulationStrategy {
 
+    private final Gson jsonSerializer;
+
+    public BlueprintConfigPopulationStrategy(Gson jsonSerializer) {
+      this.jsonSerializer = jsonSerializer;
+    }
+
     public void applyConfiguration(Map<String, String> configuration, BlueprintConfiguration blueprintConfiguration) {
       Map<String, String> configData = new HashMap<>();
       Map<String, Map<String, String>> configAttributes = new HashMap<>();
@@ -616,6 +618,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    */
   protected static class BlueprintConfigPopulationStrategyV1 extends BlueprintConfigPopulationStrategy {
 
+    public BlueprintConfigPopulationStrategyV1(Gson jsonSerializer) {
+      super(jsonSerializer);
+    }
+
     @Override
     protected void addProperty(Map<String, String> configData,
                                Map<String, Map<String, String>> configAttributes,
@@ -632,6 +638,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @since 1.7.0
    */
   protected static class BlueprintConfigPopulationStrategyV2 extends BlueprintConfigPopulationStrategy {
+
+    public BlueprintConfigPopulationStrategyV2(Gson jsonSerializer) {
+      super(jsonSerializer);
+    }
 
     @Override
     protected void addProperty(Map<String, String> configData,

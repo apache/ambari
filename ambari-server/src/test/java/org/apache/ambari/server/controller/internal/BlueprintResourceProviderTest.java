@@ -108,15 +108,14 @@ public class BlueprintResourceProviderTest {
   private final static AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
   private final static BlueprintFactory blueprintFactory = createMock(BlueprintFactory.class);
   private final static SecurityConfigurationFactory securityFactory = createMock(SecurityConfigurationFactory.class);
-  private final static BlueprintResourceProvider provider = new BlueprintResourceProvider(blueprintValidator, null);
   private final static Gson gson = new Gson();
+  private final static BlueprintResourceProvider provider = createProvider();
 
   @BeforeClass
   public static void initClass() {
     AbstractControllerResourceProvider.init(resourceProviderFactory);
     expect(resourceProviderFactory.getBlueprintResourceProvider(anyObject())).andReturn(provider).anyTimes();
     replay(resourceProviderFactory);
-    BlueprintResourceProvider.init(blueprintFactory, dao, securityFactory, gson, metaInfo);
   }
 
   private Map<String, Set<HashMap<String, String>>> getSettingProperties() {
@@ -1210,6 +1209,10 @@ public class BlueprintResourceProviderTest {
     assertEquals(setting3value.get(1).get("name"), "KAFKA_CLIENT");
     assertTrue(setting3value.get(1).containsKey("recovery_enabled"));
     assertEquals(setting3value.get(1).get("recovery_enabled"), "false");
+  }
+
+  private static BlueprintResourceProvider createProvider() {
+    return new BlueprintResourceProvider(blueprintValidator, blueprintFactory, dao, securityFactory, gson, metaInfo, null);
   }
 }
 
