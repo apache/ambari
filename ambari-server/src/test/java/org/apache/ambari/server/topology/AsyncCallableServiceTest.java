@@ -19,14 +19,18 @@
 package org.apache.ambari.server.topology;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.captureLong;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.easymock.Capture;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -78,6 +82,32 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
 
     // THEN
     verifyAll();
+    Assert.assertNull("No result expected in case of timeout", serviceResult);
+  }
+
+  @Test
+  public void lastErrorIsReturnedIfSubsequentAttemptTimesOut() throws Exception {
+    // GIVEN
+    Exception computationException = new ExecutionException(new ArithmeticException("Computation error during first attempt"));
+    Exception timeoutException = new TimeoutException("Timeout during second attempt");
+    expect(futureMock.get(TIMEOUT, TimeUnit.MILLISECONDS)).andThrow(computationException);
+    expect(executorServiceMock.schedule(taskMock, RETRY_DELAY, TimeUnit.MILLISECONDS)).andReturn(futureMock);
+    Capture<Long> timeoutCapture = Capture.newInstance();
+    expect(futureMock.get(captureLong(timeoutCapture), eq(TimeUnit.MILLISECONDS))).andThrow(timeoutException);
+    expect(futureMock.isDone()).andReturn(Boolean.FALSE);
+    expect(futureMock.cancel(true)).andReturn(Boolean.TRUE);
+    expect(executorServiceMock.submit(taskMock)).andReturn(futureMock);
+    expect(onErrorMock.apply(computationException.getCause())).andReturn(null);
+    replayAll();
+
+    asyncCallableService = new AsyncCallableService<>(taskMock, TIMEOUT, RETRY_DELAY, "test", executorServiceMock, onErrorMock);
+
+    // WHEN
+    Boolean serviceResult = asyncCallableService.call();
+
+    // THEN
+    verifyAll();
+    Assert.assertTrue(timeoutCapture.getValue() <= TIMEOUT - RETRY_DELAY);
     Assert.assertNull("No result expected in case of timeout", serviceResult);
   }
 
