@@ -95,8 +95,14 @@
       </commandScript>
 
       <requiredServices>
-        <service>RANGER</service>
-        <service>HDFS</service>
+        <service>
+          <name>RANGER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <themes>

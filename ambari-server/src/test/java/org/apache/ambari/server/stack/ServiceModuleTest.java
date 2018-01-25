@@ -46,6 +46,8 @@ import org.apache.ambari.server.state.CredentialStoreInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RequiredService;
+import org.apache.ambari.server.state.ServiceDependencyType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
 import org.junit.Test;
@@ -141,9 +143,15 @@ public class ServiceModuleTest {
 
   @Test
   public void testResolve_RequiredServices() throws Exception {
-    List<String> requiredServices = new ArrayList<>();
-    requiredServices.add("foo");
-    requiredServices.add("bar");
+    List<RequiredService> requiredServices = new ArrayList<>();
+    //the default scope is INSTALL
+    RequiredService installService = new RequiredService("foo");
+    assertEquals(ServiceDependencyType.INSTALL, installService.getDependencyType());
+
+    RequiredService runtimeService = new RequiredService("bar", ServiceDependencyType.RUNTIME);
+
+    requiredServices.add(installService);
+    requiredServices.add(runtimeService);
 
     // specified in child only
     ServiceInfo info = new ServiceInfo();
@@ -162,7 +170,7 @@ public class ServiceModuleTest {
 
     // specified in both
     info.setRequiredServices(requiredServices);
-    parentInfo.setRequiredServices(Collections.singletonList("other"));
+    parentInfo.setRequiredServices(Collections.singletonList(new RequiredService("other", ServiceDependencyType.INSTALL)));
 
     service = resolveService(info, parentInfo);
     assertEquals(requiredServices, service.getModuleInfo().getRequiredServices());

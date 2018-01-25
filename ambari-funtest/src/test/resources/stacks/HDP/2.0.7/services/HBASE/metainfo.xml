@@ -118,8 +118,14 @@
         <timeout>50</timeout>
       </commandScript>
       <requiredServices>
-        <service>HDFS</service>
-        <service>TEZ</service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>TEZ</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
       <configuration-dependencies>
         <config-type>global</config-type>

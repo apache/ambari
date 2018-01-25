@@ -26,9 +26,15 @@
       <version>0.98.0.2.1</version>
       
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>GLUSTERFS</service>
-      </requiredServices>      
+        <service>
+          <name>ZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>GLUSTERFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+      </requiredServices>
     </service>
   </services>
 </metainfo>

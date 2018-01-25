@@ -55,7 +55,10 @@
       </osSpecifics>
 
       <requiredServices>
-        <service>GLUSTERFS</service>
+        <service>
+          <name>GLUSTERFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>
@@ -127,7 +130,10 @@
       <configuration-dir>configuration-mapred</configuration-dir>
 
       <requiredServices>
-        <service>YARN</service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

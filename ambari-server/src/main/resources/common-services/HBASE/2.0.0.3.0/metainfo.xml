@@ -170,8 +170,14 @@
       </commandScript>
       
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>HDFS</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>
