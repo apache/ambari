@@ -16,23 +16,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job.deleting;
+package org.apache.ambari.infra.job;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+public class SchedulingProperties {
+  private boolean enabled = false;
+  private String cron;
+  private String intervalEndDelta;
 
-import java.util.Map;
-
-@Configuration
-@ConfigurationProperties(prefix = "infra-manager.jobs")
-public class DocumentDeletingPropertyMap {
-  private Map<String, DocumentDeletingProperties> solrDataDeleting;
-
-  public Map<String, DocumentDeletingProperties> getSolrDataDeleting() {
-    return solrDataDeleting;
+  public boolean isEnabled() {
+    return enabled;
   }
 
-  public void setSolrDataDeleting(Map<String, DocumentDeletingProperties> solrDataDeleting) {
-    this.solrDataDeleting = solrDataDeleting;
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  public String getCron() {
+    return cron;
+  }
+
+  public void setCron(String cron) {
+    this.cron = cron;
+  }
+
+  public String getIntervalEndDelta() {
+    return intervalEndDelta;
+  }
+
+  public void setIntervalEndDelta(String intervalEndDelta) {
+    this.intervalEndDelta = intervalEndDelta;
   }
 }

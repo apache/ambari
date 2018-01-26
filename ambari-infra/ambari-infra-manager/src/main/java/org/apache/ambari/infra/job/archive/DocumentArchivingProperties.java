@@ -259,6 +259,7 @@ public class DocumentArchivingProperties extends JobProperties<DocumentArchiving
                   "The property hdfsDestinationDirectory can not be null or empty string when destination is set to %s!", HDFS.name()));
     }
 
+    requireNonNull(solr, "No solr query was specified for archiving job!");
     solr.validate();
   }
 }
