@@ -156,7 +156,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     var to = this.formatLegendNumber(max);
     var label;
     if ($.trim(labelSuffix) == 'ms') {
-      label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
+      label = date.timingFormat(from) + " - " + date.timingFormat(to);
     } else {
       label = from + labelSuffix + " - " + to + labelSuffix;
     }

@@ -65,7 +65,7 @@ paths:
       - "jobs"
       summary: "Get job and step details for job execution instance."
       description: ""
-      operationId: "getExectionInfo"
+      operationId: "getExecutionInfo"
       produces:
       - "application/json"
       parameters:

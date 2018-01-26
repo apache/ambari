@@ -21,11 +21,6 @@ var App = require('app');
 App.ResourceManagerUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
   component: 'ResourceManager',
-  modelField: 'resourceManagerStartTime',
-
-  didInsertElement: function() {
-    this._super();
-    this.calc();
-  }
+  modelField: 'resourceManagerStartTime'
 
 });
