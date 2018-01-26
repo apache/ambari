@@ -29,11 +29,7 @@ angular.module('ambariAdminConsole')
   }, true);
 
   function loadRepos() {
-    Stack.allRepos({version: '',
-      cluster: {
-        options: [],
-        current: null
-      }}, {}).then(function (repos) {
+    Stack.allRepos().then(function (repos) {
       $scope.totalRepos = repos.itemTotal;
     });
   }

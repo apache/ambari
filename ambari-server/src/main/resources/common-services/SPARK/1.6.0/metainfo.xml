@@ -36,9 +36,18 @@
             <config-type>spark-thrift-fairscheduler</config-type>
           </configuration-dependencies>
           <requiredServices>
-            <service>HDFS</service>
-            <service>YARN</service>
-            <service>HIVE</service>
+              <service>
+                  <name>HDFS</name>
+                  <dependencyType>INSTALL</dependencyType>
+              </service>
+              <service>
+                  <name>YARN</name>
+                  <dependencyType>INSTALL</dependencyType>
+              </service>
+              <service>
+                  <name>HIVE</name>
+                  <dependencyType>INSTALL</dependencyType>
+              </service>
           </requiredServices>
         </service>
     </services>

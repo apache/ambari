@@ -38,7 +38,7 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintServiceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
@@ -78,14 +78,6 @@ public class BlueprintImpl implements Blueprint {
       this.security = new SecurityConfiguration(entity.getSecurityType(),
         entity.getSecurityDescriptorReference(),
         null);
-    }
-    // Use stack only if no mpacks are declared
-    if (entity.getMpackReferences().isEmpty()) {
-      // create an mpack out of the stack
-      mpacks.add(createMpackFromStack(entity));
-    }
-    else {
-      LOG.info("Ignoring stack declaration in blueprint {} as management packs are also declared.", name);
     }
     // Parse mpacks
     mpacks.addAll(parseMpacks(entity));
@@ -377,6 +369,7 @@ public class BlueprintImpl implements Blueprint {
         entity.setSecurityDescriptorReference(security.getDescriptorReference());
       }
     }
+
     createHostGroupEntities(entity);
     Collection<BlueprintConfigEntity> configEntities = toConfigEntities(getConfiguration(), () -> new BlueprintConfigEntity());
     configEntities.forEach(configEntity -> {
@@ -391,9 +384,9 @@ public class BlueprintImpl implements Blueprint {
 
   private void createMpackInstanceEntities(BlueprintEntity entity) {
     mpacks.forEach(mpack -> {
-      BlueprintMpackReferenceEntity mpackEntity = mpack.toEntity();
+      BlueprintMpackInstanceEntity mpackEntity = mpack.toEntity();
       mpackEntity.setBlueprint(entity);
-      entity.getMpackReferences().add(mpackEntity);
+      entity.getMpackInstances().add(mpackEntity);
     });
   }
 
@@ -408,19 +401,9 @@ public class BlueprintImpl implements Blueprint {
     validator.validateRequiredProperties();
   }
 
-  private MpackInstance createMpackFromStack(BlueprintEntity entity) throws NoSuchStackException {
-    Stack stack =
-      parseStack(entity.getStack().getStackName(), entity.getStack().getStackVersion());
-    MpackInstance mpackInstance = new MpackInstance();
-    mpackInstance.setStack(stack);
-    mpackInstance.setMpackName(stack.getName());
-    mpackInstance.setMpackVersion(stack.getVersion());
-    return mpackInstance;
-  }
-
   private Collection<MpackInstance> parseMpacks(BlueprintEntity blueprintEntity) throws NoSuchStackException {
     Collection<MpackInstance> mpackInstances = new ArrayList<>();
-    for (BlueprintMpackReferenceEntity mpack: blueprintEntity.getMpackReferences()) {
+    for (BlueprintMpackInstanceEntity mpack: blueprintEntity.getMpackInstances()) {
       MpackInstance mpackInstance = new MpackInstance();
       mpackInstance.setMpackName(mpack.getMpackName());
       mpackInstance.setMpackVersion(mpack.getMpackVersion());

@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -492,6 +494,18 @@ public class Stack {
     }
     throw new IllegalArgumentException(
         "Specified configuration type is not associated with any service: " + config);
+  }
+
+  public List<String> getServicesForConfigType(String config) {
+    List<String> serviceNames = new ArrayList<>();
+    for (Map.Entry<String, Map<String, Map<String, ConfigProperty>>> entry : serviceConfigurations.entrySet()) {
+      Map<String, Map<String, ConfigProperty>> typeMap = entry.getValue();
+      String serviceName = entry.getKey();
+      if (typeMap.containsKey(config) && !getExcludedConfigurationTypes(serviceName).contains(config)) {
+        serviceNames.add(serviceName);
+      }
+    }
+    return serviceNames;
   }
 
   /**

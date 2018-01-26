@@ -33,6 +33,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+/**
+ * Entity representing a service instance in multi-service blueprints
+ */
 @Entity
 @Table(name = "blueprint_service")
 @TableGenerator(name = "blueprint_service_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name",
@@ -44,8 +47,8 @@ public class BlueprintServiceEntity {
   private Long id;
 
   @ManyToOne()
-  @JoinColumn(name = "mpack_ref_id", referencedColumnName = "id", nullable = false)
-  private BlueprintMpackReferenceEntity mpackReference;
+  @JoinColumn(name = "mpack_instance_id", referencedColumnName = "id", nullable = false)
+  private BlueprintMpackInstanceEntity mpackInstance;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "service")
   private Collection<BlueprintServiceConfigEntity> configurations = new ArrayList<>();
@@ -54,42 +57,72 @@ public class BlueprintServiceEntity {
 
   private String type;
 
+  /**
+   * @return the database id
+   */
   public Long getId() {
     return id;
   }
 
+  /**
+   * @param id the database id
+   */
   public void setId(Long id) {
     this.id = id;
   }
 
-  public BlueprintMpackReferenceEntity getMpackReference() {
-    return mpackReference;
+  /**
+   * @return the mpack instance to the mpack associated with this service
+   */
+  public BlueprintMpackInstanceEntity getMpackInstance() {
+    return mpackInstance;
   }
 
-  public void setMpackReference(BlueprintMpackReferenceEntity mpackReference) {
-    this.mpackReference = mpackReference;
+  /**
+   * @param mpackInstance the mpack instance to the mpack associated with this service
+   */
+  public void setMpackInstance(BlueprintMpackInstanceEntity mpackInstance) {
+    this.mpackInstance = mpackInstance;
   }
 
+  /**
+   * @return the service instance level configuration entities
+   */
   public Collection<BlueprintServiceConfigEntity> getConfigurations() {
     return configurations;
   }
 
+  /**
+   * @param configurations the service instance level configuration entities
+   */
   public void setConfigurations(Collection<BlueprintServiceConfigEntity> configurations) {
     this.configurations = configurations;
   }
 
+  /**
+   * @return the name of this service instance
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * @param name the name of this service instance
+   */
   public void setName(String name) {
     this.name = name;
   }
 
+  /**
+   * @return the configuration type
+   */
   public String getType() {
     return type;
   }
 
+  /**
+   * @param type the configuration type
+   */
   public void setType(String type) {
     this.type = type;
   }

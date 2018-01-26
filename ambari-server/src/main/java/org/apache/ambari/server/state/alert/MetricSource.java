@@ -17,8 +17,16 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -127,14 +135,25 @@ public class MetricSource extends Source {
     @SerializedName("property_list")
     private List<String> propertyList;
 
-    private String value;
+    private String value = "{0}";
+
+    @SerializedName("url_suffix")
+    private String urlSuffix = "/jmx";
 
     public List<String> getPropertyList() {
       return propertyList;
     }
 
-    public String getValue() {
-      return value;
+    public void setPropertyList(List<String> propertyList) {
+      this.propertyList = propertyList;
+    }
+
+    public void setValue(String value) {
+      this.value = value;
+    }
+
+    public Value getValue() {
+      return new Value(value);
     }
 
     @Override
@@ -151,6 +170,47 @@ public class MetricSource extends Source {
       // !!! even if out of order, this is enough to fail
       return list1.equals(list2);
 
+    }
+
+    public String getUrlSuffix() {
+      return urlSuffix;
+    }
+
+    public Optional<Number> eval(JMXMetricHolder jmxMetricHolder) {
+      List<Object> metrics = jmxMetricHolder.findAll(propertyList);
+      if (metrics.isEmpty()) {
+        return Optional.empty();
+      } else {
+        Object value = getValue().eval(metrics);
+        return value instanceof Number ? Optional.of((Number)value) : Optional.empty();
+      }
+    }
+  }
+
+  public static class Value {
+    private final String value;
+
+    public Value(String value) {
+      this.value = value;
+    }
+
+    /**
+     * Evaluate an expression like "{0}/({0} + {1}) * 100.0" where each positional argument represent a metrics value.
+     * The value is converted to SpEL syntax:
+     *  #var0/(#var0 + #var1) * 100.0
+     * then it is evaluated in the context of the metrics parameters.
+     */
+    public Object eval(List<Object> metrics) {
+      StandardEvaluationContext context = new StandardEvaluationContext();
+      context.setVariables(range(0, metrics.size()).boxed().collect(toMap(i -> "var" + i, metrics::get)));
+      return new SpelExpressionParser()
+        .parseExpression(value.replaceAll("(\\{(\\d+)\\})", "#var$2"))
+        .getValue(context);
+    }
+
+    @Override
+    public String toString() {
+      return value;
     }
   }
 }

@@ -128,7 +128,7 @@ class RecoveryManager:
 
   def set_paused(self, paused):
     if self.paused != paused:
-      logger.debug("RecoveryManager is transitioning from isPaused = " + str(self.paused) + " to " + str(paused))
+      logger.debug("RecoveryManager is transitioning from isPaused = %s to %s", self.paused, paused)
     self.paused = paused
 
   def enabled(self):
@@ -574,7 +574,8 @@ class RecoveryManager:
 
 
     if reg_resp and "recoveryConfig" in reg_resp:
-      logger.info("RecoverConfig = " + pprint.pformat(reg_resp["recoveryConfig"]))
+      if logger.isEnabledFor(logging.INFO):
+        logger.info("RecoverConfig = %s", pprint.pformat(reg_resp["recoveryConfig"]))
       config = reg_resp["recoveryConfig"]
       if "type" in config:
         if config["type"] in ["AUTO_INSTALL_START", "AUTO_START", "FULL"]:
@@ -691,8 +692,8 @@ class RecoveryManager:
     if commands and len(commands) > 0:
       for command in commands:
         self.store_or_update_command(command)
-        if self.EXECUTION_COMMAND_DETAILS in command:
-          logger.debug("Details to construct exec commands: " + pprint.pformat(command[self.EXECUTION_COMMAND_DETAILS]))
+        if logger.isEnabledFor(logging.DEBUG) and self.EXECUTION_COMMAND_DETAILS in command:
+          logger.debug("Details to construct exec commands: %s", pprint.pformat(command[self.EXECUTION_COMMAND_DETAILS]))
 
     pass
 
@@ -748,7 +749,7 @@ class RecoveryManager:
           # Store the execution command details
           self.remove_command(component)
           self.add_command(component, command[self.EXECUTION_COMMAND_DETAILS])
-          logger.debug("Stored command details for " + component)
+          logger.debug("Stored command details for %s", component)
         else:
           logger.warn("Expected field " + self.EXECUTION_COMMAND_DETAILS + " unavailable.")
         pass
@@ -855,7 +856,7 @@ class RecoveryManager:
       insert_time = self.stored_exec_commands[component_update_key]
       age = self._now_() - insert_time
       if self.COMMAND_REFRESH_DELAY_SEC < age:
-        logger.debug("Removing stored command for component : " + str(component) + " as its " + str(age) + " sec old")
+        logger.debug("Removing stored command for component : %s as it's %s sec old", component, age)
         self.remove_command(component)
     pass
 
@@ -867,7 +868,7 @@ class RecoveryManager:
         component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
         del self.stored_exec_commands[component]
         del self.stored_exec_commands[component_update_key]
-        logger.debug("Removed stored command for component : " + str(component))
+        logger.debug("Removed stored command for component : %s", component)
         return True
       finally:
         self.__status_lock.release()
@@ -880,7 +881,7 @@ class RecoveryManager:
       component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
       self.stored_exec_commands[component] = command
       self.stored_exec_commands[component_update_key] = self._now_()
-      logger.debug("Added command for component : " + str(component))
+      logger.debug("Added command for component : %s", component)
     finally:
       self.__status_lock.release()
 

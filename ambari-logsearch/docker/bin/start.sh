@@ -46,9 +46,10 @@ function create_logfeeder_configs() {
 }
 
 function create_logsearch_configs() {
-  mkdir /root/config/logsearch
+  mkdir -p /root/config/logsearch
   cp /root/test-config/logsearch/log4j.xml /root/config/logsearch/
   cp /root/test-config/logsearch/logsearch-env.sh /root/config/logsearch/
+  cp $LOGSEARCH_SERVER_PATH/conf/user_pass.json /root/config/logsearch/user_pass.json
   if [ $LOGSEARCH_HTTPS_ENABLED == 'true' ]
   then
     cp /root/test-config/logsearch/logsearch-https.properties /root/config/logsearch/logsearch.properties
@@ -87,7 +88,7 @@ function generate_keys() {
   fi
 }
 
-function start_solr() {
+function start_solr_d() {
   echo "Starting Solr..."
   /root/solr-$SOLR_VERSION/bin/solr start -cloud -s /root/logsearch_solr_index/data -verbose -force
   touch /var/log/ambari-logsearch-solr/solr.log
@@ -102,16 +103,25 @@ function start_solr() {
 }
 
 function start_logsearch() {
-  $LOGSEARCH_SERVER_PATH/run.sh
+  $LOGSEARCH_SERVER_PATH/bin/logsearch.sh start -f
+}
+
+function start_logsearch_d() {
+  $LOGSEARCH_SERVER_PATH/bin/logsearch.sh start
   touch /var/log/ambari-logsearch-portal/logsearch-app.log
 }
 
 function start_logfeeder() {
-  $LOGFEEDER_PATH/run.sh
+  $LOGFEEDER_PATH/bin/logfeeder.sh start -f
+}
+
+
+function start_logfeeder_d() {
+  $LOGFEEDER_PATH/bin/logfeeder.sh start
   touch /var/log/ambari-logsearch-logfeeder/logsearch-logfeeder.log
 }
 
-function start_selenium_server() {
+function start_selenium_server_d() {
   nohup java -jar /root/selenium-server-standalone.jar > /var/log/selenium-test.log &
 }
 
@@ -138,23 +148,22 @@ function main() {
   case $component in
     "solr")
       create_solr_configs
-      echo "Start Solr only.."
+      echo "Start Solr only ..."
       export COMPONENT_LOG="solr"
       generate_keys
-      start_solr
+      start_solr_d
       log
      ;;
     "logfeeder")
       create_logfeeder_configs
-      echo "Start Log Feeder only.."
+      echo "Start Log Feeder only ..."
       export COMPONENT_LOG="logfeeder"
       generate_keys
       start_logfeeder
-      log
      ;;
     "logsearch")
       create_logsearch_configs
-      echo "Start Log Search only.."
+      echo "Start Log Search only ..."
       export COMPONENT_LOG="logsearch"
       generate_keys
       start_logsearch
@@ -163,10 +172,10 @@ function main() {
      *)
       create_configs
       generate_keys
-      start_selenium_server
-      start_solr
-      start_logfeeder
-      start_logsearch
+      start_selenium_server_d
+      start_solr_d
+      start_logfeeder_d
+      start_logsearch_d
       log
      ;;
   esac

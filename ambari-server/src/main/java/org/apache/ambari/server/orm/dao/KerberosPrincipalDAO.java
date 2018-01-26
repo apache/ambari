@@ -46,12 +46,6 @@ public class KerberosPrincipalDAO {
   Provider<EntityManager> entityManagerProvider;
 
   /**
-   * Kerberos Principal Host DAO
-   */
-  @Inject
-  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
-
-  /**
    * Make an instance managed and persistent.
    *
    * @param kerberosPrincipalEntity entity to persist
@@ -94,9 +88,6 @@ public class KerberosPrincipalDAO {
     if(kerberosPrincipalEntity != null) {
       EntityManager entityManager = entityManagerProvider.get();
       String principalName = kerberosPrincipalEntity.getPrincipalName();
-
-      // Remove child entities...
-      kerberosPrincipalHostDAO.removeByPrincipal(principalName);
 
       kerberosPrincipalEntity = find(principalName);
       if (kerberosPrincipalEntity != null) {

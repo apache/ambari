@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +41,8 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -59,23 +60,29 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   public static final String MEMBER_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("MemberInfo", "group_name");
   public static final String MEMBER_USER_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("MemberInfo", "user_name");
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
+  /**
+   * The key property ids for a Member resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Group, MEMBER_GROUP_NAME_PROPERTY_ID)
+      .put(Resource.Type.Member, MEMBER_USER_NAME_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a Member resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
       MEMBER_GROUP_NAME_PROPERTY_ID,
-      MEMBER_USER_NAME_PROPERTY_ID}));
+      MEMBER_USER_NAME_PROPERTY_ID);
 
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds           the property ids
-   * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
   @AssistedInject
-  public MemberResourceProvider(@Assisted Set<String> propertyIds,
-                          @Assisted Map<Resource.Type, String> keyPropertyIds,
-                          @Assisted AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  public MemberResourceProvider(@Assisted AmbariManagementController managementController) {
+    super(Resource.Type.Member, propertyIds, keyPropertyIds, managementController);
 
     EnumSet<RoleAuthorization> manageUserAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS);
     setRequiredCreateAuthorizations(manageUserAuthorizations);
@@ -193,7 +200,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   private MemberRequest getRequest(Map<String, Object> properties) {

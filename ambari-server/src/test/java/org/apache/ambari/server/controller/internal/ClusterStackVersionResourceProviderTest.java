@@ -491,7 +491,7 @@ public class ClusterStackVersionResourceProviderTest {
             EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).times(1); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -562,8 +562,6 @@ public class ClusterStackVersionResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
     injector.injectMembers(provider);
@@ -714,7 +712,7 @@ public class ClusterStackVersionResourceProviderTest {
             EasyMock.anyObject(), anyObject(String.class))).
             andReturn(packages).anyTimes(); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(), EasyMock.anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(managementController.findConfigurationTagsWithOverrides(anyObject(Cluster.class), EasyMock.anyString()))
@@ -1379,8 +1377,7 @@ public class ClusterStackVersionResourceProviderTest {
         EasyMock.anyObject(), anyObject(String.class))).andReturn(
             packages).anyTimes(); // only one host has the versionable component
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.anyObject(),
-        EasyMock.anyObject(), eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
     expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(
@@ -1555,7 +1552,7 @@ public class ClusterStackVersionResourceProviderTest {
       .andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
 
 
-    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+    expect(resourceProviderFactory.getHostResourceProvider(
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -2196,7 +2193,6 @@ public class ClusterStackVersionResourceProviderTest {
 
      Resource.Type type = Type.ClusterStackVersion;
      return (ClusterStackVersionResourceProvider) AbstractControllerResourceProvider.getResourceProvider(type,
-         PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
          amc);
    }
 

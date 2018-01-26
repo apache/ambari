@@ -81,9 +81,17 @@ def setup_ranger_kafka():
         group = params.user_group,
         mode = 0755
       )
-    if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_kafka and params.has_namenode and params.security_enabled:
-      Logger.info("Stack supports core-site.xml creation for Ranger plugin, creating create core-site.xml from namenode configuraitions")
-      setup_core_site_for_required_plugins(component_user=params.kafka_user,component_group=params.user_group,create_core_site_path = params.conf_dir, config = params.config)
+    if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_kafka and params.security_enabled:
+      if params.has_namenode:
+        Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is installed, creating create core-site.xml from namenode configurations")
+        setup_core_site_for_required_plugins(component_user = params.kafka_user, component_group = params.user_group,
+                                             create_core_site_path = params.conf_dir, configurations = params.config['configurations']['core-site'],
+                                             configuration_attributes = params.config['configuration_attributes']['core-site'])
+      else:
+        Logger.info("Stack supports core-site.xml creation for Ranger plugin and Namenode is not installed, creating create core-site.xml from default configurations")
+        setup_core_site_for_required_plugins(component_user = params.kafka_user, component_group = params.user_group,
+                                             create_core_site_path = params.conf_dir, configurations = { 'hadoop.security.authentication' : 'kerberos' if params.security_enabled else 'simple' },
+                                             configuration_attributes = {})
     else:
       Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
   else:

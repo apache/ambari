@@ -119,7 +119,10 @@
       </quickLinksConfigurations>
 
       <requiredServices>
-        <service>KAFKA</service>
+        <service>
+          <name>KAFKA</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <themes>

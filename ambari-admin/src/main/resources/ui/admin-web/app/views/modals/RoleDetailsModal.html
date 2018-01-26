@@ -36,7 +36,7 @@
     <div ng-repeat="level in orderedLevels">
       <div class="table-row-wrapper table-section-title">
         <div class="table-row">
-          <div class="table-cell" colspan="{{roles.length + 1}}">{{'users.roles.permissionLevel' | translate: '{level: getLevelName(level)}'}}</div>
+          <div class="table-cell" colspan="{{roles.length + 1}}">{{'users.roles.permissionLevel' | translate:{level: getLevelName(level)} }}</div>
         </div>
       </div>
       <div class="table-row-wrapper">

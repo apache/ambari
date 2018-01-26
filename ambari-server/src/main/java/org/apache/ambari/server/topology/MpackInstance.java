@@ -23,7 +23,7 @@ import java.util.Collection;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintMpackConfigEntity;
-import org.apache.ambari.server.orm.entities.BlueprintMpackReferenceEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintServiceEntity;
 
@@ -35,7 +35,7 @@ public class MpackInstance implements Configurable {
   private String mpackName;
   @JsonProperty("version")
   private String mpackVersion;
-  @JsonProperty("uri")
+  @JsonProperty("url")
   private String url;
 
   private Stack stack;
@@ -116,14 +116,14 @@ public class MpackInstance implements Configurable {
     this.url = url;
   }
 
-  public BlueprintMpackReferenceEntity toEntity() {
-    BlueprintMpackReferenceEntity mpackEntity = new BlueprintMpackReferenceEntity();
+  public BlueprintMpackInstanceEntity toEntity() {
+    BlueprintMpackInstanceEntity mpackEntity = new BlueprintMpackInstanceEntity();
     mpackEntity.setMpackUri(url);
     mpackEntity.setMpackName(mpackName);
     mpackEntity.setMpackVersion(mpackVersion);
     Collection<BlueprintMpackConfigEntity> mpackConfigEntities =
       BlueprintImpl.toConfigEntities(configuration, () -> new BlueprintMpackConfigEntity());
-    mpackConfigEntities.forEach( configEntity -> configEntity.setMpackReference(mpackEntity) );
+    mpackConfigEntities.forEach( configEntity -> configEntity.setMpackInstance(mpackEntity) );
     mpackEntity.setConfigurations(mpackConfigEntities);
 
     getServiceInstances().forEach(serviceInstance -> {
@@ -135,12 +135,12 @@ public class MpackInstance implements Configurable {
       serviceConfigEntities.forEach( configEntity -> configEntity.setService(serviceEntity) );
       serviceEntity.setConfigurations(serviceConfigEntities);
       mpackEntity.getServiceInstances().add(serviceEntity);
-      serviceEntity.setMpackReference(mpackEntity);
+      serviceEntity.setMpackInstance(mpackEntity);
     });
     return mpackEntity;
   }
 
-  public static MpackInstance fromEntity(BlueprintMpackReferenceEntity entity) {
+  public static MpackInstance fromEntity(BlueprintMpackInstanceEntity entity) {
     MpackInstance mpack = new MpackInstance();
     mpack.setUrl(entity.getMpackUri());
     mpack.setMpackName(entity.getMpackName());

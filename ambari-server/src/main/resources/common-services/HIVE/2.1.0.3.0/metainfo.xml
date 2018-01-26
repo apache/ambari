@@ -487,15 +487,30 @@
       </quickLinksConfigurations>
 
       <requiredServices>
-        <service>ZOOKEEPER</service>
-        <service>HDFS</service>
-        <service>YARN</service>
-        <service>TEZ</service>
+        <service>
+          <name>ZOOKEEPER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>HDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>TEZ</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>SLIDER</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
         <!-- TODO AMBARI-20753
         Re-add after Pig service is being packaged.
         <service>PIG</service>
         -->
-        <service>SLIDER</service>
       </requiredServices>
 
       <configuration-dependencies>

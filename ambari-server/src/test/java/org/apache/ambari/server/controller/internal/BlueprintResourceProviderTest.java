@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -61,16 +60,14 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
@@ -102,7 +99,6 @@ public class BlueprintResourceProviderTest {
   public ExpectedException expectedException = ExpectedException.none();
 
   private final static BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
-  private final static StackDAO stackDAO = createNiceMock(StackDAO.class);
   private final static BlueprintEntity entity = createStrictMock(BlueprintEntity.class);
   private final static Blueprint blueprint = createMock(Blueprint.class);
   private final static AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
@@ -114,16 +110,6 @@ public class BlueprintResourceProviderTest {
   @BeforeClass
   public static void initClass() {
     BlueprintResourceProvider.init(blueprintFactory, dao, securityFactory, metaInfo);
-
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName("test-stack-name");
-    stackEntity.setStackVersion("test-stack-version");
-
-    expect(
-        stackDAO.find(anyObject(String.class),
-          anyObject(String.class))).andReturn(stackEntity).anyTimes();
-    replay(stackDAO);
-
   }
 
   private Map<String, Set<HashMap<String, String>>> getSettingProperties() {
@@ -165,8 +151,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -202,8 +186,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       Resource.Type.Blueprint,
-      PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-      PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
       managementController);
 
     try {
@@ -245,8 +227,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -287,8 +267,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         createMock(AmbariManagementController.class));
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -334,8 +312,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -413,8 +389,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       Resource.Type.Blueprint,
-      PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-      PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
       managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -541,8 +515,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -590,8 +562,6 @@ public class BlueprintResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         Resource.Type.Blueprint,
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
         managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -767,8 +737,6 @@ public class BlueprintResourceProviderTest {
 
   private void validateResource(Resource resource, boolean containsConfig) {
     assertEquals(BLUEPRINT_NAME, resource.getPropertyValue(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID));
-    assertEquals("test-stack-name", resource.getPropertyValue(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID));
-    assertEquals("test-stack-version", resource.getPropertyValue(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID));
 
     Collection<Map<String, Object>> hostGroupProperties = (Collection<Map<String, Object>>)
         resource.getPropertyValue(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
@@ -828,9 +796,7 @@ public class BlueprintResourceProviderTest {
   }
 
   private static BlueprintResourceProvider createProvider() {
-    return new BlueprintResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint), null);
+    return new BlueprintResourceProvider(null);
   }
 
   private BlueprintEntity createEntity(Map<String, Object> properties) {
@@ -839,11 +805,13 @@ public class BlueprintResourceProviderTest {
 
     String stackName = (String) properties.get(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID);
     String stackVersion = (String) properties.get(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID);
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName(stackName);
-    stackEntity.setStackVersion(stackVersion);
 
-    entity.setStack(stackEntity);
+    BlueprintMpackInstanceEntity mpackEntity = new BlueprintMpackInstanceEntity();
+    mpackEntity.setMpackName(stackName);
+    mpackEntity.setMpackVersion(stackVersion);
+    mpackEntity.setBlueprint(entity);
+
+    entity.getMpackInstances().add(mpackEntity);
 
     Set<Map<String, Object>> hostGroupProperties = (Set<Map<String, Object>>) properties.get(
         BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
@@ -1042,11 +1010,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testPopulateConfigurationList() throws Exception {
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName("test-stack-name");
-    stackEntity.setStackVersion("test-stack-version");
     BlueprintEntity entity = createMock(BlueprintEntity.class);
-    expect(entity.getStack()).andReturn(stackEntity).anyTimes();
 
     HashMap<PropertyInfo.PropertyType, Set<String>> pwdProperties = new HashMap<PropertyInfo.PropertyType, Set<String>>() {{
       put(PropertyInfo.PropertyType.PASSWORD, new HashSet<String>(){{
@@ -1060,7 +1024,12 @@ public class BlueprintResourceProviderTest {
     expect(info.getConfigPropertiesTypes("type3")).andReturn(pwdProperties).anyTimes();
     expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
 
-    replay(info, metaInfo, entity);
+    BlueprintMpackInstanceEntity mpackInstance = createMock(BlueprintMpackInstanceEntity.class);
+    expect(mpackInstance.getMpackName()).andReturn("test-stack-name").anyTimes();
+    expect(mpackInstance.getMpackVersion()).andReturn("test-stack-version").anyTimes();
+    expect(entity.getMpackInstances()).andReturn(Collections.singleton(mpackInstance)).anyTimes();
+
+    replay(info, metaInfo, entity, mpackInstance);
 
 
     // attributes is null
@@ -1143,11 +1112,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testPopulateSettingList() throws Exception {
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName("test-stack-name");
-    stackEntity.setStackVersion("test-stack-version");
     BlueprintEntity entity = createMock(BlueprintEntity.class);
-    expect(entity.getStack()).andReturn(stackEntity).anyTimes();
 
     HashMap<PropertyInfo.PropertyType, Set<String>> pwdProperties = new HashMap<PropertyInfo.PropertyType, Set<String>>() {{
       put(PropertyInfo.PropertyType.PASSWORD, new HashSet<String>(){{

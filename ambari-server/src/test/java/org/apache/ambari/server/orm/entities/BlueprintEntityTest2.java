@@ -19,7 +19,6 @@
 package org.apache.ambari.server.orm.entities;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
 import java.sql.SQLException;
@@ -35,7 +34,6 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.state.SecurityType;
 import org.junit.After;
 import org.junit.Before;
@@ -54,8 +52,6 @@ public class BlueprintEntityTest2 {
   public static final String BLUEPRINT_NAME = "test-blueprint";
   @Inject
   private Injector injector;
-  @Inject
-  private StackDAO stackDAO;
   @Inject
   private BlueprintDAO blueprintDAO;
 
@@ -82,37 +78,16 @@ public class BlueprintEntityTest2 {
     verifyBlueprint(blueprintDAO.findByName(BLUEPRINT_NAME));
   }
 
-  /**
-   * Test loading and saving a blueprint with stack (this needs to be supported for backward compatibility)
-   */
-  @Test
-  public void testCreateAndLoadBlueprintWithStack() throws AmbariException {
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName("HDPCORE");
-    stackEntity.setStackVersion("3.0.0.0");
-    stackDAO.create(stackEntity);
-
-    BlueprintEntity blueprintEntity = createTestBlueprint();
-    blueprintEntity.setStack(stackEntity);
-    blueprintDAO.create(blueprintEntity);
-
-    BlueprintEntity savedBlueprint = blueprintDAO.findByName(BLUEPRINT_NAME);
-    verifyBlueprint(savedBlueprint);
-    assertNotNull(savedBlueprint.getStack());
-    assertEquals("HDPCORE", savedBlueprint.getStack().getStackName());
-    assertEquals("3.0.0.0", savedBlueprint.getStack().getStackVersion());
-  }
-
   private void verifyBlueprint(BlueprintEntity blueprintEntity) {
-    assertEquals(1, blueprintEntity.getMpackReferences().size());
+    assertEquals(1, blueprintEntity.getMpackInstances().size());
 
-    BlueprintMpackReferenceEntity mpackReferenceEntity =
-      blueprintEntity.getMpackReferences().iterator().next();
-    assertEquals("HDPCORE", mpackReferenceEntity.getMpackName());
-    assertEquals(1, mpackReferenceEntity.getConfigurations().size());
+    BlueprintMpackInstanceEntity mpackInstanceEntity =
+      blueprintEntity.getMpackInstances().iterator().next();
+    assertEquals("HDPCORE", mpackInstanceEntity.getMpackName());
+    assertEquals(1, mpackInstanceEntity.getConfigurations().size());
 
     BlueprintMpackConfigEntity mpackConfigEntity =
-      mpackReferenceEntity.getConfigurations().iterator().next();
+      mpackInstanceEntity.getConfigurations().iterator().next();
     assertEquals("configdata", mpackConfigEntity.getConfigData());
     assertEquals("zk-env.sh", mpackConfigEntity.getType());
 
@@ -131,11 +106,11 @@ public class BlueprintEntityTest2 {
     HostGroupConfigEntity hostGroupConfig = hostGroup.getConfigurations().iterator().next();
     assertEquals("hdfs-site", hostGroupConfig.getType());
 
-    assertEquals(1, mpackReferenceEntity.getServiceInstances().size());
-    BlueprintServiceEntity service = mpackReferenceEntity.getServiceInstances().iterator().next();
+    assertEquals(1, mpackInstanceEntity.getServiceInstances().size());
+    BlueprintServiceEntity service = mpackInstanceEntity.getServiceInstances().iterator().next();
     assertEquals("ZK1", service.getName());
     assertEquals("ZOOKEEPER", service.getType());
-    assertSame(mpackReferenceEntity, service.getMpackReference());
+    assertSame(mpackInstanceEntity, service.getMpackInstance());
 
     assertEquals(1, service.getConfigurations().size());
     assertEquals("hadoop-env", service.getConfigurations().iterator().next().getType());
@@ -146,18 +121,18 @@ public class BlueprintEntityTest2 {
     blueprintEntity.setBlueprintName(BLUEPRINT_NAME);
     blueprintEntity.setSecurityType(SecurityType.NONE);
 
-    BlueprintMpackReferenceEntity mpackReferenceEntity = new BlueprintMpackReferenceEntity();
-    mpackReferenceEntity.setBlueprint(blueprintEntity);
-    mpackReferenceEntity.setMpackName("HDPCORE");
-    mpackReferenceEntity.setMpackVersion("3.0.0.0");
-    mpackReferenceEntity.setMpackUri("http://hdpcore.org/3.0.0.0");
+    BlueprintMpackInstanceEntity mpackInstanceEntity = new BlueprintMpackInstanceEntity();
+    mpackInstanceEntity.setBlueprint(blueprintEntity);
+    mpackInstanceEntity.setMpackName("HDPCORE");
+    mpackInstanceEntity.setMpackVersion("3.0.0.0");
+    mpackInstanceEntity.setMpackUri("http://hdpcore.org/3.0.0.0");
 
     BlueprintMpackConfigEntity mpackConfigEntity = new BlueprintMpackConfigEntity();
-    mpackConfigEntity.setMpackReference(mpackReferenceEntity);
+    mpackConfigEntity.setMpackInstance(mpackInstanceEntity);
     mpackConfigEntity.setConfigAttributes("attributes");
     mpackConfigEntity.setConfigData("configdata");
     mpackConfigEntity.setType("zk-env.sh");
-    mpackReferenceEntity.getConfigurations().add(mpackConfigEntity);
+    mpackInstanceEntity.getConfigurations().add(mpackConfigEntity);
 
     HostGroupEntity hostGroupEntity = new HostGroupEntity();
     hostGroupEntity.setBlueprintEntity(blueprintEntity);
@@ -185,10 +160,10 @@ public class BlueprintEntityTest2 {
     hostGroupEntity.addComponent(hgComponentEntity2);
 
     BlueprintServiceEntity blueprintService = new BlueprintServiceEntity();
-    blueprintService.setMpackReference(mpackReferenceEntity);
+    blueprintService.setMpackInstance(mpackInstanceEntity);
     blueprintService.setName("ZK1");
     blueprintService.setType("ZOOKEEPER");
-    mpackReferenceEntity.getServiceInstances().add(blueprintService);
+    mpackInstanceEntity.getServiceInstances().add(blueprintService);
 
     BlueprintServiceConfigEntity blueprintServiceConfigEntity = new BlueprintServiceConfigEntity();
     blueprintServiceConfigEntity.setService(blueprintService);
@@ -197,7 +172,7 @@ public class BlueprintEntityTest2 {
     blueprintServiceConfigEntity.setConfigData("data");
     blueprintService.getConfigurations().add(blueprintServiceConfigEntity);
 
-    blueprintEntity.getMpackReferences().add(mpackReferenceEntity);
+    blueprintEntity.getMpackInstances().add(mpackInstanceEntity);
     blueprintEntity.getHostGroups().add(hostGroupEntity);
 
     return blueprintEntity;

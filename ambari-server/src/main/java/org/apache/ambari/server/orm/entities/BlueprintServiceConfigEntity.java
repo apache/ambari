@@ -29,6 +29,9 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+/**
+ * Entity representing a blueprint service instance configuration
+ */
 @Entity
 @Table(name = "blueprint_service_config")
 @IdClass(BlueprintServiceConfigEntityPk.class)
@@ -56,47 +59,80 @@ public class BlueprintServiceConfigEntity implements BlueprintConfiguration {
   @JoinColumn(name = "service_id", referencedColumnName = "id", nullable = false)
   private BlueprintServiceEntity service;
 
+  /**
+   * @return the database id of the service instance
+   */
   public Long getServiceId() {
     return serviceId;
   }
 
+  /**
+   * @param serviceId  the database id of the service instance
+   */
   public void setServiceId(Long serviceId) {
     this.serviceId = serviceId;
   }
 
+  /**
+   * @return the type of the configuration
+   */
   public String getType() {
     return type;
   }
 
+  /**
+   * @return the blueprint name
+   */
   @Override
   public String getBlueprintName() {
-    return getService().getMpackReference().getBlueprint().getBlueprintName();
+    return getService().getMpackInstance().getBlueprint().getBlueprintName();
   }
 
+  /**
+   * @param typeName the type of the configuration
+   */
   public void setType(String typeName) {
     this.type = typeName;
   }
 
+  /**
+   * @return the configuration data encoded in json
+   */
   public String getConfigData() {
     return configData;
   }
 
+  /**
+   * @param configData the configuration data encoded in json
+   */
   public void setConfigData(String configData) {
     this.configData = configData;
   }
 
+  /**
+   * @return the configuration attributes encoded in json
+   */
   public String getConfigAttributes() {
     return configAttributes;
   }
 
+  /**
+   * @param configAttributes the configuration attributes encoded in json
+   */
   public void setConfigAttributes(String configAttributes) {
     this.configAttributes = configAttributes;
   }
 
+  /**
+   * @return the service instance this configuration belongs to
+   */
   public BlueprintServiceEntity getService() {
     return service;
   }
 
+  /**
+   * @param service the service instance this configuration belongs to
+   */
   public void setService(BlueprintServiceEntity service) {
     this.service = service;
   }

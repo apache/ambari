@@ -56,6 +56,7 @@ public class Alert {
     component = componentName;
     this.hostName = hostName;
     state = alertState;
+    timestamp = System.currentTimeMillis();
   }
 
   public Alert() {

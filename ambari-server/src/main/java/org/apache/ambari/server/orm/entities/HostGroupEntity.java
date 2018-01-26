@@ -109,7 +109,7 @@ public class HostGroupEntity {
 
   /**
    * Set the name of the associated blueprint.
-   * '
+   *
    * @param blueprintName  blueprint name
    */
   public void setBlueprintName(String blueprintName) {

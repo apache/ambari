@@ -19,6 +19,12 @@
 package org.apache.ambari.infra.job.archive;
 
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.batch.core.JobParameters;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class SolrQueryProperties {
   @NotBlank
@@ -26,7 +32,7 @@ public class SolrQueryProperties {
   @NotBlank
   private String queryText;
   private String filterQueryText;
-  private String[] sort;
+  private String[] sortColumn;
 
   public String getCollection() {
     return collection;
@@ -52,18 +58,40 @@ public class SolrQueryProperties {
     this.filterQueryText = filterQueryText;
   }
 
-  public String[] getSort() {
-    return sort;
+  public String[] getSortColumn() {
+    return sortColumn;
   }
 
-  public void setSort(String[] sort) {
-    this.sort = sort;
+  public void setSortColumn(String[] sortColumn) {
+    this.sortColumn = sortColumn;
   }
 
   public SolrQueryBuilder toQueryBuilder() {
     return new SolrQueryBuilder().
             setQueryText(queryText)
             .setFilterQueryText(filterQueryText)
-            .addSort(sort);
+            .addSort(sortColumn);
+  }
+
+  public void apply(JobParameters jobParameters) {
+    collection = jobParameters.getString("collection", collection);
+    queryText = jobParameters.getString("queryText", queryText);
+    filterQueryText = jobParameters.getString("filterQueryText", filterQueryText);
+
+    String sortValue;
+    List<String> sortColumns = new ArrayList<>();
+    int i = 0;
+    while ((sortValue = jobParameters.getString(String.format("sortColumn[%d]", i))) != null) {
+      sortColumns.add(sortValue);
+      ++i;
+    }
+
+    if (sortColumns.size() > 0)
+      sortColumn = sortColumns.toArray(new String[sortColumns.size()]);
+  }
+
+  public void validate() {
+    if (isBlank(collection))
+      throw new IllegalArgumentException("The property collection can not be null or empty string!");
   }
 }

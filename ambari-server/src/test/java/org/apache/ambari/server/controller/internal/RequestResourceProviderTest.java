@@ -28,11 +28,13 @@ import static org.easymock.EasyMock.newCapture;
 import static org.powermock.api.easymock.PowerMock.createMock;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
+import static org.powermock.api.easymock.PowerMock.replayAll;
 import static org.powermock.api.easymock.PowerMock.reset;
+import static org.powermock.api.easymock.PowerMock.resetAll;
 import static org.powermock.api.easymock.PowerMock.verify;
+import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -99,7 +101,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -172,8 +178,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
@@ -220,9 +224,7 @@ public class RequestResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     replay(managementController, clusters, cluster);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
-      PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
-      managementController);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type, managementController);
 
     Map<String, String> requestInfoProperties = new HashMap<>();
     Request request;
@@ -314,8 +316,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -366,8 +366,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -419,8 +417,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -480,8 +476,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -547,8 +541,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -601,8 +593,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -672,8 +662,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -753,8 +741,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -835,8 +821,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // TEST CASE: Check update request validation (abort reason not specified)
@@ -921,8 +905,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).
@@ -1014,8 +996,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     provider.createResources(request);
@@ -1117,8 +1097,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     // Neither action nor commands are specified
@@ -1187,9 +1165,7 @@ public class RequestResourceProviderTest {
       capture(requestCapture), capture(predicateCapture))).andReturn(Collections.singleton(resource));
 
     // replay
-    replay(managementController, response, controller,
-      hostComponentProcessResourceProvider, resource, clusters);
-    PowerMock.replayAll();
+    replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(
       TestAuthenticationFactory.createAdministrator());
@@ -1219,8 +1195,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     provider.createResources(request);
@@ -1334,8 +1308,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     requestInfoProperties.put(RequestOperationLevel.OPERATION_CLUSTER_ID, c1);
@@ -1526,8 +1498,6 @@ public class RequestResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
     provider.createResources(request);
     ExecuteActionRequest capturedRequest = actionRequest.getValue();
@@ -1582,8 +1552,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -1636,8 +1604,6 @@ public class RequestResourceProviderTest {
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
     Set<String> propertyIds = new HashSet<>();
@@ -1664,127 +1630,106 @@ public class RequestResourceProviderTest {
   }
 
   /**
-   * Tests that topology requests return different status (PENDING) if there are
-   * no tasks. Normal requests should return COMPLETED.
-   *
-   * @throws Exception
+   * Tests that if there are no tasks, topology requests return status they get from the logical request.
    */
   @Test
   @PrepareForTest(AmbariServer.class)
   public void testGetLogicalRequestStatusWithNoTasks() throws Exception {
-    // Given
-    Resource.Type type = Resource.Type.Request;
+    Iterable<CalculatedStatus> statusList = ImmutableList.of(CalculatedStatus.COMPLETED, CalculatedStatus.PENDING, CalculatedStatus.ABORTED);
+    for (CalculatedStatus calculatedStatus : statusList) {
+      // Given
+      resetAll();
 
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    ActionManager actionManager = createNiceMock(ActionManager.class);
+      PowerMock.mockStatic(AmbariServer.class);
+      AmbariManagementController managementController = createMock(AmbariManagementController.class);
+      ActionManager actionManager = createNiceMock(ActionManager.class);
+      Clusters clusters = createNiceMock(Clusters.class);
+      Cluster cluster = createNiceMock(Cluster.class);
+      RequestEntity requestMock = createNiceMock(RequestEntity.class);
+      Blueprint blueprint = createNiceMock(Blueprint.class);
+      ClusterTopology topology = createNiceMock(ClusterTopology.class);
+      HostGroup hostGroup = createNiceMock(HostGroup.class);
+      TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
+      LogicalRequest logicalRequest = createNiceMock(LogicalRequest.class);
+      HostRequest hostRequest = createNiceMock(HostRequest.class);
 
-    Clusters clusters = createNiceMock(Clusters.class);
+      Long requestId = 100L;
+      Long clusterId = 2L;
+      String clusterName = "cluster1";
+      String hostGroupName = "host_group_1";
+      HostGroupInfo hostGroupInfo = new HostGroupInfo(hostGroupName);
+      hostGroupInfo.setRequestedCount(1);
+      Map<String, HostGroupInfo> hostGroupInfoMap = ImmutableMap.of(hostGroupName, hostGroupInfo);
+      Collection<HostRequest> hostRequests = Collections.singletonList(hostRequest);
+      Map<Long, HostRoleCommandStatusSummaryDTO> dtoMap = Collections.emptyMap();
 
-    RequestEntity requestMock = createNiceMock(RequestEntity.class);
+      expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
+      expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+      expect(requestMock.getRequestId()).andReturn(requestId).anyTimes();
+      expect(hostGroup.getName()).andReturn(hostGroupName).anyTimes();
+      expect(blueprint.getHostGroup(hostGroupName)).andReturn(hostGroup).anyTimes();
+      expect(topology.getClusterId()).andReturn(2L).anyTimes();
+      expect(cluster.getClusterId()).andReturn(clusterId).anyTimes();
+      expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
+      expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+      expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+      expect(clusters.getCluster(eq(clusterName))).andReturn(cluster).anyTimes();
+      expect(clusters.getClusterById(clusterId)).andReturn(cluster).anyTimes();
+      Collection<Long> requestIds = anyObject();
+      expect(requestDAO.findByPks(requestIds, eq(true))).andReturn(Lists.newArrayList(requestMock));
+      expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(dtoMap).anyTimes();
+      expect(topologyManager.getRequest(requestId)).andReturn(logicalRequest).anyTimes();
+      expect(topologyManager.getRequests(eq(Collections.singletonList(requestId)))).andReturn(Collections.singletonList(logicalRequest)).anyTimes();
+      expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(dtoMap).anyTimes();
 
-    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
-    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
-    Capture<Collection<Long>> requestIdsCapture = Capture.newInstance();
+      expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
+      expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+      expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
 
+      expect(logicalRequest.getHostRequests()).andReturn(hostRequests).anyTimes();
+      expect(logicalRequest.constructNewPersistenceEntity()).andReturn(requestMock).anyTimes();
+      expect(logicalRequest.calculateStatus()).andReturn(calculatedStatus).anyTimes();
+      Optional<String> failureReason = calculatedStatus == CalculatedStatus.ABORTED
+        ? Optional.of("some reason")
+        : Optional.<String>absent();
+      expect(logicalRequest.getFailureReason()).andReturn(failureReason).anyTimes();
 
-    ClusterTopology topology = createNiceMock(ClusterTopology.class);
+      replayAll();
 
-    HostGroup hostGroup = createNiceMock(HostGroup.class);
-    expect(hostGroup.getName()).andReturn("host_group_1").anyTimes();
+      Resource.Type type = Resource.Type.Request;
+      ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        managementController
+      );
 
-    Blueprint blueprint = createNiceMock(Blueprint.class);
-    expect(blueprint.getHostGroup("host_group_1")).andReturn(hostGroup).anyTimes();
-    expect(topology.getClusterId()).andReturn(2L).anyTimes();
+      Set<String> propertyIds = ImmutableSet.of(
+        RequestResourceProvider.REQUEST_ID_PROPERTY_ID,
+        RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID,
+        RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID,
+        RequestResourceProvider.REQUEST_CONTEXT_ID
+      );
 
-    Long clusterId = 2L;
-    String clusterName = "cluster1";
-    Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getClusterId()).andReturn(clusterId).anyTimes();
-    expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
+      Predicate predicate = new PredicateBuilder().
+        property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        toPredicate();
 
-    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster(eq(clusterName))).andReturn(cluster).anyTimes();
-    expect(clusters.getClusterById(clusterId)).andReturn(cluster).anyTimes();
-    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Lists.newArrayList(requestMock));
-    expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(
-      Collections.emptyMap()).anyTimes();
+      Request request = PropertyHelper.getReadRequest(propertyIds);
 
-    Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
-    HostGroupInfo hostGroupInfo = new HostGroupInfo("host_group_1");
-    hostGroupInfo.setRequestedCount(1);
-    hostGroupInfoMap.put("host_group_1", hostGroupInfo);
+      // When
+      Set<Resource> resources = provider.getResources(request, predicate);
 
-    TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
-    expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
-    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
-    expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
+      // Then
+      verifyAll();
 
+      Assert.assertEquals(1, resources.size());
+      Resource resource = Iterables.getOnlyElement(resources);
+      Assert.assertEquals(requestId, resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
+      Assert.assertEquals(calculatedStatus.getStatus().toString(), resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+      Assert.assertEquals(calculatedStatus.getPercent(), resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
 
-
-    PowerMock.mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
-
-    PowerMock.replayAll(
-            topologyRequest,
-            topology,
-            blueprint,
-            managementController,
-            clusters);
-
-
-    LogicalRequest logicalRequest = createNiceMock(LogicalRequest.class);
-    Collection<HostRequest> hostRequests = new ArrayList<>();
-    HostRequest hostRequest = createNiceMock(HostRequest.class);
-    hostRequests.add(hostRequest);
-    expect(logicalRequest.getHostRequests()).andReturn(hostRequests).anyTimes();
-    expect(logicalRequest.constructNewPersistenceEntity()).andReturn(requestMock).anyTimes();
-
-    reset(topologyManager);
-
-    expect(topologyManager.getRequest(100L)).andReturn(logicalRequest).anyTimes();
-
-
-    expect(topologyManager.getRequests(eq(Collections.singletonList(100L)))).andReturn(
-      Collections.singletonList(logicalRequest)).anyTimes();
-    expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
-      Collections.emptyMap()).anyTimes();
-
-    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest, hostRequest);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-      type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
-      managementController);
-
-    Set<String> propertyIds = ImmutableSet.of(
-      RequestResourceProvider.REQUEST_ID_PROPERTY_ID,
-      RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID,
-      RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID
-    );
-
-    Predicate predicate = new PredicateBuilder().
-      property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
-      toPredicate();
-
-    Request request = PropertyHelper.getReadRequest(propertyIds);
-
-    // When
-    Set<Resource> resources = provider.getResources(request, predicate);
-
-    // Then
-
-
-    // verify
-    PowerMock.verifyAll();
-    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest, hostRequest);
-
-    Assert.assertEquals(1, resources.size());
-    for (Resource resource : resources) {
-      Assert.assertEquals(100L, (long)(Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
-      Assert.assertEquals("PENDING", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
-      Assert.assertEquals(0.0, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
+      Object requestContext = resource.getPropertyValue(RequestResourceProvider.REQUEST_CONTEXT_ID);
+      Assert.assertNotNull(requestContext);
+      Assert.assertTrue(!failureReason.isPresent() || requestContext.toString().contains(failureReason.get()));
     }
   }
 }

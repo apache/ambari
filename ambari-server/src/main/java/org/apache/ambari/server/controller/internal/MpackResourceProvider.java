@@ -120,7 +120,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
   }
 
   MpackResourceProvider(AmbariManagementController controller) {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+    super(Resource.Type.Mpack, PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

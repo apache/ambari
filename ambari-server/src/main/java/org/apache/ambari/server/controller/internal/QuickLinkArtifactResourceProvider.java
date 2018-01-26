@@ -96,7 +96,7 @@ public class QuickLinkArtifactResourceProvider extends AbstractControllerResourc
    * @param managementController the management controller
    */
   protected QuickLinkArtifactResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.QuickLink, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

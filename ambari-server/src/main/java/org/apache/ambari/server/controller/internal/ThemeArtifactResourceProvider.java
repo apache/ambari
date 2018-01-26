@@ -93,7 +93,7 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
    * @param managementController the management controller
    */
   protected ThemeArtifactResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.Theme, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

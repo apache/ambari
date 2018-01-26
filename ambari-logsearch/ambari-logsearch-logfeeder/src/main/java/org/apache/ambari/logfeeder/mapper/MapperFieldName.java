@@ -19,8 +19,8 @@
 
 package org.apache.ambari.logfeeder.mapper;
 
-import java.util.Map;
-
+import org.apache.ambari.logfeeder.conf.LogFeederProps;
+import org.apache.ambari.logfeeder.plugin.filter.mapper.Mapper;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldNameDescriptor;
@@ -28,10 +28,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import java.util.Map;
+
 /**
  * Overrides the value for the field
  */
-public class MapperFieldName extends Mapper {
+public class MapperFieldName extends Mapper<LogFeederProps> {
   private static final Logger LOG = Logger.getLogger(MapperFieldName.class);
 
   private String newValue = null;
@@ -51,7 +53,7 @@ public class MapperFieldName extends Mapper {
   @Override
   public Object apply(Map<String, Object> jsonObj, Object value) {
     if (newValue != null) {
-      jsonObj.remove(fieldName);
+      jsonObj.remove(getFieldName());
       jsonObj.put(newValue, value);
     } else {
       LogFeederUtil.logErrorMessageByInterval(this.getClass().getSimpleName() + ":apply",

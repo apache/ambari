@@ -30,6 +30,7 @@ from alerts.base_alert import BaseAlert
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from ambari_commons import inet_utils
 from ambari_agent import Constants
 
 logger = logging.getLogger()
@@ -80,7 +81,7 @@ class MetricAlert(BaseAlert):
     logger.debug("[Alert][{0}] Calculated metric URI to be {1} (ssl={2})".format(
         self.get_name(), alert_uri.uri, str(alert_uri.is_ssl_enabled)))
 
-    host = BaseAlert.get_host_from_url(alert_uri.uri)
+    host = inet_utils.get_host_from_url(alert_uri.uri)
     if host is None:
       host = self.host_name
 
@@ -107,7 +108,8 @@ class MetricAlert(BaseAlert):
       
         collect_result = self._get_result(value_list[0] if check_value is None else check_value)
 
-        logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
     
     return (collect_result, value_list)
 

@@ -61,7 +61,7 @@ public class TaskAttemptResourceProviderTest {
         "taskAttempt3"));
 
     Resource.Type type = Resource.Type.TaskAttempt;
-    Set<String> propertyIds = PropertyHelper.getPropertyIds(type);
+    Set<String> propertyIds = TaskAttemptResourceProvider.propertyIds;
 
     TaskAttemptFetcher taskAttemptFetcher = createMock(TaskAttemptFetcher.class);
     expect(

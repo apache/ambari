@@ -154,7 +154,10 @@
       </commandScript>
 
       <requiredServices>
-        <service>YARN</service>
+        <service>
+          <name>YARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

@@ -29,14 +29,17 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+/**
+ * Entity to represent an mpack level configuration in the blueprint.
+ */
 @Entity
 @Table(name = "blueprint_mpack_configuration")
 @IdClass(BlueprintMpackConfigEntityPk.class)
 public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
 
   @Id
-  @Column(name = "mpack_ref_id", nullable = false, insertable = false, updatable = false)
-  private Long mpackRefId;
+  @Column(name = "mpack_instance_id", nullable = false, insertable = false, updatable = false)
+  private Long mpackInstanceId;
 
   @Id
   @Column(name = "type_name", nullable = false, insertable = true, updatable = false, length = 100)
@@ -53,53 +56,86 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   private String configAttributes;
 
   @ManyToOne
-  @JoinColumn(name = "mpack_ref_id", referencedColumnName = "id", nullable = false)
-  private BlueprintMpackReferenceEntity mpackReference;
+  @JoinColumn(name = "mpack_instance_id", referencedColumnName = "id", nullable = false)
+  private BlueprintMpackInstanceEntity mpackInstance;
 
-  public Long getMpackRefId() {
-    return mpackRefId;
+  /**
+   * @return the id of the mpack instance entity this configuration belongs to
+   */
+  public Long getMpackInstanceId() {
+    return mpackInstanceId;
   }
 
-  public void setMpackRefId(Long mpackRefId) {
-    this.mpackRefId = mpackRefId;
+  /**
+   * @param mpackInstanceId the id of the instance referency entity this configuration belongs to
+   */
+  public void setMpackInstanceId(Long mpackInstanceId) {
+    this.mpackInstanceId = mpackInstanceId;
   }
 
+  /**
+   * @return the configuration type
+   */
   @Override
   public String getType() {
     return type;
   }
 
+  /**
+   * @param typeName the type of the configuration
+   */
   @Override
   public void setType(String typeName) {
     this.type = typeName;
   }
 
+  /**
+   * @return the configuration data encoded in json
+   */
   public String getConfigData() {
     return configData;
   }
 
+  /**
+   * @return the name of the blueprint
+   */
   @Override
   public String getBlueprintName() {
-    return getMpackReference().getBlueprint().getBlueprintName();
+    return getMpackInstance().getBlueprint().getBlueprintName();
   }
 
+  /**
+   * @param configData the configuration data encoded in json
+   */
   public void setConfigData(String configData) {
     this.configData = configData;
   }
 
+  /**
+   * @return the configuration attributes encoded in json
+   */
   public String getConfigAttributes() {
     return configAttributes;
   }
 
+  /**
+   * @param configAttributes  the configuration attributes encoded in json
+   */
   public void setConfigAttributes(String configAttributes) {
     this.configAttributes = configAttributes;
   }
 
-  public BlueprintMpackReferenceEntity getMpackReference() {
-    return mpackReference;
+  /**
+   * @return the mpack instance entity this configuration belongs to
+   */
+  public BlueprintMpackInstanceEntity getMpackInstance() {
+    return mpackInstance;
   }
 
-  public void setMpackReference(BlueprintMpackReferenceEntity mpackReference) {
-    this.mpackReference = mpackReference;
+  /**
+   * @param mpackInstance the mpack instance entity this configuration belongs to
+   */
+  public void setMpackInstance(BlueprintMpackInstanceEntity mpackInstance) {
+    this.mpackInstance = mpackInstance;
   }
 }

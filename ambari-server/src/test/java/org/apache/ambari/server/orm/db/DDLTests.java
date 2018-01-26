@@ -37,7 +37,7 @@ import com.google.common.collect.Sets;
 
 
 /**
- * Test to check the sanity and conisistence of DDL scripts for different SQL dialects.
+ * Test to check the sanity and consistence of DDL scripts for different SQL dialects.
  * (e.g. no unnamed constraints, the same tables with the same columns and constraints must exist)
  */
 public class DDLTests {

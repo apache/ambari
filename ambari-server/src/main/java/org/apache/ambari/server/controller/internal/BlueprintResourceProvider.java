@@ -50,10 +50,10 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintMpackInstanceEntity;
 import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackInfo;
@@ -71,6 +71,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 
 /**
@@ -133,6 +135,26 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       BLUEPRINT_NAME_PROPERTY_ID}));
 
   /**
+   * The key property ids for a Blueprint resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Blueprint, BLUEPRINT_NAME_PROPERTY_ID)
+      .build();
+
+  /**
+   * The property ids for a Blueprint resource.
+   */
+  private static Set<String> propertyIds = Sets.newHashSet(
+      BLUEPRINT_NAME_PROPERTY_ID,
+      STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID,
+      BLUEPRINT_SECURITY_PROPERTY_ID,
+      HOST_GROUP_PROPERTY_ID,
+      CONFIGURATION_PROPERTY_ID,
+      SETTING_PROPERTY_ID,
+      MPACK_INSTANCES_PROPERTY_ID);
+
+  /**
    * Used to create Blueprint instances
    */
   private static BlueprintFactory blueprintFactory;
@@ -157,15 +179,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds     the property ids
-   * @param keyPropertyIds  the key property ids
    * @param controller      management controller
    */
-  BlueprintResourceProvider(Set<String> propertyIds,
-                            Map<Resource.Type, String> keyPropertyIds,
-                            AmbariManagementController controller) {
-
-    super(propertyIds, keyPropertyIds, controller);
+  BlueprintResourceProvider(AmbariManagementController controller) {
+    super(Resource.Type.Blueprint, propertyIds, keyPropertyIds, controller);
   }
 
   /**
@@ -186,7 +203,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   @Override
@@ -304,13 +321,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @return a new resource instance for the given blueprint entity
    */
   protected Resource toResource(BlueprintEntity entity, Set<String> requestedIds) throws NoSuchResourceException {
-    StackEntity stackEntity = entity.getStack();
     Resource resource = new ResourceImpl(Resource.Type.Blueprint);
     setResourceProperty(resource, BLUEPRINT_NAME_PROPERTY_ID, entity.getBlueprintName(), requestedIds);
-    if (null != stackEntity) {
-      setResourceProperty(resource, STACK_NAME_PROPERTY_ID, stackEntity.getStackName(), requestedIds);
-      setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, stackEntity.getStackVersion(), requestedIds);
-    }
 
     List<Map<String, Object>> listGroupProps = new ArrayList<>();
     Collection<HostGroupEntity> hostGroups = entity.getHostGroups();
@@ -357,7 +369,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, BLUEPRINT_SECURITY_PROPERTY_ID, securityConfigMap, requestedIds);
     }
 
-    Collection<Map<String, Object>> mpacks = entity.getMpackReferences().stream().map(mpackEntity -> {
+    Collection<Map<String, Object>> mpacks = entity.getMpackInstances().stream().map(mpackEntity -> {
       MpackInstance mpack = MpackInstance.fromEntity(mpackEntity);
       Map<String, Object> mpackAsMap = fromJson(toJson(mpack), Map.class);
       return mpackAsMap;
@@ -407,22 +419,22 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       if(config instanceof BlueprintConfigEntity) {
         Map<String, String> properties = fromJson(config.getConfigData(), Map.class);
 
-        StackEntity stack = ((BlueprintConfigEntity)config).getBlueprintEntity().getStack();
+
+        // TODO: use multiple mpacks
+        BlueprintMpackInstanceEntity mpack =
+          ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackInstances().iterator().next();
         StackInfo metaInfoStack;
 
-        // TODO: in 3.0 there may be no stack or multiple stacks.
-        if (null != stack) {
-          try {
-            metaInfoStack = ambariMetaInfo.getStack(stack.getStackName(), stack.getStackVersion());
-          } catch (AmbariException e) {
-            throw new NoSuchResourceException(e.getMessage());
-          }
-
-          Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
-            metaInfoStack.getConfigPropertiesTypes(type);
-
-          SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1l);
+        try {
+          metaInfoStack = ambariMetaInfo.getStack(mpack.getMpackName(), mpack.getMpackVersion());
+        } catch (AmbariException e) {
+          throw new NoSuchResourceException(e.getMessage());
         }
+
+        Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
+          metaInfoStack.getConfigPropertiesTypes(type);
+
+        SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1l);
 
         configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
       } else {

@@ -219,8 +219,14 @@
       </commandScript>
 
       <requiredServices>
-        <service>FAKEHDFS</service>
-        <service>FAKEMAPREDUCE2</service>
+        <service>
+          <name>FAKEHDFS</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
+        <service>
+          <name>FAKEMAPREDUCE2</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <!-- No packages to install. -->
@@ -323,7 +329,10 @@
       </commandScript>
 
       <requiredServices>
-        <service>FAKEYARN</service>
+        <service>
+          <name>FAKEYARN</name>
+          <dependencyType>INSTALL</dependencyType>
+        </service>
       </requiredServices>
 
       <configuration-dependencies>

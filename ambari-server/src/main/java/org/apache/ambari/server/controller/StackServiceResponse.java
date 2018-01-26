@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.RequiredService;
 import org.apache.ambari.server.state.ServiceInfo;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -48,7 +49,7 @@ public class StackServiceResponse {
 
   private Set<String> excludedConfigTypes;
 
-  private List<String> requiredServices;
+  private List<RequiredService> requiredServices;
 
   private Map<String, String> serviceProperties;
 
@@ -208,11 +209,11 @@ public class StackServiceResponse {
   }
 
   @ApiModelProperty(name = "required_services")
-  public List<String> getRequiredServices() {
+  public List<RequiredService> getRequiredServices() {
     return requiredServices;
   }
 
-  public void setRequiredServices(List<String> requiredServices) {
+  public void setRequiredServices(List<RequiredService> requiredServices) {
     this.requiredServices = requiredServices;
   }
 

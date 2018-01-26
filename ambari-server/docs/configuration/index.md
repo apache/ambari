@@ -57,6 +57,7 @@ The following are the properties which can be used to configure Ambari.
 | alerts.execution.scheduler.threadpool.size.core | The core number of threads used to process incoming alert events. The value should be increased as the size of the cluster increases. |`2` | 
 | alerts.execution.scheduler.threadpool.size.max | The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases. |`2` | 
 | alerts.execution.scheduler.threadpool.worker.size | The number of queued alerts allowed before discarding old alerts which have not been handled. The value should be increased as the size of the cluster increases. |`2000` | 
+| alerts.server.side.scheduler.threadpool.size.core | The core pool size of the executor service that runs server side alerts. |`4` | 
 | alerts.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
 | alerts.template.file | The full path to the XML file that describes the different alert templates. | | 
 | ambari.display.url | The URL to use when creating messages which should include the Ambari Server URL.<br/><br/>The following are examples of valid values:<ul><li>`http://ambari.apache.org:8080`</ul> | | 
@@ -83,7 +84,6 @@ The following are the properties which can be used to configure Ambari.
 | authentication.kerberos.enabled | Determines whether to use Kerberos (SPNEGO) authentication when connecting Ambari. |`false` | 
 | authentication.kerberos.spnego.keytab.file | The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO |`/etc/security/keytabs/spnego.service.keytab` | 
 | authentication.kerberos.spnego.principal | The Kerberos principal name to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO |`HTTP/_HOST` | 
-| authentication.kerberos.user.types | A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user account for the user-supplied Kerberos identity during authentication via SPNEGO |`LDAP` | 
 | authentication.ldap.alternateUserSearchEnabled | Determines whether a secondary (alternate) LDAP user search filer is used if the primary filter fails to find a user. |`false` | 
 | authentication.ldap.alternateUserSearchFilter | An alternate LDAP user search filter which can be used if `authentication.ldap.alternateUserSearchEnabled` is enabled and the primary filter fails to find a user. |`(&(userPrincipalName={0})(objectClass={userObjectClass}))` | 
 | authentication.ldap.baseDn | The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled. |`dc=ambari,dc=apache,dc=org` | 
@@ -109,6 +109,8 @@ The following are the properties which can be used to configure Ambari.
 | authentication.ldap.userSearchFilter | A filter used to lookup a user in LDAP based on the Ambari user name<br/><br/>The following are examples of valid values:<ul><li>`(&({usernameAttribute}={0})(objectClass={userObjectClass}))`</ul> |`(&({usernameAttribute}={0})(objectClass={userObjectClass}))` | 
 | authentication.ldap.username.forceLowercase | Declares whether to force the ldap user name to be lowercase or leave as-is. This is useful when local user names are expected to be lowercase but the LDAP user names are not. |`false` | 
 | authentication.ldap.usernameAttribute | The attribute used for determining the user name, such as `uid`. |`uid` | 
+| authentication.local.max.failures | The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures. |`10` | 
+| authentication.local.show.locked.account.messages | Show or hide whether the user account is disabled or locked out, if relevant, when an authentication attempt fails. |`false` | 
 | authorization.ldap.adminGroupMappingRules | A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.<br/><br/>The following are examples of valid values:<ul><li>`administrators`<li>`Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators`</ul> |`Ambari Administrators` | 
 | authorization.ldap.groupSearchFilter | The DN to use when searching for LDAP groups. | | 
 | auto.group.creation | The auto group creation by Ambari |`false` | 
@@ -127,7 +129,7 @@ The following are the properties which can be used to configure Ambari.
 | client.api.ssl.port | The port that client connections will use with the REST API when using SSL. The Ambari Web client runs on this port if SSL is enabled. |`8443` | 
 | client.api.ssl.truststore_name | The name of the truststore used when the Ambari Server REST API is protected by SSL. |`https.keystore.p12` | 
 | client.api.ssl.truststore_type | The type of the keystore file specified in `client.api.ssl.truststore_name`. Self-signed certificates can be `PKCS12` while CA signed certificates are `JKS` |`PKCS12` | 
-| client.security | The type of authentication mechanism used by Ambari.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`ldap`</ul> | | 
+| client.security | The type of authentication mechanism used by Ambari.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`ldap`<li>`pam`</ul> | | 
 | client.threadpool.size.max | The size of the Jetty connection pool used for handling incoming REST API requests. This should be large enough to handle requests from both web browsers and embedded Views. |`25` | 
 | common.services.path | The location on the Ambari Server where common service resources exist. Stack services share the common service files.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/common-services`</ul> | | 
 | custom.action.definitions | The location on the Ambari Server where custom actions are defined. |`/var/lib/ambari-server/resources/custom_action_definitions` | 
@@ -135,6 +137,7 @@ The following are the properties which can be used to configure Ambari.
 | db.oracle.jdbc.name | The name of the Oracle JDBC JAR connector. |`ojdbc6.jar` | 
 | default.kdcserver.port | The port used to communicate with the Kerberos Key Distribution Center. |`88` | 
 | extensions.path | The location on the Ambari Server where stack extensions exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/extensions`</ul> | | 
+| gpl.license.accepted | Whether user accepted GPL license. |`false` | 
 | http.cache-control | The value that will be used to set the `Cache-Control` HTTP response header. |`no-store` | 
 | http.charset | The value that will be used to set the Character encoding to HTTP response header. |`utf-8` | 
 | http.pragma | The value that will be used to set the `PRAGMA` HTTP response header. |`no-cache` | 
@@ -151,7 +154,7 @@ The following are the properties which can be used to configure Ambari.
 | kerberos.operation.retries | The number of times failed Kerberos operations should be retried to execute. |`3` | 
 | kerberos.operation.retry.timeout | The time to wait (in seconds) between failed Kerberos operations retries. |`10` | 
 | kerberos.operation.verify.kdc.trust | Validate the trust of the SSL certificate provided by the KDC when performing Kerberos operations over SSL. |`true` | 
-| ldap.sync.username.collision.behavior | Determines how to handle username collision while updating from LDAP.<br/><br/>The following are examples of valid values:<ul><li>`skip`<li>`convert`</ul> |`convert` | 
+| ldap.sync.username.collision.behavior | Determines how to handle username collision while updating from LDAP.<br/><br/>The following are examples of valid values:<ul><li>`skip`<li>`convert`<li>`add`</ul> |`add` | 
 | log4j.monitor.delay | Indicates the delay, in milliseconds, for the log4j monitor to check for changes |`300000` | 
 | logsearch.metadata.cache.expire.timeout | The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making a request to the LogSearch Portal to get the latest metadata. |`24` | 
 | logsearch.portal.connect.timeout | The time, in milliseconds, that the Ambari Server will wait while attempting to connect to the LogSearch Portal service. |`5000` | 
@@ -178,6 +181,7 @@ The following are the properties which can be used to configure Ambari.
 | recovery.window_in_minutes | The length of a recovery window, in minutes, in which recovery attempts can be retried.<br/><br/> This property is related to `recovery.max_count`. | | 
 | repo.validation.suffixes.default | The suffixes to use when validating most types of repositories. |`/repodata/repomd.xml` | 
 | repo.validation.suffixes.ubuntu | The suffixes to use when validating Ubuntu repositories. |`/dists/%s/Release` | 
+| repositories.legacy-override.enabled | This property is used in specific testing circumstances only. Its use otherwise will lead to very unpredictable results with repository management and package installation |`false` | 
 | resources.dir | The location on the Ambari Server where all resources exist, including common services, stacks, and scripts. |`/var/lib/ambari-server/resources/` | 
 | rolling.upgrade.skip.packages.prefixes | A comma-separated list of packages which will be skipped during a stack upgrade. | | 
 | security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.<br><br>WARNING: By setting this value to false, host names will not be validated, allowing a possible security vulnerability as described in CVE-2014-3582. See https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Vulnerabilities for more information. |`true` | 
@@ -282,6 +286,7 @@ The following are the properties which can be used to configure Ambari.
 | ssl.trustStore.password | The password to use when setting the `javax.net.ssl.trustStorePassword` property | | 
 | ssl.trustStore.path | The location of the truststore to use when setting the `javax.net.ssl.trustStore` property. | | 
 | ssl.trustStore.type | The type of truststore used by the `javax.net.ssl.trustStoreType` property. | | 
+| stack.hooks.folder | A location of hooks folder relative to resources folder. |`stack-hooks` | 
 | stack.java.home | The location of the JDK on the Ambari Agent hosts for stack services.<br/><br/>The following are examples of valid values:<ul><li>`/usr/jdk64/jdk1.7.0_45`</ul> | | 
 | stack.java.version | JDK version of the stack, use in case of it differs from Ambari JDK version.<br/><br/>The following are examples of valid values:<ul><li>`1.7`</ul> | | 
 | stack.jce.name | The name of the JCE policy ZIP file for stack services.<br/><br/>The following are examples of valid values:<ul><li>`UnlimitedJCEPolicyJDK7.zip`</ul> | | 

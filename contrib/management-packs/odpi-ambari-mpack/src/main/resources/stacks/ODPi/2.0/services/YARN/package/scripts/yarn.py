@@ -339,7 +339,7 @@ def yarn(name=None, config_dir=None):
       )
     # app timeline server 1.5 directories
     if not is_empty(params.entity_groupfs_store_dir):
-      parent_path = os.path.dirname(params.entity_groupfs_store_dir)
+      parent_path = os.path.dirname(os.path.abspath(params.entity_groupfs_store_dir))
       params.HdfsResource(parent_path,
                           type="directory",
                           action="create_on_execute",
@@ -356,7 +356,7 @@ def yarn(name=None, config_dir=None):
                           mode=params.entity_groupfs_store_dir_mode
                           )
     if not is_empty(params.entity_groupfs_active_dir):
-      parent_path = os.path.dirname(params.entity_groupfs_active_dir)
+      parent_path = os.path.dirname(os.path.abspath(params.entity_groupfs_active_dir))
       params.HdfsResource(parent_path,
                           type="directory",
                           action="create_on_execute",

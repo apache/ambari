@@ -740,7 +740,7 @@ public interface KerberosHelper {
    *
    * @param resolvedKerberosKeytab kerberos keytab to be persisted
    */
-  void processResolvedKeytab(ResolvedKerberosKeytab resolvedKerberosKeytab);
+  void createResolvedKeytab(ResolvedKerberosKeytab resolvedKerberosKeytab);
 
   /**
    * Removes existent persisted keytabs if they are not in {@code expectedKeytabs} collection.

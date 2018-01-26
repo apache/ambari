@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -60,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 
 
@@ -96,6 +96,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_HOSTS;
   public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HEALTH_REPORT;
   public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CREDENTIAL_STORE_PROPERTIES;
+  public static final String CLUSTER_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters","state");
 
   static final String BLUEPRINT = "blueprint";
   private static final String SECURITY = "security";
@@ -129,23 +130,16 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private static SecurityConfigurationFactory securityConfigurationFactory;
 
   /**
-   * The cluster primary key properties.
-   */
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
-
-  /**
    * The key property ids for a cluster resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-  static {
-    keyPropertyIds.put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID);
-  }
+  protected static Map<Resource.Type, String> keyPropertyIds = ImmutableMap.<Resource.Type, String>builder()
+      .put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID)
+      .build();
 
   /**
    * The property ids for a cluster resource.
    */
-  private static Set<String> propertyIds = new HashSet<>();
+  protected static Set<String> propertyIds = new HashSet<>();
 
   /**
    * Used to serialize to/from json.
@@ -169,6 +163,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(SECURITY);
     propertyIds.add(CREDENTIALS);
     propertyIds.add(QUICKLINKS_PROFILE);
+    propertyIds.add(CLUSTER_STATE_PROPERTY_ID);
   }
 
 
@@ -180,7 +175,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @param managementController  the management controller
    */
   ClusterResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.Cluster, propertyIds, keyPropertyIds, managementController);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS));
@@ -192,7 +187,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return new HashSet<>(Collections.singletonList(CLUSTER_ID_PROPERTY_ID));
   }
 
   /**

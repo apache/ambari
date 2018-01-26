@@ -120,7 +120,7 @@ describe('CollapsiblePanelComponent', () => {
     let title = 'Title';
     let headingEl = el.querySelector('.panel-heading');
     component.openTitle = '';
-    component.title = title;
+    component.commonTitle = title;
     component.isCollapsed = false;
     fixture.detectChanges();
     expect(headingEl.textContent).toContain(title);
@@ -130,7 +130,7 @@ describe('CollapsiblePanelComponent', () => {
     let title = 'Title';
     let headingEl = el.querySelector('.panel-heading');
     component.collapsedTitle = '';
-    component.title = title;
+    component.commonTitle = title;
     component.isCollapsed = true;
     fixture.detectChanges();
     expect(headingEl.textContent).toContain(title);

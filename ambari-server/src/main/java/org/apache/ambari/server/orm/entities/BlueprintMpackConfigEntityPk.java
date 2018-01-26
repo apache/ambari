@@ -23,10 +23,13 @@ import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Id;
 
+/**
+ * Composite primary key for {@link BlueprintMpackConfigEntity}
+ */
 public class BlueprintMpackConfigEntityPk {
   @Id
-  @Column(name = "mpack_ref_id", nullable = false, insertable = true, updatable = false)
-  private Long mpackRefId;
+  @Column(name = "mpack_instance_id", nullable = false, insertable = true, updatable = false)
+  private Long mpackInstanceId;
 
   @Id
   @Column(name = "type_name", nullable = false, insertable = true, updatable = false, length = 100)
@@ -37,12 +40,12 @@ public class BlueprintMpackConfigEntityPk {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     BlueprintMpackConfigEntityPk that = (BlueprintMpackConfigEntityPk) o;
-    return Objects.equals(mpackRefId, that.mpackRefId) &&
+    return Objects.equals(mpackInstanceId, that.mpackInstanceId) &&
       Objects.equals(type, that.type);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mpackRefId, type);
+    return Objects.hash(mpackInstanceId, type);
   }
 }

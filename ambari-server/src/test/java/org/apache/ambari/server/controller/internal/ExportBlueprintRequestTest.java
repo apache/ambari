@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -33,7 +32,6 @@ import static org.junit.Assert.fail;
 import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.lang.reflect.Field;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
