@@ -419,7 +419,6 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       if(config instanceof BlueprintConfigEntity) {
         Map<String, String> properties = fromJson(config.getConfigData(), Map.class);
 
-
         // TODO: use multiple mpacks
         BlueprintMpackInstanceEntity mpack =
           ((BlueprintConfigEntity)config).getBlueprintEntity().getMpackInstances().iterator().next();

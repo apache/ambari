@@ -79,7 +79,6 @@ public class BlueprintImpl implements Blueprint {
         entity.getSecurityDescriptorReference(),
         null);
     }
-    // Parse mpacks
     mpacks.addAll(parseMpacks(entity));
 
     // create config first because it is set as a parent on all host-group configs

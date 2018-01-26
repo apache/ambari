@@ -57,7 +57,6 @@ public class BlueprintEntity {
   @Basic
   @Column(name = "security_descriptor_reference", nullable = true, insertable = true, updatable = true)
   private String securityDescriptorReference;
-
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
   private Collection<HostGroupEntity> hostGroups = new ArrayList<>();
 
