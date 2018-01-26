@@ -124,6 +124,7 @@
     <description>This is the jinja template for yarn-env.sh file</description>
     <value>
 export HADOOP_YARN_HOME={{hadoop_yarn_home}}
+USER="$(whoami)"
 export YARN_LOG_DIR={{yarn_log_dir_prefix}}/$USER
 export YARN_PID_DIR={{yarn_pid_dir_prefix}}/$USER
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
