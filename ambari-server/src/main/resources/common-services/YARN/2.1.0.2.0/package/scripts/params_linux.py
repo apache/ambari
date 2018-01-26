@@ -349,7 +349,7 @@ if security_enabled:
   if stack_supports_zk_security:
     zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
     zk_principal_user = zk_principal_name.split('/')[0]
-    rm_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=' + zk_principal_user + ' -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client')
+    rm_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client')
 
   # YARN timeline security options
   if has_ats:
