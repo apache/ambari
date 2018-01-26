@@ -41,7 +41,6 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -76,7 +75,6 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
@@ -90,7 +88,6 @@ import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
@@ -272,181 +269,6 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response));
 
     verify(injector, clusters, cluster, response, credentialStoreService);
-  }
-
-  @Test
-  public void testGetClientHostForRunningAction_componentIsNull() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent component = null;
-
-    replay(cluster, service, injector);
-
-    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    String host = controller.getClientHostForRunningAction(cluster, service, component);
-
-    assertNull(host);
-    verify(cluster, service, injector);
-  }
-
-  @Test
-  public void testGetClientHostForRunningAction_componentMapIsEmpty() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
-    Map<String, ServiceComponentHost> hostMap = new HashMap<>();
-    expect(component.getServiceComponentHosts()).andReturn(hostMap);
-
-    replay(cluster, service, component, injector);
-
-    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    String host = controller.getClientHostForRunningAction(cluster, service, component);
-
-    verify(cluster, service, component, injector);
-    assertNull(host);
-  }
-
-  @Test
-  public void testGetClientHostForRunningAction_returnsHelathyHost() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-    ActionManager actionManager = createNiceMock(ActionManager.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
-    Map<String, ServiceComponentHost> hostMap = createNiceMock(Map.class);
-    Set<String> hostsSet = createNiceMock(Set.class);
-    expect(hostMap.isEmpty()).andReturn(false);
-    expect(hostMap.keySet()).andReturn(hostsSet);
-    expect(component.getServiceComponentHosts()).andReturn(hostMap).times(2);
-
-    replay(cluster, service, component, injector, actionManager, hostMap, hostsSet);
-
-    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-        .addMockedMethod("filterHostsForAction")
-        .addMockedMethod("getHealthyHost")
-        .withConstructor(actionManager, clusters, injector)
-        .createMock();
-    expect(controller.getHealthyHost(hostsSet)).andReturn("healthy_host");
-    controller.filterHostsForAction(hostsSet, service, cluster, Resource.Type.Cluster);
-    expectLastCall().once();
-
-    replay(controller);
-    String host = controller.getClientHostForRunningAction(cluster, service, component);
-
-    assertEquals("healthy_host", host);
-    verify(controller, cluster, service, component, injector, hostMap);
-  }
-
-  @Test
-  public void testGetClientHostForRunningAction_clientComponent() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
-
-    expect(service.getServiceType()).andReturn("service");
-    expect(service.getServiceComponent("component")).andReturn(component);
-    expect(service.getServiceComponents()).andReturn(Collections.singletonMap("component", component)).anyTimes();
-    expect(service.getDesiredStackId()).andReturn(stackId);
-    expect(stackId.getStackName()).andReturn("stack");
-    expect(stackId.getStackVersion()).andReturn("1.0");
-
-    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-    ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
-    expect(serviceInfo.getClientComponent()).andReturn(compInfo);
-    expect(compInfo.getName()).andReturn("component");
-    expect(component.getServiceComponentHosts()).andReturn(Collections.singletonMap("host", null)).anyTimes();
-    expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
-
-    replay(injector, cluster, service, component, serviceInfo, compInfo, ambariMetaInfo, stackId);
-
-    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-    ServiceComponent resultComponent = controller.getClientComponentForRunningAction(cluster, service);
-
-    assertNotNull(resultComponent);
-    assertEquals(component, resultComponent);
-    verify(injector, cluster, service, component, serviceInfo, compInfo, ambariMetaInfo, stackId);
-  }
-
-  @Test
-  public void testGetClientHostForRunningAction_clientComponentThrowsException() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ServiceComponent component1 = createNiceMock(ServiceComponent.class);
-    ServiceComponent component2 = createNiceMock(ServiceComponent.class);
-
-    expect(service.getServiceType()).andReturn("service");
-    expect(service.getServiceComponent("component")).andThrow(
-      new ServiceComponentNotFoundException("cluster", "service", "service", "CORE", "component"));
-    expect(service.getDesiredStackId()).andReturn(stackId);
-    expect(stackId.getStackName()).andReturn("stack");
-    expect(stackId.getStackVersion()).andReturn("1.0");
-    Map<String, ServiceComponent> componentsMap = new HashMap<>();
-    componentsMap.put("component1", component1);
-    componentsMap.put("component2", component2);
-    expect(service.getServiceComponents()).andReturn(componentsMap);
-    expect(component1.getServiceComponentHosts()).andReturn(Collections.emptyMap());
-    expect(component2.getServiceComponentHosts()).andReturn(Collections.singletonMap("host", null)).anyTimes();
-
-    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-    ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
-    expect(serviceInfo.getClientComponent()).andReturn(compInfo);
-    expect(compInfo.getName()).andReturn("component");
-    expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
-
-    replay(injector, cluster, service, component1, component2, serviceInfo, compInfo, ambariMetaInfo, stackId);
-
-    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-    ServiceComponent resultComponent = controller.getClientComponentForRunningAction(cluster, service);
-
-    assertNotNull(resultComponent);
-    assertEquals(component2, resultComponent);
-    verify(injector, cluster, service, component1, component2, serviceInfo, compInfo, ambariMetaInfo, stackId);
-  }
-
-  @Test
-  public void testGetClientHostForRunningAction_noClientComponent() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ServiceComponent component1 = createNiceMock(ServiceComponent.class);
-    ServiceComponent component2 = createNiceMock(ServiceComponent.class);
-
-    expect(service.getServiceType()).andReturn("service");
-    expect(service.getDesiredStackId()).andReturn(stackId);
-    expect(stackId.getStackName()).andReturn("stack");
-    expect(stackId.getStackVersion()).andReturn("1.0");
-    Map<String, ServiceComponent> componentsMap = new HashMap<>();
-    componentsMap.put("component1", component1);
-    componentsMap.put("component2", component2);
-    expect(service.getServiceComponents()).andReturn(componentsMap);
-    expect(component1.getServiceComponentHosts()).andReturn(Collections.emptyMap());
-    expect(component2.getServiceComponentHosts()).andReturn(Collections.singletonMap("host", null)).anyTimes();
-
-    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-    expect(serviceInfo.getClientComponent()).andReturn(null);
-    expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
-
-    replay(injector, cluster, service, component1, component2, serviceInfo, ambariMetaInfo, stackId);
-
-    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-    ServiceComponent resultComponent = controller.getClientComponentForRunningAction(cluster, service);
-
-    assertNotNull(resultComponent);
-    assertEquals(component2, resultComponent);
-    verify(injector, cluster, service, component1, component2, serviceInfo, ambariMetaInfo, stackId);
   }
 
   /**

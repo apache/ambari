@@ -44,12 +44,14 @@ import static org.apache.ambari.server.controller.internal.RequestResourceProvid
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
@@ -64,6 +66,7 @@ import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.ServiceKey;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -102,6 +105,8 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -568,68 +573,68 @@ public class AmbariCustomCommandExecutionHelper {
     final String serviceGroupName = resourceFilter.getServiceGroupName();
     final String serviceName = resourceFilter.getServiceName();
     Service service = cluster.getService(serviceGroupName, serviceName);
-    final String componentName = actionMetadata.getClient(service.getServiceType());
+
+    // If specified a specific host, run on it as long as it contains the component.
+    // Otherwise, throw the exception.
+    List<String> candidateHostsList = resourceFilter.getHostNames();
+
+    ServiceComponentHost selectedServiceComponentHost = calculateServiceComponentHostForServiceCheck(cluster, service,
+        candidateHostsList, actionExecutionContext.isMaintenanceModeHostExcluded());
+
+    long nowTimestamp = System.currentTimeMillis();
+    Map<String, String> actionParameters = actionExecutionContext.getParameters();
+
     String smokeTestRole = actionMetadata.getServiceCheckAction(service.getServiceType());
     if (null == smokeTestRole) {
       smokeTestRole = actionExecutionContext.getActionName();
     }
 
-    Set<String> candidateHosts;
-    final Map<String, ServiceComponentHost> serviceHostComponents;
+    addServiceCheckAction(stage, selectedServiceComponentHost.getHostName(), smokeTestRole, nowTimestamp,
+        selectedServiceComponentHost.getServiceGroupName(),
+        selectedServiceComponentHost.getServiceName(),
+        selectedServiceComponentHost.getServiceComponentName(),
+        actionParameters, actionExecutionContext.isRetryAllowed(),
+        actionExecutionContext.isFailureAutoSkipped(),
+        serviceName);
+  }
 
-    if (componentName != null) {
-      serviceHostComponents = cluster.getService(serviceGroupName, serviceName).getServiceComponent(componentName).getServiceComponentHosts();
+  ServiceComponentHost calculateServiceComponentHostForServiceCheck(Cluster cluster, Service service) throws AmbariException {
+    return calculateServiceComponentHostForServiceCheck(cluster, service, null, true);
+  }
 
-      if (serviceHostComponents.isEmpty()) {
-        throw new AmbariException(MessageFormat.format("No hosts found for service: {0}, component: {1} in cluster: {2}",
-            serviceName, componentName, clusterName));
-      }
+  /**
+   * Calculates the ServiceComponentHost for cluster service where the service check will be executed.
+   * Takes into account all the possible clients.
+   * Those include the given service clients and clients of dependent services if the client component name is specified in the metainfo.xml of the given service
+   *
+   * Filters out hosts that are : not listed in candidateHostsList (if non null or not empty)
+   *                              in maintenance mode (based on isMaintenanceModeHostExcluded)
+   *                              are unhealthy
+   *
+   * Based on the ServiceComponentHosts that left selects a ServiceComponentHost using following logic:
+   *       If possible select a host that's not loaded with tasks. Random otherwise
+   *       If possible select a component of the service that the service check runs for. Random otherwise
+   *
+   * @param cluster
+   * @param service
+   * @param candidateHostsList
+   * @param isMaintenanceModeHostExcluded
+   * @return
+   * @throws AmbariException
+   */
+  ServiceComponentHost calculateServiceComponentHostForServiceCheck(Cluster cluster, Service service,
+                                                                            List<String> candidateHostsList, boolean isMaintenanceModeHostExcluded) throws AmbariException {
 
-      // If specified a specific host, run on it as long as it contains the component.
-      // Otherwise, use candidates that contain the component.
-      List<String> candidateHostsList = resourceFilter.getHostNames();
-      if (candidateHostsList != null && !candidateHostsList.isEmpty()) {
-        candidateHosts = new HashSet<>(candidateHostsList);
+    //calculate the possible host-component map where the service check could be executed
+    Multimap<String, ServiceComponentHost> hostComponentMultiMap = calculateHostsClientsMultimap(service, cluster, candidateHostsList);
 
-        // Get the intersection.
-        candidateHosts.retainAll(serviceHostComponents.keySet());
-
-        if (candidateHosts.isEmpty()) {
-          throw new AmbariException(MessageFormat.format("The resource filter for hosts does not contain components for " +
-                  "service: {0}, component: {1} in cluster: {2}", serviceName, componentName, clusterName));
-        }
-      } else {
-        candidateHosts = serviceHostComponents.keySet();
-      }
-    } else {
-      // TODO: This code branch looks unreliable (taking random component, should prefer the clients)
-      Map<String, ServiceComponent> serviceComponents = cluster.getService(serviceGroupName, serviceName).getServiceComponents();
-
-      // Filter components without any HOST
-      Iterator<String> serviceComponentNameIterator = serviceComponents.keySet().iterator();
-      while (serviceComponentNameIterator.hasNext()){
-        String componentToCheck = serviceComponentNameIterator.next();
-         if (serviceComponents.get(componentToCheck).getServiceComponentHosts().isEmpty()){
-           serviceComponentNameIterator.remove();
-         }
-      }
-
-      if (serviceComponents.isEmpty()) {
-        throw new AmbariException(MessageFormat.format("Did not find any hosts with components for service: {0} in cluster: {1}",
-            serviceName, clusterName));
-      }
-
-      // Pick a random service (should prefer clients).
-      ServiceComponent serviceComponent = serviceComponents.values().iterator().next();
-      serviceHostComponents = serviceComponent.getServiceComponentHosts();
-      candidateHosts = serviceHostComponents.keySet();
-    }
+    Set<String> candidateHosts = hostComponentMultiMap.keySet();
 
     // check if all hostnames are valid.
     for(String candidateHostName: candidateHosts) {
-      ServiceComponentHost serviceComponentHost = serviceHostComponents.get(candidateHostName);
+      Collection<ServiceComponentHost> serviceComponentHosts = hostComponentMultiMap.get(candidateHostName);
 
-      if (serviceComponentHost == null) {
+      if (serviceComponentHosts == null || serviceComponentHosts.isEmpty()) {
         throw new AmbariException("Provided hostname = "
             + candidateHostName + " is either not a valid cluster host or does not satisfy the filter condition.");
       }
@@ -637,12 +642,11 @@ public class AmbariCustomCommandExecutionHelper {
 
     // Filter out hosts that are in maintenance mode - they should never be included in service checks
     Set<String> hostsInMaintenanceMode = new HashSet<>();
-    if (actionExecutionContext.isMaintenanceModeHostExcluded()) {
+    if (isMaintenanceModeHostExcluded) {
       Iterator<String> iterator = candidateHosts.iterator();
       while (iterator.hasNext()) {
         String candidateHostName = iterator.next();
-        ServiceComponentHost serviceComponentHost = serviceHostComponents.get(candidateHostName);
-        Host host = serviceComponentHost.getHost();
+        Host host = cluster.getHost(candidateHostName);
         if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.ON) {
           hostsInMaintenanceMode.add(candidateHostName);
           iterator.remove();
@@ -656,19 +660,158 @@ public class AmbariCustomCommandExecutionHelper {
     if (healthyHostNames.isEmpty()) {
       String message = MessageFormat.format(
           "While building a service check command for {0}, there were no healthy eligible hosts: unhealthy[{1}], maintenance[{2}]",
-          serviceName, StringUtils.join(candidateHosts, ','),
+          service.getName(), StringUtils.join(candidateHosts, ','),
           StringUtils.join(hostsInMaintenanceMode, ','));
 
       throw new AmbariException(message);
     }
 
+    //Those 2 selections could be swapped depending on the preferred logic
+    //First  : Select a host that's not loaded with tasks, if possible. Random otherwise
+    //Second : Select a component of the service that the service check runs for, if possible. Random otherwise
     String preferredHostName = selectRandomHostNameWithPreferenceOnAvailability(healthyHostNames);
+    return selectRandomSCHForServiceCheck(hostComponentMultiMap.get(preferredHostName), service);
+  }
 
-    long nowTimestamp = System.currentTimeMillis();
-    Map<String, String> actionParameters = actionExecutionContext.getParameters();
-    addServiceCheckAction(stage, preferredHostName, smokeTestRole, nowTimestamp, serviceGroupName, serviceName, componentName,
-        actionParameters, actionExecutionContext.isRetryAllowed(),
-        actionExecutionContext.isFailureAutoSkipped());
+  /**
+   * Finds the client component name using ActionMetadata and the given service metainfo.xml
+   * If the client component name is defined calculated the host - client components map using the service dependencies,
+   * otherwise just maps all service hosts to components
+   *
+   * If candidateHostsList is not null and not empty the map will be filtered using given hostnames.
+   *
+   * @param service
+   * @param cluster
+   * @param candidateHostsList
+   * @return
+   * @throws AmbariException
+   */
+  private Multimap<String, ServiceComponentHost> calculateHostsClientsMultimap(Service service, Cluster cluster, List<String> candidateHostsList) throws AmbariException {
+
+    String clientComponentName;
+    CommandScriptDefinition commandScript = ambariMetaInfo.getService(service).getCommandScript();
+    if (commandScript != null && commandScript.getClientComponentType() != null) {
+      clientComponentName = commandScript.getClientComponentType();
+    } else {
+      clientComponentName = actionMetadata.getClient(service.getServiceType());
+    }
+
+    if (clientComponentName != null) {
+      //If the client component is defined, find the hosts were the service check could run
+      return calculateClientHostComponentMultiMapUsingDependencies(service, clientComponentName, cluster, candidateHostsList);
+    } else {
+      //else just add all service components as the potential candidates, filter those that are not installed on any host
+      Multimap<String, ServiceComponentHost> hostComponentMultiMap = HashMultimap.create();
+      // TODO: This code branch looks unreliable (taking random component, should prefer the clients)
+      Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+
+      // Filter components without any HOST
+      serviceComponents.keySet().removeIf(componentToCheck -> serviceComponents.get(componentToCheck).getServiceComponentHosts().isEmpty());
+
+      if (serviceComponents.isEmpty()) {
+        throw new AmbariException(MessageFormat.format("Did not find any hosts with components for service: {0} in cluster: {1}",
+            service.getName(), cluster.getClusterName()));
+      }
+
+      ServiceComponent serviceComponent = serviceComponents.values().iterator().next();
+      for (Map.Entry<String, ServiceComponentHost> entry : serviceComponent.getServiceComponentHosts().entrySet()){
+        //filter the hostnames that aren't on candidate list
+        if (candidateHostsList == null || candidateHostsList.isEmpty() || candidateHostsList.contains(entry.getKey())) {
+          hostComponentMultiMap.put(entry.getKey(), entry.getValue());
+        }
+      }
+
+      return hostComponentMultiMap;
+    }
+  }
+
+  /**
+   * Calculates the Multimap that will contain all the hostNames mapped to client components.
+   * It will include the client components of the dependent services if the dependent service has such.
+   *
+   *
+   * @param service
+   * @param clientComponentName
+   * @param cluster
+   * @param candidateHosts
+   * @return
+   * @throws AmbariException
+   */
+  private Multimap<String, ServiceComponentHost> calculateClientHostComponentMultiMapUsingDependencies(Service service, String clientComponentName,
+                                                                                                      Cluster cluster, List<String> candidateHosts) throws AmbariException {
+
+    Multimap<String, ServiceComponentHost> hostComponentMultiMap = HashMultimap.create();
+    List<ServiceComponent> clientServiceComponents = new ArrayList<>();
+
+    // Try to find the client in service itself
+    try {
+      clientServiceComponents.add(service.getServiceComponent(clientComponentName));
+    } catch (AmbariException e) {
+      //ignore
+    }
+
+    // Try to find the clients in dependent services
+    List<ServiceKey> dependentServiceKeys = service.getServiceDependencies();
+    for (ServiceKey serviceKey : dependentServiceKeys) {
+      Service dependentService = cluster.getService(serviceKey.getServiceId());
+      try {
+        clientServiceComponents.add(dependentService.getServiceComponent(clientComponentName));
+      } catch (AmbariException e) {
+        // ignore
+      }
+    }
+
+    if (clientServiceComponents.isEmpty()) {
+      throw new AmbariException("Couldn't find any client components " + clientComponentName +
+          " in the dependent services: " + dependentServiceKeys +
+          " and the service " + service +
+          " itself to execute service check on cluster " + cluster.getClusterName());
+    }
+
+    for (ServiceComponent clientServiceComponent : clientServiceComponents) {
+      for (Map.Entry<String, ServiceComponentHost> entry : clientServiceComponent.getServiceComponentHosts().entrySet()){
+        hostComponentMultiMap.put(entry.getKey(), entry.getValue());
+      }
+    }
+
+    if (hostComponentMultiMap.isEmpty()) {
+      throw new AmbariException(MessageFormat.format("No hosts with client component found for service: {0}, client component: {1} in cluster: {2}",
+          service.getName(), clientComponentName, cluster.getClusterName()));
+    }
+
+    //filter hosts that are not in candidateHosts collection
+    if (candidateHosts != null && !candidateHosts.isEmpty()) {
+      Set<String> hostsToRemove = new HashSet<>(hostComponentMultiMap.keySet());
+      hostsToRemove.removeAll(candidateHosts);
+      hostsToRemove.forEach(host -> hostComponentMultiMap.removeAll(host));
+
+      if (hostComponentMultiMap.isEmpty()) {
+        throw new AmbariException(MessageFormat.format("The resource filter for hosts does not contain client components " +
+            "service: {0}, client component: {1} in cluster: {2}", service.getName(), clientComponentName, cluster.getClusterName()));
+      }
+    }
+
+    return hostComponentMultiMap;
+  }
+
+  /**
+   *
+   * Returns random ServiceComponentHost from the given collection that belongs to the given Service, if there is such.
+   * Otherwise returns random ServiceComponentHost from the given collection.
+   *
+   * @param serviceComponentHosts
+   * @param service
+   * @return
+   */
+  private ServiceComponentHost selectRandomSCHForServiceCheck(Collection<ServiceComponentHost> serviceComponentHosts, Service service) {
+    ServiceComponentHost candidateSCH = null;
+    for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+      if (Objects.equals(serviceComponentHost.getServiceId(), service.getServiceId())) {
+        return serviceComponentHost;
+      }
+      candidateSCH = serviceComponentHost;
+    }
+    return candidateSCH;
   }
 
   /**
@@ -718,7 +861,7 @@ public class AmbariCustomCommandExecutionHelper {
    */
   public void addServiceCheckAction(Stage stage, String hostname, String smokeTestRole,
       long nowTimestamp, String serviceGroupName, String serviceName, String componentName,
-      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure)
+      Map<String, String> actionParameters, boolean retryAllowed, boolean autoSkipFailure, String initiatingServiceName)
           throws AmbariException {
 
     String clusterName = stage.getClusterName();
@@ -743,7 +886,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     HostRoleCommand hrc = stage.getHostRoleCommand(hostname, smokeTestRole);
     if (hrc != null) {
-      hrc.setCommandDetail(String.format("%s %s", RoleCommand.SERVICE_CHECK.toString(), serviceName));
+      hrc.setCommandDetail(String.format("%s %s", RoleCommand.SERVICE_CHECK.toString(), initiatingServiceName));
     }
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations =
