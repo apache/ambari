@@ -22,34 +22,48 @@ var uiEffects = require('utils/ui_effects');
 App.HostComponentView = Em.View.extend({
 
   templateName: require('templates/main/host/details/host_component'),
+  tagName: 'tr',
 
   /**
    * @type {App.HostComponent}
    */
   content: null,
-  excludedMasterCommands: ['DECOMMISSION', 'RECOMMISSION'],
+
   /**
-   * @type {App.HostComponent}
+   * @type {Array}
+   * @const
    */
-  hostComponent: function () {
-    var hostComponent = null;
-    var serviceComponent = this.get('content');
-    var host = App.router.get('mainHostDetailsController.content');
-    if (host) {
-      hostComponent = host.get('hostComponents').findProperty('componentName', serviceComponent.get('componentName'));
-    }
-    return hostComponent;
-  }.property('content', 'App.router.mainHostDetailsController.content'),
+  excludedMasterCommands: ['DECOMMISSION', 'RECOMMISSION'],
+
+  /**
+   * @type {string}
+   * @const
+   */
+  upgradeFailedMessage: Em.I18n.t('hosts.host.details.upgradeFailed'),
+
   /**
    * @type {String}
    */
-  workStatus: Em.computed.firstNotBlank('hostComponent.workStatus', 'content.workStatus'),
+  workStatus: Em.computed.alias('content.workStatus'),
 
   /**
    * Return host component text status
    * @type {String}
    */
-  componentTextStatus: Em.computed.firstNotBlank('hostComponent.componentTextStatus', 'content.componentTextStatus'),
+  componentTextStatus: Em.computed.alias('content.componentTextStatus'),
+
+  /**
+   * @type {string}
+   */
+  typeDisplay: function() {
+    if (this.get('content.isMaster')) {
+      return Em.I18n.t('common.master')
+    } else if (this.get('content.isSlave')) {
+      return Em.I18n.t('common.slave')
+    } else if (this.get('content.isClient')) {
+      return Em.I18n.t('common.client')
+    }
+  }.property('content'),
 
   /**
    * CSS-class for host component status
@@ -66,9 +80,13 @@ App.HostComponentView = Em.View.extend({
       return 'health-status-color-blue glyphicon glyphicon-cog';
     }
 
+    // Client can't be started, it has only INSTALLED as a working state, so show working/green icon
+    if (this.get('workStatus') === App.HostComponentStatus.stopped && this.get('content.isClient')) {
+      return 'health-status-started';
+    }
+
     //For all other cases
     return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
-
   }.property('workStatus'),
 
   /**
@@ -90,11 +108,17 @@ App.HostComponentView = Em.View.extend({
    * CSS-class for disabling drop-down menu with list of host component actions
    * Disabled if host's <code>healthClass</code> is health-status-DEAD-YELLOW (lost heartbeat)
    * Disabled if component's action list is empty
-   * @type {String}
+   * @type {boolean}
    */
-  disabled: function () {
-    return ( (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") || (this.get('noActionAvailable') === 'hidden' && this.get('isRestartComponentDisabled'))) ? 'disabled' : '';
-  }.property('parentView.content.healthClass', 'noActionAvailable', 'isRestartComponentDisabled'),
+  isDisabled: function () {
+    return (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") ||
+      (this.get('noActionAvailable') === 'hidden' && this.get('isRestartComponentDisabled')) ||
+      App.router.get('wizardWatcherController.isNonWizardUser');
+  }.property(
+    'parentView.content.healthClass',
+    'noActionAvailable',
+    'isRestartComponentDisabled',
+    'App.router.wizardWatcherController.isNonWizardUser'),
 
   /**
    * For Upgrade failed state
@@ -154,7 +178,7 @@ App.HostComponentView = Em.View.extend({
 
   /**
    *  Tooltip message for switch maintenance mode option
-   *  @type {Strting}
+   *  @type {String}
    */
   maintenanceTooltip: function () {
     switch (this.get('content.passiveState')) {
@@ -188,9 +212,9 @@ App.HostComponentView = Em.View.extend({
    * @type {bool}
    */
   isDeleteComponentDisabled: function () {
-    var stackComponentCount = App.StackServiceComponent.find(this.get('hostComponent.componentName')).get('minToInstall');
-    var installedCount = App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount');
-    if(this.get('hostComponent.componentName') == 'MYSQL_SERVER' && this.get('hostComponent.serviceDisplayName') == 'Hive') {
+    var stackComponentCount = App.StackServiceComponent.find(this.get('content.componentName')).get('minToInstall');
+    var installedCount = App.HostComponent.getCount(this.get('content.componentName'), 'totalCount');
+    if(this.get('content.componentName') === 'MYSQL_SERVER' && this.get('content.serviceDisplayName') === 'Hive') {
       var db_type=App.db.getConfigs().findProperty('type','hive-env').properties['hive_database'];
       var status=[App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
       if(db_type.indexOf('Existing') > -1 && status)
@@ -198,7 +222,7 @@ App.HostComponentView = Em.View.extend({
       else
     	return true;
     }
-    if (this.get('hostComponent.componentName') == 'JOURNALNODE') {
+    if (this.get('content.componentName') === 'JOURNALNODE') {
       var count_JN = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length');
       return count_JN <= 3; // TODO get 3 from stack
     }
@@ -365,7 +389,7 @@ App.HostComponentView = Em.View.extend({
 
     if (component.get('cardinality') !== '1') {
       if (!this.get('isStart')) {
-        if (App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount') > 1) {
+        if (App.HostComponent.getCount(this.get('content.componentName'), 'totalCount') > 1) {
           if (this.runningComponentCounter()) {
             return false;
           }
@@ -376,6 +400,28 @@ App.HostComponentView = Em.View.extend({
     }
 
     return true;
+  },
+
+  /**
+   * @type {Array}
+   */
+  clientCustomCommands: function() {
+    const componentName = this.get('content.componentName');
+
+    if (componentName === 'KERBEROS_CLIENT') {
+      return [];
+    }
+
+    return App.StackServiceComponent.find(componentName).get('customCommands').map(function (command) {
+      return {
+        label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+        command: command
+      }
+    });
+  }.property('controller'),
+
+  installClient: function() {
+    this.get('controller').installClients([this.get('content')]);
   }
 
 });

@@ -395,18 +395,11 @@
 
   .host-components {
     padding: 10px;
-    border-radius: 4px;
-    background: #FFF;
-    .component-name-block-wrapper {
-      display: table;
-      height: 34px;
-      .component-name-block {
-        white-space: normal;
-        word-wrap: break-word;
-        display: table-cell;
-        vertical-align: middle;
-      }
-
+    .component-name-block {
+      white-space: normal;
+      word-wrap: break-word;
+      display: table-cell;
+      vertical-align: middle;
     }
     .dropdown-menu {
       .disabled {
@@ -418,14 +411,15 @@
         pointer-events: auto;
       }
     }
-    .status-icons {
-      line-height: 34px;
-    }
-    .client-list {
-      ul {
-        list-style: none;
-      }
-    }
+  }
+
+  .status-icons span {
+    padding-right: 2px;
+  }
+
+  .action-icon {
+    padding: 2px 5px 0 5px;
+    font-size: 16px;
   }
 
   .logs-tab-content {
