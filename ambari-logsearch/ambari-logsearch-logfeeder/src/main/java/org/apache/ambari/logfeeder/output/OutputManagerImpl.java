@@ -19,6 +19,7 @@
 package org.apache.ambari.logfeeder.output;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.hash.Hashing;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.conf.LogFeederProps;
 import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
@@ -29,7 +30,6 @@ import org.apache.ambari.logfeeder.plugin.input.InputMarker;
 import org.apache.ambari.logfeeder.plugin.manager.OutputManager;
 import org.apache.ambari.logfeeder.plugin.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logfeeder.util.MurmurHash;
 import org.apache.ambari.logsearch.config.api.OutputConfigMonitor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -46,7 +46,6 @@ import java.util.UUID;
 public class OutputManagerImpl extends OutputManager {
   private static final Logger LOG = Logger.getLogger(OutputManagerImpl.class);
 
-  private static final int HASH_SEED = 31174077;
   private static final int MAX_OUTPUT_SIZE = 32765; // 32766-1
 
   private List<Output> outputs = new ArrayList<Output>();
@@ -132,7 +131,9 @@ public class OutputManagerImpl extends OutputManager {
         }
       }
 
-      Long eventMD5 = MurmurHash.hash64A(LogFeederUtil.getGson().toJson(jsonObj).getBytes(), HASH_SEED);
+
+      byte[] bytes = LogFeederUtil.getGson().toJson(jsonObj).getBytes();
+      Long eventMD5 = Hashing.md5().hashBytes(bytes).asLong();
       if (input.isGenEventMD5()) {
         jsonObj.put("event_md5", prefix + eventMD5.toString());
       }
@@ -157,7 +158,7 @@ public class OutputManagerImpl extends OutputManager {
       String logMessage = (String) jsonObj.get("log_message");
       logMessage = truncateLongLogMessage(jsonObj, input, logMessage);
       if (addMessageMD5) {
-        jsonObj.put("message_md5", "" + MurmurHash.hash64A(logMessage.getBytes(), 31174077));
+        jsonObj.put("message_md5", "" + Hashing.md5().hashBytes(logMessage.getBytes()).asLong());
       }
     }
     if (logLevelFilterHandler.isAllowed(jsonObj, inputMarker)
