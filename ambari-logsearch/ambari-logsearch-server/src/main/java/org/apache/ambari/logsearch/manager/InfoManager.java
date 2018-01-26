@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.common.PropertyDescriptionStorage;
 import org.apache.ambari.logsearch.common.ShipperConfigDescriptionStorage;
+import org.apache.ambari.logsearch.conf.LogSearchConfigApiConfig;
 import org.apache.ambari.logsearch.model.response.PropertyDescriptionData;
 import org.apache.ambari.logsearch.model.response.ShipperConfigDescriptionData;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,9 +46,11 @@ public class InfoManager extends JsonManagerBase {
   @Value("${java.runtime.version}")
   private String javaRuntimeVersion;
 
-
   @Inject
   private AuthPropsConfig authPropsConfig;
+
+  @Inject
+  private LogSearchConfigApiConfig logSearchConfigApiConfig;
 
   @Inject
   private PropertyDescriptionStorage propertyDescriptionStore;
@@ -71,6 +74,13 @@ public class InfoManager extends JsonManagerBase {
     authMap.put("ldap", authPropsConfig.isAuthLdapEnabled());
     authMap.put("simple", authPropsConfig.isAuthSimpleEnabled());
     return authMap;
+  }
+
+  public Map<String, Object> getFeaturesMap() {
+    Map<String, Object> featuresMap = new HashMap<>();
+    featuresMap.put("auth", getAuthMap());
+    featuresMap.put("config_api", logSearchConfigApiConfig.isConfigApiEnabled());
+    return featuresMap;
   }
 
   public Map<String, List<PropertyDescriptionData>> getPropertyDescriptions() {
