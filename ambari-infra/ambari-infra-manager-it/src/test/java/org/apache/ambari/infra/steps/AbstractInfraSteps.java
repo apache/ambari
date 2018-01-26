@@ -64,6 +64,7 @@ public abstract class AbstractInfraSteps {
   private static final int FAKE_S3_PORT = 4569;
   private static final int HDFS_PORT = 9000;
   private static final String AUDIT_LOGS_COLLECTION = "audit_logs";
+  private static final String HADOOP_LOGS_COLLECTION = "hadoop_logs";
   protected static final String S3_BUCKET_NAME = "testbucket";
   private String ambariFolder;
   private String shellScriptLocation;
@@ -111,8 +112,8 @@ public abstract class AbstractInfraSteps {
             SOLR_PORT,
             AUDIT_LOGS_COLLECTION)).build();
 
-    LOG.info("Creating collection");
-    runCommand(new String[]{"docker", "exec", "docker_solr_1", "solr", "create_collection", "-c", AUDIT_LOGS_COLLECTION, "-d", "configsets/"+ AUDIT_LOGS_COLLECTION +"/conf", "-n", AUDIT_LOGS_COLLECTION + "_conf"});
+    createSolrCollection(AUDIT_LOGS_COLLECTION);
+    createSolrCollection(HADOOP_LOGS_COLLECTION);
 
     LOG.info("Initializing s3 client");
     s3client = new AmazonS3Client(new BasicAWSCredentials("remote-identity", "remote-credential"));
@@ -120,6 +121,11 @@ public abstract class AbstractInfraSteps {
     s3client.createBucket(S3_BUCKET_NAME);
 
     checkInfraManagerReachable();
+  }
+
+  private void createSolrCollection(String collectionName) {
+    LOG.info("Creating collection");
+    runCommand(new String[]{"docker", "exec", "docker_solr_1", "solr", "create_collection", "-c", collectionName, "-d", "configsets/"+ collectionName +"/conf", "-n", collectionName + "_conf"});
   }
 
   private void runCommand(String[] command) {
@@ -146,7 +152,7 @@ public abstract class AbstractInfraSteps {
     });
   }
 
-  private void doWithin(int sec, String actionName, Runnable runnable) {
+  protected void doWithin(int sec, String actionName, Runnable runnable) {
     long start = currentTimeMillis();
     Exception exception;
     while (true) {

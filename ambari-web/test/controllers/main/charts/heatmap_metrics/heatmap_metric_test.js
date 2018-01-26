@@ -155,10 +155,10 @@ describe('MainChartHeatmapMetric', function () {
         expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
       });
       it('timingFormat 1st call with valid arguments', function () {
-        expect(date.timingFormat.getCall(0).args).to.eql(['val', 'zeroValid']);
+        expect(date.timingFormat.getCall(0).args).to.eql(['val']);
       });
       it('timingFormat 2nd call with valid arguments', function () {
-        expect(date.timingFormat.getCall(1).args).to.eql(['val', 'zeroValid']);
+        expect(date.timingFormat.getCall(1).args).to.eql(['val']);
       });
 
     });

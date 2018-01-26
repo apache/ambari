@@ -14,7 +14,7 @@
     "gulp-flatten": "0.0.2",
     "gulp-load-plugins": "0.5.0",
     "gulp-order": "1.1.1",
-    "gulp-plumber": "0.6.6",
+    "gulp-plumber": "1.1.0",
     "gulp-size": "0.3.0",
     "gulp-uglify": "0.2.1",
     "gulp-useref": "0.4.2",

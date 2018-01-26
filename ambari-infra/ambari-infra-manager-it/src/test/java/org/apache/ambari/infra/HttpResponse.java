@@ -16,10 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.job;
+package org.apache.ambari.infra;
 
-import java.util.Map;
+public class HttpResponse {
+  private final int code;
+  private final String body;
 
-public interface PropertyMap<T extends JobProperties<T>> {
-  Map<String, T> getPropertyMap();
+  public HttpResponse(int code, String body) {
+    this.code = code;
+    this.body = body;
+  }
+
+  public int getCode() {
+    return code;
+  }
+
+  public String getBody() {
+    return body;
+  }
 }

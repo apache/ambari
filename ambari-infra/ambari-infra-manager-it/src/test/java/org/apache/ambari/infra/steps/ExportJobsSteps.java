@@ -23,6 +23,7 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.apache.ambari.infra.InfraClient;
+import org.apache.ambari.infra.JobExecutionInfo;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
@@ -56,7 +57,7 @@ import static org.junit.Assert.assertThat;
 public class ExportJobsSteps extends AbstractInfraSteps {
   private static final Logger LOG = LoggerFactory.getLogger(ExportJobsSteps.class);
 
-  private Map<String, String> launchedJobs = new HashMap<>();
+  private Map<String, JobExecutionInfo> launchedJobs = new HashMap<>();
 
   @Given("$count documents in solr")
   public void addDocuments(int count) throws Exception {
@@ -85,22 +86,39 @@ public class ExportJobsSteps extends AbstractInfraSteps {
 
   @When("start $jobName job")
   public void startJob(String jobName) throws Exception {
-    startJob(jobName, null);
+    startJob(jobName, null, 0);
   }
 
-  @When("start $jobName job with parameters $parameters")
-  public void startJob(String jobName, String parameters) throws Exception {
+  @When("start $jobName job with parameters $parameters after $waitSec seconds")
+  public void startJob(String jobName, String parameters, int waitSec) throws Exception {
+    Thread.sleep(waitSec * 1000);
     try (InfraClient httpClient = getInfraClient()) {
-      String jobId = httpClient.startJob(jobName, parameters);
-      LOG.info("Job {} started jobId: {}", jobName, jobId);
-      launchedJobs.put(jobName, jobId);
+      JobExecutionInfo jobExecutionInfo = httpClient.startJob(jobName, parameters);
+      LOG.info("Job {} started: {}", jobName, jobExecutionInfo);
+      launchedJobs.put(jobName, jobExecutionInfo);
     }
   }
 
-  @When("restart $jobName job")
-  public void restartJob(String jobName) throws Exception {
+  @When("restart $jobName job within $waitSec seconds")
+  public void restartJob(String jobName, int waitSec) {
+    doWithin(waitSec, "Restarting job " + jobName, () -> {
+      try (InfraClient httpClient = getInfraClient()) {
+        httpClient.restartJob(jobName, launchedJobs.get(jobName).getJobId());
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  @When("stop job $jobName after at least $count file exists in s3 with filename containing text $text within $waitSec seconds")
+  public void stopJob(String jobName, int count, String text, int waitSec) throws Exception {
+    AmazonS3Client s3Client = getS3client();
+    ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
+    doWithin(waitSec, "check uploaded files to s3", () -> s3Client.doesBucketExist(S3_BUCKET_NAME)
+            && fileCountOnS3(text, s3Client, listObjectsRequest) > count);
+
     try (InfraClient httpClient = getInfraClient()) {
-      httpClient.restartJob(jobName, launchedJobs.get(jobName));
+      httpClient.stopJob(launchedJobs.get(jobName).getExecutionId());
     }
   }
 
@@ -125,9 +143,25 @@ public class ExportJobsSteps extends AbstractInfraSteps {
     AmazonS3Client s3Client = getS3client();
     ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
     doWithin(waitSec, "check uploaded files to s3", () -> s3Client.doesBucketExist(S3_BUCKET_NAME)
-            && s3Client.listObjects(listObjectsRequest).getObjectSummaries().stream()
-            .filter(s3ObjectSummary -> s3ObjectSummary.getKey().contains(text))
-            .count() == count);
+            && fileCountOnS3(text, s3Client, listObjectsRequest) == count);
+  }
+
+  private long fileCountOnS3(String text, AmazonS3Client s3Client, ListObjectsRequest listObjectsRequest) {
+    return s3Client.listObjects(listObjectsRequest).getObjectSummaries().stream()
+    .filter(s3ObjectSummary -> s3ObjectSummary.getKey().contains(text))
+    .count();
+  }
+
+  @Then("Less than $count files exists on s3 server with filenames containing the text $text after $waitSec seconds")
+  public void checkLessThanFileExistsOnS3(long count, String text, int waitSec) {
+    AmazonS3Client s3Client = getS3client();
+    ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(S3_BUCKET_NAME);
+    doWithin(waitSec, "check uploaded files to s3", () -> s3Client.doesBucketExist(S3_BUCKET_NAME) && between(
+            fileCountOnS3(text, s3Client, listObjectsRequest), 1L, count - 1L));
+  }
+
+  private boolean between(long count, long from, long to) {
+    return from <= count && count <= to;
   }
 
   @Then("No file exists on s3 server with filenames containing the text $text")
@@ -184,9 +218,9 @@ public class ExportJobsSteps extends AbstractInfraSteps {
     }
   }
 
-  @Then("Check $count files exists on local filesystem with filenames containing the text $text in the folder $path")
-  public void checkNumberOfFilesOnLocalFilesystem(long count, String text, String path) {
-    File destinationDirectory = new File(getLocalDataFolder(), path);
+  @Then("Check $count files exists on local filesystem with filenames containing the text $text in the folder $path for job $jobName")
+  public void checkNumberOfFilesOnLocalFilesystem(long count, String text, String path, String jobName) {
+    File destinationDirectory = new File(getLocalDataFolder(), path.replace("${jobId}", launchedJobs.get(jobName).getJobId()));
     LOG.info("Destination directory path: {}", destinationDirectory.getAbsolutePath());
     doWithin(5, "Destination directory exists", destinationDirectory::exists);
 
