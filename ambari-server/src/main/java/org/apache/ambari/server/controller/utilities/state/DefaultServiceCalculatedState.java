@@ -117,7 +117,7 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
                 hasDisabled = true;
               }
 
-              if (isInMaintenance & !componentInfo.isClient()) {
+              if (isInMaintenance && !componentInfo.isClient()) {
                 hasMM = true;
                 if ( maxMMState == null || state.ordinal() > maxMMState.ordinal()) {
                   maxMMState = state;
