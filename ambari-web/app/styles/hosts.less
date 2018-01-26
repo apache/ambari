@@ -283,25 +283,41 @@
   }
   .code-snippet {
     margin: 10px 0;
-    white-space:normal;
+    white-space: normal;
   }
   .warnings-list {
-    .block {
-      table {
-        width: 100%;
-        td, th {
-          text-align: left;
-          padding-left: 15px;
-        }
-        thead tr:first-child th {
-          font-weight: normal;
-        }
-      }
-      margin-top: 10px;
+    .panel {
+      padding: 0;
       .panel-heading {
         i {
-          line-height: 19px;
+          margin-right: 5px;
+          position: relative;
+          top: 0;
+          &.panel-toggle {
+            font-size: 16px;
+            color: #1491c1;
+          }
         }
+        a, a:visited, a:focus {
+          color: black;
+          text-decoration: none;
+        }
+      }
+    }
+    table {
+      width: 100%;
+      td, th {
+        text-align: left;
+        padding-left: 15px;
+      }
+      thead tr:first-child th {
+        font-weight: normal;
+      }
+    }
+    margin-top: 10px;
+    .panel-heading {
+      i {
+        line-height: 19px;
       }
     }
   }

@@ -85,7 +85,7 @@ function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Setti
   }, function(LDAPSynced) {
     if(LDAPSynced === true){
       $rootScope.LDAPSynced = false;
-      loadGroups();
+      $scope.loadGroups();
     }
   });
 
@@ -96,7 +96,7 @@ function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Setti
       backdrop: 'static'
     });
 
-    modalInstance.result.catch(loadGroups);
+    modalInstance.result.finally($scope.loadGroups);
   };
 
   $scope.deleteGroup = function(group) {
@@ -138,7 +138,7 @@ function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate, Setti
           angular.forEach(viewsPrivileges, function(privilege) {
             View.deletePrivilege(privilege);
           });
-          loadGroups();
+          $scope.loadGroups();
         });
       });
     });

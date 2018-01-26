@@ -22,11 +22,13 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 
-public class JobPropertyMap<T extends JobProperties<T>> implements JobExecutionListener {
+import java.util.Map;
 
-  private final PropertyMap<T> propertyMap;
+public class JobsPropertyMap<T extends JobProperties<T>> implements JobExecutionListener {
 
-  public JobPropertyMap(PropertyMap<T> propertyMap) {
+  private final Map<String, T> propertyMap;
+
+  public JobsPropertyMap(Map<String, T> propertyMap) {
     this.propertyMap = propertyMap;
   }
 
@@ -34,13 +36,13 @@ public class JobPropertyMap<T extends JobProperties<T>> implements JobExecutionL
   public void beforeJob(JobExecution jobExecution) {
     try {
       String jobName = jobExecution.getJobInstance().getJobName();
-      T defaultProperties = propertyMap.getPropertyMap().get(jobName);
+      T defaultProperties = propertyMap.get(jobName);
       if (defaultProperties == null)
         throw new UnsupportedOperationException("Properties not found for job " + jobName);
 
       T properties = defaultProperties.deepCopy();
       properties.apply(jobExecution.getJobParameters());
-      properties.validate();
+      properties.validate(jobName);
       jobExecution.getExecutionContext().put("jobProperties", properties);
     }
     catch (UnsupportedOperationException | IllegalArgumentException ex) {

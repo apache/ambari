@@ -524,8 +524,10 @@ def init_ldap_sync_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_ldap_setup_parser_options(parser):
-  parser.add_option('--ldap-url', default=None, help="Primary url for LDAP", dest="ldap_url")
-  parser.add_option('--ldap-secondary-url', default=None, help="Secondary url for LDAP", dest="ldap_secondary_url")
+  parser.add_option('--ldap-primary-host', default=None, help="Primary Host for LDAP", dest="ldap_primary_host")
+  parser.add_option('--ldap-primary-port', default=None, help="Primary Port for LDAP", dest="ldap_primary_port")
+  parser.add_option('--ldap-secondary-host', default=None, help="Secondary Host for LDAP", dest="ldap_secondary_host")
+  parser.add_option('--ldap-secondary-port', default=None, help="Secondary Port for LDAP", dest="ldap_secondary_port")
   parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
   parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
   parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
@@ -540,6 +542,8 @@ def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-referral', default=None, help="Referral method [follow/ignore] for LDAP", dest="ldap_referral")
   parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
   parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
+  parser.add_option('--ldap-force-lowercase-usernames', default=None, help="Declares whether to force the ldap user name to be lowercase or leave as-is", dest="ldap_force_lowercase_usernames")
+  parser.add_option('--ldap-pagination-enabled', default=None, help="Determines whether results from LDAP are paginated when requested", dest="ldap_pagination_enabled")
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_pam_setup_parser_options(parser):
@@ -963,10 +967,6 @@ def main(options, args, parser):
 def mainBody():
   parser = optparse.OptionParser(usage="usage: %prog action [options]",)
   action = sys.argv[1]
-
-  if action == "setup-ldap":
-    print "setup-ldap action is deprecated. Please configure LDAP integration from the Ambari UI"
-    sys.exit(0)
 
   init_action_parser(action, parser)
   (options, args) = parser.parse_args()

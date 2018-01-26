@@ -30,6 +30,7 @@ import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.explore.support.JobExplorerFactoryBean;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
@@ -56,7 +57,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.inject.Inject;
 import javax.sql.DataSource;
-import java.net.MalformedURLException;
 
 @Configuration
 @EnableBatchProcessing
@@ -85,9 +85,6 @@ public class InfraManagerBatchConfig {
   @Inject
   private JobRegistry jobRegistry;
 
-  @Inject
-  private JobExplorer jobExplorer;
-
   @Bean
   public DataSource dataSource() {
     DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -99,8 +96,7 @@ public class InfraManagerBatchConfig {
   }
 
   @Bean
-  public DataSourceInitializer dataSourceInitializer(DataSource dataSource)
-    throws MalformedURLException {
+  public DataSourceInitializer dataSourceInitializer() {
     ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
     if (dropDatabaseOnStartup) {
       databasePopulator.addScript(dropRepositoryTables);
@@ -110,7 +106,7 @@ public class InfraManagerBatchConfig {
     databasePopulator.setContinueOnError(true);
 
     DataSourceInitializer initializer = new DataSourceInitializer();
-    initializer.setDataSource(dataSource);
+    initializer.setDataSource(dataSource());
     initializer.setDatabasePopulator(databasePopulator);
 
     return initializer;
@@ -125,14 +121,14 @@ public class InfraManagerBatchConfig {
   public JobRepository jobRepository() throws Exception {
     JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
     factory.setDataSource(dataSource());
-    factory.setTransactionManager(getTransactionManager());
+    factory.setTransactionManager(transactionManager());
     factory.setSerializer(executionContextSerializer());
     factory.afterPropertiesSet();
     return factory.getObject();
   }
 
   @Bean
-  public PlatformTransactionManager getTransactionManager() {
+  public PlatformTransactionManager transactionManager() {
     return new ResourcelessTransactionManager();
   }
 
@@ -148,11 +144,20 @@ public class InfraManagerBatchConfig {
   @Bean
   public JobOperator jobOperator() throws Exception {
     SimpleJobOperator jobOperator = new SimpleJobOperator();
-    jobOperator.setJobExplorer(jobExplorer);
+    jobOperator.setJobExplorer(jobExplorer());
     jobOperator.setJobLauncher(jobLauncher());
     jobOperator.setJobRegistry(jobRegistry);
     jobOperator.setJobRepository(jobRepository());
     return jobOperator;
+  }
+
+  @Bean
+  public JobExplorer jobExplorer() throws Exception {
+    JobExplorerFactoryBean factoryBean = new JobExplorerFactoryBean();
+    factoryBean.setSerializer(executionContextSerializer());
+    factoryBean.setDataSource(dataSource());
+    factoryBean.afterPropertiesSet();
+    return factoryBean.getObject();
   }
 
   @Bean
