@@ -288,6 +288,7 @@ export HADOOP_NAMENODE_INIT_HEAPSIZE="-Xms{{namenode_heapsize}}"
 # Extra Java runtime options.  Empty by default.
 export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}"
 
+USER="$(whoami)"
 # Command specific options appended to HADOOP_OPTS when specified
 
 {% if java_version &lt; 8 %}
