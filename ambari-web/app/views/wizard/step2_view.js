@@ -60,7 +60,9 @@ App.WizardStep2View = Em.View.extend({
     //todo: move them to conroller
     this.set('controller.hostsError', null);
     this.set('controller.sshKeyError', null);
+    this.set('controller.filterText', null);
     this.get('controller').loadStep();
+    this.get('controller').getManuallyInstalledHosts();
   },
 
   /**
@@ -87,11 +89,6 @@ App.WizardStep2View = Em.View.extend({
   providingSSHKeyRadioButton: App.RadioButtonView.extend({
     classNames: ['radio'],
     checked: Em.computed.alias('controller.content.installOptions.useSsh'),
-
-    click: function () {
-      this.set('controller.content.installOptions.useSsh', true);
-      this.set('controller.content.installOptions.manualInstall', false);
-    }
   }),
 
   /**
@@ -101,11 +98,6 @@ App.WizardStep2View = Em.View.extend({
   manualRegistrationRadioButton: App.RadioButtonView.extend({
     classNames: ['radio'],
     checked: Em.computed.alias('controller.content.installOptions.manualInstall'),
-
-    click: function () {
-      this.set('controller.content.installOptions.manualInstall', true);
-      this.set('controller.content.installOptions.useSsh', false);
-    }
   }),
 
   /**

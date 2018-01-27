@@ -704,8 +704,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   installOptionsTemplate: {
     hostNames: "", //string
-    manualInstall: false, //true, false
-    useSsh: true, //bool
+    manualInstall: true, //true, false
+    useSsh: false, //bool
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
@@ -717,8 +717,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   installWindowsOptionsTemplate: {
     hostNames: "", //string
-    manualInstall: false, //true, false
-    useSsh: true, //bool
+    manualInstall: true, //true, false
+    useSsh: false, //bool
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
