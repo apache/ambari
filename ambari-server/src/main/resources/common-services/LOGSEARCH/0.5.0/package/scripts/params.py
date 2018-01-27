@@ -131,6 +131,13 @@ if security_enabled:
     logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
     logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
 
+  zookeeper_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  external_zk_principal_enabled = default("/configurations/logsearch-common-env/logsearch_zookeeper_external_principal", False)
+  external_zk_principal_name = default("/configurations/logsearch-common-env/logsearch_zookeeper_external_principal", "zookeeper/_HOST@EXAMPLE.COM")
+  zk_principal_name = external_zk_principal_name if external_zk_principal_enabled else zookeeper_principal_name
+  zk_principal_user = zk_principal_name.split('/')[0]
+  zk_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client')
+
 logsearch_spnego_host = config['configurations']['logsearch-properties']['logsearch.spnego.kerberos.host'].replace('_HOST', _hostname_lowercase)
 
 #####################################

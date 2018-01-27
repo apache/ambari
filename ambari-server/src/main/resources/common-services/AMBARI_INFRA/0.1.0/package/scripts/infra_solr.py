@@ -112,7 +112,7 @@ class InfraSolr(Script):
       Logger.info("Skipping reverting ACL")
       return
     zkmigrator = ZkMigrator(
-      zk_host=params.zookeeper_quorum,
+      zk_host=params.zk_quorum,
       java_exec=params.java_exec,
       java_home=params.java64_home,
       jaas_file=params.infra_solr_jaas_file,
