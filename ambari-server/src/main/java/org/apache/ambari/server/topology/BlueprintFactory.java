@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -143,7 +144,7 @@ public class BlueprintFactory {
   private Collection<MpackInstance> createMpackInstances(Map<String, Object> properties) throws NoSuchStackException {
     if (properties.containsKey(MPACK_INSTANCES_PROPERTY)) {
       ObjectMapper mapper = new ObjectMapper();
-//      mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
       try {
         String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY));
           Collection<MpackInstance> mpacks = mapper.readValue(mpackInstancesJson, new TypeReference<Collection<MpackInstance>>(){});
