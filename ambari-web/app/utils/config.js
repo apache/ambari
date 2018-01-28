@@ -935,13 +935,14 @@ App.config = Em.Object.create({
    */
   textareaIntoFileConfigs: function (configs, filename) {
     var configsTextarea = configs.findProperty('name', 'capacity-scheduler');
+    console.log('textareaIntoFileConfigs', configsTextarea)
     if (configsTextarea && !App.get('testMode')) {
       var properties = configsTextarea.get('value').split('\n');
 
       properties.forEach(function (_property) {
         var name, value;
         if (_property) {
-          _property = _property.split('=');
+          _property = _property.split(/=(.+)/);
           name = _property[0];
           value = (_property[1]) ? _property[1] : "";
           configs.push(Em.Object.create({
