@@ -117,6 +117,8 @@ Em.I18n.translations = {
   'common.description':'Description',
   'common.default':'Default',
   'common.client':'Client',
+  'common.master':'Master',
+  'common.slave':'Slave',
   'common.zookeeper':'ZooKeeper',
   'common.hbase':'HBase',
   'common.regionServer':'RegionServer',
@@ -2722,6 +2724,7 @@ Em.I18n.translations = {
   'hosts.host.summary.addComponent':'Add Component',
   'hosts.host.summary.currentVersion':'Current Version',
 
+  'hosts.host.details.upgradeFailed':'Component upgrade failed',
   'hosts.host.details.hostActions':'Host Actions',
   'hosts.host.details.needToRestart':'Host needs {0} {1} restarted',
   'hosts.host.details.needToRestart.button':'Restart',
