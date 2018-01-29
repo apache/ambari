@@ -219,7 +219,6 @@ var files = [
   'test/utils/form_field_test',
   'test/utils/file_utils_test',
   'test/utils/handlebars_helpers_test',
-  'test/utils/heatmap_test',
   'test/utils/host_progress_popup_test',
   'test/utils/hosts_test',
   'test/utils/http_client_test',
