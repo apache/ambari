@@ -47,6 +47,7 @@ import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.OsSpecific;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RequiredService;
+import org.apache.ambari.server.state.ServiceCategory;
 import org.apache.ambari.server.state.ServiceDependencyType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
@@ -1249,6 +1250,82 @@ public class ServiceModuleTest {
 
     assertTrue(actualPropertyList.containsAll(expectedPropertyList) && expectedPropertyList.containsAll(actualPropertyList));
     assertEquals(expectedServiceProperties, serviceModule.getModuleInfo().getServiceProperties());
+  }
+
+
+  @Test
+  public void testResolve_Category() throws Exception {
+    ServiceCategory serverCategory = ServiceCategory.SERVER;
+
+    // specified in child only
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    info.setCategory(serverCategory);
+
+    ServiceModule service = resolveService(info, parentInfo);
+    assertEquals(serverCategory, service.getModuleInfo().getCategory());
+
+    // specified in parent only
+    info.setCategory(null);
+    parentInfo.setCategory(serverCategory);
+
+    service = resolveService(info, parentInfo);
+    assertEquals(serverCategory, service.getModuleInfo().getCategory());
+
+    // specified in both
+    ServiceCategory clientCategory = ServiceCategory.CLIENT;
+
+    info.setCategory(serverCategory);
+    parentInfo.setCategory(clientCategory);
+
+    service = resolveService(info, parentInfo);
+    assertEquals(serverCategory, service.getModuleInfo().getCategory());
+  }
+
+  @Test
+  public void testComponentVersionInheritsFromService() throws AmbariException {
+    //inherits from service
+    ServiceInfo serviceInfo = new ServiceInfo();
+    ComponentInfo componentInfo = new ComponentInfo();
+    serviceInfo.setComponents(Lists.newArrayList(componentInfo));
+    serviceInfo.setVersion("1.1");
+    ServiceModule service = resolveService(serviceInfo, new ServiceInfo());
+
+    assertEquals("1.1", service.getModuleInfo().getComponents().get((0)).getVersion());
+
+    //component version overrides service version
+    componentInfo.setVersion("1.1-999");
+    service = resolveService(serviceInfo, new ServiceInfo());
+
+    assertEquals("1.1-999", service.getModuleInfo().getComponents().get((0)).getVersion());
+
+    //component is inherited from parent service, component version in parent service is set from service version
+    //the component version is overwritten by child service version
+    ServiceInfo parentServiceInfo = new ServiceInfo();
+    ComponentInfo parentComponentInfo = new ComponentInfo();
+    parentServiceInfo.setComponents(Lists.newArrayList(parentComponentInfo));
+    parentServiceInfo.setVersion("1.0-parent");
+    serviceInfo.setComponents(null);
+    service = resolveService(serviceInfo, parentServiceInfo);
+
+    assertEquals("1.1", service.getModuleInfo().getComponents().get((0)).getVersion());
+
+    //component is inherited from parent service, the component version is overwritten by child service version
+    parentServiceInfo = new ServiceInfo();
+    parentComponentInfo = new ComponentInfo();
+    parentServiceInfo.setComponents(Lists.newArrayList(parentComponentInfo));
+    parentComponentInfo.setVersion("1.0-parent");
+    serviceInfo.setComponents(null);
+    service = resolveService(serviceInfo, parentServiceInfo);
+
+    assertEquals("1.0-parent", parentServiceInfo.getComponents().get((0)).getVersion());
+    assertEquals("1.1", service.getModuleInfo().getComponents().get((0)).getVersion());
+
+    //component is inherited from parent service, the version is overwritten
+    serviceInfo.setComponents(Lists.newArrayList(componentInfo));
+    service = resolveService(serviceInfo, parentServiceInfo);
+
+    assertEquals("1.1-999", service.getModuleInfo().getComponents().get((0)).getVersion());
   }
 
 

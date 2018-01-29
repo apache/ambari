@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.RequiredService;
+import org.apache.ambari.server.state.ServiceCategory;
 import org.apache.ambari.server.state.ServiceInfo;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -37,6 +38,7 @@ public class StackServiceResponse {
   private String stackVersion;
   private String serviceName;
   private String serviceType;
+  private ServiceCategory serviceCategory;
   private String serviceDisplayName;
   private String userName;
   private String comments;
@@ -89,6 +91,7 @@ public class StackServiceResponse {
   public StackServiceResponse(ServiceInfo service) {
     serviceName = service.getName();
     serviceType = service.getServiceType();
+    serviceCategory = service.getCategory();
     serviceDisplayName = service.getDisplayName();
     userName = null;
     comments = service.getComment();
@@ -160,6 +163,15 @@ public class StackServiceResponse {
 
   public void setServiceType(String serviceType) {
     this.serviceType = serviceType;
+  }
+
+  @ApiModelProperty(name = "service_category")
+  public ServiceCategory getServiceCategory() {
+    return serviceCategory;
+  }
+
+  public void setServiceCategory(ServiceCategory serviceCategory) {
+    this.serviceCategory = serviceCategory;
   }
 
   @ApiModelProperty(name = "display_name")
