@@ -154,4 +154,5 @@ def check_znode():
     zookeeper_quorum=params.logsearch_solr_zk_quorum,
     solr_znode=params.logsearch_solr_zk_znode,
     java64_home=params.java64_home,
-    retry=30, interval=5)
+    retry=30, interval=5,
+    java_opts=params.zk_security_opts if params.security_enabled else None)
