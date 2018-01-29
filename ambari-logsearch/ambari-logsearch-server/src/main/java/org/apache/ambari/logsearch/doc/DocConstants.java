@@ -45,6 +45,7 @@ public class DocConstants {
     public static final String FIELD_D = "Get values for particular field";
     public static final String FORMAT_D = "File Export format, can be 'txt' or 'json'";
     public static final String TOP = "Number that defines how many top element you would like to see.";
+    public static final String USER_D = "Filter for users (comma separated list)";
   }
 
   public class AuditOperationDescriptions {

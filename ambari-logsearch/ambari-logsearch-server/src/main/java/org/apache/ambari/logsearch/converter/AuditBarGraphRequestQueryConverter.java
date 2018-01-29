@@ -20,9 +20,14 @@ package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
+import org.apache.ambari.logsearch.solr.SolrConstants;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 
 import javax.inject.Named;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_COMPONENT;
 import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_EVTTIME;
@@ -50,6 +55,9 @@ public class AuditBarGraphRequestQueryConverter extends AbstractDateRangeFacetQu
   public SolrQuery convert(AuditBarGraphRequest request) {
     SolrQuery query = super.convert(request);
     addListFilterToSolrQuery(query, CLUSTER, request.getClusters());
+    addInFiltersIfNotNullAndEnabled(query, request.getUserList(),
+      SolrConstants.AuditLogConstants.AUDIT_REQUEST_USER,
+      StringUtils.isNotBlank(request.getUserList()));
     return query;
   }
 }

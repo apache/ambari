@@ -108,6 +108,7 @@ public class LogSearchConstants {
   public static final String REQUEST_PARAM_ROW_TYPE = "rowType";
   public static final String REQUEST_PARAM_UTC_OFFSET = "utcOffset";
   public static final String REQUEST_PARAM_HOSTS = "hostList";
+  public static final String REQUEST_PARAM_USERS = "userList";
 
 
 }
