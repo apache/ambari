@@ -18,8 +18,25 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
+import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.model.request.UserParamDefinition;
+
+import javax.ws.rs.QueryParam;
 
 @Marker
-public class AuditServiceLoadRequest extends BaseLogRequest {
+public class AuditServiceLoadRequest extends BaseLogRequest implements UserParamDefinition {
+
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_USERS)
+  private String userList;
+
+  @Override
+  public String getUserList() {
+    return userList;
+  }
+
+  @Override
+  public void setUserList(String userList) {
+    this.userList = userList;
+  }
 }
