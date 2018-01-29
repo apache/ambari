@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -308,7 +309,7 @@ public class BlueprintImpl implements Blueprint {
 
   @Override
   public Collection<Stack> getStacks() {
-    return mpacks.stream().map(MpackInstance::getStack).collect(toList());
+    return mpacks.stream().map(MpackInstance::getStack).filter(s -> null != s).collect(toList());
   }
 
   @Override
@@ -408,7 +409,8 @@ public class BlueprintImpl implements Blueprint {
       mpackInstance.setMpackVersion(mpack.getMpackVersion());
       mpackInstance.setUrl(mpack.getMpackUri());
       mpackInstance.setConfiguration(processConfiguration(mpack.getConfigurations()));
-      mpackInstance.setStack(parseStack(mpack.getMpackName(), mpack.getMpackVersion()));
+      // TODO: come up with proper mpack -> stack resolution
+      tryParseStack(mpack.getMpackName(), mpack.getMpackVersion()).ifPresent( stack ->  mpackInstance.setStack(stack) );
       for(BlueprintServiceEntity serviceEntity: mpack.getServiceInstances()) {
         ServiceInstance serviceInstance = new ServiceInstance(
           serviceEntity.getName(),
@@ -430,6 +432,17 @@ public class BlueprintImpl implements Blueprint {
     } catch (AmbariException e) {
       //todo:
       throw new RuntimeException("An error occurred parsing the stack information.", e);
+    }
+  }
+
+  private Optional<Stack> tryParseStack(String stackName, String stackVersion) {
+    try {
+      return Optional.of(parseStack(stackName, stackVersion));
+    }
+    catch (Exception ex) {
+      LOG.warn("Cannot parse stack {}-{}. Exception: {}/{}", stackName, stackVersion, ex.getClass().getName(),
+        ex.getMessage());
+      return Optional.empty();
     }
   }
 

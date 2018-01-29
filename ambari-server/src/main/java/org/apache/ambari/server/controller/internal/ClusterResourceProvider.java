@@ -86,6 +86,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String HEALTH_REPORT = "health_report";
   public static final String CREDENTIAL_STORE_PROPERTIES = "credential_store_properties";
   public static final String REPO_VERSION = "repository_version";
+  public static final String MPACK_INSTANCES = BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID;
   public static final String CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_ID;
   public static final String CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME;
   public static final String CLUSTER_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + VERSION;
@@ -163,6 +164,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(SECURITY);
     propertyIds.add(CREDENTIALS);
     propertyIds.add(QUICKLINKS_PROFILE);
+    propertyIds.add(MPACK_INSTANCES);
     propertyIds.add(CLUSTER_STATE_PROPERTY_ID);
   }
 
