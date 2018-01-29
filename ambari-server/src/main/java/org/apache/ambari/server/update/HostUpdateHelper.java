@@ -25,8 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -216,6 +218,7 @@ public class HostUpdateHelper {
 
       // going through all clusters with host pairs from file
       for (Map.Entry<String, Map<String,String>> clusterHosts : hostChangesFileMap.entrySet()) {
+        boolean hostConfigsUpdated = false;
         String clusterName = clusterHosts.getKey();
         ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
         Cluster cluster = clusters.getCluster(clusterName);
@@ -251,9 +254,15 @@ public class HostUpdateHelper {
             }
 
             if (configUpdated) {
+              hostConfigsUpdated = true;
               config.save();
             }
           }
+        }
+        if (hostConfigsUpdated) {
+          AgentConfigsHolder agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
+          agentConfigsHolder.updateData(cluster.getClusterId(), currentHostNames.stream()
+              .map(hm -> cluster.getHost(hm).getHostId()).collect(Collectors.toList()));
         }
 
         //******************************

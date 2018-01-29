@@ -23,12 +23,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -82,6 +84,7 @@ public class SparkShufflePropertyConfig extends AbstractUpgradeServerAction {
       yarnSiteProperties.put(YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS, YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS_VALUE);
       yarnSiteConfig.setProperties(yarnSiteProperties);
     yarnSiteConfig.save();
+    agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
         String.format("%s was set from %s to %s. %s was set to %s",

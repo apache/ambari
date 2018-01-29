@@ -48,6 +48,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -2369,12 +2370,11 @@ public class UpgradeHelperTest extends EasyMockSupport {
 
     Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
 
-    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
+    expect(configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(AmbariManagementController.class),
         EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
-        EasyMock.anyObject(String.class));
+        EasyMock.anyObject(String.class))).andReturn(true);
 
-    expectLastCall().once();
     EasyMock.replay(configHelperProvider, configHelper);
 
     // mock the service config DAO and replay it
@@ -2480,15 +2480,14 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(m_configHelper.getDefaultProperties(newStack, "HIVE")).andReturn(stackMap).atLeastOnce();
     expect(m_configHelper.getDefaultProperties(oldStack, "ZOOKEEPER")).andReturn(stackMap).atLeastOnce();
     expect(m_configHelper.getDefaultProperties(newStack, "ZOOKEEPER")).andReturn(stackMap).atLeastOnce();
-    m_configHelper.createConfigTypes(
+    expect(m_configHelper.createConfigTypes(
         EasyMock.capture(captureCluster),
         EasyMock.capture(captureStackId),
         EasyMock.capture(captureAmc),
         EasyMock.capture(cap),
 
         EasyMock.capture(captureUsername),
-        EasyMock.capture(captureNote));
-    expectLastCall().atLeastOnce();
+        EasyMock.capture(captureNote))).andReturn(true);
 
     replay(m_configHelper);
 
@@ -2844,6 +2843,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     public void configure(Binder binder) {
       binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
       binder.bind(ConfigHelper.class).toInstance(m_configHelper);
+      binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
     }
   }
 

@@ -378,8 +378,19 @@ public class ConfigImpl implements Config {
    * {@inheritDoc}
    */
   @Override
-  @Transactional
   public void save() {
+    ClusterConfigEntity entity = saveWithoutPublishing();
+    if (entity != null) {
+      // broadcast the change event for the configuration
+      ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
+          getType(), getTag(), getVersion());
+
+      eventPublisher.publish(event);
+    }
+  }
+
+  @Transactional
+  public ClusterConfigEntity saveWithoutPublishing() {
     ClusterConfigEntity entity = clusterDAO.findConfig(configId);
     ClusterEntity clusterEntity = clusterDAO.findById(entity.getClusterId());
 
@@ -396,12 +407,7 @@ public class ConfigImpl implements Config {
 
       // re-load the entity associations for the cluster
       cluster.refresh();
-
-      // broadcast the change event for the configuration
-      ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
-          getType(), getTag(), getVersion());
-
-      eventPublisher.publish(event);
     }
+    return entity;
   }
 }

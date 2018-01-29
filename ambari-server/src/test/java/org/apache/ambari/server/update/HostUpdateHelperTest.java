@@ -37,6 +37,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
 import org.apache.ambari.server.configuration.Configuration;
@@ -249,11 +251,15 @@ public class HostUpdateHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        PartialNiceMockBinder.newBuilder().addClustersBinding(mockAmbariManagementController).build().configure(binder());
+        bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(ClusterDAO.class).toInstance(mockClusterDAO);
+        bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+        bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
+        bind(AgentConfigsHolder.class).toInstance(EasyMock.createNiceMock(AgentConfigsHolder.class));
 
         install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
       }
@@ -275,6 +281,10 @@ public class HostUpdateHelperTest {
 
     expect(mockClusters.getCluster("cl1")).andReturn(mockCluster).once();
     expect(mockCluster.getClusterId()).andReturn(1L).anyTimes();
+
+    Host host = easyMockSupport.createNiceMock(Host.class);
+    expect(mockCluster.getHost(anyString())).andReturn(host).anyTimes();
+    expect(host.getHostId()).andReturn(1L).anyTimes();
 
     expect(mockClusterEntity1.getClusterConfigEntities()).andReturn(clusterConfigEntities1).atLeastOnce();
 

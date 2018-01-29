@@ -22,10 +22,16 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.commons.collections.MapUtils;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -33,6 +39,14 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
 
   @Inject
   private AmbariManagementControllerImpl ambariManagementController;
+
+  @Inject
+  private Provider<Clusters> m_clusters;
+
+  @Inject
+  public MetadataHolder(AmbariEventPublisher ambariEventPublisher) {
+    ambariEventPublisher.register(this);
+  }
 
   @Override
   public MetadataUpdateEvent getCurrentData() throws AmbariException {
@@ -64,5 +78,12 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
   @Override
   protected MetadataUpdateEvent getEmptyData() {
     return MetadataUpdateEvent.emptyUpdate();
+  }
+
+  @Subscribe
+  public void onConfigsChange(ClusterConfigChangedEvent configChangedEvent) throws AmbariException {
+    Cluster cluster = m_clusters.get().getCluster(configChangedEvent.getClusterName());
+    updateData(ambariManagementController.getClusterMetadataOnConfigsUpdate(cluster));
+
   }
 }
