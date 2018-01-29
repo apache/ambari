@@ -614,13 +614,6 @@ public class AmbariCustomCommandExecutionHelper {
    * Based on the ServiceComponentHosts that left selects a ServiceComponentHost using following logic:
    *       If possible select a host that's not loaded with tasks. Random otherwise
    *       If possible select a component of the service that the service check runs for. Random otherwise
-   *
-   * @param cluster
-   * @param service
-   * @param candidateHostsList
-   * @param isMaintenanceModeHostExcluded
-   * @return
-   * @throws AmbariException
    */
   ServiceComponentHost calculateServiceComponentHostForServiceCheck(Cluster cluster, Service service,
                                                                             List<String> candidateHostsList, boolean isMaintenanceModeHostExcluded) throws AmbariException {
@@ -679,12 +672,6 @@ public class AmbariCustomCommandExecutionHelper {
    * otherwise just maps all service hosts to components
    *
    * If candidateHostsList is not null and not empty the map will be filtered using given hostnames.
-   *
-   * @param service
-   * @param cluster
-   * @param candidateHostsList
-   * @return
-   * @throws AmbariException
    */
   private Multimap<String, ServiceComponentHost> calculateHostsClientsMultimap(Service service, Cluster cluster, List<String> candidateHostsList) throws AmbariException {
 
@@ -729,13 +716,6 @@ public class AmbariCustomCommandExecutionHelper {
    * Calculates the Multimap that will contain all the hostNames mapped to client components.
    * It will include the client components of the dependent services if the dependent service has such.
    *
-   *
-   * @param service
-   * @param clientComponentName
-   * @param cluster
-   * @param candidateHosts
-   * @return
-   * @throws AmbariException
    */
   private Multimap<String, ServiceComponentHost> calculateClientHostComponentMultiMapUsingDependencies(Service service, String clientComponentName,
                                                                                                       Cluster cluster, List<String> candidateHosts) throws AmbariException {
@@ -798,10 +778,6 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * Returns random ServiceComponentHost from the given collection that belongs to the given Service, if there is such.
    * Otherwise returns random ServiceComponentHost from the given collection.
-   *
-   * @param serviceComponentHosts
-   * @param service
-   * @return
    */
   private ServiceComponentHost selectRandomSCHForServiceCheck(Collection<ServiceComponentHost> serviceComponentHosts, Service service) {
     ServiceComponentHost candidateSCH = null;
