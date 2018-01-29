@@ -131,7 +131,7 @@ public class PartialNiceMockBinder implements Module {
       return this;
     }
 
-    public Builder addAmbariMetaInfoBinding() {
+    public Builder addAmbariMetaInfoBinding(AmbariManagementController ambariManagementController) {
       PartialNiceMockBinder.this.configurers.add((Binder binder) -> {
           binder.bind(PersistedState.class).toInstance(easyMockSupport.createNiceMock(PersistedState.class));
           binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
@@ -145,7 +145,7 @@ public class PartialNiceMockBinder implements Module {
           binder.bind(ServiceComponentHostFactory.class).toInstance(easyMockSupport.createNiceMock(ServiceComponentHostFactory.class));
           binder.bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
           binder.bind(CredentialStoreService.class).toInstance(easyMockSupport.createNiceMock(CredentialStoreService.class));
-          binder.bind(AmbariManagementController.class).toInstance(easyMockSupport.createNiceMock(AmbariManagementController.class));
+          binder.bind(AmbariManagementController.class).toInstance(ambariManagementController);
           binder.bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
       });
       addConfigsBindings();
@@ -153,8 +153,17 @@ public class PartialNiceMockBinder implements Module {
       return this;
     }
 
+    public Builder addAmbariMetaInfoBinding() {
+      return addAmbariMetaInfoBinding(easyMockSupport.createNiceMock(AmbariManagementController.class));
+    }
+
     public Builder addAlertDefinitionDAOBinding() {
       addAmbariMetaInfoBinding();
+      return this;
+    }
+
+    public Builder addClustersBinding(AmbariManagementController ambariManagementController) {
+      addAmbariMetaInfoBinding(ambariManagementController);
       return this;
     }
 

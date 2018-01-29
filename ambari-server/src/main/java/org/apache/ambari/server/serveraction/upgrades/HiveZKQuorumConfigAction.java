@@ -19,12 +19,14 @@ package org.apache.ambari.server.serveraction.upgrades;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 
 /**
  * The {@link HiveZKQuorumConfigAction} is used to ensure that the following
@@ -77,6 +79,7 @@ public class HiveZKQuorumConfigAction extends AbstractUpgradeServerAction {
 
     hiveSite.setProperties(hiveSiteProperties);
     hiveSite.save();
+    agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
         String.format("Successfully set %s and %s in %s", HIVE_SITE_ZK_QUORUM,

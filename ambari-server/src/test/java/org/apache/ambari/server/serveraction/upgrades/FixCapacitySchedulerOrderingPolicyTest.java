@@ -18,13 +18,17 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +36,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -49,8 +54,10 @@ public class FixCapacitySchedulerOrderingPolicyTest {
 
   private Injector injector;
   private Clusters clusters;
+  private AgentConfigsHolder agentConfigsHolder;
   private Cluster cluster;
   private Field clustersField;
+  private Field agentConfigsHolderField;
   private static final String SOURCE_CONFIG_TYPE = "capacity-scheduler";
 
   private static final String POLICY_1 = "yarn.scheduler.capacity.root.hbase.ordering-policy";
@@ -62,12 +69,20 @@ public class FixCapacitySchedulerOrderingPolicyTest {
     injector = EasyMock.createMock(Injector.class);
     clusters = EasyMock.createMock(Clusters.class);
     cluster = EasyMock.createMock(Cluster.class);
+    agentConfigsHolder = createMock(AgentConfigsHolder.class);
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
+    expect(cluster.getHosts()).andReturn(Collections.emptyList()).atLeastOnce();
+    agentConfigsHolder.updateData(eq(1L), eq(Collections.emptyList()));
+    expectLastCall().atLeastOnce();
+
     clustersField = AbstractUpgradeServerAction.class.getDeclaredField("m_clusters");
     clustersField.setAccessible(true);
+    agentConfigsHolderField = AbstractUpgradeServerAction.class.getDeclaredField("agentConfigsHolder");
+    agentConfigsHolderField.setAccessible(true);
 
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(injector.getInstance(Clusters.class)).andReturn(clusters).atLeastOnce();
-    replay(injector, clusters);
+    replay(injector, clusters, agentConfigsHolder);
   }
 
   @Test
@@ -106,6 +121,7 @@ public class FixCapacitySchedulerOrderingPolicyTest {
 
     FixCapacitySchedulerOrderingPolicy action = new FixCapacitySchedulerOrderingPolicy();
     clustersField.set(action, clusters);
+    agentConfigsHolderField.set(action, agentConfigsHolder);
 
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hrc);

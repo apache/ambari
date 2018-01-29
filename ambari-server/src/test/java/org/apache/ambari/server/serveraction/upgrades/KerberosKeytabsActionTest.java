@@ -33,6 +33,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -103,6 +104,7 @@ public class KerberosKeytabsActionTest {
         bind(StackDAO.class).toInstance(EasyMock.createNiceMock(StackDAO.class));
         bind(EntityManager.class).toInstance(EasyMock.createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));
+        bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
       }
     });
   }

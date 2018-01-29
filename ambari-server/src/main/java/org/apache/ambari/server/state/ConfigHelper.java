@@ -1168,8 +1168,11 @@ public class ConfigHelper {
 
     if ((oldConfigProperties == null)
       || !Maps.difference(oldConfigProperties, properties).areEqual()) {
-      createConfigType(cluster, stackId, controller, configType, properties,
-        propertiesAttributes, authenticatedUserName, serviceVersionNote);
+      if (createConfigType(cluster, stackId, controller, configType, properties,
+        propertiesAttributes, authenticatedUserName, serviceVersionNote)) {
+        m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+        m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+      }
     }
   }
 
@@ -1177,11 +1180,14 @@ public class ConfigHelper {
       AmbariManagementController controller, String configType, Map<String, String> properties,
       String authenticatedUserName, String serviceVersionNote) throws AmbariException {
 
-    createConfigType(cluster, stackId, controller, configType, properties,
-      new HashMap<>(), authenticatedUserName, serviceVersionNote);
+    if (createConfigType(cluster, stackId, controller, configType, properties,
+      new HashMap<>(), authenticatedUserName, serviceVersionNote)) {
+      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+    }
   }
 
-  public void createConfigType(Cluster cluster, StackId stackId,
+  public boolean createConfigType(Cluster cluster, StackId stackId,
       AmbariManagementController controller, String configType, Map<String, String> properties,
       Map<String, Map<String, String>> propertyAttributes, String authenticatedUserName,
       String serviceVersionNote) throws AmbariException {
@@ -1193,9 +1199,9 @@ public class ConfigHelper {
     if (baseConfig != null) {
       cluster.addDesiredConfig(authenticatedUserName,
           Collections.singleton(baseConfig), serviceVersionNote);
-      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
-      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -1206,9 +1212,10 @@ public class ConfigHelper {
    * @param batchProperties       the type->config map batch of properties
    * @param authenticatedUserName the user that initiated the change
    * @param serviceVersionNote    the service version note
+   * @return true if configs were created
    * @throws AmbariException
    */
-  public void createConfigTypes(Cluster cluster, StackId stackId,
+  public boolean createConfigTypes(Cluster cluster, StackId stackId,
       AmbariManagementController controller, Map<String, Map<String, String>> batchProperties,
       String authenticatedUserName, String serviceVersionNote) throws AmbariException {
 
@@ -1242,10 +1249,7 @@ public class ConfigHelper {
         added = true;
       }
     }
-    if (added) {
-      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
-      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
-    }
+    return added;
   }
 
   /**

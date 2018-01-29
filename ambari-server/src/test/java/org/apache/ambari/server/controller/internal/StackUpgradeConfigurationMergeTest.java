@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller.internal;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
@@ -35,6 +37,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.AuditLoggerDefaultImpl;
@@ -50,6 +54,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
@@ -122,6 +127,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     // create an injector which will inject the mocks
     m_injector = Guice.createInjector(mockModule);
+    reset(m_injector.getInstance(StageDAO.class));
   }
 
   /**
@@ -255,12 +261,10 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
 
-    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
+    expect(configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(AmbariManagementController.class),
         EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
-        EasyMock.anyObject(String.class));
-
-    expectLastCall().once();
+        EasyMock.anyObject(String.class))).andReturn(true);
 
     // mock the service config DAO and replay it
     ServiceConfigEntity zookeeperServiceConfig = createNiceMock(ServiceConfigEntity.class);
@@ -387,12 +391,10 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
 
-    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
+    expect(configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
         EasyMock.anyObject(StackId.class), EasyMock.anyObject(AmbariManagementController.class),
         EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
-        EasyMock.anyObject(String.class));
-
-    expectLastCall().once();
+        EasyMock.anyObject(String.class))).andReturn(true);
 
     // mock the service config DAO and replay it
     ServiceConfigEntity zookeeperServiceConfig = createNiceMock(ServiceConfigEntity.class);
@@ -439,10 +441,12 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
      */
     @Override
     public void configure(Binder binder) {
+      StageDAO stageDAO = createNiceMock(StageDAO.class);
       PartialNiceMockBinder.newBuilder(StackUpgradeConfigurationMergeTest.this)
           .addActionDBAccessorConfigsBindings().build().configure(binder);
 
       binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+      binder.bind(StageDAO.class).toInstance(stageDAO);
       binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
       binder.bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
@@ -479,10 +483,15 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
       binder.bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
       binder.bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
+      binder.bind(MetadataHolder.class).toInstance(createNiceMock(MetadataHolder.class));
+      binder.bind(AgentConfigsHolder.class).toInstance(createNiceMock(AgentConfigsHolder.class));
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);
 
       binder.install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
+
+      expect(stageDAO.getLastRequestId()).andReturn(1L).anyTimes();
+      replay(stageDAO);
     }
   }
 }

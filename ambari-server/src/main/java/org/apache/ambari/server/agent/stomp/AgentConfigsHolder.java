@@ -21,10 +21,13 @@ import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -32,12 +35,18 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEvent> {
+  public static final Logger LOG = LoggerFactory.getLogger(AgentConfigsHolder.class);
 
   @Inject
   private ConfigHelper configHelper;
 
   @Inject
   private Provider<Clusters> clusters;
+
+  @Inject
+  public AgentConfigsHolder(AmbariEventPublisher ambariEventPublisher) {
+    ambariEventPublisher.register(this);
+  }
 
   @Override
   public AgentConfigsUpdateEvent getCurrentData(Long hostId) throws AmbariException {

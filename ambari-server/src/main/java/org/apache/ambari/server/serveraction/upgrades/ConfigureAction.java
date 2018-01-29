@@ -30,9 +30,12 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -121,6 +124,15 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
    */
   @Inject
   private Gson m_gson;
+
+  @Inject
+  private Provider<AmbariManagementControllerImpl> m_ambariManagementController;
+
+  @Inject
+  private Provider<MetadataHolder> m_metadataHolder;
+
+  @Inject
+  private Provider<AgentConfigsHolder> m_agentConfigsHolder;
 
   /**
    * Aside from the normal execution, this method performs the following logic, with
@@ -528,6 +540,9 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     if (!targetStackId.equals(sourceStackId) && targetStackId.equals(configStack)) {
       config.setProperties(newValues);
       config.save();
+
+      m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadataOnConfigsUpdate(cluster));
+      m_agentConfigsHolder.get().updateData(cluster.getClusterId(), null);
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputBuffer.toString(), "");
     }

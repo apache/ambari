@@ -51,6 +51,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -146,6 +147,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   private Clusters clusters;
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
+  private AgentConfigsHolder agentConfigsHolder = createNiceMock(AgentConfigsHolder.class);
   private StackDAO stackDAO;
   private TopologyManager topologyManager;
   private ConfigFactory configFactory;
@@ -2044,6 +2046,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     @Override
     public void configure(Binder binder) {
       binder.bind(ConfigHelper.class).toInstance(configHelper);
+      binder.bind(AgentConfigsHolder.class).toInstance(agentConfigsHolder);
     }
   }
 }
