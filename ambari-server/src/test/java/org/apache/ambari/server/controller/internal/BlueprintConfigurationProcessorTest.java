@@ -104,6 +104,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   private final String STACK_NAME = "testStack";
   private final String STACK_VERSION = "1";
+  private final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -144,6 +145,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   @Before
   public void init() throws Exception {
     expect(bp.getStack()).andReturn(stack).anyTimes();
+    expect(bp.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(bp.getName()).andReturn("test-bp").anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).atLeastOnce();
@@ -8232,7 +8234,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       }
 
       //create host group which is set on topology
-      allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, "test-bp", Collections.singleton(stack),
+      allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, "test-bp", stack,
         componentList, EMPTY_CONFIG, "1"));
 
       hostGroupInfo.put(hostGroup.name, groupInfo);

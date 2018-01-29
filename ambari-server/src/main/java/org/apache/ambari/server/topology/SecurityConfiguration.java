@@ -28,6 +28,8 @@ import org.apache.ambari.server.state.SecurityType;
  */
 public class SecurityConfiguration {
 
+  public static final SecurityConfiguration NONE = new SecurityConfiguration(SecurityType.NONE);
+
   /**
    * Security Type
    */

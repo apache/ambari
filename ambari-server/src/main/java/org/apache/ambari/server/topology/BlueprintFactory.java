@@ -10,14 +10,29 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
 package org.apache.ambari.server.topology;
+
+import static java.util.stream.Collectors.toSet;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_MPACK_INSTANCE_PROPERTY;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_PROVISION_ACTION_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_SERVICE_INSTANCE_PROPERTY;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.CONFIGURATION_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.HOST_GROUP_CARDINALITY_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.HOST_GROUP_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.MPACK_INSTANCES_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.SETTING_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.STACK_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,12 +50,11 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.ambari.server.state.StackId;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -52,40 +66,9 @@ import com.google.inject.Inject;
  */
 public class BlueprintFactory {
 
-  private static final Logger LOG = LoggerFactory.getLogger(BlueprintFactory.class);
-
-  // Blueprints
-  protected static final String BLUEPRINT_NAME_PROPERTY_ID =
-      PropertyHelper.getPropertyId("Blueprints", "blueprint_name");
-  protected static final String STACK_NAME_PROPERTY_ID =
-      PropertyHelper.getPropertyId("Blueprints", "stack_name");
-  protected static final String STACK_VERSION_PROPERTY_ID =
-      PropertyHelper.getPropertyId("Blueprints", "stack_version");
-
-  // Host Groups
-  protected static final String HOST_GROUP_PROPERTY_ID = "host_groups";
-  protected static final String HOST_GROUP_NAME_PROPERTY_ID = "name";
-  protected static final String HOST_GROUP_CARDINALITY_PROPERTY_ID = "cardinality";
-
-  // Host Group Components
-  protected static final String COMPONENT_PROPERTY_ID ="components";
-  protected static final String COMPONENT_NAME_PROPERTY_ID ="name";
-  protected static final String COMPONENT_PROVISION_ACTION_PROPERTY_ID = "provision_action";
-
-  // Configurations
-  protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
-  protected static final String PROPERTIES_PROPERTY_ID = "properties";
-  protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
-
-  protected static final String SETTINGS_PROPERTY_ID = "settings";
-
-  protected static final String MPACK_INSTANCES_PROPERTY = "mpack_instances";
-  protected static final String MPACK_INSTANCE_PROPERTY = "mpack_instance";
-  protected static final String SERVICE_INSTANCE_PROPERTY = "service_instance";
-
   private static BlueprintDAO blueprintDAO;
-  private ConfigurationFactory configFactory = new ConfigurationFactory();
 
+  private final ConfigurationFactory configFactory = new ConfigurationFactory();
   private final StackFactory stackFactory;
 
   public BlueprintFactory() {
@@ -98,8 +81,14 @@ public class BlueprintFactory {
 
   public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
-    //todo: just return null?
-    return entity == null ? null : new BlueprintImpl(entity);
+    if (entity != null) {
+      Set<StackId> stackIds = entity.getMpackInstances().stream()
+        .map(m -> new StackId(m.getMpackName(), m.getMpackVersion()))
+        .collect(toSet());
+      StackDefinition stack = composeStacks(stackIds);
+      return new BlueprintImpl(entity, stack, stackIds);
+    }
+    return null;
   }
 
   /**
@@ -118,42 +107,31 @@ public class BlueprintFactory {
       throw new IllegalArgumentException("Blueprint name must be provided");
     }
 
-    Stack stack;
     Collection<MpackInstance> mpackInstances = createMpackInstances(properties);
     if (mpackInstances.isEmpty()) {
-      stack = createStack(properties);
+      StackId stackId = getStackId(properties);
+      mpackInstances = Collections.singleton(new MpackInstance(stackId.getStackName(), stackId.getStackVersion(), null, null, Configuration.createEmpty()));
     }
-    else {
-      stack = mpackInstances.iterator().next().getStack();
-    }
-
+    Set<StackId> stackIds = mpackInstances.stream()
+        .map(m -> new StackId(m.getMpackName(), m.getMpackVersion()))
+        .collect(toSet());
+    StackDefinition stack = composeStacks(stackIds);
     Collection<HostGroup> hostGroups = processHostGroups(name, stack, properties);
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
             properties.get(CONFIGURATION_PROPERTY_ID));
-    Setting setting = SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTINGS_PROPERTY_ID));
+    Setting setting = SettingFactory.getSetting((Collection<Map<String, Object>>) properties.get(SETTING_PROPERTY_ID));
 
-    if (!mpackInstances.isEmpty()) {
-      return new BlueprintImpl(name, hostGroups, mpackInstances, configuration, securityConfiguration, setting);
-    }
-    else {
-      // Legacy constructor for old blueprints without mpacks
-      return new BlueprintImpl(name, hostGroups, stack, configuration, securityConfiguration, setting);
-    }
+    return new BlueprintImpl(name, hostGroups, stack, stackIds, mpackInstances, configuration, securityConfiguration, setting);
   }
 
   private Collection<MpackInstance> createMpackInstances(Map<String, Object> properties) throws NoSuchStackException {
-    if (properties.containsKey(MPACK_INSTANCES_PROPERTY)) {
+    if (properties.containsKey(MPACK_INSTANCES_PROPERTY_ID)) {
       ObjectMapper mapper = new ObjectMapper();
       mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
       try {
-        String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY));
-          Collection<MpackInstance> mpacks = mapper.readValue(mpackInstancesJson, new TypeReference<Collection<MpackInstance>>(){});
-          for (MpackInstance mpack: mpacks) {
-            tryResolveStack(mpack);
-          }
-          return mpacks;
-      }
-      catch (IOException ex) {
+        String mpackInstancesJson = mapper.writeValueAsString(properties.get(MPACK_INSTANCES_PROPERTY_ID));
+        return mapper.readValue(mpackInstancesJson, new TypeReference<Collection<MpackInstance>>(){});
+      } catch (IOException ex) {
         throw new RuntimeException("Unable to parse mpack instances for blueprint: " +
           String.valueOf(properties.get(BLUEPRINT_NAME_PROPERTY_ID)), ex);
       }
@@ -162,39 +140,35 @@ public class BlueprintFactory {
     }
   }
 
-  protected void tryResolveStack(MpackInstance mpack) {
-    try {
-      Stack stack = loadStack(mpack.getMpackName(), mpack.getMpackVersion());
-      mpack.setStack(stack);
-    }
-    catch (NoSuchStackException ex) {
-      // This case can be normal if a blueprint had been sent in before the referenced mpack was installed
-      LOG.warn("Cannot resolve stack for mpack {}-{}. Is mpack installed?", mpack.getMpackName(), mpack.getMpackVersion());
-    }
-  }
-
-  protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {
+  private static StackId getStackId(Map<String, Object> properties) throws NoSuchStackException {
     String stackName = String.valueOf(properties.get(STACK_NAME_PROPERTY_ID));
     String stackVersion = String.valueOf(properties.get(STACK_VERSION_PROPERTY_ID));
-    return loadStack(stackName, stackVersion);
+    return new StackId(stackName, stackVersion);
   }
 
-  protected Stack loadStack(String stackName, String stackVersion) throws NoSuchStackException {
+  private StackDefinition composeStacks(Set<StackId> stackIds) {
+    Set<Stack> stacks = stackIds.stream()
+      .map(this::createStack)
+      .collect(toSet());
+    return StackDefinition.of(stacks);
+  }
+
+  protected Stack createStack(StackId stackId) {
     try {
       //todo: don't pass in controller
-      return stackFactory.createStack(stackName, stackVersion, AmbariServer.getController());
+      return stackFactory.createStack(stackId, AmbariServer.getController());
     } catch (ObjectNotFoundException e) {
-      throw new NoSuchStackException(stackName, stackVersion);
+      throw new NoSuchStackException(stackId);
     } catch (AmbariException e) {
       // todo
       throw new RuntimeException(
-        String.format("An error occurred parsing the stack information for %s-%s", stackName, stackVersion) , e);
+        String.format("An error occurred parsing the stack information for %s", stackId) , e);
     }
   }
 
   //todo: Move logic to HostGroupImpl
   @SuppressWarnings("unchecked")
-  private Collection<HostGroup> processHostGroups(String bpName, Stack stack, Map<String, Object> properties) {
+  private Collection<HostGroup> processHostGroups(String bpName, StackDefinition stack, Map<String, Object> properties) {
     Set<HashMap<String, Object>> hostGroupProps = (HashSet<HashMap<String, Object>>)
         properties.get(HOST_GROUP_PROPERTY_ID);
 
@@ -219,14 +193,14 @@ public class BlueprintFactory {
       Configuration configuration = configFactory.getConfiguration(configProps);
       String cardinality = String.valueOf(hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
 
-      HostGroup group = new HostGroupImpl(hostGroupName, bpName, Collections.singleton(stack), components, configuration, cardinality);
+      HostGroup group = new HostGroupImpl(hostGroupName, bpName, stack, components, configuration, cardinality);
 
       hostGroups.add(group);
     }
     return hostGroups;
   }
 
-  private Collection<Component> processHostGroupComponents(Stack stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
+  private Collection<Component> processHostGroupComponents(StackDefinition stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
     if (componentProps == null || componentProps.isEmpty()) {
       throw new IllegalArgumentException("Host group '" + groupName + "' must contain at least one component");
     }
@@ -246,8 +220,8 @@ public class BlueprintFactory {
             groupName + "' is not valid for the specified stack");
       }
 
-      String mpackInstance = componentProperties.get(MPACK_INSTANCE_PROPERTY);
-      String serviceInstance = componentProperties.get(SERVICE_INSTANCE_PROPERTY);
+      String mpackInstance = componentProperties.get(COMPONENT_MPACK_INSTANCE_PROPERTY);
+      String serviceInstance = componentProperties.get(COMPONENT_SERVICE_INSTANCE_PROPERTY);
       //TODO, might want to add some validation here, to only accept value enum types, rwn
       ProvisionAction provisionAction = componentProperties.containsKey(COMPONENT_PROVISION_ACTION_PROPERTY_ID) ?
         ProvisionAction.valueOf(componentProperties.get(COMPONENT_PROVISION_ACTION_PROPERTY_ID)) : null;
@@ -263,7 +237,7 @@ public class BlueprintFactory {
    * @return collection of component names for the specified stack
    * @throws IllegalArgumentException if the specified stack doesn't exist
    */
-  private Collection<String> getAllStackComponents(Stack stack) {
+  private Collection<String> getAllStackComponents(StackDefinition stack) {
     Collection<String> allComponents = new HashSet<>();
     for (Collection<String> components: stack.getComponents().values()) {
       allComponents.addAll(components);
@@ -292,7 +266,7 @@ public class BlueprintFactory {
    * simulate various Stack or error conditions.
    */
   interface StackFactory {
-    Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
+    Stack createStack(StackId stackId, AmbariManagementController managementController) throws AmbariException;
   }
 
   /**
@@ -303,8 +277,8 @@ public class BlueprintFactory {
    */
   private static class DefaultStackFactory implements StackFactory {
     @Override
-    public Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException {
-      return new Stack(stackName, stackVersion, managementController);
+    public Stack createStack(StackId stackId, AmbariManagementController managementController) throws AmbariException {
+      return new Stack(stackId.getStackName(), stackId.getStackVersion(), managementController);
     }
   }
 }

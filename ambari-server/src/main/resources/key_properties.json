@@ -123,9 +123,6 @@
     "Cluster": "RequestSchedule/cluster_name",
     "RequestSchedule": "RequestSchedule/id"
   },
-  "Blueprint": {
-    "Blueprint": "Blueprints/blueprint_name"
-  },
   "Recommendation": {
     "Recommendation": "Recommendation/id",
     "Stack": "Versions/stack_name",

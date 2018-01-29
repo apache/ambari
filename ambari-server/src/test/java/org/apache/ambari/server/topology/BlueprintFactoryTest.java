@@ -20,13 +20,11 @@ package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createStrictMock;
 import static org.powermock.api.easymock.PowerMock.expectNew;
@@ -51,6 +49,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.StackId;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
@@ -93,6 +92,7 @@ public class BlueprintFactoryTest {
     componentMap.put("test-service2", components2);
     components2.add("component2");
 
+    expect(stack.getServices()).andReturn(componentMap.keySet()).anyTimes();
     expect(stack.getComponents()).andReturn(componentMap).anyTimes();
     expect(stack.isMasterComponent("component1")).andReturn(true).anyTimes();
     expect(stack.isMasterComponent("component2")).andReturn(false).anyTimes();
@@ -131,13 +131,15 @@ public class BlueprintFactoryTest {
     reset(dao);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(expectedBlueprint.toEntity());
     Stack hdpStack = createNiceMock(Stack.class);
-    expect(hdpStack.getName()).andReturn("HDPCORE").anyTimes();
-    expect(hdpStack.getVersion()).andReturn("3.0.0.0").anyTimes();
+    StackId hdp = new StackId("HDPCORE-3.0", "3.0.0.0");
+    StackId edw = new StackId("EDW-3.1", "3.1.0.0");
+    expect(hdpStack.getName()).andReturn(hdp.getStackName()).anyTimes();
+    expect(hdpStack.getVersion()).andReturn(hdp.getStackVersion()).anyTimes();
     Stack edwStack = createNiceMock(Stack.class);
-    expect(edwStack.getName()).andReturn("EDW").anyTimes();
-    expect(edwStack.getVersion()).andReturn("3.1.0.0").anyTimes();
-    expectNew(Stack.class, eq("HDPCORE-3.0"), anyString(), anyObject(AmbariManagementController.class)).andReturn(hdpStack).anyTimes();
-    expectNew(Stack.class, eq("EDW-3.1"), anyString(), anyObject(AmbariManagementController.class)).andReturn(edwStack).anyTimes();
+    expect(edwStack.getName()).andReturn(edw.getStackName()).anyTimes();
+    expect(edwStack.getVersion()).andReturn(edw.getStackVersion()).anyTimes();
+    expectNew(Stack.class, eq(hdp.getStackName()), eq(hdp.getStackVersion()), anyObject(AmbariManagementController.class)).andReturn(hdpStack).anyTimes();
+    expectNew(Stack.class, eq(edw.getStackVersion()), eq(edw.getStackVersion()), anyObject(AmbariManagementController.class)).andReturn(edwStack).anyTimes();
     replay(Stack.class, hdpStack, edwStack, dao);
 
     // test
@@ -153,9 +155,8 @@ public class BlueprintFactoryTest {
     Set<String> serviceInstanceTypes =
       hdpCore.getServiceInstances().stream().map(ServiceInstance::getType).collect(toSet());
     assertEquals(ImmutableSet.of("ZOOKEEPER"), serviceInstanceTypes);
-    Set<String> stackNames =
-      blueprint.getStacks().stream().map(Stack::getName).collect(Collectors.toSet());
-    assertEquals(ImmutableSet.of("HDPCORE", "EDW"), stackNames);
+    Set<StackId> stackIds = blueprint.getStackIds();
+    assertEquals(ImmutableSet.of(hdp, edw), stackIds);
     assertEquals(1, blueprint.getHostGroups().size());
   }
 
@@ -175,7 +176,6 @@ public class BlueprintFactoryTest {
     Blueprint blueprint = testFactory.createBlueprint(props, null);
 
     assertEquals(BLUEPRINT_NAME, blueprint.getName());
-    assertSame(stack, blueprint.getStack());
     assertEquals(2, blueprint.getHostGroups().size());
 
     Map<String, HostGroup> hostGroups = blueprint.getHostGroups();
@@ -259,13 +259,13 @@ public class BlueprintFactoryTest {
       mockSupport.createMock(BlueprintFactory.StackFactory.class);
 
     // setup mock to throw exception, to simulate invalid stack request
-    expect(mockStackFactory.createStack("null", "null", null)).andThrow(new ObjectNotFoundException("Invalid Stack"));
+    expect(mockStackFactory.createStack(new StackId(), null)).andThrow(new ObjectNotFoundException("Invalid Stack"));
 
     mockSupport.replayAll();
 
     BlueprintFactory factoryUnderTest =
       new BlueprintFactory(mockStackFactory);
-    factoryUnderTest.createStack(new HashMap<>());
+    factoryUnderTest.createStack(new StackId());
 
     mockSupport.verifyAll();
   }
@@ -329,7 +329,7 @@ public class BlueprintFactoryTest {
     }
 
     @Override
-    protected Stack loadStack(String stackName, String stackVersion) throws NoSuchStackException {
+    protected Stack createStack(StackId stackId) throws NoSuchStackException {
       return stack;
     }
   }

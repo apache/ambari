@@ -18,119 +18,226 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.capture;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.replay;
-import static org.powermock.api.easymock.PowerMock.verifyAll;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackConfigurationRequest;
-//import org.apache.ambari.server.controller.StackConfigurationResponse;
-import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.StackLevelConfigurationResponse;
-import org.apache.ambari.server.controller.StackServiceComponentRequest;
-import org.apache.ambari.server.controller.StackServiceComponentResponse;
-import org.apache.ambari.server.controller.StackServiceRequest;
-import org.apache.ambari.server.controller.StackServiceResponse;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Configuration;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
+import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.EasyMockSupport;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 /**
  * Stack unit tests.
  */
 public class StackTest {
 
+  private static final StackId STACK_ID = new StackId("stack name", "1.0");
+  private static final String STACK_CONFIG_TYPE = "cluster-env";
+  private static final String STACK_CONFIG_FILE = STACK_CONFIG_TYPE + ".xml";
+  private static final String SERVICE_CONFIG_TYPE = "test-site";
+  private static final String SERVICE_CONFIG_FILE = SERVICE_CONFIG_TYPE + ".xml";
+
+  private StackInfo stackInfo;
+  private ServiceInfo serviceInfo;
+  private ComponentInfo componentInfo;
+  private PropertyInfo serviceLevelProperty;
+  private PropertyInfo stackLevelProperty;
+  private PropertyInfo optionalServiceLevelProperty;
+  private PropertyInfo passwordProperty;
+
+  @Before
+  public void setUp() {
+    stackInfo = new StackInfo();
+    stackInfo.setName(STACK_ID.getStackName());
+    stackInfo.setVersion(STACK_ID.getStackVersion());
+
+    serviceInfo = new ServiceInfo();
+    serviceInfo.setName("some service");
+    stackInfo.getServices().add(serviceInfo);
+
+    componentInfo = new ComponentInfo();
+    componentInfo.setName("some component");
+    serviceInfo.getComponents().add(componentInfo);
+
+    serviceLevelProperty = new PropertyInfo();
+    serviceLevelProperty.setName("service_level");
+    serviceLevelProperty.setValue("service-level value");
+    serviceLevelProperty.setFilename(SERVICE_CONFIG_FILE);
+    serviceLevelProperty.setRequireInput(true);
+    serviceLevelProperty.getPropertyTypes().add(PropertyInfo.PropertyType.TEXT);
+    serviceInfo.getProperties().add(serviceLevelProperty);
+
+    passwordProperty = new PropertyInfo();
+    passwordProperty.setName("a_password");
+    passwordProperty.setValue("secret");
+    passwordProperty.setFilename(SERVICE_CONFIG_FILE);
+    passwordProperty.setRequireInput(true);
+    passwordProperty.getPropertyTypes().add(PropertyInfo.PropertyType.PASSWORD);
+    serviceInfo.getProperties().add(passwordProperty);
+
+    optionalServiceLevelProperty = new PropertyInfo();
+    optionalServiceLevelProperty.setName("optional_service_level");
+    optionalServiceLevelProperty.setValue("service-level value (optional)");
+    optionalServiceLevelProperty.setFilename(SERVICE_CONFIG_FILE);
+    optionalServiceLevelProperty.setRequireInput(false);
+    optionalServiceLevelProperty.getPropertyTypes().add(PropertyInfo.PropertyType.USER);
+    serviceInfo.getProperties().add(optionalServiceLevelProperty);
+
+    stackLevelProperty = new PropertyInfo();
+    stackLevelProperty.setName("stack_level");
+    stackLevelProperty.setValue("stack-level value");
+    stackLevelProperty.setFilename(STACK_CONFIG_FILE);
+    stackLevelProperty.setRequireInput(true);
+    stackLevelProperty.getPropertyTypes().add(PropertyInfo.PropertyType.TEXT);
+    stackInfo.getProperties().add(stackLevelProperty);
+  }
+
   @Test
-  public void testTestXmlExtensionStrippedOff() throws Exception {
-    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-    AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = EasyMock.newCapture();
-    StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
-    Capture<Set<StackServiceComponentRequest>> stackComponentRequestCapture = EasyMock.newCapture();
-    StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
-    Capture<Set<StackConfigurationRequest>> stackConfigurationRequestCapture = EasyMock.newCapture();
-    Capture<Set<StackLevelConfigurationRequest>> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
-    StackLevelConfigurationResponse stackConfigurationResponse = EasyMock.createNiceMock(StackLevelConfigurationResponse.class);
+  public void stackHasCorrectNameAndVersion() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
 
-    expect(controller.getStackServices(capture(stackServiceRequestCapture))).
-        andReturn(Collections.singleton(stackServiceResponse)).anyTimes();
+    // THEN
+    assertEquals(stackInfo.getName(), stack.getName());
+    assertEquals(stackInfo.getVersion(), stack.getVersion());
+  }
 
-    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+  @Test
+  public void getServices() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
 
-    expect(stackServiceResponse.getServiceName()).andReturn("service1").anyTimes();
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.emptySet());
-    expect(stackServiceResponse.getConfigTypes()).andReturn(Collections.emptyMap());
+    // WHEN
+    Collection<String> services = stack.getServices();
 
-    expect(controller.getStackComponents(capture(stackComponentRequestCapture))).
-        andReturn(Collections.singleton(stackComponentResponse)).anyTimes();
+    // THEN
+    assertEquals(ImmutableSet.of(serviceInfo.getName()), ImmutableSet.copyOf(services));
+  }
 
-    expect(stackComponentResponse.getComponentName()).andReturn("component1").anyTimes();
-    expect(stackComponentResponse.getComponentCategory()).andReturn("test-site.xml").anyTimes();
+  @Test
+  public void getServicesForOwnStackId() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
 
-    expect(controller.getStackConfigurations(capture(stackConfigurationRequestCapture))).
-        andReturn(Collections.singleton(stackConfigurationResponse)).anyTimes();
+    // WHEN
+    Collection<String> services = stack.getServices(stack.getStackId());
 
-    // no stack level configs for this test
-    expect(controller.getStackLevelConfigurations(capture(stackLevelConfigurationRequestCapture))).
-        andReturn(Collections.emptySet()).anyTimes();
+    // THEN
+    assertEquals(ImmutableSet.of(serviceInfo.getName()), ImmutableSet.copyOf(services));
+  }
 
-    expect(stackConfigurationResponse.getPropertyName()).andReturn("prop1").anyTimes();
-    expect(stackConfigurationResponse.getPropertyValue()).andReturn("prop1Val").anyTimes();
-    expect(stackConfigurationResponse.getType()).andReturn("test-site.xml").anyTimes();
-    expect(stackConfigurationResponse.getPropertyType()).andReturn(
-        Collections.emptySet()).anyTimes();
-    expect(stackConfigurationResponse.getPropertyAttributes()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(stackConfigurationResponse.isRequired()).andReturn(true).anyTimes();
+  @Test
+  public void getServicesForOtherStackId() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
 
-    expect(metaInfo.getComponentDependencies("test", "1.0", "service1", "component1")).
-        andReturn(Collections.emptyList()).anyTimes();
+    // WHEN
+    Collection<String> services = stack.getServices(new StackId("other stack", "1.0"));
 
+    // THEN
+    assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(services));
+  }
 
-    replay(controller, stackServiceResponse, stackComponentResponse, stackConfigurationResponse, metaInfo);
+  @Test
+  public void getStacksForServicesInStack() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
 
+    for (String service : stack.getServices()) {
+      // WHEN
+      Set<StackId> stacksForService = stack.getStacksForService(service);
+      // THEN
+      assertEquals("Stack for service " + service, ImmutableSet.of(STACK_ID), stacksForService);
+    }
+  }
 
-    Stack stack = new Stack("test", "1.0", controller);
-    Configuration configuration = stack.getConfiguration(Collections.singleton("service1"));
-    assertEquals("prop1Val", configuration.getProperties().get("test-site").get("prop1"));
+  @Test
+  public void getStacksForUnknownService() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
 
-    assertEquals("test-site", stack.getRequiredConfigurationProperties("service1").iterator().next().getType());
+    // WHEN
+    Set<StackId> stacksForService = stack.getStacksForService("unknown service");
 
-    // assertions
-    StackServiceRequest stackServiceRequest = stackServiceRequestCapture.getValue().iterator().next();
-    assertEquals("test", stackServiceRequest.getStackName());
-    assertEquals("1.0", stackServiceRequest.getStackVersion());
+    // THEN
+    assertEquals(ImmutableSet.of(), stacksForService);
+  }
 
-    StackServiceComponentRequest stackComponentRequest = stackComponentRequestCapture.getValue().iterator().next();
-    assertEquals("service1", stackComponentRequest.getServiceName());
-    assertEquals("test", stackComponentRequest.getStackName());
-    assertEquals("1.0", stackComponentRequest.getStackVersion());
-    assertNull(stackComponentRequest.getComponentName());
+  @Test
+  public void configTypeOmitsFileExtension() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Configuration configuration = stack.getConfiguration(singleton(serviceInfo.getName()));
+
+    // THEN
+    assertEquals(serviceLevelProperty.getValue(), configuration.getProperties().get(SERVICE_CONFIG_TYPE).get(serviceLevelProperty.getName()));
+  }
+
+  @Test
+  public void getRequiredPropertiesForService() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Collection<Stack.ConfigProperty> requiredConfigurationProperties = stack.getRequiredConfigurationProperties(serviceInfo.getName());
+
+    // THEN
+    // should include stack-level property
+    // should exclude optional property
+    Set<Pair<String, String>> actualRequiredProperties = convertToPropertySet(requiredConfigurationProperties);
+    Set<Pair<String, String>> expected = ImmutableSet.of(
+      Pair.of(STACK_CONFIG_TYPE, stackLevelProperty.getName()),
+      Pair.of(SERVICE_CONFIG_TYPE, passwordProperty.getName()),
+      Pair.of(SERVICE_CONFIG_TYPE, serviceLevelProperty.getName())
+    );
+    assertEquals(expected, actualRequiredProperties);
+    assertEquals(expected.size(), requiredConfigurationProperties.size());
+  }
+
+  @Test
+  public void getRequiredPropertiesForServiceAndType() throws Exception {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Collection<Stack.ConfigProperty> requiredConfigurationProperties = stack.getRequiredConfigurationProperties(serviceInfo.getName(), PropertyInfo.PropertyType.TEXT);
+
+    // THEN
+    Set<Pair<String, String>> actualRequiredProperties = convertToPropertySet(requiredConfigurationProperties);
+    Set<Pair<String, String>> expected = ImmutableSet.of(
+      Pair.of(STACK_CONFIG_TYPE, stackLevelProperty.getName()),
+      Pair.of(SERVICE_CONFIG_TYPE, serviceLevelProperty.getName())
+    );
+    assertEquals(expected, actualRequiredProperties);
+    assertEquals(expected.size(), requiredConfigurationProperties.size());
   }
 
   @Test
   public void testConfigPropertyReadsInDependencies() throws Exception {
+    // FIXME get rid of mock
     EasyMockSupport mockSupport = new EasyMockSupport();
 
     Set<PropertyDependencyInfo> setOfDependencyInfo = new HashSet<>();
@@ -158,221 +265,106 @@ public class StackTest {
   }
 
   @Test
-  public void testGetRequiredProperties_serviceAndPropertyType() throws Exception {
-    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-    AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = EasyMock.newCapture();
-    StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
-    Capture<Set<StackServiceComponentRequest>> stackComponentRequestCapture = EasyMock.newCapture();
-    StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
-    Capture<Set<StackConfigurationRequest>> stackConfigurationRequestCapture = EasyMock.newCapture();
-    Capture<Set<StackLevelConfigurationRequest>> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
-    StackLevelConfigurationResponse stackConfigurationResponse = EasyMock.createNiceMock(StackLevelConfigurationResponse.class);
-    StackLevelConfigurationResponse stackConfigurationResponse2 = EasyMock.createNiceMock(StackLevelConfigurationResponse.class);
+  public void getAllConfigurationTypesReturnsExcludedOnesToo() throws Exception {
+    // GIVEN
+    serviceInfo.setExcludedConfigTypes(ImmutableSet.of(SERVICE_CONFIG_TYPE));
+    Stack stack = new Stack(stackInfo);
 
-    expect(controller.getStackServices(capture(stackServiceRequestCapture))).
-        andReturn(Collections.singleton(stackServiceResponse)).anyTimes();
+    // WHEN
+    Collection<String> allConfigurationTypes = stack.getAllConfigurationTypes(serviceInfo.getName());
 
-    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
-
-    expect(stackServiceResponse.getServiceName()).andReturn("service1").anyTimes();
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.emptySet());
-    expect(stackServiceResponse.getConfigTypes()).andReturn(Collections.emptyMap());
-
-    expect(controller.getStackComponents(capture(stackComponentRequestCapture))).
-        andReturn(Collections.singleton(stackComponentResponse)).anyTimes();
-
-    expect(stackComponentResponse.getComponentName()).andReturn("component1").anyTimes();
-    expect(stackComponentResponse.getComponentCategory()).andReturn("test-site.xml").anyTimes();
-
-    expect(controller.getStackConfigurations(capture(stackConfigurationRequestCapture))).
-        andReturn(new HashSet<>(Arrays.asList(
-          stackConfigurationResponse, stackConfigurationResponse2))).anyTimes();
-
-    // no stack level configs for this test
-    expect(controller.getStackLevelConfigurations(capture(stackLevelConfigurationRequestCapture))).
-        andReturn(Collections.emptySet()).anyTimes();
-
-    expect(stackConfigurationResponse.getPropertyName()).andReturn("prop1").anyTimes();
-    expect(stackConfigurationResponse.getPropertyValue()).andReturn(null).anyTimes();
-    expect(stackConfigurationResponse.getType()).andReturn("test-site.xml").anyTimes();
-    expect(stackConfigurationResponse.getPropertyType()).andReturn(
-        Collections.singleton(PropertyInfo.PropertyType.PASSWORD)).anyTimes();
-    expect(stackConfigurationResponse.getPropertyAttributes()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(stackConfigurationResponse.isRequired()).andReturn(true).anyTimes();
-
-    // not a PASSWORD property type so shouldn't be returned
-    expect(stackConfigurationResponse2.getPropertyName()).andReturn("prop2").anyTimes();
-    expect(stackConfigurationResponse2.getPropertyValue()).andReturn(null).anyTimes();
-    expect(stackConfigurationResponse2.getType()).andReturn("test-site.xml").anyTimes();
-    expect(stackConfigurationResponse2.getPropertyType()).andReturn(
-        Collections.singleton(PropertyInfo.PropertyType.USER)).anyTimes();
-    expect(stackConfigurationResponse2.getPropertyAttributes()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(stackConfigurationResponse2.isRequired()).andReturn(true).anyTimes();
-
-    expect(metaInfo.getComponentDependencies("test", "1.0", "service1", "component1")).
-        andReturn(Collections.emptyList()).anyTimes();
-
-    replay(controller, stackServiceResponse, stackComponentResponse, stackConfigurationResponse,
-        stackConfigurationResponse2, metaInfo);
-
-    // test
-    Stack stack = new Stack("test", "1.0", controller);
-    // get required password properties
-    Collection<Stack.ConfigProperty> requiredPasswordProperties = stack.getRequiredConfigurationProperties(
-        "service1", PropertyInfo.PropertyType.PASSWORD);
-
-    // assertions
-    assertEquals(1, requiredPasswordProperties.size());
-    Stack.ConfigProperty requiredPasswordConfigProperty = requiredPasswordProperties.iterator().next();
-    assertEquals("test-site", requiredPasswordConfigProperty.getType());
-    assertEquals("prop1", requiredPasswordConfigProperty.getName());
-    assertTrue(requiredPasswordConfigProperty.getPropertyTypes().contains(PropertyInfo.PropertyType.PASSWORD));
-
-    StackServiceRequest stackServiceRequest = stackServiceRequestCapture.getValue().iterator().next();
-    assertEquals("test", stackServiceRequest.getStackName());
-    assertEquals("1.0", stackServiceRequest.getStackVersion());
-
-    StackServiceComponentRequest stackComponentRequest = stackComponentRequestCapture.getValue().iterator().next();
-    assertEquals("service1", stackComponentRequest.getServiceName());
-    assertEquals("test", stackComponentRequest.getStackName());
-    assertEquals("1.0", stackComponentRequest.getStackVersion());
-    assertNull(stackComponentRequest.getComponentName());
+    // THEN
+    Set<String> expected = ImmutableSet.of(SERVICE_CONFIG_TYPE, STACK_CONFIG_TYPE);
+    assertEquals(expected, allConfigurationTypes);
   }
 
-  // Test that getAllConfigurationTypes returns beside the configuration types that have
-  // service config properties defined also the empty ones that doesn't have any config
-  // property defined.
   @Test
-  public void testGetAllConfigurationTypesWithEmptyStackServiceConfigType() throws Exception {
-    // Given
-    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-    AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
-    StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
-    StackLevelConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackLevelConfigurationResponse.class);
-    StackLevelConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackLevelConfigurationResponse.class);
+  public void getConfigurationTypesOmitsExcludedOnes() throws Exception {
+    // GIVEN
+    serviceInfo.setExcludedConfigTypes(ImmutableSet.of(SERVICE_CONFIG_TYPE));
+    Stack stack = new Stack(stackInfo);
 
-    String testServiceName = "service1";
-    String testEmptyConfigType = "test-empty-config-type";
-    String testSiteConfigFile = "test-site.xml";
-    String testSiteConfigType = "test-site";
+    // WHEN
+    Collection<String> allConfigurationTypes = stack.getConfigurationTypes(serviceInfo.getName());
 
-
-    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
-
-    expect(controller.getStackServices(EasyMock.anyObject())).andReturn(Collections.singleton(stackServiceResponse)).anyTimes();
-    expect(stackServiceResponse.getServiceName()).andReturn(testServiceName).anyTimes();
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.emptySet());
-
-    // stack components
-    expect(stackComponentResponse.getComponentName()).andReturn("component1").anyTimes();
-    expect(stackComponentResponse.getComponentCategory()).andReturn(testSiteConfigFile).anyTimes();
-    expect(controller.getStackComponents(EasyMock.anyObject())).andReturn(Collections.singleton(stackComponentResponse)).anyTimes();
-
-    // stack configurations
-
-    // two properties with config type 'test-site'
-    expect(stackConfigurationResponse1.getPropertyName()).andReturn("prop1").anyTimes();
-    expect(stackConfigurationResponse1.getPropertyValue()).andReturn(null).anyTimes();
-    expect(stackConfigurationResponse1.getType()).andReturn(testSiteConfigFile).anyTimes();
-    expect(stackConfigurationResponse1.getPropertyType()).andReturn(Collections.singleton(PropertyInfo.PropertyType.TEXT)).anyTimes();
-    expect(stackConfigurationResponse1.getPropertyAttributes()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(stackConfigurationResponse1.isRequired()).andReturn(true).anyTimes();
-
-    expect(stackConfigurationResponse2.getPropertyName()).andReturn("prop2").anyTimes();
-    expect(stackConfigurationResponse2.getPropertyValue()).andReturn(null).anyTimes();
-    expect(stackConfigurationResponse2.getType()).andReturn(testSiteConfigFile).anyTimes();
-    expect(stackConfigurationResponse2.getPropertyType()).andReturn(Collections.singleton(PropertyInfo.PropertyType.USER)).anyTimes();
-    expect(stackConfigurationResponse2.getPropertyAttributes()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(stackConfigurationResponse2.isRequired()).andReturn(true).anyTimes();
-
-    expect(controller.getStackConfigurations(EasyMock.anyObject())).andReturn(Sets.newHashSet(stackConfigurationResponse1, stackConfigurationResponse2)).anyTimes();
-
-    // empty stack service config type
-    expect(stackServiceResponse.getConfigTypes()).andReturn(Collections.singletonMap(testEmptyConfigType, Collections.emptyMap()));
-
-    // no stack level configs for this test
-    expect(controller.getStackLevelConfigurations(EasyMock.anyObject())).andReturn(Collections.emptySet()).anyTimes();
-
-    expect(metaInfo.getComponentDependencies("test", "1.0", "service1", "component1")).andReturn(Collections.emptyList()).anyTimes();
-
-    replay(controller, stackServiceResponse, stackComponentResponse, stackConfigurationResponse1, stackConfigurationResponse2, metaInfo);
-
-
-    Stack stack = new Stack("test", "1.0", controller);
-
-    // When
-    Collection<String> allServiceConfigTypes = stack.getAllConfigurationTypes(testServiceName);
-
-    // Then
-
-    assertTrue(allServiceConfigTypes.containsAll(ImmutableSet.of(testSiteConfigType, testEmptyConfigType)));
-    assertEquals(2, allServiceConfigTypes.size());
-
-    verifyAll();
+    // THEN
+    Set<String> expected = ImmutableSet.of(STACK_CONFIG_TYPE);
+    assertEquals(expected, allConfigurationTypes);
   }
 
-  // Test that getServiceForConfigType skips excluded config types.
   @Test
-  public void testGetServiceForConfigTypeWithExcludedConfigs() throws Exception {
-    // Given
-    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-    AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
-    StackServiceComponentResponse stackComponentResponse = createNiceMock(StackServiceComponentResponse.class);
-    StackLevelConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackLevelConfigurationResponse.class);
+  public void findsServiceForValidConfigType() {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
 
-    String testServiceName = "service1";
-    String testEmptyConfigType = "test-empty-config-type";
-    String testSiteConfigFile = "test-site.xml";
-    String testSiteConfigType = "test-site";
+    // WHEN
+    String service = stack.getServiceForConfigType(SERVICE_CONFIG_TYPE);
 
-    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
-
-    expect(controller.getStackServices(EasyMock.anyObject())).andReturn(Collections.singleton(stackServiceResponse)).anyTimes();
-    expect(stackServiceResponse.getServiceName()).andReturn(testServiceName).anyTimes();
-
-    // Config type test-site is excluded for the service service1
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.singleton(testSiteConfigType));
-
-    // stack components
-    expect(stackComponentResponse.getComponentName()).andReturn("component1").anyTimes();
-    expect(stackComponentResponse.getComponentCategory()).andReturn(testSiteConfigFile).anyTimes();
-    expect(controller.getStackComponents(EasyMock.anyObject())).andReturn(Collections.singleton(stackComponentResponse)).anyTimes();
-
-    expect(stackConfigurationResponse1.getPropertyName()).andReturn("prop1").anyTimes();
-    expect(stackConfigurationResponse1.getPropertyValue()).andReturn(null).anyTimes();
-    expect(stackConfigurationResponse1.getType()).andReturn(testSiteConfigFile).anyTimes();
-    expect(stackConfigurationResponse1.getPropertyType()).andReturn(Collections.singleton(PropertyInfo.PropertyType.TEXT)).anyTimes();
-    expect(stackConfigurationResponse1.getPropertyAttributes()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(stackConfigurationResponse1.isRequired()).andReturn(true).anyTimes();
-
-    expect(controller.getStackConfigurations(EasyMock.anyObject())).andReturn(Collections.singleton(stackConfigurationResponse1)).anyTimes();
-
-    // empty stack service config type
-    expect(stackServiceResponse.getConfigTypes()).andReturn(Collections.singletonMap(testEmptyConfigType, Collections.emptyMap()));
-
-    // no stack level configs for this test
-    expect(controller.getStackLevelConfigurations(EasyMock.anyObject())).andReturn(Collections.emptySet()).anyTimes();
-    expect(metaInfo.getComponentDependencies("test", "1.0", "service1", "component1")).andReturn(Collections.emptyList()).anyTimes();
-
-    replay(controller, stackServiceResponse, stackComponentResponse, stackConfigurationResponse1, metaInfo);
-
-    Stack stack = new Stack("test", "1.0", controller);
-
-    // When
-    try {
-      stack.getServiceForConfigType(testSiteConfigType);
-      fail("Exception not thrown");
-    } catch (IllegalArgumentException e) {
-      // Expected
-    }
-
-    // Not excluded config type
-    assertEquals(testServiceName, stack.getServiceForConfigType(testEmptyConfigType));
-
-    verifyAll();
+    // THEN
+    assertEquals(serviceInfo.getName(), service);
   }
 
+  @Test(expected = IllegalArgumentException.class) // THEN
+  public void serviceIsNotFoundForExcludedConfigType() {
+    // GIVEN
+    serviceInfo.setExcludedConfigTypes(ImmutableSet.of(SERVICE_CONFIG_TYPE));
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    stack.getServiceForConfigType(SERVICE_CONFIG_TYPE);
+  }
+
+  @Test(expected = IllegalArgumentException.class) // THEN
+  public void serviceIsNotFoundForUnknownConfigType() {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    stack.getServiceForConfigType("no_such_config_type");
+  }
+
+  @Test
+  public void findsAllServicesForValidConfigType() {
+    // GIVEN
+    ServiceInfo otherMatchingService = new ServiceInfo();
+    otherMatchingService.setName("matches");
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Stream<String> services = stack.getServicesForConfigType(SERVICE_CONFIG_TYPE);
+
+    // THEN
+    Set<String> expected = ImmutableSet.of(serviceInfo.getName());
+    assertEquals(expected, services.collect(toSet()));
+  }
+
+  @Test
+  public void noServiceFoundForExcludedConfigType() {
+    // GIVEN
+    serviceInfo.setExcludedConfigTypes(ImmutableSet.of(SERVICE_CONFIG_TYPE));
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Stream<String> services = stack.getServicesForConfigType(SERVICE_CONFIG_TYPE);
+
+    // THEN
+    assertEquals(emptySet(), services.collect(toSet()));
+  }
+
+  @Test
+  public void noServiceFoundForUnknownConfigType() {
+    // GIVEN
+    Stack stack = new Stack(stackInfo);
+
+    // WHEN
+    Stream<String> services = stack.getServicesForConfigType("no_such_config_type");
+
+    // THEN
+    assertEquals(emptySet(), services.collect(toSet()));
+  }
+
+  private static Set<Pair<String, String>> convertToPropertySet(Collection<Stack.ConfigProperty> requiredConfigurationProperties) {
+    return requiredConfigurationProperties
+      .stream().map(p -> Pair.of(p.getType(), p.getName())).collect(toSet());
+  }
 }

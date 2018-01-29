@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.topology.validators.TopologyValidatorService;
@@ -81,6 +82,8 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.common.collect.ImmutableSet;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
 public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupport {
@@ -89,6 +92,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
   private static final String BLUEPRINT_NAME = "test-bp";
   private static final String STACK_NAME = "test-stack";
   private static final String STACK_VERSION = "test-stack-version";
+  private static final StackId STACK_ID = new StackId(STACK_NAME, STACK_VERSION);
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -257,6 +261,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.getStackIds()).andReturn(ImmutableSet.of(STACK_ID)).anyTimes();
     expect(blueprint.isValidConfigType(anyString())).andReturn(true).anyTimes();
     expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<>()).anyTimes();
     // don't expect toEntity()
@@ -375,7 +380,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
     expectLastCall().times(3);
-    ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
+    ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_ID);
     expectLastCall().once();
 
     expect(configureClusterTaskFactory.createConfigureClusterTask(anyObject(), anyObject(), anyObject())).andReturn(configureClusterTask);

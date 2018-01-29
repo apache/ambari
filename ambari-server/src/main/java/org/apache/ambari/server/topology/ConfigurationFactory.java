@@ -10,14 +10,16 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
 package org.apache.ambari.server.topology;
+
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_PROPERTY_ID;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -59,8 +61,8 @@ public class ConfigurationFactory {
       String propertiesType = keyNameTokens[1];
       if (levels == 2) {
         return new ConfigurationStrategyV1();
-      } else if ((levels == 3 && BlueprintFactory.PROPERTIES_PROPERTY_ID.equals(propertiesType))
-          || (levels == 4 && BlueprintFactory.PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType))) {
+      } else if ((levels == 3 && PROPERTIES_PROPERTY_ID.equals(propertiesType))
+          || (levels == 4 && PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertiesType))) {
         return new ConfigurationStrategyV2();
       } else {
         throw new IllegalArgumentException(SCHEMA_IS_NOT_SUPPORTED_MESSAGE);
@@ -111,9 +113,9 @@ public class ConfigurationFactory {
     @Override
     protected void setConfiguration(Configuration configuration, String[] propertyNameTokens, String propertyValue) {
       String type = propertyNameTokens[0];
-      if (BlueprintFactory.PROPERTIES_PROPERTY_ID.equals(propertyNameTokens[1])) {
+      if (PROPERTIES_PROPERTY_ID.equals(propertyNameTokens[1])) {
         configuration.setProperty(type, propertyNameTokens[2], propertyValue);
-      } else if (BlueprintFactory.PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertyNameTokens[1])) {
+      } else if (PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertyNameTokens[1])) {
         configuration.setAttribute(type, propertyNameTokens[3], propertyNameTokens[2], propertyValue);
       }
     }

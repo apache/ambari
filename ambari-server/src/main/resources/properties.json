@@ -369,19 +369,6 @@
         "RootServiceHostComponents/component_version",
         "RootServiceHostComponents/properties"
      ],
-    "Blueprint":[
-        "Blueprints/blueprint_name",
-        "Blueprints/stack_name",
-        "Blueprints/stack_version",
-        "Blueprints/security",
-        "host_groups",
-        "host_groups/components",
-        "host_groups/cardinality",
-        "configurations",
-        "validate_topology",
-        "settings",
-        "mpack_instances"
-    ],
     "Recommendation":[
         "Recommendation/id",
         "Versions/stack_name",

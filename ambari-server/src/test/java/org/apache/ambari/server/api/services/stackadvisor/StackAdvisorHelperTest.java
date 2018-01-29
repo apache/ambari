@@ -42,6 +42,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * StackAdvisorHelper unit tests.
  */
@@ -112,8 +114,11 @@ public class StackAdvisorHelperTest {
     StackAdvisorCommand<RecommendationResponse> command = mock(StackAdvisorCommand.class);
     RecommendationResponse expected = mock(RecommendationResponse.class);
     StackAdvisorRequestType requestType = StackAdvisorRequestType.HOST_GROUPS;
-    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
-        .ofType(requestType).build();
+    StackAdvisorRequest request = StackAdvisorRequestBuilder
+      .forStack("stackName", "stackVersion")
+      .forServices(ImmutableSet.of("ZOOKEEPER"))
+      .ofType(requestType)
+      .build();
 
     when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenReturn(expected);
     doReturn(command).when(helper).createRecommendationCommand("ZOOKEEPER", request);

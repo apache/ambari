@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -437,7 +438,7 @@ public class BlueprintConfigurationProcessor {
 
   private void trimProperties(Configuration clusterConfig, ClusterTopology clusterTopology) {
     Blueprint blueprint = clusterTopology.getBlueprint();
-    Stack stack = blueprint.getStack();
+    StackDefinition stack = blueprint.getStack();
 
     Map<String, Map<String, String>> configTypes = clusterConfig.getFullProperties();
     for (String configType : configTypes.keySet()) {
@@ -448,7 +449,7 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
-  private void trimPropertyValue(Configuration clusterConfig, Stack stack, String configType, Map<String, String> properties, String propertyName) {
+  private void trimPropertyValue(Configuration clusterConfig, StackDefinition stack, String configType, Map<String, String> properties, String propertyName) {
     if (propertyName != null && properties.get(propertyName) != null) {
 
       TrimmingStrategy trimmingStrategy =
@@ -2880,7 +2881,7 @@ public class BlueprintConfigurationProcessor {
    * @param configTypesUpdated
    * @param stack
    */
-  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, Stack stack) {
+  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, StackDefinition stack) {
     Collection<String> blueprintServices = clusterTopology.getBlueprint().getServices();
 
     LOG.debug("Handling excluded properties for blueprint services: {}", blueprintServices);
@@ -2971,38 +2972,41 @@ public class BlueprintConfigurationProcessor {
    * @param configTypesUpdated
    *          the list of configuration types updated (cluster-env will be added
    *          to this).
-   * @throws ConfigurationTopologyException
    */
   private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
       throws ConfigurationTopologyException {
     ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
-    Stack stack = clusterTopology.getBlueprint().getStack();
-    String stackName = stack.getName();
-    String stackVersion = stack.getVersion();
 
-    StackId stackId = new StackId(stackName, stackVersion);
-
-    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
-        ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
+    Set<String> properties = ImmutableSet.of(
+      ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY
+    );
 
     try {
-      Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
-      Map<String,String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
+      for (StackId stackId : clusterTopology.getBlueprint().getStackIds()) {
+        Map<String, Map<String, String>> defaultStackProperties = configHelper.getDefaultStackProperties(stackId);
+        if (defaultStackProperties.containsKey(CLUSTER_ENV_CONFIG_TYPE_NAME)) {
+          Map<String, String> clusterEnvDefaultProperties = defaultStackProperties.get(CLUSTER_ENV_CONFIG_TYPE_NAME);
 
-      for( String property : properties ){
-        if (clusterEnvDefaultProperties.containsKey(property)) {
-          configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
-              clusterEnvDefaultProperties.get(property));
+          for (String property : properties) {
+            if (clusterEnvDefaultProperties.containsKey(property)) {
+              configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
+                clusterEnvDefaultProperties.get(property)
+              );
 
-          // make sure to include the configuration type as being updated
-          configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+              // make sure to include the configuration type as being updated
+              configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+            }
+          }
+
+          break;
         }
       }
-    } catch( AmbariException ambariException ){
-      throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features",
-          ambariException);
+    } catch (AmbariException e) {
+      throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features", e);
     }
   }
 
@@ -3101,7 +3105,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-        Stack stack = topology.getBlueprint().getStack();
+        StackDefinition stack = topology.getBlueprint().getStack();
         final String serviceName = stack.getServiceForConfigType(configType);
         return !(stack.isPasswordProperty(serviceName, configType, propertyName) ||
                 stack.isKerberosPrincipalNameProperty(serviceName, configType, propertyName));
@@ -3198,7 +3202,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
-      Stack stack = topology.getBlueprint().getStack();
+      StackDefinition stack = topology.getBlueprint().getStack();
       Configuration configuration = topology.getConfiguration();
 
       final String serviceName = stack.getServiceForConfigType(configType);

@@ -22,6 +22,7 @@ package org.apache.ambari.server.controller;
 import javax.inject.Named;
 
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider;
@@ -88,5 +89,10 @@ public interface ResourceProviderFactory {
 
   @Named("viewInstance")
   ViewInstanceResourceProvider getViewInstanceResourceProvider();
+
+  @Named(BlueprintResourceProvider.NAME)
+  BlueprintResourceProvider getBlueprintResourceProvider(
+    AmbariManagementController managementController
+  );
 
 }

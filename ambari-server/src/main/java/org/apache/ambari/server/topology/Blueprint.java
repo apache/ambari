@@ -21,9 +21,11 @@ package org.apache.ambari.server.topology;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.state.StackId;
 
 /**
  * Blueprint representation.
@@ -39,15 +41,15 @@ public interface Blueprint {
 
   /**
    * Get the hot groups contained in the blueprint.
+   *
    * @return map of host group name to host group
    */
   Map<String, HostGroup> getHostGroups();
 
   /**
-   * Get a hostgroup specified by name.
+   * Get a host group specified by name.
    *
    * @param name  name of the host group to get
-   *
    * @return the host group with the given name or null
    */
   HostGroup getHostGroup(String name);
@@ -124,19 +126,26 @@ public interface Blueprint {
 
   /**
    * Get the stack associated with the blueprint.
+   * For mpack-based installation this is a composite stack
+   * that provides a single unified view of all underlying mpacks,
+   * but does not have any identifier.
    *
    * @return associated stack
    */
-  @Deprecated
-  Stack getStack();
+  StackDefinition getStack();
 
   /**
-   * Get the stacks associated with the blueprint.
-   *
-   * @return associated stacks
+   * @return the set of stack (mpack) IDs associated with the blueprint
    */
-  Collection<Stack> getStacks();
+  Set<StackId> getStackIds();
 
+  /**
+   * Look up the stacks that define <code>service</code>.
+   * To be used only after checking that services map to
+   * @param service the name of the service as defined in the stack (mpack), eg. ZOOKEEPER
+   * @return the ID of the stack that defines the given service
+   */
+  Set<StackId> getStackIdsForService(String service);
 
   /**
    * Get the mpacks associated with the blueprint.
@@ -167,24 +176,7 @@ public interface Blueprint {
   SecurityConfiguration getSecurity();
 
   /**
-   * Validate the blueprint topology.
-   *
-   * @throws InvalidTopologyException if the topology is invalid
-   */
-  void validateTopology() throws InvalidTopologyException;
-
-  /**
-   * Validate that the blueprint contains all of the required properties.
-   *
-   * @throws InvalidTopologyException if the blueprint doesn't contain all required properties
-   */
-  void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException;
-
-  /**
-   *
    * A config type is valid if there are services related to except cluster-env and global.
-   * @param configType
-   * @return
    */
   boolean isValidConfigType(String configType);
 
@@ -196,15 +188,5 @@ public interface Blueprint {
   BlueprintEntity toEntity();
 
   List<RepositorySetting> getRepositorySettings();
-
-  /**
-   * @return a boolean indicating if all mpack referenced by the blueprints are resolved (installed on the system)
-   */
-  boolean isAllMpacksResolved();
-
-  /**
-   * @return a collection of the names unresolved mpacks in {name}-{version} format.
-   */
-  Collection<String> getUnresolvedMpackNames();
 
 }

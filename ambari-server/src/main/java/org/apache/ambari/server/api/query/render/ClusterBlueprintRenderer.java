@@ -45,7 +45,6 @@ import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -56,6 +55,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
@@ -67,6 +67,8 @@ import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Iterables;
 
 /**
  * Renderer which renders a cluster resource as a blueprint.
@@ -195,9 +197,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    Stack stack = topology.getBlueprint().getStack();
-    blueprintResource.setProperty("Blueprints/stack_name", stack.getName());
-    blueprintResource.setProperty("Blueprints/stack_version", stack.getVersion());
+    Set<StackId> stackIds = topology.getBlueprint().getStackIds();
+    if (stackIds.size() == 1) {
+      StackId stackId = Iterables.getOnlyElement(stackIds);
+      blueprintResource.setProperty("Blueprints/stack_name", stackId.getStackName());
+      blueprintResource.setProperty("Blueprints/stack_version", stackId.getStackVersion());
+    }
 
     if (topology.isClusterKerberosEnabled()) {
       Map<String, Object> securityConfigMap = new LinkedHashMap<>();

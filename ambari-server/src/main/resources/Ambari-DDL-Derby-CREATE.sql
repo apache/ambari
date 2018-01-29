@@ -594,7 +594,7 @@ CREATE TABLE blueprint_mpack_instance(
   blueprint_name VARCHAR(255) NOT NULL,
   mpack_name VARCHAR(255) NOT NULL,
   mpack_version VARCHAR(255) NOT NULL,
-  mpack_uri VARCHAR(255) NOT NULL,
+  mpack_uri VARCHAR(255),
   mpack_id BIGINT,
   CONSTRAINT PK_blueprint_mpack_inst PRIMARY KEY (id),
   CONSTRAINT FK_mpi_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name),
