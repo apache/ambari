@@ -112,14 +112,14 @@ describe('App.MainHostSummaryView', function() {
       {
         content: Em.Object.create({
           hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'B'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'D'})
+            Em.Object.create({isClient: true, componentName: 'B'}),
+            Em.Object.create({isMaster: true, componentName: 'A'}),
+            Em.Object.create({isSlave: true, componentName: 'C'}),
+            Em.Object.create({isClient: true, componentName: 'D'})
           ])
         }),
         m: 'List of clients',
-        e: []
+        e: ['A', 'C', 'B', 'D']
       }
     ]);
 
@@ -132,151 +132,6 @@ describe('App.MainHostSummaryView', function() {
         mainHostSummaryView.set('content', test.content);
         mainHostSummaryView.sortedComponentsFormatter();
         expect(mainHostSummaryView.get('sortedComponents').mapProperty('componentName')).to.eql(test.e);
-      });
-    });
-
-  });
-
-  describe('#clients', function() {
-
-    var tests = Em.A([
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'B'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'D'})
-          ])
-        }),
-        m: 'List of masters, slaves and clients',
-        e: ['D']
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'B'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'D'})
-          ])
-        }),
-        m: 'List of masters and slaves',
-        e: []
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'B'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: true, isSlave: false, componentName: 'D'})
-          ])
-        }),
-        m: 'List of masters',
-        e: []
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'B'}),
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'A'}),
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'C'}),
-            Em.Object.create({isMaster: false, isSlave: true, componentName: 'D'})
-          ])
-        }),
-        m: 'List of slaves',
-        e: []
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([])
-        }),
-        m: 'Empty list',
-        e: []
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'B'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'A'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'C'}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'D'})
-          ])
-        }),
-        m: 'List of clients',
-        e: ['B', 'A', 'C', 'D']
-      }
-    ]);
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        mainHostSummaryView.set('content', test.content);
-        expect(mainHostSummaryView.get('clients').mapProperty('componentName')).to.eql(test.e);
-      });
-    });
-
-    it('should set isInstallFailed for clients with INIT and INSTALL_FAILED workStatus', function() {
-      mainHostSummaryView.set('content', Em.Object.create({
-        hostComponents: [
-          Em.Object.create({isMaster: false, isSlave: false, componentName: 'B', workStatus: 'INIT'}),
-          Em.Object.create({isMaster: false, isSlave: false, componentName: 'A', workStatus: 'INSTALLED'}),
-          Em.Object.create({isMaster: false, isSlave: false, componentName: 'C', workStatus: 'INSTALL_FAILED'}),
-          Em.Object.create({isMaster: false, isSlave: false, componentName: 'D', workStatus: 'INSTALLING'})
-        ]
-      }));
-      expect(mainHostSummaryView.get('clients').filterProperty('isInstallFailed', true).mapProperty('componentName')).to.eql(['B', 'C']);
-      expect(mainHostSummaryView.get('clients').filterProperty('isInstallFailed', false).mapProperty('componentName')).to.eql(['A', 'D']);
-    });
-
-  });
-
-  describe('#areClientWithStaleConfigs', function() {
-
-    var tests = Em.A([
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'D', staleConfigs: true}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'C', staleConfigs: false})
-          ])
-        }),
-        m: 'Some clients with stale configs',
-        e: true
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'D', staleConfigs: false}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'C', staleConfigs: false})
-          ])
-        }),
-        m: 'No clients with stale configs',
-        e: false
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'D', staleConfigs: true}),
-            Em.Object.create({isMaster: false, isSlave: false, componentName: 'C', staleConfigs: true})
-          ])
-        }),
-        m: 'All clients with stale configs',
-        e: true
-      },
-      {
-        content: Em.Object.create({
-          hostComponents: Em.A([])
-        }),
-        m: 'Empty list',
-        e: false
-      }
-    ]);
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        mainHostSummaryView.set('content', test.content);
-        expect(mainHostSummaryView.get('areClientWithStaleConfigs')).to.equal(test.e);
       });
     });
 
@@ -366,104 +221,6 @@ describe('App.MainHostSummaryView', function() {
         expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.eql(test.e);
       });
     });
-  });
-
-  describe('#areClientsNotInstalled', function () {
-
-    var cases = [
-      {
-        clients: [
-          {
-            isInstallFailed: true
-          }
-        ],
-        installableClientComponents: [],
-        areClientsNotInstalled: true,
-        title: 'some clients failed to install, no clients to add'
-      },
-      {
-        clients: [
-          {
-            isInstallFailed: false
-          }
-        ],
-        installableClientComponents: [{}],
-        areClientsNotInstalled: true,
-        title: 'no clients failed to install, some clients to add'
-      },
-      {
-        clients: [
-          {
-            isInstallFailed: true
-          }
-        ],
-        installableClientComponents: [{}],
-        areClientsNotInstalled: true,
-        title: 'some clients failed to install, some clients to add'
-      },
-      {
-        clients: [
-          {
-            isInstallFailed: false
-          }
-        ],
-        installableClientComponents: [],
-        areClientsNotInstalled: false,
-        title: 'no clients failed to install, no clients to add'
-      }
-    ];
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        mainHostSummaryView.reopen({
-          clients: item.clients,
-          installableClientComponents: item.installableClientComponents
-        });
-        expect(mainHostSummaryView.get('areClientsNotInstalled')).to.equal(item.areClientsNotInstalled);
-      });
-    });
-
-  });
-
-  describe('#notInstalledClientComponents', function () {
-
-    it('should concat not added clients and the ones that failed to install', function () {
-      mainHostSummaryView.reopen({
-        clients: [
-          Em.Object.create({
-            componentName: 'c0',
-            workStatus: 'INIT'
-          }),
-          Em.Object.create({
-            componentName: 'c1',
-            workStatus: 'INSTALL_FAILED'
-          }),
-          Em.Object.create({
-            componentName: 'c2',
-            workStatus: 'INSTALLED'
-          })
-        ],
-        installableClientComponents: [
-          Em.Object.create({
-            componentName: 'c3'
-          })
-        ]
-      });
-      expect(mainHostSummaryView.get('notInstalledClientComponents')).to.eql([
-        Em.Object.create({
-          componentName: 'c0',
-          workStatus: 'INIT'
-        }),
-        Em.Object.create({
-          componentName: 'c1',
-          workStatus: 'INSTALL_FAILED'
-        }),
-        Em.Object.create({
-          componentName: 'c3'
-        })
-      ]);
-    });
-
   });
 
   describe("#needToRestartMessage", function() {
@@ -577,43 +334,6 @@ describe('App.MainHostSummaryView', function() {
 
   });
 
-  describe("#installableClientComponents", function() {
-
-    beforeEach(function() {
-      sinon.stub(App.StackServiceComponent, 'find').returns([
-        Em.Object.create({
-          isClient: true,
-          serviceName: 'S1',
-          componentName: 'C1'
-        }),
-        Em.Object.create({
-          isClient: true,
-          serviceName: 'S1',
-          componentName: 'C2'
-        }),
-        Em.Object.create({
-          isClient: true,
-          serviceName: 'S2',
-          componentName: 'C1'
-        })
-      ]);
-    });
-    afterEach(function() {
-      App.StackServiceComponent.find.restore();
-    });
-
-    it("should return installable client components", function() {
-      mainHostSummaryView.reopen({
-        installedServices: ['S1'],
-        clients: [
-          Em.Object.create({componentName: 'C2'})
-        ]
-      });
-      mainHostSummaryView.propertyDidChange('installableClientComponents');
-      expect(mainHostSummaryView.get('installableClientComponents').mapProperty('componentName')).to.eql(['C1']);
-    });
-  });
-
   describe("#hasCardinalityConflict()", function () {
 
     beforeEach(function() {
@@ -657,44 +377,6 @@ describe('App.MainHostSummaryView', function() {
     });
   });
 
-  describe("#installClients()", function () {
-
-    beforeEach(function () {
-      var controller = {installClients: Em.K};
-      sinon.spy(controller, 'installClients');
-      mainHostSummaryView.set('controller', controller);
-      mainHostSummaryView.reopen({'notInstalledClientComponents': [1,2,3]});
-    });
-
-    afterEach(function () {
-      mainHostSummaryView.get('controller.installClients').restore();
-    });
-
-    it("should call installClients method from controller", function () {
-      mainHostSummaryView.installClients();
-      expect(mainHostSummaryView.get('controller.installClients').calledWith([1,2,3])).to.be.true;
-    });
-  });
-
-  describe("#reinstallClients()", function () {
-
-    beforeEach(function () {
-      var controller = {installClients: Em.K};
-      sinon.spy(controller, 'installClients');
-      mainHostSummaryView.set('controller', controller);
-      mainHostSummaryView.reopen({'installFailedClients': [1,2,3]});
-    });
-
-    afterEach(function () {
-      mainHostSummaryView.get('controller.installClients').restore();
-    });
-
-    it("should call installClients method from controller", function () {
-      mainHostSummaryView.reinstallClients();
-      expect(mainHostSummaryView.get('controller.installClients').calledWith([1,2,3])).to.be.true;
-    });
-  });
-
   describe("#timeSinceHeartBeat", function () {
 
     beforeEach(function() {
@@ -715,74 +397,6 @@ describe('App.MainHostSummaryView', function() {
       mainHostSummaryView.set('content.rawLastHeartBeatTime', '1');
       mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
       expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.equal('1');
-    });
-  });
-
-  describe("#clientsWithCustomCommands", function () {
-
-    beforeEach(function() {
-      this.mockComponents = sinon.stub(App.StackServiceComponent, 'find');
-    });
-
-    afterEach(function() {
-      this.mockComponents.restore();
-    });
-
-    var testCases = [
-      {
-        component: Em.Object.create(),
-        clients: [],
-        expected: []
-      },
-      {
-        component: Em.Object.create(),
-        clients: [
-          Em.Object.create({componentName: 'KERBEROS_CLIENT'})
-        ],
-        expected: []
-      },
-      {
-        component: Em.Object.create({customCommands: []}),
-        clients: [
-          Em.Object.create({componentName: 'C1'})
-        ],
-        expected: []
-      },
-      {
-        component: Em.Object.create({customCommands: ['cmd1']}),
-        clients: [
-          Em.Object.create({
-            hostName: 'host1',
-            displayName: 'dn1',
-            componentName: 'C1',
-            service: Em.Object.create({serviceName: 'S1'})
-          })
-        ],
-        expected: [{
-          label: 'dn1',
-          commands: [
-            {
-              label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format('cmd1'),
-              service: "S1",
-              hosts: 'host1',
-              component: 'C1',
-              command: 'cmd1'
-            }
-          ]
-        }]
-      }
-    ];
-
-    testCases.forEach(function(test) {
-      it("component = " + JSON.stringify(test.component) +
-         " clients = " + JSON.stringify(test.clients), function() {
-        this.mockComponents.returns(test.component);
-        mainHostSummaryView.reopen({
-          clients: test.clients
-        });
-        mainHostSummaryView.propertyDidChange('clientsWithCustomCommands');
-        expect(mainHostSummaryView.get('clientsWithCustomCommands')).to.be.eql(test.expected);
-      });
     });
   });
 });

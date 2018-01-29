@@ -21,11 +21,6 @@ var App = require('app');
 App.HBaseMasterUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
   component: 'Hbase Master',
-  modelField: 'masterStartTime',
-
-  didInsertElement: function() {
-    this._super();
-    this.calc();
-  }
+  modelField: 'masterStartTime'
 
 });

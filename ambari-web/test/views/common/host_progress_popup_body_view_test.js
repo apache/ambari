@@ -22,26 +22,27 @@ require("utils/host_progress_popup");
 require("views/common/modal_popup");
 
 describe('App.HostProgressPopupBodyView', function () {
-  var view;
+  var view, controller;
 
   beforeEach(function () {
+    controller = Em.Object.create({
+      setSelectCount: Em.K,
+      dataSourceController: Em.Object.create({
+        levelInfo: {},
+        requestMostRecent: Em.K
+      }),
+      refreshRequestScheduleInfo: Em.K,
+      setBackgroundOperationHeader: Em.K,
+      onHostUpdate: Em.K,
+      hosts: [],
+      breadcrumbs: null,
+      rootBreadcrumb: { label: "rootBreadcrumb" },
+      serviceName: "serviceName",
+      currentHostName: "currentHostName"
+    });
     view = App.HostProgressPopupBodyView.create({
       updateSelectView: sinon.spy(),
-      controller: Em.Object.create({
-        setSelectCount: Em.K,
-        dataSourceController: Em.Object.create({
-          levelInfo: {},
-          requestMostRecent: Em.K
-        }),
-        refreshRequestScheduleInfo: Em.K,
-        setBackgroundOperationHeader: Em.K,
-        onHostUpdate: Em.K,
-        hosts: [],
-        breadcrumbs: null,
-        rootBreadcrumb: { label: "rootBreadcrumb" },
-        serviceName: "serviceName",
-        currentHostName: "currentHostName"
-      }),
+      controller: controller,
       parentView: App.HostPopup.initPopup("serviceName", controller, false, 1)
     });
   });
