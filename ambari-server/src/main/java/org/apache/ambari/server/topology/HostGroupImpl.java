@@ -20,6 +20,7 @@
 package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +65,7 @@ public class HostGroupImpl implements HostGroup {
   /**
    * components contained in the host group
    */
-  private List<Component> components = new ArrayList<>();
+  private final List<Component> components = new ArrayList<>();
 
   /**
    * map of service to components for the host group
@@ -264,7 +265,7 @@ public class HostGroupImpl implements HostGroup {
   @Deprecated
   public Collection<String> getComponentNames(String service) {
     return componentsForService.containsKey(service) ?
-      new HashSet<>(componentsForService.get(service).stream().map(Component::getName).collect(toList())) :
+      componentsForService.get(service).stream().map(Component::getName).collect(toSet()) :
         Collections.emptySet();
   }
 

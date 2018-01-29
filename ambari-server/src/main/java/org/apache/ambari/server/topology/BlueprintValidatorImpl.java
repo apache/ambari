@@ -64,40 +64,41 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   @Override
   public void validateTopology() throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
-    if (blueprint.isAllMpacksResolved()) {
-      Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
-      Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
-      for (HostGroup group : hostGroups) {
-        Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
-        if (!missingGroupDependencies.isEmpty()) {
-          missingDependencies.put(group.getName(), missingGroupDependencies);
-        }
-      }
-
-      Collection<String> cardinalityFailures = new HashSet<>();
-      Collection<String> services = blueprint.getServices();
-
-      for (String service : services) {
-        for (String component : stack.getComponents(service)) {
-          Cardinality cardinality = stack.getCardinality(component);
-          AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
-          if (cardinality.isAll()) {
-            cardinalityFailures.addAll(verifyComponentInAllHostGroups(new Component(component), autoDeploy));
-          } else {
-            cardinalityFailures.addAll(verifyComponentCardinalityCount(
-              new Component(component), cardinality, autoDeploy));
-          }
-        }
-      }
-
-      if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
-        generateInvalidTopologyException(missingDependencies, cardinalityFailures);
-      }
-    }
-    else {
+    if (!blueprint.isAllMpacksResolved()) {
       LOGGER.warn("The following macks are not resolved: [{}] Skipping topology validation.",
         Joiner.on(", ").join(blueprint.getUnresolvedMpackNames()));
+      return;
+    }
+
+    Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
+    Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
+
+    for (HostGroup group : hostGroups) {
+      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
+      if (!missingGroupDependencies.isEmpty()) {
+        missingDependencies.put(group.getName(), missingGroupDependencies);
+      }
+    }
+
+    Collection<String> cardinalityFailures = new HashSet<>();
+    Collection<String> services = blueprint.getServices();
+
+    for (String service : services) {
+      for (String component : stack.getComponents(service)) {
+        Cardinality cardinality = stack.getCardinality(component);
+        AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
+        if (cardinality.isAll()) {
+          cardinalityFailures.addAll(verifyComponentInAllHostGroups(new Component(component), autoDeploy));
+        } else {
+          cardinalityFailures.addAll(verifyComponentCardinalityCount(
+            new Component(component), cardinality, autoDeploy));
+        }
+      }
+    }
+
+    if (!missingDependencies.isEmpty() || !cardinalityFailures.isEmpty()) {
+      generateInvalidTopologyException(missingDependencies, cardinalityFailures);
     }
   }
 

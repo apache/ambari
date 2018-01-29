@@ -40,15 +40,6 @@ public class Component {
     this(name, null, null, null);
   }
 
-  @Deprecated
-  public Component(String name, ProvisionAction provisionAction) {
-    this(name, null, null, provisionAction);
-  }
-
-  public Component(String name, String mpackInstance, String serviceInstance) {
-    this(name, mpackInstance, serviceInstance, null);
-  }
-
   public Component(String name, String mpackInstance, String serviceInstance, ProvisionAction provisionAction) {
     this.name = name;
     this.mpackInstance = mpackInstance;

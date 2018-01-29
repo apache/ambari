@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -192,7 +193,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @param dao       blueprint data access object
    */
   public static void init(BlueprintFactory factory, BlueprintDAO dao, SecurityConfigurationFactory
-    securityFactory,AmbariMetaInfo metaInfo) {
+    securityFactory, AmbariMetaInfo metaInfo) {
     blueprintFactory = factory;
     blueprintDAO = dao;
     securityConfigurationFactory = securityFactory;
@@ -387,7 +388,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       return jsonSerializer.readValue(json, valueType);
     }
     catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
   }
 
@@ -396,7 +397,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       return jsonSerializer.writeValueAsString(object);
     }
     catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
   }
 
