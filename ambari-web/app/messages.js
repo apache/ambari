@@ -820,8 +820,7 @@ Em.I18n.translations = {
   'installer.step2.refresh.table': 'REFRESH TABLE',
 
   'installer.step3.header':'Confirm Hosts',
-  'installer.step3.body':'Registering your hosts.<br>' +
-    'Please confirm the host list and remove any hosts that you do not want to include in the cluster.',
+  'installer.step3.body':'Registering your hosts. Please confirm the host list and remove any hosts that you do not want to include in the cluster.',
   'installer.step3.hostLog.popup.header':'Registration log for {0}',
   'installer.step3.hosts.remove.popup.header':'Remove Hosts',
   'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
@@ -941,8 +940,6 @@ Em.I18n.translations = {
   'installer.step3.warning.registeredHosts': '{0} Other Registered Hosts',
   'installer.step3.warning.loading':'Please wait while the hosts are being checked for potential problems...',
   'installer.step3.registeredHostsPopup': 'These are the hosts that have registered with the server, but do not appear in the list of hosts that you are adding.',
-  'installer.step3.removeSelected':'Remove Selected',
-  'installer.step3.retryFailed':'Retry Failed',
   'installer.step3.hosts.status.registering':'Registering',
   'installer.step3.hosts.status.installing':'Installing',
   'installer.step3.hosts.bootLog.failed':'\nRegistration with the server failed.',
@@ -951,6 +948,7 @@ Em.I18n.translations = {
   'installer.step3.hostLogPopup.copy':'press CTRL+C',
   'installer.step3.hostsTable.selectAll':'Select All Hosts',
   'installer.step3.selectedHosts.popup.header':'Selected Hosts',
+  'installer.step3.next.configure.download': 'Configure Download',
 
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
@@ -3199,7 +3197,7 @@ Em.I18n.translations = {
   'tableView.filters.all': 'All',
   'tableView.filters.filtered': 'Filtered',
   'tableView.filters.clearFilters': 'Clear filters',
-  'tableView.filters.itemsPerPage': 'Items per page:',
+  'tableView.filters.rowsPerPage': 'Rows per page:',
   'tableView.filters.paginationInfo': '{0} - {1} of {2}',
   'tableView.filters.clearAllFilters': 'clear filters',
   'tableView.filters.showAll': 'Show All',

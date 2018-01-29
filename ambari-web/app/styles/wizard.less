@@ -236,44 +236,17 @@
     }
 
     #host-filter {
-
-      ul {
-        margin: 3px;
-        font-size: 12px;
-        li.filter-status.active a {
-          text-decoration: none;
-          color: #fff;
-        }
-        li.filter-status.active,
-        li.filter-status.active:hover {
-          background-color: #666;
-          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-          border-radius: 5px;
-        }
-        li.filter-status:hover {
-          background-color: #d8d8d8;
-          border-radius: 5px;
-        }
-        li.divider {
-          color: #666;
-          padding: 4px 2px;
-        }
-        li {
-          list-style: none;
-          display: block;
-          float: left;
-          padding: 4px;
-          a {
-            text-decoration: underline;
-          }
-        }
-        li.first {
-          font-weight: bold;
-        }
+      padding-top: 5px;
+      .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+        background-color: transparent;
       }
     }
     .progress {
       margin-bottom: 0;
+    }
+    .pre-scrollable {
+      float: left;
+      max-height: 440px;
     }
     #confirm-hosts-table {
       td.host {
@@ -289,6 +262,19 @@
       }
       #display-action {
         visibility:visible;
+      }
+      .step3-table-progress {
+        .progress {
+          height: 8px;
+          margin: 5px 5px 5px 0;
+          border-radius: 2px;
+          width: 80%;
+        }
+      }
+      .step3-table-action {
+        .icon {
+          color: #999;
+        }
       }
     }
     #warningsSection {
