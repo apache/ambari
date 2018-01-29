@@ -36,7 +36,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -246,7 +246,7 @@ public class ExecutionCommandWrapper {
             commandRepository = repoVersionHelper.getCommandRepository(null, serviceComponent, host);
           } else {
             RepositoryVersionEntity repoVersion = service.getDesiredRepositoryVersion();
-            OperatingSystemEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
+            RepoOsEntity osEntity = repoVersionHelper.getOSEntityForHost(host, repoVersion);
             commandRepository = repoVersionHelper.getCommandRepository(repoVersion, osEntity);
           }
           executionCommand.setRepositoryFile(commandRepository);

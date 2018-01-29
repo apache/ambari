@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -118,9 +118,8 @@ public class RepositoryVersionEntity {
   @Column(name = "display_name")
   private String displayName;
 
-  @Lob
-  @Column(name = "repositories")
-  private String operatingSystems;
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "repositoryVersionEntity", orphanRemoval = true)
+  private List<RepoOsEntity> repoOsEntities = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<HostVersionEntity> hostVersionEntities;
@@ -173,11 +172,14 @@ public class RepositoryVersionEntity {
   }
 
   public RepositoryVersionEntity(StackEntity stack, String version,
-      String displayName, String operatingSystems) {
+                                 String displayName, List<RepoOsEntity> repoOsEntities) {
     this.stack = stack;
     this.version = version;
     this.displayName = displayName;
-    this.operatingSystems = operatingSystems;
+    this.repoOsEntities = repoOsEntities;
+    for (RepoOsEntity repoOsEntity : repoOsEntities) {
+      repoOsEntity.setRepositoryVersionEntity(this);
+    }
   }
 
   @PreUpdate
@@ -264,31 +266,6 @@ public class RepositoryVersionEntity {
     }
   }
 
-
-  public String getOperatingSystemsJson() {
-    return operatingSystems;
-  }
-
-  public void setOperatingSystems(String repositories) {
-    operatingSystems = repositories;
-  }
-
-  /**
-   * Getter which hides json nature of operating systems and returns them as entities.
-   *
-   * @return empty list if stored json is invalid
-   */
-  public List<OperatingSystemEntity> getOperatingSystems() {
-    if (StringUtils.isNotBlank(operatingSystems)) {
-      try {
-        return repositoryVersionHelperProvider.get().parseOperatingSystems(operatingSystems);
-      } catch (Exception ex) {
-        String msg = String.format("Failed to parse repository from OS/Repo information in the database: %s. Required fields: repo_name, repo_id, base_url", operatingSystems);
-        LOG.error(msg, ex);
-      }
-    }
-    return Collections.emptyList();
-  }
 
   public String getStackName() {
     return getStackId().getStackName();
@@ -385,7 +362,7 @@ public class RepositoryVersionEntity {
    */
   @Override
   public int hashCode() {
-    return java.util.Objects.hash(stack, version, displayName, operatingSystems);
+    return java.util.Objects.hash(stack, version, displayName, repoOsEntities);
   }
 
   /**
@@ -408,7 +385,7 @@ public class RepositoryVersionEntity {
     RepositoryVersionEntity that = (RepositoryVersionEntity) object;
     return Objects.equal(stack, that.stack) && Objects.equal(version, that.version)
         && Objects.equal(displayName, that.displayName)
-        && Objects.equal(operatingSystems, that.operatingSystems);
+        && Objects.equal(repoOsEntities, that.repoOsEntities);
   }
 
   /**
@@ -528,5 +505,16 @@ public class RepositoryVersionEntity {
    */
   public void setResolved(boolean resolved) {
     this.resolved = resolved ? (short) 1 : (short) 0;
+  }
+
+  public List<RepoOsEntity> getRepoOsEntities() {
+    return repoOsEntities;
+  }
+
+  public void addRepoOsEntities(List<RepoOsEntity> repoOsEntities) {
+    this.repoOsEntities = repoOsEntities;
+    for (RepoOsEntity repoOsEntity : repoOsEntities) {
+      repoOsEntity.setRepositoryVersionEntity(this);
+    }
   }
 }

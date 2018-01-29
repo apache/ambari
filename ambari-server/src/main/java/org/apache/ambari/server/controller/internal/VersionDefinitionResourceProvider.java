@@ -49,8 +49,8 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
+import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -614,7 +614,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         s_metaInfo.get().getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
     repos.addAll(RepoUtil.getServiceRepos(repos, stackReposByOs));
 
-    entity.setOperatingSystems(s_repoVersionHelper.get().serializeOperatingSystems(repos));
+    entity.addRepoOsEntities(s_repoVersionHelper.get().createRepoOsEntities(repos));
 
     entity.setVersion(holder.xml.release.getFullVersion());
     entity.setDisplayName(stackId, holder.xml.release);
@@ -744,14 +744,14 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     ArrayNode subs = factory.arrayNode();
 
-    for (OperatingSystemEntity os : entity.getOperatingSystems()) {
+    for (RepoOsEntity os : entity.getRepoOsEntities()) {
       ObjectNode osBase = factory.objectNode();
 
       ObjectNode osElement = factory.objectNode();
       osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS),
-          os.isAmbariManagedRepos());
+          os.isAmbariManaged());
       osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID),
-          os.getOsType());
+          os.getFamily());
 
       osElement.put(PropertyHelper.getPropertyName(OperatingSystemResourceProvider.OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID),
           entity.getStackName());
@@ -762,7 +762,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           osElement);
 
       ArrayNode reposArray = factory.arrayNode();
-      for (RepositoryEntity repo : os.getRepositories()) {
+      for (RepoDefinitionEntity repo : os.getRepoDefinitionEntities()) {
         ObjectNode repoBase = factory.objectNode();
 
         ObjectNode repoElement = factory.objectNode();
@@ -770,11 +770,11 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
             repo.getBaseUrl());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID),
-            os.getOsType());
+            os.getFamily());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID),
-            repo.getRepositoryId());
+            repo.getRepoID());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID),
-            repo.getName());
+            repo.getRepoName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID),
             repo.getDistribution());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID),
