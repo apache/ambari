@@ -81,14 +81,6 @@ public class BlueprintServiceConfigEntity implements BlueprintConfiguration {
   }
 
   /**
-   * @param blueprintName the blueprint name
-   */
-  @Override
-  public void setBlueprintName(String blueprintName) {
-    throw new UnsupportedOperationException("BlueprintServiceEntity.setBlueprintName");
-  }
-
-  /**
    * @return the blueprint name
    */
   @Override

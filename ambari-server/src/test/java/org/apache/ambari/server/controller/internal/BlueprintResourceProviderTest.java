@@ -109,7 +109,7 @@ public class BlueprintResourceProviderTest {
 
   @BeforeClass
   public static void initClass() {
-    BlueprintResourceProvider.init(blueprintFactory, dao, securityFactory, gson, metaInfo);
+    BlueprintResourceProvider.init(blueprintFactory, dao, securityFactory, metaInfo);
   }
 
   private Map<String, Set<HashMap<String, String>>> getSettingProperties() {

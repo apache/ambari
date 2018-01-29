@@ -83,9 +83,19 @@ public interface Blueprint {
    *
    * @param service  service name
    *
+   * @return collection of components for the service.  Will not return null.
+   */
+  Collection<Component> getComponents(String service);
+
+  /**
+   * Get the components that are included in the blueprint for the specified service.
+   *
+   * @param service  service name
+   *
    * @return collection of component names for the service.  Will not return null.
    */
-  Collection<String> getComponents(String service);
+  @Deprecated
+  Collection<String> getComponentNames(String service);
 
   /**
    * Get whether a component is enabled for auto start.
@@ -117,7 +127,23 @@ public interface Blueprint {
    *
    * @return associated stack
    */
+  @Deprecated
   Stack getStack();
+
+  /**
+   * Get the stacks associated with the blueprint.
+   *
+   * @return associated stacks
+   */
+  Collection<Stack> getStacks();
+
+
+  /**
+   * Get the mpacks associated with the blueprint.
+   *
+   * @return associated mpacks
+   */
+  Collection<MpackInstance> getMpacks();
 
   /**
    * Get the host groups which contain components for the specified service.
@@ -170,4 +196,15 @@ public interface Blueprint {
   BlueprintEntity toEntity();
 
   List<RepositorySetting> getRepositorySettings();
+
+  /**
+   * @return a boolean indicating if all mpack referenced by the blueprints are resolved (installed on the system)
+   */
+  boolean isAllMpacksResolved();
+
+  /**
+   * @return a collection of the names unresolved mpacks in {name}-{version} format.
+   */
+  Collection<String> getUnresolvedMpackNames();
+
 }

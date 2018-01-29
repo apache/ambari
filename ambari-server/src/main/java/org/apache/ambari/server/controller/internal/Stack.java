@@ -659,6 +659,7 @@ public class Stack {
       if (componentDependencies != null && ! componentDependencies.isEmpty()) {
         dependencies.put(componentName, componentDependencies);
       }
+
       if (component.isMaster()) {
         masterComponents.add(componentName);
       }

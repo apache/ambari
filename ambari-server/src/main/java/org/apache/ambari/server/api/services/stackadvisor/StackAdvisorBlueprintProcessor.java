@@ -89,7 +89,7 @@ public class StackAdvisorBlueprintProcessor {
   }
 
   private StackAdvisorRequest createStackAdvisorRequest(ClusterTopology clusterTopology, StackAdvisorRequestType requestType) {
-    Stack stack = clusterTopology.getBlueprint().getStack();
+    Stack stack = clusterTopology.getBlueprint().getStack(); // TODO: implement multi-stack
     Map<String, Set<String>> hgComponentsMap = gatherHostGroupComponents(clusterTopology);
     Map<String, Set<String>> hgHostsMap = gatherHostGroupBindings(clusterTopology);
     Map<String, Set<String>> componentHostsMap = gatherComponentsHostsMap(hgComponentsMap,

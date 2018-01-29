@@ -257,9 +257,9 @@ public class ClusterConfigurationRequestTest {
     List<String> zookeeperComponents = new ArrayList<>();
     zookeeperComponents.add("ZOOKEEPER_SERVER");
 
-    expect(blueprint.getComponents("HDFS")).andReturn(hdfsComponents).anyTimes();
-    expect(blueprint.getComponents("KERBEROS")).andReturn(kerberosComponents).anyTimes();
-    expect(blueprint.getComponents("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
+    expect(blueprint.getComponentNames("HDFS")).andReturn(hdfsComponents).anyTimes();
+    expect(blueprint.getComponentNames("KERBEROS")).andReturn(kerberosComponents).anyTimes();
+    expect(blueprint.getComponentNames("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
@@ -346,9 +346,9 @@ public class ClusterConfigurationRequestTest {
     List<String> zookeeperComponents = new ArrayList<>();
     zookeeperComponents.add("ZOOKEEPER_SERVER");
 
-    expect(blueprint.getComponents("HDFS")).andReturn(hdfsComponents).anyTimes();
-    expect(blueprint.getComponents("KERBEROS")).andReturn(kerberosComponents).anyTimes();
-    expect(blueprint.getComponents("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
+    expect(blueprint.getComponentNames("HDFS")).andReturn(hdfsComponents).anyTimes();
+    expect(blueprint.getComponentNames("KERBEROS")).andReturn(kerberosComponents).anyTimes();
+    expect(blueprint.getComponentNames("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
 
     expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();

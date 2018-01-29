@@ -36,6 +36,7 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Joiner;
 import com.google.inject.Inject;
 
 /**
@@ -63,6 +64,13 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
   @Override
   public void validateTopology() throws InvalidTopologyException {
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
+
+    if (!blueprint.isAllMpacksResolved()) {
+      LOGGER.warn("The following macks are not resolved: [{}] Skipping topology validation.",
+        Joiner.on(", ").join(blueprint.getUnresolvedMpackNames()));
+      return;
+    }
+
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
     Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies = new HashMap<>();
 
@@ -81,10 +89,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         Cardinality cardinality = stack.getCardinality(component);
         AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
         if (cardinality.isAll()) {
-          cardinalityFailures.addAll(verifyComponentInAllHostGroups(component, autoDeploy));
+          cardinalityFailures.addAll(verifyComponentInAllHostGroups(new Component(component), autoDeploy));
         } else {
           cardinalityFailures.addAll(verifyComponentCardinalityCount(
-            component, cardinality, autoDeploy));
+            new Component(component), cardinality, autoDeploy));
         }
       }
     }
@@ -178,26 +186,32 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
               }
           }
 
-        if (component.equals("HIVE_METASTORE")) {
-          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
-          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
-            && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
+        if (blueprint.isAllMpacksResolved()) {
+          if (component.equals("HIVE_METASTORE")) {
+            Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
+            if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
+              && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
+              && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+              && stack.getName().equalsIgnoreCase("HDP")) {
+              throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
+                "and repo version 2.3.2+!");
+            }
+          }
+
+          if (component.equals("OOZIE_SERVER")) {
+            Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
+            if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
+              && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
+              && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+              && stack.getName().equalsIgnoreCase("HDP")) {
+              throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
+                "and repo version 2.3.2+!");
+            }
           }
         }
-
-        if (component.equals("OOZIE_SERVER")) {
-          Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
-          if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") != null
-            && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
-            && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
-            && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
-              "and repo version 2.3.2+!");
-          }
+        else {
+          LOGGER.warn("The following macks are not resolved: [{}] Skipping validation of HIVE_METASTORE and OOZIE_SERVER properties.",
+            Joiner.on(", ").join(blueprint.getUnresolvedMpackNames()));
         }
       }
     }
@@ -212,10 +226,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    *
    * @return collection of missing component information
    */
-  private Collection<String> verifyComponentInAllHostGroups(String component, AutoDeployInfo autoDeploy) {
+  private Collection<String> verifyComponentInAllHostGroups(Component component, AutoDeployInfo autoDeploy) {
 
     Collection<String> cardinalityFailures = new HashSet<>();
-    int actualCount = blueprint.getHostGroupsForComponent(component).size();
+    int actualCount = blueprint.getHostGroupsForComponent(component.getName()).size();
     Map<String, HostGroup> hostGroups = blueprint.getHostGroups();
     if (actualCount != hostGroups.size()) {
       if (autoDeploy != null && autoDeploy.isEnabled()) {
@@ -233,10 +247,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     LOGGER.info("Validating hostgroup: {}", group.getName());
     Map<String, Collection<DependencyInfo>> missingDependencies = new HashMap<>();
 
-    for (String component : new HashSet<>(group.getComponentNames())) {
+    for (Component component : new HashSet<>(group.getComponents())) {
       LOGGER.debug("Processing component: {}", component);
 
-      for (DependencyInfo dependency : stack.getDependenciesForComponent(component)) {
+      for (DependencyInfo dependency : stack.getDependenciesForComponent(component.getName())) {
         LOGGER.debug("Processing dependency [{}] for component [{}]", dependency.getName(), component);
 
         String conditionalService = stack.getConditionalServiceForDependency(dependency);
@@ -274,21 +288,21 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         }
         if (dependencyScope.equals("cluster")) {
           Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
-              componentName, new Cardinality("1+"), autoDeployInfo);
+              new Component(componentName), new Cardinality("1+"), autoDeployInfo);
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
           if (group.getComponentNames().contains(componentName) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
             resolved = true;
-            group.addComponent(componentName);
+            group.addComponent(new Component(componentName));
           }
         }
 
         if (! resolved) {
-          Collection<DependencyInfo> missingCompDependencies = missingDependencies.get(component);
+          Collection<DependencyInfo> missingCompDependencies = missingDependencies.get(component.getName());
           if (missingCompDependencies == null) {
             missingCompDependencies = new HashSet<>();
-            missingDependencies.put(component, missingCompDependencies);
+            missingDependencies.put(component.getName(), missingCompDependencies);
           }
           missingCompDependencies.add(dependency);
         }
@@ -307,7 +321,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    *
    * @return collection of missing component information
    */
-  public Collection<String> verifyComponentCardinalityCount(String component,
+  public Collection<String> verifyComponentCardinalityCount(Component component,
                                                             Cardinality cardinality,
                                                             AutoDeployInfo autoDeploy) {
 
@@ -315,15 +329,15 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
     Collection<String> cardinalityFailures = new HashSet<>();
     //todo: don't hard code this HA logic here
     if (ClusterTopologyImpl.isNameNodeHAEnabled(configProperties) &&
-        (component.equals("SECONDARY_NAMENODE"))) {
+        (component.getName().equals("SECONDARY_NAMENODE"))) {
       // override the cardinality for this component in an HA deployment,
       // since the SECONDARY_NAMENODE should not be started in this scenario
       cardinality = new Cardinality("0");
     }
 
-    int actualCount = blueprint.getHostGroupsForComponent(component).size();
+    int actualCount = blueprint.getHostGroupsForComponent(component.getName()).size();
     if (! cardinality.isValidCount(actualCount)) {
-      boolean validated = ! isDependencyManaged(stack, component, configProperties);
+      boolean validated = ! isDependencyManaged(stack, component.getName(), configProperties);
       if (! validated && autoDeploy != null && autoDeploy.isEnabled() && cardinality.supportsAutoDeploy()) {
         String coLocateName = autoDeploy.getCoLocate();
         if (coLocateName != null && ! coLocateName.isEmpty()) {

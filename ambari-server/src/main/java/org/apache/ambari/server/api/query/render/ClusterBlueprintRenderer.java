@@ -59,7 +59,6 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
-import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
@@ -445,10 +444,10 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    */
   private List<Map<String, String>> processHostGroupComponents(HostGroup group) {
     List<Map<String, String>> listHostGroupComponents = new ArrayList<>();
-    for (Component component : group.getComponents()) {
+    for (String component : group.getComponentNames()) {
       Map<String, String> mapComponentProperties = new HashMap<>();
       listHostGroupComponents.add(mapComponentProperties);
-      mapComponentProperties.put("name", component.getName());
+      mapComponentProperties.put("name", component);
     }
     return listHostGroupComponents;
   }

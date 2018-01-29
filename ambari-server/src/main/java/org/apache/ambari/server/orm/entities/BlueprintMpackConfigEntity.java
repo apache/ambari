@@ -97,14 +97,6 @@ public class BlueprintMpackConfigEntity implements BlueprintConfiguration {
   }
 
   /**
-   * @param blueprintName the name of the blueprint
-   */
-  @Override
-  public void setBlueprintName(String blueprintName) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
    * @return the name of the blueprint
    */
   @Override

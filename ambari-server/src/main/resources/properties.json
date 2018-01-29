@@ -379,7 +379,8 @@
         "host_groups/cardinality",
         "configurations",
         "validate_topology",
-        "settings"
+        "settings",
+        "mpack_instances"
     ],
     "Recommendation":[
         "Recommendation/id",

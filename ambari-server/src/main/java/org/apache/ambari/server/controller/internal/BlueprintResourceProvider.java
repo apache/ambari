@@ -18,7 +18,12 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static java.util.stream.Collectors.toList;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,17 +62,18 @@ import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.GPLLicenseNotAcceptedException;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.MpackInstance;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.utils.SecretReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 
 
 /**
@@ -101,6 +107,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   public static final String COMPONENT_PROPERTY_ID ="components";
   public static final String COMPONENT_NAME_PROPERTY_ID ="name";
   public static final String COMPONENT_PROVISION_ACTION_PROPERTY_ID = "provision_action";
+  protected static final String COMPONENT_MPACK_INSTANCE_PROPERTY = "mpack_instance";
+  protected static final String COMPONENT_SERVICE_INSTANCE_PROPERTY = "service_instance";
 
   // Configurations
   public static final String CONFIGURATION_PROPERTY_ID = "configurations";
@@ -120,6 +128,12 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     "Configuration elements must be Maps";
   public static final String CONFIGURATION_MAP_SIZE_CHECK_ERROR_MESSAGE =
     "Configuration Maps must hold a single configuration type each";
+  public static final String MPACK_INSTANCES_PROPERTY_ID = "mpack_instances";
+
+  // Primary Key Fields
+  private static Set<String> pkPropertyIds =
+    new HashSet<>(Arrays.asList(new String[]{
+      BLUEPRINT_NAME_PROPERTY_ID}));
 
   /**
    * The key property ids for a Blueprint resource.
@@ -138,7 +152,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       BLUEPRINT_SECURITY_PROPERTY_ID,
       HOST_GROUP_PROPERTY_ID,
       CONFIGURATION_PROPERTY_ID,
-      SETTING_PROPERTY_ID);
+      SETTING_PROPERTY_ID,
+      MPACK_INSTANCES_PROPERTY_ID);
 
   /**
    * Used to create Blueprint instances
@@ -158,7 +173,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   /**
    * Used to serialize to/from json.
    */
-  private static Gson jsonSerializer;
+  private static ObjectMapper jsonSerializer = new ObjectMapper();
 
   // ----- Constructors ----------------------------------------------------
 
@@ -176,14 +191,12 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    *
    * @param factory   blueprint factory
    * @param dao       blueprint data access object
-   * @param gson      json serializer
    */
   public static void init(BlueprintFactory factory, BlueprintDAO dao, SecurityConfigurationFactory
-    securityFactory, Gson gson, AmbariMetaInfo metaInfo) {
+    securityFactory, AmbariMetaInfo metaInfo) {
     blueprintFactory = factory;
     blueprintDAO = dao;
     securityConfigurationFactory = securityFactory;
-    jsonSerializer = gson;
     ambariMetaInfo = metaInfo;
   }
 
@@ -325,9 +338,15 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       for (HostGroupComponentEntity component : components) {
         Map<String, String> mapComponentProps = new HashMap<>();
         mapComponentProps.put(COMPONENT_NAME_PROPERTY_ID, component.getName());
-
         if (component.getProvisionAction() != null) {
           mapComponentProps.put(COMPONENT_PROVISION_ACTION_PROPERTY_ID, component.getProvisionAction().toString());
+        }
+        if (component.getMpackName() != null) {
+          mapComponentProps.put(COMPONENT_MPACK_INSTANCE_PROPERTY,
+            component.getMpackName() + "-" + component.getMpackVersion());
+        }
+        if (component.getServiceName() != null) {
+          mapComponentProps.put(COMPONENT_SERVICE_INSTANCE_PROPERTY, component.getServiceName());
         }
 
         listComponentProps.add(mapComponentProps);
@@ -351,7 +370,35 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, BLUEPRINT_SECURITY_PROPERTY_ID, securityConfigMap, requestedIds);
     }
 
+    Collection<Map<String, Object>> mpacks = entity.getMpackInstances().stream().map(mpackEntity -> {
+      MpackInstance mpack = MpackInstance.fromEntity(mpackEntity);
+      Map<String, Object> mpackAsMap = fromJson(toJson(mpack), Map.class);
+      return mpackAsMap;
+    } ).collect(toList());
+    setResourceProperty(resource, MPACK_INSTANCES_PROPERTY_ID, mpacks, requestedIds);
+
     return resource;
+  }
+
+  private static <T> T fromJson(String json, Class<? extends T> valueType) {
+    if (null == json) {
+      return  null;
+    }
+    try {
+      return jsonSerializer.readValue(json, valueType);
+    }
+    catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  private static String toJson(Object object) {
+    try {
+      return jsonSerializer.writeValueAsString(object);
+    }
+    catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
   }
 
   /**
@@ -371,9 +418,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       String type = config.getType();
 
       if(config instanceof BlueprintConfigEntity) {
-        Map<String, String> properties = jsonSerializer.<Map<String, String>>fromJson(
-            config.getConfigData(), Map.class);
-
+        Map<String, String> properties = fromJson(config.getConfigData(), Map.class);
 
         // TODO: use multiple mpacks
         BlueprintMpackInstanceEntity mpack =
@@ -387,19 +432,17 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
         }
 
         Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
-            metaInfoStack.getConfigPropertiesTypes(type);
+          metaInfoStack.getConfigPropertiesTypes(type);
 
         SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1l);
 
         configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
       } else {
-        Map<String, Object> properties = jsonSerializer.<Map<String, Object>>fromJson(
-            config.getConfigData(), Map.class);
+        Map<String, Object> properties = fromJson(config.getConfigData(), Map.class);
         configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
       }
 
-      Map<String, Map<String, String>> attributes = jsonSerializer.<Map<String, Map<String, String>>>fromJson(
-          config.getConfigAttributes(), Map.class);
+      Map<String, Map<String, String>> attributes = fromJson(config.getConfigAttributes(), Map.class);
       if (attributes != null && !attributes.isEmpty()) {
         configTypeDefinition.put(PROPERTIES_ATTRIBUTES_PROPERTY_ID, attributes);
       }
@@ -423,8 +466,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
     if (settings != null) {
       for (BlueprintSettingEntity setting : settings) {
-        List<Map<String, String>> propertiesList = jsonSerializer.<List<Map<String, String>>>fromJson(
-                setting.getSettingData(), List.class);
+        List<Map<String, String>> propertiesList = fromJson(setting.getSettingData(), List.class);
         Map<String, Object> settingMap = new HashMap<>();
         settingMap.put(setting.getSettingName(), propertiesList);
         listSettings.add(settingMap);
@@ -503,7 +545,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
         String rawRequestBody = requestInfoProps.get(Request.REQUEST_INFO_BODY_PROPERTY);
         Preconditions.checkArgument(!Strings.isNullOrEmpty(rawRequestBody), REQUEST_BODY_EMPTY_ERROR_MESSAGE);
 
-        Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(rawRequestBody, Map.class);
+        Map<String, Object> rawBodyMap = fromJson(rawRequestBody, Map.class);
         Object configurationData = rawBodyMap.get(CONFIGURATION_PROPERTY_ID);
 
         if (configurationData != null) {
@@ -545,8 +587,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
         }
 
         LOG.info("Creating Blueprint, name=" + blueprint.getName());
-        String blueprintSetting = blueprint.getSetting() == null ? "(null)" :
-                jsonSerializer.toJson(blueprint.getSetting().getProperties());
+        String blueprintSetting = blueprint.getSetting() == null ? "(null)" : toJson(blueprint.getSetting().getProperties());
         LOG.info("Blueprint setting=" + blueprintSetting);
 
         try {
@@ -588,8 +629,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
         }
       }
 
-      blueprintConfiguration.setConfigData(jsonSerializer.toJson(configData));
-      blueprintConfiguration.setConfigAttributes(jsonSerializer.toJson(configAttributes));
+      blueprintConfiguration.setConfigData(toJson(configData));
+      blueprintConfiguration.setConfigAttributes(toJson(configAttributes));
     }
 
     protected abstract void addProperty(Map<String, String> configData,

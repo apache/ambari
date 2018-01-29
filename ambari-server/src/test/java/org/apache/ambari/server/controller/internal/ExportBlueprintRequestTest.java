@@ -20,6 +20,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -28,8 +29,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,11 +53,17 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * ExportBlueprintRequest unit tests.
  */
 @SuppressWarnings("unchecked")
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ExportBlueprintRequest.ExportedHostGroup.class})
 public class ExportBlueprintRequestTest {
   private static final String CLUSTER_NAME = "c1";
   private static final String CLUSTER_ID = "2";
@@ -70,8 +80,12 @@ public class ExportBlueprintRequestTest {
         Collections.emptySet()).anyTimes();
     expect(controller.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
         Collections.emptySet()).anyTimes();
-
     replay(controller);
+
+    // This can save precious time
+    mockStatic(InetAddress.class);
+    expect(InetAddress.getByName(anyString())).andThrow(new UnknownHostException()).anyTimes();
+    PowerMock.replay(InetAddress.class);
   }
 
   @After

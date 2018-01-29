@@ -43,6 +43,12 @@ public class Configuration {
    */
   private Configuration parentConfiguration;
 
+
+  public Configuration() {
+    properties = new HashMap<>();
+    attributes = new HashMap<>();
+  }
+
   /**
    * Constructor.
    *

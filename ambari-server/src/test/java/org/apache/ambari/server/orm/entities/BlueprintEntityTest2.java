@@ -34,7 +34,6 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.state.SecurityType;
 import org.junit.After;
 import org.junit.Before;
@@ -53,8 +52,6 @@ public class BlueprintEntityTest2 {
   public static final String BLUEPRINT_NAME = "test-blueprint";
   @Inject
   private Injector injector;
-  @Inject
-  private StackDAO stackDAO;
   @Inject
   private BlueprintDAO blueprintDAO;
 

@@ -618,7 +618,6 @@ CREATE TABLE blueprint_mpack_instance(
   CONSTRAINT FK_mpi_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name),
   CONSTRAINT FK_mpi_mpack_id FOREIGN KEY (mpack_id) REFERENCES mpacks(id));
 
-
 CREATE TABLE blueprint_service (
   id BIGINT NOT NULL,
   mpack_instance_id BIGINT NOT NULL,

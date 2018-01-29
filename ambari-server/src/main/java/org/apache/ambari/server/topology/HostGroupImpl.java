@@ -19,12 +19,19 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -32,12 +39,18 @@ import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 
 /**
  * Host Group implementation.
  */
 public class HostGroupImpl implements HostGroup {
+
+  private static final Logger LOG = LoggerFactory.getLogger(HostGroupImpl.class);
 
   /**
    * host group name
@@ -52,12 +65,13 @@ public class HostGroupImpl implements HostGroup {
   /**
    * components contained in the host group
    */
-  private Map<String, Component> components = new HashMap<>();
+  private final List<Component> components = new ArrayList<>();
 
   /**
    * map of service to components for the host group
    */
-  private Map<String, Set<String>> componentsForService = new HashMap<>();
+  // TODO: in blueprint 3.0 this should be per service instance
+  private Map<String, Set<Component>> componentsForService = new HashMap<>();
 
   /**
    * configuration
@@ -66,28 +80,29 @@ public class HostGroupImpl implements HostGroup {
 
   private boolean containsMasterComponent = false;
 
-  private Stack stack;
+  private Map<String, Stack> stackMap;
 
   private String cardinality = "NOT SPECIFIED";
 
-  public HostGroupImpl(HostGroupEntity entity, String blueprintName, Stack stack) {
+  public HostGroupImpl(HostGroupEntity entity, String blueprintName, Collection<Stack> stacks) {
     this.name = entity.getName();
     this.cardinality = entity.getCardinality();
     this.blueprintName = blueprintName;
-    this.stack = stack;
-
+    this.stackMap = stacks.stream().collect(Collectors.toMap(stack -> stack.getName() + "-" + stack.getVersion(), stack -> stack));
     parseComponents(entity);
     parseConfigurations(entity);
   }
 
-  public HostGroupImpl(String name, String bpName, Stack stack, Collection<Component> components, Configuration configuration, String cardinality) {
+  public HostGroupImpl(String name, String bpName, Collection<Stack> stacks, Collection<Component> components, Configuration configuration, String cardinality) {
     this.name = name;
     this.blueprintName = bpName;
-    this.stack = stack;
+    this.stackMap = stacks.stream().collect(Collectors.toMap(stack -> stack.getName() + "-" + stack.getVersion(), stack -> stack));
 
     // process each component
-    for (Component component : components) {
-      addComponent(component.getName(), component.getProvisionAction());
+    for (Component component: components) {
+      if (!addComponent(component)) {
+        throw new IllegalArgumentException("Ambiguous component or can't determine stack for: " + component);
+      }
     }
 
     this.configuration = configuration;
@@ -115,27 +130,26 @@ public class HostGroupImpl implements HostGroup {
 
   @Override
   public Collection<Component> getComponents() {
-    return components.values();
+    return components;
   }
 
   @Override
+  @Deprecated
   public Collection<String> getComponentNames() {
-    return components.keySet();
+    return components.stream().map(Component::getName).collect(toList());
   }
 
   @Override
+  @Deprecated
   public Collection<String> getComponentNames(ProvisionAction provisionAction) {
     Set<String> setOfComponentNames = new HashSet<>();
-    for (String componentName : components.keySet()) {
-      Component component = components.get(componentName);
+    for (Component component : components) {
       if ( (component.getProvisionAction() != null) && (component.getProvisionAction() == provisionAction) ) {
-        setOfComponentNames.add(componentName);
+        setOfComponentNames.add(component.getName());
       }
     }
-
     return setOfComponentNames;
   }
-
 
   /**
    * Get the services which are deployed to this host group.
@@ -148,51 +162,82 @@ public class HostGroupImpl implements HostGroup {
   }
 
   /**
-   * Add a component to the host group.
-   *
-   * @param component  component to add
-   *
-   * @return true if component was added; false if component already existed
+   * Adds a component to the host group. The component is successfully added if it is not a duplicate or ambiguous (as of
+   * Ambari 3.1 multiple components of the same type can exist in a hostgroup. However, they have to come from different
+   * management packs or belong to different service instances)
+   * @param component the component to add
+   * @return a boolean to indicate if addition was successful
    */
-  @Override
-  public boolean addComponent(String component) {
-    return this.addComponent(component, null);
+  public boolean addComponent(Component component) {
+    // Exclude ambiguous component definitions
+    boolean ambigous = components.stream().filter(c -> {
+      if (c.getName().equals(component.getName())) { // found another component with the same name
+        if (c.getMpackInstance() == null || component.getMpackInstance() == null) {
+          return true; // if either of them has no mpack instance defined it is ambiguous
+        }
+        if (c.getMpackInstance().equals(component.getMpackInstance())) {
+          // both components are in the same mpack, and one of them does not declare a service instance or
+          // both declare the same service instance --> ambiguous
+          return  c.getServiceInstance() != null && component.getServiceInstance() != null &&
+            c.getServiceInstance().equals(component.getServiceInstance());
+        }
+        else {
+          return false; // different mpacks --> no ambiguity
+        }
+      }
+      else {
+        return false; // different name --> no ambiguity
+      }
+    }).findAny().isPresent();
+    if (ambigous) {
+      return false;
+    }
+    addComponent(component, getStackForComponent(component));
+    return true;
   }
 
-  /**
-   * Add a component with the specified provision action to the
-   *   host group.
-   *
-   * @param component  component name
-   * @param provisionAction provision action for this component
-   *
-   * @return true if component was added; false if component already existed
-   */
-  public boolean addComponent(String component, ProvisionAction provisionAction) {
-    boolean added;
-    if (!components.containsKey(component)) {
-      components.put(component, new Component(component, provisionAction));
-      added = true;
-    } else {
-      added = false;
-    }
-
-    if (stack.isMasterComponent(component)) {
-      containsMasterComponent = true;
-    }
-    if (added) {
-      String service = stack.getServiceForComponent(component);
-      if (service != null) {
-        // an example of a component without a service in the stack is AMBARI_SERVER
-        Set<String> serviceComponents = componentsForService.get(service);
-        if (serviceComponents == null) {
-          serviceComponents = new HashSet<>();
-          componentsForService.put(service, serviceComponents);
-        }
-        serviceComponents.add(component);
+  private Optional<Stack> getStackForComponent(Component component) {
+    // Look for the stack of this component
+    if (component.getMpackInstance() == null) {
+      // Component does not declare its stack. Let's find it.
+      Collection<Stack> candidateStacks =
+        stackMap.values().stream().filter(stack -> stack.getServiceForComponent(component.getName()) != null).collect(toList());
+      switch (candidateStacks.size()) {
+        case 0:
+          // no stack (no service) for this component
+          LOG.warn("No stack/service found for component: {}", component);
+          return Optional.empty();
+        case 1:
+          return Optional.of(candidateStacks.iterator().next());
+        default:
+          LOG.warn("Ambiguous stack resolution for component: {}, stacks: {}", component, candidateStacks);
+          return Optional.empty();
       }
     }
-    return added;
+    else {
+      // TODO: refine this logic
+      Stack stack = stackMap.get(component.getMpackInstance());
+      if (null == stack) {
+        LOG.warn("Component declared an invalid stack: {}", component);
+      }
+      return Optional.ofNullable(stack);
+    }
+  }
+
+  private void addComponent(Component component, Optional<Stack> stack) {
+    if (stack.isPresent()) {
+      String serviceName = stack.get().getServiceForComponent(component.getName());
+      if (!componentsForService.containsKey(serviceName)) {
+        componentsForService.put(serviceName, Sets.newHashSet(component));
+      }
+      else {
+        componentsForService.get(serviceName).add(component);
+      }
+      if (stack.get().isMasterComponent(component.getName())) {
+        containsMasterComponent = true;
+      }
+    }
+    components.add(component);
   }
 
   /**
@@ -200,14 +245,30 @@ public class HostGroupImpl implements HostGroup {
    *
    * @param service  service name
    *
-   * @return set of component names
+   * @return set of components
    */
   @Override
-  public Collection<String> getComponents(String service) {
+  public Collection<Component> getComponents(String service) {
     return componentsForService.containsKey(service) ?
       new HashSet<>(componentsForService.get(service)) :
         Collections.emptySet();
   }
+
+  /**
+   * Get the names components for the specified service which are associated with the host group.
+   *
+   * @param service  service name
+   *
+   * @return set of component names
+   */
+  @Override
+  @Deprecated
+  public Collection<String> getComponentNames(String service) {
+    return componentsForService.containsKey(service) ?
+      componentsForService.get(service).stream().map(Component::getName).collect(toSet()) :
+        Collections.emptySet();
+  }
+
 
   /**
    * Get this host groups configuration.
@@ -216,7 +277,6 @@ public class HostGroupImpl implements HostGroup {
    */
   @Override
   public Configuration getConfiguration() {
-
     return configuration;
   }
 
@@ -236,8 +296,14 @@ public class HostGroupImpl implements HostGroup {
   }
 
   @Override
+  public Collection<Stack> getStacks() {
+    return stackMap.values();
+  }
+
+  @Override
+  @Deprecated
   public Stack getStack() {
-    return stack;
+    return getStacks().iterator().next();
   }
 
   @Override
@@ -250,13 +316,12 @@ public class HostGroupImpl implements HostGroup {
    */
   private void parseComponents(HostGroupEntity entity) {
     for (HostGroupComponentEntity componentEntity : entity.getComponents() ) {
-      if (componentEntity.getProvisionAction() != null) {
-        addComponent(componentEntity.getName(), ProvisionAction.valueOf(componentEntity.getProvisionAction()));
-      } else {
-        addComponent(componentEntity.getName());
-      }
-
-
+      Component component = new Component(
+        componentEntity.getName(),
+        componentEntity.getMpackName(),
+        componentEntity.getServiceName(),
+        null == componentEntity.getProvisionAction() ? null : ProvisionAction.valueOf(componentEntity.getProvisionAction()));
+      addComponent(component);
     }
   }
 
@@ -270,13 +335,12 @@ public class HostGroupImpl implements HostGroup {
     for (HostGroupConfigEntity configEntity : entity.getConfigurations()) {
       String type = configEntity.getType();
       Map<String, String> typeProperties = config.get(type);
-      if ( typeProperties == null) {
+      if (typeProperties == null) {
         typeProperties = new HashMap<>();
         config.put(type, typeProperties);
       }
       Map<String, String> propertyMap =  jsonSerializer.<Map<String, String>>fromJson(
           configEntity.getConfigData(), Map.class);
-
       if (propertyMap != null) {
         typeProperties.putAll(propertyMap);
       }
@@ -285,6 +349,7 @@ public class HostGroupImpl implements HostGroup {
     Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
     configuration = new Configuration(config, attributes);
   }
+
   public String toString(){
        return  name;
   }
