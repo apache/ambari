@@ -25,6 +25,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.annotation.Nullable;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 
 public class CommonSearchRequest implements SearchRequest, CommonSearchParamDefinition {
@@ -33,9 +34,11 @@ public class CommonSearchRequest implements SearchRequest, CommonSearchParamDefi
   private String startIndex;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_PAGE)
+  @DefaultValue(LogSearchConstants.REQUEST_PARAM_PAGE_DEFAULT_VALUE)
   private String page;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_PAGE_SIZE)
+  @DefaultValue(LogSearchConstants.REQUEST_PARAM_PAGE_SIZE_DEFAULT_VALUE)
   private String pageSize;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_SORT_BY)
