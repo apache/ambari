@@ -31,6 +31,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GPL_LICENSE_ACCEPTED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
@@ -5946,6 +5947,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
     clusterLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
     clusterLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
+
+    for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
+      clusterLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
+    }
+    for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
+      clusterLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
+    }
+    clusterLevelParams.put(GPL_LICENSE_ACCEPTED, configs.getGplLicenseAccepted().toString());
 
     return clusterLevelParams;
   }
