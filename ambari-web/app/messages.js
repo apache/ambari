@@ -2862,6 +2862,7 @@ Em.I18n.translations = {
   'charts.heatmap.unknown': 'Unknown',
   'charts.heatmap.label.notApplicable' :'Not Applicable',
   'charts.heatmap.label.invalidData' :'Invalid data',
+  'charts.heatmap.label.notAvailable': 'Data Not Available',
   'metric.notFound':'no items found',
   'metric.default':'combined',
   'metric.cpu':'cpu',
