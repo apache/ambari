@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.text.NumberFormat;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -550,7 +551,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
             .toPredicate();
         Predicate predicate2 = new PredicateBuilder()
             .property(UserAuthenticationSourceResourceProvider.AUTHENTICATION_AUTHENTICATION_SOURCE_ID_PROPERTY_ID)
-            .equals(userAuthenticationEntity.getUserAuthenticationId())
+            .equals(convertIdToString(userAuthenticationEntity.getUserAuthenticationId()))
             .toPredicate();
 
         try {
@@ -559,6 +560,22 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
           throw new AmbariException(e.getMessage(), e);
         }
       }
+    }
+  }
+
+  /**
+   * Safely converts an id value to a string
+   *
+   * @param id the value to convert
+   * @return a string representation of the id
+   */
+  private String convertIdToString(Long id) {
+    if (id == null) {
+      return null;
+    } else {
+      NumberFormat format = NumberFormat.getIntegerInstance();
+      format.setGroupingUsed(false);
+      return format.format(id);
     }
   }
 
