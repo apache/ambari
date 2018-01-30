@@ -78,7 +78,8 @@ public class RangerKmsProxyConfig extends AbstractUpgradeServerAction {
       targetValues.put(hostProp, "*");
       kmsSite.setProperties(targetValues);
       kmsSite.save();
-      agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream().map(Host::getHostId).collect(Collectors.toList()));
+      agentConfigsHolder.updateData(cluster.getClusterId(), cluster.getHosts().stream()
+          .map(Host::getHostId).collect(Collectors.toList()));
       outputMsg = outputMsg + MessageFormat.format("Successfully added properties to {0}", RANGER_KMS_SITE_CONFIG_TYPE);
     } else {
       outputMsg = outputMsg +  MessageFormat.format("Kerberos not enable, not setting proxy properties to {0}", RANGER_KMS_SITE_CONFIG_TYPE);
