@@ -391,12 +391,12 @@ App.WidgetMixin = Ember.Mixin.create({
     var metrics = this.get('content.metrics');
     data.host_components.forEach(function (item) {
       metrics.forEach(function (_metric) {
+        const metric = $.extend({}, _metric, true);
+        metric.hostName = item.HostRoles.host_name;
         if (!Em.isNone(Em.get(item, _metric.metric_path.replace(/\//g, '.')))) {
-          var metric = $.extend({}, _metric, true);
           metric.data = Em.get(item, _metric.metric_path.replace(/\//g, '.'));
-          metric.hostName = item.HostRoles.host_name;
-          this.get('metrics').pushObject(metric);
         }
+        this.get('metrics').pushObject(metric);
       }, this);
     }, this);
   },
@@ -417,12 +417,12 @@ App.WidgetMixin = Ember.Mixin.create({
     var metrics = this.get('content.metrics');
     data.items.forEach(function (item) {
       metrics.forEach(function (_metric, index) {
+        const metric = $.extend({}, _metric, true);
+        metric.hostName = item.Hosts.host_name;
         if (!Em.isNone(Em.get(item, _metric.metric_path.replace(/\//g, '.')))) {
-          var metric = $.extend({}, _metric, true);
           metric.data = Em.get(item, _metric.metric_path.replace(/\//g, '.'));
-          metric.hostName = item.Hosts.host_name;
-          this.get('metrics').pushObject(metric);
         }
+        this.get('metrics').pushObject(metric);
       }, this);
     }, this);
   },

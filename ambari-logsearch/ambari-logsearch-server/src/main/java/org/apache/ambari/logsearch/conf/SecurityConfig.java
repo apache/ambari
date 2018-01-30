@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
@@ -43,7 +44,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -88,6 +88,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Inject
   private LogSearchConfigState logSearchConfigState;
+
+  @Inject
+  private LogSearchConfigApiConfig logSearchConfigApiConfig;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -184,7 +187,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LogSearchConfigStateFilter logSearchConfigStateFilter() {
-    return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState);
+    return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState, logSearchConfigApiConfig.isConfigApiEnabled());
   }
 
   @Bean

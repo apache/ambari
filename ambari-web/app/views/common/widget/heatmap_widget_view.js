@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-var App = require('app');
+const App = require('app');
+const numberUtils = require('utils/number_utils');
 
 App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
   templateName: require('templates/common/widget/heatmap_widget'),
@@ -124,6 +125,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
     var metricsMap = {};
 
     metrics.forEach(function (_metric) {
+      this.convertDataWhenMB(_metric);
       metricsMap[_metric.name + "_" + _metric.hostName] = _metric;
     }, this);
 
@@ -148,11 +150,10 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
         });
 
         if (validExpression && this.get('MATH_EXPRESSION_REGEX').test(beforeCompute)) {
-          var value = Number(window.eval(beforeCompute)).toString();
-          if (value === "NaN")  {
-            value = 0
-          }
-          hostToValueMap[_hostName] = value;
+          hostToValueMap[_hostName] = Number(window.eval(beforeCompute)).toString();
+        } else if (beforeCompute === 'undefined') {
+          // Data not available
+          hostToValueMap[_hostName] = undefined;
         } else {
           console.error('Value for metric is not correct mathematical expression: ' + beforeCompute);
         }
@@ -160,5 +161,16 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
     }, this);
 
     return hostToValueMap;
+  },
+
+  /**
+   * If metric has value in MB convert it to bytes
+   * @param _metric
+   */
+  convertDataWhenMB: function(_metric) {
+    if (_metric.metric_path.endsWith('M') && !Em.isNone(_metric.data) && isFinite(_metric.data)) {
+      _metric.originalData = _metric.data;
+      _metric.data = Math.round(_metric.data * numberUtils.BYTES_IN_MB);
+    }
   }
 });

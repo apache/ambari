@@ -85,6 +85,18 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
     return query;
   }
 
+  public SolrQuery addInFiltersIfNotNullAndEnabled(SolrQuery query, String value, String field, boolean condition) {
+    if (condition) {
+      List<String> valuesList = value.length() == 0 ? Arrays.asList("\\-1") : splitValueAsList(value, ",");
+      if (valuesList.size() > 1) {
+        query.addFilterQuery(String.format("%s:(%s)", field, StringUtils.join(valuesList, " OR ")));
+      } else {
+        query.addFilterQuery(String.format("%s:%s", field, valuesList.get(0)));
+      }
+    }
+    return query;
+  }
+
   public Query addInFilterQuery(Query query, String field, List<String> values, boolean negate) {
     if (CollectionUtils.isNotEmpty(values)) {
       addFilterQuery(query, new Criteria(field).is(values), negate);
@@ -176,5 +188,4 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
     String fieldTypeMetaData = schemaFieldTypeMap.get(fieldType);
     return SolrUtil.putWildCardByType(fieldEntry.getValue(), fieldType, fieldTypeMetaData);
   }
-
 }
