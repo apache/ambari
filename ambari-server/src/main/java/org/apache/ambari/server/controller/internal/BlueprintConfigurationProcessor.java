@@ -66,6 +66,7 @@ import com.google.common.collect.Sets;
  * Updates configuration properties based on cluster topology.  This is done when exporting
  * a blueprint and when a cluster is provisioned via a blueprint.
  */
+// TODO move to topology package
 public class BlueprintConfigurationProcessor {
 
   private static final Logger LOG = LoggerFactory.getLogger(BlueprintConfigurationProcessor.class);

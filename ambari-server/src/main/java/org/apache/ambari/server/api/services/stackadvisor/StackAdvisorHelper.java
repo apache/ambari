@@ -37,7 +37,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -122,7 +121,7 @@ public class StackAdvisorHelper {
       throws StackAdvisorException {
       requestId = generateRequestId();
 
-    String serviceName = Iterables.getFirst(request.getServices(), null);
+    String serviceName = request.getServices().stream().findAny().orElse(null);
 
     ServiceInfo.ServiceAdvisorType serviceAdvisorType = getServiceAdvisorType(request.getStackName(), request.getStackVersion(), serviceName);
     StackAdvisorCommand<RecommendationResponse> command = createRecommendationCommand(serviceName, request);

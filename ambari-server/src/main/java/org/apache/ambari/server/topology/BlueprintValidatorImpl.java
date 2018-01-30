@@ -81,7 +81,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           cardinalityFailures.addAll(verifyComponentInAllHostGroups(blueprint, new Component(component), autoDeploy));
         } else {
           cardinalityFailures.addAll(verifyComponentCardinalityCount(
-            blueprint, stack, new Component(component), cardinality, autoDeploy));
+            stack, blueprint, new Component(component), cardinality, autoDeploy));
         }
       }
     }
@@ -184,7 +184,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * For components that are auto-install enabled, will add component to topology if needed.
    *
    *
-   * @param blueprint
+   * @param blueprint   blueprint to validate
    * @param component   component to validate
    * @param autoDeploy  auto-deploy information for component
    *
@@ -251,7 +251,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         }
         if (dependencyScope.equals("cluster")) {
           Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
-            blueprint, stack, new Component(componentName), new Cardinality("1+"), autoDeployInfo);
+            stack, blueprint, new Component(componentName), new Cardinality("1+"), autoDeployInfo);
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
@@ -279,7 +279,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * auto-install enabled, will add component to topology if needed.
    *
    *
-   * @param stack
+   * @param stack        stack definition
+   * @param blueprint    blueprint to validate
    * @param component    component to validate
    * @param cardinality  required cardinality
    * @param autoDeploy   auto-deploy information for component
@@ -287,8 +288,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * @return collection of missing component information
    */
   private Collection<String> verifyComponentCardinalityCount(
-    Blueprint blueprint,
     StackDefinition stack,
+    Blueprint blueprint,
     Component component,
     Cardinality cardinality,
     AutoDeployInfo autoDeploy
@@ -330,7 +331,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
    * Determine if a component is managed, meaning that it is running inside of the cluster
    * topology.  Generally, non-managed dependencies will be database components.
    *
-   * @param stack          stack instance
+   * @param stack          stack definition
    * @param component      component to determine if it is managed
    * @param clusterConfig  cluster configuration
    *

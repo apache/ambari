@@ -25,6 +25,7 @@ public interface BlueprintValidator {
   /**
    * Validate blueprint topology.
    *
+   * @param blueprint the blueprint to validate
    * @throws InvalidTopologyException if the topology is invalid
    */
   void validateTopology(Blueprint blueprint) throws InvalidTopologyException;
@@ -33,8 +34,9 @@ public interface BlueprintValidator {
    * Validate that required properties are provided.
    * This doesn't include password properties.
    *
+   * @param blueprint the blueprint to validate
    * @throws InvalidTopologyException if required properties are not set in blueprint
-   * @throws GPLLicenseNotAcceptedException ambari was configured to use gpl software, but gpl license is not accepted
+   * @throws GPLLicenseNotAcceptedException if the blueprint requires use of GPL software, but GPL license was not accepted
    */
   void validateRequiredProperties(Blueprint blueprint) throws InvalidTopologyException, GPLLicenseNotAcceptedException;
 }

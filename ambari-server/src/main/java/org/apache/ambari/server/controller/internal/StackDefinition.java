@@ -13,11 +13,10 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 
-import com.google.common.collect.Iterables;
-
 /**
  * Encapsulates stack information.
  */
+// TODO move to topology package
 public interface StackDefinition {
 
   /**
@@ -103,6 +102,13 @@ public interface StackDefinition {
    */
   Map<String, String> getConfigurationProperties(String service, String type);
 
+  /**
+   * Get config properties with metadata attributes for the specified service and configuration type.
+   *
+   * @param service  service name
+   * @param type     configuration type
+   * @return map of property names to properties for the specified service and configuration type
+   */
   Map<String, Stack.ConfigProperty> getConfigurationPropertiesWithMetadata(String service, String type);
 
   /**
@@ -123,10 +129,21 @@ public interface StackDefinition {
    */
   Collection<Stack.ConfigProperty> getRequiredConfigurationProperties(String service, PropertyInfo.PropertyType propertyType);
 
+  /**
+   * @return true if the given property for the specified service and config type is a password-type property
+   * @see org.apache.ambari.server.state.PropertyInfo.PropertyType#PASSWORD
+   */
   boolean isPasswordProperty(String service, String type, String propertyName);
 
+  /**
+   * @return map of stack-level property names to properties for the specified configuration type
+   */
   Map<String, String> getStackConfigurationProperties(String type);
 
+  /**
+   * @return true if the given property for the specified service and config type is a Kerberos principal-type property
+   * @see org.apache.ambari.server.state.PropertyInfo.PropertyType#KERBEROS_PRINCIPAL
+   */
   boolean isKerberosPrincipalNameProperty(String service, String type, String propertyName);
 
   /**
@@ -140,6 +157,14 @@ public interface StackDefinition {
    */
   Map<String, Map<String, String>> getConfigurationAttributes(String service, String type);
 
+  /**
+   * Get stack-level config attributes for the specified configuration type.
+   *
+   * @param type     configuration type
+   *
+   * @return  map of attribute names to map of property names to attribute values
+   *          for the specified configuration type
+   */
   Map<String, Map<String, String>> getStackConfigurationAttributes(String type);
 
   /**
@@ -169,6 +194,9 @@ public interface StackDefinition {
    */
   String getServiceForConfigType(String config);
 
+  /**
+   * @return stream of service names which correspond to the specified configuration type name
+   */
   Stream<String> getServicesForConfigType(String config);
 
   /**
@@ -191,6 +219,16 @@ public interface StackDefinition {
    */
   String getConditionalServiceForDependency(DependencyInfo dependency);
 
+  /**
+   * Get the custom "descriptor" that is used to decide whether component
+   * is a managed or non-managed dependency.  The descriptor is formatted as:
+   * "config_type/property_name".  Currently it is only used for Hive Metastore's
+   * database.
+   *
+   * @param component component to get dependency information for
+   * @return the descriptor of form "config_type/property_name"
+   * @see org.apache.ambari.server.topology.BlueprintValidatorImpl#isDependencyManaged
+   */
   String getExternalComponentConfig(String component);
 
   /**
@@ -203,16 +241,33 @@ public interface StackDefinition {
    */
   AutoDeployInfo getAutoDeployInfo(String component);
 
+  /**
+   * @return true if the given component is a master component
+   */
   boolean isMasterComponent(String component);
 
+  /**
+   * @return subset of the stack's configuration for the given services
+   */
   Configuration getConfiguration(Collection<String> services);
 
+  /**
+   * @return the stack's configuration
+   */
   Configuration getConfiguration();
 
+  /**
+   * Create a stack definition for one or more stacks.
+   * When given multiple stacks, it returns a composite stack,
+   * while a single stack is returned as is.
+   *
+   * @param stacks the stack(s) to combine
+   * @return composite or single stack
+   */
   static StackDefinition of(Set<Stack> stacks) {
     return stacks.size() > 1
       ? new CompositeStack(stacks)
-      : Iterables.getFirst(stacks, null);
+      : stacks.stream().findAny().orElse(null);
   }
 
 }

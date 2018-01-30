@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /** Combines multiple mpacks into a single stack. */
+// TODO move to topology package
 public class CompositeStack implements StackDefinition {
 
   private final Set<Stack> stacks;
