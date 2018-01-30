@@ -19,7 +19,9 @@ package org.apache.ambari.server.upgrade;
 
 
 import java.sql.Clob;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +57,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.support.JdbcUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
@@ -561,6 +564,32 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     updateKerberosConfigurations();
     upgradeLdapConfiguration();
     createRoleAuthorizations();
+    addUserAuthenticationSequence();
+  }
+
+  protected void addUserAuthenticationSequence() throws SQLException {
+    final long maxUserAuthenticationId = fetchMaxUserAuthenticationId();
+    LOG.info("Maximum user authentication ID = " + maxUserAuthenticationId);
+    addSequence("user_authentication_id_seq", maxUserAuthenticationId + 1, false);
+  }
+
+  private long fetchMaxUserAuthenticationId() throws SQLException {
+    Statement statement = null;
+    ResultSet rs = null;
+    try {
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        rs = statement.executeQuery(String.format("SELECT MAX(user_authentication_id) FROM %s", USER_AUTHENTICATION_TABLE));
+
+        if (rs.next()) {
+          return rs.getLong(1);
+        }
+      }
+    } finally {
+      JdbcUtils.closeResultSet(rs);
+      JdbcUtils.closeStatement(statement);
+    }
+    return 0L;
   }
 
   protected void createRoleAuthorizations() throws SQLException {
