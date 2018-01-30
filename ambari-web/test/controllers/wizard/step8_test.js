@@ -1992,9 +1992,9 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
-  describe('#_startDeploy', function () {
+  describe('#startDeploy', function () {
 
-    var stubbedNames = ['createCluster', 'createServiceGroup', 'createSelectedServices', 'createConfigurations',
+    var stubbedNames = ['createCluster', 'createServiceGroups', 'createSelectedServices', 'createConfigurations',
         'applyConfigurationsToCluster', 'createComponents', 'registerHostsToCluster', 'createConfigurationGroups',
         'createMasterHostComponents', 'createSlaveAndClientsHostComponents', 'createAdditionalClientComponents',
         'createAdditionalHostComponents'],
@@ -2074,7 +2074,7 @@ describe('App.WizardStep8Controller', function () {
             return Em.get(this, key);
           });
           installerStep8Controller.set('content.controllerName', item.controllerName);
-          installerStep8Controller._startDeploy();
+          installerStep8Controller.startDeploy();
         });
 
         stubbedNames.forEach(function (name) {

@@ -118,8 +118,6 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
           )
         );
 
-        //TODO: mpacks
-        //var versionData = installerController.getSelectedRepoVersionData(); //This would be used to post a VDF xml for a local repo (I think), but do we still need to do this when we will just be using mpacks?
         $.when(...stackVersionsRegistered).always(() => { //this uses always() because the api call made by createMpackStackVersion will return a 500 error
                                                           //if the stack version has already been registered, but we want to proceed anyway
           App.router.send('next');

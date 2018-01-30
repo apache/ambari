@@ -39,10 +39,8 @@
               <td class="col-sm-6">{{mpack.displayName}}&nbsp;{{mpack.version}}</td>
               <td class="download-status col-sm-4">
                 {{#if mpack.inProgress}}
-                  <div class="progress-wrapper">
-                    <div class="progress">
-                      <div class="active progress-bar-striped progress-bar"}}></div>
-                    </div>
+                  <div class="progress">
+                    <div class="active progress-bar-striped progress-bar"></div>
                   </div>
                 {{else}}
                   {{#if mpack.succeeded}}
@@ -56,7 +54,11 @@
               </td>
               <td class="col-sm-2">
                 <span data-toggle="tooltip" data-placement="bottom" {{translateAttr title="common.retry"}}>
-                  <button type="button" class="icon-button retry-button" {{bindAttr disabled="mpack.succeeded"}} {{action retryDownload mpack target="controller"}}></button>
+                  {{#if mpack.failed}}
+                  <button type="button" class="icon-button retry-button" {{action retryDownload mpack target="controller"}}></button>
+                  {{else}}
+                  <button type="button" class="icon-button retry-button" disabled="disabled"></button>
+                  {{/if}}
                 </span>
               </td>
             </tr>

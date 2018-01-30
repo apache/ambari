@@ -16,17 +16,17 @@
 * limitations under the License.
 }}
 <div id="deploy-summary" class="wizard-content col-md-9">
-  <h4 class="step-header">{{t installer.step10.header}}</h4>
+  <h4 class="step-title">{{t installer.step10.header}}</h4>
   {{#if view.serviceRestartText}}
     <div id="step10-alert-message" class="step-description">
       {{{view.serviceRestartText}}}
     </div>
   {{/if}}
-  <p class="step-description">
-    {{t installer.step10.body}}
-  </p>
   <div class="panel panel-default">
     <div class="panel-body">
+      <p class="step-description">
+        {{t installer.step10.body}}
+      </p>
       <div id="step10-content" class="well pre-scrollable" {{QAAttr "summary"}}>
         <ul>
           {{#each item in clusterInfo}}

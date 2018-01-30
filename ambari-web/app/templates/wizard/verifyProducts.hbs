@@ -58,10 +58,8 @@
                     <td class="col-sm-3">{{repo.repoId}}</td>
                     <td class="download-status col-sm-3">
                       {{#if repo.inProgress}}
-                        <div class="progress-wrapper">
-                          <div class="progress">
-                            <div class="active progress-bar-striped progress-bar"}}></div>
-                          </div>
+                        <div class="progress">
+                          <div class="active progress-bar-striped progress-bar"}}></div>
                         </div>
                       {{else}}
                         {{#if repo.succeeded}}
@@ -75,7 +73,11 @@
                     </td>
                     <td class="col-sm-2">
                       <span data-toggle="tooltip" data-placement="bottom" {{translateAttr title="common.retry"}}>
-                        <button type="button" class="icon-button retry-button" {{bindAttr disabled="repo.succeeded"}} {{action retryVerifyRepo repo target="controller"}}></button>
+                        {{#if repo.failed}}
+                        <button type="button" class="icon-button retry-button" {{action retryVerifyRepo repo target="controller"}}></button>
+                        {{else}}
+                        <button type="button" class="icon-button retry-button" disabled="disabled"></button>
+                        {{/if}}
                       </span>
                     </td>
                   </tr>
