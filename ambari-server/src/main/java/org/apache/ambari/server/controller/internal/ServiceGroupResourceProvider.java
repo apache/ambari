@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -78,6 +79,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
   public static final String SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "cluster_name";
   public static final String SERVICE_GROUP_SERVICE_GROUP_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_id";
   public static final String SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "service_group_name";
+  public static final String SERVICE_GROUP_SERVICE_GROUP_MPACKNAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "mpacks";
 
 
   private static Set<String> pkPropertyIds =
@@ -269,6 +271,11 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     String clusterName = (String) properties.get(SERVICE_GROUP_CLUSTER_NAME_PROPERTY_ID);
     String serviceGroupName = (String) properties.get(SERVICE_GROUP_SERVICE_GROUP_NAME_PROPERTY_ID);
     ServiceGroupRequest svcRequest = new ServiceGroupRequest(clusterName, serviceGroupName);
+    Set<Object> mpackNames = (Set<Object>) properties.get(SERVICE_GROUP_SERVICE_GROUP_MPACKNAME_PROPERTY_ID);
+    if (mpackNames != null) {
+      Set<String> mpackNamesSet = mpackNames.stream().flatMap(mpack -> ((Map<String, String>)mpack).values().stream()).collect(Collectors.toSet());
+      svcRequest.setMpackNames(mpackNamesSet);
+    }
     return svcRequest;
   }
 
@@ -292,6 +299,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
 
       // Already checked that service group does not exist
       ServiceGroup sg = cluster.addServiceGroup(request.getServiceGroupName());
+      sg.setServiceGroupMpackNames(request.getMpackNames());
       createdSvcGrps.add(sg.convertToResponse());
     }
     return createdSvcGrps;
@@ -421,6 +429,11 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
         continue;
       }
       serviceGroupNames.get(clusterName).add(serviceGroupName);
+
+      if (request.getMpackNames().size() != 1) {
+        String errmsg = "Invalid arguments, only one mpack is allowed in the service group " + serviceGroupName;
+        throw new IllegalArgumentException(errmsg);
+      }
 
       Cluster cluster;
       try {

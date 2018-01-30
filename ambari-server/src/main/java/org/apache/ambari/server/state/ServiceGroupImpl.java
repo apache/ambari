@@ -136,6 +136,34 @@ public class ServiceGroupImpl implements ServiceGroup {
   }
 
   @Override
+  public Set<String> getServiceGroupMpackNames() {
+    ServiceGroupEntity entity = getServiceGroupEntity();
+    return entity.getMpackNames();
+  }
+
+  @Override
+  public void addServiceGroupMpackName(String mpackName){
+    ServiceGroupEntity entity = getServiceGroupEntity();
+    if (entity.getMpackNames().add(mpackName)) {
+      serviceGroupDAO.merge(entity);
+    }
+  }
+
+  @Override
+  public void addServiceGroupMpackNames(Set<String> mpackNames) {
+    ServiceGroupEntity entity = getServiceGroupEntity();
+    entity.getMpackNames().addAll(mpackNames);
+    serviceGroupDAO.merge(entity);
+  }
+
+  @Override
+  public void setServiceGroupMpackNames(Set<String> mpackNames) {
+    ServiceGroupEntity entity = getServiceGroupEntity();
+    entity.setMpackNames(mpackNames);
+    serviceGroupDAO.merge(entity);
+  }
+
+  @Override
   public Set<ServiceGroupKey> getServiceGroupDependencies() {
     return serviceGroupDependencies;
   }
@@ -149,6 +177,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   public ServiceGroupResponse convertToResponse() {
     ServiceGroupResponse r = new ServiceGroupResponse(cluster.getClusterId(),
       cluster.getClusterName(), getServiceGroupId(), getServiceGroupName());
+    r.setServiceGroupMpackNames(getServiceGroupMpackNames());
     return r;
   }
 
@@ -217,7 +246,14 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   public void debugDump(StringBuilder sb) {
     sb.append("ServiceGroup={ serviceGroupName=" + getServiceGroupName() + ", clusterName="
-      + cluster.getClusterName() + ", clusterId=" + cluster.getClusterId() + "}");
+      + cluster.getClusterName() + ", clusterId=" + cluster.getClusterId() );
+    Set<String> mpackNames = getServiceGroupMpackNames();
+    if (!mpackNames.isEmpty()) {
+      sb.append(", mpackNames=");
+      mpackNames.stream().map(mpackName ->sb.append(mpackName + ","));
+      sb.deleteCharAt(sb.length()-1);
+    }
+    sb.append("}");
   }
 
   /**

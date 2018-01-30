@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import io.swagger.annotations.ApiModelProperty;
 
 public class ServiceGroupResponse {
@@ -26,12 +29,15 @@ public class ServiceGroupResponse {
   private Long serviceGroupId;
   private String clusterName;
   private String serviceGroupName;
+  private Set<String> mpackNames;
 
   public ServiceGroupResponse(Long clusterId, String clusterName, Long serviceGroupId, String serviceGroupName) {
     this.clusterId = clusterId;
     this.serviceGroupId = serviceGroupId;
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
+    this.mpackNames = new HashSet<>();
+
   }
 
   /**
@@ -90,6 +96,20 @@ public class ServiceGroupResponse {
     this.serviceGroupName = serviceGroupName;
   }
 
+  /**
+   * @return the list of mpack names
+   */
+  public Set<String> getServiceGroupMpackNames() {
+    return mpackNames;
+  }
+
+  /**
+   * @param mpackNames the list of mpack names
+   */
+  public void setServiceGroupMpackNames(Set<String> mpackNames) {
+    this.mpackNames = mpackNames;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -109,6 +129,7 @@ public class ServiceGroupResponse {
       !serviceGroupName.equals(that.serviceGroupName) : that.serviceGroupName != null) {
       return false;
     }
+    // ignore mpackNames
 
     return true;
   }

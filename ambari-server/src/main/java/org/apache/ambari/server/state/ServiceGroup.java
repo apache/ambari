@@ -46,6 +46,14 @@ public interface ServiceGroup {
 
   Set<ServiceGroupDependencyResponse> getServiceGroupDependencyResponses();
 
+  Set<String> getServiceGroupMpackNames();
+
+  void addServiceGroupMpackName(String mpackName);
+
+  void addServiceGroupMpackNames(Set<String> mpackNames);
+
+  void setServiceGroupMpackNames(Set<String> mpackNames);
+
   void debugDump(StringBuilder sb);
 
   void refresh();
