@@ -58,8 +58,6 @@ def kafka(upgrade_type=None):
            listeners = listeners.replace("PLAINTEXT", "PLAINTEXTSASL")
 
          kafka_server_config['listeners'] = listeners
-         kafka_server_config['advertised.listeners'] = listeners
-         Logger.info(format("Kafka advertised listeners: {listeners}"))
        else:
          kafka_server_config['listeners'] = listeners
          if 'advertised.listeners' in kafka_server_config:
