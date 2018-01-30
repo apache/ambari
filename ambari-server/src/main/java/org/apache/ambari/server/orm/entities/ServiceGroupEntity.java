@@ -18,9 +18,13 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -80,6 +84,13 @@ public class ServiceGroupEntity {
   @OneToMany(mappedBy="serviceGroupDependency")
   private List<ServiceGroupDependencyEntity> dependencies;
 
+  @ElementCollection()
+  @CollectionTable(name = "servicegroup_mpacknames",
+                   joinColumns = {@JoinColumn(name = "service_group_id", referencedColumnName = "id"),
+                                  @JoinColumn(name = "service_group_cluster_id", referencedColumnName = "cluster_id")})
+  @Column(name = "mpack_name", unique = true, nullable = false)
+  private Set<String> mpackNames = new HashSet<>();
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -119,6 +130,16 @@ public class ServiceGroupEntity {
 
   public void setServiceGroupDependencies(List<ServiceGroupDependencyEntity> serviceGroupDependencies) {
     this.serviceGroupDependencies = serviceGroupDependencies;
+  }
+
+  public Set<String> getMpackNames() {
+    return mpackNames;
+  }
+
+  public void setMpackNames(Set<String> mpackNames) {
+    if (mpackNames != null) {
+      this.mpackNames = mpackNames;
+    }
   }
 
   @Override

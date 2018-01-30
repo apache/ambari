@@ -1156,6 +1156,16 @@ CREATE TABLE alert_notice (
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
 
+CREATE TABLE servicegroup_mpackname (
+  service_group_id BIGINT NOT NULL,
+  service_group_cluster_id BIGINT NOT NULL,
+  mpack_name VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_servicegroup_mpackname PRIMARY KEY (service_group_id, service_group_cluster_id, mpack_name),
+  FOREIGN KEY (service_group_id) REFERENCES servicegroups(service_group_id),
+  FOREIGN KEY (service_group_cluster_id) REFERENCES servicegroups(service_group_cluster_id)
+);
+
+
 CREATE INDEX idx_alert_history_def_id on alert_history(alert_definition_id);
 CREATE INDEX idx_alert_history_service on alert_history(service_name);
 CREATE INDEX idx_alert_history_host on alert_history(host_name);

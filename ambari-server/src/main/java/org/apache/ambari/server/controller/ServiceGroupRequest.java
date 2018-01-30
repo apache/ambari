@@ -17,16 +17,20 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class ServiceGroupRequest {
 
   private String clusterName; // REF
   private String serviceGroupName; // GET/CREATE/UPDATE/DELETE
+  private Set<String> mpackNames; // Associated mpack names
 
   public ServiceGroupRequest(String clusterName, String serviceGroupName) {
     this.clusterName = clusterName;
     this.serviceGroupName = serviceGroupName;
+    mpackNames = new HashSet<>();
   }
 
   /**
@@ -57,9 +61,30 @@ public class ServiceGroupRequest {
     this.serviceGroupName = serviceGroupName;
   }
 
+  /**
+   * @return a list of associated mpack names
+   */
+  public Set<String> getMpackNames() {
+    return mpackNames;
+  }
+
+  /**
+   * @param mpackNames a list of associated mpack names
+   */
+  public void addMpackNames(Set<String> mpackNames) {
+    if (mpackNames != null) {
+      this.mpackNames.addAll(mpackNames);
+    }
+  }
+
   @Override
   public String toString() {
-    return String.format("clusterName=%s, serviceGroupName=%s", clusterName, serviceGroupName);
+    StringBuilder sb = new StringBuilder();
+    sb.append("clusterName=").append(clusterName).append(", serviceGroupName=").append(serviceGroupName);
+    if (!mpackNames.isEmpty()) {
+      sb.append(",mpackNames=").append(mpackNames.toString());
+    }
+    return sb.toString();
   }
 
   @Override
@@ -72,6 +97,8 @@ public class ServiceGroupRequest {
     }
 
     ServiceGroupRequest other = (ServiceGroupRequest) obj;
+
+    // ignore mpackNames, even if they are different, we still consider sgrequests are the same
 
     return Objects.equals(clusterName, other.clusterName) &&
       Objects.equals(serviceGroupName, other.serviceGroupName);

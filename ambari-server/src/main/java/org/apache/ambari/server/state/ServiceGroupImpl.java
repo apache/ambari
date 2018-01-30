@@ -136,6 +136,36 @@ public class ServiceGroupImpl implements ServiceGroup {
   }
 
   @Override
+  public Set<String> getMpackNames() {
+    ServiceGroupEntity entity = getServiceGroupEntity();
+    return entity.getMpackNames();
+  }
+
+  @Override
+  public void addMpackName(String mpackName){
+    ServiceGroupEntity entity = getServiceGroupEntity();
+    if (entity.getMpackNames().add(mpackName)) {
+      serviceGroupDAO.merge(entity);
+    }
+  }
+
+  @Override
+  public void addMpackNames(Set<String> mpackNames) {
+    if (mpackNames != null) {
+      ServiceGroupEntity entity = getServiceGroupEntity();
+      entity.getMpackNames().addAll(mpackNames);
+      serviceGroupDAO.merge(entity);
+    }
+  }
+
+  @Override
+  public void setMpackNames(Set<String> mpackNames) {
+    ServiceGroupEntity entity = getServiceGroupEntity();
+    entity.setMpackNames(mpackNames);
+    serviceGroupDAO.merge(entity);
+  }
+
+  @Override
   public Set<ServiceGroupKey> getServiceGroupDependencies() {
     return serviceGroupDependencies;
   }
@@ -149,6 +179,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   public ServiceGroupResponse convertToResponse() {
     ServiceGroupResponse r = new ServiceGroupResponse(cluster.getClusterId(),
       cluster.getClusterName(), getServiceGroupId(), getServiceGroupName());
+    r.setMpackNames(getMpackNames());
     return r;
   }
 
@@ -216,8 +247,12 @@ public class ServiceGroupImpl implements ServiceGroup {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    sb.append("ServiceGroup={ serviceGroupName=" + getServiceGroupName() + ", clusterName="
-      + cluster.getClusterName() + ", clusterId=" + cluster.getClusterId() + "}");
+    sb.append("ServiceGroup={ serviceGroupName=").append(getServiceGroupName()).append(", clusterName=").append(cluster.getClusterName()).append(", clusterId=").append(cluster.getClusterId());
+    Set<String> mpackNames = getMpackNames();
+    if (!mpackNames.isEmpty()) {
+      sb.append(", mpackNames=").append(mpackNames.toString());
+    }
+    sb.append("}");
   }
 
   /**
@@ -254,10 +289,9 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   @Transactional
   public void refresh() {
-    ServiceGroupEntityPK pk = new ServiceGroupEntityPK();
-    pk.setClusterId(getClusterId());
-    pk.setServiceGroupId(getServiceGroupId());
-    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(pk);
+    serviceGroupEntityPK.setClusterId(getClusterId());
+    serviceGroupEntityPK.setServiceGroupId(getServiceGroupId());
+    ServiceGroupEntity serviceGroupEntity = serviceGroupDAO.findByPK(serviceGroupEntityPK);
     serviceGroupDAO.refresh(serviceGroupEntity);
   }
 
