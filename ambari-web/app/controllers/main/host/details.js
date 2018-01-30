@@ -78,7 +78,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   addDeleteComponentsMap: {
     'ZOOKEEPER_SERVER': {
       addPropertyName: 'addZooKeeperServer',
-      deletePropertyName: 'fromDeleteZkServer'
+      deletePropertyName: 'fromDeleteZkServer',
+      configsCallbackName: 'saveZkConfigs',
+      configTagsCallbackName: 'loadConfigsSuccessCallback'
     },
     'HIVE_METASTORE': {
       deletePropertyName: 'deleteHiveMetaStore',
@@ -548,11 +550,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }.property('controller.isReconfigureRequired', 'controller.isConfigsLoadingInProgress', 'isChecked'),
       onPrimary: function () {
         this._super();
-        if (self.get('isReconfigureRequired')) {
-          self.applyConfigsCustomization();
-        }
         self._doDeleteHostComponent(componentName, function () {
-          if (self.get('isReconfigureRequired')) {
+          if (self.get('isReconfigureRequired') && self.get('_deletedHostComponentResult') === null) {
+            self.applyConfigsCustomization();
             self.saveConfigsBatch(self.get('groupedPropertiesToChange'), componentName);
             self.clearConfigsChanges();
           }
@@ -804,8 +804,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       configTagsCallbackName,
       configsCallbackName;
     if (componentsMapItem) {
-      configTagsCallbackName = componentsMapItem.configTagsCallbackName || 'loadConfigsSuccessCallback';
-      configsCallbackName = componentsMapItem.configsCallbackName || 'saveZkConfigs';
+      configTagsCallbackName = componentsMapItem.configTagsCallbackName;
+      configsCallbackName = componentsMapItem.configsCallbackName;
     }
     if (hasHostsSelect) {
       if (this.get('isReconfigureRequired')) {
@@ -1711,9 +1711,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       name: 'config.tags',
       sender: this,
       data: {
-        callback: configsCallback || 'saveZkConfigs'
+        callback: configsCallback
       },
-      success: configTagsCallback || 'loadConfigsSuccessCallback',
+      success: configTagsCallback,
       error: 'onLoadConfigsErrorCallback'
     });
     this.trackRequest(request);
@@ -1743,7 +1743,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         data: {
           urlParams: urlParams.join('|')
         },
-        success: params.callback || 'saveZkConfigs'
+        success: params.callback
       });
       this.trackRequest(request);
       return true;
@@ -2631,40 +2631,32 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         templateName: require('templates/main/host/details/doDeleteHostPopup')
       }),
       onPrimary: function () {
-        var popup = this;
-        var completeCallback = function () {
-          var remainingHosts = App.db.getSelectedHosts('mainHostController').removeObject(self.get('content.hostName'));
-          App.db.setSelectedHosts('mainHostController', remainingHosts);
-          popup.hide();
-        };
-        self.doDeleteHost(completeCallback);
+        this.hide();
+        self.doDeleteHost();
       }
     });
   },
 
   /**
    * send DELETE calls to components of host and after delete host itself
-   * @param completeCallback
    * @method doDeleteHost
    */
-  doDeleteHost: function (completeCallback) {
+  doDeleteHost: function () {
     this.set('fromDeleteHost', true);
     var allComponents = this.get('content.hostComponents');
     var deleteError = null;
     var dfd = $.Deferred();
+    var length = allComponents.get('length');
     var self = this;
 
-    if (allComponents.get('length') > 0) {
+    if (length > 0) {
       allComponents.forEach(function (component, index) {
-        var length = allComponents.get('length');
-        if (!deleteError) {
-          this._doDeleteHostComponent(component.get('componentName'), function () {
-            deleteError = self.get('_deletedHostComponentResult');
-            if (index == length - 1) {
-              dfd.resolve();
-            }
-          });
-        }
+        this._doDeleteHostComponent(component.get('componentName'), function () {
+          deleteError = deleteError ? deleteError : self.get('_deletedHostComponentResult');
+          if (index === length - 1) {
+            dfd.resolve();
+          }
+        });
       }, this);
     } else {
       dfd.resolve();
@@ -2677,14 +2669,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           data: {
             hostName: self.get('content.hostName')
           },
-          callback: completeCallback,
           success: 'deleteHostSuccessCallback',
           error: 'deleteHostErrorCallback',
           showLoadingPopup: true
         });
       }
       else {
-        completeCallback();
         deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
         App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.type, deleteError.xhr.status);
       }
@@ -2694,17 +2684,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     App.router.get('updateController').updateHost(function () {
       App.router.transitionTo('hosts.index');
     });
-    if (!!(requestBody && requestBody.hostName))
+    if (!!(requestBody && requestBody.hostName)) {
+      var remainingHosts = App.db.getSelectedHosts('mainHostController').removeObject(requestBody.hostName);
+      App.db.setSelectedHosts('mainHostController', remainingHosts);
       App.hostsMapper.deleteRecord(App.Host.find().findProperty('hostName', requestBody.hostName));
+    }
     App.router.get('clusterController').getAllHostNames();
   },
   deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
-    var self = this;
-    var callback = function () {
-      self.loadConfigs();
-    };
-    self.isServiceMetricsLoaded(callback);
     App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
   },
 
