@@ -162,18 +162,18 @@ App.WizardStep3View = App.TableView.extend({
     this.set('selectedHostsCount', selectedHostsCount);
   },
 
-    /**
-     * Remove selected hosts (click-handler)
-     * @return App.ModalPopup
-     * @method removeSelectedHosts
-     */
-    removeSelectedHosts: function () {
-      if(!this.get('noHostsSelected')) {
-        var selectedHosts = this.get('content').filterProperty('isChecked', true);
-        return this.removeHosts(selectedHosts);
-      }
-      return false;
-    },
+  /**
+   * Remove selected hosts (click-handler)
+   * @return App.ModalPopup
+   * @method removeSelectedHosts
+   */
+  removeSelectedHosts: function () {
+    if(!this.get('noHostsSelected')) {
+      var selectedHosts = this.get('content').filterProperty('isChecked', true);
+      return this.get('controller').removeHosts(selectedHosts);
+    }
+    return false;
+  },
 
   /**
    * Update <code>registeredHostsMessage</code> according to <code>controller.registeredHots.length</code>

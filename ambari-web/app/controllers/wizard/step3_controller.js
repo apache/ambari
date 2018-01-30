@@ -331,16 +331,6 @@ App.WizardStep3Controller = App.WizardStepController.extend(App.ReloadPopupMixin
   },
 
   /**
-   * Remove selected hosts (click-handler)
-   * @return App.ModalPopup
-   * @method removeSelectedHosts
-   */
-  removeSelectedHosts: function () {
-    var selectedHosts = this.get('hosts').filterProperty('isChecked', true);
-    return this.removeHosts(selectedHosts);
-  },
-
-  /**
    * Show popup with the list of hosts which are selected
    * @return App.ModalPopup
    * @method selectedHostsPopup

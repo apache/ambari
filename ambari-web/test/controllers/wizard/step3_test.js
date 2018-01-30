@@ -380,29 +380,6 @@ describe('App.WizardStep3Controller', function () {
 
   });
 
-  describe('#removeSelectedHosts', function () {
-
-    beforeEach(function () {
-      sinon.stub(c, 'removeHosts', Em.K);
-    });
-
-    afterEach(function () {
-      c.removeHosts.restore();
-    });
-
-    it('should remove selected hosts', function () {
-      c.set('hosts', [
-        {isChecked: true, name: 'c1'},
-        {isChecked: false, name: 'c2'}
-      ]);
-      c.removeSelectedHosts();
-      expect(c.removeHosts.calledWith([
-        {isChecked: true, name: 'c1'}
-      ])).to.be.true;
-    });
-
-  });
-
   describe('#selectedHostsPopup', function () {
 
     beforeEach(function () {
