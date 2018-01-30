@@ -60,6 +60,10 @@ public class LogSearchConstants {
   public static final String LOGFEEDER_FILTER_NAME = "log_feeder_config";
 
   public static final String SORT = "sort";
+
+  // info features constants
+  public static final String SHIPPER_CONFIG_API_KEY = "metadata_patterns";
+  public static final String AUTH_FEATURE_KEY = "auth";
   
   //Facet Constant
   public static final String FACET_FIELD = "facet.field";
@@ -108,6 +112,9 @@ public class LogSearchConstants {
   public static final String REQUEST_PARAM_ROW_TYPE = "rowType";
   public static final String REQUEST_PARAM_UTC_OFFSET = "utcOffset";
   public static final String REQUEST_PARAM_HOSTS = "hostList";
+  public static final String REQUEST_PARAM_USERS = "userList";
 
+  public static final String REQUEST_PARAM_PAGE_DEFAULT_VALUE = "0";
+  public static final String REQUEST_PARAM_PAGE_SIZE_DEFAULT_VALUE = "1000";
 
 }

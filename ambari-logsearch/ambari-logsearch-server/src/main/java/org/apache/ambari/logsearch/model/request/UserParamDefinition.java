@@ -16,39 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.model.request.impl;
+package org.apache.ambari.logsearch.model.request;
 
+import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.ambari.logsearch.model.request.FormatParamDefinition;
-import org.apache.ambari.logsearch.model.request.UserParamDefinition;
 
-import javax.ws.rs.QueryParam;
+import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.USER_D;
 
-public class UserExportRequest extends FieldAuditLogRequest implements FormatParamDefinition, UserParamDefinition {
+public interface UserParamDefinition {
 
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FORMAT)
-  private String format;
+  String getUserList();
 
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_USERS)
-  private String userList;
+  @ApiParam(value = USER_D, name = LogSearchConstants.REQUEST_PARAM_USERS)
+  void setUserList(String userList);
 
-  @Override
-  public String getFormat() {
-    return format;
-  }
-
-  @Override
-  public void setFormat(String format) {
-    this.format = format;
-  }
-
-  @Override
-  public String getUserList() {
-    return userList;
-  }
-
-  @Override
-  public void setUserList(String userList) {
-    this.userList = userList;
-  }
 }
