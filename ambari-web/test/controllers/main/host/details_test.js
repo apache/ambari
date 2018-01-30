@@ -3033,9 +3033,7 @@ describe('App.MainHostDetailsController', function () {
   describe("#deleteHostErrorCallback", function () {
 
     beforeEach(function () {
-      sinon.stub(controller, 'loadConfigs', Em.K);
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
-      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
       controller.deleteHostErrorCallback({
         status: 'status',
         statusText: "statusText"
@@ -3044,13 +3042,8 @@ describe('App.MainHostDetailsController', function () {
 
     afterEach(function () {
       App.ajax.defaultErrorHandler.restore();
-      controller.loadConfigs.restore();
-      controller.isServiceMetricsLoaded.restore();
     });
 
-    it('loadConfigs is called once', function () {
-      expect(controller.loadConfigs.calledOnce).to.be.true;
-    });
     it('defaultErrorHandler is called once', function () {
       expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
     });
