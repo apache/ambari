@@ -92,21 +92,22 @@ public class ShipperConfigManager extends JsonManagerBase {
     }
   }
 
-  public Map<String, Object> testShipperConfig(String shipperConfig, String logId, String testEntry, String clusterName) {
+  public Response testShipperConfig(Map<String, Object> shipperConfig, String logId, String testEntry, String clusterName) {
     try {
-      LSServerInputConfig inputConfigValidate = new ObjectMapper().readValue(shipperConfig, LSServerInputConfig.class);
+      String shipperConfigJsonStr = new ObjectMapper().writeValueAsString(shipperConfig);
+      LSServerInputConfig inputConfigValidate = new ObjectMapper().readValue(shipperConfigJsonStr, LSServerInputConfig.class);
       Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
       Set<ConstraintViolation<LSServerInputConfig>> violations = validator.validate(inputConfigValidate);
       if (!violations.isEmpty()) {
         throw new IllegalArgumentException("Error validating shipper config:\n" + violations);
       }
-      
       String globalConfigs = logSearchConfigConfigurer.getConfig().getGlobalConfigs(clusterName);
-      LogEntryParseTester tester = new LogEntryParseTester(testEntry, shipperConfig, globalConfigs, logId);
-      return tester.parse();
+      LogEntryParseTester tester = new LogEntryParseTester(testEntry, shipperConfigJsonStr, globalConfigs, logId);
+      Map<String, Object> resultEntrty = tester.parse();
+      return Response.ok().entity(resultEntrty).build();
     } catch (Exception e) {
       Map<String, Object> errorResponse = ImmutableMap.of("errorMessage", (Object)e.toString());
-      return errorResponse;
+      return Response.serverError().entity(errorResponse).build();
     }
   }
 
