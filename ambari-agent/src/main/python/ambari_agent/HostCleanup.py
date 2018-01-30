@@ -20,7 +20,7 @@ limitations under the License.
 # For compatibility with different OSes
 # Edit PYTHONPATH to be able to import common_functions
 import sys
-sys.path.append("/usr/lib/python2.6/site-packages/")
+sys.path.append("/usr/lib/ambari-agent/lib/")
 ########################################################
 
 import os

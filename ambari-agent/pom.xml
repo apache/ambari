@@ -36,7 +36,7 @@
     <package.log.dir>/var/log/ambari-agent</package.log.dir>
     <package.pid.dir>/var/run/ambari-agent</package.pid.dir>
     <skipTests>false</skipTests>
-    <agent.install.dir>/usr/lib/python2.6/site-packages/ambari_agent</agent.install.dir>
+    <agent.install.dir>/usr/lib/ambari-agent/lib/ambari_agent</agent.install.dir>
     <ambari_commons.install.dir>/usr/lib/ambari-agent/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-agent/lib/resource_management</resource_management.install.dir>
     <jinja.install.dir>/usr/lib/ambari-agent/lib/ambari_jinja2</jinja.install.dir>
@@ -279,17 +279,6 @@
               <sources>
                 <source>
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/lib/ambari-agent</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/usr/lib/python2.6/site-packages</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/lib/python2.6/site-packages</location>
                 </source>
               </sources>
             </mapping>

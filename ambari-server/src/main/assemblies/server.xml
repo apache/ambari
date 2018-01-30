@@ -200,7 +200,7 @@
     <fileSet>
       <fileMode>755</fileMode>
       <directory>src/main/python/ambari_server</directory>
-      <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
+      <outputDirectory>/usr/lib/ambari-server/lib/ambari_server</outputDirectory>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -409,17 +409,17 @@
     <file>
       <fileMode>755</fileMode>
       <source>src/main/python/bootstrap.py</source>
-      <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
+      <outputDirectory>/usr/lib/ambari-server/lib/ambari_server</outputDirectory>
     </file>
     <file>
       <fileMode>755</fileMode>
       <source>src/main/python/setupAgent.py</source>
-      <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
+      <outputDirectory>/usr/lib/ambari-server/lib/ambari_server</outputDirectory>
     </file>
     <file>
       <fileMode>755</fileMode>
       <source>src/main/python/os_check_type.py</source>
-      <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
+      <outputDirectory>/usr/lib/ambari-server/lib/ambari_server</outputDirectory>
     </file>
     <file>
       <fileMode>755</fileMode>
