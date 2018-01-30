@@ -486,16 +486,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/usr/lib/python2.6/site-packages</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/lib/python2.6/site-packages</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/var/log/ambari-server</directory>
               <username>root</username>
               <groupname>root</groupname>

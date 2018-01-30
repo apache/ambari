@@ -33,12 +33,12 @@ SECURE_FILE_PERMISSIONS = 700
 jar_files_to_check = ["/var/lib/ambari-server/", "/usr/lib/ambari-server/"]
 
 # List of directories. For this list we are only checking permissions for directory.
-directories_to_check = ["/etc/ambari-server/conf", "/usr/lib/ambari-server", "/usr/lib/python2.6/site-packages/ambari_server",
+directories_to_check = ["/etc/ambari-server/conf", "/usr/lib/ambari-server", "/usr/lib/ambari-server/lib/ambari_server",
                         "/var/lib/ambari-server"]
 
 # List of directories/files. If "directory", then we will check all files in it and in all subdirectories. If "file" then we will check only this file.
 files_to_check = ["/etc/ambari-server/conf/", "/etc/init/ambari-server.conf", "/etc/init.d/ambari-server",
-                  "/usr/lib/ambari-server", "/usr/lib/python2.6/site-packages/ambari_server", "/usr/sbin/ambari_server_main.py",
+                  "/usr/lib/ambari-server", "/usr/lib/ambari-server/lib/ambari_server", "/usr/sbin/ambari_server_main.py",
                   "/usr/sbin/ambari-server.py", "/var/lib/ambari-server"]
 
 

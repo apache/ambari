@@ -266,8 +266,8 @@ distributeKeytabs () {
 ## getEnvironmentCMD () : get linux distribution type and package manager
 ########################
 getEnvironmentCMD () {
-  os=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from ambari_commons import OSCheck; print OSCheck.get_os_family()'`
-  version=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from ambari_commons import OSCheck; print OSCheck.get_os_major_version()'`
+  os=`python -c 'import sys; sys.path.append("/usr/lib/ambari-server/lib/"); from ambari_commons import OSCheck; print OSCheck.get_os_family()'`
+  version=`python -c 'import sys; sys.path.append("/usr/lib/ambari-server/lib/"); from ambari_commons import OSCheck; print OSCheck.get_os_major_version()'`
   os=$os$version;
   case $os in
   'ubuntu12' )

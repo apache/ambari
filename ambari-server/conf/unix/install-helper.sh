@@ -19,12 +19,19 @@
 ROOT_DIR_PATH="${RPM_INSTALL_PREFIX}"
 ROOT=`echo "${RPM_INSTALL_PREFIX}" | sed 's|/$||g'` # Customized folder, which ambari-server files are installed into ('/' or '' are default).
 
-COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_commons"
-RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
-JINJA_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_jinja2"
-SIMPLEJSON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_simplejson"
-OLD_COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/common_functions"
-AMBARI_SERVER="${ROOT}/usr/lib/python2.6/site-packages/ambari_server"
+OLD_COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_commons"
+OLD_RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
+OLD_JINJA_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_jinja2"
+OLD_SIMPLEJSON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_simplejson"
+OLD_AMBARI_SERVER_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_server"
+
+COMMON_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_commons"
+RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/ambari-server/lib/resource_management"
+JINJA_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_jinja2"
+SIMPLEJSON_DIR="${ROOT}/usr/lib/ambari-server/lib/ambari_simplejson"
+AMBARI_SERVER="${ROOT}/usr/lib/ambari-server/lib/ambari_server"
+
+
 INSTALL_HELPER_AGENT="/var/lib/ambari-agent/install-helper.sh"
 CA_CONFIG="${ROOT}/var/lib/ambari-server/keys/ca.config"
 COMMON_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/ambari_commons"
@@ -57,23 +64,7 @@ do_install(){
   rm -f "$AMBARI_SERVER_EXECUTABLE_LINK"
   ln -s "$AMBARI_SERVER_EXECUTABLE" "$AMBARI_SERVER_EXECUTABLE_LINK"
  
-  # setting ambari_commons shared resource
-  rm -rf "$OLD_COMMON_DIR"
-  if [ ! -d "$COMMON_DIR" ]; then
-    ln -s "$COMMON_DIR_SERVER" "$COMMON_DIR"
-  fi
-  # setting resource_management shared resource
-  if [ ! -d "$RESOURCE_MANAGEMENT_DIR" ]; then
-    ln -s "$RESOURCE_MANAGEMENT_DIR_SERVER" "$RESOURCE_MANAGEMENT_DIR"
-  fi
-  # setting jinja2 shared resource
-  if [ ! -d "$JINJA_DIR" ]; then
-    ln -s "$JINJA_SERVER_DIR" "$JINJA_DIR"
-  fi
-  # setting simplejson shared resource
-  if [ ! -d "$SIMPLEJSON_DIR" ]; then
-    ln -s "$SIMPLEJSON_SERVER_DIR" "$SIMPLEJSON_DIR"
-  fi
+rm -rf "$OLD_COMMON_DIR" "$OLD_RESOURCE_MANAGEMENT_DIR" "$OLD_JINJA_DIR" "$OLD_SIMPLEJSON_DIR" "$OLD_COMMON_DIR" "$OLD_AMBARI_SERVER_DIR"
 
   #TODO we need this when upgrading from pre 2.4 versions to 2.4, remove this when upgrade from pre 2.4 versions will be
   #TODO unsupported
@@ -127,7 +118,7 @@ do_install(){
   fi
 
   if [ -f "$AMBARI_ENV_RPMSAVE" ] ; then
-    PYTHON_PATH_LINE='export PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages'
+    PYTHON_PATH_LINE='export PYTHONPATH=/usr/lib/ambari-server/lib:$PYTHONPATH'
     grep "^$PYTHON_PATH_LINE\$" "$AMBARI_ENV_RPMSAVE" > /dev/null
     if [ $? -ne 0 ] ; then
       echo -e "\n$PYTHON_PATH_LINE" >> $AMBARI_ENV_RPMSAVE
@@ -165,10 +156,6 @@ do_remove(){
 
   if [ -d "$SIMPLEJSON_DIR" ]; then
     rm -f $SIMPLEJSON_DIR
-  fi
-
-  if [ -d "$OLD_COMMON_DIR" ]; then
-    rm -rf $OLD_COMMON_DIR
   fi
 
   if [ -d "$AMBARI_SERVER" ]; then
