@@ -152,7 +152,7 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
     const mpacks = this.get('content.mpacks');
 
     if (mpacks) {
-      //TODO: mpacks - reinstate this if/when the test runner can handle it
+      //reinstate this if/when the test runner can handle for..of loops
       //for (let mpack of mpacks) {
       //if (mpack.get('name') === mpackName) {
       //  return mpack.get('versions')[0]; //TODO: mpacks - change this to the last item when sort order is fixed

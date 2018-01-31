@@ -156,7 +156,7 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   getSelectedStack: function() {
     const selectedStack = this.get('content.selectedStack');
     const stack = this.get('wizardController').getStack(selectedStack.name, selectedStack.version);
-    return stack;
+    return stack;    
   },
 
   installedServices: function() {
@@ -917,31 +917,12 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   },
 
   /**
-   * To Start deploy process
-   * @method startDeploy
-   */
-   //TODO: mpacks
-  startDeploy: function () {
-    const self = this;
-
-    if (!this.get('isInstaller')) {
-      this._startDeploy();
-    } else {
-      const selectedStack = this.getSelectedStack();
-      //skip this because we already updated the repo URLs if they were customized in the customProductRepos step's submit action
-      //this.get('wizardController').updateRepoOSInfo({ id: selectedStack.get('id'), stackName: selectedStack.get('stackName'), stackVersion: selectedStack.get('stackVersion') }, selectedStack).done(function() {
-        self._startDeploy();
-      //});
-    }
-  },
-
-  /**
    * Start deploy process
    * @method startDeploy
    */
-  _startDeploy: function () {
+  startDeploy: function () {
     this.createCluster();
-    this.createServiceGroup();
+    this.createServiceGroups();
     this.createSelectedServices();
     if (!this.get('isAddHost')) {
       if (this.get('isAddService')) {
@@ -983,7 +964,6 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * Queued request
    * @method createCluster
    */
-   //TODO: mpacks
   createCluster: function () {
     if (!this.get('isInstaller')) return;
     const selectedStack = this.getSelectedStack()
@@ -1001,18 +981,45 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
   },
 
   /**
-   * Creates the servcegroup
+   * Creates one service group per mpack.
+   * Skip if no mpacks were selected.
    * Queued request
    * @method createServiceGroup
    */
-  createServiceGroup: function () {
+  createServiceGroups: function () {
     if (!this.get('isInstaller')) return;
-    this.addRequestToAjaxQueue({
-      name: 'wizard.step8.create_service_group',
-      data: {
-        data: JSON.stringify({ "ServiceGroupInfo": { "cluster_name": App.get('clusterName') || App.clusterStatus.get('clusterName'), "service_group_name": App.get('defaultServiceGroupName') }})
-      }
-    });
+    
+    var data = this.createServiceGroupsData();
+    if (data) {
+      this.addRequestToAjaxQueue({
+        name: 'wizard.step8.create_service_group',
+        data: {
+          data: JSON.stringify(data)
+        }
+      });
+    } 
+  },
+
+  /**
+   * Format data for <code>createServiceGroups</code> request
+   * @returns {Object[]}
+   * @method createServiceGroupsData
+   */
+  createServiceGroupsData: function () {
+    const mpacks = this.get('selectedMpacks');
+    
+    if (mpacks) {
+      const serviceGroups = mpacks.map(mpack => ({
+          "ServiceGroupInfo": {
+            "service_group_name": `${mpack.name}-${mpack.version}`,
+          }
+        })
+      );
+
+      return serviceGroups;
+    }
+
+    return null;
   },
 
   /**
@@ -1037,15 +1044,20 @@ App.WizardStep8Controller = App.WizardStepController.extend(App.AddSecurityConfi
    * @returns {Object[]}
    * @method createSelectedServicesData
    */
-   //TODO: mpacks
   createSelectedServicesData: function () {
-    var selectedStack;
-    if (this.get('isInstaller')) {
-      selectedStack = this.getSelectedStack();
-    }
-    return this.get('selectedServices').map(service => selectedStack ?
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), "desired_repository_version_id": selectedStack.get('id') }} :
-      {"ServiceInfo": { "service_name": service.get('serviceName'), "service_type": service.get('serviceName'), "service_group_name": App.get('defaultServiceGroupName'), }});
+    const services = this.get('selectedServices');
+    const data = services.map(service => ({
+        "ServiceInfo": {
+          "service_name": service.get('serviceName'),
+          "service_type": service.get('serviceName'),
+          //TODO: mpacks - needs to be revisited when we are no longer hard coding service groups to be named 
+          //               for mpacks and when the concept of a "selected stack" is no longer a thing
+          "service_group_name": `${service.get('stackName')}-${service.get('stackVersion')}`,
+          "desired_stack": `${service.get('stackName')}-${service.get('stackVersion')}`,
+        }
+      })
+    );
+    return data;
   },
 
   /**

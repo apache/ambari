@@ -17,11 +17,11 @@
 }}
 
 <div id="serviceConfig" class="wizard-content col-md-9" {{QAAttr "service-configs"}}>
-  <h4 class="step-header" {{QAAttr "step-title"}}>{{t installer.step7.header}}{{controller.finnalyLoaded}}</h4>
-  <p class="step-description">{{t installer.step7.body}}</p>
+  <h4 class="step-title" {{QAAttr "step-title"}}>{{t installer.step7.header}}{{controller.finnalyLoaded}}</h4>
 
   <div class="panel panel-default">
     <div class="panel-body">
+      <p class="step-description">{{t installer.step7.body}}</p>
       {{#if isConfigsLoaded}}
         {{view App.ServicesConfigView}}
       {{else}}

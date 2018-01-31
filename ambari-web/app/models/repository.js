@@ -80,8 +80,11 @@ App.Repository = DS.Model.extend({
    * @type {boolean}
    */
   showRepo: function () {
-    const isGPLAccepted = App.router.get('clusterController.ambariProperties')['gpl.license.accepted'] === 'true';
-    return isGPLAccepted || !this.get('isGPL');
+    const ambariProperties = App.router.get('clusterController.ambariProperties');
+    if (ambariProperties && ambariProperties['gpl.license.accepted'] === true) {
+      return true;
+    }
+    return !this.get('isGPL');
   }.property('isGPL'),
 
   undo: Em.computed.notEqualProperties('baseUrl', 'baseUrlInit'),

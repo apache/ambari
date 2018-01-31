@@ -18,11 +18,11 @@
 <div id="select-mpacks" class="wizard-content col-md-9">
   <h4 class="step-title">{{t installer.selectMpacks.body.header}}</h4>
   {{#if isSaved}}
-  <div class="alert alert-warning" role="alert"><strong>{{t installer.warning.changes.header}}</strong> {{t installer.warning.changes}}</div>
+  <div class="alert alert-warning" role="alert"><strong>{{t common.warning}}:</strong> {{t installer.warning.changes}}</div>
   {{/if}}
   <div class="display-flex">
     <!-- Registry -->
-    <div id="registry" class="panel panel-default col-md-8">
+    <div id="registry" class="panel panel-default col-md-8 display-flex direction-col">
       <div class="panel-heading display-flex align-center">
         <div id="useCaseHeader">
         {{#if controller.content.advancedMode}}
@@ -51,7 +51,7 @@
         <span class="more-info" data-toggle="tooltip" data-placement="bottom" {{translateAttr title="installer.selectMpacks.basicModeHelp"}}></span>
         {{/if}}
       </div>
-      <div class="panel-body tab-content">
+      <div class="panel-body tab-content flex-fill">
         {{#if controller.content.advancedMode}}
         <div role="tabpanel" class="tab-pane active" id="mpacks">
           <div class="options-list">
@@ -91,9 +91,9 @@
       </div>
     </div>
     <!-- Selection -->
-    <div class="panel panel-default col-md-4 selected-list">
+    <div class="panel panel-default col-md-4 selected-list display-flex direction-col">
       <div class="panel-heading">{{t installer.selectMpacks.body.selected.header}}&nbsp;({{controller.selectedMpackVersions.length}})</div>
-      <div class="panel-body">
+      <div class="panel-body flex-fill">
         {{#if controller.hasSelectedMpackVersions}}
         {{#each mpackVersion in controller.selectedMpackVersions}}
           {{view App.WizardSelectedMpackVersionView mpackVersionBinding="mpackVersion"}}

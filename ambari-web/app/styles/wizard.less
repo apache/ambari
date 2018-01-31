@@ -859,7 +859,7 @@
       }
       input[type="radio"]:checked + label:before {
         background: #fff;
-        border-width: 4px;
+        border-width: 3px;
         border-color: #1491c1;
       }
       input[type="radio"]:checked + label:after {
@@ -931,6 +931,7 @@
   .table.table-hover > tbody {
     > tr > td {
       vertical-align: middle;
+      line-height: 20px;
     }
   }
 }
@@ -940,6 +941,7 @@
   .table.table-hover > tbody {
     > tr > td {
       border-width: 0;
+      line-height: 20px;
     }
     > tr, > tr:hover > td {
       border-width: 0;
@@ -955,16 +957,11 @@
 
 #downloadMpacks,
 #verifyProductRepos {
-  .download-status {
-    .progress-wrapper {
-      padding:0px;
-      .progress {
-        height:8px;
-        margin:5px 5px 5px 0;
-        .progress-bar {
-          width:100%;
-        }
-      }
+  .progress {
+    width: 75%;
+    margin: 0;
+    .progress-bar {
+      width: 100%;
     }
   }
 }
@@ -981,12 +978,6 @@
     padding: 0;
     .wizard {
       border: none;
-      .wizard-nav {
-        width: 250px;
-      }
-      .wizard-content.col-md-9 {
-        width: calc(~"100% - 250px");
-      }
     }
   }
 }
@@ -1013,4 +1004,9 @@
   flex: auto;
   margin-right: 10px;
   text-align: left;
+}
+
+.dropdown-menu input[type="checkbox"]:checked + label:after,
+.table input[type="checkbox"]:checked + label:after {
+  line-height: 2;
 }

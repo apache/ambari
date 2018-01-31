@@ -591,7 +591,6 @@ Em.I18n.translations = {
   'installer.header':'Cluster Install Wizard',
   'installer.navigation.warning.header':'Navigation Warning',
   'installer.navigation.warning':'If you make changes to a previous step you will lose any changes saved in subsequent steps.',
-  'installer.warning.changes.header':'Warning',
   'installer.warning.changes':'If you make changes to this step you will lose any changes saved in subsequent steps.',
   'installer.noHostsAssigned':'No host assigned',
   'installer.slaveComponentHosts.selectHosts':'select hosts for this group',
