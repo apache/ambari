@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import sys
-sys.path.append("/usr/lib/python2.6/site-packages/") # this file can be run with python2.7 that why we need this
+sys.path.append("/usr/lib/ambari-server/lib/") # this file can be run with python2.7 that why we need this
 
 # On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
 # Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
@@ -403,7 +403,7 @@ class BootstrapWindows(Bootstrap):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class BootstrapDefault(Bootstrap):
-  ambari_commons="/usr/lib/python2.6/site-packages/ambari_commons"
+  ambari_commons="/usr/lib/ambari-server/lib/ambari_commons"
   TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
   OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
   PASSWORD_FILENAME = "host_pass"
