@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
@@ -38,6 +39,7 @@ public class JsonUtils {
   public static JsonParser jsonParser = new JsonParser();
 
   private static final ObjectMapper JSON_SERIALIZER = new ObjectMapper();
+  private static final ObjectWriter JSON_WRITER = JSON_SERIALIZER.writer();
 
   /**
    * Checks if an input string is in valid JSON format
@@ -62,7 +64,7 @@ public class JsonUtils {
       return  null;
     }
     try {
-      return JSON_SERIALIZER.readValue(json, valueType);
+      return JSON_SERIALIZER.reader(valueType).readValue(json);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
@@ -70,7 +72,7 @@ public class JsonUtils {
 
   public static String toJson(Object object) {
     try {
-      return JSON_SERIALIZER.writeValueAsString(object);
+      return JSON_WRITER.writeValueAsString(object);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
