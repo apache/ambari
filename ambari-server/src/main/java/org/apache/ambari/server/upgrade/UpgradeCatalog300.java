@@ -565,7 +565,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   }
 
   protected void addUserAuthenticationSequence() throws SQLException {
-    final long maxUserAuthenticationId = fetchMaxId(USER_AUTHENTICATION_TABLE, "user_authentication_id");
+    final long maxUserAuthenticationId = fetchMaxId(USER_AUTHENTICATION_TABLE, USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN);
     LOG.info("Maximum user authentication ID = " + maxUserAuthenticationId);
     addSequence("user_authentication_id_seq", maxUserAuthenticationId + 1, false);
   }
