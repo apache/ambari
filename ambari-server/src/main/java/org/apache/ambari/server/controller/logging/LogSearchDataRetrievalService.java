@@ -92,8 +92,6 @@ public class LogSearchDataRetrievalService extends AbstractService {
   @Inject
   private Configuration ambariServerConfiguration;
 
-
-
   /**
    * A Cache of host+component names to a set of log files associated with
    *  that Host/Component combination.  This data is retrieved from the

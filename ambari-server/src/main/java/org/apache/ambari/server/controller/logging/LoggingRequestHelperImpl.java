@@ -115,6 +115,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private final Cluster cluster;
 
+  private final String externalAddress;
+
   private final NetworkConnection networkConnection;
 
   private SSLSocketFactory sslSocketFactory;
@@ -124,16 +126,17 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   private int logSearchReadTimeoutInMilliseconds = DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS;
 
 
-  public LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster) {
-    this(hostName, portNumber, protocol, credentialStoreService, cluster, new DefaultNetworkConnection());
+  public LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster, String externalAddress) {
+    this(hostName, portNumber, protocol, credentialStoreService, cluster, externalAddress, new DefaultNetworkConnection());
   }
 
-  protected LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster, NetworkConnection networkConnection) {
+  protected LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster, String externalAddress, NetworkConnection networkConnection) {
     this.hostName = hostName;
     this.portNumber = portNumber;
     this.protocol = protocol;
     this.credentialStoreService = credentialStoreService;
     this.cluster = cluster;
+    this.externalAddress = externalAddress;
     this.networkConnection = networkConnection;
   }
 
@@ -254,7 +257,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
     // first attempt to use the LogSearch admin configuration to
     // obtain the LogSearch server credential
-    if ((logSearchAdminUser != null) && (logSearchAdminPassword != null)) {
+    if ((logSearchAdminUser != null) && (logSearchAdminPassword != null) && StringUtils.isEmpty(externalAddress)) {
       LOG.debug("Credential found in config, will be used to connect to LogSearch");
       networkConnection.setupBasicAuthentication(httpURLConnection, createEncodedCredentials(logSearchAdminUser, logSearchAdminPassword));
     } else {
@@ -270,6 +273,9 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
         networkConnection.setupBasicAuthentication(httpURLConnection, createEncodedCredentials(principalKeyCredential));
       } else {
         LOG.debug("No LogSearch credential could be found, this is probably an error in configuration");
+        if (StringUtils.isEmpty(externalAddress)) {
+          LOG.error("No LogSearch credential could be found, this is required for external LogSearch (credential: {})", LOGSEARCH_ADMIN_CREDENTIAL_NAME);
+        }
       }
     }
   }
@@ -300,7 +306,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     try {
       // use the Apache builder to create the correct URI
       URIBuilder uriBuilder = createBasicURI(protocol);
-      uriBuilder.setPath(LOGSEARCH_GET_LOG_FILES_PATH);
+      appendUriPath(uriBuilder, LOGSEARCH_GET_LOG_FILES_PATH);
       uriBuilder.addParameter(HOST_QUERY_PARAMETER_NAME, hostName);
       uriBuilder.addParameter(LOGSEARCH_CLUSTERS_QUERY_PARAMETER_NAME, cluster.getClusterName());
 
@@ -403,7 +409,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private URI createLogSearchQueryURI(String scheme, Map<String, String> queryParameters) throws URISyntaxException {
     URIBuilder uriBuilder = createBasicURI(scheme);
-    uriBuilder.setPath(LOGSEARCH_QUERY_PATH);
+    appendUriPath(uriBuilder, LOGSEARCH_QUERY_PATH);
 
     // set the current cluster name, in case this LogSearch service supports data
     // for multiple clusters
@@ -417,17 +423,38 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return uriBuilder.build();
   }
 
-  private URIBuilder createBasicURI(String scheme) {
+  private URIBuilder createBasicURI(String scheme) throws URISyntaxException {
     URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setScheme(scheme);
-    uriBuilder.setHost(hostName);
-    uriBuilder.setPort(Integer.valueOf(portNumber));
+    if (StringUtils.isNotBlank(externalAddress)) {
+      final URI uri = new URI(externalAddress);
+      uriBuilder.setScheme(uri.getScheme());
+      uriBuilder.setHost(uri.getHost());
+      if (uri.getPort() != -1) {
+        uriBuilder.setPort(uri.getPort());
+      }
+      // add path as well to make it work with proxies like: https://sample.org/logsearch
+      if (StringUtils.isNotBlank(uri.getPath())) {
+        uriBuilder.setPath(uri.getPath());
+      }
+    } else {
+      uriBuilder.setScheme(scheme);
+      uriBuilder.setHost(hostName);
+      uriBuilder.setPort(Integer.valueOf(portNumber));
+    }
     return uriBuilder;
+  }
+
+  private void appendUriPath(URIBuilder uriBuilder, String path) {
+    if (StringUtils.isNotEmpty(uriBuilder.getPath())) {
+      uriBuilder.setPath(uriBuilder.getPath() + path);
+    } else {
+      uriBuilder.setPath(path);
+    }
   }
 
   private URI createLogLevelQueryURI(String scheme, String componentName, String hostName) throws URISyntaxException {
     URIBuilder uriBuilder = createBasicURI(scheme);
-    uriBuilder.setPath(LOGSEARCH_GET_LOG_LEVELS_PATH);
+    appendUriPath(uriBuilder, LOGSEARCH_GET_LOG_LEVELS_PATH);
 
     Map<String, String> queryParameters = new HashMap<>();
     // set the query parameters to limit this level count
