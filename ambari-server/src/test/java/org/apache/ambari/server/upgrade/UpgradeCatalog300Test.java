@@ -223,6 +223,7 @@ public class UpgradeCatalog300Test {
     Method updateKerberosConfigurations = UpgradeCatalog300.class.getDeclaredMethod("updateKerberosConfigurations");
     Method upgradeLdapConfiguration = UpgradeCatalog300.class.getDeclaredMethod("upgradeLdapConfiguration");
     Method createRoleAuthorizations = UpgradeCatalog300.class.getDeclaredMethod("createRoleAuthorizations");
+    Method addUserAuthenticationSequence = UpgradeCatalog300.class.getDeclaredMethod("addUserAuthenticationSequence");
 
     UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
         .addMockedMethod(showHcatDeletedUserMessage)
@@ -232,6 +233,7 @@ public class UpgradeCatalog300Test {
         .addMockedMethod(updateKerberosConfigurations)
         .addMockedMethod(upgradeLdapConfiguration)
         .addMockedMethod(createRoleAuthorizations)
+        .addMockedMethod(addUserAuthenticationSequence)
         .createMock();
 
 
@@ -254,6 +256,9 @@ public class UpgradeCatalog300Test {
     expectLastCall().once();
 
     upgradeCatalog300.upgradeLdapConfiguration();
+    expectLastCall().once();
+
+    upgradeCatalog300.addUserAuthenticationSequence();
     expectLastCall().once();
 
     replay(upgradeCatalog300);
