@@ -191,8 +191,6 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
   private Map<String, Collection<String>> group1ServiceComponents = new HashMap<>();
   private Map<String, Collection<String>> group2ServiceComponents = new HashMap<>();
 
-  private Map<String, Collection<String>> serviceComponents = new HashMap<>();
-
   private String predicate = "Hosts/host_name=foo";
 
   private List<TopologyValidator> topologyValidators = new ArrayList<>();
@@ -233,8 +231,9 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     groupMap.put("group1", group1);
     groupMap.put("group2", group2);
 
-    serviceComponents.put("service1", Arrays.asList("component1", "component3"));
-    serviceComponents.put("service2", Arrays.asList("component2", "component4"));
+    Collection<String> components1 = ImmutableSet.of("component1", "component3");
+    Collection<String> components2 = ImmutableSet.of("component2", "component4");
+    Collection<String> components = ImmutableSet.<String>builder().addAll(components1).addAll(components2).build();
 
     group1ServiceComponents.put("service1", Arrays.asList("component1", "component3"));
     group1ServiceComponents.put("service2", Collections.singleton("component2"));
@@ -280,9 +279,9 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(stack.getCardinality("component2")).andReturn(new Cardinality("1")).anyTimes();
     expect(stack.getCardinality("component3")).andReturn(new Cardinality("1+")).anyTimes();
     expect(stack.getCardinality("component4")).andReturn(new Cardinality("1+")).anyTimes();
-    expect(stack.getComponents()).andReturn(serviceComponents).anyTimes();
-    expect(stack.getComponents("service1")).andReturn(serviceComponents.get("service1")).anyTimes();
-    expect(stack.getComponents("service2")).andReturn(serviceComponents.get("service2")).anyTimes();
+    expect(stack.getComponents()).andReturn(components).anyTimes();
+    expect(stack.getComponents("service1")).andReturn(components1).anyTimes();
+    expect(stack.getComponents("service2")).andReturn(components2).anyTimes();
     expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();

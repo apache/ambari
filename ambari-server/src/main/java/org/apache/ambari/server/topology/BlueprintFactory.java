@@ -45,6 +45,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
@@ -162,19 +164,29 @@ public class BlueprintFactory {
     StackDefinition composite = StackDefinition.of(stacks);
 
     // temporary check
-    verifyServicesAreDisjunct(composite);
+    verifyStackDefinitionsAreDisjoint(composite.getServices().stream(), "Service", composite::getStacksForService);
+    verifyStackDefinitionsAreDisjoint(composite.getComponents().stream(), "Component", composite::getStacksForComponent);
 
     return composite;
   }
 
-  static void verifyServicesAreDisjunct(StackDefinition composite) {
-    Set<Pair<String, Set<StackId>>> servicesDefinedInMultipleStacks = composite.getServices().stream()
-      .map(s -> Pair.of(s, composite.getStacksForService(s)))
+  /**
+   * Verify that each item in <code>items</code> is defined by only one stack.
+   *
+   * @param items the items to check
+   * @param type string description of the type of items (eg. "Service", or "Component")
+   * @param lookup a function to find the set of stacks that an item belongs to
+   * @throws IllegalArgumentException if some items are defined in multiple stacks
+   */
+  static void verifyStackDefinitionsAreDisjoint(Stream<String> items, String type, Function<String, Set<StackId>> lookup) {
+    Set<Pair<String, Set<StackId>>> definedInMultipleStacks = items
+      .map(s -> Pair.of(s, lookup.apply(s)))
       .filter(p -> p.getRight().size() > 1)
       .collect(toCollection(TreeSet::new));
-    if (!servicesDefinedInMultipleStacks.isEmpty()) {
-      String msg = servicesDefinedInMultipleStacks.stream()
-        .map(p -> String.format("Service %s is defined in multiple stacks: %s", p.getLeft(), Joiner.on(", ").join(p.getRight())))
+
+    if (!definedInMultipleStacks.isEmpty()) {
+      String msg = definedInMultipleStacks.stream()
+        .map(p -> String.format("%s %s is defined in multiple stacks: %s", type, p.getLeft(), Joiner.on(", ").join(p.getRight())))
         .collect(joining("\n"));
       LOG.error(msg);
       throw new IllegalArgumentException(msg);
@@ -266,11 +278,9 @@ public class BlueprintFactory {
    * @throws IllegalArgumentException if the specified stack doesn't exist
    */
   private Collection<String> getAllStackComponents(StackDefinition stack) {
-    Collection<String> allComponents = new HashSet<>();
-    for (Collection<String> components: stack.getComponents().values()) {
-      allComponents.addAll(components);
-    }
-    // currently ambari server is no a recognized component
+    Collection<String> allComponents = new HashSet<>(stack.getComponents());
+
+    // currently ambari server is not a recognized component
     allComponents.add(RootComponent.AMBARI_SERVER.name());
 
     return allComponents;

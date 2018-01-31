@@ -37,7 +37,6 @@ import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /** Combines multiple mpacks into a single stack. */
@@ -56,6 +55,15 @@ public class CompositeStack implements StackDefinition {
       .map(m -> Pair.of(m.getStackId(), m.getServices()))
       .filter(p -> p.getRight().contains(serviceName))
       .map(Pair::getLeft)
+      .collect(toSet());
+  }
+
+  @Override
+  public Set<StackId> getStacksForComponent(String componentName) {
+    return stacks.stream()
+      .map(m -> m.getStacksForComponent(componentName))
+      .filter(s -> !s.isEmpty())
+      .flatMap(Collection::stream)
       .collect(toSet());
   }
 
@@ -85,18 +93,17 @@ public class CompositeStack implements StackDefinition {
   @Override
   public Collection<String> getComponents(String service) {
     return stacks.stream()
-      .map(Stack::getComponents)
-      .map(m -> m.get(service))
+      .map(s -> s.getComponents(service))
       .filter(Objects::nonNull)
       .flatMap(Collection::stream)
       .collect(toSet());
   }
 
   @Override
-  public Map<String, Collection<String>> getComponents() {
+  public Collection<String> getComponents() {
     return stacks.stream()
-      .map(Stack::getComponents)
-      .reduce(ImmutableMap.of(), (m1, m2) -> ImmutableMap.<String, Collection<String>>builder().putAll(m1).putAll(m2).build());
+      .flatMap(s -> s.getComponents().stream())
+      .collect(toSet());
   }
 
   @Override

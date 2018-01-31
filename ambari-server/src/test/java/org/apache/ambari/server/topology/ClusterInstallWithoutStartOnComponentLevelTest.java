@@ -18,7 +18,6 @@
 package org.apache.ambari.server.topology;
 
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
@@ -190,9 +189,6 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
   private Map<String, Collection<Component>> group1ServiceComponents = new HashMap<>();
   private Map<String, Collection<Component>> group2ServiceComponents = new HashMap<>();
 
-  private Map<String, Collection<Component>> serviceComponents = new HashMap<>();
-  private Map<String, Collection<String>> serviceComponentNames = new HashMap<>();
-
   private String predicate = "Hosts/host_name=foo";
 
   private List<TopologyValidator> topologyValidators = new ArrayList<>();
@@ -234,12 +230,9 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     groupMap.put("group1", group1);
     groupMap.put("group2", group2);
 
-    serviceComponents.put("service1", Arrays.asList(new Component("component1"), new Component("component3")));
-    serviceComponents.put("service2", Arrays.asList(new Component("component2"), new Component("component4")));
-
-    for(Map.Entry<String, Collection<Component>> entry: serviceComponents.entrySet()) {
-      serviceComponentNames.put(entry.getKey(), entry.getValue().stream().map(Component::getName).collect(toList()));
-    }
+    Collection<String> components1 = ImmutableSet.of("component1", "component3");
+    Collection<String> components2 = ImmutableSet.of("component2", "component4");
+    Collection<String> components = ImmutableSet.<String>builder().addAll(components1).addAll(components2).build();
 
     group1ServiceComponents.put("service1", Arrays.asList(new Component("component1"), new Component("component3")));
     group1ServiceComponents.put("service2", Collections.singleton(new Component("component2")));
@@ -285,9 +278,9 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(stack.getCardinality("component2")).andReturn(new Cardinality("1")).anyTimes();
     expect(stack.getCardinality("component3")).andReturn(new Cardinality("1+")).anyTimes();
     expect(stack.getCardinality("component4")).andReturn(new Cardinality("1+")).anyTimes();
-    expect(stack.getComponents()).andReturn(serviceComponentNames).anyTimes();
-    expect(stack.getComponents("service1")).andReturn(serviceComponentNames.get("service1")).anyTimes();
-    expect(stack.getComponents("service2")).andReturn(serviceComponentNames.get("service2")).anyTimes();
+    expect(stack.getComponents()).andReturn(components).anyTimes();
+    expect(stack.getComponents("service1")).andReturn(components1).anyTimes();
+    expect(stack.getComponents("service2")).andReturn(components2).anyTimes();
     expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();

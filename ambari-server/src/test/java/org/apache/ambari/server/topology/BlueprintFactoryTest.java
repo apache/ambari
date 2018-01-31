@@ -35,18 +35,16 @@ import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProviderTest;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -60,7 +58,6 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -86,21 +83,18 @@ public class BlueprintFactoryTest {
   public void init() throws Exception {
     setPrivateField(factory, "blueprintDAO", dao);
 
-    Map<String, Collection<String>> componentMap = new HashMap<>();
-    Collection<String> components1 = new HashSet<>();
-    componentMap.put("test-service1", components1);
-    components1.add("component1");
-    Collection<String> components2 = new HashSet<>();
-    componentMap.put("test-service2", components2);
-    components2.add("component2");
+    Set<StackId> stackIds = ImmutableSet.of(new StackId("stack", "0.1"));
+    Collection<String> services = ImmutableSet.of("test-service1", "test-service2");
+    Collection<String> components = ImmutableSet.of("component1", "component2");
 
-    expect(stack.getServices()).andReturn(componentMap.keySet()).anyTimes();
-    expect(stack.getComponents()).andReturn(componentMap).anyTimes();
+    expect(stack.getServices()).andReturn(services).anyTimes();
+    expect(stack.getComponents()).andReturn(components).anyTimes();
     expect(stack.isMasterComponent("component1")).andReturn(true).anyTimes();
     expect(stack.isMasterComponent("component2")).andReturn(false).anyTimes();
     expect(stack.getServiceForComponent("component1")).andReturn("test-service1").anyTimes();
     expect(stack.getServiceForComponent("component2")).andReturn("test-service2").anyTimes();
-    expect(stack.getStacksForService(anyString())).andReturn(ImmutableSet.of(new StackId("stack", "0.1"))).anyTimes();
+    expect(stack.getStacksForService(anyString())).andReturn(stackIds).anyTimes();
+    expect(stack.getStacksForComponent(anyString())).andReturn(stackIds).anyTimes();
   }
 
   @After
@@ -224,12 +218,11 @@ public class BlueprintFactoryTest {
   }
 
   public Blueprint createMultiInstanceBlueprint() throws Exception {
-    Map<String, Collection<String>> allComponents = ImmutableMap.of(
-      "HDFS", ImmutableSet.of("NAMENODE", "SECONDARY_NAMENODE"),
-      "ZOOKEEPER", ImmutableSet.of("ZOOKEEPER_SERVER")
-    );
+    Collection<String> allComponents = ImmutableSet.of("NAMENODE", "SECONDARY_NAMENODE", "ZOOKEEPER_SERVER");
+    Collection<String> services = ImmutableSet.of("HDFS", "ZOOKEEPER");
+    Set<StackId> stackIds = ImmutableSet.of(new StackId("HDPCORE-3.0", "3.0.0.0"));
     reset(stack);
-    StackId hdp = new StackId("HDPCORE-3.0", "3.0.0.0");
+    expect(stack.getServices()).andReturn(services).anyTimes();
     expect(stack.getComponents()).andReturn(allComponents).anyTimes();
     expect(stack.isMasterComponent("NAMENODE")).andReturn(true).anyTimes();
     expect(stack.isMasterComponent("ZOOKEEPER_SERVER")).andReturn(true).anyTimes();
@@ -237,8 +230,8 @@ public class BlueprintFactoryTest {
     expect(stack.getServiceForComponent("NAMENODE")).andReturn("HDFS").anyTimes();
     expect(stack.getServiceForComponent("SECONDARY_NAMENODE")).andReturn("HDFS").anyTimes();
     expect(stack.getServiceForComponent("ZOOKEEPER_SERVER")).andReturn("ZOOKEEPER").anyTimes();
-    expect(stack.getServices()).andReturn(allComponents.keySet()).anyTimes();
-    expect(stack.getStacksForService(anyString())).andReturn(ImmutableSet.of(hdp)).anyTimes();
+    expect(stack.getStacksForService(anyString())).andReturn(stackIds).anyTimes();
+    expect(stack.getStacksForComponent(anyString())).andReturn(stackIds).anyTimes();
 
     replay(stack, dao, entity, configEntity);
 
@@ -328,41 +321,41 @@ public class BlueprintFactoryTest {
   }
 
   @Test(expected = IllegalArgumentException.class) // THEN
-  public void verifyServicesAreDisjunctDetectsDuplication() {
+  public void verifyDefinitionsDisjointShouldRejectDuplication() {
     // GIVEN
-    StackDefinition composite = createNiceMock(StackDefinition.class);
-    String service1 = "unique service";
-    String service2 = "duplicated service";
+    final String service1 = "unique service";
+    final String service2 = "duplicated service";
     StackId stack1 = new StackId("a_stack", "1.0");
     StackId stack2 = new StackId("another_stack", "0.9");
-    Collection<String> services = ImmutableSet.of(service1, service2);
-    Set<StackId> singleStack = ImmutableSet.of(stack1);
-    Set<StackId> multipleStacks = ImmutableSet.of(stack1, stack2);
-    expect(composite.getServices()).andReturn(services).anyTimes();
-    expect(composite.getStacksForService(service1)).andReturn(singleStack).anyTimes();
-    expect(composite.getStacksForService(service2)).andReturn(multipleStacks).anyTimes();
-    replay(composite);
+    Stream<String> stream = ImmutableSet.of(service1, service2).stream();
 
     // WHEN
-    BlueprintFactory.verifyServicesAreDisjunct(composite);
+    BlueprintFactory.verifyStackDefinitionsAreDisjoint(stream, "Services", service -> {
+      switch (service) {
+        case service1: return ImmutableSet.of(stack1);
+        case service2: return ImmutableSet.of(stack1, stack2);
+        default: return null;
+      }
+    });
   }
 
   @Test
-  public void verifyServicesAreDisjunctAllowsDisjunctStacks() {
+  public void verifyStackDefinitionsAreDisjointShouldAllowDisjointStacks() {
     // GIVEN
-    StackDefinition composite = createNiceMock(StackDefinition.class);
-    String service1 = "unique service";
-    String service2 = "another service";
+    final String service1 = "unique service";
+    final String service2 = "another service";
     StackId stack1 = new StackId("a_stack", "1.0");
     StackId stack2 = new StackId("another_stack", "0.9");
-    Collection<String> services = ImmutableSet.of(service1, service2);
-    expect(composite.getServices()).andReturn(services).anyTimes();
-    expect(composite.getStacksForService(service1)).andReturn(ImmutableSet.of(stack1)).anyTimes();
-    expect(composite.getStacksForService(service2)).andReturn(ImmutableSet.of(stack2)).anyTimes();
-    replay(composite);
+    Stream<String> stream = ImmutableSet.of(service1, service2).stream();
 
     // WHEN
-    BlueprintFactory.verifyServicesAreDisjunct(composite);
+    BlueprintFactory.verifyStackDefinitionsAreDisjoint(stream, "Services", service -> {
+      switch (service) {
+        case service1: return ImmutableSet.of(stack1);
+        case service2: return ImmutableSet.of(stack2);
+        default: return null;
+      }
+    });
 
     // THEN
     // no exception expected

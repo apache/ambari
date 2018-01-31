@@ -30,6 +30,11 @@ public interface StackDefinition {
   Set<StackId> getStacksForService(String serviceName);
 
   /**
+   * @return the IDs of the set of stacks that the given component is defined in
+   */
+  Set<StackId> getStacksForComponent(String componentName);
+
+  /**
    * @return the names of services defined the given stack
    */
   Set<String> getServices(StackId stackId);
@@ -53,9 +58,9 @@ public interface StackDefinition {
   /**
    * Get all service components
    *
-   * @return map of service to associated components
+   * @return collection of all components for the stack
    */
-  Map<String, Collection<String>> getComponents();
+  Collection<String> getComponents();
 
   /**
    * Get info for the specified component.

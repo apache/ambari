@@ -187,6 +187,13 @@ public class Stack implements StackDefinition {
   }
 
   @Override
+  public Set<StackId> getStacksForComponent(String componentName) {
+    return componentService.keySet().contains(componentName)
+      ? ImmutableSet.of(getStackId())
+      : ImmutableSet.of();
+  }
+
+  @Override
   public Set<String> getServices(StackId stackId) {
     return stackId.equals(getStackId())
       ? ImmutableSet.copyOf(getServices())
@@ -204,14 +211,8 @@ public class Stack implements StackDefinition {
   }
 
   @Override
-  public Map<String, Collection<String>> getComponents() {
-    Map<String, Collection<String>> serviceComponents = new HashMap<>();
-    for (String service : getServices()) {
-      Collection<String> components = new HashSet<>();
-      components.addAll(getComponents(service));
-      serviceComponents.put(service, components);
-    }
-    return serviceComponents;
+  public Collection<String> getComponents() {
+    return componentService.keySet();
   }
 
   @Override
