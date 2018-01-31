@@ -208,6 +208,28 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     }
   }
 
+  /**
+   * Fetches the maximum value of the given ID column from the given table.
+   *
+   * @param tableName
+   *          the name of the table to query the data from
+   * @param idColumnName
+   *          the name of the ID column you want to query the maximum value for.
+   *          This MUST refer an existing numeric type column
+   * @return the maximum value of the given column in the given table if any;
+   *         <code>0L</code> otherwise.
+   * @throws SQLException
+   */
+  protected final long fetchMaxId(String tableName, String idColumnName) throws SQLException {
+    try (Statement stmt = dbAccessor.getConnection().createStatement();
+        ResultSet rs = stmt.executeQuery(String.format("SELECT MAX(%s) FROM %s", idColumnName, tableName))) {
+      if (rs.next()) {
+        return rs.getLong(1);
+      }
+      return 0L;
+    }
+  }
+
   @Override
   public String getSourceVersion() {
     return null;
