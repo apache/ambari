@@ -2521,7 +2521,7 @@ public class Configuration {
    */
   @Markdown(description = "The maximum number of authentication attempts permitted to a local user. Once the number of failures reaches this limit the user will be locked out. 0 indicates unlimited failures.")
   public static final ConfigurationProperty<Integer> MAX_LOCAL_AUTHENTICATION_FAILURES = new ConfigurationProperty<>(
-    "authentication.local.max.failures", 10);
+    "authentication.local.max.failures", 0);
 
   /**
    * A flag to determine whether locked out messages are to be shown to users, if relevant, when authenticating into Ambari
