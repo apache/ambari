@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.Collections;
+import java.util.Properties;
 
 import javax.persistence.EntityManager;
 
@@ -77,6 +78,14 @@ public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
         .addMockedMethod("getUser", UserEntity.class)
         .createMock();
 
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.CLIENT_SECURITY.getKey(), ClientSecurityType.PAM.name());
+    properties.setProperty(Configuration.PAM_CONFIGURATION_FILE.getKey(), "ambari-pam");
+    properties.setProperty(Configuration.SHOW_LOCKED_OUT_USER_MESSAGE.getKey(), "true");
+    properties.setProperty(Configuration.MAX_LOCAL_AUTHENTICATION_FAILURES.getKey(), "10");
+
+    final Configuration configuration = new Configuration(properties);
+
     injector = Guice.createInjector(new AbstractModule() {
 
       @Override
@@ -89,13 +98,9 @@ public class AmbariPamAuthenticationProviderTest extends EasyMockSupport {
         bind(PamAuthenticationFactory.class).toInstance(createMock(PamAuthenticationFactory.class));
         bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
         bind(Users.class).toInstance(users);
+        bind(Configuration.class).toInstance(configuration);
       }
     });
-
-    Configuration configuration = injector.getInstance(Configuration.class);
-    configuration.setClientSecurityType(ClientSecurityType.PAM);
-    configuration.setProperty(Configuration.PAM_CONFIGURATION_FILE, "ambari-pam");
-    configuration.setProperty(Configuration.SHOW_LOCKED_OUT_USER_MESSAGE, "true");
   }
 
   @Test(expected = AuthenticationException.class)
