@@ -231,42 +231,92 @@ class shellRunnerWindows(shellRunner):
     return _dict_to_object({'exitCode': code, 'output': out, 'error': err})
 
 
-#linux specific code
+def get_all_childrens(base_pid):
+  """
+  Return all child's pids of base_pid process
+
+  :type base_pid int
+  :rtype list[(int, str, str)]
+  """
+  parent_pid_path_pattern = "/proc/{0}/task/{0}/children"
+  comm_path_pattern = "/proc/{0}/comm"
+  cmdline_path_pattern = "/proc/{0}/cmdline"
+
+  def read_childrens(pid):
+    try:
+      with open(parent_pid_path_pattern.format(pid), "r") as f:
+        return [int(item) for item in f.readline().strip().split(" ")]
+    except (IOError, ValueError):
+      return []
+
+  def read_command(pid):
+    try:
+      with open(comm_path_pattern.format(pid), "r") as f:
+        return f.readline().strip()
+    except IOError:
+      return ""
+
+  def read_cmdline(pid):
+    try:
+      with open(cmdline_path_pattern.format(pid), "r") as f:
+        return f.readline().strip()
+    except IOError:
+      return ""
+
+  done = []
+  pending = [int(base_pid)]
+
+  while pending:
+    mypid = pending.pop(0)
+    children = read_childrens(mypid)
+
+    done.append((mypid, read_command(mypid), read_cmdline(mypid)))
+    pending.extend(children)
+
+  return done
+
+
+def is_pid_life(pid):
+  """
+  check if process with pid still exists (not counting it real state)
+
+  :type pid int
+  """
+  pid_path = "/proc/{0}"
+  try:
+    return os.path.exists(pid_path.format(pid))
+  except Exception:
+    logger.debug("Failed to check pid state")
+    return False
+
+
+# linux specific code
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def kill_process_with_children(parent_pid):
-  def kill_tree_function(pid, signal):
-    '''
-    Kills process tree starting from a given pid.
-    '''
-    # The command below starts 'ps' linux utility and then parses it's
-    # output using 'awk'. AWK recursively extracts PIDs of all children of
-    # a given PID and then passes list of "kill -<SIGNAL> PID" commands to 'sh'
-    # shell.
-    CMD = """ps xf | awk -v PID=""" + str(pid) + \
-          """ ' $1 == PID { P = $1; next } P && /_/ { P = P " " $1;""" + \
-          """K=P } P && !/_/ { P="" }  END { print "kill -""" \
-          + str(signal) + """ "K }' | sh """
-    process = subprocess.Popen(CMD, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, shell=True)
-    process.communicate()
+  exception_list = ["apt-get", "apt", "yum", "zypper", "zypp"]
+  signals_to_post = [signal.SIGTERM, signal.SIGKILL]
+  all_chield_pids = [item[0] for item in get_all_childrens(parent_pid) if item[1].lower() not in exception_list and item[0] != os.getpid()]
+  clean_kill = True
+  last_error = ""
 
-  _run_kill_function(kill_tree_function, parent_pid)
+  for sig in signals_to_post:
+    # we need to kill processes from the bottom of the tree
+    pids_to_kill = sorted(all_chield_pids, reverse=True)
+    for pid in pids_to_kill:
+      try:
+        if is_pid_life(pid):
+          os.kill(pid, sig)
+      except Exception as e:
+        clean_kill = False
+        last_error = repr(e)
 
+    if pids_to_kill:
+      time.sleep(gracefull_kill_delay)
 
-def _run_kill_function(kill_function, pid):
-  try:
-    kill_function(pid, signal.SIGTERM)
-  except Exception, e:
-    logger.warn("Failed to kill PID %d" % (pid))
-    logger.warn("Reported error: " + repr(e))
-
-  time.sleep(gracefull_kill_delay)
-
-  try:
-    kill_function(pid, signal.SIGKILL)
-  except Exception, e:
-    logger.error("Failed to send SIGKILL to PID %d. Process exited?" % (pid))
-    logger.error("Reported error: " + repr(e))
+  logger.info("Killed process tree starting from main pid {0}: {1}".format(parent_pid, ", ".join([str(i) for i in all_chield_pids])))
+  if not clean_kill:
+    logger.warn("Failed to kill some child of PID {0} tree".format(parent_pid))
+    logger.warn("Reported error: " + last_error)
 
 
 def _changeUid():
