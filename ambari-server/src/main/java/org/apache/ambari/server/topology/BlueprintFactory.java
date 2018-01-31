@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID;
 import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.COMPONENT_MPACK_INSTANCE_PROPERTY;
@@ -42,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
@@ -55,16 +58,22 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Joiner;
 import com.google.inject.Inject;
 
 /**
  * Create a Blueprint instance.
  */
 public class BlueprintFactory {
+
+  private static final Logger LOG = LoggerFactory.getLogger(BlueprintFactory.class);
 
   private static BlueprintDAO blueprintDAO;
 
@@ -150,7 +159,26 @@ public class BlueprintFactory {
     Set<Stack> stacks = stackIds.stream()
       .map(this::createStack)
       .collect(toSet());
-    return StackDefinition.of(stacks);
+    StackDefinition composite = StackDefinition.of(stacks);
+
+    // temporary check
+    verifyServicesAreDisjunct(composite);
+
+    return composite;
+  }
+
+  static void verifyServicesAreDisjunct(StackDefinition composite) {
+    Set<Pair<String, Set<StackId>>> servicesDefinedInMultipleStacks = composite.getServices().stream()
+      .map(s -> Pair.of(s, composite.getStacksForService(s)))
+      .filter(p -> p.getRight().size() > 1)
+      .collect(toCollection(TreeSet::new));
+    if (!servicesDefinedInMultipleStacks.isEmpty()) {
+      String msg = servicesDefinedInMultipleStacks.stream()
+        .map(p -> String.format("Service %s is defined in multiple stacks: %s", p.getLeft(), Joiner.on(", ").join(p.getRight())))
+        .collect(joining("\n"));
+      LOG.error(msg);
+      throw new IllegalArgumentException(msg);
+    }
   }
 
   protected Stack createStack(StackId stackId) {

@@ -20,6 +20,7 @@ package org.apache.ambari.server.topology;
 
 import static java.util.stream.Collectors.toSet;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -45,6 +46,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProviderTest;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -98,6 +100,7 @@ public class BlueprintFactoryTest {
     expect(stack.isMasterComponent("component2")).andReturn(false).anyTimes();
     expect(stack.getServiceForComponent("component1")).andReturn("test-service1").anyTimes();
     expect(stack.getServiceForComponent("component2")).andReturn("test-service2").anyTimes();
+    expect(stack.getStacksForService(anyString())).andReturn(ImmutableSet.of(new StackId("stack", "0.1"))).anyTimes();
   }
 
   @After
@@ -226,6 +229,7 @@ public class BlueprintFactoryTest {
       "ZOOKEEPER", ImmutableSet.of("ZOOKEEPER_SERVER")
     );
     reset(stack);
+    StackId hdp = new StackId("HDPCORE-3.0", "3.0.0.0");
     expect(stack.getComponents()).andReturn(allComponents).anyTimes();
     expect(stack.isMasterComponent("NAMENODE")).andReturn(true).anyTimes();
     expect(stack.isMasterComponent("ZOOKEEPER_SERVER")).andReturn(true).anyTimes();
@@ -233,6 +237,8 @@ public class BlueprintFactoryTest {
     expect(stack.getServiceForComponent("NAMENODE")).andReturn("HDFS").anyTimes();
     expect(stack.getServiceForComponent("SECONDARY_NAMENODE")).andReturn("HDFS").anyTimes();
     expect(stack.getServiceForComponent("ZOOKEEPER_SERVER")).andReturn("ZOOKEEPER").anyTimes();
+    expect(stack.getServices()).andReturn(allComponents.keySet()).anyTimes();
+    expect(stack.getStacksForService(anyString())).andReturn(ImmutableSet.of(hdp)).anyTimes();
 
     replay(stack, dao, entity, configEntity);
 
@@ -319,6 +325,47 @@ public class BlueprintFactoryTest {
 
     replay(stack, dao, entity, configEntity);
     testFactory.createBlueprint(props, null);
+  }
+
+  @Test(expected = IllegalArgumentException.class) // THEN
+  public void verifyServicesAreDisjunctDetectsDuplication() {
+    // GIVEN
+    StackDefinition composite = createNiceMock(StackDefinition.class);
+    String service1 = "unique service";
+    String service2 = "duplicated service";
+    StackId stack1 = new StackId("a_stack", "1.0");
+    StackId stack2 = new StackId("another_stack", "0.9");
+    Collection<String> services = ImmutableSet.of(service1, service2);
+    Set<StackId> singleStack = ImmutableSet.of(stack1);
+    Set<StackId> multipleStacks = ImmutableSet.of(stack1, stack2);
+    expect(composite.getServices()).andReturn(services).anyTimes();
+    expect(composite.getStacksForService(service1)).andReturn(singleStack).anyTimes();
+    expect(composite.getStacksForService(service2)).andReturn(multipleStacks).anyTimes();
+    replay(composite);
+
+    // WHEN
+    BlueprintFactory.verifyServicesAreDisjunct(composite);
+  }
+
+  @Test
+  public void verifyServicesAreDisjunctAllowsDisjunctStacks() {
+    // GIVEN
+    StackDefinition composite = createNiceMock(StackDefinition.class);
+    String service1 = "unique service";
+    String service2 = "another service";
+    StackId stack1 = new StackId("a_stack", "1.0");
+    StackId stack2 = new StackId("another_stack", "0.9");
+    Collection<String> services = ImmutableSet.of(service1, service2);
+    expect(composite.getServices()).andReturn(services).anyTimes();
+    expect(composite.getStacksForService(service1)).andReturn(ImmutableSet.of(stack1)).anyTimes();
+    expect(composite.getStacksForService(service2)).andReturn(ImmutableSet.of(stack2)).anyTimes();
+    replay(composite);
+
+    // WHEN
+    BlueprintFactory.verifyServicesAreDisjunct(composite);
+
+    // THEN
+    // no exception expected
   }
 
   private class TestBlueprintFactory extends BlueprintFactory {

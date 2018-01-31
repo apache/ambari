@@ -46,7 +46,7 @@ public class CompositeStack implements StackDefinition {
 
   private final Set<Stack> stacks;
 
-  public CompositeStack(Set<Stack> stacks) {
+  CompositeStack(Set<Stack> stacks) {
     this.stacks = stacks;
   }
 
