@@ -79,6 +79,7 @@ SETUP_LDAP_CONFIG_URL = 'services/AMBARI/components/AMBARI_SERVER/configurations
 PAM_CONFIG_FILE = 'pam.configuration'
 
 IS_LDAP_CONFIGURED = "ambari.ldap.authentication.enabled"
+IS_LDAP_CONFIGURED_IN_AMBARI_PROPERTIES = "ambari.ldap.isConfigured"
 LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
@@ -274,6 +275,56 @@ class LdapSyncOptions:
   def no_ldap_sync_options_set(self):
     return not self.ldap_sync_all and not self.ldap_sync_existing and self.ldap_sync_users is None and self.ldap_sync_groups is None
 
+def getLdapPropertyFromDB(properties, admin_login, admin_password, property_name):
+  ldapProperty = None
+  url = get_ambari_server_api_base(properties) + SETUP_LDAP_CONFIG_URL
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  request.get_method = lambda: 'GET'
+  request_in_progress = True
+
+  sys.stdout.write('\nFetching LDAP configuration from DB')
+  numOfTries = 0
+  while request_in_progress:
+    numOfTries += 1
+    if (numOfTries == 60):
+      raise FatalException(1, "Could not fetch LDAP configuration within a minute; giving up!")
+    sys.stdout.write('.')
+    sys.stdout.flush()
+
+    try:
+      response = urllib2.urlopen(request)
+    except Exception as e:
+      request_in_progress = False
+      err = 'Error while fetching LDAP configuration. Error details: %s' % e
+      raise FatalException(1, err)
+
+    response_status_code = response.getcode()
+    if response_status_code != 200:
+      request_in_progress = False
+      err = 'Error while fetching LDAP configuration. Http status code - ' + str(response_status_code)
+      raise FatalException(1, err)
+    else:
+        response_body = json.loads(response.read())
+        ldapProperties = response_body['Configuration']['properties']
+        ldapProperty = ldapProperties[property_name]
+        if not ldapProperty:
+          time.sleep(1)
+        else:
+          request_in_progress = False
+
+  return ldapProperty
+
+def isLdapEnabled(properties, admin_login, admin_password):
+  #to support backward compatibility we check Amabri.properties first
+  ldapEnabled = get_value_from_properties(properties, IS_LDAP_CONFIGURED_IN_AMBARI_PROPERTIES, None)
+  if ldapEnabled == None:  #check the DB via the REST API
+    ldapEnabled = getLdapPropertyFromDB(properties, admin_login, admin_password, IS_LDAP_CONFIGURED)
+
+  return ldapEnabled if ldapEnabled != None else 'false'
+
 
 #
 # Sync users and groups with configured LDAP
@@ -295,11 +346,6 @@ def sync_ldap(options):
   if properties == -1:
     raise FatalException(1, "Failed to read properties file.")
 
-  ldap_configured = properties.get_property(IS_LDAP_CONFIGURED)
-  if ldap_configured != 'true':
-    err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
-    raise FatalException(1, err)
-
   # set ldap sync options
   ldap_sync_options = LdapSyncOptions(options)
 
@@ -318,6 +364,10 @@ def sync_ldap(options):
                                               pattern=None, description=None,
                                               is_pass=True, allowEmpty=False)
 
+  if isLdapEnabled(properties, admin_login, admin_password) != 'true':
+    err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
+    raise FatalException(1, err)
+
   url = get_ambari_server_api_base(properties) + SERVER_API_LDAP_URL
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
@@ -325,13 +375,13 @@ def sync_ldap(options):
   request.add_header('X-Requested-By', 'ambari')
 
   if ldap_sync_options.ldap_sync_all:
-    sys.stdout.write('Syncing all.')
+    sys.stdout.write('\nSyncing all.')
     bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"all"},{"principal_type":"groups","sync_type":"all"}]}}]
   elif ldap_sync_options.ldap_sync_existing:
-    sys.stdout.write('Syncing existing.')
+    sys.stdout.write('\nSyncing existing.')
     bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"existing"},{"principal_type":"groups","sync_type":"existing"}]}}]
   else:
-    sys.stdout.write('Syncing specified users and groups.')
+    sys.stdout.write('\nSyncing specified users and groups.')
     bodies = [{"Event":{"specs":[]}}]
     body = bodies[0]
     events = body['Event']
