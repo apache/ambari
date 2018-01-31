@@ -21,26 +21,16 @@ package org.apache.ambari.infra.job.archive;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class S3Properties {
-  private final String s3AccessKey;
-  private final String s3SecretKey;
+  private final String s3AccessFile;
   private final String s3KeyPrefix;
   private final String s3BucketName;
   private final String s3EndPoint;
 
-  public S3Properties(String s3AccessKey, String s3SecretKey, String s3KeyPrefix, String s3BucketName, String s3EndPoint) {
-    this.s3AccessKey = s3AccessKey;
-    this.s3SecretKey = s3SecretKey;
+  public S3Properties(String s3AccessFile, String s3KeyPrefix, String s3BucketName, String s3EndPoint) {
+    this.s3AccessFile = s3AccessFile;
     this.s3KeyPrefix = s3KeyPrefix;
     this.s3BucketName = s3BucketName;
     this.s3EndPoint = s3EndPoint;
-  }
-
-  public String getS3AccessKey() {
-    return s3AccessKey;
-  }
-
-  public String getS3SecretKey() {
-    return s3SecretKey;
   }
 
   public String getS3KeyPrefix() {
@@ -55,10 +45,14 @@ public class S3Properties {
     return s3EndPoint;
   }
 
+  public String getS3AccessFile() {
+    return s3AccessFile;
+  }
+
   @Override
   public String toString() {
     return "S3Properties{" +
-            "s3AccessKey='" + s3AccessKey + '\'' +
+            "s3AccessFile='" + s3AccessFile + '\'' +
             ", s3KeyPrefix='" + s3KeyPrefix + '\'' +
             ", s3BucketName='" + s3BucketName + '\'' +
             ", s3EndPoint='" + s3EndPoint + '\'' +
@@ -66,12 +60,6 @@ public class S3Properties {
   }
 
   public void validate() {
-    if (isBlank(s3AccessKey))
-      throw new IllegalArgumentException("The property s3AccessKey can not be null or empty string!");
-
-    if (isBlank(s3SecretKey))
-      throw new IllegalArgumentException("The property s3SecretKey can not be null or empty string!");
-
     if (isBlank(s3BucketName))
       throw new IllegalArgumentException("The property s3BucketName can not be null or empty string!");
   }
