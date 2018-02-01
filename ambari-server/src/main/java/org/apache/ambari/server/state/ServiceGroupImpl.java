@@ -161,7 +161,7 @@ public class ServiceGroupImpl implements ServiceGroup {
   @Override
   public void setMpackNames(Set<String> mpackNames) {
     ServiceGroupEntity entity = getServiceGroupEntity();
-    entity.setMpackNames(mpackNames);
+    entity.getMpackNames().addAll(mpackNames);
     serviceGroupDAO.merge(entity);
   }
 

@@ -89,6 +89,7 @@ public class ServiceGroupEntity {
                    joinColumns = {@JoinColumn(name = "service_group_id", referencedColumnName = "id"),
                                   @JoinColumn(name = "service_group_cluster_id", referencedColumnName = "cluster_id")})
   @Column(name = "mpack_name", unique = true, nullable = false)
+
   private Set<String> mpackNames = new HashSet<>();
 
   public Long getClusterId() {
