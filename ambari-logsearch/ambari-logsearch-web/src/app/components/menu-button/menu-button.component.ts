@@ -16,10 +16,8 @@
  * limitations under the License.
  */
 
-import {Component, Input, ViewChild, ElementRef} from '@angular/core';
+import {Component, Input, Output, ViewChild, ElementRef, EventEmitter} from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
-import {ServiceInjector} from '@app/classes/service-injector';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
   selector: 'menu-button',
@@ -28,18 +26,11 @@ import {ComponentActionsService} from '@app/services/component-actions.service';
 })
 export class MenuButtonComponent {
 
-  constructor() {
-    this.actions = ServiceInjector.injector.get(ComponentActionsService);
-  }
-
   @ViewChild('dropdown')
   dropdown: ElementRef;
 
   @Input()
   label?: string;
-
-  @Input()
-  action: string;
 
   @Input()
   iconClass: string;
@@ -84,7 +75,14 @@ export class MenuButtonComponent {
   @Input()
   maxLongClickDelay: number = 0;
 
-  private actions: ComponentActionsService;
+  @Input()
+  listClass: string = '';
+
+  @Output()
+  buttonClick: EventEmitter<void> = new EventEmitter();
+
+  @Output()
+  selectItem: EventEmitter<ListItem> = new EventEmitter();
 
   /**
    * This is a private property to indicate the mousedown timestamp, so that we can check it when teh click event
@@ -122,14 +120,14 @@ export class MenuButtonComponent {
       !this.maxLongClickDelay || mdt + this.maxLongClickDelay >= now
     );
     let openDropdown = this.hasSubItems && (
-      el.classList.contains(this.caretClass) || isLongClick || !this.actions[this.action]
+      el.classList.contains(this.caretClass) || isLongClick || !this.buttonClick.observers.length
     );
     if (openDropdown && this.dropdown) {
       if (this.toggleDropdown()) {
         this.listenToClickOut();
       }
-    } else if (this.action) {
-      this.actions[this.action]();
+    } else if (this.buttonClick.observers.length) {
+      this.buttonClick.emit();
     }
     this.mouseDownTimestamp = 0;
     event.preventDefault();
@@ -211,7 +209,7 @@ export class MenuButtonComponent {
   }
 
   updateSelection(options: ListItem) {
-    // TODO implement value change behaviour
+    this.selectItem.emit(options);
   }
 
 }

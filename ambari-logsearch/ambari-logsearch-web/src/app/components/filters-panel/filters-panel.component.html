@@ -29,9 +29,9 @@
     </button>
   </div>
   <div class="filter-buttons col-md-4">
-    <dropdown-button [options]="searchBoxItems | async" iconClass="fa fa-search-minus" action="proceedWithExclude"
-                     label="{{'filter.exclude' | translate}}" [hideCaret]="true"
-                     [showSelectedValue]="false"></dropdown-button>
+    <dropdown-button iconClass="fa fa-search-minus" label="{{'filter.exclude' | translate}}" [hideCaret]="true"
+                     [showSelectedValue]="false" [showCommonLabelWithSelection]="true"
+                     [options]="searchBoxItems | async" (selectItem)="proceedWithExclude($event)"></dropdown-button>
     <filter-button *ngIf="isFilterConditionDisplayed('hosts')" formControlName="hosts"
                    label="{{filters.hosts.label | translate}}" [iconClass]="filters.hosts.iconClass"
                    [subItems]="filters.hosts.options" [isMultipleChoice]="true" [isRightAlign]="true"
@@ -44,8 +44,8 @@
                    label="{{filters.levels.label | translate}}" [iconClass]="filters.levels.iconClass"
                    [subItems]="filters.levels.options" [isMultipleChoice]="true" [isRightAlign]="true"></filter-button>
     <menu-button *ngIf="!captureSeconds" label="{{'filter.capture' | translate}}" iconClass="fa fa-caret-right"
-                 action="startCapture"></menu-button>
+                 (buttonClick)="startCapture()"></menu-button>
     <menu-button *ngIf="captureSeconds" label="{{captureSeconds | timerSeconds}}" iconClass="fa fa-stop stop-icon"
-                 action="stopCapture"></menu-button>
+                 (buttonClick)="stopCapture()"></menu-button>
   </div>
 </form>

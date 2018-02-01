@@ -35,6 +35,7 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {UtilsService} from '@app/services/utils.service';
 import {ListItem} from '@app/classes/list-item';
 import {NodeItem} from '@app/classes/models/node-item';
 
@@ -87,7 +88,8 @@ describe('LogsContainerService', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        }
+        },
+        UtilsService
       ]
     });
   });
