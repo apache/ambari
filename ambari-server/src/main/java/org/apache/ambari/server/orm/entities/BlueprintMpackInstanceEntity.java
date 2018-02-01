@@ -52,10 +52,10 @@ public class BlueprintMpackInstanceEntity {
   @Column(name = "id", nullable = false, updatable = false)
   private Long id;
 
-  @Column(name = "mpack_name")
+  @Column(name = "mpack_name", nullable = false)
   private String mpackName;
 
-  @Column(name = "mpack_version")
+  @Column(name = "mpack_version", nullable = false)
   private String mpackVersion;
 
   @Column(name = "mpack_uri")
@@ -68,7 +68,7 @@ public class BlueprintMpackInstanceEntity {
   private Collection<BlueprintMpackConfigEntity> configurations = new ArrayList<>();
 
   @ManyToOne
-  @JoinColumn(name = "mpack_id", referencedColumnName = "id", nullable = true)
+  @JoinColumn(name = "mpack_id", referencedColumnName = "id")
   private MpackEntity mpackEntity;
 
   @ManyToOne

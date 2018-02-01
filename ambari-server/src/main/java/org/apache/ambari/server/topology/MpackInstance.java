@@ -122,7 +122,7 @@ public class MpackInstance implements Configurable {
     mpackEntity.setMpackName(mpackName);
     mpackEntity.setMpackVersion(mpackVersion);
     Collection<BlueprintMpackConfigEntity> mpackConfigEntities =
-      BlueprintImpl.toConfigEntities(configuration, () -> new BlueprintMpackConfigEntity());
+      BlueprintImpl.toConfigEntities(configuration, BlueprintMpackConfigEntity::new);
     mpackConfigEntities.forEach( configEntity -> configEntity.setMpackInstance(mpackEntity) );
     mpackEntity.setConfigurations(mpackConfigEntities);
 
@@ -131,7 +131,7 @@ public class MpackInstance implements Configurable {
       serviceEntity.setName(serviceInstance.getName());
       serviceEntity.setType(serviceInstance.getType());
       Collection<BlueprintServiceConfigEntity> serviceConfigEntities =
-        BlueprintImpl.toConfigEntities(serviceInstance.getConfiguration(), () -> new BlueprintServiceConfigEntity());
+        BlueprintImpl.toConfigEntities(serviceInstance.getConfiguration(), BlueprintServiceConfigEntity::new);
       serviceConfigEntities.forEach( configEntity -> configEntity.setService(serviceEntity) );
       serviceEntity.setConfigurations(serviceConfigEntities);
       mpackEntity.getServiceInstances().add(serviceEntity);

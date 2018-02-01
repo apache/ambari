@@ -51,7 +51,7 @@ import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
-import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.internal.StackDefinition;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -71,6 +71,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
@@ -81,6 +82,7 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Iterables;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -275,7 +277,7 @@ public class TopologyManager {
 
     final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
-    final Stack stack = topology.getBlueprint().getStack(); // TODO: implement multi-stack
+    final StackDefinition stack = topology.getBlueprint().getStack();
     final String repoVersion = request.getRepositoryVersion();
     final Long repoVersionID = request.getRepositoryVersionId();
 
@@ -347,7 +349,8 @@ public class TopologyManager {
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
     //todo: be tied to cluster state
 
-    ambariContext.persistInstallStateForUI(clusterName, stack.getName(), stack.getVersion());
+    StackId stackId = Iterables.getFirst(topology.getBlueprint().getStackIds(), null); // FIXME need for stackId in ClusterRequest will be removed
+    ambariContext.persistInstallStateForUI(clusterName, stackId);
     clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
     return getRequestStatus(logicalRequest.getRequestId());
   }

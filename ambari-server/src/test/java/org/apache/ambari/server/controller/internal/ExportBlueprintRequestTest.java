@@ -19,7 +19,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -39,14 +38,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
-import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
@@ -76,11 +74,14 @@ public class ExportBlueprintRequestTest {
     f.setAccessible(true);
     f.set(null, controller);
 
-    expect(controller.getStackServices((Set<StackServiceRequest>)  anyObject())).andReturn(
-        Collections.emptySet()).anyTimes();
-    expect(controller.getStackLevelConfigurations((Set<StackLevelConfigurationRequest>) anyObject())).andReturn(
-        Collections.emptySet()).anyTimes();
-    replay(controller);
+    AmbariMetaInfo metainfo = createNiceMock(AmbariMetaInfo.class);
+    expect(controller.getAmbariMetaInfo()).andReturn(metainfo).anyTimes();
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    expect(metainfo.getStack("TEST", "1.0")).andReturn(stackInfo);
+    expect(stackInfo.getServices()).andReturn(Collections.emptySet()).anyTimes();
+    expect(stackInfo.getProperties()).andReturn(Collections.emptyList()).anyTimes();
+
+    replay(controller, metainfo, stackInfo);
 
     // This can save precious time
     mockStatic(InetAddress.class);

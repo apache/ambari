@@ -243,7 +243,7 @@ except ValueError:
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
 user_list = json.loads(config['hostLevelParams']['user_list'])
-group_list = json.loads(config['hostLevelParams']['group_list'])
+group_list = set(json.loads(config['hostLevelParams']['group_list']) + [user_group])
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]

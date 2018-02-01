@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.metadata;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,8 +32,10 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.slf4j.Logger;
@@ -137,6 +141,16 @@ public class RoleCommandOrder implements Cloneable {
     for (Service service : cluster.getServices().values()) {
       stackIds.add(service.getDesiredStackId());
     }
+    Set<String> components = cluster.getServices().values().stream()
+      .flatMap(s -> s.getServiceComponents().values().stream())
+      .map(ServiceComponent::getName)
+      .collect(toSet());
+    // FIXME ugly workaround
+    StackInfo hdp = ambariMetaInfo.getStacks().stream()
+      .filter(s -> "HDP".equals(s.getName()))
+      .filter(s -> s.getVersion().startsWith("3.0.0"))
+      .findAny()
+      .orElse(null);
 
     for (StackId stackId : stackIds) {
       StackInfo stack = null;
@@ -157,6 +171,26 @@ public class RoleCommandOrder implements Cloneable {
         Map<String, Object> section = (Map<String, Object>) userData.get(sectionKey);
 
         addDependencies(section);
+      }
+
+      // FIXME ugly workaround to make sure hdp-select can be installed in before-INSTALL hook
+      if (hdp != null && !"HDP".equals(stackId.getStackName())) {
+        for (ServiceInfo blockedService : stack.getServices()) {
+          for (ComponentInfo blockedComponent : blockedService.getComponents()) {
+            if (components.contains(blockedComponent.getName())) {
+              Role blockedRole = Role.valueOf(blockedComponent.getName());
+              for (ServiceInfo blockingService : hdp.getServices()) {
+                for (ComponentInfo blockingComponent : blockingService.getComponents()) {
+                  if (components.contains(blockedComponent.getName())) {
+                    Role blockerRole = Role.valueOf(blockingComponent.getName());
+                    addDependency(blockedRole, RoleCommand.INSTALL, blockerRole, RoleCommand.INSTALL, false);
+                    LOG.info("Added FIXME dependency {} -> {}", blockedRole, blockerRole);
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 

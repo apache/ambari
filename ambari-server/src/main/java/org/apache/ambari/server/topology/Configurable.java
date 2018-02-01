@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
-import static org.apache.ambari.server.topology.BlueprintFactory.PROPERTIES_ATTRIBUTES_PROPERTY_ID;
-import static org.apache.ambari.server.topology.BlueprintFactory.PROPERTIES_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.PROPERTIES_PROPERTY_ID;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +42,7 @@ public interface Configurable {
   Configuration getConfiguration();
 
   @JsonProperty("configurations")
-  default void setConfigs(Collection<? extends Map<String, ? extends Object>> configs) {
+  default void setConfigs(Collection<? extends Map<String, ?>> configs) {
     Configuration configuration;
     if (!configs.isEmpty() && configs.iterator().next().keySet().iterator().next().contains("/")) {
       // Configuration has keys with slashes like "zk.cfg/properties/dataDir" means it is coming through
@@ -73,9 +73,9 @@ public interface Configurable {
   }
 
   @JsonProperty("configurations")
-  default Collection<Map<String, Map<String, ? extends Object>>> getConfigs() {
+  default Collection<Map<String, Map<String, ?>>> getConfigs() {
     Configuration configuration = getConfiguration();
-    Collection<Map<String, Map<String, ? extends Object>>> configurations = new ArrayList<>();
+    Collection<Map<String, Map<String, ?>>> configurations = new ArrayList<>();
     Set<String> allConfigTypes = Sets.union(configuration.getProperties().keySet(), configuration.getAttributes().keySet());
     for (String configType: allConfigTypes) {
       Map<String, Map<String, ? extends Object>> configData = new HashMap<>();

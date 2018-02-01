@@ -52,7 +52,7 @@ public class StackAdvisorRunner {
    */
   public void runScript(ServiceInfo.ServiceAdvisorType serviceAdvisorType, StackAdvisorCommandType saCommandType, File actionDirectory)
       throws StackAdvisorException {
-    LOG.info(String.format("StackAdvisorRunner. serviceAdvisorType=%s, actionDirectory=%s, command=%s", serviceAdvisorType.toString(), actionDirectory,
+    LOG.info(String.format("StackAdvisorRunner. serviceAdvisorType=%s, actionDirectory=%s, command=%s", serviceAdvisorType, actionDirectory,
         saCommandType));
 
     String outputFile = actionDirectory + File.separator + "stackadvisor.out";
