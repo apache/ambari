@@ -56,6 +56,7 @@ from ambari_server.userInput import get_validated_string_input, get_prompt_defau
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, \
   get_jdbc_driver_path, ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
+from contextlib import closing
 
 logger = logging.getLogger(__name__)
 
@@ -295,25 +296,24 @@ def getLdapPropertyFromDB(properties, admin_login, admin_password, property_name
     sys.stdout.flush()
 
     try:
-      response = urllib2.urlopen(request)
+      with closing(urllib2.urlopen(request)) as response:
+        response_status_code = response.getcode()
+        if response_status_code != 200:
+          request_in_progress = False
+          err = 'Error while fetching LDAP configuration. Http status code - ' + str(response_status_code)
+          raise FatalException(1, err)
+        else:
+            response_body = json.loads(response.read())
+            ldapProperties = response_body['Configuration']['properties']
+            ldapProperty = ldapProperties[property_name]
+            if not ldapProperty:
+              time.sleep(1)
+            else:
+              request_in_progress = False
     except Exception as e:
       request_in_progress = False
       err = 'Error while fetching LDAP configuration. Error details: %s' % e
       raise FatalException(1, err)
-
-    response_status_code = response.getcode()
-    if response_status_code != 200:
-      request_in_progress = False
-      err = 'Error while fetching LDAP configuration. Http status code - ' + str(response_status_code)
-      raise FatalException(1, err)
-    else:
-        response_body = json.loads(response.read())
-        ldapProperties = response_body['Configuration']['properties']
-        ldapProperty = ldapProperties[property_name]
-        if not ldapProperty:
-          time.sleep(1)
-        else:
-          request_in_progress = False
 
   return ldapProperty
 
