@@ -947,7 +947,6 @@ Em.I18n.translations = {
   'installer.step3.hostLogPopup.copy':'press CTRL+C',
   'installer.step3.hostsTable.selectAll':'Select All Hosts',
   'installer.step3.selectedHosts.popup.header':'Selected Hosts',
-  'installer.step3.next.configure.download': 'Configure Download',
 
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
