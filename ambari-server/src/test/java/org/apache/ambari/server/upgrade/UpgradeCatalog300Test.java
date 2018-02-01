@@ -27,19 +27,39 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGUR
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_PROPERTY_VALUE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.AMBARI_CONFIGURATION_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_DESIRED_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.COMPONENT_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_HOST_ID;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_KEYTAB_PATH;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_PRINCIPAL_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.FK_KKP_SERVICE_PRINCIPAL;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.HOSTS_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.HOST_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_KEYTAB_PRINCIPAL_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_KEYTAB_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_PRINCIPAL_HOST_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KERBEROS_PRINCIPAL_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KEYTAB_PATH_FIELD;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KKP_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.KKP_MAPPING_SERVICE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_GROUP_ID_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_MEMBER_ID_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.MEMBERS_USER_ID_COLUMN;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PK_KERBEROS_KEYTAB;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PK_KKP;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PK_KKP_MAPPING_SERVICE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.PRINCIPAL_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_DISPLAY_STATUS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.REQUEST_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SECURITY_STATE_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_DESIRED_STATE_TABLE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.SERVICE_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_DISPLAY_STATUS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_STATUS_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.STAGE_TABLE;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.UNIQUE_USERS_0_INDEX;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog300.UNI_KKP;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_CONSECUTIVE_FAILURES_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_DISPLAY_NAME_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog300.USERS_LDAP_USER_COLUMN;
@@ -69,16 +89,20 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,12 +121,15 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationCategory;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfigurationKeys;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AmbariConfigurationDAO;
+import org.apache.ambari.server.serveraction.kerberos.PrepareKerberosIdentitiesServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -196,6 +223,7 @@ public class UpgradeCatalog300Test {
     Method updateKerberosConfigurations = UpgradeCatalog300.class.getDeclaredMethod("updateKerberosConfigurations");
     Method upgradeLdapConfiguration = UpgradeCatalog300.class.getDeclaredMethod("upgradeLdapConfiguration");
     Method createRoleAuthorizations = UpgradeCatalog300.class.getDeclaredMethod("createRoleAuthorizations");
+    Method addUserAuthenticationSequence = UpgradeCatalog300.class.getDeclaredMethod("addUserAuthenticationSequence");
 
     UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
         .addMockedMethod(showHcatDeletedUserMessage)
@@ -205,6 +233,7 @@ public class UpgradeCatalog300Test {
         .addMockedMethod(updateKerberosConfigurations)
         .addMockedMethod(upgradeLdapConfiguration)
         .addMockedMethod(createRoleAuthorizations)
+        .addMockedMethod(addUserAuthenticationSequence)
         .createMock();
 
 
@@ -227,6 +256,9 @@ public class UpgradeCatalog300Test {
     expectLastCall().once();
 
     upgradeCatalog300.upgradeLdapConfiguration();
+    expectLastCall().once();
+
+    upgradeCatalog300.addUserAuthenticationSequence();
     expectLastCall().once();
 
     replay(upgradeCatalog300);
@@ -283,6 +315,43 @@ public class UpgradeCatalog300Test {
     prepareUpdateGroupMembershipRecords(dbAccessor, createMembersTableCaptures);
     prepareUpdateAdminPrivilegeRecords(dbAccessor, createAdminPrincipalTableCaptures);
     prepareUpdateUsersTable(dbAccessor, updateUserTableCaptures, alterUserTableCaptures);
+    // upgradeKerberosTables
+    Capture<List<DBAccessor.DBColumnInfo>> kerberosKeytabColumnsCapture = newCapture();
+    dbAccessor.createTable(eq(KERBEROS_KEYTAB_TABLE), capture(kerberosKeytabColumnsCapture));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(KERBEROS_KEYTAB_TABLE, PK_KERBEROS_KEYTAB, KEYTAB_PATH_FIELD);
+    expectLastCall().once();
+
+    Capture<List<DBAccessor.DBColumnInfo>> kerberosKeytabPrincipalColumnsCapture = newCapture();
+    dbAccessor.createTable(eq(KERBEROS_KEYTAB_PRINCIPAL_TABLE), capture(kerberosKeytabPrincipalColumnsCapture));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, PK_KKP, KKP_ID_COLUMN);
+    expectLastCall().once();
+    dbAccessor.addUniqueConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, UNI_KKP, KEYTAB_PATH_FIELD, PRINCIPAL_NAME_COLUMN, HOST_ID_COLUMN);
+    expectLastCall().once();
+
+    Capture<List<DBAccessor.DBColumnInfo>> mappingColumnsCapture = newCapture();
+    dbAccessor.createTable(eq(KKP_MAPPING_SERVICE_TABLE), capture(mappingColumnsCapture));
+    expectLastCall().once();
+    dbAccessor.addPKConstraint(KKP_MAPPING_SERVICE_TABLE, PK_KKP_MAPPING_SERVICE, KKP_ID_COLUMN, SERVICE_NAME_COLUMN, COMPONENT_NAME_COLUMN);
+    expectLastCall().once();
+
+    dbAccessor.addFKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, FK_KKP_KEYTAB_PATH, KEYTAB_PATH_FIELD, KERBEROS_KEYTAB_TABLE, KEYTAB_PATH_FIELD, false);
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, FK_KKP_HOST_ID,HOST_ID_COLUMN, HOSTS_TABLE, HOST_ID_COLUMN, false);
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(KERBEROS_KEYTAB_PRINCIPAL_TABLE, FK_KKP_PRINCIPAL_NAME, PRINCIPAL_NAME_COLUMN, KERBEROS_PRINCIPAL_TABLE, PRINCIPAL_NAME_COLUMN, false);
+    expectLastCall().once();
+    dbAccessor.addFKConstraint(KKP_MAPPING_SERVICE_TABLE, FK_KKP_SERVICE_PRINCIPAL, KKP_ID_COLUMN, KERBEROS_KEYTAB_PRINCIPAL_TABLE, KKP_ID_COLUMN, false);
+    expectLastCall().once();
+
+    Connection c = niceMock(Connection.class);
+    Statement s = niceMock(Statement.class);
+    expect(s.executeQuery(anyString())).andReturn(null).once();
+    expect(c.createStatement()).andReturn(s).once();
+    expect(dbAccessor.getConnection()).andReturn(c).once();
+
+    dbAccessor.dropTable(KERBEROS_PRINCIPAL_HOST_TABLE);
 
     replay(dbAccessor, configuration);
 
@@ -731,6 +800,7 @@ public class UpgradeCatalog300Test {
     Map<String, String> propertiesWithGroup = new HashMap<>();
     propertiesWithGroup.put("group", "ambari_managed_identities");
     propertiesWithGroup.put("kdc_host", "host1.example.com");
+    propertiesWithGroup.put("realm", "example.com");
 
     Config newConfig = createMock(Config.class);
     expect(newConfig.getTag()).andReturn("version2").atLeastOnce();
@@ -754,6 +824,7 @@ public class UpgradeCatalog300Test {
 
     Map<String, String> propertiesWithoutGroup = new HashMap<>();
     propertiesWithoutGroup.put("kdc_host", "host2.example.com");
+    propertiesWithoutGroup.put("realm", "example.com");
 
     Config configWithoutGroup = createMock(Config.class);
     expect(configWithoutGroup.getProperties()).andReturn(propertiesWithoutGroup).atLeastOnce();
@@ -784,28 +855,42 @@ public class UpgradeCatalog300Test {
 
     Injector injector = createNiceMock(Injector.class);
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(injector.getInstance(AmbariServer.class)).andReturn(createNiceMock(AmbariServer.class)).anyTimes();
+    KerberosHelper kerberosHelperMock = createNiceMock(KerberosHelper.class);
+    expect(kerberosHelperMock.createTemporaryDirectory()).andReturn(new File("/invalid/file/path")).times(2);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelperMock).anyTimes();
 
-    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector);
+    replay(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, kerberosHelperMock);
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("configuration");
 
-    UpgradeCatalog300 upgradeCatalog300 = new UpgradeCatalog300(injector);
+    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class).addMockedMethod("getPrepareIdentityServerAction").addMockedMethod("executeInTransaction").createMock();
+    PrepareKerberosIdentitiesServerAction mockAction = createNiceMock(PrepareKerberosIdentitiesServerAction.class);
+    expect(upgradeCatalog300.getPrepareIdentityServerAction()).andReturn(mockAction).times(2);
+    upgradeCatalog300.executeInTransaction(anyObject());
+    expectLastCall().times(2);
+    upgradeCatalog300.injector = injector;
+
+    replay(upgradeCatalog300);
+
     field.set(upgradeCatalog300, configuration);
     upgradeCatalog300.updateKerberosConfigurations();
 
-    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector);
+    verify(controller, clusters, cluster1, cluster2, configWithGroup, configWithoutGroup, newConfig, response, injector, upgradeCatalog300);
 
 
     Assert.assertEquals(1, capturedProperties.getValues().size());
 
     Map<String, String> properties = capturedProperties.getValue();
-    Assert.assertEquals(2, properties.size());
+    Assert.assertEquals(3, properties.size());
     Assert.assertEquals("ambari_managed_identities", properties.get("ipa_user_group"));
     Assert.assertEquals("host1.example.com", properties.get("kdc_host"));
+    Assert.assertEquals("example.com", properties.get("realm"));
 
-    Assert.assertEquals(2, propertiesWithGroup.size());
+    Assert.assertEquals(3, propertiesWithGroup.size());
     Assert.assertEquals("ambari_managed_identities", propertiesWithGroup.get("group"));
     Assert.assertEquals("host1.example.com", propertiesWithGroup.get("kdc_host"));
+    Assert.assertEquals("example.com", propertiesWithGroup.get("realm"));
   }
 
   @Test

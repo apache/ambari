@@ -813,7 +813,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
           if (UserAuthenticationSourceResourceProvider.AUTHENTICATION_USER_NAME_PROPERTY_ID.equals(equalsPredicate.getPropertyId())) {
             Assert.assertEquals(requestedUsername, equalsPredicate.getValue());
           } else if (UserAuthenticationSourceResourceProvider.AUTHENTICATION_AUTHENTICATION_SOURCE_ID_PROPERTY_ID.equals(equalsPredicate.getPropertyId())) {
-            Assert.assertEquals(100L, equalsPredicate.getValue());
+            Assert.assertEquals("100", equalsPredicate.getValue());
           }
         }
       }
