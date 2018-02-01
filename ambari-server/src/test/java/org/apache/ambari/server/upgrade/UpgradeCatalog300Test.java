@@ -761,10 +761,13 @@ public class UpgradeCatalog300Test {
     expect(configWithGroup.getPropertiesAttributes()).andReturn(Collections.emptyMap()).atLeastOnce();
     expect(configWithGroup.getTag()).andReturn("version1").atLeastOnce();
 
+    Service kerberosService = createNiceMock(Service.class);
+    expect(kerberosService.getName()).andReturn("KERBEROS").atLeastOnce();
+
     Cluster cluster1 = createMock(Cluster.class);
     expect(cluster1.getDesiredConfigByType("kerberos-env")).andReturn(configWithGroup).atLeastOnce();
     expect(cluster1.getConfigsByType("kerberos-env")).andReturn(Collections.singletonMap("v1", configWithGroup)).atLeastOnce();
-    expect(cluster1.getServiceByConfigType("kerberos-env").getName()).andReturn("KERBEROS").atLeastOnce();
+    expect(cluster1.getServiceByConfigType("kerberos-env")).andReturn(kerberosService).atLeastOnce();
     expect(cluster1.getClusterName()).andReturn("c1").atLeastOnce();
     expect(cluster1.getDesiredStackVersion()).andReturn(stackId).atLeastOnce();
     expect(cluster1.getConfig(eq("kerberos-env"), anyString())).andReturn(newConfig).atLeastOnce();
@@ -797,7 +800,7 @@ public class UpgradeCatalog300Test {
         .addMockedMethod("createConfig")
         .createMock();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class), 1L)).andReturn(newConfig).once();
+    expect(controller.createConfig(eq(cluster1), eq(stackId), eq("kerberos-env"), capture(capturedProperties), anyString(), anyObject(Map.class), anyLong())).andReturn(newConfig).once();
 
 
     Injector injector = createNiceMock(Injector.class);

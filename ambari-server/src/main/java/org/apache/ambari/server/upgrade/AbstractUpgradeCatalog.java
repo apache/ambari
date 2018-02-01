@@ -563,7 +563,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
 
         Multimap<ConfigUpdateType, Entry<String, String>> propertiesToLog = ArrayListMultimap.create();
-        String serviceName = cluster.getServiceByConfigType(configType).getName();
 
         Map<String, String> mergedProperties =
           mergeProperties(oldConfigProperties, properties, updateIfExists, propertiesToLog);
@@ -574,6 +573,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
         if (propertiesToLog.size() > 0) {
           try {
+            String serviceName = cluster.getServiceByConfigType(configType).getName();
             configuration.writeToAmbariUpgradeConfigUpdatesFile(propertiesToLog, configType, serviceName, ambariUpgradeConfigUpdatesFileName);
           } catch(Exception e) {
             LOG.error("Write to config updates file failed:", e);

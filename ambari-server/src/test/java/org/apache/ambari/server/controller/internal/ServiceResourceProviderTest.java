@@ -374,8 +374,8 @@ public class ServiceResourceProviderTest {
     for (Resource resource : resources) {
       Assert.assertEquals("Cluster100", resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
       Assert.assertEquals("KERBEROS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
-      Assert.assertEquals("OK", resource.getPropertyValue("Services/attributes/kdc_validation_result"));
-      Assert.assertEquals("", resource.getPropertyValue("Services/attributes/kdc_validation_failure_details"));
+      Assert.assertEquals("OK", resource.getPropertyValue(ServiceResourceProvider.SERVICE_ATTRIBUTES_PROPERTY_ID + "/kdc_validation_result"));
+      Assert.assertEquals("", resource.getPropertyValue(ServiceResourceProvider.SERVICE_ATTRIBUTES_PROPERTY_ID + "/kdc_validation_failure_details"));
     }
 
     // verify
@@ -510,8 +510,8 @@ public class ServiceResourceProviderTest {
     for (Resource resource : resources) {
       Assert.assertEquals("Cluster100", resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
       Assert.assertEquals("KERBEROS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
-      Assert.assertEquals("INVALID_CREDENTIALS", resource.getPropertyValue("Services/attributes/kdc_validation_result"));
-      Assert.assertEquals("Invalid KDC administrator credentials.", resource.getPropertyValue("Services/attributes/kdc_validation_failure_details"));
+      Assert.assertEquals("INVALID_CREDENTIALS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_ATTRIBUTES_PROPERTY_ID + "/kdc_validation_result"));
+      Assert.assertEquals("Invalid KDC administrator credentials.", resource.getPropertyValue(ServiceResourceProvider.SERVICE_ATTRIBUTES_PROPERTY_ID + "/kdc_validation_failure_details"));
     }
 
     // verify
@@ -579,8 +579,8 @@ public class ServiceResourceProviderTest {
     for (Resource resource : resources) {
       Assert.assertEquals("Cluster100", resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
       Assert.assertEquals("KERBEROS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
-      Assert.assertEquals("MISSING_CREDENTIALS", resource.getPropertyValue("Services/attributes/kdc_validation_result"));
-      Assert.assertEquals("Missing KDC administrator credentials.", resource.getPropertyValue("Services/attributes/kdc_validation_failure_details"));
+      Assert.assertEquals("MISSING_CREDENTIALS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_ATTRIBUTES_PROPERTY_ID + "/kdc_validation_result"));
+      Assert.assertEquals("Missing KDC administrator credentials.", resource.getPropertyValue(ServiceResourceProvider.SERVICE_ATTRIBUTES_PROPERTY_ID + "/kdc_validation_failure_details"));
     }
 
     // verify
@@ -1165,11 +1165,15 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service1 = createNiceMock(Service.class);
+    ServiceResponse response1 = createNiceMock(ServiceResponse.class);
+    ServiceResponse response2 = createNiceMock(ServiceResponse.class);
     Service service2 = createNiceMock(Service.class);
 
     RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
     expect(repoVersion.getId()).andReturn(500L).anyTimes();
     expect(service1.getDesiredRepositoryVersion()).andReturn(repoVersion).atLeastOnce();
+    expect(service1.convertToResponse()).andReturn(response1).anyTimes();
+    expect(service2.convertToResponse()).andReturn(response2).anyTimes();
 
     StackId stackId = new StackId("HDP-2.5");
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
@@ -1194,7 +1198,7 @@ public class ServiceResourceProviderTest {
     expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service1, service2,
+    replay(managementController, clusters, cluster, service1, service2, response1, response2,
         ambariMetaInfo, serviceFactory, serviceInfo, repoVersion);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
@@ -1213,7 +1217,6 @@ public class ServiceResourceProviderTest {
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service200");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, "TEST_GROUP");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
-    properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
 
     propertySet.add(properties);
 
@@ -1237,12 +1240,16 @@ public class ServiceResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service1 = createNiceMock(Service.class);
     Service service2 = createNiceMock(Service.class);
+    ServiceResponse response1 = createNiceMock(ServiceResponse.class);
+    ServiceResponse response2 = createNiceMock(ServiceResponse.class);
 
     RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
     expect(repoVersion.getId()).andReturn(500L).anyTimes();
     expect(repoVersion.getParentId()).andReturn(600L).anyTimes();
     expect(repoVersion.getType()).andReturn(RepositoryType.PATCH).anyTimes();
     expect(service1.getDesiredRepositoryVersion()).andReturn(repoVersion).atLeastOnce();
+    expect(service1.convertToResponse()).andReturn(response1).anyTimes();
+    expect(service2.convertToResponse()).andReturn(response2).anyTimes();
 
     StackId stackId = new StackId("HDP-2.5");
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
@@ -1267,7 +1274,7 @@ public class ServiceResourceProviderTest {
     expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service1, service2,
+    replay(managementController, clusters, cluster, service1, service2, response1, response2,
         ambariMetaInfo, serviceFactory, serviceInfo, repoVersion);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
@@ -1283,9 +1290,9 @@ public class ServiceResourceProviderTest {
 
     // add properties to the request map
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_GROUP_NAME_PROPERTY_ID, "SERVICE_GROUP");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service200");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
-    properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
 
     propertySet.add(properties);
 
@@ -1313,11 +1320,11 @@ public class ServiceResourceProviderTest {
 
     RepositoryVersionEntity repoVersion1 = createNiceMock(RepositoryVersionEntity.class);
     expect(repoVersion1.getId()).andReturn(500L).anyTimes();
-    expect(service1.getDesiredRepositoryVersion()).andReturn(repoVersion1).atLeastOnce();
+    expect(service1.getDesiredRepositoryVersion()).andReturn(repoVersion1).anyTimes();
 
     RepositoryVersionEntity repoVersion2 = createNiceMock(RepositoryVersionEntity.class);
     expect(repoVersion2.getId()).andReturn(600L).anyTimes();
-    expect(service2.getDesiredRepositoryVersion()).andReturn(repoVersion2).atLeastOnce();
+    expect(service2.getDesiredRepositoryVersion()).andReturn(repoVersion2).anyTimes();
 
     StackId stackId = new StackId("HDP-2.5");
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
@@ -1332,7 +1339,7 @@ public class ServiceResourceProviderTest {
     expect(cluster.getServices()).andReturn(
         ImmutableMap.<String, Service>builder()
           .put("Service100", service1)
-          .put("Service200", service2).build()).atLeastOnce();
+          .put("Service200", service2).build()).anyTimes();
 
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();

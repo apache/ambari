@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -141,7 +143,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     // configure the mock to return data given a specific placeholder
     m_configHelper = EasyMock.createNiceMock(ConfigHelper.class);
     expect(m_configHelper.getPlaceholderValueFromDesiredConfigurations(
-        EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn("placeholder-rendered-properly").anyTimes();
+        EasyMock.anyObject(Cluster.class), eq("{{foo/bar}}"))).andReturn("placeholder-rendered-properly").anyTimes();
     expect(m_configHelper.getEffectiveDesiredTags(
         EasyMock.anyObject(Cluster.class), EasyMock.anyObject(String.class))).andReturn(new HashMap<>()).anyTimes();
   }
@@ -2351,7 +2353,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     desiredConfigurations.put("baz-site", null);
 
     Service zookeeper = createNiceMock(Service.class);
-    expect(zookeeper.getName()).andReturn("ZOOKEEPER").atLeastOnce();
+    expect(zookeeper.getName()).andReturn("ZOOKEEPER").anyTimes();
+    expect(zookeeper.getServiceType()).andReturn("ZOOKEEPER").anyTimes();
     expect(zookeeper.getServiceComponents()).andReturn(
       new HashMap<>()).once();
     zookeeper.setDesiredRepositoryVersion(repoVersion220);
@@ -2364,7 +2367,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(cluster.getDesiredConfigByType("foo-site")).andReturn(fooConfig);
     expect(cluster.getDesiredConfigByType("bar-site")).andReturn(barConfig);
     expect(cluster.getDesiredConfigByType("baz-site")).andReturn(bazConfig);
-    expect(cluster.getService("ZOOKEEPER")).andReturn(zookeeper);
+    expect(cluster.getService("ZOOKEEPER")).andReturn(zookeeper).anyTimes();
+    expect(cluster.getService(anyString(), eq("ZOOKEEPER"))).andReturn(zookeeper).anyTimes();
     expect(cluster.getDesiredConfigByType("foo-type")).andReturn(fooConfig);
     expect(cluster.getDesiredConfigByType("bar-type")).andReturn(barConfig);
     expect(cluster.getDesiredConfigByType("baz-type")).andReturn(bazConfig);
@@ -2415,8 +2419,8 @@ public class UpgradeHelperTest extends EasyMockSupport {
     expect(context.getDirection()).andReturn(Direction.UPGRADE).atLeastOnce();
     expect(context.getRepositoryVersion()).andReturn(repoVersion220).anyTimes();
     expect(context.getSupportedServices()).andReturn(Sets.newHashSet("ZOOKEEPER")).atLeastOnce();
-    expect(context.getSourceRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion211).atLeastOnce();
-    expect(context.getTargetRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion220).atLeastOnce();
+    expect(context.getSourceRepositoryVersion(anyString())).andReturn(repoVersion211).atLeastOnce();
+    expect(context.getTargetRepositoryVersion(anyString())).andReturn(repoVersion220).atLeastOnce();
     expect(context.getOrchestrationType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(context.getHostRoleCommandFactory()).andStubReturn(injector.getInstance(HostRoleCommandFactory.class));

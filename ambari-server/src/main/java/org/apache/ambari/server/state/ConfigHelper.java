@@ -851,7 +851,7 @@ public class ConfigHelper {
           stackId.getStackVersion());
 
       for (ServiceInfo serviceInfo : stack.getServices()) {
-        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getServiceType());
+        Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
         Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
         serviceProperties.addAll(stackProperties);
 

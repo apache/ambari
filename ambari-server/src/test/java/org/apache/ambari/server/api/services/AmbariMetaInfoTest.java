@@ -136,6 +136,7 @@ public class AmbariMetaInfoTest {
   private static final int REPOS_CNT = 3;
   private static final int PROPERTIES_CNT = 64;
   private static final int OS_CNT = 4;
+  public static final File RESOURCES_ROOT = new File("src/test/resources/");
 
   private static TestAmbariMetaInfo metaInfo = null;
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfoTest.class);
@@ -155,12 +156,11 @@ public class AmbariMetaInfoTest {
   public static void beforeClass() throws Exception {
     File stacks = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
-    File resourcesRoot = new File("src/test/resources/");
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
-    metaInfo = createAmbariMetaInfo(stacks, version, resourcesRoot);
+    metaInfo = createAmbariMetaInfo(stacks, version, RESOURCES_ROOT);
   }
 
   @AfterClass
@@ -455,7 +455,7 @@ public class AmbariMetaInfoTest {
       f3.createNewFile();
     }
 
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, RESOURCES_ROOT);
 
     // Tests the stack is loaded as expected
     getServices();
@@ -742,7 +742,7 @@ public class AmbariMetaInfoTest {
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
 
 
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, new File(""));
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, RESOURCES_ROOT);
     Assert.assertEquals(1, ambariMetaInfo.getStackManager().getStacks().size());
     Assert.assertEquals(false, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").isValid());
     Assert.assertEquals(2, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").getErrors().size());
@@ -2050,7 +2050,7 @@ public class AmbariMetaInfoTest {
   private TestAmbariMetaInfo setupTempAmbariMetaInfoExistingDirs(String buildDir) throws Exception {
     File version = getVersion();
     File stackRootTmp = getStackRootTmp(buildDir);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, new File(""));
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, RESOURCES_ROOT);
     return ambariMetaInfo;
   }
 

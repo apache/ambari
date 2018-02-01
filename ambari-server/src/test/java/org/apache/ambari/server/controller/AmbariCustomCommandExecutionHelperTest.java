@@ -43,7 +43,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
-import org.apache.ambari.server.controller.internal.ServiceGroupResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -71,7 +70,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceGroup;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -690,11 +688,10 @@ public class AmbariCustomCommandExecutionHelperTest {
     addHost(hostC6402, clusterName);
 
     Cluster cluster = clusters.getCluster(clusterName);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
     Assert.assertNotNull(cluster);
 
     String serviceGroupName = "CORE";
-    ServiceGroupResourceProviderTest.createServiceGroup(ambariManagementController, clusterName, serviceGroupName);
+    cluster.addServiceGroup(serviceGroupName);
 
     createService(clusterName, serviceGroupName, "YARN", repositoryVersion);
     createService(clusterName, serviceGroupName, "GANGLIA", repositoryVersion);

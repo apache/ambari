@@ -1114,9 +1114,9 @@ public class AmbariManagementControllerImplTest {
 //    expect(stack.getStackVersion()).andReturn("stackVersion");
 //
 //    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
-//    expect(cluster.getService("service1")).andReturn(service);
+    expect(cluster.getService("service1")).andReturn(service);
     expect(cluster.getServiceByComponentName("component1")).andReturn(service).anyTimes();
-//    expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(service.getServiceComponent("component1")).andReturn(component);
     expect(component.getName()).andReturn("component1").anyTimes();
     expect(component.getServiceComponentHosts()).andReturn(null);
 

@@ -971,7 +971,7 @@ public class UpgradeHelper {
       ConfigHelper configHelper = m_configHelperProvider.get();
 
       // downgrade is easy - just remove the new and make the old current
-      Service service = cluster.getService(null, serviceName);
+      Service service = cluster.getService(serviceName);
       if (direction == Direction.DOWNGRADE) {
         //TODO pass serviceGroupName
         cluster.applyLatestConfigurations(targetStackId, service.getServiceId());

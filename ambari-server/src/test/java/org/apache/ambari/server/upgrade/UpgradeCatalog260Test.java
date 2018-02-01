@@ -714,10 +714,12 @@ public class UpgradeCatalog260Test {
     expect(cluster.addDesiredConfig("ambari-upgrade", Collections.singleton(newConfig), "Updated ranger-kms-audit during Ambari Upgrade from 2.5.2 to 2.6.0.")).andReturn(response).once();
 
     //HIVE
+    Service hiveService = createNiceMock(Service.class);
     expect(cluster.getDesiredConfigByType("hive-site")).andReturn(hsiConfig).anyTimes();
     expect(cluster.getDesiredConfigByType("hive-interactive-site")).andReturn(hsiConfig).anyTimes();
     expect(cluster.getConfigsByType("hive-interactive-site")).andReturn(Collections.singletonMap("version1", hsiConfig)).anyTimes();
-    expect(cluster.getServiceByConfigType("hive-interactive-site").getName()).andReturn("HIVE").anyTimes();
+    expect(cluster.getServiceByConfigType("hive-interactive-site")).andReturn(hiveService).anyTimes();
+    expect(hiveService.getName()).andReturn("HIVE").anyTimes();
     expect(cluster.getConfig(eq("hive-interactive-site"), anyString())).andReturn(newHsiConfig).anyTimes();
   
 
@@ -735,7 +737,7 @@ public class UpgradeCatalog260Test {
 
     Capture<? extends Map<String, String>> captureHsiProperties = newCapture();
 
-    expect(controller.createConfig(eq(cluster), eq(stackId), eq("hive-interactive-site"), capture(captureHsiProperties), anyString(), anyObject(Map.class), 1L))
+    expect(controller.createConfig(eq(cluster), eq(stackId), eq("hive-interactive-site"), capture(captureHsiProperties), anyString(), anyObject(Map.class), eq(1L)))
             .andReturn(null)
             .anyTimes();
 
@@ -890,13 +892,16 @@ public class UpgradeCatalog260Test {
       put("normal", cluster);
     }}).once();
     expect(cluster.getDesiredConfigByType("hive-interactive-site")).andReturn(mockHsiConfigs).atLeastOnce();
+    Service service = createNiceMock(Service.class);
+    expect(service.getName()).andReturn("HIVE").anyTimes();
+    expect(cluster.getServiceByConfigType("hive-interactive-site")).andReturn(service).atLeastOnce();
     expect(mockHsiConfigs.getProperties()).andReturn(oldProperties).anyTimes();
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
 
-    replay(injector, clusters, mockHsiConfigs, cluster);
+    replay(injector, clusters, mockHsiConfigs);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
             .addMockedMethod("createConfiguration")
@@ -906,13 +911,15 @@ public class UpgradeCatalog260Test {
             .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    Config config = createNiceMock(Config.class);
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
-            anyObject(Map.class), 1L)).andReturn(createNiceMock(Config.class)).once();
-    replay(controller, injector2);
+            anyObject(Map.class), anyLong())).andReturn(config).once();
+    expect(cluster.getConfig(anyString(), anyString())).andReturn(config);
+    replay(controller, injector2, config, cluster);
 
     // This tests the update of HSI config 'hive.llap.daemon.keytab.file'.
     UpgradeCatalog260  upgradeCatalog260 = new UpgradeCatalog260(injector2);

@@ -71,6 +71,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -141,7 +142,10 @@ public class OrmTestHelper {
   @Inject
   private StackDAO stackDAO;
 
+  public static final StackId STACK_ID = new StackId("HDP", "2.2.0");
   public static final String CLUSTER_NAME = "test_cluster1";
+  public static final String SERVICE_GROUP_NAME = "CORE";
+  public static final String SERVICE_NAME = "HDFS";
 
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
@@ -152,7 +156,7 @@ public class OrmTestHelper {
    */
   @Transactional
   public void createDefaultData() {
-    StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
+    StackEntity stackEntity = stackDAO.find(STACK_ID);
 
     ResourceTypeEntity resourceTypeEntity =  new ResourceTypeEntity();
     resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
@@ -197,8 +201,14 @@ public class OrmTestHelper {
     host1.setHostStateEntity(hostStateEntity1);
     host2.setHostStateEntity(hostStateEntity2);
 
+    ServiceGroupEntity serviceGroupEntity = new ServiceGroupEntity();
+    serviceGroupEntity.setServiceGroupName(SERVICE_GROUP_NAME);
+    serviceGroupEntity.setClusterEntity(clusterEntity);
+
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
-    clusterServiceEntity.setServiceName("HDFS");
+    clusterServiceEntity.setServiceType("HDFS");
+    clusterServiceEntity.setServiceName(SERVICE_NAME);
+    clusterServiceEntity.setServiceGroupEntity(serviceGroupEntity);
     clusterServiceEntity.setClusterEntity(clusterEntity);
     List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<>();
     clusterServiceEntities.add(clusterServiceEntity);
@@ -209,6 +219,7 @@ public class OrmTestHelper {
     getEntityManager().persist(resourceTypeEntity);
     getEntityManager().persist(resourceEntity);
     getEntityManager().persist(clusterEntity);
+    getEntityManager().persist(serviceGroupEntity);
     getEntityManager().persist(hostStateEntity1);
     getEntityManager().persist(hostStateEntity2);
     getEntityManager().persist(clusterServiceEntity);
@@ -402,7 +413,7 @@ public class OrmTestHelper {
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
-    ServiceGroup serviceGroup = cluster.addServiceGroup("CORE");
+    ServiceGroup serviceGroup = cluster.addServiceGroup(SERVICE_GROUP_NAME);
     cluster = initializeClusterWithStack(cluster);
 
     addHost(clusters, cluster, hostName);
