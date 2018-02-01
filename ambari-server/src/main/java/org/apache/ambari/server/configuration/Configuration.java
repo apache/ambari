@@ -2472,6 +2472,13 @@ public class Configuration {
     "logsearch.portal.read.timeout", 5000);
 
   /**
+   * External logsearch portal address, can be used with internal logfeeder, as the same logsearch portal can store logs for different clusters
+   */
+  @Markdown(description = "Address of an external LogSearch Portal service. (managed outside of Ambari) Using Ambari Credential store is required for this feature (credential: 'logsearch.admin.credential')")
+  public static final ConfigurationProperty<String> LOGSEARCH_PORTAL_EXTERNAL_ADDRESS = new ConfigurationProperty<>(
+    "logsearch.portal.external.address", "");
+
+  /**
    * Global disable flag for AmbariServer Metrics.
    */
   @Markdown(description = "Global disable flag for AmbariServer Metrics.")
@@ -5341,6 +5348,14 @@ public class Configuration {
    */
   public int getLogSearchPortalReadTimeout() {
     return NumberUtils.toInt(getProperty(LOGSEARCH_PORTAL_READ_TIMEOUT));
+  }
+
+  /**
+   * External address of logsearch portal (managed outside of ambari)
+   * @return Address string for logsearch portal (e.g.: https://c6401.ambari.apache.org:61888)
+   */
+  public String getLogSearchPortalExternalAddress() {
+    return getProperty(LOGSEARCH_PORTAL_EXTERNAL_ADDRESS);
   }
 
 
