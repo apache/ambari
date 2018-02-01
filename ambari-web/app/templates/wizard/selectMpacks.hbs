@@ -54,9 +54,15 @@
       <div class="panel-body tab-content flex-fill">
         {{#if controller.content.advancedMode}}
         <div role="tabpanel" class="tab-pane active" id="mpacks">
+          <div class="input-group filter-input">
+            {{view Em.TextField class="form-control" valueBinding="controller.filterMpacksText" placeholderBinding="controller.filterMpacksPlaceholder"}}
+            <span class="input-group-btn">
+              <button class="btn btn-default icon-button-addon" type="button" {{action clearFilterMpacks target="controller"}}><span class="icon icon-rotate-left"></span></button>
+            </span>
+          </div>
           <div class="options-list">
-            {{#if controller.content.mpacks}}
-            {{#each mpack in controller.content.mpacks}}
+            {{#if controller.filteredMpacks}}
+            {{#each mpack in controller.filteredMpacks}}
             {{view App.WizardMpackView mpackBinding="mpack"}}
             {{/each}}
             {{else}}
@@ -65,9 +71,15 @@
           </div>
         </div>
         <div role="tabpanel" class="tab-pane" id="services">
+          <div class="input-group filter-input">
+            {{view Em.TextField class="form-control" valueBinding="controller.filterServicesText" placeholderBinding="controller.filterServicesPlaceholder"}}
+            <span class="input-group-btn">
+              <button class="btn btn-default icon-button-addon" type="button" {{action clearFilterServices target="controller"}}><span class="icon icon-rotate-left"></span></button>
+            </span>
+          </div>
           <div class="options-list">
-            {{#if controller.content.mpackServices}} 
-            {{#each service in controller.content.mpackServices}}
+            {{#if controller.filteredServices}} 
+            {{#each service in controller.filteredServices}}
             {{view App.WizardServiceView serviceBinding="service"}}
             {{/each}}
             {{else}}

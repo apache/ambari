@@ -36,16 +36,23 @@ describe('App.WizardConfigureDownloadView', function () {
   })
 
   describe('#useRedHatSatelliteChanged', function () {
-    it('Sets useProxy to false and calls useProxyChanged', function () {
+    it('Sets useProxy to false, calls useProxyChanged, and shows modal', function () {
       controller.set('content.downloadConfig.useProxy', true);
       sinon.stub(view, 'useProxyChanged');
-
-      view.useRedHatSatelliteChanged();
+      sinon.stub(App.ModalPopup, 'show');
+      
+      view.useRedHatSatelliteChanged({
+        currentTarget: {
+          checked: true
+        }
+      });
 
       expect(controller.get('content.downloadConfig.useProxy')).to.be.false;
       expect(view.useProxyChanged.called).to.be.true;
+      expect(App.ModalPopup.show.called).to.be.true;
 
       view.useProxyChanged.restore();
+      App.ModalPopup.show.restore();
     });
   });
 

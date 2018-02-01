@@ -1828,5 +1828,113 @@ describe('App.WizardController', function () {
     });
   });
 
+  describe('#getPreviousStepName', function () {
+    var wizardController;
 
+    before(function () {
+      wizardController = App.WizardController.create({
+        currentStep: null,
+        steps: null
+      });
+      sinon.stub(wizardController, 'setStepsEnable');
+    });
+
+    afterEach(function () {
+      wizardController.set('steps', null);
+    });
+
+    it('Should return null when first step is current', function () {
+      wizardController.set('currentStep', 0);
+      
+      var stepName = wizardController.getPreviousStepName();
+      
+      expect(stepName).to.be.null;
+    });
+
+    it('Should return name of previous step when there is a steps array', function () {
+      var steps = [
+        'FirstStep',
+        'SecondStep',
+        'ThirdStep'
+      ];
+
+      wizardController.set('steps', steps);
+      wizardController.set('currentStep', 1);
+
+      var stepName = wizardController.getPreviousStepName();
+
+      expect(stepName).to.equal(steps[0]);
+    });
+
+    it('Should return step name of the form "step<x-1>" when there is no steps array', function () {
+      wizardController.set('currentStep', 1);
+
+      var stepName = wizardController.getPreviousStepName();
+
+      expect(stepName).to.equal("step0");
+    });
+  });
+
+  describe('#getNextStepName', function () {
+    var wizardController;
+
+    before(function () {
+      wizardController = App.WizardController.create({
+        currentStep: null,
+        steps: null
+      });
+      sinon.stub(wizardController, 'setStepsEnable');
+    });
+
+    afterEach(function () {
+      wizardController.set('steps', null);
+    });
+
+    it('Should return null when last step is current and there is no steps array', function () {
+      wizardController.set('totalSteps', 3);
+      wizardController.set('currentStep', 2);
+
+      var stepName = wizardController.getNextStepName();
+
+      expect(stepName).to.be.null;
+    });
+
+    it('Should return null when last step is current and there is a steps array', function () {
+      var steps = [
+        'FirstStep',
+        'SecondStep',
+        'ThirdStep'
+      ];
+
+      wizardController.set('steps', steps);
+      wizardController.set('currentStep', 2);
+
+      var stepName = wizardController.getNextStepName();
+
+      expect(stepName).to.be.null;
+    });
+
+    it('Should return name of next step when there is a steps array', function () {
+      var steps = [
+        'FirstStep',
+        'SecondStep',
+        'ThirdStep'
+      ];
+
+      wizardController.set('steps', steps);
+      wizardController.set('currentStep', 1);
+
+      var stepName = wizardController.getNextStepName();
+
+      expect(stepName).to.equal(steps[2]);
+    });
+
+    it('Should return step name of the form "step<x+1>" when there is no steps array', function () {
+      wizardController.set('currentStep', 1);
+
+      var stepName = wizardController.getNextStepName();
+
+      expect(stepName).to.equal("step2");
+    });
+  });
 });

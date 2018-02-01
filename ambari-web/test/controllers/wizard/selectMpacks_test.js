@@ -1166,4 +1166,88 @@ describe('App.WizardSelectMpacksController', function () {
       wizardSelectMpacksController.clearSelection.restore();
     });
   });
+
+  describe('#filteredMpacks', function () {
+    var mpacks = [
+      Em.Object.create({
+        filterOn: "alphabravo"
+      }),
+      Em.Object.create({
+        filterOn: "alphacharlie"
+      }),
+      Em.Object.create({
+        filterOn: "bravodelta"
+      })
+    ];
+    
+    beforeEach(function () {
+      wizardSelectMpacksController.set('content.mpacks', mpacks);
+      wizardSelectMpacksController.set('filterMpacksText', 'alpha');
+    })
+
+    it('should return the correctly filtered mpacks', function () {
+      var expected = [
+        Em.Object.create({
+          filterOn: "alphabravo"
+        }),
+        Em.Object.create({
+          filterOn: "alphacharlie"
+        })
+      ];
+
+      var actual = wizardSelectMpacksController.get('filteredMpacks');
+
+      expect(actual).to.deep.equal(expected);
+    });
+
+    it('should return all mpacks when there is no filter text', function () {
+      wizardSelectMpacksController.clearFilterMpacks();
+
+      var actual = wizardSelectMpacksController.get('filteredMpacks');
+
+      expect(actual).to.deep.equal(mpacks);
+    });
+  });
+
+  describe('#filteredServices', function () {
+    var services = [
+      Em.Object.create({
+        filterOn: "alphabravo"
+      }),
+      Em.Object.create({
+        filterOn: "alphacharlie"
+      }),
+      Em.Object.create({
+        filterOn: "bravodelta"
+      })
+    ];
+
+    beforeEach(function () {
+      wizardSelectMpacksController.set('content.mpackServices', services);
+      wizardSelectMpacksController.set('filterServicesText', 'alpha');
+    })
+
+    it('should return the correctly filtered services', function () {
+      var expected = [
+        Em.Object.create({
+          filterOn: "alphabravo"
+        }),
+        Em.Object.create({
+          filterOn: "alphacharlie"
+        })
+      ];
+
+      var actual = wizardSelectMpacksController.get('filteredServices');
+
+      expect(actual).to.deep.equal(expected);
+    });
+
+    it('should return all services when there is no filter text', function () {
+      wizardSelectMpacksController.clearFilterServices();
+
+      var actual = wizardSelectMpacksController.get('filteredServices');
+
+      expect(actual).to.deep.equal(services);
+    });
+  });
 });
