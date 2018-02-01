@@ -44,6 +44,8 @@ from mock.mock import MagicMock, patch
 from unittest import TestCase
 
 from AmbariConfig import AmbariConfig
+from ambari_agent.InitializerModule import InitializerModule
+from ambari_agent.ConfigurationBuilder import ConfigurationBuilder
 
 class TestAlerts(TestCase):
 
@@ -68,56 +70,27 @@ class TestAlerts(TestCase):
 
     cluster_configuration = self.__get_cluster_configuration()
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
-      self.config, None)
+
+    initializer_module = InitializerModule()
+    
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+    
+    initializer_module.init()
+    
+    ash = AlertSchedulerHandler(initializer_module)
+    
+    #ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+    #  test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
+    #  self.config, None)
 
     ash.start()
 
     self.assertTrue(aps_add_interval_job_mock.called)
     self.assertTrue(aps_start_mock.called)
-
-  @patch('time.time')
-  @patch.object(socket.socket,"connect")
-  def test_port_alert(self, socket_connect_mock, time_mock):
-    definition_json = self._get_port_alert_definition()
-
-    configuration = { 'hdfs-site' : { 'my-key': 'value1' } }
-
-    collector = AlertCollector()
-    cluster_configuration = self.__get_cluster_configuration()
-    self.__update_cluster_configuration(cluster_configuration, configuration)
-
-    # called 3x with 3 calls per alert
-    # - 900ms and then a time.time() for the date from base_alert
-    # - 2000ms and then a time.time() for the date from base_alert
-    # - socket.timeout to simulate a timeout and then a time.time() for the date from base_alert
-    time_mock.side_effect = [0,900,336283000000,
-      0,2000,336283100000,
-      socket.timeout,336283200000]
-
-    alert = PortAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
-    self.assertEquals(6, alert.interval())
-
-    # 900ms is OK
-    alert.collect()
-    alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('OK', alerts[0]['state'])
-
-    # 2000ms is WARNING
-    alert.collect()
-    alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('WARNING', alerts[0]['state'])
-
-    # throws a socket.timeout exception, causes a CRITICAL
-    alert.collect()
-    alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))
-    self.assertEquals('CRITICAL', alerts[0]['state'])
 
   @patch.object(RecoveryManager, "is_action_info_stale")
   @patch.object(RecoveryManager, "get_actions_copy")
@@ -142,8 +115,8 @@ class TestAlerts(TestCase):
 
     rm = RecoveryManager(tempfile.mktemp(), True)
     alert = RecoveryAlert(definition_json, definition_json['source'], self.config, rm)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, MagicMock())
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     self.assertEquals(1, alert.interval())
 
     #  OK - "count": 0
@@ -216,25 +189,29 @@ class TestAlerts(TestCase):
     self.assertEquals('CRITICAL', alerts[0]['state'])
 
 
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(socket.socket,"connect")
-  def test_port_alert_complex_uri(self, socket_connect_mock):
+  def test_port_alert_complex_uri(self, socket_connect_mock, get_configuration_mock):
     definition_json = self._get_port_alert_definition()
 
     configuration = {'hdfs-site' :
       { 'my-key': 'c6401.ambari.apache.org:2181,c6402.ambari.apache.org:2181,c6403.ambari.apache.org:2181'}
     }
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     alert = PortAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6402.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6402.ambari.apache.org")
 
     # use a URI that has commas to verify that we properly parse it
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     self.assertEquals(6, alert.interval())
 
     alert.collect()
@@ -274,15 +251,16 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     alert = PortAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(AlertCollector(), cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(AlertCollector(), cluster_configuration, MagicMock())
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     self.assertEquals('http://c6401.ambari.apache.org', alert.uri)
 
     alert.collect()
 
 
-  def test_script_alert(self):
+  @patch.object(ConfigurationBuilder, "get_configuration")
+  def test_script_alert(self, get_configuration_mock):
     definition_json = self._get_script_alert_definition()
 
     # normally set by AlertSchedulerHandler
@@ -296,12 +274,15 @@ class TestAlerts(TestCase):
     }
 
     collector = AlertCollector()
-    cluster_configuration = self.__get_cluster_configuration()
-    self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = ScriptAlert(definition_json, definition_json['source'], MagicMock())
-    alert.set_helpers(collector, cluster_configuration )
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    cluster_configuration = self.__get_cluster_configuration()
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     self.assertEquals(definition_json['source']['path'], alert.path)
     self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
@@ -318,7 +299,8 @@ class TestAlerts(TestCase):
     self.assertEquals('bar is rendered-bar, baz is rendered-baz', alerts[0]['text'])
 
 
-  def test_script_alert_with_parameters(self):
+  @patch.object(ConfigurationBuilder, "get_configuration")
+  def test_script_alert_with_parameters(self, get_configuration_mock):
     definition_json = self._get_script_alert_definition_with_parameters()
 
     # normally set by AlertSchedulerHandler
@@ -335,9 +317,12 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
+
     alert = ScriptAlert(definition_json, definition_json['source'], MagicMock())
-    alert.set_helpers(collector, cluster_configuration )
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     self.assertEquals(definition_json['source']['path'], alert.path)
     self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
@@ -354,20 +339,24 @@ class TestAlerts(TestCase):
     self.assertEquals('Script parameter detected: foo bar baz', alerts[0]['text'])
 
 
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(MetricAlert, "_load_jmx")
-  def test_metric_alert(self, ma_load_jmx_mock):
+  def test_metric_alert(self, ma_load_jmx_mock, get_configuration_mock):
     definition_json = self._get_metric_alert_definition()
     configuration = {'hdfs-site' :
       { 'dfs.datanode.http.address': 'c6401.ambari.apache.org:80'}
     }
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     # trip an OK
     ma_load_jmx_mock.return_value = ([1, 25], None)
@@ -400,8 +389,8 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
 
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     # now try without any jmx value to compare to
     ma_load_jmx_mock.return_value = ([1, 25], None)
@@ -413,8 +402,9 @@ class TestAlerts(TestCase):
     self.assertEquals('(Unit Tests) OK: 1 25 None', alerts[0]['text'])
 
 
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(AmsAlert, "_load_metric")
-  def test_ams_alert(self, ma_load_metric_mock):
+  def test_ams_alert(self, ma_load_metric_mock, get_configuration_mock):
     definition_json = self._get_ams_alert_definition()
     configuration = {'ams-site':
       {'timeline.metrics.service.webapp.address': '0.0.0.0:6188'}
@@ -423,10 +413,14 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
+
 
     alert = AmsAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     # trip an OK
     ma_load_metric_mock.return_value = ([{1:100,2:100,3:200,4:200}], None)
@@ -455,8 +449,9 @@ class TestAlerts(TestCase):
     self.assertEquals('CRITICAL', alerts[0]['state'])
     self.assertEquals('(Unit Tests) Critical: the mean used heap size is 1500 MB.', alerts[0]['text'])
 
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(MetricAlert, "_load_jmx")
-  def test_alert_uri_structure(self, ma_load_jmx_mock):
+  def test_alert_uri_structure(self, ma_load_jmx_mock, get_configuration_mock):
     definition_json = self._get_metric_alert_definition()
 
     ma_load_jmx_mock.return_value = ([0,0], None)
@@ -466,8 +461,8 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, MagicMock())
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     self.assertEquals('UNKNOWN', collector.alerts()[0]['state'])
@@ -482,8 +477,8 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, MagicMock())
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     self.assertEquals('UNKNOWN', collector.alerts()[0]['state'])
@@ -495,11 +490,14 @@ class TestAlerts(TestCase):
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     collector = AlertCollector()
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     self.assertEquals('OK', collector.alerts()[0]['state'])
@@ -514,8 +512,8 @@ class TestAlerts(TestCase):
 
     collector = AlertCollector()
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     self.assertEquals('OK', collector.alerts()[0]['state'])
@@ -531,15 +529,27 @@ class TestAlerts(TestCase):
 
     collector = AlertCollector()
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     self.assertEquals('OK', collector.alerts()[0]['state'])
 
-
+  def create_initializer_module(self):
+    initializer_module = InitializerModule()
+    initializer_module.init()
+    #initializer_module.metadata_cache.rewrite_cluster_cache('-1',{'clusterLevelParams':{}})
+    #initializer_module.metadata_cache.rewrite_cluster_cache('0',{'clusterLevelParams':{}})
+    #initializer_module.configurations_cache.rewrite_cluster_cache('0', {})
+    #initializer_module.host_level_params_cache.rewrite_cluster_cache('0', {'hostRepositories':{'componentRepos':{}}})
+    #initializer_module.configuration_builder.topology_cache = MagicMock()
+    
+    
+    return initializer_module
+  
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(WebAlert, "_make_web_request")
-  def test_web_alert(self, wa_make_web_request_mock):
+  def test_web_alert(self, wa_make_web_request_mock, get_configuration_mock):
     definition_json = self._get_web_alert_definition()
 
     WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
@@ -551,12 +561,17 @@ class TestAlerts(TestCase):
     }
 
     collector = AlertCollector()
-    cluster_configuration = self.__get_cluster_configuration()
-    self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    
+    #cluster_configuration = self.__get_cluster_configuration()
+    cluster_configuration = initializer_module.configurations_cache
+    #self.__update_cluster_configuration(cluster_configuration, configuration)
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = WebAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     alerts = collector.alerts()
@@ -569,8 +584,8 @@ class TestAlerts(TestCase):
     wa_make_web_request_mock.return_value = WebResponse(500,1.234,"Internal Server Error")
     collector = AlertCollector()
     alert = WebAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     alerts = collector.alerts()
@@ -584,8 +599,8 @@ class TestAlerts(TestCase):
 
     collector = AlertCollector()
     alert = WebAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     alerts = collector.alerts()
@@ -601,12 +616,13 @@ class TestAlerts(TestCase):
         'dfs.datanode.https.address' : 'c6401.ambari.apache.org:443/test/path' }
     }
 
-    self.__update_cluster_configuration(cluster_configuration, configuration)
-
+    #self.__update_cluster_configuration(cluster_configuration, configuration)
+    get_configuration_mock.return_value = {'configurations':configuration}
+    
     collector = AlertCollector()
     alert = WebAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     alert.collect()
 
@@ -622,8 +638,8 @@ class TestAlerts(TestCase):
     wa_make_web_request_mock.return_value = WebResponse(code, 1.234 , "Custom Code")
     collector = AlertCollector()
     alert = WebAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     alerts = collector.alerts()
@@ -641,9 +657,21 @@ class TestAlerts(TestCase):
 
     cluster_configuration = self.__get_cluster_configuration()
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
-      self.config, None)
+    initializer_module = InitializerModule()
+    
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+    
+    initializer_module.init()
+    
+    ash = AlertSchedulerHandler(initializer_module)
+    
+    #ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+    #  test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
+    #  self.config, None)
 
     ash.start()
 
@@ -651,8 +679,8 @@ class TestAlerts(TestCase):
     ash.reschedule()
     self.assertEquals(1, ash.get_job_count())
 
-
-  def test_alert_collector_purge(self):
+  @patch.object(ConfigurationBuilder, "get_configuration")
+  def test_alert_collector_purge(self, get_configuration_mock):
     definition_json = self._get_port_alert_definition()
 
     configuration = {'hdfs-site' :
@@ -662,10 +690,13 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = PortAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     self.assertEquals(6, alert.interval())
 
     res = alert.collect()
@@ -689,11 +720,29 @@ class TestAlerts(TestCase):
 
     cluster_configuration = self.__get_cluster_configuration()
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+    initializer_module = InitializerModule()
+    
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+    
+    initializer_module.init()
+    
+    ash = AlertSchedulerHandler(initializer_module)
+    """
+      test_file_path, test_stack_path,
       test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
       self.config, None)
-
+    """
     ash.start()
+    
+    """
+       cachedir, stacks_dir, common_services_dir, extensions_dir,
+      host_scripts_dir, cluster_configuration, config, recovery_manager,
+      in_minutes=True):
+    """
 
     self.assertEquals(1, ash.get_job_count())
 
@@ -726,9 +775,22 @@ class TestAlerts(TestCase):
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
     cluster_configuration = self.__get_cluster_configuration()
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
-      self.config, None)
+    
+    initializer_module = InitializerModule()
+    
+    initializer_module.config.cluster_cache_dir = test_file_path
+    initializer_module.config.stacks_dir = test_stack_path
+    initializer_module.config.common_services_dir = test_common_services_path
+    initializer_module.config.extensions_dir = test_extensions_path
+    initializer_module.config.host_scripts_dir = test_host_scripts_path
+    
+    initializer_module.init()
+    
+    ash = AlertSchedulerHandler(initializer_module)
+    
+    #ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+    #  test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
+    #  self.config, None)
 
     ash.start()
 
@@ -766,8 +828,8 @@ class TestAlerts(TestCase):
     alert = ScriptAlert(definition_json, definition_json['source'], self.config)
 
     # instruct the test alert script to be skipped
-    alert.set_helpers(collector, cluster_configuration )
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, MagicMock())
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     alert.collect()
 
@@ -816,7 +878,8 @@ class TestAlerts(TestCase):
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{1} recovery operations executed for {2}{0}.')
 
 
-  def test_configuration_updates(self):
+  @patch.object(ConfigurationBuilder, "get_configuration")
+  def test_configuration_updates(self, get_configuration_mock):
     definition_json = self._get_script_alert_definition()
 
     # normally set by AlertSchedulerHandler
@@ -834,10 +897,13 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
+    
     # run the alert and verify the output
     alert = ScriptAlert(definition_json, definition_json['source'], MagicMock())
-    alert.set_helpers(collector, cluster_configuration )
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     alert.collect()
 
     alerts = collector.alerts()
@@ -851,6 +917,7 @@ class TestAlerts(TestCase):
     configuration = {'foo-site' :
       { 'bar': 'rendered-bar2', 'baz' : 'rendered-baz2' }
     }
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     # populate the configuration cache with the initial configs
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -864,7 +931,8 @@ class TestAlerts(TestCase):
     self.assertEquals('bar is rendered-bar2, baz is rendered-baz2', alerts[0]['text'])
 
 
-  def test_uri_structure_parsing(self):
+  @patch.object(ConfigurationBuilder, "get_configuration")
+  def test_uri_structure_parsing(self, get_configuration_mock):
     uri_structure = {
       "http": "{{hdfs-site/dfs.namenode.http.address}}",
       "https": "{{hdfs-site/dfs.namenode.https.address}}",
@@ -886,12 +954,15 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = MockAlert()
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     uri_keys = alert._lookup_uri_property_keys(uri_structure)
-    self.assertFalse(alert._check_uri_ssl_property(uri_keys))
+    self.assertFalse(alert._check_uri_ssl_property(uri_keys, {'configurations':configuration}))
 
     uri = alert._get_uri_from_structure(uri_keys)
     self.assertEqual( 'c6401.ambari.apache.org:80', uri.uri )
@@ -904,8 +975,9 @@ class TestAlerts(TestCase):
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    get_configuration_mock.return_value = {'configurations':configuration}
     uri_keys = alert._lookup_uri_property_keys(uri_structure)
-    self.assertFalse(alert._check_uri_ssl_property(uri_keys))
+    self.assertFalse(alert._check_uri_ssl_property(uri_keys, {'configurations':configuration}))
 
     uri = alert._get_uri_from_structure(uri_keys)
     self.assertEqual( 'c6401.ambari.apache.org:80', uri.uri )
@@ -920,7 +992,8 @@ class TestAlerts(TestCase):
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
     uri_keys = alert._lookup_uri_property_keys(uri_structure)
-    self.assertTrue(alert._check_uri_ssl_property(uri_keys))
+    self.assertTrue(alert._check_uri_ssl_property(uri_keys, {'configurations':configuration}))
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     uri = alert._get_uri_from_structure(uri_keys)
     self.assertEqual( 'c6401.ambari.apache.org:443', uri.uri )
@@ -939,8 +1012,9 @@ class TestAlerts(TestCase):
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    get_configuration_mock.return_value = {'configurations':configuration}
     uri_keys = alert._lookup_uri_property_keys(uri_structure)
-    self.assertFalse(alert._check_uri_ssl_property(uri_keys))
+    self.assertFalse(alert._check_uri_ssl_property(uri_keys, {'configurations':configuration}))
 
     uri = alert._get_uri_from_structure(uri_keys)
     self.assertEqual( 'c6401.ambari.apache.org:8080', uri.uri )
@@ -961,15 +1035,17 @@ class TestAlerts(TestCase):
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    get_configuration_mock.return_value = {'configurations':configuration}
     uri_keys = alert._lookup_uri_property_keys(uri_structure)
-    self.assertTrue(alert._check_uri_ssl_property(uri_keys))
+    self.assertTrue(alert._check_uri_ssl_property(uri_keys, {'configurations':configuration}))
 
     uri = alert._get_uri_from_structure(uri_keys)
     self.assertEqual( 'c6401.ambari.apache.org:8443', uri.uri )
     self.assertEqual( True, uri.is_ssl_enabled )
 
 
-  def test_uri_structure_parsing_without_namespace(self):
+  @patch.object(ConfigurationBuilder, "get_configuration")
+  def test_uri_structure_parsing_without_namespace(self, get_configuration_mock):
     """
     Tests that we can parse an HA URI that only includes an alias and
     not a namespace
@@ -1002,21 +1078,25 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = MockAlert()
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6402.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6402.ambari.apache.org")
     uri_keys = alert._lookup_uri_property_keys(uri_structure)
-    self.assertTrue(alert._check_uri_ssl_property(uri_keys))
+    self.assertTrue(alert._check_uri_ssl_property(uri_keys, {'configurations':configuration}))
 
     uri = alert._get_uri_from_structure(uri_keys)
     self.assertEqual( 'c6402.ambari.apache.org:8443', uri.uri )
     self.assertEqual( True, uri.is_ssl_enabled )
 
 
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch('httplib.HTTPConnection')
   @patch.object(RefreshHeaderProcessor, 'http_response')
-  def test_metric_alert_uses_refresh_processor(self, http_response_mock, http_connection_mock):
+  def test_metric_alert_uses_refresh_processor(self, http_response_mock, http_connection_mock, get_configuration_mock):
     """
     Tests that the RefreshHeaderProcessor is correctly chained and called
     :param http_response_mock:
@@ -1049,10 +1129,13 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     alert.collect()
 
@@ -1151,8 +1234,8 @@ class TestAlerts(TestCase):
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
     self.assertEquals(5.0, alert.connection_timeout)
 
-
-  def test_get_configuration_values(self):
+  @patch.object(ConfigurationBuilder, "get_configuration")
+  def test_get_configuration_values(self, get_configuration_mock):
     """
     Tests that we are able to extract parameters correctly from the cached
     configuration.
@@ -1169,46 +1252,53 @@ class TestAlerts(TestCase):
         'special-character-&' : 'ampersand'
       }
     }
+    
+    configuration_full = {'configurations':configuration}
 
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
+    
     alert = MockAlert()
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
-    self.assertEquals("constant", alert._get_configuration_value("constant"))
-    self.assertEquals("value1", alert._get_configuration_value("{{foo-site/foo-key1}}"))
-    self.assertEquals("value2", alert._get_configuration_value("{{foo-site/foo-key2}}"))
-    self.assertEquals("asterisk", alert._get_configuration_value("{{foo-site/special-character-*}}"))
-    self.assertEquals("dollar sign", alert._get_configuration_value("{{foo-site/special-character-$}}"))
-    self.assertEquals("hash", alert._get_configuration_value("{{foo-site/special-character-#}}"))
-    self.assertEquals("bang", alert._get_configuration_value("{{foo-site/special-character-!}}"))
-    self.assertEquals("ampersand", alert._get_configuration_value("{{foo-site/special-character-&}}"))
+    self.assertEquals("constant", alert._get_configuration_value(configuration_full, "constant"))
+    self.assertEquals("value1", alert._get_configuration_value(configuration_full, "{{foo-site/foo-key1}}"))
+    self.assertEquals("value2", alert._get_configuration_value(configuration_full, "{{foo-site/foo-key2}}"))
+    self.assertEquals("asterisk", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-*}}"))
+    self.assertEquals("dollar sign", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-$}}"))
+    self.assertEquals("hash", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-#}}"))
+    self.assertEquals("bang", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-!}}"))
+    self.assertEquals("ampersand", alert._get_configuration_value(configuration_full, "{{foo-site/special-character-&}}"))
 
     # try a mix of parameter and constant
-    self.assertEquals("http://value1/servlet", alert._get_configuration_value("http://{{foo-site/foo-key1}}/servlet"))
-    self.assertEquals("http://value1/servlet/value2", alert._get_configuration_value("http://{{foo-site/foo-key1}}/servlet/{{foo-site/foo-key2}}"))
+    self.assertEquals("http://value1/servlet", alert._get_configuration_value(configuration_full, "http://{{foo-site/foo-key1}}/servlet"))
+    self.assertEquals("http://value1/servlet/value2", alert._get_configuration_value(configuration_full, "http://{{foo-site/foo-key1}}/servlet/{{foo-site/foo-key2}}"))
 
     # try to request a dictionary object instead of a property
-    self.assertEquals(configuration["foo-site"], alert._get_configuration_value("{{foo-site}}"))
+    self.assertEquals(configuration["foo-site"], alert._get_configuration_value(configuration_full, "{{foo-site}}"))
 
-
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(MetricAlert, "_load_jmx")
-  def test_metric_alert_floating_division(self, ma_load_jmx_mock):
+  def test_metric_alert_floating_division(self, ma_load_jmx_mock, get_configuration_mock):
     definition_json = self._get_metric_alert_definition_with_float_division()
     configuration = {'hdfs-site' :
       { 'dfs.datanode.http.address': 'c6401.ambari.apache.org:80'}
     }
-
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
+    
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     alert = MetricAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
 
     # 10 / 5
     ma_load_jmx_mock.return_value = ([10, 5], None)
@@ -1221,8 +1311,9 @@ class TestAlerts(TestCase):
 
 
 
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(socket.socket,"connect")
-  def test_alert_definition_value_error_conversion(self, socket_connect_mock):
+  def test_alert_definition_value_error_conversion(self, socket_connect_mock, get_configuration_mock):
     """
     Tests that an alert definition with text that doesn't match the type of positional arguments
     can recover and retry the ValueError.
@@ -1238,14 +1329,17 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = PortAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6402.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6402.ambari.apache.org")
 
     # use a URI that has commas to verify that we properly parse it
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     self.assertEquals(6, alert.interval())
 
     # the collect should catch the invalid text in the definition
@@ -1259,8 +1353,9 @@ class TestAlerts(TestCase):
     self.assertTrue('(Unit Tests) TCP OK' in alerts[0]['text'])
 
 
+  @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(socket.socket,"connect")
-  def test_alert_definition_too_many_positional_arguments(self, socket_connect_mock):
+  def test_alert_definition_too_many_positional_arguments(self, socket_connect_mock, get_configuration_mock):
     """
     Tests that an alert definition with too many arguments produces an alert to collect after the
     exceptioin is raised.
@@ -1276,14 +1371,17 @@ class TestAlerts(TestCase):
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
+    
+    initializer_module = self.create_initializer_module()
+    get_configuration_mock.return_value = {'configurations':configuration}
 
     alert = PortAlert(definition_json, definition_json['source'], self.config)
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6402.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, MagicMock())
+    alert.set_cluster("c1", "0", "c6402.ambari.apache.org")
 
     # use a URI that has commas to verify that we properly parse it
-    alert.set_helpers(collector, cluster_configuration)
-    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    alert.set_helpers(collector, cluster_configuration, initializer_module.configuration_builder)
+    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
     self.assertEquals(6, alert.interval())
 
     # the collect should catch the invalid text in the definition
@@ -1317,7 +1415,7 @@ class TestAlerts(TestCase):
     :return:
     """
     osfdopen_mock.side_effect = self.osfdopen_side_effect
-    cluster_configuration.update_cache("c1", configuration)
+    cluster_configuration.rewrite_cluster_cache("0", {'configurations':configuration})
 
 
   def open_side_effect(self, file, mode):
