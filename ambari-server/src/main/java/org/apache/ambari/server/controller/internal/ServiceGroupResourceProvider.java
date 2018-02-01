@@ -141,7 +141,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     throws SystemException,
     UnsupportedPropertyException,
     ResourceAlreadyExistsException,
-    NoSuchParentResourceException {
+    NoSuchParentResourceException, IllegalArgumentException{
 
     final Set<ServiceGroupRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
@@ -150,7 +150,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
     Set<ServiceGroupResponse> createServiceGroups = null;
     createServiceGroups = createResources(new Command<Set<ServiceGroupResponse>>() {
       @Override
-      public Set<ServiceGroupResponse> invoke() throws AmbariException, AuthorizationException {
+      public Set<ServiceGroupResponse> invoke() throws AmbariException, AuthorizationException, IllegalArgumentException {
         return createServiceGroups(requests);
       }
     });
@@ -287,7 +287,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
 
   // Create services from the given request.
   public synchronized Set<ServiceGroupResponse> createServiceGroups(Set<ServiceGroupRequest> requests)
-    throws AmbariException, AuthorizationException {
+    throws AmbariException, AuthorizationException, IllegalArgumentException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -403,7 +403,7 @@ public class ServiceGroupResourceProvider extends AbstractControllerResourceProv
 
 
   private void validateCreateRequests(Set<ServiceGroupRequest> requests, Clusters clusters)
-    throws AuthorizationException, AmbariException {
+    throws AuthorizationException, AmbariException, IllegalArgumentException {
 
     AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
     Map<String, Set<String>> serviceGroupNames = new HashMap<>();

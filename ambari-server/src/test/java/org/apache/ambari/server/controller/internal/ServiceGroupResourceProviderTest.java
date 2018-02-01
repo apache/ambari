@@ -37,7 +37,6 @@ import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.RequestBody;
-import org.apache.ambari.server.api.services.RequestFactory;
 import org.apache.ambari.server.api.services.parsers.JsonRequestBodyParser;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ServiceGroupRequest;
@@ -53,7 +52,9 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelperInitia
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceGroup;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,47 +67,48 @@ public class ServiceGroupResourceProviderTest {
 
   public static void createServiceGroups(AmbariManagementController controller, Set<ServiceGroupRequest> requests)
       throws AmbariException, AuthorizationException {
+    requests.stream().forEach(request->request.getMpackNames().add("dummy"));
     getProvider(controller).createServiceGroups(requests);
   }
 
   public static void createServiceGroup(AmbariManagementController controller, String clusterName, String serviceGroupName)
       throws AmbariException, AuthorizationException {
     ServiceGroupRequest request = new ServiceGroupRequest(clusterName, serviceGroupName);
+    request.getMpackNames().add("dummy");
     createServiceGroups(controller, Collections.singleton(request));
+  }
+
+  @Before
+  public void before() {
+    Authentication authentication = TestAuthenticationFactory.createClusterAdministrator();
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+  }
+
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
   public void testCreateServiceGroupsWithMpacks() throws Exception {
     // Valid Requesty with one mpack name per service group
     String body = "[{\"ServiceGroupInfo\":{\"service_group_name\": \"CORE\",\"mpacks\": [{\"name\": \"HDPCORE\"}]}},{\"ServiceGroupInfo\": {\"service_group_name\": \"EDW-MKTG\",\"mpacks\": [{\"name\": \"EDW2\"}]}}]";
-    try {
-      runTestCreateServiceGroupsWithMpacks(body);
-    } catch (Exception e) {
-      System.out.println("++++++ Test valid request unsuccessfully ++++++");
-      throw e;
-    }
-    System.out.println("++++++ Test valid request successfully ++++++");
+    runTestCreateServiceGroupsWithMpacks(body);
+  }
 
-    // Invalid Request with two mpack names in the service group CORE
-    body = "[{\"ServiceGroupInfo\":{\"service_group_name\": \"CORE\",\"mpacks\": [{\"name\": \"HDPCORE\"},{\"name\": \"EDW\"}]}},{\"ServiceGroupInfo\": {\"service_group_name\": \"EDW-MKTG\",\"mpacks\": [{\"name\": \"EDW2\"}]}}]";
-    try {
-      runTestCreateServiceGroupsWithMpacks(body);
-    } catch (IllegalArgumentException e) {
-      System.out.println("++++++ Test invalid request successfully ++++++");
-    } catch (Exception e) {
-      System.out.println("++++++ Test invalid request unsuccessfully ++++++");
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateServiceGroupsWithMultipleMpacks() throws Exception {
+    // Valid Requesty with one mpack name per service group
+    String body = "[{\"ServiceGroupInfo\":{\"service_group_name\": \"CORE\",\"mpacks\": [{\"name\": \"HDPCORE\"},{\"name\": \"HDPCORE2\"}]}},{\"ServiceGroupInfo\": {\"service_group_name\": \"EDW-MKTG\",\"mpacks\": [{\"name\": \"EDW2\"}]}}]";
+    runTestCreateServiceGroupsWithMpacks(body);
   }
 
   private static void runTestCreateServiceGroupsWithMpacks(String body) throws Exception{
     String clusterName = "c1";
-    Authentication authentication = TestAuthenticationFactory.createClusterAdministrator();
-    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-
     JsonRequestBodyParser jsonParser = new JsonRequestBodyParser();
     RequestBody requestBody = jsonParser.parse(body).iterator().next();
-    RequestFactory requestFactory = new RequestFactory();
+    //RequestFactory requestFactory = new RequestFactory();
     ResourceInstanceFactory resourceFactory = new ResourceInstanceFactoryImpl();
     Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
