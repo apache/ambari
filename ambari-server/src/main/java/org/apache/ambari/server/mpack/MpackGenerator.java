@@ -42,8 +42,8 @@ import javax.xml.bind.Marshaller;
 import org.apache.ambari.server.stack.ServiceDirectory;
 import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -243,7 +243,6 @@ public class MpackGenerator {
     Mpack mpack = new Mpack();
     mpack.setName(dstStackName);
     mpack.setVersion(vdf.release.version);
-    mpack.setBuildNumber(vdf.release.getFullVersion());
     mpack.setStackId(dstStackId.getStackId());
     mpack.setDescription(dstStackName + " Ambari Management Pack");
     Map<String, String> prereqs = new HashMap<>();
@@ -251,8 +250,8 @@ public class MpackGenerator {
     prereqs.put("min-jdk", srcStackInfo.getMinJdk());
     prereqs.put("max-jdk", srcStackInfo.getMaxJdk());
     mpack.setPrerequisites(prereqs);
-    List<Packlet> packlets = new ArrayList<>();
-    mpack.setPacklets(packlets);
+    List<Module> modules = new ArrayList<>();
+    mpack.setModules(modules);
 
     for (ManifestServiceInfo manifestServiceInfo : vdf.getStackServices(srcStackInfo, true /* skipMissingServices = true */)) {
       ServiceInfo serviceInfo = srcStackInfo.getService(manifestServiceInfo.getName());
@@ -270,20 +269,19 @@ public class MpackGenerator {
 
       System.out.println("Processing service=" + serviceInfo.getName() + ", version=" + serviceVersion);
       System.out.println("Service Parent : " + serviceInfo.getParent());
-      String packletDirName = serviceName + "-packlet-" + serviceVersion;
-      String packletTarName = packletDirName + ".tar.gz";
-      File packletDir = new File(
-        mpackPackletsDir.getAbsolutePath() + File.separator + packletDirName);
-      if (!packletDir.exists()) {
-        packletDir.mkdir();
+      String moduleDirName = serviceName + "-packlet-" + serviceVersion;
+      String moduleTarName = moduleDirName + ".tar.gz";
+      File moduleDir = new File(
+        mpackPackletsDir.getAbsolutePath() + File.separator + moduleDirName);
+      if (!moduleDir.exists()) {
+        moduleDir.mkdir();
       }
-      Packlet packlet = new Packlet();
-      packlet.setType(Packlet.PackletType.SERVICE_PACKLET);
-      packlet.setName(serviceName);
-      packlet.setVersion(serviceVersion);
-      packlet.setServiceId(serviceVersion);
-      packlet.setSourceLocation("packlets" + File.separator + packletTarName);
-      packlets.add(packlet);
+      Module module = new Module();
+      module.setCategory(Module.Category.SERVER);
+      module.setName(serviceName);
+      module.setVersion(serviceVersion);
+      module.setDefinition(moduleTarName);
+      modules.add(module);
 
       // Export service metainfo.xml
       ServiceMetainfoXml serviceMetainfoXml = new ServiceMetainfoXml();
@@ -294,26 +292,26 @@ public class MpackGenerator {
       marshaller = ctx.createMarshaller();
       marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
       FileOutputStream serviceMetainfoFileStream = new FileOutputStream(
-        packletDir.getAbsolutePath() + File.separator + "metainfo.xml");
+              moduleDir.getAbsolutePath() + File.separator + "metainfo.xml");
       marshaller.marshal(serviceMetainfoXml, serviceMetainfoFileStream);
       serviceMetainfoFileStream.flush();
       serviceMetainfoFileStream.close();
 
       // Export mertrics.json
       File srcMetricsFile = serviceInfo.getMetricsFile();
-      exportFile(srcMetricsFile, packletDir);
+      exportFile(srcMetricsFile, moduleDir);
 
       // Export widgets.json
       File srcWidgetsFile = serviceInfo.getWidgetsDescriptorFile();
-      exportFile(srcWidgetsFile, packletDir);
+      exportFile(srcWidgetsFile, moduleDir);
 
       // Export alerts.json
       File srcAlertsFile = serviceInfo.getAlertsFile();
-      exportFile(srcAlertsFile, packletDir);
+      exportFile(srcAlertsFile, moduleDir);
 
       // Export kerberos.json
       File srcKerberosFile = serviceInfo.getKerberosDescriptorFile();
-      exportFile(srcKerberosFile, packletDir);
+      exportFile(srcKerberosFile, moduleDir);
 
       // Export quicklinks
       for (Map.Entry<String, QuickLinksConfigurationInfo> entry : serviceInfo.getQuickLinksConfigurationsMap()
@@ -323,7 +321,7 @@ public class MpackGenerator {
         for (Map.Entry<String, QuickLinks> quickLinksEntry : quickLinksConfigurationInfo
           .getQuickLinksConfigurationMap().entrySet()) {
           File quickLinksDir = new File(
-            packletDir.getAbsolutePath() + File.separator + serviceInfo
+                  moduleDir.getAbsolutePath() + File.separator + serviceInfo
               .getQuickLinksConfigurationsDir());
           if (!quickLinksDir.exists()) {
             quickLinksDir.mkdir();
@@ -341,7 +339,7 @@ public class MpackGenerator {
         String themeFileName = themeInfo.getFileName();
         for (Map.Entry<String, Theme> themeEntry : themeInfo.getThemeMap().entrySet()) {
           File themesDir = new File(
-            packletDir.getAbsolutePath() + File.separator + serviceInfo.getThemesDir());
+                  moduleDir.getAbsolutePath() + File.separator + serviceInfo.getThemesDir());
           if (!themesDir.exists()) {
             themesDir.mkdir();
           }
@@ -362,19 +360,19 @@ public class MpackGenerator {
       File srcPackageFile = new File(srcPackageFolder);
       if (srcPackageFile != null && srcPackageFile.exists()) {
         File destPackageFile = new File(
-          packletDir.getAbsolutePath() + File.separator
+                moduleDir.getAbsolutePath() + File.separator
             + ServiceDirectory.PACKAGE_FOLDER_NAME);
         FileUtils.copyDirectory(srcPackageFile, destPackageFile);
       }
 
       // Export merged configs
       File configDir = new File(
-        packletDir.getAbsolutePath() + File.separator + serviceInfo.getConfigDir());
+              moduleDir.getAbsolutePath() + File.separator + serviceInfo.getConfigDir());
       exportConfigs(serviceInfo.getProperties(), configDir);
 
       // Copy service advisor
       File srcServiceAdvisor = serviceInfo.getAdvisorFile();
-      File destServiceAdvisor = new File(packletDir.getAbsolutePath() + File.separator + "service_advisor.py");
+      File destServiceAdvisor = new File(moduleDir.getAbsolutePath() + File.separator + "service_advisor.py");
       if(srcServiceAdvisor != null && srcServiceAdvisor.exists()) {
         FileUtils.copyFile(srcServiceAdvisor, destServiceAdvisor);
       }
@@ -382,9 +380,9 @@ public class MpackGenerator {
       // TODO: Export upgrade packs
 
       // Create packlet tarball
-      createTarGzip(packletDir.getAbsolutePath());
-      if(packletDir.exists()) {
-        FileUtils.deleteDirectory(packletDir);
+      createTarGzip(moduleDir.getAbsolutePath());
+      if(moduleDir.exists()) {
+        FileUtils.deleteDirectory(moduleDir);
       }
     }
 

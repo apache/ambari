@@ -70,16 +70,16 @@ public class MpackTest {
             "}\n";
     HashMap<String, String> expectedPrereq = new HashMap<>();
     expectedPrereq.put("min-ambari-version","3.0.0.0");
-    ArrayList<Packlet> expectedPacklets = new ArrayList<>();
-    Packlet nifi = new Packlet();
-    nifi.setType(Packlet.PackletType.SERVICE_PACKLET);
+    ArrayList<Module> expectedPacklets = new ArrayList<>();
+    Module nifi = new Module();
+    //nifi.setType(.PackletType.SERVICE_PACKLET);
     nifi.setVersion("1.2.0.0-123");
-    nifi.setSourceLocation("packlets/NIFI-1.2.0.0-123.tar.gz");
+    nifi.setDefinition("NIFI-1.2.0.0-123.tar.gz");
     nifi.setName("NIFI");
-    Packlet streamline = new Packlet();
+    Module streamline = new Module();
     streamline.setName("STREAMLINE");
-    streamline.setType(Packlet.PackletType.SERVICE_PACKLET);
-    streamline.setSourceLocation("packlets/STREAMLINE-1.0.0.0-100.tar.gz");
+    //streamline.setType(Module.PackletType.SERVICE_PACKLET);
+    streamline.setDefinition("STREAMLINE-1.0.0.0-100.tar.gz");
     streamline.setVersion("1.0.0.0-100");
     expectedPacklets.add(nifi);
     expectedPacklets.add(streamline);
@@ -90,7 +90,7 @@ public class MpackTest {
     Assert.assertEquals("3.0.0.0-111", mpack.getVersion());
     Assert.assertEquals("HDF 3.0.0 Ambari Management Pack", mpack.getDescription());
     Assert.assertEquals(expectedPrereq, mpack.getPrerequisites());
-    Assert.assertEquals(expectedPacklets.toString(), mpack.getPacklets().toString());
+    Assert.assertEquals(expectedPacklets.toString(), mpack.getModules().toString());
   }
 
 }

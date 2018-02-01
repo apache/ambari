@@ -57,8 +57,8 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.OsSpecific;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -942,12 +942,12 @@ public interface AmbariManagementController {
   void saveConfigGroupUpdate(ConfigGroupRequest configGroupRequest, ConfigGroupResponse configGroupResponse);
 
   /**
-   * Fetch the packlet info for a given mpack.
+   * Fetch the module info for a given mpack.
    *
    * @param mpackId
-   * @return List of packlets
+   * @return List of modules
    */
-  List<Packlet> getPacklets(Long mpackId);
+  List<Module> getModules(Long mpackId);
 
   /**
    * Get the software registries identified by the given request objects.
@@ -992,5 +992,18 @@ public interface AmbariManagementController {
    * @throws AuthorizationException
    */
   Set<ServiceConfigVersionResponse> createServiceConfigVersion(Set<ServiceConfigVersionRequest> requests) throws AmbariException, AuthorizationException;
+
+  /***
+   * Fetch all mpacks
+   * @return
+   */
+  Collection<MpackResponse> getMpacks();
+
+  /***
+   * Fetch an mpack based on id
+   * @param mpackId
+   * @return
+   */
+  MpackResponse getMpack(Long mpackId);
 }
 

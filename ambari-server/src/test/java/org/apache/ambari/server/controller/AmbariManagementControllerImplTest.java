@@ -96,9 +96,9 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OsSpecific;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
@@ -126,7 +126,6 @@ import com.google.gson.Gson;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
@@ -2215,7 +2214,7 @@ public class AmbariManagementControllerImplTest {
     f.set(controller, metaInfo);
   }
 
-  private class MockModule implements Module {
+  private class MockModule implements com.google.inject.Module {
 
     @Override
     public void configure(Binder binder) {
@@ -2405,7 +2404,7 @@ public class AmbariManagementControllerImplTest {
     RequestStatusResponse response = new RequestStatusResponse(new Long(201));
     Mpack mpack = new Mpack();
     mpack.setMpackId((long)100);
-    mpack.setPacklets(new ArrayList<Packlet>());
+    mpack.setModules(new ArrayList<Module>());
     mpack.setPrerequisites(new HashMap<String, String>());
     mpack.setRegistryId(new Long(100));
     mpack.setVersion("3.0");
@@ -2429,21 +2428,21 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testGetPacklets() throws Exception {
     Long mpackId = new Long(100);
-    ArrayList<Packlet> packletArrayList = new ArrayList<>();
-    Packlet samplePacklet = new Packlet();
+    ArrayList<Module> packletArrayList = new ArrayList<>();
+    Module samplePacklet = new Module();
     Injector injector = createNiceMock(Injector.class);
-    samplePacklet.setType(Packlet.PackletType.SERVICE_PACKLET);
+    //samplePacklet.setType(Packlet.PackletType.SERVICE_PACKLET);
     samplePacklet.setVersion("3.0.0");
     samplePacklet.setName("NIFI");
-    samplePacklet.setSourceLocation("/abc/nifi.tar.gz");
+    samplePacklet.setDefinition("nifi.tar.gz");
     packletArrayList.add(samplePacklet);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
-    expect(ambariMetaInfo.getPacklets(mpackId)).andReturn(packletArrayList).atLeastOnce();
+    expect(ambariMetaInfo.getModules(mpackId)).andReturn(packletArrayList).atLeastOnce();
     replay(ambariMetaInfo,injector);
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);
 
-    Assert.assertEquals(packletArrayList,controller.getPacklets(mpackId));
+    Assert.assertEquals(packletArrayList,controller.getModules(mpackId));
 
   }
 }

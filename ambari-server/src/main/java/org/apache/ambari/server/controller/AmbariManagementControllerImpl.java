@@ -172,9 +172,10 @@ import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Module;
+import org.apache.ambari.server.state.Mpack;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.OsSpecific;
-import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
@@ -577,16 +578,34 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public MpackResponse registerMpack(MpackRequest request)
     throws IOException, AuthorizationException, ResourceAlreadyExistsException{
-
-
     MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
     updateStacks();
     return mpackResponse;
   }
 
   @Override
-  public List<Packlet> getPacklets(Long mpackId) {
-    return ambariMetaInfo.getPacklets(mpackId);
+  public Set<MpackResponse> getMpacks(){
+    Collection<Mpack> mpacks = ambariMetaInfo.getMpacks();
+    Set<MpackResponse> responseSet = new HashSet<>();
+    for (Mpack mpack : mpacks){
+      responseSet.add(new MpackResponse(mpack));
+    }
+    return responseSet;
+  }
+
+  @Override
+  public MpackResponse getMpack(Long mpackId) {
+    Mpack mpack = ambariMetaInfo.getMpack(mpackId);
+    if (mpack != null) {
+      return new MpackResponse(mpack);
+    }else{
+      return null;
+    }
+  }
+
+  @Override
+  public List<Module> getModules(Long mpackId) {
+    return ambariMetaInfo.getModules(mpackId);
   }
 
   @Override
