@@ -32,11 +32,9 @@ import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -53,6 +51,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -81,6 +80,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   private static final String LOGSEARCH_QUERY_PATH = "/api/v1/service/logs";
 
   private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/api/v1/service/logs/levels/counts";
+
+  private static final String LOGSEARCH_GET_LOG_FILES_PATH = "/api/v1/service/logs/files";
 
   private static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
 
@@ -295,30 +296,49 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     return null;
   }
 
-  public Set<String> sendGetLogFileNamesRequest(String componentName, String hostName) {
-    Map<String, String> queryParameters =
-      new HashMap<>();
+  public HostLogFilesResponse sendGetLogFileNamesRequest(String hostName) {
+    try {
+      // use the Apache builder to create the correct URI
+      URIBuilder uriBuilder = createBasicURI(protocol);
+      uriBuilder.setPath(LOGSEARCH_GET_LOG_FILES_PATH);
+      uriBuilder.addParameter(HOST_QUERY_PARAMETER_NAME, hostName);
+      uriBuilder.addParameter(LOGSEARCH_CLUSTERS_QUERY_PARAMETER_NAME, cluster.getClusterName());
 
-    // TODO, this current method will be a temporary workaround
-    // TODO, until the new LogSearch API method is available to handle this request
+      // add any query strings specified
+      URI logFileNamesURI = uriBuilder.build();
+      LOG.debug("Attempting to connect to LogSearch server at {}", logFileNamesURI);
 
-    queryParameters.put(HOST_QUERY_PARAMETER_NAME, hostName);
-    queryParameters.put(COMPONENT_QUERY_PARAMETER_NAME,componentName);
-    // ask for page size of 1, since we really only want a single entry to
-    // get the file path name
-    queryParameters.put("pageSize", "1");
+      HttpURLConnection httpURLConnection  = (HttpURLConnection) logFileNamesURI.toURL().openConnection();
+      secure(httpURLConnection, protocol);
+      httpURLConnection.setRequestMethod("GET");
 
-    LogQueryResponse response = sendQueryRequest(queryParameters);
-    if ((response != null) && (response.getListOfResults() != null) && (!response.getListOfResults().isEmpty())) {
-      LogLineResult lineOne = response.getListOfResults().get(0);
-      // this assumes that each component has only one associated log file,
-      // which may not always hold true
-      LOG.debug("For componentName = {}, log file name is = {}", componentName, lineOne.getLogFilePath());
-      return Collections.singleton(lineOne.getLogFilePath());
+      addCookiesFromCookieStore(httpURLConnection);
 
+      setupCredentials(httpURLConnection);
+
+      StringBuffer buffer = networkConnection.readQueryResponseFromServer(httpURLConnection);
+
+      addCookiesToCookieStoreFromResponse(httpURLConnection);
+
+      // setup a reader for the JSON response
+      StringReader stringReader =
+        new StringReader(buffer.toString());
+
+      ObjectReader hostFilesQueryResponseReader = createObjectReader(HostLogFilesResponse.class);
+
+      HostLogFilesResponse response = hostFilesQueryResponseReader.readValue(stringReader);
+
+      if (LOG.isDebugEnabled() && response != null && MapUtils.isNotEmpty(response.getHostLogFiles())) {
+        for (Map.Entry<String, List<String>> componentEntry : response.getHostLogFiles().entrySet()) {
+          LOG.debug("Log files for component '{}' : {}", componentEntry.getKey(), StringUtils.join(componentEntry.getValue(), ","));
+        }
+      }
+      return response;
+    } catch (Exception e) {
+      Utils.logErrorMessageWithThrowableWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
+        "Error occurred while trying to connect to the LogSearch service...", e);
     }
-
-    return Collections.emptySet();
+    return null;
   }
 
   @Override
