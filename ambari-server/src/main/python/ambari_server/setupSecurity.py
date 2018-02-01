@@ -80,7 +80,6 @@ SETUP_LDAP_CONFIG_URL = 'services/AMBARI/components/AMBARI_SERVER/configurations
 PAM_CONFIG_FILE = 'pam.configuration'
 
 IS_LDAP_CONFIGURED = "ambari.ldap.authentication.enabled"
-IS_LDAP_CONFIGURED_IN_AMBARI_PROPERTIES = "ambari.ldap.isConfigured"
 LDAP_MGR_USERNAME_PROPERTY = "ambari.ldap.connectivity.bind_dn"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_ANONYMOUS_BIND="ambari.ldap.connectivity.anonymous_bind"
@@ -317,12 +316,8 @@ def getLdapPropertyFromDB(properties, admin_login, admin_password, property_name
 
   return ldapProperty
 
-def isLdapEnabled(properties, admin_login, admin_password):
-  #to support backward compatibility we check Amabri.properties first
-  ldapEnabled = get_value_from_properties(properties, IS_LDAP_CONFIGURED_IN_AMBARI_PROPERTIES, None)
-  if ldapEnabled == None:  #check the DB via the REST API
-    ldapEnabled = getLdapPropertyFromDB(properties, admin_login, admin_password, IS_LDAP_CONFIGURED)
-
+def is_ldap_enabled(properties, admin_login, admin_password):
+  ldapEnabled = getLdapPropertyFromDB(properties, admin_login, admin_password, IS_LDAP_CONFIGURED)
   return ldapEnabled if ldapEnabled != None else 'false'
 
 
@@ -364,7 +359,7 @@ def sync_ldap(options):
                                               pattern=None, description=None,
                                               is_pass=True, allowEmpty=False)
 
-  if isLdapEnabled(properties, admin_login, admin_password) != 'true':
+  if is_ldap_enabled(properties, admin_login, admin_password) != 'true':
     err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
     raise FatalException(1, err)
 
