@@ -261,6 +261,17 @@ class Master(Script):
                             recursive_chmod=True
                             )
 
+        if os.path.exists(params.conf_dir + "/notebook-authorization.json"):
+          notebook_authorization = os.path.join(params.conf_dir, "notebook-authorization.json")
+          params.HdfsResource(self.self.get_zeppelin_conf_FS_directory(params) + "/notebook-authorization.json",
+                              type="file",
+                              action="create_on_execute",
+                              source=notebook_authorization,
+                              owner=params.zeppelin_user,
+                              recursive_chown=True,
+                              recursive_chmod=True,
+                              replace_existing_files=True)
+
     # if first_setup:
     if not glob.glob(params.conf_dir + "/interpreter.json") and \
       not os.path.exists(params.conf_dir + "/interpreter.json"):
