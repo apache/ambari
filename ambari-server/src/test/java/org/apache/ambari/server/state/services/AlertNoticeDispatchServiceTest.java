@@ -43,6 +43,7 @@ import java.util.concurrent.Executor;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
@@ -56,6 +57,7 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.resources.RootLevelSettingsManagerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
@@ -795,6 +797,8 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
       binder.bind(AlertDispatchDAO.class).toInstance(m_dao);
       binder.bind(DispatchFactory.class).toInstance(m_dispatchFactory);
       binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+      binder.bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
+      binder.bind(RootLevelSettingsManagerFactory.class).toInstance(createNiceMock(RootLevelSettingsManagerFactory.class));
       binder.bind(AmbariMetaInfo.class).toInstance(m_metaInfo);
       binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
       binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));

@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.ServiceGroupDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -47,6 +48,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.ServiceGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -73,6 +75,8 @@ public class TestOrmImpl extends Assert {
   private ClusterDAO clusterDAO;
   @Inject
   private OrmTestHelper ormTestHelper;
+  @Inject
+  private ServiceGroupDAO serviceGroupDAO;
   @Inject
   private ClusterServiceDAO clusterServiceDAO;
   @Inject
@@ -166,31 +170,34 @@ public class TestOrmImpl extends Assert {
   public void testAutoIncrementedField() {
     Date currentTime = new Date();
     String serviceName = "MapReduce1";
+    String serviceGroupName = "CORE";
     String clusterName = "test_cluster1";
 
-    createService(currentTime, serviceName, clusterName);
+    createService(currentTime, serviceName, serviceGroupName, clusterName);
 
-    ClusterServiceEntity clusterServiceEntity = null;//clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByName(clusterName, serviceGroupName, serviceName);
 
     clusterServiceDAO.remove(clusterServiceEntity);
 
-    //assertNull(clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName));
-
+    assertNull(clusterServiceDAO.findByName(clusterName, serviceGroupName, serviceName));
   }
 
-  private void createService(Date currentTime, String serviceName, String clusterName) {
+  private void createService(Date currentTime, String serviceName, String serviceGroupName, String clusterName) {
     ClusterEntity cluster = clusterDAO.findByName(clusterName);
+    ServiceGroupEntity serviceGroup = serviceGroupDAO.find(cluster.getClusterId(), serviceGroupName);
 
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
     clusterServiceEntity.setClusterEntity(cluster);
+    clusterServiceEntity.setServiceGroupEntity(serviceGroup);
     clusterServiceEntity.setServiceName(serviceName);
+    clusterServiceEntity.setServiceType(serviceName);
 
     cluster.getClusterServiceEntities().add(clusterServiceEntity);
 
     clusterServiceDAO.create(clusterServiceEntity);
     clusterDAO.merge(cluster);
 
-    clusterServiceEntity = null;//clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
+    clusterServiceEntity = clusterServiceDAO.findByName(clusterName, serviceGroupName, serviceName);
     assertNotNull(clusterServiceEntity);
 
     clusterServiceDAO.merge(clusterServiceEntity);
@@ -203,16 +210,15 @@ public class TestOrmImpl extends Assert {
   public void testCascadeRemoveFail() {
     Date currentTime = new Date();
     String serviceName = "MapReduce2";
+    String serviceGroupName = "CORE";
     String clusterName = "test_cluster1";
 
-    createService(currentTime, serviceName, clusterName);
+    createService(currentTime, serviceName, serviceGroupName, clusterName);
 
-    ClusterServiceEntity clusterServiceEntity = null;//clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
+    ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByName(clusterName, serviceGroupName, serviceName);
     clusterServiceDAO.remove(clusterServiceEntity);
 
-    //Assert.assertNull(
-    //    clusterServiceDAO.findByClusterAndServiceNames(clusterName,
-    //        serviceName));
+    assertNull(clusterServiceDAO.findByName(clusterName, serviceGroupName, serviceName));
   }
 
   @Test
@@ -270,7 +276,6 @@ public class TestOrmImpl extends Assert {
   @Test
   public void testLastRequestId() {
     ormTestHelper.createStageCommands();
-    RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
 
     RequestEntity requestEntity = requestDAO.findByPK(1L);
     List<StageEntity> stageEntities = new ArrayList<>();

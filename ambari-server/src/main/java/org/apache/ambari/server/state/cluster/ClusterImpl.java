@@ -1732,7 +1732,23 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void deleteAllServiceGroups() throws AmbariException {
-    // FIXME implement
+    clusterGlobalLock.writeLock().lock();
+    try {
+      LOG.info("Deleting all service groups for cluster clusterName=" + getClusterName());
+      for (ServiceGroup sg : serviceGroups.values()) {
+        if (!sg.canBeRemoved()) {
+          throw new AmbariException("Could not delete service group from cluster"
+            + ", clusterName=" + getClusterName()
+            + ", serviceGroupName=" + sg.getServiceGroupName());
+        }
+      }
+
+      for (String name : serviceGroups.keySet()) {
+        deleteServiceGroup(name);
+      }
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
   }
 
   @Override
