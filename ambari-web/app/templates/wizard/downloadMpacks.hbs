@@ -60,6 +60,13 @@
                   <button type="button" class="icon-button retry-button" disabled="disabled"></button>
                   {{/if}}
                 </span>
+                <span data-toggle="tooltip" data-placement="bottom" {{translateAttr title="common.viewLog" }}>
+                  {{#if mpack.failed}}
+                  <button type="button" class="icon-button viewLog-button" {{action showError mpack target="controller" }}></button>
+                  {{else}}
+                  <button type="button" class="icon-button viewLog-button" disabled="disabled"></button>
+                  {{/if}}
+                </span>
               </td>
             </tr>
           {{/each}}

@@ -360,6 +360,7 @@ Em.I18n.translations = {
   'common.version':'Version',
   'common.versions':'Versions',
   'common.view': 'View',
+  'common.viewLog': 'View Log',
   'common.views': 'Views',
   'common.warn.message': '<div class="alert alert-warning">{0}</div>',
   'common.warning': 'Warning',
@@ -637,7 +638,7 @@ Em.I18n.translations = {
   'installer.selectMpacks.basicModeMessage': 'Customizing your selections allows you to add or remove individual management packs and services. Continue?',
   'installer.selectMpacks.advancedModeMessage': 'If you go back to use case selection, all current selections will be removed. Continue?',
   'installer.selectMpacks.basicModeHelp': 'This step lets you choose the use case(s) that fit your needs and the management packs that fulfill those use cases will be selected for you; however, if you would rather choose individual management packs and/or services directly, click this button. Be aware that if you return to use case selection mode, any selections you have made will be removed.',
-  'installer.selectMpacks.advancedModeHelp': 'By clicking this button, you can return to use case selection mode. However, any existing selections will be removed.',
+  '1er.selectMpacks.advancedModeHelp': 'By clicking this button, you can return to use case selection mode. However, any existing selections will be removed.',
   'installer.selectMpacks.filterMpacks': 'Search management packs',
   'installer.selectMpacks.filterServices': 'Search services',
 
@@ -663,6 +664,7 @@ Em.I18n.translations = {
   'installer.downloadMpacks.header': 'Download Management Packs',
   'installer.downloadMpacks.body.title': 'Download and validate management packs',
   'installer.downloadMpacks.body.description': 'Ambari is downloading the management packs and validating their contents.',
+  'installer.downloadMpacks.failure.default': 'Downloading management pack failed for unknown reasons.',
   
   'installer.customProductRepos.header': 'Set Product Locations',
   'installer.customProductRepos.body.title': 'Customize product locations',
