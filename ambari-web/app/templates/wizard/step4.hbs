@@ -34,7 +34,7 @@
         {{#each service in controller.fileSystems}}
           {{#unless service.isHiddenOnSelectServicePage}}
             <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}} >
-              <td>
+              <td class="checkbox-cell">
                 <div class="checkbox">
                   {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
                   disabledBinding="service.isDisabled"
@@ -74,7 +74,7 @@
           {{#unless service.isHiddenOnSelectServicePage}}
             {{#unless service.isDFS}}
               <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}}>
-                <td>
+                <td class="checkbox-cell">
                   <div class="checkbox">
                     {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
                     disabledBinding="service.isDisabled"
