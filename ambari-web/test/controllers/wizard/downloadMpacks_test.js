@@ -19,7 +19,7 @@
 var App = require('app');
 var controller = App.WizardDownloadMpacksController.create();
 
-describe.only('App.WizardConfigureDownloadController', function () {
+describe('App.WizardConfigureDownloadController', function () {
   beforeEach(function () {
     var mpacks = [
       Em.Object.create({
