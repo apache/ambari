@@ -27,6 +27,14 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
 
   noRecommendationAvailable: false,
 
+  filterMpacksText: "",
+
+  filterServicesText: "",
+
+  filterMpacksPlaceholder: Em.I18n.t('installer.selectMpacks.filterMpacks'),
+
+  filterServicesPlaceholder: Em.I18n.t('installer.selectMpacks.filterServices'),
+
   loadRegistry: function () {
     return App.ajax.send({
       name: 'registry.all',
@@ -43,6 +51,15 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
             name: mpack.RegistryMpackInfo.mpack_name,
             displayName: mpack.RegistryMpackInfo.mpack_display_name,
             description: mpack.RegistryMpackInfo.mpack_description,
+            //this is the text that will be used to filter this mpack in the UI
+            //at this point, this is just the text that comes from this mpack
+            //but additional text will be appended to form the final filterOn value
+            //from the mpack's services, specifically the service name
+            filterOn: (
+              (mpack.RegistryMpackInfo.mpack_name || "") + " "
+              + (mpack.RegistryMpackInfo.mpack_display_name || "") + " "
+              + (mpack.RegistryMpackInfo.mpack_description || "")
+            ).toLowerCase(),
             logoUrl: mpack.RegistryMpackInfo.mpack_logo_url,
             versions: mpack.versions ? mpack.versions.map((version, index) => {
               return Em.Object.create({
@@ -93,10 +110,19 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
 
     const uniqueServices = {};
     mpackServiceVersions.forEach(service => {
+      //append service name to filterOn of the containing mpack
+      const mpackFilterOn = service.get('mpackVersion.mpack.filterOn');
+      service.set('mpackVersion.mpack.filterOn', ((mpackFilterOn) + " " + (service.name || "")).toLowerCase());
+
       uniqueServices[service.name] = Em.Object.create({
         name: service.name,
         displayName: service.displayName,
         description: service.description,
+        filterOn: (
+          (service.name || "") + " "
+          + (service.description || "") + " "
+          + (service.get('mpackVersion.mpack.displayName') || "" )
+        ).toLowerCase(),
         displayedVersion: function () {
           return this.get('versions').filterProperty('displayed')[0];
         }.property('versions.@each.displayed')
@@ -493,6 +519,44 @@ App.WizardSelectMpacksController = App.WizardStepController.extend({
 
     this.set('noRecommendationAvailable', false);
     this.get('wizardController').setStepUnsaved('selectMpacks');
+  },
+
+  filteredMpacks: function () {
+    const mpacks = this.get('content.mpacks');
+    const filterText = this.get('filterMpacksText').toLowerCase();
+
+    if (filterText.length > 2) {
+      const filteredMpacks = mpacks.filter(mpack => {
+        return mpack.get('filterOn').indexOf(filterText) > -1;
+      });
+    
+      return filteredMpacks;
+    }
+
+    return mpacks;
+  }.property('content.mpacks', 'filterMpacksText'),
+
+  clearFilterMpacks: function () {
+    this.set('filterMpacksText', "");
+  },
+
+  filteredServices: function () {
+    const services = this.get('content.mpackServices');
+    const filterText = this.get('filterServicesText').toLowerCase();
+
+    if (filterText.length > 2) {
+      const filteredServices = services.filter(service => {
+        return service.get('filterOn').indexOf(filterText) > -1;
+      });
+
+      return filteredServices;
+    }
+
+    return services;
+  }.property('content.mpackServices', 'filterServicesText'),
+
+  clearFilterServices: function () {
+    this.set('filterServicesText', "");
   },
 
   /**

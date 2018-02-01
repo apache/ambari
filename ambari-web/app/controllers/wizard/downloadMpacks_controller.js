@@ -64,7 +64,6 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
   },
 
   downloadMpackSuccess: function (data, opt, params) {
-    console.dir("Mpack " + params.name + " download completed with success code " + data.status);
     this.get('mpacks').findProperty('name', params.name).set('succeeded', true);
     this.get('mpacks').findProperty('name', params.name).set('failed', false);
     this.get('mpacks').findProperty('name', params.name).set('inProgress', false);
@@ -74,7 +73,6 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
     if(request.status == 409) {
       this.downloadMpackSuccess(request, opt, params);
     } else {
-      console.dir("Mpack " + params.name + " download failed with error code " + request.status);
       this.get('mpacks').findProperty('name', params.name).set('succeeded', false);
       this.get('mpacks').findProperty('name', params.name).set('failed', true);
       this.get('mpacks').findProperty('name', params.name).set('inProgress', false);

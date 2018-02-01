@@ -638,6 +638,8 @@ Em.I18n.translations = {
   'installer.selectMpacks.advancedModeMessage': 'If you go back to use case selection, all current selections will be removed. Continue?',
   'installer.selectMpacks.basicModeHelp': 'This step lets you choose the use case(s) that fit your needs and the management packs that fulfill those use cases will be selected for you; however, if you would rather choose individual management packs and/or services directly, click this button. Be aware that if you return to use case selection mode, any selections you have made will be removed.',
   'installer.selectMpacks.advancedModeHelp': 'By clicking this button, you can return to use case selection mode. However, any existing selections will be removed.',
+  'installer.selectMpacks.filterMpacks': 'Search management packs',
+  'installer.selectMpacks.filterServices': 'Search services',
 
   'installer.configureDownload.header': 'Configure Download',
   'installer.configureDownload.body.title': 'Choose download method',

@@ -1334,4 +1334,51 @@ describe('App.InstallerController', function () {
       expect(installerController.getStepSavedState('step0')).to.be.false;
     });
   });
+
+  describe('#hasErrors', function () {
+    before(function () {
+      installerController.addError("There is an error.");
+    });
+
+    it('Should return true if there are errors.', function () {
+      var hasErrors = installerController.get('hasErrors');
+
+      expect(hasErrors).to.be.true;
+    });
+
+    it('Should return false if there are no errors.', function () {
+      installerController.clearErrors();
+      var hasErrors = installerController.get('hasErrors');
+
+      expect(hasErrors).to.be.false;
+    });
+  });
+
+  describe('#getStepController', function () {
+    var wizardStep0Controller = {};
+    var wizardStep1Controller = {};
+    var wizardStep2Controller = {};
+
+    before(function () {
+      installerController.set('steps', [
+        "step0",
+        "step1",
+        "step2"
+      ]);
+
+      App.router.set('wizardStep0Controller', wizardStep0Controller);
+      App.router.set('wizardStep1Controller', wizardStep1Controller);
+      App.router.set('wizardStep2Controller', wizardStep2Controller);
+    });
+
+    it('Should return controller for the step number provided.', function () {
+      var stepController = installerController.getStepController(2);
+      expect(stepController).to.equal(wizardStep2Controller);
+    });
+
+    it('Should return controller for the step name provided.', function () {
+      var stepController = installerController.getStepController("step1");
+      expect(stepController).to.equal(wizardStep1Controller);
+    });
+  });
 });

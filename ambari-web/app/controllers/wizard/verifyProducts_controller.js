@@ -91,7 +91,7 @@ App.WizardVerifyProductsController = App.WizardStepController.extend({
    */
   setRepoState: function (repo, state) {
     switch (state) {
-      case this.get('VERIFYREPO_INPROGRESS:'):
+      case this.get('VERIFYREPO_INPROGRESS'):
         repo.set('succeeded', false);
         repo.set('failed', false);
         repo.set('inProgress', true);

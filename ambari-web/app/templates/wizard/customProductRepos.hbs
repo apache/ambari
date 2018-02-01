@@ -77,10 +77,10 @@
                       <a target="_blank" {{bindAttr href="repo.publicUrl"}}><i class="icon icon-external-link"></i></a>
                     </td>
                     <td class="col-sm-7">
-                      <div class="input-group url-input required">
+                      <div class="input-group required">
                         {{view Em.TextField class="form-control" valueBinding="repo.downloadUrl"}}
                         <span class="input-group-btn">
-                          <button type="button" class="btn btn-default revert-button" {{bindAttr title="view.revertButtonTooltip" value="repo.id" }} {{action revertUrl target="view" }}>
+                          <button type="button" class="btn btn-default icon-button-addon" {{bindAttr title="view.revertButtonTooltip" value="repo.id" }} {{action revertUrl target="view" }}>
                             <i class="icon icon-rotate-left"></i>
                           </button>
                         </span>
