@@ -138,6 +138,13 @@ App.WizardVerifyProductsController = App.WizardStepController.extend({
     this.verifyRepo(repo).then(this.verifyRepoSucceeded.bind(this), this.verifyRepoFailed.bind(this));
   },
 
+  isStepDisabled: function (stepIndex, currentIndex) {
+    const normallyDisabled = this._super(stepIndex, currentIndex);
+    const useCustomRepo = this.get('wizardController.content.downloadConfig.useCustomRepo');
+
+    return normallyDisabled || !useCustomRepo;
+  },
+
   isSubmitDisabled: function () {
     const repos = this.get('repos');
     return App.get('router.btnClickInProgress')

@@ -23,6 +23,15 @@ App.WizardSelectMpacksView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+
+    //enable initial tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    //enables tooltips added later
+    const target = document.querySelector('#select-mpacks');
+    const observer = new MutationObserver(() => {
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+    observer.observe(target, { childList: true, subtree: true });
   },
 
   toggleMode: function () {
