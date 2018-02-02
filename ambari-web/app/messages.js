@@ -360,6 +360,7 @@ Em.I18n.translations = {
   'common.version':'Version',
   'common.versions':'Versions',
   'common.view': 'View',
+  'common.viewLog': 'View Log',
   'common.views': 'Views',
   'common.warn.message': '<div class="alert alert-warning">{0}</div>',
   'common.warning': 'Warning',
@@ -663,6 +664,7 @@ Em.I18n.translations = {
   'installer.downloadMpacks.header': 'Download Management Packs',
   'installer.downloadMpacks.body.title': 'Download and validate management packs',
   'installer.downloadMpacks.body.description': 'Ambari is downloading the management packs and validating their contents.',
+  'installer.downloadMpacks.failure.default': 'Downloading management pack failed for unknown reasons.',
   
   'installer.customProductRepos.header': 'Set Product Locations',
   'installer.customProductRepos.body.title': 'Customize product locations',

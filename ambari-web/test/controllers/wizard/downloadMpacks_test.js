@@ -67,7 +67,7 @@ describe('App.WizardConfigureDownloadController', function () {
       controller.downloadMpackError({ status: 500 }, null, null, null, { name: 'alpha' });
       var actual = controller.get('mpacks').objectAt(0);
 
-      expect(actual).to.deep.equal(expected);
+      expect(actual).to.deep.include(expected);
     });
 
     it('Sets succeeded to true, failed to false, and inProgress to false on 409 response', function () {
@@ -83,5 +83,46 @@ describe('App.WizardConfigureDownloadController', function () {
 
       expect(actual).to.deep.equal(expected);
     });
+  });
+
+  describe('#retryDownload', function () {
+    it('Retries the download and sets the status flags correctly if the download failed.', function () {
+      var expected = Em.Object.create({
+        succeeded: false,
+        failed: false,
+        inProgress: true
+      });
+
+      var actual = Em.Object.create({
+        succeeded: false,
+        failed: true,
+        inProgress: false
+      });
+
+      sinon.stub(controller, 'downloadMpack');
+
+      controller.retryDownload({ context: actual });
+
+      expect(actual).to.deep.equal(expected);
+      expect(controller.downloadMpack).to.be.called;
+
+      controller.downloadMpack.restore();
+    })
+  });
+
+  describe('#showError', function () {
+    it('Displays the error if the download failed.', function () {
+      var mpack = Em.Object.create({
+        failed: true
+      });
+
+      sinon.stub(App.ModalPopup, 'show');
+
+      controller.showError({ context: mpack });
+
+      expect(App.ModalPopup.show).to.be.called;
+
+      App.ModalPopup.show.restore();
+    })
   });
 });

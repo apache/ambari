@@ -36,7 +36,8 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
         url: mpack.downloadUrl,
         inProgress: true,
         failed: false,
-        succeeded: false
+        succeeded: false,
+        failureMessage: null
       }));
     }, this);
   },
@@ -76,15 +77,45 @@ App.WizardDownloadMpacksController = App.WizardStepController.extend({
       this.get('mpacks').findProperty('name', params.name).set('succeeded', false);
       this.get('mpacks').findProperty('name', params.name).set('failed', true);
       this.get('mpacks').findProperty('name', params.name).set('inProgress', false);
+      
+      let failureMessage;
+      switch (request.status) {
+        case 400:
+        case 500:
+          failureMessage = request.statusText;
+          break;  
+        default:
+          failureMessage = Em.i18n.t('installer.downloadMpacks.failure.default');
+      }
+      
+      this.get('mpacks').findProperty('name', params.name).set('failureMessage', failureMessage);
     }
   },
 
   retryDownload: function (event) {
-    var mpack = event.context;
-    mpack.set('inProgress', true);
-    mpack.set('succeeded', false);
-    mpack.set('failed', false);
-    this.downloadMpack(mpack);
+    const mpack = event.context;
+    
+    if (mpack.get('failed')) {
+      mpack.set('inProgress', true);
+      mpack.set('succeeded', false);
+      mpack.set('failed', false);
+      this.downloadMpack(mpack);
+    }  
+  },
+
+  showError: function (event) {
+    const mpack = event.context;
+    
+    if (mpack.get('failed')) {
+      const error = mpack.get('failureMessage');
+      
+      App.ModalPopup.show({
+        header: `${Em.I18n.t('common.download')} ${Em.I18n.t('common.failed')}`,
+        primary: Em.I18n.t('common.close'),
+        secondary: false,
+        body: error
+      });
+    }
   },
 
   getRegisteredMpacks: function () {
