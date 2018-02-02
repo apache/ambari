@@ -7472,16 +7472,17 @@ class TestAmbariServer(TestCase):
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
-  def test_ldap_sync_all(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  def test_ldap_sync_all(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
       get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
     is_server_runing_mock.return_value = (True, 0)
+    is_ldap_enabled_mock.return_value = 'true'
     properties = Properties()
-    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
     properties.process_pair(CLIENT_API_PORT_PROPERTY, '8080')
     get_ambari_properties_mock.return_value = properties
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
@@ -7515,10 +7516,11 @@ class TestAmbariServer(TestCase):
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
-  def test_ldap_sync_users(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  def test_ldap_sync_users(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
                          get_validated_string_input_mock, urlopen_mock, os_path_exists_mock, open_mock):
 
     os_path_exists_mock.return_value = 1
@@ -7528,9 +7530,7 @@ class TestAmbariServer(TestCase):
     open_mock.return_value = f
     is_root_method.return_value = True
     is_server_runing_mock.return_value = (True, 0)
-    properties = Properties()
-    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
-    get_ambari_properties_mock.return_value = properties
+    is_ldap_enabled_mock.return_value = 'true'
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
     response = MagicMock()
@@ -7562,10 +7562,11 @@ class TestAmbariServer(TestCase):
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
-  def test_ldap_sync_groups(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  def test_ldap_sync_groups(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
                            get_validated_string_input_mock, urlopen_mock, os_path_exists_mock, open_mock):
 
     os_path_exists_mock.return_value = 1
@@ -7575,9 +7576,7 @@ class TestAmbariServer(TestCase):
     open_mock.return_value = f
     is_root_method.return_value = True
     is_server_runing_mock.return_value = (True, 0)
-    properties = Properties()
-    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
-    get_ambari_properties_mock.return_value = properties
+    is_ldap_enabled_mock.return_value = 'true'
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
     response = MagicMock()
@@ -7607,16 +7606,17 @@ class TestAmbariServer(TestCase):
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
-  def test_ldap_sync_ssl(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  def test_ldap_sync_ssl(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock, get_ambari_properties_mock,
                          get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
     is_server_runing_mock.return_value = (True, 0)
+    is_ldap_enabled_mock.return_value = 'true'
     properties = Properties()
-    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
     properties.process_pair(SSL_API, 'true')
     properties.process_pair(SSL_API_PORT, '8443')
     get_ambari_properties_mock.return_value = properties
@@ -7650,18 +7650,16 @@ class TestAmbariServer(TestCase):
 
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
-  def test_ldap_sync_existing(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  def test_ldap_sync_existing(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock,
                          get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
     is_server_runing_mock.return_value = (True, 0)
-    properties = Properties()
-    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
-    get_ambari_properties_mock.return_value = properties
+    is_ldap_enabled_mock.return_value = 'true'
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
     response = MagicMock()
@@ -7686,18 +7684,16 @@ class TestAmbariServer(TestCase):
 
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
-  def test_ldap_sync_no_sync_mode(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  def test_ldap_sync_no_sync_mode(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock,
                      get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
     is_server_runing_mock.return_value = (True, 0)
-    properties = Properties()
-    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
-    get_ambari_properties_mock.return_value = properties
+    is_ldap_enabled_mock.return_value = 'true'
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
     response = MagicMock()
@@ -7723,18 +7719,16 @@ class TestAmbariServer(TestCase):
 
   @patch("urllib2.urlopen")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.logger")
-  def test_ldap_sync_error_status(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  def test_ldap_sync_error_status(self, logger_mock, is_root_method, is_server_runing_mock, is_ldap_enabled_mock,
       get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
     is_server_runing_mock.return_value = (True, 0)
-    properties = Properties()
-    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
-    get_ambari_properties_mock.return_value = properties
+    is_ldap_enabled_mock.return_value = 'true'
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
     response = MagicMock()
@@ -7761,10 +7755,10 @@ class TestAmbariServer(TestCase):
   @patch("urllib2.Request")
   @patch("base64.encodestring")
   @patch("ambari_server.setupSecurity.is_server_runing")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.logger")
-  def test_sync_ldap_forbidden(self, logger_mock, get_validated_string_input_method, get_ambari_properties_method,
+  def test_sync_ldap_forbidden(self, logger_mock, get_validated_string_input_method, is_ldap_enabled_mock,
                                 is_server_runing_method,
                                 encodestring_method, request_constructor, urlopen_method):
 
@@ -7774,28 +7768,8 @@ class TestAmbariServer(TestCase):
     options.ldap_sync_users = None
     options.ldap_sync_groups = None
 
-    is_server_runing_method.return_value = (None, None)
-    try:
-      sync_ldap(options)
-      self.fail("Should throw exception if ambari is stopped")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("not running" in fe.reason)
-      pass
-    is_server_runing_method.return_value = (True, None)
-
-    configs = MagicMock()
-    configs.get_property.return_value = None
-    get_ambari_properties_method.return_value = configs
-    try:
-      sync_ldap(options)
-      self.fail("Should throw exception if ldap is not configured")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("not configured" in fe.reason)
-      pass
-    configs.get_property.return_value = 'true'
-
+    is_server_runing_method.return_value = (True, 0)
+    is_ldap_enabled_mock.return_value = 'true'
     get_validated_string_input_method.return_value = 'admin'
     encodestring_method.return_value = 'qwe123'
 
@@ -7811,25 +7785,6 @@ class TestAmbariServer(TestCase):
     except FatalException as fe:
       # Expected
       self.assertTrue("status code" in fe.reason)
-      pass
-    pass
-
-  @patch("ambari_server.setupSecurity.is_root")
-  def test_sync_ldap_ambari_stopped(self, is_root_method):
-    is_root_method.return_value = False
-
-    options = self._create_empty_options_mock()
-    options.ldap_sync_all = True
-    options.ldap_sync_existing = False
-    options.ldap_sync_users = None
-    options.ldap_sync_groups = None
-
-    try:
-      sync_ldap(options)
-      self.fail("Should throw exception if not root")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("root-level" in fe.reason)
       pass
     pass
 
@@ -7855,18 +7810,15 @@ class TestAmbariServer(TestCase):
       pass
     pass
 
-  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.setupSecurity.is_server_runing")
-  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_ldap_enabled")
   @patch("ambari_server.setupSecurity.logger")
-  def test_sync_ldap_not_configured(self, logger_mock,  get_ambari_properties_method,
-                     is_server_runing_method, is_root_method):
-    is_root_method.return_value = True
+  def test_sync_ldap_not_configured(self, logger_mock,  is_ldap_enabled_mock,
+                     is_server_runing_method, get_validated_string_input):
+    get_validated_string_input.return_value = 'admin'
     is_server_runing_method.return_value = (True, None)
-
-    configs = MagicMock()
-    configs.get_property.return_value = None
-    get_ambari_properties_method.return_value = configs
+    is_ldap_enabled_mock.return_value = 'false'
 
     options = self._create_empty_options_mock()
     options.ldap_sync_all = True

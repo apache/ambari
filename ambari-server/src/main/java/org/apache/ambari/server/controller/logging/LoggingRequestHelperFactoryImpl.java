@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 
@@ -65,51 +66,60 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
       ambariManagementController.getClusters();
 
     try {
+      final LoggingRequestHelperImpl loggingRequestHelper;
       Cluster cluster = clusters.getCluster(clusterName);
       if (cluster != null) {
+        final String logSearchHostName;
+        final String logSearchPortNumber;
+        final String logSearchProtocol;
+        if (StringUtils.isNotBlank(ambariServerConfiguration.getLogSearchPortalExternalAddress())) {
+          loggingRequestHelper = new LoggingRequestHelperImpl(null, null, null,
+            ambariManagementController.getCredentialStoreService(), cluster, ambariServerConfiguration.getLogSearchPortalExternalAddress());
+        } else {
+          boolean isLogSearchEnabled =
+            cluster.getServices().containsKey(LOGSEARCH_SERVICE_NAME);
 
-        boolean isLogSearchEnabled =
-          cluster.getServices().containsKey(LOGSEARCH_SERVICE_NAME);
+          if (!isLogSearchEnabled) {
+            // log search not enabled, just return null, since no helper impl is necessary
+            return null;
+          }
 
-        if (!isLogSearchEnabled) {
-          // log search not enabled, just return null, since no helper impl is necessary
-          return null;
+          Config logSearchEnvConfig =
+            cluster.getDesiredConfigByType(LOGSEARCH_PROPERTIES_CONFIG_TYPE_NAME);
+
+          List<ServiceComponentHost> listOfMatchingHosts =
+            cluster.getServiceComponentHosts(LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME);
+
+
+          if (listOfMatchingHosts.size() == 0) {
+            LOG.warn("No matching LOGSEARCH_SERVER instances found, this may indicate a deployment problem.  Please verify that LogSearch is deployed and running.");
+            return null;
+          }
+
+          if (listOfMatchingHosts.size() > 1) {
+            LOG.warn("More than one LOGSEARCH_SERVER instance found, this may be a deployment error.  Only the first LOGSEARCH_SERVER instance will be used.");
+          }
+
+          ServiceComponentHost serviceComponentHost =
+            listOfMatchingHosts.get(0);
+
+          if (serviceComponentHost.getState() != State.STARTED) {
+            // if the LOGSEARCH_SERVER is not started, don't attempt to connect
+            return null;
+          }
+
+          logSearchHostName = serviceComponentHost.getHostName();
+
+          logSearchProtocol =
+            logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PROTOCOL);
+
+          logSearchPortNumber = LOGSEARCH_HTTPS_PROTOCOL_VALUE.equalsIgnoreCase(logSearchProtocol)
+            ? logSearchEnvConfig.getProperties().get(LOGSEARCH_HTTPS_PORT_PROPERTY_NAME)
+            : logSearchEnvConfig.getProperties().get(LOGSEARCH_HTTP_PORT_PROPERTY_NAME);
+
+          loggingRequestHelper = new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, logSearchProtocol,
+            ambariManagementController.getCredentialStoreService(), cluster, null);
         }
-
-        Config logSearchEnvConfig =
-          cluster.getDesiredConfigByType(LOGSEARCH_PROPERTIES_CONFIG_TYPE_NAME);
-
-        List<ServiceComponentHost> listOfMatchingHosts =
-          cluster.getServiceComponentHosts(LOGSEARCH_SERVICE_NAME, LOGSEARCH_SERVER_COMPONENT_NAME);
-
-
-        if (listOfMatchingHosts.size() == 0) {
-          LOG.warn("No matching LOGSEARCH_SERVER instances found, this may indicate a deployment problem.  Please verify that LogSearch is deployed and running.");
-          return null;
-        }
-
-        if (listOfMatchingHosts.size() > 1) {
-          LOG.warn("More than one LOGSEARCH_SERVER instance found, this may be a deployment error.  Only the first LOGSEARCH_SERVER instance will be used.");
-        }
-
-        ServiceComponentHost serviceComponentHost =
-          listOfMatchingHosts.get(0);
-
-        if (serviceComponentHost.getState() != State.STARTED) {
-          // if the LOGSEARCH_SERVER is not started, don't attempt to connect
-          return null;
-        }
-
-        final String logSearchHostName = serviceComponentHost.getHostName();
-
-        final String logSearchProtocol =
-          logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PROTOCOL);
-
-        final String logSearchPortNumber = LOGSEARCH_HTTPS_PROTOCOL_VALUE.equalsIgnoreCase(logSearchProtocol)
-          ? logSearchEnvConfig.getProperties().get(LOGSEARCH_HTTPS_PORT_PROPERTY_NAME)
-          : logSearchEnvConfig.getProperties().get(LOGSEARCH_HTTP_PORT_PROPERTY_NAME);
-
-        final LoggingRequestHelperImpl loggingRequestHelper = new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, logSearchProtocol, ambariManagementController.getCredentialStoreService(), cluster);
         // set configured timeouts for the Ambari connection to the LogSearch Portal service
         loggingRequestHelper.setLogSearchConnectTimeoutInMilliseconds(ambariServerConfiguration.getLogSearchPortalConnectTimeout());
         loggingRequestHelper.setLogSearchReadTimeoutInMilliseconds(ambariServerConfiguration.getLogSearchPortalReadTimeout());
