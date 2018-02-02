@@ -269,7 +269,7 @@ ambari_jce_name = default("/commandParams/ambari_jce_name", None)
   
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
+default_fs = default('/configurations/core-site/fs.defaultFS',None)
 
 #host info
 all_hosts = default("/clusterHostInfo/all_hosts", [])
