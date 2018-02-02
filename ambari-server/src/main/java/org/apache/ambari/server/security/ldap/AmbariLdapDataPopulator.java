@@ -60,6 +60,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Provides users, groups and membership population from LDAP catalog.
@@ -73,7 +74,7 @@ public class AmbariLdapDataPopulator {
   /**
    * Ambari configuration.
    */
-  private AmbariLdapConfiguration configuration;
+  private Provider<AmbariLdapConfiguration> configurationProvider;
 
   /**
    * Highlevel facade for management of users and groups.
@@ -108,10 +109,10 @@ public class AmbariLdapDataPopulator {
    * @param users         utility that provides access to Users
    */
   @Inject
-  public AmbariLdapDataPopulator(AmbariLdapConfiguration configuration, Users users) {
-    this.configuration = configuration;
+  public AmbariLdapDataPopulator(Provider<AmbariLdapConfiguration> configurationProvider, Users users) {
+    this.configurationProvider = configurationProvider;
     this.users = users;
-    this.ldapServerProperties = configuration.getLdapServerProperties();
+    this.ldapServerProperties = getConfiguration().getLdapServerProperties();
   }
 
   /**
@@ -120,7 +121,7 @@ public class AmbariLdapDataPopulator {
    * @return true if enabled
    */
   public boolean isLdapEnabled() {
-    if (!configuration.ldapEnabled()) {
+    if (!getConfiguration().ldapEnabled()) {
       return false;
     }
     try {
@@ -217,7 +218,7 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == getConfiguration().syncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(userDto);
           } else {
@@ -296,7 +297,7 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == getConfiguration().syncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(userDto);
           } else {
@@ -415,7 +416,7 @@ public class AmbariLdapDataPopulator {
           continue;
         }
         if (!user.isLdapUser()) {
-          if (LdapUsernameCollisionHandlingBehavior.SKIP == configuration.syncCollisionHandlingBehavior()) {
+          if (LdapUsernameCollisionHandlingBehavior.SKIP == getConfiguration().syncCollisionHandlingBehavior()) {
             // existing user can not be converted to ldap user, so skip it
             LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(externalMember);
@@ -673,7 +674,7 @@ public class AmbariLdapDataPopulator {
 
     do {
       LOG.trace("LDAP User Query - Base DN: '{}' ; Filter: '{}'", baseDn, encodedFilter);
-      List dtos = configuration.getLdapServerProperties().isPaginationEnabled() ?
+      List dtos = ldapServerProperties.isPaginationEnabled() ?
           ldapTemplate.search(LdapUtils.newLdapName(baseDn), encodedFilter, searchControls, ldapUserContextMapper, processor) :
           ldapTemplate.search(LdapUtils.newLdapName(baseDn), encodedFilter, searchControls, ldapUserContextMapper);
       for (Object dto : dtos) {
@@ -681,7 +682,7 @@ public class AmbariLdapDataPopulator {
           users.add((LdapUserDto) dto);
         }
       }
-    } while (configuration.getLdapServerProperties().isPaginationEnabled()
+    } while (ldapServerProperties.isPaginationEnabled()
         && (processor.getCookie() != null) && (processor.getCookie().getCookie() != null));
     return users;
   }
@@ -739,8 +740,7 @@ public class AmbariLdapDataPopulator {
    * @return LdapTemplate instance
    */
   protected LdapTemplate loadLdapTemplate() {
-    final LdapServerProperties properties = configuration
-        .getLdapServerProperties();
+    final LdapServerProperties properties = getConfiguration().getLdapServerProperties();
     if (ldapTemplate == null || !properties.equals(ldapServerProperties)) {
       LOG.info("Reloading properties");
       ldapServerProperties = properties;
@@ -839,6 +839,10 @@ public class AmbariLdapDataPopulator {
       }
       return null;
     }
+  }
+
+  private AmbariLdapConfiguration getConfiguration() {
+    return configurationProvider.get();
   }
 
   protected static class LdapUserContextMapper implements ContextMapper {
