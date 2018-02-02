@@ -451,7 +451,7 @@ public class MpackManager {
    * @param mpackDefintionLocation
    * @return
    */
-  public Path downloadMpack(String mpackURI, String mpackDefintionLocation) throws IOException {
+  public Path downloadMpack(String mpackURI, String mpackDefinitionLocation) throws IOException {
 
     File stagingDir = new File(mpacksStaging.toString() + File.separator + MPACK_TAR_LOCATION);
     Path targetPath = new File(stagingDir.getPath() + File.separator + mpackDefintionLocation).toPath();
