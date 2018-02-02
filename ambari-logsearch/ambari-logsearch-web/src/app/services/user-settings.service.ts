@@ -155,19 +155,6 @@ export class UserSettingsService {
     }, {});
   }
 
-  resetConfig(key: string): void {
-    const formControl = this.settingsFormGroup.controls[key];
-    if (formControl.dirty) {
-      const valueToSet = this.currentValues[key];
-      this.settingsFormGroup.controls[key].reset(valueToSet);
-    }
-  }
-
-  resetAll(): void {
-    const controlKeys = Object.keys(this.settingsFormGroup.controls);
-    controlKeys.forEach((key: string) => this.resetConfig(key));
-  }
-
   setTimeZone(timeZone: string): void {
     this.settingsStorage.setParameter('timeZone', timeZone);
   }

@@ -36,6 +36,8 @@ import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/s
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
+import {UtilsService} from '@app/services/utils.service';
 import {AuthService} from '@app/services/auth.service';
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {ModalComponent} from '@app/components/modal/modal.component';
@@ -98,7 +100,9 @@ describe('TimeZonePickerComponent', () => {
           useValue: httpClient
         },
         LogsContainerService,
-        AuthService
+        AuthService,
+        UserSettingsService,
+        UtilsService
       ],
     })
     .compileComponents();

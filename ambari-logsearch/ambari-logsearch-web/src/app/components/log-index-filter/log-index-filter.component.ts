@@ -28,7 +28,6 @@ import {LogLevel} from '@app/classes/string';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
-import {AppSettingsService} from '@app/services/storage/app-settings.service';
 import {ClustersService} from '@app/services/storage/clusters.service';
 import {HostsService} from '@app/services/storage/hosts.service';
 
@@ -46,9 +45,10 @@ import {HostsService} from '@app/services/storage/hosts.service';
 })
 export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
 
-  constructor(private logsContainer: LogsContainerService, private settingsService: UserSettingsService,
-              private utils: UtilsService, private settingsStorage: AppSettingsService,
-              private clustersStorage: ClustersService, private hostsStorage: HostsService) {
+  constructor(
+    private logsContainer: LogsContainerService, private settingsService: UserSettingsService,
+    private utils: UtilsService, private clustersStorage: ClustersService, private hostsStorage: HostsService
+  ) {
   }
 
   ngOnInit() {
@@ -75,12 +75,25 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
 
   activeClusterName: string = '';
 
+  /**
+   * Configs for all clusters
+   */
   private configs: HomogeneousObject<LogIndexFilterComponentConfig[]>;
 
+  /**
+   * Configs for selected cluster
+   * @returns {LogIndexFilterComponentConfig[]}
+   */
   get activeClusterConfigs(): LogIndexFilterComponentConfig[] {
     return this.configs[this.activeClusterName];
   }
 
+  /**
+   * Select or unselect checkboxes for all log levels for given component
+   * @param {string} componentName
+   * @param {boolean} isChecked
+   * @param {boolean} isOverride - indicates whether levels for override are processed
+   */
   processAllLevelsForComponent(componentName: string, isChecked: boolean, isOverride: boolean = false): void {
     const componentConfig = this.getComponentConfigs(componentName),
       key = isOverride ? 'overrides' : 'defaults';
@@ -88,6 +101,11 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
     this.updateValue();
   }
 
+  /**
+   * Select or unselect checkboxes for all components for given log level
+   * @param {LogLevel} levelName
+   * @param {boolean} isChecked
+   */
   processAllComponentsForLevel(levelName: LogLevel, isChecked: boolean): void {
     this.activeClusterConfigs.forEach((component: LogIndexFilterComponentConfig): void => {
       component[levelName].defaults = isChecked;
@@ -96,12 +114,23 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
     this.updateValue();
   }
 
+  /**
+   * Indicates whether all log levels for given component are checked
+   * @param {string} componentName
+   * @param {string} isOverride - indicates whether levels for override are overviewed
+   * @returns {boolean}
+   */
   isAllLevelsCheckedForComponent(componentName: string, isOverride: boolean = false): boolean {
     const componentConfig = this.getComponentConfigs(componentName),
       key = isOverride ? 'overrides' : 'defaults';
     return this.levelNames.every((levelName: LogLevel): boolean => componentConfig[levelName][key]);
   }
 
+  /**
+   * Indicates whether all components for given log level are checked
+   * @param {LogLevel} levelName
+   * @returns {boolean}
+   */
   isAllComponentsCheckedForLevel(levelName: LogLevel): boolean {
     return this.activeClusterConfigs.every((component: LogIndexFilterComponentConfig): boolean => {
       return component[levelName].defaults;
@@ -121,7 +150,7 @@ export class LogIndexFilterComponent implements OnInit, ControlValueAccessor {
     componentConfig.expiryTime = time.toISOString();
   }
 
-  getComponentConfigs(componentName: string) {
+  private getComponentConfigs(componentName: string) {
     return this.activeClusterConfigs.find((component: LogIndexFilterComponentConfig): boolean => {
       return component.name === componentName;
     });

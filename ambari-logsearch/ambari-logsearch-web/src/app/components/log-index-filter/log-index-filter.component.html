@@ -22,8 +22,8 @@
 <table *ngIf="activeClusterName" class="table table-hover">
   <thead>
     <tr>
-      <th class="col-md-2">{{'filter.components' | translate}}</th>
-      <th *ngFor="let column of columns" class="col-md-1">
+      <th class="component-column">{{'filter.components' | translate}}</th>
+      <th *ngFor="let column of columns" class="checkbox-column">
         <input type="checkbox" attr.id="{{column.name}}"
                [attr.checked]="isAllComponentsCheckedForLevel(column.name) ? 'checked' : null"
                (change)="processAllComponentsForLevel(column.name, $event.target.checked)">
@@ -31,45 +31,48 @@
           <graph-legend-item label="{{column.label | translate}}" color="{{column.color}}"></graph-legend-item>
         </label>
       </th>
-      <th class="col-md-3">{{'logIndexFilter.override' | translate}}</th>
+      <th class="override-column">{{'logIndexFilter.override' | translate}}</th>
     </tr>
   </thead>
   <tbody>
     <ng-container *ngFor="let component of activeClusterConfigs">
       <tr>
-        <td>
+        <td class="component-column">
           <input type="checkbox" attr.id="{{component.name}}"
                  [attr.checked]="isAllLevelsCheckedForComponent(component.name) ? 'checked' : null"
                  (change)="processAllLevelsForComponent(component.name, $event.target.checked)">
           <label attr.for="{{component.name}}">{{component.label}}</label>
         </td>
-        <td *ngFor="let levelName of levelNames">
+        <td *ngFor="let levelName of levelNames" class="checkbox-column">
           <input type="checkbox" attr.id="{{getCheckBoxId(component.name, levelName)}}"
                  [(ngModel)]="component[levelName].defaults" (change)="updateValue()">
           <label attr.for="{{getCheckBoxId(component.name, levelName)}}">&nbsp;</label>
         </td>
-        <td>
+        <td class="override-column">
           <span class="overrides-toggle">{{'logIndexFilter.addHosts' | translate}}</span>
         </td>
       </tr>
       <tr> <!--overrides row -->
-        <td>
+        <td class="component-column">
           <input type="checkbox" attr.id="{{component.name}}_overrides"
                  [attr.checked]="isAllLevelsCheckedForComponent(component.name, true) ? 'checked' : null"
                  (change)="processAllLevelsForComponent(component.name, $event.target.checked, true)">
           <label attr.for="{{component.name}}_overrides">&nbsp;</label>
         </td>
-        <td *ngFor="let levelName of levelNames">
+        <td *ngFor="let levelName of levelNames" class="checkbox-column">
           <input type="checkbox" attr.id="{{getCheckBoxId(component.name, levelName, true)}}"
                  [(ngModel)]="component[levelName].overrides" (change)="updateValue()">
           <label attr.for="{{getCheckBoxId(component.name, levelName, true)}}">&nbsp;</label>
         </td>
-        <td>
-          <div class="col-md-12">
+        <td class="override-column">
+          <div class="col-md-12 row">
             <div class="col-md-6">
               <div class="text-uppercase">{{'logIndexFilter.hostname' | translate}}</div>
-              <input type="text" class="form-control" [(ngModel)]="component.hosts" (change)="updateValue()"
-                     [typeahead]="hosts | async" typeaheadOptionField="name">
+              <input type="text" class="form-control" [(ngModel)]="component.hosts" (change)="updateValue()">
+              <!-- TODO implement typeahead similar to search box
+                   (some functionality and appearance most likely will be shared) -->
+              <!-- <input type="text" class="form-control" [(ngModel)]="component.hosts" (change)="updateValue()"
+                     [typeahead]="hosts | async" typeaheadOptionField="name"> -->
             </div>
             <div class=" col-md-6">
               <div class="text-uppercase">{{'logIndexFilter.expiryDate' | translate}}</div>

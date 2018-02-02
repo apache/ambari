@@ -18,6 +18,7 @@
 
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TranslationModules} from '@app/test-config.spec';
 import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
@@ -38,7 +39,9 @@ import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HistoryManagerService} from '@app/services/history-manager.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {UserSettingsService} from '@app/services/user-settings.service';
 import {UtilsService} from '@app/services/utils.service';
+import {ModalComponent} from '@app/components/modal/modal.component';
 
 import {ActionMenuComponent} from './action-menu.component';
 
@@ -57,6 +60,8 @@ describe('ActionMenuComponent', () => {
     };
     TestBed.configureTestingModule({
       imports: [
+        FormsModule,
+        ReactiveFormsModule,
         ...TranslationModules,
         StoreModule.provideStore({
           auditLogs,
@@ -74,7 +79,10 @@ describe('ActionMenuComponent', () => {
           tabs
         })
       ],
-      declarations: [ActionMenuComponent],
+      declarations: [
+        ActionMenuComponent,
+        ModalComponent
+      ],
       providers: [
         {
           provide: HttpClientService,
@@ -82,6 +90,7 @@ describe('ActionMenuComponent', () => {
         },
         HistoryManagerService,
         LogsContainerService,
+        UserSettingsService,
         UtilsService,
         AuditLogsService,
         ServiceLogsService,

@@ -22,6 +22,26 @@ table {
   display: block;
   max-height: 70vh;
   overflow-y: auto;
+  table-layout: fixed;
+
+  .component-column {
+    width: auto;
+  }
+
+  .checkbox-column {
+    width: 100px;
+    padding-left: 0;
+    padding-right: 0;
+
+    /deep/ graph-legend-item {
+      padding-right: 1px;
+    }
+  }
+
+  .override-column {
+    width: 32%;
+    padding-right: 0;
+  }
 
   .overrides-toggle {
     .clickable-item;
