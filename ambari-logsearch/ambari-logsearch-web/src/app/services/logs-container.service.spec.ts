@@ -35,6 +35,7 @@ import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {LogsContainerService} from './logs-container.service';
 
@@ -85,7 +86,8 @@ describe('LogsContainerService', () => {
         {
           provide: HttpClientService,
           useValue: httpClient
-        }
+        },
+        UtilsService
       ]
     });
   });

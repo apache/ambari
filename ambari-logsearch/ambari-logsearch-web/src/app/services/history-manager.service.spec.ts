@@ -16,12 +16,9 @@
  * limitations under the License.
  */
 
-import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {FormsModule} from '@angular/forms';
-import {StoreModule} from '@ngrx/store';
+import {TestBed, inject} from '@angular/core/testing';
 import {TranslationModules} from '@app/test-config.spec';
-import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {StoreModule} from '@ngrx/store';
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
@@ -34,40 +31,29 @@ import {AppSettingsService, appSettings} from '@app/services/storage/app-setting
 import {AppStateService, appState} from '@app/services/storage/app-state.service';
 import {ClustersService, clusters} from '@app/services/storage/clusters.service';
 import {ComponentsService, components} from '@app/services/storage/components.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {ComponentGeneratorService} from '@app/services/component-generator.service';
-import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
-import {AuthService} from '@app/services/auth.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
 import {UtilsService} from '@app/services/utils.service';
-import {DropdownListComponent} from '@app/components/dropdown-list/dropdown-list.component';
 
-import {ContextMenuComponent} from './context-menu.component';
+import {HistoryManagerService} from './history-manager.service';
 
-describe('ContextMenuComponent', () => {
-  let component: ContextMenuComponent;
-  let fixture: ComponentFixture<ContextMenuComponent>;
-
-  const httpClient = {
-    get: () => {
-      return {
-        subscribe: () => {
+describe('HistoryService', () => {
+  beforeEach(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
         }
       }
-    }
-  };
-
-  beforeEach(async(() => {
+    };
     TestBed.configureTestingModule({
-      declarations: [
-        ContextMenuComponent,
-        DropdownListComponent
-      ],
       imports: [
         ...TranslationModules,
         StoreModule.provideStore({
-          hosts,
           auditLogs,
           serviceLogs,
           auditLogsFields,
@@ -78,19 +64,19 @@ describe('ContextMenuComponent', () => {
           appState,
           clusters,
           components,
+          hosts,
           serviceLogsTruncated,
           tabs
-        }),
-        FormsModule
+        })
       ],
       providers: [
-        ComponentGeneratorService,
-        LogsContainerService,
+        HistoryManagerService,
         {
           provide: HttpClientService,
           useValue: httpClient
         },
-        HostsService,
+        LogsContainerService,
+        UtilsService,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,
@@ -101,23 +87,84 @@ describe('ContextMenuComponent', () => {
         AppStateService,
         ClustersService,
         ComponentsService,
+        HostsService,
         ServiceLogsTruncatedService,
-        TabsService,
-        AuthService,
-        UtilsService
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
-    .compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ContextMenuComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+        TabsService
+      ]
+    });
   });
 
-  it('should create component', () => {
-    expect(component).toBeTruthy();
+  it('should be created', inject([HistoryManagerService], (service: HistoryManagerService) => {
+    expect(service).toBeTruthy();
+  }));
+
+  describe('#isHistoryUnchanged()', () => {
+    const cases = [
+      {
+        valueA: {
+          p0: 'v0',
+          p1: ['v1'],
+          p2: {
+            k2: 'v2'
+          }
+        },
+        valueB: {
+          p0: 'v0',
+          p1: ['v1'],
+          p2: {
+            k2: 'v2'
+          }
+        },
+        result: true,
+        title: 'no difference'
+      },
+      {
+        valueA: {
+          p0: 'v0',
+          p1: ['v1'],
+          p2: {
+            k2: 'v2'
+          },
+          page: 0
+        },
+        valueB: {
+          p0: 'v0',
+          p1: ['v1'],
+          p2: {
+            k2: 'v2'
+          },
+          page: 1
+        },
+        result: true,
+        title: 'difference in ignored parameters'
+      },
+      {
+        valueA: {
+          p0: 'v0',
+          p1: ['v1'],
+          p2: {
+            k2: 'v2'
+          },
+          page: 0
+        },
+        valueB: {
+          p0: 'v0',
+          p1: ['v3'],
+          p2: {
+            k2: 'v4'
+          },
+          page: 1
+        },
+        result: false,
+        title: 'difference in non-ignored parameters'
+      }
+    ];
+
+    cases.forEach(test => {
+      it(test.title, inject([HistoryManagerService], (service: HistoryManagerService) => {
+        const isHistoryUnchanged: (valueA: object, valueB: object) => boolean = service['isHistoryUnchanged'];
+        expect(isHistoryUnchanged(test.valueA, test.valueB)).toEqual(test.result);
+      }));
+    });
   });
 });

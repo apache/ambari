@@ -23,6 +23,7 @@ import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/timer';
 import 'rxjs/add/observable/combineLatest';
+import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/takeUntil';
@@ -63,14 +64,13 @@ import {CommonEntry} from '@app/classes/models/common-entry';
 export class LogsContainerService {
 
   constructor(
-    private httpClient: HttpClientService, private utils: UtilsService, private tabsStorage: TabsService,
-    private componentsStorage: ComponentsService, private hostsStorage: HostsService, private appState: AppStateService,
-    private auditLogsStorage: AuditLogsService, private auditLogsGraphStorage: AuditLogsGraphDataService,
-    private auditLogsFieldsStorage: AuditLogsFieldsService, private serviceLogsStorage: ServiceLogsService,
-    private serviceLogsFieldsStorage: ServiceLogsFieldsService,
+    private httpClient: HttpClientService, private utils: UtilsService,
+    private tabsStorage: TabsService, private componentsStorage: ComponentsService, private hostsStorage: HostsService,
+    private appState: AppStateService, private auditLogsStorage: AuditLogsService,
+    private auditLogsGraphStorage: AuditLogsGraphDataService, private auditLogsFieldsStorage: AuditLogsFieldsService,
+    private serviceLogsStorage: ServiceLogsService, private serviceLogsFieldsStorage: ServiceLogsFieldsService,
     private serviceLogsHistogramStorage: ServiceLogsHistogramDataService, private clustersStorage: ClustersService,
     private serviceLogsTruncatedStorage: ServiceLogsTruncatedService, private appSettings: AppSettingsService
-
   ) {
     const formItems = Object.keys(this.filters).reduce((currentObject: any, key: string): HomogeneousObject<FormControl> => {
       let formControl = new FormControl(),
@@ -106,17 +106,20 @@ export class LogsContainerService {
         });
       }
       this.loadLogs();
-      this.filtersForm.valueChanges.takeUntil(this.filtersFormChange).subscribe((value: object): void => {
-        this.tabsStorage.mapCollection((tab: Tab): Tab => {
-          const currentAppState = tab.appState || {},
-            appState = Object.assign({}, currentAppState, tab.isActive ? {
-              activeFilters: value
-            } : null);
-          return Object.assign({}, tab, {
-            appState
+      this.filtersForm.valueChanges
+        .distinctUntilChanged(this.isFormUnchanged)
+        .takeUntil(this.filtersFormChange)
+        .subscribe((value): void => {
+          this.tabsStorage.mapCollection((tab: Tab): Tab => {
+            const currentAppState = tab.appState || {},
+              appState = Object.assign({}, currentAppState, tab.isActive ? {
+                activeFilters: value
+              } : null);
+            return Object.assign({}, tab, {
+              appState
+            });
           });
-        });
-        this.loadLogs();
+          this.loadLogs();
       });
     });
   }
@@ -169,6 +172,7 @@ export class LogsContainerService {
       fieldName: 'cluster'
     },
     timeRange: {
+      label: 'filter.duration',
       options: [
         [
           {
@@ -489,7 +493,12 @@ export class LogsContainerService {
     page: {
       defaultSelection: 0
     },
-    query: {}
+    query: {
+      defaultSelection: []
+    },
+    isUndoOrRedo: {
+      defaultSelection: false
+    }
   };
 
   private readonly filtersMapping = {
@@ -513,6 +522,8 @@ export class LogsContainerService {
     hosts: ['hostList'],
     query: ['includeQuery', 'excludeQuery']
   };
+
+  readonly customTimeRangeKey: string = 'filter.timeRange.custom';
 
   readonly topResourcesCount: string = '10';
 
@@ -575,7 +586,7 @@ export class LogsContainerService {
 
   activeLogsType: LogsType;
 
-  private filtersFormChange: Subject<void> = new Subject();
+  filtersFormChange: Subject<void> = new Subject();
 
   private columnsMapper<FieldT extends LogField>(fields: FieldT[]): ListItem[] {
     return fields.filter((field: FieldT): boolean => field.isAvailable).map((field: FieldT): ListItem => {
@@ -630,6 +641,16 @@ export class LogsContainerService {
   topUsersGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
 
   topResourcesGraphData: HomogeneousObject<HomogeneousObject<number>> = {};
+
+  private isFormUnchanged = (valueA: object, valueB: object): boolean => {
+    const trackedControlNames = this.logsTypeMap[this.activeLogsType].listFilters;
+    for (let name of trackedControlNames) {
+      if (!this.utils.isEqual(valueA[name], valueB[name])) {
+        return false;
+      }
+    }
+    return true;
+  };
 
   loadLogs = (logsType: LogsType = this.activeLogsType): void => {
     this.httpClient.get(logsType, this.getParams('listFilters')).subscribe((response: Response): void => {
@@ -974,7 +995,7 @@ export class LogsContainerService {
 
   setCustomTimeRange(startTime: number, endTime: number): void {
     this.filtersForm.controls.timeRange.setValue({
-      label: 'filter.timeRange.custom',
+      label: this.customTimeRangeKey,
       value: {
         type: 'CUSTOM',
         start: moment(startTime),

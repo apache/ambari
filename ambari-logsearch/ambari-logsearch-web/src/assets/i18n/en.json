@@ -4,6 +4,8 @@
   "common.auditLogs": "Audit Logs",
   "common.summary": "Summary",
   "common.logs": "Logs",
+  "common.name": "Name",
+  "common.value": "Value",
   "common.settings": "Settings",
 
   "modal.submit": "OK",
@@ -29,8 +31,10 @@
   "filter.clusters": "Clusters",
   "filter.components": "Components",
   "filter.levels": "Levels",
+  "filter.include": "Include",
   "filter.exclude": "Exclude",
   "filter.hosts": "Hosts",
+  "filter.duration": "Duration",
 
   "filter.capture": "Capture",
   "filter.capture.triggeringRefresh": "Triggering auto-refresh in {{remainingSeconds}} sec",

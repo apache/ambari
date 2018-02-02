@@ -29,11 +29,11 @@ import {UserSettingsService} from '@app/services/user-settings.service';
 })
 export class TimeZonePickerComponent implements OnInit {
 
-  constructor(private settingsStorage: AppSettingsService, private settingsService: UserSettingsService) {
+  constructor(private appSettings: AppSettingsService, private settingsService: UserSettingsService) {
   }
 
   ngOnInit() {
-    this.settingsStorage.getParameter('timeZone').subscribe((value: string) => this.timeZone = value);
+    this.appSettings.getParameter('timeZone').subscribe((value: string) => this.timeZone = value);
   }
 
   readonly mapElementId = 'timezone-map';

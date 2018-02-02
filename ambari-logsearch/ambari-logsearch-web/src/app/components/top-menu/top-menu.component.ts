@@ -59,7 +59,7 @@ export class TopMenuComponent {
       subItems: [
         {
           label: 'common.settings',
-          onClick: this.openSettings,
+          onSelect: this.openSettings,
           iconClass: 'fa fa-cog'
         },
         {
@@ -67,7 +67,7 @@ export class TopMenuComponent {
         },
         {
           label: 'authorization.logout',
-          action: this.logout,
+          onSelect: this.logout,
           iconClass: 'fa fa-sign-out'
         }
       ]

@@ -39,6 +39,7 @@ import {ComponentGeneratorService} from '@app/services/component-generator.servi
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {AuthService} from '@app/services/auth.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {DropdownListComponent} from './dropdown-list.component';
 
@@ -96,7 +97,8 @@ describe('DropdownListComponent', () => {
         ComponentsService,
         ServiceLogsTruncatedService,
         TabsService,
-        AuthService
+        AuthService,
+        UtilsService
       ]
     })
     .compileComponents();

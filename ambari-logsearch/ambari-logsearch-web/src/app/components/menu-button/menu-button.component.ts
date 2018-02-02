@@ -75,8 +75,14 @@ export class MenuButtonComponent {
   @Input()
   maxLongClickDelay: number = 0;
 
+  @Input()
+  listClass: string = '';
+
   @Output()
   buttonClick: EventEmitter<void> = new EventEmitter();
+
+  @Output()
+  selectItem: EventEmitter<ListItem> = new EventEmitter();
 
   /**
    * This is a private property to indicate the mousedown timestamp, so that we can check it when teh click event
@@ -203,7 +209,7 @@ export class MenuButtonComponent {
   }
 
   updateSelection(options: ListItem) {
-    // TODO implement value change behaviour
+    this.selectItem.emit(options);
   }
 
 }

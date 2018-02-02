@@ -21,6 +21,7 @@ import {HostsService} from '@app/services/storage/hosts.service';
 import {ComponentsService} from '@app/services/storage/components.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {NodeBarComponent} from '@app/components/node-bar/node-bar.component';
+import {HistoryItemControlsComponent} from '@app/components/history-item-controls/history-item-controls.component';
 import {LogLevelObject} from '@app/classes/object';
 
 @Injectable()
@@ -78,6 +79,11 @@ export class ComponentGeneratorService {
         }
       }
     });
+  }
+
+  getHistoryItemIcons(historyItem, container: ViewContainerRef): void {
+    // TODO implement View details and Save filter actions
+    this.createComponent(HistoryItemControlsComponent, container);
   }
 
 }

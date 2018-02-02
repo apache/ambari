@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-export interface ListItem {
-  id?: string | number;
-  label?: string;
-  value: any;
-  iconClass?: string;
-  isChecked?: boolean;
-  onSelect?: Function;
-  isDivider?: boolean;
+import {Component} from '@angular/core';
+
+@Component({
+  selector: 'history-item-controls',
+  templateUrl: './history-item-controls.component.html',
+  styleUrls: ['./history-item-controls.component.less']
+})
+export class HistoryItemControlsComponent {
+  // TODO implement View details and Save filter actions
 }

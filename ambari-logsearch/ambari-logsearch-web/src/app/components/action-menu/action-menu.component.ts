@@ -1,4 +1,4 @@
-  /**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,7 +19,9 @@
 import {Component} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 import {LogsContainerService} from '@app/services/logs-container.service';
+import {HistoryManagerService} from '@app/services/history-manager.service';
 import {UserSettingsService} from '@app/services/user-settings.service';
+import {ListItem} from '@app/classes/list-item';
 
 @Component({
   selector: 'action-menu',
@@ -28,112 +30,23 @@ import {UserSettingsService} from '@app/services/user-settings.service';
 })
 export class ActionMenuComponent {
 
-  constructor(private logsContainer: LogsContainerService, private settings: UserSettingsService) {
+  constructor(
+    private logsContainer: LogsContainerService, private historyManager: HistoryManagerService,
+    private settings: UserSettingsService
+  ) {
   }
 
-  undo() {
+  get undoItems(): ListItem[] {
+    return this.historyManager.undoItems;
   }
 
-  redo() {
+  get redoItems(): ListItem[] {
+    return this.historyManager.redoItems;
   }
 
-  openHistory() {
+  get historyItems(): ListItem[] {
+    return this.historyManager.activeHistory;
   }
-
-  openLogIndexFilter = (): void => {
-    this.isLogIndexFilterDisplayed = true;
-  };
-
-  closeLogIndexFilter(): void {
-    this.isLogIndexFilterDisplayed = false;
-  }
-
-  saveLogIndexFilter(): void {
-    this.isLogIndexFilterDisplayed = false;
-    this.settings.saveIndexFilterConfig();
-  }
-
-  refresh = (): void => {
-    this.logsContainer.loadLogs();
-  };
-
-  //TODO implement history items
-  readonly items = [
-    {
-      iconClass: 'fa fa-arrow-left',
-      label: 'topMenu.undo',
-      onClick: this.undo,
-      subItems: [
-        {
-          label: 'Apply \'Last week\' filter'
-        },
-        {
-          label: 'Clear all filters'
-        },
-        {
-          label: 'Apply \'HDFS\' filter'
-        },
-        {
-          label: 'Apply \'Errors\' filter'
-        }
-      ]
-    },
-    {
-      iconClass: 'fa fa-arrow-right',
-      label: 'topMenu.redo',
-      onClick: this.redo,
-      subItems: [
-        {
-          label: 'Apply \'Warnings\' filter'
-        },
-        {
-          label: 'Switch to graph mode'
-        },
-        {
-          label: 'Apply \'Custom Date\' filter'
-        }
-      ]
-    },
-    {
-      iconClass: 'fa fa-history',
-      label: 'topMenu.history',
-      onClick: this.openHistory,
-      isRightAlign: true,
-      subItems: [
-        {
-          label: 'Apply \'Custom Date\' filter'
-        },
-        {
-          label: 'Switch to graph mode'
-        },
-        {
-          label: 'Apply \'Warnings\' filter'
-        },
-        {
-          label: 'Apply \'Last week\' filter'
-        },
-        {
-          label: 'Clear all filters'
-        },
-        {
-          label: 'Apply \'HDFS\' filter'
-        },
-        {
-          label: 'Apply \'Errors\' filter'
-        }
-      ]
-    },
-    {
-      iconClass: 'fa fa-filter',
-      label: 'topMenu.filter',
-      onClick: this.openLogIndexFilter
-    },
-    {
-      iconClass: 'fa fa-refresh',
-      label: 'topMenu.refresh',
-      onClick: this.refresh
-    }
-  ];
 
   isLogIndexFilterDisplayed: boolean = false;
 
@@ -143,6 +56,39 @@ export class ActionMenuComponent {
 
   setModalSubmitDisabled(isDisabled: boolean): void {
     this.isModalSubmitDisabled = isDisabled;
+  }
+
+  undoLatest(): void {
+    this.historyManager.undo(this.undoItems[0]);
+  }
+
+  redoLatest(): void {
+    this.historyManager.redo(this.redoItems[0]);
+  }
+
+  undo(item: ListItem): void {
+    this.historyManager.undo(item);
+  }
+
+  redo(item: ListItem): void {
+    this.historyManager.redo(item);
+  }
+
+  refresh(): void {
+    this.logsContainer.loadLogs();
+  }
+
+  openLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = true;
+  }
+
+  closeLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = false;
+  }
+
+  saveLogIndexFilter(): void {
+    this.isLogIndexFilterDisplayed = false;
+    this.settings.saveIndexFilterConfig();
   }
 
 }

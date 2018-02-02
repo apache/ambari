@@ -16,12 +16,28 @@
  * limitations under the License.
  */
 
-export interface ListItem {
-  id?: string | number;
-  label?: string;
-  value: any;
-  iconClass?: string;
-  isChecked?: boolean;
-  onSelect?: Function;
-  isDivider?: boolean;
-}
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+
+import {HistoryItemControlsComponent} from './history-item-controls.component';
+
+describe('HistoryItemControlsComponent', () => {
+  let component: HistoryItemControlsComponent;
+  let fixture: ComponentFixture<HistoryItemControlsComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [HistoryItemControlsComponent]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(HistoryItemControlsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+});

@@ -28,7 +28,7 @@
                          [isRightAlign]="true"></filter-dropdown>
       </form>
       <dropdown-button label="{{'logs.columns' | translate}}" [options]="columns" [isRightAlign]="true"
-                       [isMultipleChoice]="true" action="updateSelectedColumns"
+                       [isMultipleChoice]="true" (selectItem)="updateSelectedColumns($event)"
                        [listItemArguments]="logsTypeMapObject.fieldsModel">
       </dropdown-button>
       <div class="layout-btn-group">

@@ -49,9 +49,6 @@ export class DropdownButtonComponent {
   options: ListItem[] = [];
 
   @Input()
-  action?: string;
-
-  @Input()
   listItemArguments: any[] = [];
 
   @Input()

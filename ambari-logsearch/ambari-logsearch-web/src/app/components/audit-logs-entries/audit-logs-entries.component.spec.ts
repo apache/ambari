@@ -37,6 +37,7 @@ import {TabsService, tabs} from '@app/services/storage/tabs.service';
 import {TabsComponent} from '@app/components/tabs/tabs.component';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {HttpClientService} from '@app/services/http-client.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {AuditLogsEntriesComponent} from './audit-logs-entries.component';
 
@@ -82,6 +83,7 @@ describe('AuditLogsEntriesComponent', () => {
           provide: HttpClientService,
           useValue: httpClient
         },
+        UtilsService,
         AuditLogsService,
         ServiceLogsService,
         AuditLogsFieldsService,

@@ -23,13 +23,13 @@
       <label [attr.for]="item.id || item.value" class="label-container">
         <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
         {{item.label | translate}}
-        <div #additionalComponent></div>
+        <span #additionalComponent></span>
       </label>
     </label>
     <span class="list-item-label label-container" *ngIf="!isMultipleChoice" (click)="changeSelectedItem(item)">
       <span *ngIf="item.iconClass" [ngClass]="item.iconClass"></span>
       {{item.label | translate}}
-      <div #additionalComponent></div>
+      <span #additionalComponent></span>
     </span>
   </ng-container>
 </li>

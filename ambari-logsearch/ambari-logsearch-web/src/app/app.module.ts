@@ -56,6 +56,7 @@ import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-field
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuthService} from '@app/services/auth.service';
+import {HistoryManagerService} from '@app/services/history-manager.service';
 import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
@@ -95,6 +96,7 @@ import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip
 import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
 import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
 import {ContextMenuComponent} from '@app/components/context-menu/context-menu.component';
+import {HistoryItemControlsComponent} from '@app/components/history-item-controls/history-item-controls.component';
 import {LogIndexFilterComponent} from '@app/components/log-index-filter/log-index-filter.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
@@ -159,6 +161,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     GraphLegendItemComponent,
     TimeLineGraphComponent,
     ContextMenuComponent,
+    HistoryItemControlsComponent,
     LogIndexFilterComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
@@ -208,10 +211,14 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       useFactory: getXHRBackend,
       deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
     },
-    AuthService
+    AuthService,
+    HistoryManagerService
   ],
   bootstrap: [AppComponent],
-  entryComponents: [NodeBarComponent],
+  entryComponents: [
+    NodeBarComponent,
+    HistoryItemControlsComponent
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {
