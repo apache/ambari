@@ -201,6 +201,32 @@ CREATE TABLE repo_version (
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
   CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
 
+CREATE TABLE repo_os (
+  id BIGINT NOT NULL,
+  repo_version_id BIGINT NOT NULL,
+  family VARCHAR(255) NOT NULL DEFAULT '',
+  ambari_managed SMALLINT DEFAULT 1,
+  CONSTRAINT PK_repo_os_id PRIMARY KEY (id));
+  CONSTRAINT FK_repo_os_id_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
+
+CREATE TABLE repo_definition (
+  id BIGINT NOT NULL,
+  repo_os_id BIGINT,
+  repo_name VARCHAR(255) NOT NULL,
+  repo_id VARCHAR(255) NOT NULL,
+  base_url VARCHAR(2048) NOT NULL,
+  distribution VARCHAR(2048),
+  components VARCHAR(2048),
+  unique_repo SMALLINT DEFAULT 1,
+  mirrors VARCHAR(2048),
+  CONSTRAINT PK_repo_definition_id PRIMARY KEY (id));
+  CONSTRAINT FK_repo_definition_repo_os_id FOREIGN KEY (repo_os_id) REFERENCES repo_os (id));
+
+CREATE TABLE repo_tag_states (
+  repo_definition_id BIGINT NOT NULL,
+  tag_state VARCHAR(255) NOT NULL,
+  CONSTRAINT FK_repo_tag_id_repo_definition_id FOREIGN KEY (repo_definition_id) REFERENCES repo_definition (id));
+
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,

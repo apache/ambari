@@ -17,20 +17,20 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -52,12 +52,18 @@ public class RepoDefinitionEntity {
   private static final Logger LOG = LoggerFactory.getLogger(RepoDefinitionEntity.class);
 
   @Id
-  @Column(name = "repo_definition_id", nullable = false)
+  @Column(name = "id", nullable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "repo_definition_id_generator")
   private Long id;
 
+  @Enumerated(value = EnumType.STRING)
+  @ElementCollection(targetClass = RepoTag.class)
+  @CollectionTable(name = "repo_tag_states", joinColumns = @JoinColumn(name = "repo_definition_id"))
+  @Column(name = "tag_state")
+  private Set<RepoTag> repoTags = new HashSet<>();
+
   @ManyToOne
-  @JoinColumn(name = "repo_os_id", referencedColumnName = "repo_os_id", nullable = false)
+  @JoinColumn(name = "repo_os_id", referencedColumnName = "id", nullable = false)
   private RepoOsEntity repoOs;
 
   @Column(name = "repo_name", nullable = false)
@@ -81,23 +87,6 @@ public class RepoDefinitionEntity {
   @Column(name = "unique_repo", nullable = false)
   private short unique = 0;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "repoDefinitionEntity")
-  private List<RepoTagEntity> repoTagEntities = new ArrayList<>();
-
-  public List<RepoTagEntity> getRepoTagEntities() {
-    return repoTagEntities;
-  }
-
-  public void addRepoTagEntities(List<RepoTagEntity> repoTagEntities) {
-    for (RepoTagEntity repoTagEntity : repoTagEntities) {
-      addRepoTagEntity(repoTagEntity);
-    }
-  }
-
-  public void addRepoTagEntity(RepoTagEntity repoTagEntity) {
-    repoTagEntities.add(repoTagEntity);
-    repoTagEntity.setRepoDefinitionEntity(this);
-  }
 
 
   public String getDistribution() {
@@ -173,16 +162,10 @@ public class RepoDefinitionEntity {
   }
 
   public Set<RepoTag> getTags() {
-    Set<RepoTag> repoTags = new HashSet<>();
-    for (RepoTagEntity repoTagEntity : repoTagEntities) {
-      repoTags.add(RepoTag.valueOf(repoTagEntity.getTag()));
-    }
     return repoTags;
   }
 
-  public void setTags(Set<RepoTag> tags) {
-    for (RepoTag tag : tags) {
-      addRepoTagEntity(new RepoTagEntity(tag.name()));
-    }
+  public void setTags(Set<RepoTag> repoTags) {
+    this.repoTags = repoTags;
   }
 }

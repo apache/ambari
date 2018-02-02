@@ -211,65 +211,6 @@ public class RepositoryVersionHelper {
     return operatingSystems;
   }
 
-  /**
-   * Serializes repository info to json for storing to DB.
-   * Produces json like:
-   * <pre>
-   * [
-   *    {
-   *       "repositories":[
-   *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
-   *             "Repositories/repo_name":"HDP-UTILS",
-   *             "Repositories/repo_id":"HDP-UTILS-1.1.0.20"
-   *          },
-   *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
-   *             "Repositories/repo_name":"HDP",
-   *             "Repositories/repo_id":"HDP-2.2"
-   *          }
-   *       ],
-   *       "OperatingSystems/os_type":"redhat6"
-   *    }
-   * ]
-   * </pre>
-   *
-   * @param repositories list of repository infos
-   * @return serialized list of operating systems
-   */
-  public String serializeOperatingSystems(List<RepositoryInfo> repositories) {
-    final JsonArray rootJson = new JsonArray();
-    final Multimap<String, RepositoryInfo> operatingSystems = ArrayListMultimap.create();
-    for (RepositoryInfo repository: repositories) {
-      operatingSystems.put(repository.getOsType(), repository);
-    }
-    for (Entry<String, Collection<RepositoryInfo>> operatingSystem : operatingSystems.asMap().entrySet()) {
-      final JsonObject operatingSystemJson = new JsonObject();
-      final JsonArray repositoriesJson = new JsonArray();
-      for (RepositoryInfo repository : operatingSystem.getValue()) {
-        final JsonObject repositoryJson = new JsonObject();
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, repository.getBaseUrl());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, repository.getRepoName());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, repository.getRepoId());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID, repository.getDistribution());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID, repository.getComponents());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
-        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
-
-        // add the tags even if there are none
-        JsonArray tags = gson.toJsonTree(repository.getTags()).getAsJsonArray();
-        repositoryJson.add(RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID, tags);
-
-        repositoriesJson.add(repositoryJson);
-        operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, repository.isAmbariManagedRepositories());
-      }
-      operatingSystemJson.add(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID, repositoriesJson);
-      operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, operatingSystem.getKey());
-      rootJson.add(operatingSystemJson);
-    }
-    return gson.toJson(rootJson);
-  }
-
   public List<RepoOsEntity> createRepoOsEntities(List<RepositoryInfo> repositories) {
 
     List<RepoOsEntity> repoOsEntities = new ArrayList<>();

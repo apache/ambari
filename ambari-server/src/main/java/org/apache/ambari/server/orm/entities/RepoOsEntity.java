@@ -48,7 +48,7 @@ public class RepoOsEntity {
   private static final Logger LOG = LoggerFactory.getLogger(RepoOsEntity.class);
 
   @Id
-  @Column(name = "repo_os_id", nullable = false)
+  @Column(name = "id", nullable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "repo_os_id_generator")
   private Long id;
 
