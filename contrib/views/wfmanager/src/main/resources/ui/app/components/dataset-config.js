@@ -62,6 +62,12 @@ export default Ember.Component.extend(Validations, {
     this.get('timeUnitOptions').pushObject({value:'cron',displayName:'Cron'});
     this.set('childComponents', new Map());
     this.set('timezoneList', Ember.copy(Constants.timezoneList));
+    if(!this.get('dataset.doneFlag')){
+      this.set('dataset.doneFlag', {
+        type : 'default',
+        value : ''
+      });
+    }
   }.on('init'),
   validateChildComponents(){
     var isChildComponentsValid = true;
@@ -98,6 +104,10 @@ export default Ember.Component.extend(Validations, {
     },
     cancelDatasetOperation(){
       this.sendAction('cancel');
+    },
+    clearDoneFlag(){
+      this.set('dataset.doneFlag.value', '');
+      this.set('dataset.doneFlag.type', 'default');
     }
   }
 });

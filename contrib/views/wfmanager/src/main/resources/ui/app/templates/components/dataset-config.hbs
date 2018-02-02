@@ -58,6 +58,26 @@
     </div>
   </div>
   <div class="form-group">
+    <label for="" class="control-label col-xs-2">Done Flag
+      {{#if required}}
+        <span class="requiredField">&nbsp;*</span>
+      {{/if}}
+    </label>
+    <div class="col-xs-7">
+      <div class="input-group">
+        <div class="input-group-btn">
+          <button onclick={{action 'clearDoneFlag'}} type="button" class="btn btn-default {{if (eq dataset.doneFlag.type 'default') 'btn-secondary' ''}} scope-btn">
+            Default
+          </button>
+          <button onclick={{action (mut dataset.doneFlag.type) "custom"}} type="button" class="btn btn-default {{if (eq dataset.doneFlag.type 'custom') 'btn-secondary' ''}} scope-btn">
+            Custom
+          </button>
+        </div>
+        {{input type="text" class="form-control" name="done-flag" value=dataset.doneFlag.value placeholder='Done Flag' disabled=(eq dataset.doneFlag.type 'default')}}
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
     <div class="col-xs-7 pull-right">
       <button id="dataset-add-btn" {{action 'cancelDatasetOperation'}} type="button" class="btn btn-default">Cancel</button>
       {{#if createMode}}
