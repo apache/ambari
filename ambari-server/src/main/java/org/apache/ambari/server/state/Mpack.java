@@ -245,9 +245,6 @@ public class Mpack {
     if (this.description == null) {
       this.description = mpack.getDescription();
     }
-    if (this.prerequisites == null) {
-      this.prerequisites = mpack.getPrerequisites();
-    }
     if (this.modules == null) {
       this.modules = mpack.getModules();
     }

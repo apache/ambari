@@ -997,7 +997,7 @@ public interface AmbariManagementController {
    * Fetch all mpacks
    * @return
    */
-  Collection<MpackResponse> getMpacks();
+  Set<MpackResponse> getMpacks();
 
   /***
    * Fetch an mpack based on id

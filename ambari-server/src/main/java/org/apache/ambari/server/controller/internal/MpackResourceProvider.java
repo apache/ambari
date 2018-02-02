@@ -109,6 +109,7 @@ public class MpackResourceProvider extends AbstractControllerResourceProvider {
     PROPERTY_IDS.add(MPACK_NAME);
     PROPERTY_IDS.add(MPACK_VERSION);
     PROPERTY_IDS.add(MPACK_URI);
+    PROPERTY_IDS.add(MPACK_DESC);
     PROPERTY_IDS.add(MODULES);
     PROPERTY_IDS.add(STACK_NAME_PROPERTY_ID);
     PROPERTY_IDS.add(STACK_VERSION_PROPERTY_ID);

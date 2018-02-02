@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.Mpack;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -426,9 +427,9 @@ public class MpackManager {
       stackName = mpack.getName();
       stackVersion = mpack.getVersion();
     } else {
-      String[] stackMetaData = stackId.split("-");
-      stackName = stackMetaData[0];
-      stackVersion = stackMetaData[1];
+      StackId id = new StackId(stackId);
+      stackName = id.getStackName();
+      stackVersion = id.getStackVersion();
     }
     File stack = new File(stackRoot + "/" + stackName);
     Path stackPath = Paths.get(stackRoot + "/" + stackName + "/" + stackVersion);
@@ -535,9 +536,9 @@ public class MpackManager {
       stackName = mpack.getName();
       stackVersion = mpack.getVersion();
     } else {
-      String[] stackMetaData = stackId.split("-");
-      stackName = stackMetaData[0];
-      stackVersion = stackMetaData[1];
+      StackId id = new StackId(stackId);
+      stackName = id.getStackName();
+      stackVersion = id.getStackVersion();
     }
 
     StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
@@ -564,12 +565,8 @@ public class MpackManager {
    * @return list of {@link Module}
    */
   public List<Module> getModules(Long mpackId) {
-
     Mpack mpack = mpackMap.get(mpackId);
-    if (mpack.getModules() != null) {
-      return mpack.getModules();
-    }
-    return null;
+    return mpack.getModules();
   }
 
   /***
