@@ -10,7 +10,7 @@
     "ambari_db_rca_password": "mapred",
     "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
     "jce_name": "UnlimitedJCEPolicyJDK7.zip",
-    "stack_version": "2.6.5.0",
+    "stack_version": "2.6.99.99",
     "stack_name": "HDP",
     "ambari_db_rca_driver": "org.postgresql.Driver",
     "jdk_name": "jdk-7u67-linux-x64.tar.gz",
@@ -24,7 +24,7 @@
   "serviceName": "SLIDER",
   "role": "SLIDER",
   "commandParams": {
-    "version": "2.6.5.0-1235",
+    "version": "2.6.99.99-1235",
     "command_timeout": "300",
     "service_package_folder": "OOZIE",
     "script_type": "PYTHON",
