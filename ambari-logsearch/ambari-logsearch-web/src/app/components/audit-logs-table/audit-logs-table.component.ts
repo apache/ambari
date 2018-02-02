@@ -36,9 +36,7 @@ export class AuditLogsTableComponent extends LogsTableComponent {
 
   readonly timeFormat: string = 'YYYY-MM-DD HH:mm:ss,SSS';
 
-  get logsTypeMapObject(): object {
-    return this.logsContainer.logsTypeMap.auditLogs;
-  }
+  private readonly logsType: string = 'auditLogs';
 
   get filters(): any {
     return this.logsContainer.filters;
@@ -50,6 +48,10 @@ export class AuditLogsTableComponent extends LogsTableComponent {
 
   getColumnByName(name: string): ListItem | undefined {
     return this.columns.find((column: ListItem): boolean => column.value === name);
+  }
+
+  updateSelectedColumns(columns: string[]): void {
+    this.logsContainer.updateSelectedColumns(columns, this.logsType);
   }
 
 }

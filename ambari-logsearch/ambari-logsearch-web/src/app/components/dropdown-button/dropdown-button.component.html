@@ -16,16 +16,20 @@
 -->
 
 <div [ngClass]="{'dropup': isDropup}">
-  <button [ngClass]="['btn', 'btn-link', 'dropdown-toggle', buttonClass]" data-toggle="dropdown">
-    <span *ngIf="iconClass || label"
-          [ngClass]="{'filter-label': true, 'plain': !isMultipleChoice && !hideCaret && showSelectedValue}">
-      <span *ngIf="iconClass" [ngClass]="iconClass"></span>
-      <span *ngIf="label">{{label}}</span>
+  <button [ngClass]="['btn', 'dropdown-toggle', buttonClass]" data-toggle="dropdown">
+    <span class="filter-label">
+      <span *ngIf="iconClass || label" [class.plain]="!isMultipleChoice && !hideCaret && showSelectedValue">
+        <span *ngIf="iconClass" [ngClass]="iconClass"></span>
+        <span *ngIf="label && (!selection.length || isMultipleChoice || showCommonLabelWithSelection)"
+              [class.label-before-selection]="isSelectionDisplayable">
+          {{label}}
+        </span>
+      </span>
+      <span *ngIf="isSelectionDisplayable">{{selection[0].label | translate}}</span>
+      <span *ngIf="!hideCaret" class="caret"></span>
     </span>
-    <span *ngIf="showSelectedValue && !isMultipleChoice && selection.length">{{selection[0].label | translate}}</span>
-    <span *ngIf="!hideCaret" class="caret"></span>
   </button>
   <ul data-component="dropdown-list" [ngClass]="{'dropdown-menu': true, 'dropdown-menu-right': isRightAlign}"
       [items]="options" [isMultipleChoice]="isMultipleChoice" (selectedItemChange)="updateSelection($event)"
-      [actionArguments]="additionalArgs"></ul>
+      [actionArguments]="listItemArguments"></ul>
 </div>

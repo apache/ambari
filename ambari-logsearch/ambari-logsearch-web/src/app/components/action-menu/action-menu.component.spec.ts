@@ -19,6 +19,26 @@
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {TranslationModules} from '@app/test-config.spec';
+import {StoreModule} from '@ngrx/store';
+import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
+import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {AuditLogsFieldsService, auditLogsFields} from '@app/services/storage/audit-logs-fields.service';
+import {AuditLogsGraphDataService, auditLogsGraphData} from '@app/services/storage/audit-logs-graph-data.service';
+import {ServiceLogsFieldsService, serviceLogsFields} from '@app/services/storage/service-logs-fields.service';
+import {
+  ServiceLogsHistogramDataService, serviceLogsHistogramData
+} from '@app/services/storage/service-logs-histogram-data.service';
+import {AppSettingsService, appSettings} from '@app/services/storage/app-settings.service';
+import {AppStateService, appState} from '@app/services/storage/app-state.service';
+import {ClustersService, clusters} from '@app/services/storage/clusters.service';
+import {ComponentsService, components} from '@app/services/storage/components.service';
+import {HostsService, hosts} from '@app/services/storage/hosts.service';
+import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
+import {TabsService, tabs} from '@app/services/storage/tabs.service';
+import {HistoryManagerService} from '@app/services/history-manager.service';
+import {HttpClientService} from '@app/services/http-client.service';
+import {LogsContainerService} from '@app/services/logs-container.service';
+import {UtilsService} from '@app/services/utils.service';
 
 import {ActionMenuComponent} from './action-menu.component';
 
@@ -27,9 +47,56 @@ describe('ActionMenuComponent', () => {
   let fixture: ComponentFixture<ActionMenuComponent>;
 
   beforeEach(async(() => {
+    const httpClient = {
+      get: () => {
+        return {
+          subscribe: () => {
+          }
+        }
+      }
+    };
     TestBed.configureTestingModule({
-      imports: TranslationModules,
+      imports: [
+        ...TranslationModules,
+        StoreModule.provideStore({
+          auditLogs,
+          serviceLogs,
+          auditLogsFields,
+          auditLogsGraphData,
+          serviceLogsFields,
+          serviceLogsHistogramData,
+          appSettings,
+          appState,
+          clusters,
+          components,
+          hosts,
+          serviceLogsTruncated,
+          tabs
+        })
+      ],
       declarations: [ActionMenuComponent],
+      providers: [
+        {
+          provide: HttpClientService,
+          useValue: httpClient
+        },
+        HistoryManagerService,
+        LogsContainerService,
+        UtilsService,
+        AuditLogsService,
+        ServiceLogsService,
+        AuditLogsFieldsService,
+        AuditLogsGraphDataService,
+        ServiceLogsFieldsService,
+        ServiceLogsHistogramDataService,
+        AppSettingsService,
+        AppStateService,
+        ClustersService,
+        ComponentsService,
+        HostsService,
+        ServiceLogsTruncatedService,
+        TabsService
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })
     .compileComponents();

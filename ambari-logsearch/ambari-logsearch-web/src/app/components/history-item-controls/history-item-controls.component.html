@@ -15,14 +15,6 @@
   limitations under the License.
 -->
 
-<div class="pull-right">
-  <form [formGroup]="filtersForm" class="filters">
-    <filter-dropdown *ngIf="isClustersFilterDisplayed" formControlName="clusters" [options]="filters.clusters.options"
-                     [isMultipleChoice]="true" label="{{filters.clusters.label | translate}}" [isRightAlign]="true"
-                     buttonClass="btn-link inherited-color"></filter-dropdown>
-  </form>
-  <menu-button *ngFor="let item of items" label="{{item.label | translate}}" [iconClass]="item.iconClass"
-               [labelClass]="item.labelClass" [subItems]="item.subItems" [hideCaret]="item.hideCaret"
-               [badge]="item.badge" [isRightAlign]="item.isRightAlign">
-  </menu-button>
-</div>
+<!-- TODO implement View details and Save filter actions -->
+<span class="fa fa-info-circle"></span>
+<span class="fa fa-floppy-o"></span>

@@ -35,7 +35,6 @@ import {ServiceInjector} from '@app/classes/service-injector';
 
 import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {UtilsService} from '@app/services/utils.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
@@ -57,6 +56,7 @@ import {ServiceLogsFieldsService} from '@app/services/storage/service-logs-field
 import {AuditLogsFieldsService} from '@app/services/storage/audit-logs-fields.service';
 import {TabsService} from '@app/services/storage/tabs.service';
 import {AuthService} from '@app/services/auth.service';
+import {HistoryManagerService} from '@app/services/history-manager.service';
 import {reducer} from '@app/services/storage/reducers.service';
 
 import {AppComponent} from '@app/components/app.component';
@@ -96,6 +96,7 @@ import {GraphTooltipComponent} from '@app/components/graph-tooltip/graph-tooltip
 import {GraphLegendItemComponent} from '@app/components/graph-legend-item/graph-legend-item.component';
 import {TimeLineGraphComponent} from '@app/components/time-line-graph/time-line-graph.component';
 import {ContextMenuComponent} from '@app/components/context-menu/context-menu.component';
+import {HistoryItemControlsComponent} from '@app/components/history-item-controls/history-item-controls.component';
 
 import {TimeZoneAbbrPipe} from '@app/pipes/timezone-abbr.pipe';
 import {TimerSecondsPipe} from '@app/pipes/timer-seconds.pipe';
@@ -159,6 +160,7 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
     GraphLegendItemComponent,
     TimeLineGraphComponent,
     ContextMenuComponent,
+    HistoryItemControlsComponent,
     TimeZoneAbbrPipe,
     TimerSecondsPipe
   ],
@@ -183,7 +185,6 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
   ],
   providers: [
     HttpClientService,
-    ComponentActionsService,
     UtilsService,
     LogsContainerService,
     ComponentGeneratorService,
@@ -208,10 +209,14 @@ export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSR
       useFactory: getXHRBackend,
       deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
     },
-    AuthService
+    AuthService,
+    HistoryManagerService
   ],
   bootstrap: [AppComponent],
-  entryComponents: [NodeBarComponent],
+  entryComponents: [
+    NodeBarComponent,
+    HistoryItemControlsComponent
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {

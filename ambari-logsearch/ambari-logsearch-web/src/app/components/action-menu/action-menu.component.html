@@ -14,7 +14,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<menu-button *ngFor="let item of items" label="{{item.label | translate}}" [action]="item.action"
-             [iconClass]="item.iconClass" [labelClass]="item.labelClass" [subItems]="item.subItems"
-             [hideCaret]="item.hideCaret" [badge]="item.badge" [isRightAlign]="item.isRightAlign">
-</menu-button>
+
+<!-- TODO use listClass="history-dropdown" for custom styling -->
+<menu-button label="{{'topMenu.undo' | translate}}" [subItems]="undoItems" iconClass="fa fa-arrow-left"
+             listClass="history-dropdown" (buttonClick)="undoLatest()" (selectItem)="undo($event)"></menu-button>
+<menu-button label="{{'topMenu.redo' | translate}}" [subItems]="redoItems" iconClass="fa fa-arrow-right"
+             listClass="history-dropdown" (buttonClick)="redoLatest()" (selectItem)="redo($event)">></menu-button>
+<menu-button label="{{'topMenu.history' | translate}}" [subItems]="historyItems" iconClass="fa fa-history"
+             listClass="history-dropdown" [isRightAlign]="true"
+             additionalLabelComponentSetter="getHistoryItemIcons"></menu-button>
+<menu-button label="{{'topMenu.refresh' | translate}}" iconClass="fa fa-refresh"
+             (buttonClick)="refresh()"></menu-button>

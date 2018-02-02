@@ -34,7 +34,6 @@ import {
 } from '@app/services/storage/service-logs-histogram-data.service';
 import {ServiceLogsTruncatedService, serviceLogsTruncated} from '@app/services/storage/service-logs-truncated.service';
 import {TabsService, tabs} from '@app/services/storage/tabs.service';
-import {ComponentActionsService} from '@app/services/component-actions.service';
 import {HttpClientService} from '@app/services/http-client.service';
 import {LogsContainerService} from '@app/services/logs-container.service';
 import {AuthService} from '@app/services/auth.service';
@@ -94,7 +93,6 @@ describe('TimeZonePickerComponent', () => {
         ServiceLogsHistogramDataService,
         ServiceLogsTruncatedService,
         TabsService,
-        ComponentActionsService,
         {
           provide: HttpClientService,
           useValue: httpClient
